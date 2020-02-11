@@ -228,7 +228,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>winmm.lib; sfml-system-s.lib; opengl32.lib; gdi32.lib; sfml-window-s.lib;freetype.lib; jpeg.lib; sfml-graphics-s.lib; kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib; sfml-system-s.lib; ws2_32.lib; sfml-network-s.lib;opengl32.lib; gdi32.lib; sfml-window-s.lib;freetype.lib; jpeg.lib; sfml-graphics-s.lib; kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\Z_Libraries\SFML-2.5.1\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -266,7 +266,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>winmm.lib; sfml-system-s-d.lib; opengl32.lib; gdi32.lib; sfml-window-s-d.lib; freetype.lib; jpeg.lib; sfml-graphics-s-d.lib; kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib; sfml-system-s-d.lib; ws2_32.lib; sfml-network-s-d.lib;opengl32.lib; gdi32.lib; sfml-window-s-d.lib; freetype.lib; jpeg.lib; sfml-graphics-s-d.lib; kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\Z_Libraries\SFML-2.5.1\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -316,7 +316,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>winmm.lib; sfml-system-s-d.lib; opengl32.lib; gdi32.lib; sfml-window-s-d.lib; freetype.lib; jpeg.lib; sfml-graphics-s-d.lib; kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib; sfml-system-s-d.lib; ws2_32.lib; sfml-network-s-d.lib;opengl32.lib; gdi32.lib; sfml-window-s-d.lib; freetype.lib; jpeg.lib; sfml-graphics-s-d.lib; kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\Z_Libraries\SFML-2.5.1-x64\lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -370,7 +370,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>winmm.lib; sfml-system-s.lib; opengl32.lib; gdi32.lib; sfml-window-s.lib;freetype.lib; jpeg.lib; sfml-graphics-s.lib; kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib; sfml-system-s.lib; ws2_32.lib; sfml-network-s.lib;opengl32.lib; gdi32.lib; sfml-window-s.lib;freetype.lib; jpeg.lib; sfml-graphics-s.lib; kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\Z_Libraries\SFML-2.5.1-x64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
