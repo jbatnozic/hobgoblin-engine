@@ -24,6 +24,7 @@ class QAO_Base;
 
 class QAO_Runtime : NO_COPY, NO_MOVE {
 public:
+    QAO_Runtime();
     ~QAO_Runtime();
 
     // Object manipulation

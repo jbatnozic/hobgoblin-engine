@@ -3,11 +3,21 @@
 #include <Hobgoblin_include/QAO/runtime.hpp>
 
 #include <cassert>
+#include <limits>
 
 #include <Hobgoblin_include/Private/pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_START
 namespace qao {
+
+constexpr std::int64_t MIN_STEP_ORDINAL = std::numeric_limits<std::int64_t>::min();
+
+QAO_Runtime::QAO_Runtime()
+    : _step_counter{MIN_STEP_ORDINAL + 1}
+    , _current_event{QAO_Event::NoEvent}
+    , _step_orderer_iterator{_orderer.end()}
+{
+}
 
 QAO_Runtime::~QAO_Runtime() {
     for (int i = 0; i < _registry.size(); i += 1) {
@@ -28,7 +38,7 @@ detail::QAO_SerialIndexPair QAO_Runtime::addObjectImpl(std::unique_ptr<QAO_Base>
     object_raw->_internal_setRuntime(this, PASSKEY);
     object_raw->_internal_setThisId(QAO_GenericId{this, reg_pair.serial, reg_pair.index}, PASSKEY);
     object_raw->_internal_setOrdererIterator(ord_pair.first, PASSKEY);
-    object_raw->_internal_setStepOrdinal(-1, PASSKEY);
+    object_raw->_internal_setStepOrdinal(MIN_STEP_ORDINAL, PASSKEY);
 
     return reg_pair;
 }
@@ -44,7 +54,7 @@ detail::QAO_SerialIndexPair QAO_Runtime::addObjectNoOwnImpl(QAO_Base& object) {
     object_raw->_internal_setRuntime(this, PASSKEY);
     object_raw->_internal_setThisId(QAO_GenericId{this, reg_pair.serial, reg_pair.index}, PASSKEY);
     object_raw->_internal_setOrdererIterator(ord_pair.first, PASSKEY);
-    object_raw->_internal_setStepOrdinal(-1, PASSKEY);
+    object_raw->_internal_setStepOrdinal(MIN_STEP_ORDINAL, PASSKEY);
 
     return reg_pair;
 }
@@ -126,6 +136,10 @@ QAO_Event::Enum QAO_Runtime::getCurrentEvent() {
 }
 
 // Other
+
+int QAO_Runtime::getObjectCount() const noexcept {
+    return _registry.instanceCount();
+}
 
 void QAO_Runtime::setUserData(QAO_UserData* user_data) {
     _user_data = user_data;
