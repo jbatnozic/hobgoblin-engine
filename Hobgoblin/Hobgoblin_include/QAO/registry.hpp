@@ -1,6 +1,7 @@
 #ifndef UHOBGOBLIN_QAO_REGISTRY_HPP
 #define UHOBGOBLIN_QAO_REGISTRY_HPP
 
+#include <Hobgoblin_include/common.hpp>
 #include <Hobgoblin_include/QAO/config.hpp>
 #include <Hobgoblin_include/Utility/SlabIndexer.hpp>
 
@@ -20,17 +21,17 @@ namespace detail {
 
 class QAO_Registry {
 public:
-    QAO_Registry(int capacity = 1);
+    QAO_Registry(PZInteger capacity = 1);
 
     QAO_SerialIndexPair insert(std::unique_ptr<QAO_Base> ptr);
     QAO_SerialIndexPair insertNoOwn(QAO_Base* ptr);
-    std::unique_ptr<QAO_Base> release(int index);
+    std::unique_ptr<QAO_Base> release(PZInteger index);
     void erase(int index);
 
-    int size() const;
+    PZInteger size() const;
     QAO_Base* objectAt(int index) const;
     std::int64_t serialAt(int index) const;
-    int instanceCount() const;
+    PZInteger instanceCount() const;
     bool isSlotEmpty(int index) const;
 
 private:

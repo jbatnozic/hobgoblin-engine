@@ -1,6 +1,8 @@
 #ifndef UHOBGOBLIN_QAO_ID_HPP
 #define UHOBGOBLIN_QAO_ID_HPP
 
+#include <Hobgoblin_include/common.hpp>
+
 #include <cstdint>
 
 #include <Hobgoblin_include/Private/pmacro_define.hpp>
@@ -32,7 +34,7 @@ public:
     QAO_GenericId& operator=(QAO_GenericId &&other) = default;
 
     // Utility:
-    int getIndex() const noexcept;
+    PZInteger getIndex() const noexcept;
     std::int64_t getSerial() const noexcept;
     bool isNull() const noexcept;
 
@@ -45,7 +47,7 @@ protected:
 
 private:
     std::int64_t _serial;
-    int _index;
+    PZInteger _index;
 };
 
 template <class T>
@@ -68,7 +70,7 @@ public:
 
 protected:
     friend class QAO_GenericId;
-    QAO_Id(std::int64_t serial, int index)
+    QAO_Id(std::int64_t serial, PZInteger index)
         : QAO_GenericId{serial, index} 
     {
     }

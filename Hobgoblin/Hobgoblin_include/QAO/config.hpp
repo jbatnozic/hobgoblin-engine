@@ -1,14 +1,17 @@
 #ifndef UHOBGOBLIN_QAO_CONFIG_HPP
 #define UHOBGOBLIN_QAO_CONFIG_HPP
 
+#include <Hobgoblin_include/common.hpp>
+
 #include <cstdint>
+#include <limits>
 
 #include <Hobgoblin_include/Private/pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_START
 namespace qao {
 
-static constexpr int QAO_NULL_INDEX = -1;
+static constexpr PZInteger QAO_NULL_INDEX = std::numeric_limits<PZInteger>::max();
 static constexpr std::int64_t QAO_NULL_SERIAL = -1;
 static constexpr std::int64_t QAO_MIN_SERIAL = 0;
 
@@ -32,7 +35,7 @@ namespace detail {
 
 struct QAO_SerialIndexPair {
     std::int64_t serial;
-    int index;
+    PZInteger index;
 };
 
 } // namespace detail

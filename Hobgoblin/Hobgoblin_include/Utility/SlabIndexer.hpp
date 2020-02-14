@@ -1,6 +1,8 @@
 #ifndef SLAB_INDEXER_HPP
 #define SLAB_INDEXER_HPP
 
+#include <Hobgoblin_include/common.hpp>
+
 #include <cassert>
 #include <vector>
 #include <stdexcept>
@@ -16,7 +18,7 @@ class SlabIndexer {
 // TODO This class is a mess
 public:
     // Construction
-    SlabIndexer(std::size_t capacity = 1u);
+    SlabIndexer(PZInteger capacity = 1u);
 
     SlabIndexer(const SlabIndexer& other);
     SlabIndexer(SlabIndexer&& other);
@@ -26,14 +28,14 @@ public:
 
     // Main
     std::size_t acquire();
-    bool tryAcquireSpecific(std::size_t slot);
-    void free(std::size_t slot);
+    bool tryAcquireSpecific(PZInteger slot);
+    void free(PZInteger slot);
 
     // Utility
-    bool isSlotEmpty(std::size_t slot) const;
-    void resize(std::size_t new_size);
+    bool isSlotEmpty(PZInteger slot) const;
+    void resize(PZInteger new_size);
     void markAllAsEmpty();
-    void reserve(std::size_t _size);
+    void reserve(PZInteger _size);
     void resizeToMin();
     void shrinkToFit();
 
@@ -87,27 +89,27 @@ private:
 
 // PUBLIC METHOD IMPLEMENTATION: //////////////////////////////////////////
 inline
-SlabIndexer::SlabIndexer(std::size_t capacity)
+SlabIndexer::SlabIndexer(PZInteger capacity)
     : _elements{}
 {
-    if (capacity < 1u) capacity = 1u;
+    if (capacity < 1) capacity = 1;
 
     _elements.resize(capacity);
 
     resetEmptyList();
     resetFilledList();
 
-    std::size_t i = capacity;
+    PZInteger i = capacity;
     do {
         
-        i -= 1u;
+        i -= 1;
 
-        Elem * elem = &(_elements[i]);
+        Elem* elem = &(_elements[i]);
         elem->empty = true;
 
         pushOntoEmptyList(i);
 
-    } while (i > 0u);
+    } while (i > 0);
     
 }
 
@@ -179,9 +181,9 @@ std::size_t SlabIndexer::acquire() {
 }
 
 inline
-bool SlabIndexer::tryAcquireSpecific(std::size_t slot) {
+bool SlabIndexer::tryAcquireSpecific(PZInteger slot) {
         
-    if (slot >= _elements.size()) resize(slot + 1u);
+    if (slot >= static_cast<PZInteger>(_elements.size())) resize(slot + 1);
 
     if (!isSlotEmpty(slot)) {
         return false;
@@ -199,7 +201,7 @@ bool SlabIndexer::tryAcquireSpecific(std::size_t slot) {
 }
 
 inline
-void SlabIndexer::free(std::size_t slot) {
+void SlabIndexer::free(PZInteger slot) {
         
     if (isSlotEmpty(slot)) {
         throw std::logic_error(CURRENT_FUNCTION ": Slot is already empty!");
@@ -215,19 +217,19 @@ void SlabIndexer::free(std::size_t slot) {
 }
 
 inline
-bool SlabIndexer::isSlotEmpty(std::size_t slot) const {
+bool SlabIndexer::isSlotEmpty(PZInteger slot) const {
     return (_elements.at(slot).empty);
 }
 
 inline
-void SlabIndexer::resize(std::size_t new_size) {
+void SlabIndexer::resize(PZInteger new_size) {
         
-    if (new_size < 1u) new_size = 1u;
+    if (new_size < 1) new_size = 1;
 
-    if (new_size > _elements.size()) {
+    if (new_size > static_cast<PZInteger>(_elements.size())) {
         upsize(new_size);
     }
-    else if (new_size < _elements.size()) {
+    else if (new_size < static_cast<PZInteger>(_elements.size())) {
         downsize(new_size);
     }
 
@@ -253,7 +255,7 @@ void SlabIndexer::markAllAsEmpty() {
 }
 
 inline
-void SlabIndexer::reserve(std::size_t _size) {
+void SlabIndexer::reserve(PZInteger _size) {
     _elements.reserve(_size);
 }
 

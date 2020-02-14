@@ -11,8 +11,8 @@ HOBGOBLIN_NAMESPACE_START
 namespace qao {
 namespace detail {
 
-QAO_Registry::QAO_Registry(int capacity)
-    : _indexer{static_cast<std::size_t>(capacity)}
+QAO_Registry::QAO_Registry(PZInteger capacity)
+    : _indexer{capacity}
     , _elements{capacity}  
     , _serial_counter{QAO_MIN_SERIAL}
 {

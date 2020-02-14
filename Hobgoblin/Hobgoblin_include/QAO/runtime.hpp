@@ -1,6 +1,7 @@
 #ifndef UHOBGOBLIN_QAO_RUNTIME_HPP
 #define UHOBGOBLIN_QAO_RUNTIME_HPP
 
+#include <Hobgoblin_include/common.hpp>
 #include <Hobgoblin_include/QAO/config.hpp>
 #include <Hobgoblin_include/QAO/id.hpp>
 #include <Hobgoblin_include/QAO/orderer.hpp>
@@ -56,7 +57,7 @@ public:
     // Other
     void setUserData(QAO_UserData* user_data);
     QAO_UserData* getUserData() const noexcept;  
-    int getObjectCount() const noexcept;
+    PZInteger getObjectCount() const noexcept;
 
     // TODO Orderer iterations
 

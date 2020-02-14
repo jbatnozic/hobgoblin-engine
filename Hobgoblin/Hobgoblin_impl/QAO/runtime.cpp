@@ -188,7 +188,7 @@ QAO_Event::Enum QAO_Runtime::getCurrentEvent() {
 
 // Other
 
-int QAO_Runtime::getObjectCount() const noexcept {
+PZInteger QAO_Runtime::getObjectCount() const noexcept {
     return _registry.instanceCount();
 }
 

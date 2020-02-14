@@ -429,7 +429,7 @@
     <ClCompile Include="Hobgoblin_impl\Utility\Rect.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Hobgoblin_include\Common.hpp" />
+    <ClInclude Include="Hobgoblin_include\common.hpp" />
     <ClInclude Include="Hobgoblin_include\Macros.hpp" />
     <ClInclude Include="Hobgoblin_include\Private\pmacro_define.hpp" />
     <ClInclude Include="Hobgoblin_include\Private\pmacro_undef.hpp" />

@@ -12,7 +12,7 @@
 HOBGOBLIN_NAMESPACE_START
 namespace qao {
 
-QAO_GenericId::QAO_GenericId(std::int64_t serial, int index)
+QAO_GenericId::QAO_GenericId(std::int64_t serial, PZInteger index)
     : _serial{serial}
     , _index{index}
 {

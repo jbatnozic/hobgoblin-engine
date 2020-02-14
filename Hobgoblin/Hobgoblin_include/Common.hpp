@@ -4,7 +4,7 @@
 
 HOBGOBLIN_NAMESPACE_START
 
-using Natural = int;
+using PZInteger = int;
 
 HOBGOBLIN_NAMESPACE_END
 
