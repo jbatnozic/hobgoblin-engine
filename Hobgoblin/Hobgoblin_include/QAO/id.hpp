@@ -12,18 +12,16 @@ class QAO_Base;
 class QAO_Registry;
 class QAO_Runtime;
 
+template <class T>
+class QAO_Id;
+
 class QAO_GenericId {
 public:
     QAO_GenericId();
-    QAO_GenericId(const QAO_Base* obj);
-    QAO_GenericId(const QAO_Base& obj);
     QAO_GenericId(std::nullptr_t p);
 
     bool operator==(const QAO_GenericId& other) const;
     bool operator!=(const QAO_GenericId& other) const;
-
-    QAO_Base* operator->() const;
-    QAO_Base& operator*() const;
 
     // Copy:
     QAO_GenericId(const QAO_GenericId &other) = default;
@@ -34,22 +32,18 @@ public:
     QAO_GenericId& operator=(QAO_GenericId &&other) = default;
 
     // Utility:
-    QAO_Base* ptr() const;
     int getIndex() const noexcept;
     std::int64_t getSerial() const noexcept;
-    QAO_Runtime* getRuntime() const noexcept;
+    bool isNull() const noexcept;
 
-    template <class T>
-    T* castPtr() const {
-        return static_cast<T*>(ptr());
-    }
+    template<class T>
+    QAO_Id<T> cast() const noexcept;
 
 protected:
     friend class QAO_Runtime;
-    QAO_GenericId(QAO_Runtime* runtime, std::int64_t serial, int index);
+    QAO_GenericId(std::int64_t serial, int index);
 
 private:
-    QAO_Runtime* _runtime;
     std::int64_t _serial;
     int _index;
 };
@@ -58,8 +52,6 @@ template <class T>
 class QAO_Id : public QAO_GenericId {
 public:
     QAO_Id(): QAO_GenericId() { }
-    QAO_Id(const T& obj): QAO_GenericId(obj) { }
-    QAO_Id(const T* obj): QAO_GenericId(obj) { }
     QAO_Id(std::nullptr_t p): QAO_GenericId(p) { }
 
     // Copy:
@@ -71,21 +63,22 @@ public:
     QAO_Id& operator=(QAO_Id &&other) = default;
 
     operator QAO_GenericId() {
-        return QAO_GenericId{_runtime, _serial, _index};
+        return QAO_GenericId{_serial, _index};
     }
 
-    T* ptr() const {
-        return static_cast<T*>(QAO_GenericId::ptr());
+protected:
+    friend class QAO_GenericId;
+    QAO_Id(std::int64_t serial, int index)
+        : QAO_GenericId{serial, index} 
+    {
     }
 
-    T& operator*() const {
-        return (*ptr());
-    }
-
-    T* operator->() const {     
-        return ptr();
-    }
 };
+
+template<class T>
+QAO_Id<T> QAO_GenericId::cast() const noexcept {
+    return QAO_Id<T>{_serial, _index};
+}
 
 }
 HOBGOBLIN_NAMESPACE_END

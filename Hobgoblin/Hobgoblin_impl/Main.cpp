@@ -25,7 +25,7 @@ public:
         std::cout << "Something\n";
     }
 
-    void eventUpdate() override {
+    void eventUpdate(QAO_Runtime& rt) override {
         std::cout << "Derived " << _number1 << '\n';
     }
 
@@ -63,24 +63,24 @@ int main() {
     */
 
     {
-        QAO_Runtime runtime;
+        QAO_Runtime rt;
         Derived stack_derived{-1};
-        runtime.addObjectNoOwn(stack_derived);
-        auto obj_1 = QAO_Create<Derived>(runtime, 1);
-        auto obj_2 = QAO_Create<Derived>(runtime, 2);
-        auto obj_3 = QAO_Create<Derived>(runtime, 3);
+        rt.addObjectNoOwn(stack_derived);
+        auto obj_1 = QAO_Create<Derived>(rt, 1);
+        auto obj_2 = QAO_Create<Derived>(rt, 2);
+        auto obj_3 = QAO_Create<Derived>(rt, 3);
         
         bool done;
-        runtime.startStep();
-        runtime.advanceStep(done);
+        rt.startStep();
+        rt.advanceStep(done);
         assert(done);
 
         obj_3->setExecutionPriority(5);
 
-        auto uPtr = runtime.releaseObject(obj_2);
+        auto uPtr = rt.releaseObject(obj_2->getId());
 
-        runtime.startStep();
-        runtime.advanceStep(done);
+        rt.startStep();
+        rt.advanceStep(done);
         assert(done);
 
         uPtr.reset();

@@ -4,6 +4,8 @@
 
 HOBGOBLIN_NAMESPACE_START
 
+using Natural = int;
+
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin_include/Private/pmacro_undef.hpp>

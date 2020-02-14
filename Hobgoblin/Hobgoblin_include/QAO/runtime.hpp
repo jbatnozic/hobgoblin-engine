@@ -29,16 +29,24 @@ public:
 
     // Object manipulation
     template <class T>
-    QAO_Id<T> addObject(std::unique_ptr<T> object);
+    T* addObject(std::unique_ptr<T> object);
 
     template <class T>
-    QAO_Id<T> addObjectNoOwn(T& object);
+    T* addObjectNoOwn(T& object);
 
-    std::unique_ptr<QAO_Base> releaseObject(const QAO_GenericId& id);
-    void eraseObject(const QAO_GenericId& id);
+    std::unique_ptr<QAO_Base> releaseObject(QAO_GenericId id);
+    std::unique_ptr<QAO_Base> releaseObject(QAO_Base* obj);
+    void eraseObject(QAO_GenericId id);
+    void eraseObject(QAO_Base* obj);
 
-    QAO_Base* findObjectWithName(const std::string& name) const;
-    QAO_Base* findObjectWithId(const QAO_GenericId& id) const;
+    QAO_Base* find(const std::string& name) const;
+    QAO_Base* find(QAO_GenericId id) const;
+
+    template<class T>
+    T* find(QAO_Id<T> id) const;
+
+    void updateExecutionPriorityForObject(QAO_GenericId id, int new_priority);
+    void updateExecutionPriorityForObject(QAO_Base* object, int new_priority);
 
     // Execution
     void startStep();
@@ -47,12 +55,10 @@ public:
 
     // Other
     void setUserData(QAO_UserData* user_data);
-    QAO_UserData* getUserData() const noexcept;
-    // TODO Orderer iterations
+    QAO_UserData* getUserData() const noexcept;  
     int getObjectCount() const noexcept;
 
-    // Internal methods are not part of API
-    void _internal_updateExecutionPriorityForObject(QAO_Base& object, int new_priority, util::Passkey<QAO_Base>);
+    // TODO Orderer iterations
 
 private:
     detail::QAO_Registry _registry;
@@ -62,20 +68,23 @@ private:
     QAO_OrdererIterator _step_orderer_iterator;
     QAO_UserData* _user_data;
 
-    detail::QAO_SerialIndexPair addObjectImpl(std::unique_ptr<QAO_Base> object);
-    detail::QAO_SerialIndexPair addObjectNoOwnImpl(QAO_Base& object);
+    QAO_Base* addObjectImpl(std::unique_ptr<QAO_Base> object);
+    QAO_Base* addObjectNoOwnImpl(QAO_Base& object);
 };
 
 template <class T>
-QAO_Id<T> QAO_Runtime::addObject(std::unique_ptr<T> object) {
-    const auto pair = addObjectImpl(std::move(object));
-    return QAO_GenericId{this, pair.serial, pair.index}.castPtr<T>();
+T* QAO_Runtime::addObject(std::unique_ptr<T> object) {
+    return static_cast<T*>(addObjectImpl(std::move(object)));
 }
 
 template <class T>
-QAO_Id<T> QAO_Runtime::addObjectNoOwn(T& object) {
-    const auto pair = addObjectNoOwnImpl(object);
-    return QAO_GenericId{this, pair.serial, pair.index}.castPtr<T>();
+T* QAO_Runtime::addObjectNoOwn(T& object) {
+    return static_cast<T*>(addObjectNoOwnImpl(object));
+}
+
+template<class T>
+T* QAO_Runtime::find(QAO_Id<T> id) const {
+    return static_cast<T>(find(QAO_GenericId{id}));
 }
 
 } // namespace qao

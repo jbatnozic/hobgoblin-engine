@@ -35,7 +35,7 @@ public:
 
     using QAO_Base::setExecutionPriority;
 
-    void eventUpdate() override {
+    void eventUpdate(QAO_Runtime& rt) override {
         _myVec.push_back(_myNumber);
     }
 
@@ -89,4 +89,12 @@ TEST_F(QAO_Test, OrderingTest) {
     ASSERT_EQ(_numbers[0], VALUE_2);
     ASSERT_EQ(_numbers[1], VALUE_1);
     ASSERT_EQ(_numbers[2], VALUE_0);
+}
+
+TEST_F(QAO_Test, DestroyTest) {
+    auto obj = QAO_Create<SimpleActiveObject>(_runtime, _numbers, 0);
+    ASSERT_EQ(_runtime.getObjectCount(), 1);
+
+    QAO_Destroy(obj);
+    ASSERT_EQ(_runtime.getObjectCount(), 0);
 }

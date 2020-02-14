@@ -4,6 +4,7 @@
 #include <Hobgoblin_include/QAO/id.hpp>
 #include <Hobgoblin_include/QAO/runtime.hpp>
 
+#include <cassert>
 #include <utility>
 
 #include <Hobgoblin_include/Private/pmacro_define.hpp>
@@ -12,15 +13,15 @@ HOBGOBLIN_NAMESPACE_START
 namespace qao {
 
 template <class T, class ... Args>
-inline QAO_Id<T> QAO_Create(QAO_Runtime& runtime, Args&&... args) {
+T* QAO_Create(QAO_Runtime& runtime, Args&&... args) {
 	return runtime.addObject(std::make_unique<T>(std::forward<Args>(args)...));
 }
 
-inline void QAO_Destroy(const QAO_GenericId& id) {
-    QAO_Runtime* runtime = id.getRuntime();
-    if (runtime) {
-        runtime->eraseObject(id);
-    }
+inline void QAO_Destroy(QAO_Base* obj) {
+    assert(obj);
+    QAO_Runtime* runtime = obj->getRuntime();
+    assert(runtime);
+    runtime->eraseObject(obj->getId());
 }
 
 } // namespace qao

@@ -31,28 +31,29 @@ public:
     void setName(const std::string& name);
     std::string getName() const;
 
+    QAO_GenericId getId() const noexcept;
+
     virtual QAO_Base* clone() const;
 
     // TODO Give common prefix to passkey-restricted methods
     // Internal methods are not part of API
-    void _internal_callEvent(QAO_Event::Enum ev, util::Passkey<QAO_Runtime>);
+    void _internal_callEvent(QAO_Event::Enum ev, QAO_Runtime& rt, util::Passkey<QAO_Runtime>);
     void _internal_setOrdererIterator(QAO_OrdererIterator orderer_iterator, util::Passkey<QAO_Runtime>);
     void _internal_setExecutionPriority(int priority, util::Passkey<QAO_Runtime>);
     std::int64_t _internal_getStepOrdinal(util::Passkey<QAO_Runtime>) const noexcept;
     void _internal_setStepOrdinal(std::int64_t step_oridinal, util::Passkey<QAO_Runtime>);
     void _internal_setRuntime(QAO_Runtime* runtime, util::Passkey<QAO_Runtime>);
     void _internal_setThisId(QAO_GenericId id, util::Passkey<QAO_Runtime>);
-    QAO_GenericId _internal_getThisId(util::Passkey<QAO_GenericId>) const noexcept;
 
 protected:
-    virtual void eventFrameStart() { }
-    virtual void eventPreUpdate()  { }
-    virtual void eventUpdate()     { }
-    virtual void eventPostUpdate() { }
-    virtual void eventDraw1()      { }
-    virtual void eventDraw2()      { }
-    virtual void eventDrawGUI()    { }
-    virtual void eventFrameEnd()   { }
+    virtual void eventFrameStart(QAO_Runtime& rt) { }
+    virtual void eventPreUpdate(QAO_Runtime& rt)  { }
+    virtual void eventUpdate(QAO_Runtime& rt)     { }
+    virtual void eventPostUpdate(QAO_Runtime& rt) { }
+    virtual void eventDraw1(QAO_Runtime& rt)      { }
+    virtual void eventDraw2(QAO_Runtime& rt)      { }
+    virtual void eventDrawGUI(QAO_Runtime& rt)    { }
+    virtual void eventFrameEnd(QAO_Runtime& rt)   { }
 
 private:
     std::string _instance_name;
