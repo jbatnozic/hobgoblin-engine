@@ -1,0 +1,21 @@
+
+> Message types [4B]:
+	Hello      = 1
+	Connect    = 2
+	Disconnect = 3
+	Data       = 4
+
+> Hello:
+	[Type][Passphrase]
+
+> Connect:
+	[Connect][Passphrase]
+
+> Disconnect:
+	[Disconnect]
+
+> Data:
+	[Data][DataMessage1][DataMessage2]...
+
+> DataMessage:
+	[HandlerID][Arg1][Arg2]...

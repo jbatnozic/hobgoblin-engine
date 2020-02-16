@@ -222,6 +222,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>C:\Z_Libraries\SFML-2.5.1\include;$(SolutionDir)$(ProjectName)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -244,6 +245,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>C:\Z_Libraries\SFML-2.5.1\include;$(SolutionDir)$(ProjectName)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -262,6 +264,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>C:\Z_Libraries\SFML-2.5.1\include;$(SolutionDir)$(ProjectName)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -280,6 +283,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>C:\Z_Libraries\SFML-2.5.1\include;$(SolutionDir)$(ProjectName)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -296,6 +300,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>C:\Z_Libraries\SFML-2.5.1\include;$(SolutionDir)$(ProjectName)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -312,6 +317,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>C:\Z_Libraries\SFML-2.5.1-x64\include;$(SolutionDir)$(ProjectName)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -330,6 +336,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>C:\Z_Libraries\SFML-2.5.1-x64\include;$(SolutionDir)$(ProjectName)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -346,6 +353,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>C:\Z_Libraries\SFML-2.5.1-x64\include;$(SolutionDir)$(ProjectName)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -364,6 +372,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>C:\Z_Libraries\SFML-2.5.1-x64\include;$(SolutionDir)$(ProjectName)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -386,6 +395,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>C:\Z_Libraries\SFML-2.5.1-x64\include;$(SolutionDir)$(ProjectName)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -395,6 +405,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Hobgoblin_impl\RigelNet\packet.cpp" />
+    <ClCompile Include="Hobgoblin_impl\RigelNet\udp_client.cpp" />
+    <ClCompile Include="Hobgoblin_impl\RigelNet\udp_connector.cpp" />
+    <ClCompile Include="Hobgoblin_impl\RigelNet\udp_server.cpp" />
+    <ClCompile Include="Hobgoblin_include\RigelNet\node.hpp" />
     <ClCompile Include="Hobgoblin_include\Utility.hpp" />
     <ClCompile Include="Hobgoblin_impl\Main.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
@@ -430,7 +445,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Hobgoblin_include\common.hpp" />
-    <ClInclude Include="Hobgoblin_include\Macros.hpp" />
+    <ClInclude Include="Hobgoblin_include\DEP_Macros.hpp" />
     <ClInclude Include="Hobgoblin_include\Private\pmacro_define.hpp" />
     <ClInclude Include="Hobgoblin_include\Private\pmacro_undef.hpp" />
     <ClInclude Include="Hobgoblin_include\QAO.hpp" />
@@ -442,6 +457,13 @@
     <ClInclude Include="Hobgoblin_include\QAO\property.hpp" />
     <ClInclude Include="Hobgoblin_include\QAO\registry.hpp" />
     <ClInclude Include="Hobgoblin_include\QAO\runtime.hpp" />
+    <ClInclude Include="Hobgoblin_include\RigelNet\remote_info.hpp" />
+    <ClInclude Include="Hobgoblin_include\RigelNet\packet.hpp" />
+    <ClInclude Include="Hobgoblin_include\RigelNet\server.hpp" />
+    <ClInclude Include="Hobgoblin_include\RigelNet\template.hpp" />
+    <ClInclude Include="Hobgoblin_include\RigelNet\udp_client.hpp" />
+    <ClInclude Include="Hobgoblin_include\RigelNet\udp_connector.hpp" />
+    <ClInclude Include="Hobgoblin_include\RigelNet\udp_server.hpp" />
     <ClInclude Include="Hobgoblin_include\Utility\MaxRectsBinPack.hpp" />
     <ClInclude Include="Hobgoblin_include\Utility\NoCopyNoMove.hpp" />
     <ClInclude Include="Hobgoblin_include\Utility\Passkey.hpp" />
@@ -450,6 +472,7 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="Hobgoblin_include\Private\HobgoblinCodingStyle.txt" />
+    <Text Include="Hobgoblin_include\RigelNet\PROTOCOL.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

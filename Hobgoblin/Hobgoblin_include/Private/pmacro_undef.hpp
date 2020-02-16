@@ -5,3 +5,4 @@
 #undef NO_COPY
 #undef NO_MOVE
 #undef PASSKEY
+#undef Self

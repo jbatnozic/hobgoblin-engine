@@ -7,3 +7,4 @@
 #define NO_COPY public util::NonCopyable
 #define NO_MOVE public util::NonMoveable
 #define PASSKEY {}
+#define Self (*this)

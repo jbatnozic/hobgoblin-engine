@@ -10,7 +10,7 @@
 HOBGOBLIN_NAMESPACE_START
 namespace qao {
 
-constexpr std::int64_t MIN_STEP_ORDINAL = std::numeric_limits<std::int64_t>::min();
+constexpr std::int64_t MIN_STEP_ORDINAL = std::numeric_limits<std::int64_t>::min(); // TODO to config.hpp
 
 QAO_Runtime::QAO_Runtime()
     : _step_counter{MIN_STEP_ORDINAL + 1}
