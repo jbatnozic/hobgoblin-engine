@@ -27,6 +27,8 @@ RN_DEFINE_HANDLER(Baz, RN_ARGS(int, a, std::string&, s)) {
     std::cout << "s = " << s << '\n';
 }
 
+// TODO - Test retransmit & stuff...
+
 int main() {
     RN_IndexHandlers();
 
