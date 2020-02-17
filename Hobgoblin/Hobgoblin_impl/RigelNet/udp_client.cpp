@@ -40,6 +40,13 @@ void RN_UdpClient::updateWithoutUpload() {
     update(false);
 }
 
+// Protected
+
+void RN_UdpClient::compose(int receiver, const void* data, std::size_t sizeInBytes) {
+    // TODO Temp.
+    _connector.appendToNextOutgoingPacket(data, sizeInBytes);
+}
+
 // Private
 
 void RN_UdpClient::update(bool doUpload) {
@@ -55,7 +62,7 @@ void RN_UdpClient::update(bool doUpload) {
         // ping
         // send uord
     }
-    _connector.update(Self, 0, true); // TODO
+    _connector.upload(Self, 0, true); // TODO
     
     download();
 }
@@ -75,6 +82,8 @@ void RN_UdpClient::download() {
         }
         packet.clear();
     }
+
+    _connector.handleDataMessages(Self);
 }
 
 } // namespace rn

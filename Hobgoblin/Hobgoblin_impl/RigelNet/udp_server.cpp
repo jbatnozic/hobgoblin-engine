@@ -95,6 +95,12 @@ const std::string& RN_UdpServer::getPassphrase() const {
     return _passphrase;
 }
 
+// Protected:
+void RN_UdpServer::compose(int receiver, const void* data, std::size_t sizeInBytes) {
+    // TODO Temp.
+    _clients[receiver].appendToNextOutgoingPacket(data, sizeInBytes);
+}
+
 // Private:
 void RN_UdpServer::update(bool doUpload) {
     if (!_running) {
@@ -110,7 +116,7 @@ void RN_UdpServer::update(bool doUpload) {
             // ping
             // send uord
         }
-        client.update(Self, 0, true); // TODO
+        client.upload(Self, 0, true); // TODO Rename
     }
 
     download();
@@ -135,6 +141,10 @@ void RN_UdpServer::download() {
         packet.clear();
     }
 
+    for (auto& client : _clients) {
+        client.handleDataMessages(Self);
+    }
+
     _senderIndex = -1;
 }
 
@@ -152,8 +162,8 @@ void RN_UdpServer::handlePacketFromUnknownSender(sf::IpAddress senderIp, std::ui
     for (auto& connector : _clients) {
         if (connector.getRemoteInfo().status == RN_RemoteStatus::Disconnected) {
             connector.tryAccept(senderIp, senderPort, packet);
+            break;
         }
-        break;
     }
     // TODO Send disconnect message (no room left)
 }

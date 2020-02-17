@@ -19,9 +19,21 @@ namespace rn {
 namespace detail {
 
 struct TaggedPacket {
+    enum Tag {
+        DefaultTag,
+    // SEND:
+        ReadyForSending = DefaultTag,
+        NotAcknowledged,
+        Acknowledged,
+    // RECV:
+        WaitingForData = DefaultTag,
+        ReadyForUnpacking,
+        Unpacked,
+    };
+
     RN_Packet packet;
     sf::Clock clock;
-    bool acknowledged = false;
+    Tag tag = DefaultTag;
 };
 
 class RN_UdpConnector {
@@ -30,13 +42,15 @@ public:
 
     void tryAccept(sf::IpAddress addr, std::uint16_t port, RN_Packet& packet);
     void connect(sf::IpAddress addr, std::uint16_t port);
-    void reset(bool notifyRemoteOnDisconnect);
+    void disconnect(bool notfiyRemote);
 
-
-    void update(RN_Node& node, PZInteger slotIndex, bool doUpload);
+    void upload(RN_Node& node, PZInteger slotIndex, bool doUpload); // TODO 'Upload' method has flag to disable uploading?!
     void receivedPacket(RN_Packet& packet);
+    void handleDataMessages(RN_Node& node);
 
     const RN_RemoteInfo& getRemoteInfo() const noexcept;
+
+    void appendToNextOutgoingPacket(const void *data, std::size_t sizeInBytes);
 
 private:
     enum class State {
@@ -65,11 +79,14 @@ private:
     void execConnecting(RN_Node& node, PZInteger slotIndex, bool doUpload);
     void execConnected(RN_Node& node, PZInteger slotIndex, bool doUpload);
 
+    void reset();
     bool connectionTimedOut() const;
     void uploadAllData();
     void prepareAck(std::uint32_t ordinal);
     void receivedAck(std::uint32_t ordinal);
     void initializeSession();
+    void prepareNextOutgoingPacket();
+    void receiveDataMessage(RN_Packet& packet);
 };
 
 } // namespace detail

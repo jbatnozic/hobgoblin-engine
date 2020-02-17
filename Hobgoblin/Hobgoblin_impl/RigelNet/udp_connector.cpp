@@ -1,4 +1,5 @@
 
+#include <Hobgoblin_include/RigelNet/node.hpp>
 #include <Hobgoblin_include/RigelNet/udp_connector.hpp>
 
 #include <cassert>
@@ -83,7 +84,13 @@ void RN_UdpConnector::tryAccept(sf::IpAddress addr, std::uint16_t port, RN_Packe
         _remoteInfo.timeoutClock.restart();
 
         _state = State::Accepting;
+        _remoteInfo.status = RN_RemoteStatus::Connected; // TODO - Connecting...
 
+        _sendBuffer.clear(); // TODO Temp.
+        _sendBufferHeadIndex = 1u;
+        _recvBufferHeadIndex = 1u;
+        _recvBuffer.clear();
+        prepareNextOutgoingPacket();
     }
     else {
         // TODO - Notify of erroneous message from unknown sender...
@@ -100,13 +107,20 @@ void RN_UdpConnector::connect(sf::IpAddress addr, std::uint16_t port) {
     _remoteInfo.timeoutClock.restart();
 
     _state = State::Connecting;
+    _remoteInfo.status = RN_RemoteStatus::Connected; // TODO - Connecting...
+
+    _sendBuffer.clear(); // TODO Temp.
+    _sendBufferHeadIndex = 1u;
+    _recvBufferHeadIndex = 1u;
+    _recvBuffer.clear();
+    prepareNextOutgoingPacket();
 }
 
-void RN_UdpConnector::reset(bool) {
+void RN_UdpConnector::reset() {
     // TODO
 }
 
-void RN_UdpConnector::update(RN_Node& node, PZInteger slotIndex, bool doUpload) {
+void RN_UdpConnector::upload(RN_Node& node, PZInteger slotIndex, bool doUpload) {
     switch (_state) {
     case State::Accepting:
         execAccepting(node, slotIndex, doUpload);
@@ -173,6 +187,7 @@ void RN_UdpConnector::receivedPacket(RN_Packet& packet) {
                 // node->queue_event(EventFactory::create_connect(slot_index)); TODO
             }
             // handle_data(pack, node, type); TODO
+            receiveDataMessage(packet);
         }
         else { // Otherwise, disconnect
             // TODO - Handle error
@@ -188,8 +203,21 @@ void RN_UdpConnector::receivedPacket(RN_Packet& packet) {
     }
 }
 
+void RN_UdpConnector::handleDataMessages(RN_Node& node) {
+    while (!_recvBuffer.empty() && _recvBuffer[0].tag == TaggedPacket::ReadyForUnpacking) {
+        detail::HandleDataMessages(node, _recvBuffer[0].packet);
+        _recvBuffer.pop_front();
+        _recvBufferHeadIndex++;
+    }
+}
+
 const RN_RemoteInfo& RN_UdpConnector::getRemoteInfo() const noexcept {
     return _remoteInfo;
+}
+
+void RN_UdpConnector::appendToNextOutgoingPacket(const void *data, std::size_t sizeInBytes) {
+    // TODO temp.
+    _sendBuffer[_sendBuffer.size() - 1u].packet.append(data, sizeInBytes);
 }
 
 // Private
@@ -256,44 +284,42 @@ bool RN_UdpConnector::connectionTimedOut() const {
 
 void RN_UdpConnector::uploadAllData() {
     /*
-    size_t send_cnt = 0;
-        for (size_t i = 0; i < send_buffer.size(); i += 1) {
-            
-            auto & item = send_buffer[i];
-
-            if (item.tag == TAG_ACK) continue;
-
-            if (i < send_buffer.size() - 1)  {
-                
-                if (item.clock.getElapsedTime().asMilliseconds() > std::min(latency.asMilliseconds() * 2, 400)) { // STUB -- Could be better
-                    // min{2 * latency, 4 * frame_duration * interval}
-                    //std::cout << "Retransmit after " << item.clock.getElapsedTime().asMilliseconds() << "ms \n";
-                    }
-                else
-                    continue; // Too early
-
-                }
-
-            if (!upload_packet(socket, item.packet, remote_ip, remote_port)) {
-                // STUB -- Disconnect
-                return;
-                }
-
-            item.clock.restart();
-
-            if ((send_cnt += 1) >= 16) break;
-            
-            } // End_for
-
-        send_buffer.emplace_back();
-        send_buffer.back().packet << Uint8(UDPMsgType::Data) << Uint32( send_buffer_head_index + send_buffer.size() - 1 );
+    if (item.clock.getElapsedTime().asMilliseconds() > std::min(latency.asMilliseconds() * 2, 400)) { // STUB -- Could be better
+        // min{2 * latency, 4 * frame_duration * interval}
+        //std::cout << "Retransmit after " << item.clock.getElapsedTime().asMilliseconds() << "ms \n";
+        }
+    else
+        continue; // Too early
     */
+
     PZInteger uploadCounter = 0;
     for (auto& taggedPacket : _sendBuffer) {
-        if (taggedPacket.acknowledged) {
+        if (taggedPacket.tag == TaggedPacket::Acknowledged) {
             continue;
         }
+
+        // TODO Send, restart clock etc.
+        if ((taggedPacket.tag == TaggedPacket::ReadyForSending)
+            || (false /*timed out*/)) {
+
+            if (UploadPacket(
+                _socket,
+                taggedPacket.packet,
+                _remoteInfo.ipAddress,
+                _remoteInfo.port) != UPLOAD_PACKET_SUCCESS) {
+
+                // TODO Handle error
+            }
+
+            taggedPacket.clock.restart();
+            uploadCounter += 1;
+            // TODO Break if uploadCounter too large [configurable]
+        }
+
+        taggedPacket.tag = TaggedPacket::NotAcknowledged;
     }
+
+    prepareNextOutgoingPacket();
 }
 
 void RN_UdpConnector::prepareAck(std::uint32_t ordinal) {
@@ -305,13 +331,13 @@ void RN_UdpConnector::receivedAck(std::uint32_t ordinal) {
         return; // Already acknowledged before
     }
 
-    const auto ind = (ordinal - _sendBufferHeadIndex);
+    const auto ind = (ordinal - _sendBufferHeadIndex); // TODO PEP
     if (ind >= _sendBuffer.size()) {
         // TODO -- Error
     }
 
-    //send_buffer[ind].tag = TAG_ACK;
-    //send_buffer[ind].packet.clear();
+    _sendBuffer[ind].tag = TaggedPacket::Acknowledged;
+    _sendBuffer[ind].packet.clear();
 }
 
 void RN_UdpConnector::initializeSession() {
@@ -319,6 +345,67 @@ void RN_UdpConnector::initializeSession() {
     _state = State::Connected;
     _remoteInfo.timeoutClock.restart();
     // TODO Something for message buffers
+}
+
+void RN_UdpConnector::prepareNextOutgoingPacket() {
+    _sendBuffer.emplace_back();
+    _sendBuffer.back().tag = TaggedPacket::ReadyForSending;
+    // _sendBuffer.back().clock = ??? TODO
+
+    RN_Packet& packet = _sendBuffer.back().packet;
+    // Message type:
+    packet << UDP_MESSAGE_TYPE_DATA;
+    // Message ordinal:
+    packet << std::uint32_t{_sendBufferHeadIndex + _sendBuffer.size() - 1u};
+    // Acknowledges (zero-terminated):
+    for (std::uint32_t ackOrdinal : _ackOrdinals) {
+        packet << ackOrdinal;
+    }
+    packet << std::uint32_t{0};
+}
+
+void RN_UdpConnector::receiveDataMessage(RN_Packet& packet) {
+    const std::uint32_t messageOrdinal = packet.extractValue<std::uint32_t>();
+    if (!packet) {
+        // TODO
+    }
+
+    if (messageOrdinal < _recvBufferHeadIndex) {
+        // Old data - acknowledge and ignore
+        prepareAck(messageOrdinal);
+        return;
+    }
+
+    const std::uint32_t indexInBuffer = (messageOrdinal - _recvBufferHeadIndex);
+    if (indexInBuffer >= _recvBuffer.size()) {
+        _recvBuffer.resize(indexInBuffer + 1u);
+    }
+
+    if (_recvBuffer[indexInBuffer].tag != TaggedPacket::WaitingForData) {
+        // Already received this - acknowledge and ignore
+        prepareAck(messageOrdinal);
+        return;
+    }
+
+    while (true) {
+        const std::uint32_t ackOrdinal = packet.extractValue<std::uint32_t>();
+        if (!packet) {
+            // Error -- STUB
+        }
+
+        if (ackOrdinal == 0u) {
+            break;
+        }
+        
+        receivedAck(ackOrdinal);
+    }
+
+    _recvBuffer[indexInBuffer].packet = std::move(packet);
+    _recvBuffer[indexInBuffer].tag = TaggedPacket::ReadyForUnpacking;
+
+    // HandleDataMessages(node, packet); TODO - Move after ALL handleDataMessage calls
+
+    prepareAck(messageOrdinal);
 }
 
 } // namespace detail

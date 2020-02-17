@@ -405,7 +405,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Hobgoblin_impl\RigelNet\handlers.cpp" />
+    <ClCompile Include="Hobgoblin_impl\RigelNet\handlermgmt.cpp" />
+    <ClCompile Include="Hobgoblin_impl\RigelNet\node.cpp" />
     <ClCompile Include="Hobgoblin_impl\RigelNet\packet.cpp" />
     <ClCompile Include="Hobgoblin_impl\RigelNet\udp_client.cpp" />
     <ClCompile Include="Hobgoblin_impl\RigelNet\udp_connector.cpp" />
@@ -460,7 +461,8 @@
     <ClInclude Include="Hobgoblin_include\QAO\registry.hpp" />
     <ClInclude Include="Hobgoblin_include\QAO\runtime.hpp" />
     <ClInclude Include="Hobgoblin_include\RigelNet.hpp" />
-    <ClInclude Include="Hobgoblin_include\RigelNet\handlers.hpp" />
+    <ClInclude Include="Hobgoblin_include\RigelNet\client.hpp" />
+    <ClInclude Include="Hobgoblin_include\RigelNet\handlermgmt.hpp" />
     <ClInclude Include="Hobgoblin_include\RigelNet\macro_extract_args.hpp" />
     <ClInclude Include="Hobgoblin_include\RigelNet\macro_handlers.hpp" />
     <ClInclude Include="Hobgoblin_include\RigelNet\macro_normalize_args.hpp" />

@@ -31,6 +31,9 @@ public:
     // Utility:
     const RN_RemoteInfo& getServerInfo(PZInteger index) const;
 
+protected:
+    void compose(int receiver, const void* data, std::size_t sizeInBytes) override;
+
 private:
     detail::RN_UdpConnector _connector;
     sf::UdpSocket _mySocket;

@@ -60,7 +60,10 @@
     <ClCompile Include="Hobgoblin_impl\RigelNet\udp_client.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Hobgoblin_impl\RigelNet\handlers.cpp">
+    <ClCompile Include="Hobgoblin_impl\RigelNet\handlermgmt.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Hobgoblin_impl\RigelNet\node.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -164,7 +167,10 @@
     <ClInclude Include="Hobgoblin_include\RigelNet\macro_pass_compose_args.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hobgoblin_include\RigelNet\handlers.hpp">
+    <ClInclude Include="Hobgoblin_include\RigelNet\client.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Hobgoblin_include\RigelNet\handlermgmt.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

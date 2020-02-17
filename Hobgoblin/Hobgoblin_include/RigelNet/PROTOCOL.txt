@@ -1,4 +1,7 @@
 
+1. Upload
+2. Download -> ACKs into the next upload batch
+
 > Message types [4B]:
 	Hello      = 1
 	Connect    = 2
@@ -15,7 +18,7 @@
 	[Disconnect]
 
 > Data:
-	[Data][DataMessage1][DataMessage2]...
+	[Data][MessageOrdinal][Ack1][Ack2][...][0][DataMessage1][DataMessage2][...]
 
 > DataMessage:
-	[HandlerID][Arg1][Arg2]...
+	[HandlerID][Arg1][Arg2][...]

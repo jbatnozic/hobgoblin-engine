@@ -1,5 +1,5 @@
-#ifndef UHOBGOBLIN_RN_HANDLERS_HPP
-#define UHOBGOBLIN_RN_HANDLERS_HPP
+#ifndef UHOBGOBLIN_RN_HANDLERMGMT_HPP
+#define UHOBGOBLIN_RN_HANDLERMGMT_HPP
 
 #include <cstdint>
 #include <unordered_map>
@@ -72,4 +72,4 @@ HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin_include/Private/pmacro_undef.hpp>
 
-#endif // !UHOBGOBLIN_RN_HANDLERS_HPP
+#endif // !UHOBGOBLIN_RN_HANDLERMGMT_HPP

@@ -16,7 +16,7 @@
 HOBGOBLIN_NAMESPACE_START
 namespace rn {
 
-class RN_UdpServer : public RN_Node, NO_COPY, NO_MOVE {
+class RN_UdpServer : public RN_Node {
 public:
     RN_UdpServer();
     RN_UdpServer(PZInteger size);
@@ -44,6 +44,9 @@ public:
     void setTimeoutLimit(std::chrono::microseconds limit);
 
     const std::string& getPassphrase() const;
+
+protected:
+    void compose(int receiver, const void* data, std::size_t sizeInBytes) override;
 
 private:
     std::vector<detail::RN_UdpConnector> _clients;
