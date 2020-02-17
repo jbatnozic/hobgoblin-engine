@@ -54,7 +54,7 @@ protected:
 
 template <class T>
 T RN_Node::extractArgument() {
-    T rv;
+    // T rv;
     // ???
     // return rv;
     return T{};

@@ -2,6 +2,8 @@
 #define UHOBGOBLIN_RN_HANDLERS_HPP
 
 #include <cstdint>
+#include <unordered_map>
+#include <vector>
 
 #include <Hobgoblin_include/Private/pmacro_define.hpp>
 
@@ -17,31 +19,46 @@ namespace detail {
 using RN_HandlerFunc = void(*)(RN_Node&);
 using RN_HandlerId = std::int16_t;
 
+struct RN_CStringHash {
+    std::size_t operator()(const char* key) const;
+};
+
+struct RN_CStringEquals {
+    bool operator()(const char* x, const char* y) const;
+};
+
 class RN_GlobalHandlerMapper {
 public:
     static RN_GlobalHandlerMapper& getInstance();
 
+    const char* nameWithId(RN_HandlerId id) const;
+    RN_HandlerFunc handlerWithId(RN_HandlerId id) const;
+    RN_HandlerId idWithName(const char* name) const;
+
+    void addMapping(const char* name, RN_HandlerFunc func);
+    void index();
+
 private:
     RN_GlobalHandlerMapper();
 
-    // std::vector<const char*> _handlerNames;
-    // std::vector<const char*> _handlerPointers;
-    // std::unordered_map<const char* -> RN_HandlerFunc> _rawMappings;
+    std::vector<const char*> _handlerNames;
+    std::vector<RN_HandlerFunc> _handlerPointers;
+    std::unordered_map<const char*, RN_HandlerFunc, RN_CStringHash, RN_CStringEquals> _rawMappings;
 };
 
-// TODO Simple class to install handler proxies
+///////////////////////////////////////////////////////////////////////////////
+
+struct RN_StaticHandlerInitializer {
+    RN_StaticHandlerInitializer(const char* name, RN_HandlerFunc func);
+};
+
+///////////////////////////////////////////////////////////////////////////////
 
 class RN_HandlerNameToIdCacher {
 public:
-    RN_HandlerNameToIdCacher(const char* handlerName)
-        : _handlerName{handlerName}
-        , _handlerId{0}
-    {
-    }
+    RN_HandlerNameToIdCacher(const char* handlerName);
 
-    RN_HandlerId getHandlerId() {
-        return 0; // TODO
-    }
+    RN_HandlerId getHandlerId();
 
 private:
     const char* _handlerName;

@@ -20,8 +20,8 @@
     }
 
 #define UHOBGOBLIN_RN_INSTALL_HANDLER_PROXY(_name_) \
-    StaticHandlerInitializer \
-    UHOBGOBLIN_RN_HandlerInit_##_name_{UHOBGOBLIN_RN_HandlerProxy_##_name_, #_name_}
+    ::jbatnozic::hobgoblin::rn::detail::RN_StaticHandlerInitializer \
+    UHOBGOBLIN_RN_HandlerInit_##_name_{#_name_, UHOBGOBLIN_RN_HandlerProxy_##_name_}
 
 #define UHOBGOBLIN_RN_GENERATE_COMPOSE_FUNCTION(_name_, ...) \
     void RN_Compose_##_name_(::jbatnozic::hobgoblin::rn::RN_Node& node, int receiver UHOBGOBLIN_RN_NORMALIZE_ARGS(const, __VA_ARGS__)) { \

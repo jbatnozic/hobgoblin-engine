@@ -1,4 +1,5 @@
 
+#include <Hobgoblin_include/RigelNet/handlers.hpp>
 #include <Hobgoblin_include/RigelNet/udp_server.hpp>
 #include <Hobgoblin_include/RigelNet/udp_client.hpp>
 
@@ -11,13 +12,6 @@
 #include <thread>
 
 using namespace jbatnozic::hobgoblin::rn;
-
-struct StaticHandlerInitializer {
-    StaticHandlerInitializer(void(*fn)(::RN_Node&), const char* handlerName) {
-        // TODO Temp
-        std::cout << "Installing handler " << handlerName << '\n';
-    }
-};
 
 RN_DEFINE_HANDLER(Foo, RN_ARGS()) {
 
@@ -32,6 +26,8 @@ RN_DEFINE_HANDLER(Baz, RN_ARGS(int, a, std::string&, s)) {
 }
 
 int main() {
+    RN_IndexHandlers();
+
     RN_UdpServer server{1, 0, "pass"};
     RN_UdpClient client{0, "localhost", server.getLocalPort(), "pass"};
 
