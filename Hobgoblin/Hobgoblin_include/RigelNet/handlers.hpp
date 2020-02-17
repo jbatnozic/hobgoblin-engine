@@ -1,113 +1,58 @@
-#pragma once
+#ifndef UHOBGOBLIN_RN_HANDLERS_HPP
+#define UHOBGOBLIN_RN_HANDLERS_HPP
 
-#include "Rigel-config.hpp"
-#include "Rigel-types.hpp"
+#include <cstdint>
 
-#include <iostream>
-#include <string>
-#include <vector>
-#include <initializer_list>
+#include <Hobgoblin_include/Private/pmacro_define.hpp>
 
-namespace RIGELNETW_CONFIG_NS_NAME {
+HOBGOBLIN_NAMESPACE_START
+namespace rn {
 
-    // Utilities for Handler management 
+void RN_IndexHandlers();
 
-	class Node;
-	class TCPServer;
-	class TCPClient;
+class RN_Node;
 
-	//Function pointer for a handler function
-	using Handler = void (*)(rn::Node *receiver, NodeType::Enum node_type);
+namespace detail {
 
-	class HandlerMgr final {
+using RN_HandlerFunc = void(*)(RN_Node&);
+using RN_HandlerId = std::int16_t;
 
-		friend class Node;
-		friend class TCPServer;
-		friend class TCPClient;
-        friend class UDPServer;
-        friend class UDPClient;
+class RN_GlobalHandlerMapper {
+public:
+    static RN_GlobalHandlerMapper& getInstance();
 
-        private:
+private:
+    RN_GlobalHandlerMapper();
 
-            static std::vector<Handler> * access_handler_vector();     
+    // std::vector<const char*> _handlerNames;
+    // std::vector<const char*> _handlerPointers;
+    // std::unordered_map<const char* -> RN_HandlerFunc> _rawMappings;
+};
 
-			static void handler_set_internal(const int index, Handler f);
+// TODO Simple class to install handler proxies
 
-            HandlerMgr() = delete;
+class RN_HandlerNameToIdCacher {
+public:
+    RN_HandlerNameToIdCacher(const char* handlerName)
+        : _handlerName{handlerName}
+        , _handlerId{0}
+    {
+    }
 
-            enum EnumHandler {
+    RN_HandlerId getHandlerId() {
+        return 0; // TODO
+    }
 
-                // Engine handlers go from -hv_reserved to -1
+private:
+    const char* _handlerName;
+    RN_HandlerId _handlerId;
+};
 
-                  hv_reserved = 20 // CAUTION
+} // namespace detail
 
-                , hv_ping = (-hv_reserved)
-                , hv_set_update_number
+} // namespace rn
+HOBGOBLIN_NAMESPACE_END
 
-                , hv_reg_set_int
-                , hv_reg_set_dbl
-                , hv_reg_set_str
+#include <Hobgoblin_include/Private/pmacro_undef.hpp>
 
-                , hv_reg_del_int
-                , hv_reg_del_dbl
-                , hv_reg_del_str
-
-                , hv_req_reg_set_int
-                , hv_req_reg_set_dbl
-                , hv_req_reg_set_str
-
-                , hv_req_reg_del_int
-                , hv_req_reg_del_dbl
-                , hv_req_reg_del_str
-
-                , hv_reg_clear_int
-                , hv_reg_clear_dbl
-                , hv_reg_clear_str
-                , hv_reg_clear_all
-
-                , hv_kick_order
-                , hv_set_client_index
-
-                , hv_sentinel
-
-                };
-
-            static_assert(hv_sentinel <= 0, "RIGEL - hv_count must be <= 0!");
-
-            //Handlers          
-            static void ping_node(rn::Node *receiver, NodeType::Enum node_type);
-            static void set_update_number(rn::Node *receiver, NodeType::Enum node_type);
-
-            static void reg_set_int(rn::Node *receiver, NodeType::Enum node_type);
-            static void reg_set_dbl(rn::Node *receiver, NodeType::Enum node_type);
-            static void reg_set_str(rn::Node *receiver, NodeType::Enum node_type);
-
-            static void reg_del_int(rn::Node *receiver, NodeType::Enum node_type);
-            static void reg_del_dbl(rn::Node *receiver, NodeType::Enum node_type);
-            static void reg_del_str(rn::Node *receiver, NodeType::Enum node_type);
-
-            static void req_reg_set_int(rn::Node *receiver, NodeType::Enum node_type);
-            static void req_reg_set_dbl(rn::Node *receiver, NodeType::Enum node_type);
-            static void req_reg_set_str(rn::Node *receiver, NodeType::Enum node_type);
-
-            static void req_reg_del_int(rn::Node *receiver, NodeType::Enum node_type);
-            static void req_reg_del_dbl(rn::Node *receiver, NodeType::Enum node_type);
-            static void req_reg_del_str(rn::Node *receiver, NodeType::Enum node_type);
-
-            static void reg_clear_int(rn::Node *receiver, NodeType::Enum node_type);
-            static void reg_clear_dbl(rn::Node *receiver, NodeType::Enum node_type);
-            static void reg_clear_str(rn::Node *receiver, NodeType::Enum node_type);
-            static void reg_clear_all(rn::Node *receiver, NodeType::Enum node_type);
-
-            static void kick_order(rn::Node *receiver, NodeType::Enum node_type);
-            static void set_client_index(rn::Node *receiver, NodeType::Enum node_type);
-
-        public:
-
-            static void    handler_set(const int handler_index, Handler f);
-            static Handler handler_get(const int handler_index);
-            static void    initialize();
-		
-		};
-
-    } // End Rigel namespace
+#endif // !UHOBGOBLIN_RN_HANDLERS_HPP

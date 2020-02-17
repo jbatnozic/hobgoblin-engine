@@ -201,61 +201,6 @@ namespace RIGELNETW_CONFIG_NS_NAME {
 
         }
     
-    //Registry
-    bool Node::reg_int_exists(const std::string& key) const {
-    
-        return my_reg.int_exists(key);
-
-        }
-
-    bool Node::reg_dbl_exists(const std::string& key) const {
-    
-        return my_reg.dbl_exists(key);
-
-        }
-
-    bool Node::reg_str_exists(const std::string& key) const {
-    
-        return my_reg.str_exists(key);
-
-        }
-
-    Int32  Node::reg_get_int(const std::string& key) const {
-    
-        return my_reg.get_int(key);
-
-        }
-
-    Double Node::reg_get_dbl(const std::string& key) const {
-    
-        return my_reg.get_dbl(key);
-
-        }
-
-    std::string Node::reg_get_str(const std::string& key) const {
-    
-        return my_reg.get_str(key);
-
-        }
-
-    bool Node::reg_sget_int(const std::string& key, Int32  &val) const {
-        
-        return my_reg.sget_int(key, val);
-
-        }
-
-    bool Node::reg_sget_dbl(const std::string& key, Double &val) const {
-        
-        return my_reg.sget_dbl(key, val);
-
-        }
-
-    bool Node::reg_sget_str(const std::string& key, std::string &val) const {
-        
-        return my_reg.sget_str(key, val);
-
-        }
-
     //Event queue
     void Node::clear_events() {
     

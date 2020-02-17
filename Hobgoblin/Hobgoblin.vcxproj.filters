@@ -60,6 +60,9 @@
     <ClCompile Include="Hobgoblin_impl\RigelNet\udp_client.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Hobgoblin_impl\RigelNet\handlers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Hobgoblin_include\Utility\MaxRectsBinPack.hpp">
@@ -110,9 +113,6 @@
     <ClInclude Include="Hobgoblin_include\Private\pmacro_undef.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hobgoblin_include\common.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Hobgoblin_include\DEP_Macros.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -135,6 +135,36 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Hobgoblin_include\RigelNet\udp_client.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Hobgoblin_include\Common.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Hobgoblin_include\Preprocessor.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Hobgoblin_include\RigelNet\macro_extract_args.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Hobgoblin_include\RigelNet\macro_handlers.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Hobgoblin_include\RigelNet\macro_normalize_args.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Hobgoblin_include\RigelNet\macro_pass_args.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Hobgoblin_include\RigelNet.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Hobgoblin_include\RigelNet_Macros.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Hobgoblin_include\RigelNet\macro_pass_compose_args.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Hobgoblin_include\RigelNet\handlers.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
