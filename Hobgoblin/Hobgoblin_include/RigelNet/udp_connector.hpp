@@ -44,7 +44,7 @@ public:
     void connect(sf::IpAddress addr, std::uint16_t port);
     void disconnect(bool notfiyRemote);
 
-    void upload(RN_Node& node, PZInteger slotIndex, bool doUpload); // TODO 'Upload' method has flag to disable uploading?!
+    void update(RN_Node& node, PZInteger slotIndex, bool doUpload); // TODO 'Upload' method has flag to disable uploading?!
     void receivedPacket(RN_Packet& packet);
     void handleDataMessages(RN_Node& node);
 
@@ -74,10 +74,6 @@ private:
     std::vector<std::uint32_t> _ackOrdinals;
 
     // TODO Ping stuff
-
-    void execAccepting(RN_Node& node, PZInteger slotIndex, bool doUpload);
-    void execConnecting(RN_Node& node, PZInteger slotIndex, bool doUpload);
-    void execConnected(RN_Node& node, PZInteger slotIndex, bool doUpload);
 
     void reset();
     bool connectionTimedOut() const;

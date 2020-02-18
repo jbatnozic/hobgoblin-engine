@@ -62,7 +62,7 @@ void RN_UdpClient::update(bool doUpload) {
         // ping
         // send uord
     }
-    _connector.upload(Self, 0, true); // TODO
+    _connector.update(Self, 0, true); // TODO
     
     download();
 }

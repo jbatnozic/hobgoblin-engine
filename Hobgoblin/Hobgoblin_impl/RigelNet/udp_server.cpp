@@ -116,7 +116,7 @@ void RN_UdpServer::update(bool doUpload) {
             // ping
             // send uord
         }
-        client.upload(Self, 0, true); // TODO Rename
+        client.update(Self, 0, true); // TODO Rename
     }
 
     download();

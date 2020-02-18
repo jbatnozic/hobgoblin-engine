@@ -120,27 +120,40 @@ void RN_UdpConnector::reset() {
     // TODO
 }
 
-void RN_UdpConnector::upload(RN_Node& node, PZInteger slotIndex, bool doUpload) {
-    switch (_state) {
-    case State::Accepting:
-        execAccepting(node, slotIndex, doUpload);
-        break;
+void RN_UdpConnector::update(RN_Node& node, PZInteger slotIndex, bool doUpload) {
+    if (_state == State::Disconnected) {
+        return;
+    }
 
-    case State::Connecting:
-        execConnecting(node, slotIndex, doUpload);
-        break;
+    if (connectionTimedOut()) {
+        //reset();
+        //node->queue_event(EventFactory::create_conn_timeout(slot_index));
+        return;
+    }
 
-    case State::Connected:
-        execConnected(node, slotIndex, doUpload);
-        break;
+    if (doUpload) {
+        switch (_state) {
+        case State::Accepting:  // Send CONNECT messages to the client, until a DATA message is received     
+        case State::Connecting: // Send HELLO messages to the server, until a CONNECT message is received
+            {
+                RN_Packet packet;
+                packet << ((_state == State::Accepting) ? UDP_MESSAGE_TYPE_CONNECT : UDP_MESSAGE_TYPE_HELLO);
+                packet << _passphrase;
+                if (UploadPacket(_socket, packet, _remoteInfo.ipAddress, _remoteInfo.port) != UPLOAD_PACKET_SUCCESS) {
+                    // TODO Disconnect
+                    // reset();
+                }
+            }
+            break;
 
-    case State::Disconnected:
-        // Do nothing
-        break;
+        case State::Connected:
+            uploadAllData();
+            break;
 
-    default:
-        assert(0 && "Unreachable");
-        break;
+        default:
+            assert(0 && "Unreachable");
+            break;
+        }
     }
 }
 
@@ -221,54 +234,6 @@ void RN_UdpConnector::appendToNextOutgoingPacket(const void *data, std::size_t s
 }
 
 // Private
-
-void RN_UdpConnector::execAccepting(RN_Node& node, PZInteger slotIndex, bool doUpload) {
-    // Send periodic CONNECT messages to the "client", until a DATA message is received
-
-    if (connectionTimedOut()) {
-        //reset();
-        //node->queue_event(EventFactory::create_conn_timeout(slot_index));
-        return;
-    }
-
-    if (doUpload) {
-        RN_Packet packet;
-        packet << UDP_MESSAGE_TYPE_CONNECT << _passphrase;
-        if (UploadPacket(_socket, packet, _remoteInfo.ipAddress, _remoteInfo.port) != UPLOAD_PACKET_SUCCESS) {
-            // TODO Disconnect
-        }
-    }
-}
-
-void RN_UdpConnector::execConnecting(RN_Node& node, PZInteger slotIndex, bool doUpload) {
-    // Send periodic HELLO messages to the server, until a CONNECT message is received
-
-    if (connectionTimedOut()) {
-        //reset(interval, timeout_ms);
-        //node->queue_event(EventFactory::create_attempt_timeout(timeout_ms));
-        return;
-    }
-
-    if (doUpload) {
-        RN_Packet packet;
-        packet << UDP_MESSAGE_TYPE_HELLO << _passphrase;
-        if (UploadPacket(_socket, packet, _remoteInfo.ipAddress, _remoteInfo.port) != UPLOAD_PACKET_SUCCESS) {
-            // TODO Disconnect
-        }
-    }
-}
-
-void RN_UdpConnector::execConnected(RN_Node& node, PZInteger slotIndex, bool doUpload) {
-    if (connectionTimedOut()) {
-        // reset(interval, timeout_ms);
-        // node->queue_event(EventFactory::create_conn_timeout(slot_index));
-        return;
-    }
-
-    if (doUpload) {
-        uploadAllData();
-    }
-}
 
 bool RN_UdpConnector::connectionTimedOut() const {
     // TODO Fix once hg::Clock is implemented

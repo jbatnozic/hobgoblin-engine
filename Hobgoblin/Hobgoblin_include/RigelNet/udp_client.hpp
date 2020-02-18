@@ -29,7 +29,12 @@ public:
     void updateWithoutUpload();
 
     // Utility:
-    const RN_RemoteInfo& getServerInfo(PZInteger index) const;
+    const RN_RemoteInfo& getServerInfo() const;
+
+    std::chrono::microseconds getTimeoutLimit() const;
+    void setTimeoutLimit(std::chrono::microseconds limit);
+
+    const std::string& getPassphrase() const;
 
 protected:
     void compose(int receiver, const void* data, std::size_t sizeInBytes) override;
@@ -39,7 +44,7 @@ private:
     sf::UdpSocket _mySocket;
     std::string _passphrase;
     std::chrono::microseconds _timeoutLimit = std::chrono::microseconds{0};
-    bool _isConnected;
+    bool _running = false; // TODO Update this value
 
     void update(bool doUpload);
     void download();

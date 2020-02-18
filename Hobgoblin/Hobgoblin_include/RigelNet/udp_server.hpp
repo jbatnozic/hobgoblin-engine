@@ -53,14 +53,13 @@ private:
     sf::UdpSocket _mySocket;
     std::string _passphrase;
     std::chrono::microseconds _timeoutLimit;
-    int _senderIndex;
-    std::uint32_t _updateOrdinal; // ???????
-    bool _running;
+    int _senderIndex = -1;
+    bool _running = false;
 
     void update(bool doUpload);
     void download();
     void upload();
-    int findConnector(sf::IpAddress addr, std::uint16_t port) const;
+    int  findConnector(sf::IpAddress addr, std::uint16_t port) const;
     void handlePacketFromUnknownSender(sf::IpAddress senderIp, std::uint16_t senderPort, RN_Packet& packet);
 };
 
