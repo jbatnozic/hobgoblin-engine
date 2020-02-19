@@ -476,6 +476,8 @@
     <ClInclude Include="Hobgoblin_include\RigelNet\udp_connector.hpp" />
     <ClInclude Include="Hobgoblin_include\RigelNet\udp_server.hpp" />
     <ClInclude Include="Hobgoblin_include\RigelNet_Macros.hpp" />
+    <ClInclude Include="Hobgoblin_include\Utility\stopwatch.hpp" />
+    <ClInclude Include="Hobgoblin_include\Utility\template.hpp" />
     <ClInclude Include="Hobgoblin_include\Utility\MaxRectsBinPack.hpp" />
     <ClInclude Include="Hobgoblin_include\Utility\NoCopyNoMove.hpp" />
     <ClInclude Include="Hobgoblin_include\Utility\Passkey.hpp" />

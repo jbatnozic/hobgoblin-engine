@@ -173,6 +173,12 @@
     <ClInclude Include="Hobgoblin_include\RigelNet\handlermgmt.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Hobgoblin_include\Utility\template.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Hobgoblin_include\Utility\stopwatch.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="Hobgoblin_include\Private\HobgoblinCodingStyle.txt" />

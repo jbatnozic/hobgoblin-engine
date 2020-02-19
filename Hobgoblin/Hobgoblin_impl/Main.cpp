@@ -5,13 +5,16 @@
 
 #include <Hobgoblin_include/RigelNet_Macros.hpp>
 
+#include <Hobgoblin_include/Utility/stopwatch.hpp>
+
 #include <cassert>
 #include <chrono>
 #include <iostream>
 #include <memory>
 #include <thread>
 
-using namespace jbatnozic::hobgoblin::rn;
+namespace hg = jbatnozic::hobgoblin;
+using namespace hg::rn;
 
 RN_DEFINE_HANDLER(Foo, RN_ARGS()) {
     std::cout << "Foo called\n";
@@ -30,6 +33,11 @@ RN_DEFINE_HANDLER(Baz, RN_ARGS(int, a, std::string&, s)) {
 // TODO - Test retransmit & stuff...
 
 int main() {
+    hg::util::Stopwatch stopwatch;
+    auto t1 = stopwatch.getElapsedTime();
+    auto t2 = stopwatch.getElapsedTime();
+    assert(t2 >= t1);
+
     RN_IndexHandlers();
 
     RN_UdpServer server{2, 0, "pass"}; // Crashes when clients > size

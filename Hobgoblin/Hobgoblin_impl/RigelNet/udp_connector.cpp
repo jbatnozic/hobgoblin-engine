@@ -81,7 +81,7 @@ void RN_UdpConnector::tryAccept(sf::IpAddress addr, std::uint16_t port, RN_Packe
 
         _remoteInfo.ipAddress = addr;
         _remoteInfo.port = port;
-        _remoteInfo.timeoutClock.restart();
+        _remoteInfo.timeoutStopwatch.restart();
 
         _state = State::Accepting;
         _remoteInfo.status = RN_RemoteStatus::Connected; // TODO - Connecting...
@@ -104,7 +104,7 @@ void RN_UdpConnector::connect(sf::IpAddress addr, std::uint16_t port) {
 
     _remoteInfo.ipAddress = addr;
     _remoteInfo.port = port;
-    _remoteInfo.timeoutClock.restart();
+    _remoteInfo.timeoutStopwatch.restart();
 
     _state = State::Connecting;
     _remoteInfo.status = RN_RemoteStatus::Connected; // TODO - Connecting...
@@ -236,12 +236,10 @@ void RN_UdpConnector::appendToNextOutgoingPacket(const void *data, std::size_t s
 // Private
 
 bool RN_UdpConnector::connectionTimedOut() const {
-    // TODO Fix once hg::Clock is implemented
-    const auto microsec = _remoteInfo.timeoutClock.getElapsedTime().asMicroseconds();
-    if (_timeoutLimit <= std::chrono::microseconds{0} || microsec <= 0) {
+    if (_timeoutLimit <= std::chrono::microseconds{0}) {
         return false;
     }
-    if (microsec >= _timeoutLimit.count()) {
+    if (_remoteInfo.timeoutStopwatch.getElapsedTime() >= _timeoutLimit) {
         return true;
     }
     return false;
@@ -276,7 +274,7 @@ void RN_UdpConnector::uploadAllData() {
                 // TODO Handle error
             }
 
-            taggedPacket.clock.restart();
+            taggedPacket.stopwatch.restart();
             uploadCounter += 1;
             // TODO Break if uploadCounter too large [configurable]
         }
@@ -308,7 +306,7 @@ void RN_UdpConnector::receivedAck(std::uint32_t ordinal) {
 void RN_UdpConnector::initializeSession() {
     std::cout << "Session Initialized\n";
     _state = State::Connected;
-    _remoteInfo.timeoutClock.restart();
+    _remoteInfo.timeoutStopwatch.restart();
     // TODO Something for message buffers
 }
 

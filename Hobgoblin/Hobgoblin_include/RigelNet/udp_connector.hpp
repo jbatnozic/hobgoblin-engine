@@ -6,6 +6,8 @@
 #include <Hobgoblin_include/RigelNet/packet.hpp>
 #include <Hobgoblin_include/RigelNet/remote_info.hpp>
 
+#include <Hobgoblin_include/Utility/stopwatch.hpp>
+
 #include <SFML/System/Clock.hpp>
 #include <SFML/Network.hpp>
 
@@ -32,7 +34,7 @@ struct TaggedPacket {
     };
 
     RN_Packet packet;
-    sf::Clock clock;
+    util::Stopwatch stopwatch;
     Tag tag = DefaultTag;
 };
 
@@ -44,7 +46,7 @@ public:
     void connect(sf::IpAddress addr, std::uint16_t port);
     void disconnect(bool notfiyRemote);
 
-    void update(RN_Node& node, PZInteger slotIndex, bool doUpload); // TODO 'Upload' method has flag to disable uploading?!
+    void update(RN_Node& node, PZInteger slotIndex, bool doUpload);
     void receivedPacket(RN_Packet& packet);
     void handleDataMessages(RN_Node& node);
 
@@ -75,6 +77,7 @@ private:
 
     // TODO Ping stuff
 
+    void cleanup();
     void reset();
     bool connectionTimedOut() const;
     void uploadAllData();
