@@ -1,5 +1,5 @@
 
-#include <Hobgoblin_include/QAO.hpp>
+#include <Hobgoblin/QAO.hpp>
 
 #include <gtest/gtest.h>
 #include <vector>

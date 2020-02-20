@@ -221,7 +221,7 @@
       <PreprocessorDefinitions>SFML_STATIC;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>C:\Z_Libraries\SFML-2.5.1\include;$(SolutionDir)$(ProjectName)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Z_Libraries\SFML-2.5.1\include;$(SolutionDir)$(ProjectName)\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
@@ -244,7 +244,7 @@
       <PreprocessorDefinitions>SFML_STATIC;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>C:\Z_Libraries\SFML-2.5.1\include;$(SolutionDir)$(ProjectName)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Z_Libraries\SFML-2.5.1\include;$(SolutionDir)$(ProjectName)\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
@@ -263,7 +263,7 @@
       <PreprocessorDefinitions>SFML_STATIC;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>C:\Z_Libraries\SFML-2.5.1\include;$(SolutionDir)$(ProjectName)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Z_Libraries\SFML-2.5.1\include;$(SolutionDir)$(ProjectName)\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
@@ -282,7 +282,7 @@
       <PreprocessorDefinitions>SFML_STATIC;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>C:\Z_Libraries\SFML-2.5.1\include;$(SolutionDir)$(ProjectName)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Z_Libraries\SFML-2.5.1\include;$(SolutionDir)$(ProjectName)\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
@@ -316,7 +316,7 @@
       <PreprocessorDefinitions>SFML_STATIC;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>C:\Z_Libraries\SFML-2.5.1-x64\include;$(SolutionDir)$(ProjectName)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Z_Libraries\SFML-2.5.1-x64\include;$(SolutionDir)$(ProjectName)\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
@@ -335,7 +335,7 @@
       <PreprocessorDefinitions>SFML_STATIC;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>C:\Z_Libraries\SFML-2.5.1-x64\include;$(SolutionDir)$(ProjectName)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Z_Libraries\SFML-2.5.1-x64\include;$(SolutionDir)$(ProjectName)\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
@@ -371,7 +371,7 @@
       <PreprocessorDefinitions>SFML_STATIC;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>C:\Z_Libraries\SFML-2.5.1-x64\include;$(SolutionDir)$(ProjectName)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Z_Libraries\SFML-2.5.1-x64\include;$(SolutionDir)$(ProjectName)\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
@@ -394,7 +394,7 @@
       <PreprocessorDefinitions>SFML_STATIC;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>C:\Z_Libraries\SFML-2.5.1-x64\include;$(SolutionDir)$(ProjectName)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Z_Libraries\SFML-2.5.1-x64\include;$(SolutionDir)$(ProjectName)\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
@@ -405,15 +405,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Hobgoblin_impl\RigelNet\handlermgmt.cpp" />
-    <ClCompile Include="Hobgoblin_impl\RigelNet\node.cpp" />
-    <ClCompile Include="Hobgoblin_impl\RigelNet\packet.cpp" />
-    <ClCompile Include="Hobgoblin_impl\RigelNet\udp_client.cpp" />
-    <ClCompile Include="Hobgoblin_impl\RigelNet\udp_connector.cpp" />
-    <ClCompile Include="Hobgoblin_impl\RigelNet\udp_server.cpp" />
-    <ClCompile Include="Hobgoblin_include\RigelNet\node.hpp" />
-    <ClCompile Include="Hobgoblin_include\Utility.hpp" />
-    <ClCompile Include="Hobgoblin_impl\Main.cpp">
+    <ClCompile Include="source\Hobgoblin\RigelNet\handlermgmt.cpp" />
+    <ClCompile Include="source\Hobgoblin\RigelNet\node.cpp" />
+    <ClCompile Include="source\Hobgoblin\RigelNet\packet.cpp" />
+    <ClCompile Include="source\Hobgoblin\RigelNet\udp_client.cpp" />
+    <ClCompile Include="source\Hobgoblin\RigelNet\udp_connector.cpp" />
+    <ClCompile Include="source\Hobgoblin\RigelNet\udp_server.cpp" />
+    <ClCompile Include="include\Hobgoblin\RigelNet\node.hpp" />
+    <ClCompile Include="include\Hobgoblin\Utility.hpp" />
+    <ClCompile Include="source\Hobgoblin\Main.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|Win32'">false</ExcludedFromBuild>
@@ -425,12 +425,12 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">false</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="Hobgoblin_impl\QAO\base.cpp" />
-    <ClCompile Include="Hobgoblin_impl\QAO\orderer.cpp" />
-    <ClCompile Include="Hobgoblin_impl\QAO\registry.cpp" />
-    <ClCompile Include="Hobgoblin_impl\QAO\id.cpp" />
-    <ClCompile Include="Hobgoblin_impl\QAO\runtime.cpp" />
-    <ClCompile Include="Hobgoblin_impl\TextRect.cpp">
+    <ClCompile Include="source\Hobgoblin\QAO\base.cpp" />
+    <ClCompile Include="source\Hobgoblin\QAO\orderer.cpp" />
+    <ClCompile Include="source\Hobgoblin\QAO\registry.cpp" />
+    <ClCompile Include="source\Hobgoblin\QAO\id.cpp" />
+    <ClCompile Include="source\Hobgoblin\QAO\runtime.cpp" />
+    <ClCompile Include="source\Hobgoblin\TextRect.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -442,51 +442,51 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="Hobgoblin_impl\Utility\MaxRectsBinPack.cpp" />
-    <ClCompile Include="Hobgoblin_impl\Utility\Rect.cpp" />
+    <ClCompile Include="source\Hobgoblin\Utility\MaxRectsBinPack.cpp" />
+    <ClCompile Include="source\Hobgoblin\Utility\Rect.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Hobgoblin_include\Common.hpp" />
-    <ClInclude Include="Hobgoblin_include\DEP_Macros.hpp" />
-    <ClInclude Include="Hobgoblin_include\Preprocessor.hpp" />
-    <ClInclude Include="Hobgoblin_include\Private\pmacro_define.hpp" />
-    <ClInclude Include="Hobgoblin_include\Private\pmacro_undef.hpp" />
-    <ClInclude Include="Hobgoblin_include\QAO.hpp" />
-    <ClInclude Include="Hobgoblin_include\QAO\config.hpp" />
-    <ClInclude Include="Hobgoblin_include\QAO\func.hpp" />
-    <ClInclude Include="Hobgoblin_include\QAO\id.hpp" />
-    <ClInclude Include="Hobgoblin_include\QAO\base.hpp" />
-    <ClInclude Include="Hobgoblin_include\QAO\orderer.hpp" />
-    <ClInclude Include="Hobgoblin_include\QAO\property.hpp" />
-    <ClInclude Include="Hobgoblin_include\QAO\registry.hpp" />
-    <ClInclude Include="Hobgoblin_include\QAO\runtime.hpp" />
-    <ClInclude Include="Hobgoblin_include\RigelNet.hpp" />
-    <ClInclude Include="Hobgoblin_include\RigelNet\client.hpp" />
-    <ClInclude Include="Hobgoblin_include\RigelNet\handlermgmt.hpp" />
-    <ClInclude Include="Hobgoblin_include\RigelNet\macro_extract_args.hpp" />
-    <ClInclude Include="Hobgoblin_include\RigelNet\macro_handlers.hpp" />
-    <ClInclude Include="Hobgoblin_include\RigelNet\macro_normalize_args.hpp" />
-    <ClInclude Include="Hobgoblin_include\RigelNet\macro_pass_args.hpp" />
-    <ClInclude Include="Hobgoblin_include\RigelNet\macro_pass_compose_args.hpp" />
-    <ClInclude Include="Hobgoblin_include\RigelNet\remote_info.hpp" />
-    <ClInclude Include="Hobgoblin_include\RigelNet\packet.hpp" />
-    <ClInclude Include="Hobgoblin_include\RigelNet\server.hpp" />
-    <ClInclude Include="Hobgoblin_include\RigelNet\template.hpp" />
-    <ClInclude Include="Hobgoblin_include\RigelNet\udp_client.hpp" />
-    <ClInclude Include="Hobgoblin_include\RigelNet\udp_connector.hpp" />
-    <ClInclude Include="Hobgoblin_include\RigelNet\udp_server.hpp" />
-    <ClInclude Include="Hobgoblin_include\RigelNet_Macros.hpp" />
-    <ClInclude Include="Hobgoblin_include\Utility\stopwatch.hpp" />
-    <ClInclude Include="Hobgoblin_include\Utility\template.hpp" />
-    <ClInclude Include="Hobgoblin_include\Utility\MaxRectsBinPack.hpp" />
-    <ClInclude Include="Hobgoblin_include\Utility\NoCopyNoMove.hpp" />
-    <ClInclude Include="Hobgoblin_include\Utility\Passkey.hpp" />
-    <ClInclude Include="Hobgoblin_include\Utility\Rect.h" />
-    <ClInclude Include="Hobgoblin_include\Utility\SlabIndexer.hpp" />
+    <ClInclude Include="include\Hobgoblin\Common.hpp" />
+    <ClInclude Include="include\Hobgoblin\DEP_Macros.hpp" />
+    <ClInclude Include="include\Hobgoblin\Preprocessor.hpp" />
+    <ClInclude Include="include\Hobgoblin\Private\pmacro_define.hpp" />
+    <ClInclude Include="include\Hobgoblin\Private\pmacro_undef.hpp" />
+    <ClInclude Include="include\Hobgoblin\QAO.hpp" />
+    <ClInclude Include="include\Hobgoblin\QAO\config.hpp" />
+    <ClInclude Include="include\Hobgoblin\QAO\func.hpp" />
+    <ClInclude Include="include\Hobgoblin\QAO\id.hpp" />
+    <ClInclude Include="include\Hobgoblin\QAO\base.hpp" />
+    <ClInclude Include="include\Hobgoblin\QAO\orderer.hpp" />
+    <ClInclude Include="include\Hobgoblin\QAO\property.hpp" />
+    <ClInclude Include="include\Hobgoblin\QAO\registry.hpp" />
+    <ClInclude Include="include\Hobgoblin\QAO\runtime.hpp" />
+    <ClInclude Include="include\Hobgoblin\RigelNet.hpp" />
+    <ClInclude Include="include\Hobgoblin\RigelNet\client.hpp" />
+    <ClInclude Include="include\Hobgoblin\RigelNet\handlermgmt.hpp" />
+    <ClInclude Include="include\Hobgoblin\RigelNet\macro_extract_args.hpp" />
+    <ClInclude Include="include\Hobgoblin\RigelNet\macro_handlers.hpp" />
+    <ClInclude Include="include\Hobgoblin\RigelNet\macro_normalize_args.hpp" />
+    <ClInclude Include="include\Hobgoblin\RigelNet\macro_pass_args.hpp" />
+    <ClInclude Include="include\Hobgoblin\RigelNet\macro_pass_compose_args.hpp" />
+    <ClInclude Include="include\Hobgoblin\RigelNet\remote_info.hpp" />
+    <ClInclude Include="include\Hobgoblin\RigelNet\packet.hpp" />
+    <ClInclude Include="include\Hobgoblin\RigelNet\server.hpp" />
+    <ClInclude Include="include\Hobgoblin\RigelNet\template.hpp" />
+    <ClInclude Include="include\Hobgoblin\RigelNet\udp_client.hpp" />
+    <ClInclude Include="include\Hobgoblin\RigelNet\udp_connector.hpp" />
+    <ClInclude Include="include\Hobgoblin\RigelNet\udp_server.hpp" />
+    <ClInclude Include="include\Hobgoblin\RigelNet_Macros.hpp" />
+    <ClInclude Include="include\Hobgoblin\Utility\stopwatch.hpp" />
+    <ClInclude Include="include\Hobgoblin\Utility\template.hpp" />
+    <ClInclude Include="include\Hobgoblin\Utility\MaxRectsBinPack.hpp" />
+    <ClInclude Include="include\Hobgoblin\Utility\NoCopyNoMove.hpp" />
+    <ClInclude Include="include\Hobgoblin\Utility\Passkey.hpp" />
+    <ClInclude Include="include\Hobgoblin\Utility\Rect.h" />
+    <ClInclude Include="include\Hobgoblin\Utility\Slab_indexer.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Hobgoblin_include\Private\HobgoblinCodingStyle.txt" />
-    <Text Include="Hobgoblin_include\RigelNet\PROTOCOL.txt" />
+    <Text Include="include\Hobgoblin\Private\HobgoblinCodingStyle.txt" />
+    <Text Include="include\Hobgoblin\RigelNet\PROTOCOL.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

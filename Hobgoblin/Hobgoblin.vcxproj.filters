@@ -15,173 +15,173 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Hobgoblin_impl\Utility\MaxRectsBinPack.cpp">
+    <ClCompile Include="include\Hobgoblin\RigelNet\node.hpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Hobgoblin_impl\Utility\Rect.cpp">
+    <ClCompile Include="include\Hobgoblin\Utility.hpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Hobgoblin_impl\Main.cpp">
+    <ClCompile Include="source\Hobgoblin\QAO\base.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Hobgoblin_impl\TextRect.cpp">
+    <ClCompile Include="source\Hobgoblin\QAO\id.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Hobgoblin_include\Utility.hpp">
+    <ClCompile Include="source\Hobgoblin\QAO\orderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Hobgoblin_impl\QAO\base.cpp">
+    <ClCompile Include="source\Hobgoblin\QAO\registry.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Hobgoblin_impl\QAO\id.cpp">
+    <ClCompile Include="source\Hobgoblin\QAO\runtime.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Hobgoblin_impl\QAO\orderer.cpp">
+    <ClCompile Include="source\Hobgoblin\RigelNet\handlermgmt.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Hobgoblin_impl\QAO\registry.cpp">
+    <ClCompile Include="source\Hobgoblin\RigelNet\node.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Hobgoblin_impl\QAO\runtime.cpp">
+    <ClCompile Include="source\Hobgoblin\RigelNet\packet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Hobgoblin_include\RigelNet\node.hpp">
+    <ClCompile Include="source\Hobgoblin\RigelNet\udp_client.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Hobgoblin_impl\RigelNet\packet.cpp">
+    <ClCompile Include="source\Hobgoblin\RigelNet\udp_connector.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Hobgoblin_impl\RigelNet\udp_server.cpp">
+    <ClCompile Include="source\Hobgoblin\RigelNet\udp_server.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Hobgoblin_impl\RigelNet\udp_connector.cpp">
+    <ClCompile Include="source\Hobgoblin\Utility\MaxRectsBinPack.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Hobgoblin_impl\RigelNet\udp_client.cpp">
+    <ClCompile Include="source\Hobgoblin\Utility\Rect.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Hobgoblin_impl\RigelNet\handlermgmt.cpp">
+    <ClCompile Include="source\Hobgoblin\Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Hobgoblin_impl\RigelNet\node.cpp">
+    <ClCompile Include="source\Hobgoblin\TextRect.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Hobgoblin_include\Utility\MaxRectsBinPack.hpp">
+    <ClInclude Include="include\Hobgoblin\Private\pmacro_define.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hobgoblin_include\Utility\NoCopyNoMove.hpp">
+    <ClInclude Include="include\Hobgoblin\Private\pmacro_undef.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hobgoblin_include\Utility\Passkey.hpp">
+    <ClInclude Include="include\Hobgoblin\QAO\base.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hobgoblin_include\Utility\Rect.h">
+    <ClInclude Include="include\Hobgoblin\QAO\config.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hobgoblin_include\Utility\SlabIndexer.hpp">
+    <ClInclude Include="include\Hobgoblin\QAO\func.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hobgoblin_include\QAO.hpp">
+    <ClInclude Include="include\Hobgoblin\QAO\id.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hobgoblin_include\QAO\base.hpp">
+    <ClInclude Include="include\Hobgoblin\QAO\orderer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hobgoblin_include\QAO\config.hpp">
+    <ClInclude Include="include\Hobgoblin\QAO\property.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hobgoblin_include\QAO\func.hpp">
+    <ClInclude Include="include\Hobgoblin\QAO\registry.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hobgoblin_include\QAO\id.hpp">
+    <ClInclude Include="include\Hobgoblin\QAO\runtime.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hobgoblin_include\QAO\orderer.hpp">
+    <ClInclude Include="include\Hobgoblin\RigelNet\client.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hobgoblin_include\QAO\property.hpp">
+    <ClInclude Include="include\Hobgoblin\RigelNet\handlermgmt.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hobgoblin_include\QAO\registry.hpp">
+    <ClInclude Include="include\Hobgoblin\RigelNet\macro_extract_args.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hobgoblin_include\QAO\runtime.hpp">
+    <ClInclude Include="include\Hobgoblin\RigelNet\macro_handlers.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hobgoblin_include\Private\pmacro_define.hpp">
+    <ClInclude Include="include\Hobgoblin\RigelNet\macro_normalize_args.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hobgoblin_include\Private\pmacro_undef.hpp">
+    <ClInclude Include="include\Hobgoblin\RigelNet\macro_pass_args.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hobgoblin_include\DEP_Macros.hpp">
+    <ClInclude Include="include\Hobgoblin\RigelNet\macro_pass_compose_args.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hobgoblin_include\RigelNet\template.hpp">
+    <ClInclude Include="include\Hobgoblin\RigelNet\packet.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hobgoblin_include\RigelNet\packet.hpp">
+    <ClInclude Include="include\Hobgoblin\RigelNet\remote_info.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hobgoblin_include\RigelNet\server.hpp">
+    <ClInclude Include="include\Hobgoblin\RigelNet\server.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hobgoblin_include\RigelNet\remote_info.hpp">
+    <ClInclude Include="include\Hobgoblin\RigelNet\template.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hobgoblin_include\RigelNet\udp_server.hpp">
+    <ClInclude Include="include\Hobgoblin\RigelNet\udp_client.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hobgoblin_include\RigelNet\udp_connector.hpp">
+    <ClInclude Include="include\Hobgoblin\RigelNet\udp_connector.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hobgoblin_include\RigelNet\udp_client.hpp">
+    <ClInclude Include="include\Hobgoblin\RigelNet\udp_server.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hobgoblin_include\Common.hpp">
+    <ClInclude Include="include\Hobgoblin\Utility\MaxRectsBinPack.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hobgoblin_include\Preprocessor.hpp">
+    <ClInclude Include="include\Hobgoblin\Utility\NoCopyNoMove.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hobgoblin_include\RigelNet\macro_extract_args.hpp">
+    <ClInclude Include="include\Hobgoblin\Utility\Passkey.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hobgoblin_include\RigelNet\macro_handlers.hpp">
+    <ClInclude Include="include\Hobgoblin\Utility\Rect.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hobgoblin_include\RigelNet\macro_normalize_args.hpp">
+    <ClInclude Include="include\Hobgoblin\Utility\stopwatch.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hobgoblin_include\RigelNet\macro_pass_args.hpp">
+    <ClInclude Include="include\Hobgoblin\Utility\template.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hobgoblin_include\RigelNet.hpp">
+    <ClInclude Include="include\Hobgoblin\Common.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hobgoblin_include\RigelNet_Macros.hpp">
+    <ClInclude Include="include\Hobgoblin\DEP_Macros.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hobgoblin_include\RigelNet\macro_pass_compose_args.hpp">
+    <ClInclude Include="include\Hobgoblin\Preprocessor.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hobgoblin_include\RigelNet\client.hpp">
+    <ClInclude Include="include\Hobgoblin\QAO.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hobgoblin_include\RigelNet\handlermgmt.hpp">
+    <ClInclude Include="include\Hobgoblin\RigelNet.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hobgoblin_include\Utility\template.hpp">
+    <ClInclude Include="include\Hobgoblin\RigelNet_Macros.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hobgoblin_include\Utility\stopwatch.hpp">
+    <ClInclude Include="include\Hobgoblin\Utility\Slab_indexer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Hobgoblin_include\Private\HobgoblinCodingStyle.txt" />
-    <Text Include="Hobgoblin_include\RigelNet\PROTOCOL.txt" />
+    <Text Include="include\Hobgoblin\Private\HobgoblinCodingStyle.txt" />
+    <Text Include="include\Hobgoblin\RigelNet\PROTOCOL.txt" />
   </ItemGroup>
 </Project>
