@@ -6,7 +6,7 @@
 #include <Hobgoblin/RigelNet/packet.hpp>
 #include <Hobgoblin/RigelNet/remote_info.hpp>
 
-#include <Hobgoblin/Utility/stopwatch.hpp>
+#include <Hobgoblin/Utility/Stopwatch.hpp>
 
 #include <SFML/System/Clock.hpp>
 #include <SFML/Network.hpp>
@@ -79,7 +79,7 @@ private:
 
     // TODO Ping stuff
 
-    void cleanup();
+    void cleanUp();
     void reset();
     bool connectionTimedOut() const;
     void uploadAllData();

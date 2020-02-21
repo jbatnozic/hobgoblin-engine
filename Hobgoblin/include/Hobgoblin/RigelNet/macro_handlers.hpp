@@ -1,10 +1,10 @@
 #ifndef UHOBGOBLIN_RN_MACRO_HANDLERS_HPP
 #define UHOBGOBLIN_RN_MACRO_HANDLERS_HPP
 
-#include <Hobgoblin/RigelNet/macro_extract_args.hpp>
-#include <Hobgoblin/RigelNet/macro_normalize_args.hpp>
-#include <Hobgoblin/RigelNet/macro_pass_args.hpp>
-#include <Hobgoblin/RigelNet/macro_pass_compose_args.hpp>
+#include <Hobgoblin/RigelNet/Macro_extract_args.hpp>
+#include <Hobgoblin/RigelNet/Macro_normalize_args.hpp>
+#include <Hobgoblin/RigelNet/Macro_pass_args.hpp>
+#include <Hobgoblin/RigelNet/Macro_pass_compose_args.hpp>
 
 #define RN_HANDLER_NODE() UHOBGOBLIN_RN_Reference_to_node
 

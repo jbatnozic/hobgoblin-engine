@@ -36,24 +36,6 @@
     <ClCompile Include="source\Hobgoblin\QAO\runtime.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="source\Hobgoblin\RigelNet\handlermgmt.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Hobgoblin\RigelNet\node.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Hobgoblin\RigelNet\packet.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Hobgoblin\RigelNet\udp_client.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Hobgoblin\RigelNet\udp_connector.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Hobgoblin\RigelNet\udp_server.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="source\Hobgoblin\Utility\MaxRectsBinPack.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -64,6 +46,24 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="source\Hobgoblin\TextRect.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Hobgoblin\RigelNet\Udp_client.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Hobgoblin\RigelNet\Udp_connector.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Hobgoblin\RigelNet\Udp_server.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Hobgoblin\RigelNet\Packet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Hobgoblin\RigelNet\Node.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Hobgoblin\RigelNet\Handlermgmt.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -104,21 +104,6 @@
     <ClInclude Include="include\Hobgoblin\RigelNet\handlermgmt.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Hobgoblin\RigelNet\macro_extract_args.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Hobgoblin\RigelNet\macro_handlers.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Hobgoblin\RigelNet\macro_normalize_args.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Hobgoblin\RigelNet\macro_pass_args.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Hobgoblin\RigelNet\macro_pass_compose_args.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\Hobgoblin\RigelNet\packet.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -141,9 +126,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Hobgoblin\Utility\Rect.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Hobgoblin\Utility\stopwatch.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Hobgoblin\Utility\template.hpp">
@@ -179,9 +161,28 @@
     <ClInclude Include="include\Hobgoblin\RigelNet\Udp_server.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\Hobgoblin\RigelNet\Macro_extract_args.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Hobgoblin\RigelNet\Macro_handlers.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Hobgoblin\RigelNet\Macro_normalize_args.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Hobgoblin\RigelNet\Macro_pass_args.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Hobgoblin\RigelNet\Macro_pass_compose_args.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Hobgoblin\Utility\Stopwatch.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="include\Hobgoblin\Private\HobgoblinCodingStyle.txt" />
     <Text Include="include\Hobgoblin\RigelNet\PROTOCOL.txt" />
+    <Text Include="include\Hobgoblin\zTODO.txt" />
   </ItemGroup>
 </Project>

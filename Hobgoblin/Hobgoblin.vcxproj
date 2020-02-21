@@ -405,12 +405,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="source\Hobgoblin\RigelNet\handlermgmt.cpp" />
-    <ClCompile Include="source\Hobgoblin\RigelNet\node.cpp" />
-    <ClCompile Include="source\Hobgoblin\RigelNet\packet.cpp" />
-    <ClCompile Include="source\Hobgoblin\RigelNet\udp_client.cpp" />
-    <ClCompile Include="source\Hobgoblin\RigelNet\udp_connector.cpp" />
-    <ClCompile Include="source\Hobgoblin\RigelNet\udp_server.cpp" />
+    <ClCompile Include="source\Hobgoblin\RigelNet\Handlermgmt.cpp" />
+    <ClCompile Include="source\Hobgoblin\RigelNet\Node.cpp" />
+    <ClCompile Include="source\Hobgoblin\RigelNet\Packet.cpp" />
+    <ClCompile Include="source\Hobgoblin\RigelNet\Udp_client.cpp" />
+    <ClCompile Include="source\Hobgoblin\RigelNet\Udp_connector.cpp" />
+    <ClCompile Include="source\Hobgoblin\RigelNet\Udp_server.cpp" />
     <ClCompile Include="include\Hobgoblin\RigelNet\node.hpp" />
     <ClCompile Include="include\Hobgoblin\Utility.hpp" />
     <ClCompile Include="source\Hobgoblin\Main.cpp">
@@ -463,11 +463,11 @@
     <ClInclude Include="include\Hobgoblin\RigelNet.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\client.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\handlermgmt.hpp" />
-    <ClInclude Include="include\Hobgoblin\RigelNet\macro_extract_args.hpp" />
-    <ClInclude Include="include\Hobgoblin\RigelNet\macro_handlers.hpp" />
-    <ClInclude Include="include\Hobgoblin\RigelNet\macro_normalize_args.hpp" />
-    <ClInclude Include="include\Hobgoblin\RigelNet\macro_pass_args.hpp" />
-    <ClInclude Include="include\Hobgoblin\RigelNet\macro_pass_compose_args.hpp" />
+    <ClInclude Include="include\Hobgoblin\RigelNet\Macro_extract_args.hpp" />
+    <ClInclude Include="include\Hobgoblin\RigelNet\Macro_handlers.hpp" />
+    <ClInclude Include="include\Hobgoblin\RigelNet\Macro_normalize_args.hpp" />
+    <ClInclude Include="include\Hobgoblin\RigelNet\Macro_pass_args.hpp" />
+    <ClInclude Include="include\Hobgoblin\RigelNet\Macro_pass_compose_args.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\remote_info.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\packet.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\server.hpp" />
@@ -476,7 +476,7 @@
     <ClInclude Include="include\Hobgoblin\RigelNet\Udp_connector.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Udp_server.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet_Macros.hpp" />
-    <ClInclude Include="include\Hobgoblin\Utility\stopwatch.hpp" />
+    <ClInclude Include="include\Hobgoblin\Utility\Stopwatch.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\template.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\MaxRectsBinPack.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\NoCopyNoMove.hpp" />
@@ -487,6 +487,7 @@
   <ItemGroup>
     <Text Include="include\Hobgoblin\Private\HobgoblinCodingStyle.txt" />
     <Text Include="include\Hobgoblin\RigelNet\PROTOCOL.txt" />
+    <Text Include="include\Hobgoblin\zTODO.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

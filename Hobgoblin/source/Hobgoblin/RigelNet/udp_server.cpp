@@ -35,6 +35,7 @@ RN_UdpServer::~RN_UdpServer() {
 }
 
 void RN_UdpServer::start(std::uint16_t localPort, std::string passphrase) {
+    assert(_running == false);
     auto status = _mySocket.bind(localPort);
     assert(status == sf::Socket::Done); // TODO - Throw exception on failure
     _passphrase = std::move(passphrase);
@@ -60,6 +61,10 @@ void RN_UdpServer::updateWithoutUpload() {
 // Client management:
 const RN_RemoteInfo& RN_UdpServer::getClientInfo(PZInteger index) const {
     return _clients[index].getRemoteInfo();
+}
+
+RN_ConnectorStatus RN_UdpServer::getConnectorStatus(PZInteger index) const {
+    return _clients[index].getStatus();
 }
 
 void RN_UdpServer::swapClients(PZInteger index1, PZInteger index2) {

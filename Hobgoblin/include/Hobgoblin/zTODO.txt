@@ -1,0 +1,2 @@
+
+Use std::string as a "binary blob" container

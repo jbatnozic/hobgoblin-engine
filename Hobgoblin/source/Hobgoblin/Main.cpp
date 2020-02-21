@@ -5,7 +5,7 @@
 
 #include <Hobgoblin/RigelNet_Macros.hpp>
 
-#include <Hobgoblin/Utility/stopwatch.hpp>
+#include <Hobgoblin/Utility/Stopwatch.hpp>
 
 #include <cassert>
 #include <chrono>

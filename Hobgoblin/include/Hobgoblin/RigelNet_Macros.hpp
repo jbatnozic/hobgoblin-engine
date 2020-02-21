@@ -1,2 +1,3 @@
 // NOTE: Header guard intentionally left out.
-#include <Hobgoblin/RigelNet/macro_handlers.hpp>
+
+#include <Hobgoblin/RigelNet/Macro_handlers.hpp>

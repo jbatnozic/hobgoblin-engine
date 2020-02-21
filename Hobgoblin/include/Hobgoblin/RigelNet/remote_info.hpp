@@ -1,7 +1,7 @@
 #ifndef UHOBGOBLIN_RN_REMOTE_INFO_HPP
 #define UHOBGOBLIN_RN_REMOTE_INFO_HPP
 
-#include <Hobgoblin/Utility/stopwatch.hpp>
+#include <Hobgoblin/Utility/Stopwatch.hpp>
 
 #include <SFML/Network.hpp>
 
@@ -18,6 +18,19 @@ struct RN_RemoteInfo {
     std::chrono::microseconds latency;
     sf::IpAddress ipAddress;
     std::uint16_t port;
+
+    RN_RemoteInfo(sf::IpAddress ipAddress, std::uint16_t port)
+        : timeoutStopwatch{}
+        , latency{std::chrono::microseconds{-1}}
+        , ipAddress{ipAddress}
+        , port{port}
+    {
+    }
+
+    RN_RemoteInfo()
+        : RN_RemoteInfo{sf::IpAddress::None, 0}
+    {
+    }
 };
 
 } // namespace rn

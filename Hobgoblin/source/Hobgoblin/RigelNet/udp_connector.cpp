@@ -24,38 +24,25 @@ constexpr bool UPLOAD_PACKET_FAILURE = false;
 bool UploadPacket(sf::UdpSocket& socket, RN_Packet& packet, sf::IpAddress ip, std::uint16_t port) {
     if (packet.getDataSize() == 0u) return UPLOAD_PACKET_SUCCESS;
 
-    while (true) {
-        switch (socket.send(packet, ip, port)) {
+    RETRY:
+    switch (socket.send(packet, ip, port)) {
+    case sf::Socket::Done:
+        return UPLOAD_PACKET_SUCCESS;
 
-        case sf::Socket::Done:
-            //std::cout << "up - Done\n";
-            return UPLOAD_PACKET_SUCCESS;
-            break;
+    case sf::Socket::Partial:
+        goto RETRY;
 
-        case sf::Socket::Partial:
-            continue;
+    case sf::Socket::NotReady:
+        //std::cout << "up - NotReady\n";
+        //assert(0);
+        return UPLOAD_PACKET_SUCCESS; // TODO ?????
 
-        case sf::Socket::NotReady:
-            //std::cout << "up - NotReady\n";
-            //assert(0);
-            return UPLOAD_PACKET_SUCCESS;
-            break;
-
-        case sf::Socket::Error:
-            //std::cout << "up - Error\n";
-            //assert(0);
-            return UPLOAD_PACKET_FAILURE;
-            break;
-
-        case sf::Socket::Disconnected:
-            //std::cout << "up - Disconnected\n";
-            assert(0);
-            break;
-
-        }
+    case sf::Socket::Error:
+    case sf::Socket::Disconnected:
+        return UPLOAD_PACKET_FAILURE;
     }
 
-    assert(0);
+    assert(0 && "Unreachable");
     return UPLOAD_PACKET_FAILURE;
 }
 
@@ -79,16 +66,12 @@ void RN_UdpConnector::tryAccept(sf::IpAddress addr, std::uint16_t port, RN_Packe
         && (packet >> receivedPassphrase)
         && receivedPassphrase == _passphrase) {
 
-        _remoteInfo.ipAddress = addr;
-        _remoteInfo.port = port;
-        _remoteInfo.timeoutStopwatch.restart();
-
+        _remoteInfo = RN_RemoteInfo{addr, port};
         _status = RN_ConnectorStatus::Accepting;
 
-        _sendBuffer.clear(); // TODO Temp.
+        cleanUp();
         _sendBufferHeadIndex = 1u;
         _recvBufferHeadIndex = 1u;
-        _recvBuffer.clear();
         prepareNextOutgoingPacket();
     }
     else {
@@ -99,30 +82,24 @@ void RN_UdpConnector::tryAccept(sf::IpAddress addr, std::uint16_t port, RN_Packe
 void RN_UdpConnector::connect(sf::IpAddress addr, std::uint16_t port) {
     assert(_status == RN_ConnectorStatus::Disconnected);
 
-    _remoteInfo.ipAddress = addr;
-    _remoteInfo.port = port;
-    _remoteInfo.timeoutStopwatch.restart();
-
+    _remoteInfo = RN_RemoteInfo{addr, port};
     _status = RN_ConnectorStatus::Connecting;
 
-    _sendBuffer.clear(); // TODO Temp.
+    cleanUp();
     _sendBufferHeadIndex = 1u;
     _recvBufferHeadIndex = 1u;
-    _recvBuffer.clear();
     prepareNextOutgoingPacket();
 }
 
-void RN_UdpConnector::reset() {
-    RN_RemoteInfo _remoteInfo;
-    _timeoutLimit = std::chrono::microseconds{0};
-    _status = RN_ConnectorStatus::Disconnected;
-
-    _sendBuffer.clear();
-    _recvBuffer.clear();
-    _sendBufferHeadIndex = 1u;
-    _recvBufferHeadIndex = 1u;
-
-    _ackOrdinals.clear();
+void RN_UdpConnector::disconnect(bool notfiyRemote) {
+    if (notfiyRemote) {
+        RN_Packet packet;
+        packet << UDP_MESSAGE_TYPE_DISCONNECT;
+        if (UploadPacket(_socket, packet, _remoteInfo.ipAddress, _remoteInfo.port) != UPLOAD_PACKET_SUCCESS) {
+            // TODO
+        }
+    }
+    reset();
 }
 
 void RN_UdpConnector::update(RN_Node& node, PZInteger slotIndex, bool doUpload) {
@@ -146,9 +123,8 @@ void RN_UdpConnector::update(RN_Node& node, PZInteger slotIndex, bool doUpload) 
                                                                       : UDP_MESSAGE_TYPE_HELLO);
                 packet << _passphrase;
                 if (UploadPacket(_socket, packet, _remoteInfo.ipAddress, _remoteInfo.port) != UPLOAD_PACKET_SUCCESS) {
-                    // TODO Disconnect
                     reset();
-                    // Maybe log event?
+                    // TODO Maybe log event?
                 }
             }
             break;
@@ -186,12 +162,12 @@ void RN_UdpConnector::receivedPacket(RN_Packet& packet) {
                 // node->queue_event(EventFactory::create_connect()); TODO
             }
             else {
-                // disconnect(false); TODO
+                reset();
                 // node->queue_event(EventFactory::create_bad_passphrase(temp)); TODO
             }
         }
         else {
-            // disconnect(false); TODO
+            reset();
             // node->queue_event(EventFactory::create_disconnect()); TODO
         }
         break;
@@ -210,9 +186,8 @@ void RN_UdpConnector::receivedPacket(RN_Packet& packet) {
             receiveDataMessage(packet);
         }
         else { // Otherwise, disconnect
-            // TODO - Handle error
-            // disconnect(false);
-            // node->queue_event(EventFactory::create_disconnect(slot_index));
+            reset();
+            // node->queue_event(EventFactory::create_disconnect(slot_index)); TODO
         }
         break;
 
@@ -245,6 +220,18 @@ void RN_UdpConnector::appendToNextOutgoingPacket(const void *data, std::size_t s
 }
 
 // Private
+
+void RN_UdpConnector::cleanUp() {
+    _sendBuffer.clear();
+    _recvBuffer.clear();
+    _ackOrdinals.clear();
+}
+
+void RN_UdpConnector::reset() {
+    cleanUp();
+    _remoteInfo = RN_RemoteInfo{};
+    _status = RN_ConnectorStatus::Disconnected;
+}
 
 bool RN_UdpConnector::connectionTimedOut() const {
     if (_timeoutLimit <= std::chrono::microseconds{0}) {
@@ -297,7 +284,7 @@ void RN_UdpConnector::uploadAllData() {
 }
 
 void RN_UdpConnector::prepareAck(std::uint32_t ordinal) {
-
+    _ackOrdinals.push_back(ordinal);
 }
 
 void RN_UdpConnector::receivedAck(std::uint32_t ordinal) {
@@ -318,13 +305,11 @@ void RN_UdpConnector::initializeSession() {
     std::cout << "Session Initialized\n";
     _status = RN_ConnectorStatus::Connected;
     _remoteInfo.timeoutStopwatch.restart();
-    // TODO Something for message buffers
 }
 
 void RN_UdpConnector::prepareNextOutgoingPacket() {
     _sendBuffer.emplace_back();
     _sendBuffer.back().tag = TaggedPacket::ReadyForSending;
-    // _sendBuffer.back().clock = ??? TODO
 
     RN_Packet& packet = _sendBuffer.back().packet;
     // Message type:
@@ -354,8 +339,7 @@ void RN_UdpConnector::receiveDataMessage(RN_Packet& packet) {
     if (indexInBuffer >= _recvBuffer.size()) {
         _recvBuffer.resize(indexInBuffer + 1u);
     }
-
-    if (_recvBuffer[indexInBuffer].tag != TaggedPacket::WaitingForData) {
+    else if (_recvBuffer[indexInBuffer].tag != TaggedPacket::WaitingForData) {
         // Already received this - acknowledge and ignore
         prepareAck(messageOrdinal);
         return;
@@ -376,8 +360,6 @@ void RN_UdpConnector::receiveDataMessage(RN_Packet& packet) {
 
     _recvBuffer[indexInBuffer].packet = std::move(packet);
     _recvBuffer[indexInBuffer].tag = TaggedPacket::ReadyForUnpacking;
-
-    // HandleDataMessages(node, packet); TODO - Move after ALL handleDataMessage calls
 
     prepareAck(messageOrdinal);
 }

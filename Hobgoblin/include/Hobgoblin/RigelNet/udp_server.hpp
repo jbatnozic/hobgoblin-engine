@@ -35,6 +35,8 @@ public:
     RN_ConnectorStatus getConnectorStatus(PZInteger index) const;
     void swapClients(PZInteger index1, PZInteger index2);
 
+    void kick(PZInteger index);
+
     // Utility:
     int getSenderIndex() const;
     std::uint16_t getLocalPort() const;
