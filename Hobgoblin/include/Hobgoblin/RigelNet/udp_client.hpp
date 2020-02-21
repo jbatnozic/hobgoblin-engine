@@ -3,7 +3,7 @@
 
 #include <Hobgoblin/RigelNet/node.hpp>
 #include <Hobgoblin/RigelNet/remote_info.hpp>
-#include <Hobgoblin/RigelNet/udp_connector.hpp>
+#include <Hobgoblin/RigelNet/Udp_connector.hpp>
 #include <Hobgoblin/Utility/NoCopyNoMove.hpp>
 
 #include <SFML/Network.hpp>
@@ -30,6 +30,7 @@ public:
 
     // Utility:
     const RN_RemoteInfo& getServerInfo() const;
+    RN_ConnectorStatus getConnectorStatus(PZInteger index) const;
 
     std::chrono::microseconds getTimeoutLimit() const;
     void setTimeoutLimit(std::chrono::microseconds limit);

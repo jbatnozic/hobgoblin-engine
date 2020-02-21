@@ -472,9 +472,9 @@
     <ClInclude Include="include\Hobgoblin\RigelNet\packet.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\server.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\template.hpp" />
-    <ClInclude Include="include\Hobgoblin\RigelNet\udp_client.hpp" />
-    <ClInclude Include="include\Hobgoblin\RigelNet\udp_connector.hpp" />
-    <ClInclude Include="include\Hobgoblin\RigelNet\udp_server.hpp" />
+    <ClInclude Include="include\Hobgoblin\RigelNet\Udp_client.hpp" />
+    <ClInclude Include="include\Hobgoblin\RigelNet\Udp_connector.hpp" />
+    <ClInclude Include="include\Hobgoblin\RigelNet\Udp_server.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet_Macros.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\stopwatch.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\template.hpp" />

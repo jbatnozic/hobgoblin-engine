@@ -1,6 +1,6 @@
 
 #include <Hobgoblin/RigelNet/node.hpp>
-#include <Hobgoblin/RigelNet/udp_connector.hpp>
+#include <Hobgoblin/RigelNet/Udp_connector.hpp>
 
 #include <cassert>
 #include <iostream> // TODO Temp.
@@ -64,12 +64,12 @@ bool UploadPacket(sf::UdpSocket& socket, RN_Packet& packet, sf::IpAddress ip, st
 RN_UdpConnector::RN_UdpConnector(sf::UdpSocket& socket, const std::string& passphrase)
     : _socket{socket}
     , _passphrase{passphrase}
-    , _state{State::Disconnected}
+    , _status{RN_ConnectorStatus::Disconnected}
 {
 }
 
 void RN_UdpConnector::tryAccept(sf::IpAddress addr, std::uint16_t port, RN_Packet& packet) {
-    assert(_state == State::Disconnected);
+    assert(_status == RN_ConnectorStatus::Disconnected);
 
     std::uint32_t msgType;
     std::string receivedPassphrase;
@@ -83,8 +83,7 @@ void RN_UdpConnector::tryAccept(sf::IpAddress addr, std::uint16_t port, RN_Packe
         _remoteInfo.port = port;
         _remoteInfo.timeoutStopwatch.restart();
 
-        _state = State::Accepting;
-        _remoteInfo.status = RN_RemoteStatus::Connected; // TODO - Connecting...
+        _status = RN_ConnectorStatus::Accepting;
 
         _sendBuffer.clear(); // TODO Temp.
         _sendBufferHeadIndex = 1u;
@@ -98,16 +97,13 @@ void RN_UdpConnector::tryAccept(sf::IpAddress addr, std::uint16_t port, RN_Packe
 }
 
 void RN_UdpConnector::connect(sf::IpAddress addr, std::uint16_t port) {
-    assert(_state == State::Disconnected);
-
-    // reset(interval_, timeout_ms_); TODO ???
+    assert(_status == RN_ConnectorStatus::Disconnected);
 
     _remoteInfo.ipAddress = addr;
     _remoteInfo.port = port;
     _remoteInfo.timeoutStopwatch.restart();
 
-    _state = State::Connecting;
-    _remoteInfo.status = RN_RemoteStatus::Connected; // TODO - Connecting...
+    _status = RN_ConnectorStatus::Connecting;
 
     _sendBuffer.clear(); // TODO Temp.
     _sendBufferHeadIndex = 1u;
@@ -117,36 +113,47 @@ void RN_UdpConnector::connect(sf::IpAddress addr, std::uint16_t port) {
 }
 
 void RN_UdpConnector::reset() {
-    // TODO
+    RN_RemoteInfo _remoteInfo;
+    _timeoutLimit = std::chrono::microseconds{0};
+    _status = RN_ConnectorStatus::Disconnected;
+
+    _sendBuffer.clear();
+    _recvBuffer.clear();
+    _sendBufferHeadIndex = 1u;
+    _recvBufferHeadIndex = 1u;
+
+    _ackOrdinals.clear();
 }
 
 void RN_UdpConnector::update(RN_Node& node, PZInteger slotIndex, bool doUpload) {
-    if (_state == State::Disconnected) {
+    if (_status == RN_ConnectorStatus::Disconnected) {
         return;
     }
 
     if (connectionTimedOut()) {
-        //reset();
+        reset();
         //node->queue_event(EventFactory::create_conn_timeout(slot_index));
         return;
     }
 
     if (doUpload) {
-        switch (_state) {
-        case State::Accepting:  // Send CONNECT messages to the client, until a DATA message is received     
-        case State::Connecting: // Send HELLO messages to the server, until a CONNECT message is received
+        switch (_status) {
+        case RN_ConnectorStatus::Accepting:  // Send CONNECT messages to the client, until a DATA message is received     
+        case RN_ConnectorStatus::Connecting: // Send HELLO messages to the server, until a CONNECT message is received
             {
                 RN_Packet packet;
-                packet << ((_state == State::Accepting) ? UDP_MESSAGE_TYPE_CONNECT : UDP_MESSAGE_TYPE_HELLO);
+                packet << ((_status == RN_ConnectorStatus::Accepting) ? UDP_MESSAGE_TYPE_CONNECT 
+                                                                      : UDP_MESSAGE_TYPE_HELLO);
                 packet << _passphrase;
                 if (UploadPacket(_socket, packet, _remoteInfo.ipAddress, _remoteInfo.port) != UPLOAD_PACKET_SUCCESS) {
                     // TODO Disconnect
-                    // reset();
+                    reset();
+                    // Maybe log event?
                 }
             }
             break;
 
-        case State::Connected:
+        case RN_ConnectorStatus::Connected:
             uploadAllData();
             break;
 
@@ -158,15 +165,15 @@ void RN_UdpConnector::update(RN_Node& node, PZInteger slotIndex, bool doUpload) 
 }
 
 void RN_UdpConnector::receivedPacket(RN_Packet& packet) {
-    assert(_state != State::Disconnected);
+    assert(_status != RN_ConnectorStatus::Disconnected);
 
     const auto msgType = packet.extractValue<std::uint32_t>();
     if (!packet) {
         // TODO - Handle error
     }
 
-    switch (_state) {
-    case State::Connecting:
+    switch (_status) {
+    case RN_ConnectorStatus::Connecting:
         if (msgType == UDP_MESSAGE_TYPE_CONNECT) {
             const std::string receivedPassphrase = packet.extractValue<std::string>();
             if (!packet) {
@@ -189,13 +196,13 @@ void RN_UdpConnector::receivedPacket(RN_Packet& packet) {
         }
         break;
 
-    case State::Accepting:
-    case State::Connected:
+    case RN_ConnectorStatus::Accepting:
+    case RN_ConnectorStatus::Connected:
         if (msgType == UDP_MESSAGE_TYPE_HELLO || msgType == UDP_MESSAGE_TYPE_CONNECT) {
             // Ignore
         }
         else if (msgType == UDP_MESSAGE_TYPE_DATA) {
-            if (_state == State::Accepting) {
+            if (_status == RN_ConnectorStatus::Accepting) {
                 initializeSession(); // New connection confirmed
                 // node->queue_event(EventFactory::create_connect(slot_index)); TODO
             }
@@ -226,6 +233,10 @@ void RN_UdpConnector::handleDataMessages(RN_Node& node) {
 
 const RN_RemoteInfo& RN_UdpConnector::getRemoteInfo() const noexcept {
     return _remoteInfo;
+}
+
+RN_ConnectorStatus RN_UdpConnector::getStatus() const noexcept {
+    return _status;
 }
 
 void RN_UdpConnector::appendToNextOutgoingPacket(const void *data, std::size_t sizeInBytes) {
@@ -305,7 +316,7 @@ void RN_UdpConnector::receivedAck(std::uint32_t ordinal) {
 
 void RN_UdpConnector::initializeSession() {
     std::cout << "Session Initialized\n";
-    _state = State::Connected;
+    _status = RN_ConnectorStatus::Connected;
     _remoteInfo.timeoutStopwatch.restart();
     // TODO Something for message buffers
 }

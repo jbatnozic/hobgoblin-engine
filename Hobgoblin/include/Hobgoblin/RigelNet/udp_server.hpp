@@ -3,7 +3,7 @@
 
 #include <Hobgoblin/RigelNet/node.hpp>
 #include <Hobgoblin/RigelNet/remote_info.hpp>
-#include <Hobgoblin/RigelNet/udp_connector.hpp>
+#include <Hobgoblin/RigelNet/Udp_connector.hpp>
 #include <Hobgoblin/Utility/NoCopyNoMove.hpp>
 
 #include <SFML/Network.hpp>
@@ -32,6 +32,7 @@ public:
 
     // Client management:
     const RN_RemoteInfo& getClientInfo(PZInteger index) const;
+    RN_ConnectorStatus getConnectorStatus(PZInteger index) const;
     void swapClients(PZInteger index1, PZInteger index2);
 
     // Utility:

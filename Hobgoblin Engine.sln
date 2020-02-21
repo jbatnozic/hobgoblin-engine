@@ -7,7 +7,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpaceshipPhysics", "Spacesh
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Hobgoblin", "Hobgoblin\Hobgoblin.vcxproj", "{CBAF9E02-9770-455B-ABE4-65FAF1E19153}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Hobgoblin Test", "Hobgoblin Test\Hobgoblin Test.vcxproj", "{DC1CA9B8-8B40-4A06-92E0-AADB1402B2D2}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HobgoblinTest", "HobgoblinTest\Hobgoblin Test.vcxproj", "{DC1CA9B8-8B40-4A06-92E0-AADB1402B2D2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

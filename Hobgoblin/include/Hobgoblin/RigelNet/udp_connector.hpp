@@ -18,6 +18,14 @@
 
 HOBGOBLIN_NAMESPACE_START
 namespace rn {
+
+enum class RN_ConnectorStatus {
+    Disconnected,
+    Accepting,
+    Connecting,
+    Connected
+};
+
 namespace detail {
 
 struct TaggedPacket {
@@ -51,22 +59,16 @@ public:
     void handleDataMessages(RN_Node& node);
 
     const RN_RemoteInfo& getRemoteInfo() const noexcept;
+    RN_ConnectorStatus getStatus() const noexcept;
 
     void appendToNextOutgoingPacket(const void *data, std::size_t sizeInBytes);
 
 private:
-    enum class State {
-        Disconnected,
-        Accepting,
-        Connecting,
-        Connected
-    };
-
     RN_RemoteInfo _remoteInfo;
     std::chrono::microseconds _timeoutLimit = std::chrono::microseconds{0};
     sf::UdpSocket& _socket;
     const std::string& _passphrase;
-    State _state;
+    RN_ConnectorStatus _status;
 
     std::deque<TaggedPacket> _sendBuffer;
     std::deque<TaggedPacket> _recvBuffer;

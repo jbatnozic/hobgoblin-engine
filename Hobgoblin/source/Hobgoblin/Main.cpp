@@ -1,7 +1,7 @@
 
 #include <Hobgoblin/RigelNet/handlermgmt.hpp>
-#include <Hobgoblin/RigelNet/udp_server.hpp>
-#include <Hobgoblin/RigelNet/udp_client.hpp>
+#include <Hobgoblin/RigelNet/Udp_server.hpp>
+#include <Hobgoblin/RigelNet/Udp_client.hpp>
 
 #include <Hobgoblin/RigelNet_Macros.hpp>
 

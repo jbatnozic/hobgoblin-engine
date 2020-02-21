@@ -1,6 +1,6 @@
 
 #include <Hobgoblin/RigelNet/packet.hpp>
-#include <Hobgoblin/RigelNet/udp_server.hpp>
+#include <Hobgoblin/RigelNet/Udp_server.hpp>
 
 #include <cassert>
 #include <utility>
@@ -160,7 +160,7 @@ int RN_UdpServer::findConnector(sf::IpAddress addr, std::uint16_t port) const {
 
 void RN_UdpServer::handlePacketFromUnknownSender(sf::IpAddress senderIp, std::uint16_t senderPort, RN_Packet& packet) {
     for (auto& connector : _clients) {
-        if (connector.getRemoteInfo().status == RN_RemoteStatus::Disconnected) {
+        if (connector.getStatus() == RN_ConnectorStatus::Disconnected) {
             connector.tryAccept(senderIp, senderPort, packet);
             break;
         }

@@ -13,13 +13,7 @@
 HOBGOBLIN_NAMESPACE_START
 namespace rn {
 
-enum class RN_RemoteStatus {
-    Disconnected,
-    Connected
-};
-
 struct RN_RemoteInfo {
-    RN_RemoteStatus status = RN_RemoteStatus::Disconnected;
     util::Stopwatch timeoutStopwatch;
     std::chrono::microseconds latency;
     sf::IpAddress ipAddress;
