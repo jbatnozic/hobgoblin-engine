@@ -5,7 +5,7 @@
 
 #include <cassert>
 
-#include <Hobgoblin/Private/pmacro_define.hpp>
+#include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_START
 namespace qao {
@@ -105,4 +105,4 @@ void QAO_Base::_internal_setThisId(QAO_GenericId id, util::Passkey<QAO_Runtime>)
 }
 HOBGOBLIN_NAMESPACE_END
 
-#include <Hobgoblin/Private/pmacro_undef.hpp>
+#include <Hobgoblin/Private/Pmacro_undef.hpp>

@@ -7,7 +7,7 @@
 
 #include <cstdint>
 
-#include <Hobgoblin/Private/pmacro_define.hpp>
+#include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_START
 namespace qao {
@@ -51,4 +51,4 @@ bool QAO_GenericId::isNull() const noexcept {
 }
 HOBGOBLIN_NAMESPACE_END
 
-#include <Hobgoblin/Private/pmacro_undef.hpp>
+#include <Hobgoblin/Private/Pmacro_undef.hpp>

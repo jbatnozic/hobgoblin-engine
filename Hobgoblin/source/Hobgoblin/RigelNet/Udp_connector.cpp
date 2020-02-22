@@ -1,11 +1,11 @@
 
-#include <Hobgoblin/RigelNet/node.hpp>
+#include <Hobgoblin/RigelNet/Node.hpp>
 #include <Hobgoblin/RigelNet/Udp_connector.hpp>
 
 #include <cassert>
 #include <iostream> // TODO Temp.
 
-#include <Hobgoblin/Private/pmacro_define.hpp>
+#include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_START
 namespace rn {
@@ -368,4 +368,4 @@ void RN_UdpConnector::receiveDataMessage(RN_Packet& packet) {
 } // namespace rn
 HOBGOBLIN_NAMESPACE_END
 
-#include <Hobgoblin/Private/pmacro_undef.hpp>
+#include <Hobgoblin/Private/Pmacro_undef.hpp>

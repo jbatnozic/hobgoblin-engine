@@ -1,16 +1,15 @@
 #ifndef UHOBGOBLIN_RN_NODE_HPP
 #define UHOBGOBLIN_RN_NODE_HPP
 
-//#include <Hobgoblin/Common.hpp>
-#include <Hobgoblin/RigelNet/handlermgmt.hpp>
-#include <Hobgoblin/RigelNet/packet.hpp>
+#include <Hobgoblin/RigelNet/Handlermgmt.hpp>
+#include <Hobgoblin/RigelNet/Packet.hpp>
 #include <Hobgoblin/Utility/NoCopyNoMove.hpp>
 
 #include <cstdint>
 #include <deque>
 #include <type_traits>
 
-#include <Hobgoblin/Private/pmacro_define.hpp>
+#include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_START
 namespace rn {
@@ -86,6 +85,6 @@ typename std::remove_reference<T>::type UHOBGOBLIN_RN_ExtractArg(RN_Node& node) 
 } // namespace rn
 HOBGOBLIN_NAMESPACE_END
 
-#include <Hobgoblin/Private/pmacro_undef.hpp>
+#include <Hobgoblin/Private/Pmacro_undef.hpp>
 
 #endif // !UHOBGOBLIN_RN_NODE_HPP

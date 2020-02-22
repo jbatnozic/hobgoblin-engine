@@ -2,7 +2,7 @@
 #include <Hobgoblin/QAO/base.hpp>
 #include <Hobgoblin/QAO/orderer.hpp>
 
-#include <Hobgoblin/Private/pmacro_define.hpp>
+#include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_START
 namespace qao {
@@ -22,4 +22,4 @@ bool QAO_OrdererComparator::operator()(const QAO_Base* a, const QAO_Base* b) con
 } // namespace qao
 HOBGOBLIN_NAMESPACE_END
 
-#include <Hobgoblin/Private/pmacro_undef.hpp>
+#include <Hobgoblin/Private/Pmacro_undef.hpp>

@@ -1,7 +1,7 @@
 #ifndef HOBGOBLIN_UTIL_PASSKEY_HPP
 #define HOBGOBLIN_UTIL_PASSKEY_HPP
 
-#include <Hobgoblin/Private/pmacro_define.hpp>
+#include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_START
 namespace util {
@@ -18,6 +18,6 @@ private:
 }
 HOBGOBLIN_NAMESPACE_END
 
-#include <Hobgoblin/Private/pmacro_undef.hpp>
+#include <Hobgoblin/Private/Pmacro_undef.hpp>
 
 #endif // !HOBGOBLIN_UTIL_PASSKEY_HPP

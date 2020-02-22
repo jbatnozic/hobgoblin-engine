@@ -7,7 +7,7 @@
 #include <vector>
 #include <stdexcept>
 
-#include <Hobgoblin/Private/pmacro_define.hpp>
+#include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_START
 namespace util {
@@ -446,6 +446,6 @@ void SlabIndexer::downsize(std::size_t new_size) {
 }
 HOBGOBLIN_NAMESPACE_END
 
-#include <Hobgoblin/Private/pmacro_undef.hpp>
+#include <Hobgoblin/Private/Pmacro_undef.hpp>
 
 #endif // !SLAB_INDEXER_HPP

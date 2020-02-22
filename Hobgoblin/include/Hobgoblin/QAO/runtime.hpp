@@ -13,7 +13,7 @@
 #include <memory>
 #include <string>
 
-#include <Hobgoblin/Private/pmacro_define.hpp>
+#include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_START
 namespace qao {
@@ -91,6 +91,6 @@ T* QAO_Runtime::find(QAO_Id<T> id) const {
 } // namespace qao
 HOBGOBLIN_NAMESPACE_END
 
-#include <Hobgoblin/Private/pmacro_undef.hpp>
+#include <Hobgoblin/Private/Pmacro_undef.hpp>
 
 #endif // !UHOBGOBLIN_QAO_RUNTIME_HPP

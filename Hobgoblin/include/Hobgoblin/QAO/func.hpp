@@ -7,7 +7,7 @@
 #include <cassert>
 #include <utility>
 
-#include <Hobgoblin/Private/pmacro_define.hpp>
+#include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_START
 namespace qao {
@@ -27,6 +27,6 @@ inline void QAO_Destroy(QAO_Base* obj) {
 } // namespace qao
 HOBGOBLIN_NAMESPACE_END
 
-#include <Hobgoblin/Private/pmacro_undef.hpp>
+#include <Hobgoblin/Private/Pmacro_undef.hpp>
 
 #endif // !UHOBGOBLIN_QAO_FUNC_HPP

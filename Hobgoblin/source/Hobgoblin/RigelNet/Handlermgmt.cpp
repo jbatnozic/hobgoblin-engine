@@ -5,7 +5,7 @@
 #include <cassert>
 #include <cstring>
 
-#include <Hobgoblin/Private/pmacro_define.hpp>
+#include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_START
 namespace rn {
@@ -110,4 +110,4 @@ RN_HandlerId RN_HandlerNameToIdCacher::getHandlerId() {
 } // namespace rn
 HOBGOBLIN_NAMESPACE_END
 
-#include <Hobgoblin/Private/pmacro_undef.hpp>
+#include <Hobgoblin/Private/Pmacro_undef.hpp>

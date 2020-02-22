@@ -1,7 +1,7 @@
 #ifndef UHOBGOBLIN_UTIL_NO_COPY_NO_MOVE_HPP
 #define UHOBGOBLIN_UTIL_NO_COPY_NO_MOVE_HPP
 
-#include <Hobgoblin/Private/pmacro_define.hpp>
+#include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_START
 namespace util {
@@ -29,6 +29,6 @@ protected:
 }
 HOBGOBLIN_NAMESPACE_END
 
-#include <Hobgoblin/Private/pmacro_undef.hpp>
+#include <Hobgoblin/Private/Pmacro_undef.hpp>
 
 #endif // !UHOBGOBLIN_UTIL_NO_COPY_NO_MOVE_HPP

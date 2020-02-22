@@ -1,11 +1,11 @@
 
-#include <Hobgoblin/RigelNet/packet.hpp>
+#include <Hobgoblin/RigelNet/Packet.hpp>
 #include <Hobgoblin/RigelNet/Udp_server.hpp>
 
 #include <cassert>
 #include <utility>
 
-#include <Hobgoblin/Private/pmacro_define.hpp>
+#include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_START
 namespace rn {
@@ -176,4 +176,4 @@ void RN_UdpServer::handlePacketFromUnknownSender(sf::IpAddress senderIp, std::ui
 } // namespace rn
 HOBGOBLIN_NAMESPACE_END
 
-#include <Hobgoblin/Private/pmacro_undef.hpp>
+#include <Hobgoblin/Private/Pmacro_undef.hpp>

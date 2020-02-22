@@ -5,7 +5,7 @@
 
 #include <utility>
 
-#include <Hobgoblin/Private/pmacro_define.hpp>
+#include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_START
 namespace rn {
@@ -46,6 +46,6 @@ void PackArgs(RN_PacketBase& packet, ArgsHead argsHead, ArgsRest&&... argsRest) 
 } // namespace rn
 HOBGOBLIN_NAMESPACE_END
 
-#include <Hobgoblin/Private/pmacro_undef.hpp>
+#include <Hobgoblin/Private/Pmacro_undef.hpp>
 
 #endif // !UHOBGOBLIN_RN_PACKET_HPP
