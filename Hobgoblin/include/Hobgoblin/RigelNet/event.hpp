@@ -1,125 +1,73 @@
-#pragma once
-
-#include "Rigel-config.hpp"
-#include "Rigel-types.hpp"
+#ifndef UHOBGOBLIN_RN_EVENT_HPP
+#define UHOBGOBLIN_RN_EVENT_HPP
 
 #include <string>
+#include <variant>
 
-namespace RIGELNETW_CONFIG_NS_NAME {
+#include <Hobgoblin/Private/Pmacro_define.hpp>
 
-    struct EventFactory;
+HOBGOBLIN_NAMESPACE_START
+namespace rn {
 
-    #define event_void char rigelnetw_event_void
+/*
+    BadPassphrase
+    AttemptTimedOut
+    Connected
+    Disconnected
+    ConnectionTimedOut
+    Kicked
+*/
 
-    class Event {
-        
-        friend struct EventFactory;
+struct RN_EvBadPassphrase {
+    int clientIndex; // Not used on client side
+};
 
-        public:
+struct RN_EvAttemptTimedOut {
+};
 
-            // Type enumeration:
-            struct Type {
+struct RN_EvConnected {
+    int clientIndex; // Not used on client side
+};
 
-                enum Enum {
+struct RN_EvDisconnected {
+    int clientIndex; // Not used on client side
+};
 
-                    Null,
-                    Connect,
-                    Disconnect,
-                    AttempTimeout,
-                    ConnTimeout,
-                    IllegalRegReq,
-                    Kicked,
-                    BadPassphrase,
+struct RN_EvConnectionTimedOut {
+    int clientIndex; // Not used on client side
+};
 
-                    Count
+struct RN_EvKicked {
+    std::string reason;
+};
 
-                    };
+namespace detail {
 
-                };
+using RN_EventBase = std::variant<
+    RN_EvBadPassphrase,
+    RN_EvAttemptTimedOut,
+    RN_EvConnected,
+    RN_EvDisconnected,
+    RN_EvConnectionTimedOut,
+    RN_EvKicked
+>;
 
-            // [Server]: New client (data = client index)
-            // [Client]: Connected to server (data = void)
-            struct EvConnect {
-                size_t client_index;
-                };
+} // namespace detail
 
-            // [Server]: Client disconnected (data = client index)
-            // [Client]: Disconnected from server (data = void)
-            struct EvDisconnect {
-                size_t client_index;
-                };
+/*struct RN_Event : public detail::RN_EventBase {
+    using detail::RN_EventBase::RN_EventBase;
 
-            // [Server]: n/a
-            // [Client]: Connection attempt timed out (data = void)
-            struct EvAttemptTimeout {
-                unsigned time_ms;
-                };
+    template <class ...Args>
+    void visit(Args&&... args) {
+        std::visit(std::forward<Args>(args)..., Self);
+    }
+};*/
 
-            // [Server]: Client connection timed out (data = client index)
-            // [Client]: Server connection timed out (data = void)
-            struct EvConnTimeout {
-                size_t client_index;
-                };
+using RN_Event = detail::RN_EventBase; // TODO
 
-            // [Server]: Illegal registry change request (data = client number, registry key)
-            // [Client]: n/a
-            struct EvIllegalRegReq {
-                size_t client_index;
-                };
+} // namespace rn
+HOBGOBLIN_NAMESPACE_END
 
-            // [Server]: n/a
-            // [Client]: Kicked from server (data = void)
-            struct EvKicked {
-                event_void;
-                };
+#include <Hobgoblin/Private/Pmacro_undef.hpp>
 
-            // [Server]: Passphrase mismatch (data = client_index)
-            // [Client]: Passphrase mismatch (data = void)
-            struct EvBadPassphrase {
-                size_t client_index;
-                };
-
-            // Fields:
-            Type::Enum type;
-
-            union {
-                
-                EvConnect        connect;
-                EvDisconnect     disconnect;
-                EvAttemptTimeout attempt_timeout;
-                EvConnTimeout    conn_timeout;
-                EvIllegalRegReq  illegal_reg_req;
-                EvKicked         kicked;
-                EvBadPassphrase  bad_passphrase;
-
-                };
-
-            Event();
-
-            // Special methods for getting strings:
-            std::string illegal_reg_req_key() const;
-            std::string bad_passphrase_str() const;
-
-        private:
-
-            std::string m_string;
-
-            Event(Type::Enum type);
-
-        };
-
-    #undef event_void
-    
-    struct EventFactory {
-
-        static Event create_connect(size_t client_index = size_t(-1));
-        static Event create_disconnect(size_t client_index = size_t(-1));
-        static Event create_attempt_timeout(unsigned time_ms);
-        static Event create_conn_timeout(size_t client_index = size_t(-1));
-        static Event create_illegal_reg_req(size_t client_index, std::string& key);
-        static Event create_kicked(void);
-        static Event create_bad_passphrase(const std::string & pp, size_t client_index = size_t(-1));
-
-        };
-    
-    } // End Rigel namespace
+#endif // !UHOBGOBLIN_RN_EVENT_HPP

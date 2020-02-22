@@ -63,9 +63,6 @@
     <ClCompile Include="source\Hobgoblin\RigelNet\Handlermgmt.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="include\Hobgoblin\RigelNet\Node.hpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Hobgoblin\QAO\base.hpp">
@@ -177,6 +174,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Hobgoblin\RigelNet\Client.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Hobgoblin\RigelNet\Node.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Hobgoblin\RigelNet\Event.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Hobgoblin\Utility\Visitor.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

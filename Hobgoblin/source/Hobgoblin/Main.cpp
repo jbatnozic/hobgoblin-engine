@@ -2,10 +2,12 @@
 #include <Hobgoblin/RigelNet/handlermgmt.hpp>
 #include <Hobgoblin/RigelNet/Udp_server.hpp>
 #include <Hobgoblin/RigelNet/Udp_client.hpp>
+#include <Hobgoblin/RigelNet/Event.hpp>
 
 #include <Hobgoblin/RigelNet_Macros.hpp>
 
 #include <Hobgoblin/Utility/Stopwatch.hpp>
+#include <Hobgoblin/Utility/Visitor.hpp>
 
 #include <cassert>
 #include <chrono>
@@ -34,6 +36,33 @@ RN_DEFINE_HANDLER(Baz, RN_ARGS(int, a, std::string&, s)) {
 // TEST
 
 int main() {
+    RN_Event event_ = RN_EvConnectionTimedOut{5};
+    std::visit(
+        hg::util::MakeVisitor(
+            [](const RN_EvBadPassphrase& ev) {
+                std::cout << "Bad passphrase\n";
+            },
+            [](const RN_EvAttemptTimedOut& ev) {
+                std::cout << "Attempt timed out\n";
+            },
+            [](const RN_EvConnected& ev) {
+                std::cout << "Connected\n";
+            },
+            [](const RN_EvDisconnected& ev) {
+                std::cout << "Disconnected\n";
+            },
+            [](const RN_EvConnectionTimedOut& ev) {
+                std::cout << "Connection timed out\n";
+            },
+            [](const RN_EvKicked& ev) {
+                std::cout << "Kicked\n";
+            }
+        ),
+        event_
+    );
+
+    std::exit(0);
+
     hg::util::Stopwatch stopwatch;
     auto t1 = stopwatch.getElapsedTime();
     auto t2 = stopwatch.getElapsedTime();

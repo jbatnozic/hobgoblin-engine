@@ -10,7 +10,7 @@ HOBGOBLIN_NAMESPACE_START
 namespace rn {
 
 RN_UdpClient::RN_UdpClient()
-    : _connector{_mySocket, _passphrase} 
+    : _connector{_mySocket, _passphrase}
 {
     _mySocket.setBlocking(false);
 }
@@ -30,6 +30,13 @@ void RN_UdpClient::connect(std::uint16_t localPort, sf::IpAddress serverIp, std:
     assert(status == sf::Socket::Done); // TODO - Throw exception on failure
     _passphrase = std::move(passphrase);
     _connector.connect(serverIp, serverPort);
+    _running = true;
+}
+
+void RN_UdpClient::disconnect() {
+    // TODO
+    _connector.disconnect(false); // TODO [configurable]
+    _running = false;
 }
 
 void RN_UdpClient::update() {
@@ -50,9 +57,9 @@ void RN_UdpClient::compose(int receiver, const void* data, std::size_t sizeInByt
 // Private
 
 void RN_UdpClient::update(bool doUpload) {
-    /*if (!_running) {
-        return; // TODO
-    }*/
+    if (!_running) {
+        return;
+    }
 
     if (!_eventQueue.empty()) {
         // TODO Error

@@ -24,7 +24,6 @@ public:
 
     void connect(std::uint16_t localPort, sf::IpAddress serverIp, std::uint16_t serverPort, std::string passphrase);
     void disconnect();
-    bool isConnected() const;
     void update();
     void updateWithoutUpload();
 
