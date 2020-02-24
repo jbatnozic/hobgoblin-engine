@@ -19,6 +19,7 @@ struct RN_RemoteInfo;
 template <class T>
 class RN_Server {
 public:
+#if 0
     bool start(std::uint16_t port, std::string passphrase);
     void stop();
     bool isRunning() const;
@@ -39,6 +40,7 @@ public:
     void setTimeoutLimit(std::chrono::microseconds limit);
 
     const std::string& getPassphrase() const;
+#endif
 };
 
 } // namespace rn

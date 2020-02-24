@@ -1,6 +1,7 @@
 #ifndef UHOBGOBLIN_RN_UDP_CLIENT_HPP
 #define UHOBGOBLIN_RN_UDP_CLIENT_HPP
 
+#include <Hobgoblin/RigelNet/Client.hpp>
 #include <Hobgoblin/RigelNet/Node.hpp>
 #include <Hobgoblin/RigelNet/Remote_info.hpp>
 #include <Hobgoblin/RigelNet/Udp_connector.hpp>
@@ -15,7 +16,7 @@
 HOBGOBLIN_NAMESPACE_START
 namespace rn {
 
-class RN_UdpClient : public RN_Node {
+class RN_UdpClient : public RN_Client<RN_UdpClient>, public RN_Node {
 public:
     RN_UdpClient();
     RN_UdpClient(std::uint16_t localPort, sf::IpAddress serverIp, std::uint16_t serverPort, std::string passphrase);
@@ -29,7 +30,7 @@ public:
 
     // Utility:
     const RN_RemoteInfo& getServerInfo() const;
-    RN_ConnectorStatus getConnectorStatus(PZInteger index) const;
+    RN_ConnectorStatus getConnectorStatus() const;
 
     std::chrono::microseconds getTimeoutLimit() const;
     void setTimeoutLimit(std::chrono::microseconds limit);

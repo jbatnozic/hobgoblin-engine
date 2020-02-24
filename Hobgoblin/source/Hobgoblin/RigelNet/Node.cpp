@@ -29,6 +29,16 @@ void HandleDataMessages(RN_Node& node, RN_Packet& packet) {
 
 } // namespace detail
 
+RN_Node::RN_Node(RN_NodeType nodeType)
+    : _currentPacket{nullptr}
+    , _nodeType{nodeType}
+{
+}
+
+RN_NodeType RN_Node::getType() const noexcept {
+    return _nodeType;
+}
+
 } // namespace rn
 HOBGOBLIN_NAMESPACE_END
 

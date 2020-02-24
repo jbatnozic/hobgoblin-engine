@@ -10,7 +10,8 @@ HOBGOBLIN_NAMESPACE_START
 namespace rn {
 
 RN_UdpClient::RN_UdpClient()
-    : _connector{_mySocket, _passphrase}
+    : RN_Node{RN_NodeType::UdpClient}
+    , _connector{_mySocket, _passphrase}
 {
     _mySocket.setBlocking(false);
 }
@@ -45,6 +46,14 @@ void RN_UdpClient::update() {
 
 void RN_UdpClient::updateWithoutUpload() {
     update(false);
+}
+
+const RN_RemoteInfo& RN_UdpClient::getServerInfo() const {
+    return _connector.getRemoteInfo();
+}
+
+RN_ConnectorStatus RN_UdpClient::getConnectorStatus() const {
+    return _connector.getStatus();
 }
 
 // Protected

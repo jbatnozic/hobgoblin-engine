@@ -3,6 +3,7 @@
 
 #include <Hobgoblin/RigelNet/Node.hpp>
 #include <Hobgoblin/RigelNet/Remote_info.hpp>
+#include <Hobgoblin/RigelNet/Server.hpp>
 #include <Hobgoblin/RigelNet/Udp_connector.hpp>
 #include <Hobgoblin/Utility/NoCopyNoMove.hpp>
 
@@ -16,7 +17,7 @@
 HOBGOBLIN_NAMESPACE_START
 namespace rn {
 
-class RN_UdpServer : public RN_Node {
+class RN_UdpServer : public RN_Server<RN_UdpServer>, public RN_Node {
 public:
     RN_UdpServer();
     RN_UdpServer(PZInteger size);

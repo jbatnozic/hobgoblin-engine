@@ -77,8 +77,6 @@ private:
 
     std::vector<std::uint32_t> _ackOrdinals;
 
-    // TODO Ping stuff
-
     void cleanUp();
     void reset();
     bool connectionTimedOut() const;

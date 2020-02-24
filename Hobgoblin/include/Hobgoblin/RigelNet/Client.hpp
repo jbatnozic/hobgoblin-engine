@@ -12,8 +12,6 @@ template <class T>
 class RN_Client {
 public:
 
-private:
-
 };
 
 } // namespace rn

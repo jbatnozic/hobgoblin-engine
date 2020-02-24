@@ -1,6 +1,8 @@
 #ifndef UHOBGOBLIN_RN_EVENT_HPP
 #define UHOBGOBLIN_RN_EVENT_HPP
 
+#include <Hobgoblin/Utility/Visitor.hpp>
+
 #include <string>
 #include <variant>
 
@@ -9,61 +11,46 @@
 HOBGOBLIN_NAMESPACE_START
 namespace rn {
 
-/*
-    BadPassphrase
-    AttemptTimedOut
-    Connected
-    Disconnected
-    ConnectionTimedOut
-    Kicked
-*/
+struct RN_Event {
 
-struct RN_EvBadPassphrase {
-    int clientIndex; // Not used on client side
-};
+    struct BadPassphrase {
+        int clientIndex; // Not used on client side
+    };
 
-struct RN_EvAttemptTimedOut {
-};
+    struct AttemptTimedOut {
+    };
 
-struct RN_EvConnected {
-    int clientIndex; // Not used on client side
-};
+    struct Connected {
+        int clientIndex; // Not used on client side
+    };
 
-struct RN_EvDisconnected {
-    int clientIndex; // Not used on client side
-};
+    struct Disconnected {
+        int clientIndex; // Not used on client side
+    };
 
-struct RN_EvConnectionTimedOut {
-    int clientIndex; // Not used on client side
-};
+    struct ConnectionTimedOut {
+        int clientIndex; // Not used on client side
+    };
 
-struct RN_EvKicked {
-    std::string reason;
-};
+    struct Kicked {
+        std::string reason;
+    };
 
-namespace detail {
+    using EventVariant = std::variant<
+        BadPassphrase,
+        AttemptTimedOut,
+        Connected,
+        Disconnected,
+        ConnectionTimedOut,
+        Kicked>;
 
-using RN_EventBase = std::variant<
-    RN_EvBadPassphrase,
-    RN_EvAttemptTimedOut,
-    RN_EvConnected,
-    RN_EvDisconnected,
-    RN_EvConnectionTimedOut,
-    RN_EvKicked
->;
+    EventVariant eventVariant;
 
-} // namespace detail
-
-/*struct RN_Event : public detail::RN_EventBase {
-    using detail::RN_EventBase::RN_EventBase;
-
-    template <class ...Args>
-    void visit(Args&&... args) {
-        std::visit(std::forward<Args>(args)..., Self);
+    template <class ...Callables>
+    void visit(Callables&&... callables) {
+        std::visit(util::MakeVisitor(std::forward<Callables>(callables)...), eventVariant);
     }
-};*/
-
-using RN_Event = detail::RN_EventBase; // TODO
+};
 
 } // namespace rn
 HOBGOBLIN_NAMESPACE_END

@@ -1,18 +1,29 @@
 #ifndef UHOBGOBLIN_RN_NODE_HPP
 #define UHOBGOBLIN_RN_NODE_HPP
 
+#include <Hobgoblin/RigelNet/Client.hpp>
 #include <Hobgoblin/RigelNet/Handlermgmt.hpp>
 #include <Hobgoblin/RigelNet/Packet.hpp>
+#include <Hobgoblin/RigelNet/Server.hpp>
 #include <Hobgoblin/Utility/NoCopyNoMove.hpp>
 
+#include <cassert>
 #include <cstdint>
 #include <deque>
 #include <type_traits>
+#include <variant>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_START
 namespace rn {
+
+enum class RN_NodeType {
+    TcpClient,
+    TcpServer,
+    UdpClient,
+    UdpServer
+};
 
 class RN_Node;
 
@@ -25,13 +36,17 @@ void HandleDataMessages(RN_Node& node, RN_Packet& packet);
 
 class RN_Node : NO_COPY, NO_MOVE {
 public:
+    RN_Node(RN_NodeType nodeType);
     virtual ~RN_Node() = 0 {}
 
     // Compose template
 
     bool pollEvent(int& ev);
 
-    // virtual RN_NodeType getType() const;
+    RN_NodeType getType() const noexcept;
+
+    template <class S, class C>
+    void visit(S&& serverVisitor, C&& clientVisitor);
 
 protected:
     std::deque<int> _eventQueue;
@@ -45,6 +60,7 @@ protected:
 
 private:
     RN_PacketBase* _currentPacket;
+    RN_NodeType _nodeType;
 
     template <class T>
     T extractArgument();
@@ -67,6 +83,24 @@ T RN_Node::extractArgument() {
     }
     return retVal;
 }
+
+/*template <class S, class C>
+void RN_Node::visit(S&& serverVisitor, C&& clientVisitor) {
+    switch (_nodeType) {
+    case RN_NodeType::UdpServer:
+        serverVisitor(static_cast<RN_Server&>(static_cast<RN_UdpServer&>(Self)));
+        break;
+
+    case RN_NodeType::UdpClient:
+        clientVisitor(static_cast<RN_Client&>(static_cast<RN_UdpClient&>(Self)));
+        break;
+
+    case RN_NodeType::TcpServer:
+    case RN_NodeType::TcpClient:
+    default:
+        assert(0 && "Unreachable");
+    }
+}*/
 
 template <class ... Args>
 void UHOBGOBLIN_RN_ComposeImpl(RN_Node& node, int receiver, detail::RN_HandlerId handlerId, Args... args) {

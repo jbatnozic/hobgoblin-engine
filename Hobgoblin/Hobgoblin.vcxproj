@@ -406,12 +406,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="source\Hobgoblin\RigelNet\Handlermgmt.cpp" />
+    <ClCompile Include="source\Hobgoblin\RigelNet\Handlers.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Node.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Packet.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Udp_client.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Udp_connector.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Udp_server.cpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Event.hpp" />
+    <ClInclude Include="include\Hobgoblin\RigelNet\Handlers.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Node.hpp" />
     <ClCompile Include="include\Hobgoblin\Utility.hpp" />
     <ClCompile Include="source\Hobgoblin\Main.cpp">

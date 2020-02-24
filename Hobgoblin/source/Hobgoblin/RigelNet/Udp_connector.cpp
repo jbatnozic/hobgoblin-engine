@@ -297,8 +297,20 @@ void RN_UdpConnector::receivedAck(std::uint32_t ordinal) {
         // TODO -- Error
     }
 
+    // TODO Temp - Time between send & ack = latency
+    // Temp because it should average out all the values or something
+    _remoteInfo.latency = _sendBuffer[ind].stopwatch.getElapsedTime<std::chrono::microseconds>();
+    _remoteInfo.timeoutStopwatch.restart();
+
     _sendBuffer[ind].tag = TaggedPacket::Acknowledged;
     _sendBuffer[ind].packet.clear();
+
+    if (ind == 0) {
+        while (!_sendBuffer.empty() && _sendBuffer[0].tag == TaggedPacket::Acknowledged) {
+            _sendBuffer.pop_front();
+            _sendBufferHeadIndex += 1;
+        }
+    }
 }
 
 void RN_UdpConnector::initializeSession() {
@@ -321,6 +333,7 @@ void RN_UdpConnector::prepareNextOutgoingPacket() {
         packet << ackOrdinal;
     }
     packet << static_cast<std::uint32_t>(0);
+    _ackOrdinals.clear(); // TODO Pep
 }
 
 void RN_UdpConnector::receiveDataMessage(RN_Packet& packet) {
