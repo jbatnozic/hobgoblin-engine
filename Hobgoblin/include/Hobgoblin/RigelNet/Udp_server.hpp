@@ -28,12 +28,13 @@ public:
     void start(std::uint16_t localPort, std::string passphrase);
     void stop();
     bool isRunning() const;
-    void update();
-    void updateWithoutUpload();
+    void update(RN_UpdateMode mode);
 
     // Client management:
     const RN_RemoteInfo& getClientInfo(PZInteger index) const;
     RN_ConnectorStatus getConnectorStatus(PZInteger index) const;
+    PZInteger getSendBufferSize(PZInteger index) const;
+    PZInteger getRecvBufferSize(PZInteger index) const;
     void swapClients(PZInteger index1, PZInteger index2);
 
     void kick(PZInteger index);
@@ -60,9 +61,8 @@ private:
     int _senderIndex = -1;
     bool _running = false;
 
-    void update(bool doUpload);
-    void download();
-    void upload();
+    void updateReceive();
+    void updateSend();
     int  findConnector(sf::IpAddress addr, std::uint16_t port) const;
     void handlePacketFromUnknownSender(sf::IpAddress senderIp, std::uint16_t senderPort, RN_Packet& packet);
 };

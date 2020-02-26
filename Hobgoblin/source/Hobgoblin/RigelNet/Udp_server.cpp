@@ -52,12 +52,28 @@ bool RN_UdpServer::isRunning() const {
     return _running;
 }
 
-void RN_UdpServer::update() {
-    update(true);
-}
+void RN_UdpServer::update(RN_UpdateMode mode) {
+    if (!_running) {
+        return;
+    }
 
-void RN_UdpServer::updateWithoutUpload() {
-    update(false);
+    if (!_eventQueue.empty()) {
+        // TODO Error
+    }
+
+    switch (mode) {
+    case RN_UpdateMode::Receive:
+        updateReceive();
+        break;
+
+    case RN_UpdateMode::Send:
+        updateSend();
+        break;
+
+    default:
+        assert(0 && "Unreachable");
+        break;
+    }
 }
 
 // Client management:
@@ -67,6 +83,14 @@ const RN_RemoteInfo& RN_UdpServer::getClientInfo(PZInteger index) const {
 
 RN_ConnectorStatus RN_UdpServer::getConnectorStatus(PZInteger index) const {
     return _clients[index].getStatus();
+}
+
+PZInteger RN_UdpServer::getSendBufferSize(PZInteger index) const {
+    return _clients[index].getSendBufferSize();
+}
+
+PZInteger RN_UdpServer::getRecvBufferSize(PZInteger index) const {
+    return _clients[index].getRecvBufferSize();
 }
 
 void RN_UdpServer::swapClients(PZInteger index1, PZInteger index2) {
@@ -109,27 +133,8 @@ void RN_UdpServer::compose(int receiver, const void* data, std::size_t sizeInByt
 }
 
 // Private:
-void RN_UdpServer::update(bool doUpload) {
-    if (!_running) {
-        return;
-    }
 
-    if (!_eventQueue.empty()) {
-        // TODO Error
-    }
-
-    for (auto& client : _clients) {
-        if (true /*client->connected()*/) {
-            // ping
-            // send uord
-        }
-        client.update(Self, 0, true); // TODO Rename
-    }
-
-    download();
-}
-
-void RN_UdpServer::download() {
+void RN_UdpServer::updateReceive() {
     RN_Packet packet;
     sf::IpAddress senderIp;
     std::uint16_t senderPort;
@@ -148,11 +153,30 @@ void RN_UdpServer::download() {
         packet.clear();
     }
 
-    for (auto& client : _clients) {
-        client.handleDataMessages(Self);
+    for (PZInteger i = 0; i < getSize(); i += 1) {
+        auto& client = _clients[i];
+        
+        if (client.getStatus() == RN_ConnectorStatus::Connected) {
+            client.sendAcks();
+        }
+        if (client.getStatus() != RN_ConnectorStatus::Disconnected) {
+            _senderIndex = i;
+            client.handleDataMessages(Self);
+        }
+        if (client.getStatus() != RN_ConnectorStatus::Disconnected) {
+            client.checkForTimeout();
+        }
     }
-
     _senderIndex = -1;
+}
+
+void RN_UdpServer::updateSend() {
+    for (auto& client : _clients) {
+        if (client.getStatus() == RN_ConnectorStatus::Disconnected) {
+            continue;
+        }
+        client.send(Self);
+    }
 }
 
 int RN_UdpServer::findConnector(sf::IpAddress addr, std::uint16_t port) const {

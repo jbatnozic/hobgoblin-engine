@@ -101,12 +101,16 @@ int main() {
         RN_UdpServer server{2, 8888, "pass"};
 
         for (int i = 0; ; i += 1) {
-            if (server.getConnectorStatus(0) == RN_ConnectorStatus::Connected) {
-                //RN_Compose_Bar(server, 0, i);
+            if (server.getConnectorStatus(0) != RN_ConnectorStatus::Connected) {
+                i = -1;
             }
-            server.update();
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
-            std::cout << "\r Latency = " << server.getClientInfo(0).latency.count() << " microseconds";
+
+            server.update(RN_UpdateMode::Receive);
+            // step();
+            server.update(RN_UpdateMode::Send);
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+            std::cout << "Latency = " << server.getClientInfo(0).latency.count() << "us; SBS = " << server.getSendBufferSize(0) << '\n';
         }
     }
     else {
@@ -114,12 +118,16 @@ int main() {
         RN_UdpClient client{9999, "localhost", 8888, "pass"};
 
         for (int i = 0; ; i += 1) {
-            if (client .getConnectorStatus() == RN_ConnectorStatus::Connected) {
-                //RN_Compose_Bar(client, 0, i);
+            if (client .getConnectorStatus() != RN_ConnectorStatus::Connected) {
+                i = -1;
             }
-            client.update();
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
-            std::cout << "\r Latency = " << client.getServerInfo().latency.count() << " microseconds";
+
+            client.update(RN_UpdateMode::Receive);
+            // step();
+            client.update(RN_UpdateMode::Send);
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+            std::cout << "Latency = " << client.getServerInfo().latency.count() << "us; SBS = " << client.getSendBufferSize() << '\n';
         }
     }
 

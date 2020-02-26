@@ -8,3 +8,5 @@
 #define NO_MOVE public util::NonMoveable
 #define PASSKEY {}
 #define Self (*this)
+#define SWITCH_FALLTHROUGH (void)0
+#define NO_OP() (void)0

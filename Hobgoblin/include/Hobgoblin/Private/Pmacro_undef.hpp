@@ -6,3 +6,5 @@
 #undef NO_MOVE
 #undef PASSKEY
 #undef Self
+#undef SWITCH_FALLTHROUGH
+#undef NO_OP

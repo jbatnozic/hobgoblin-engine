@@ -25,13 +25,13 @@ public:
 
     void connect(std::uint16_t localPort, sf::IpAddress serverIp, std::uint16_t serverPort, std::string passphrase);
     void disconnect();
-    void update();
-    void updateWithoutUpload();
+    void update(RN_UpdateMode mode);
 
     // Utility:
     const RN_RemoteInfo& getServerInfo() const;
     RN_ConnectorStatus getConnectorStatus() const;
-
+    PZInteger getSendBufferSize() const;
+    PZInteger getRecvBufferSize() const;
     std::chrono::microseconds getTimeoutLimit() const;
     void setTimeoutLimit(std::chrono::microseconds limit);
 
@@ -47,8 +47,8 @@ private:
     std::chrono::microseconds _timeoutLimit = std::chrono::microseconds{0};
     bool _running = false; // TODO Update this value
 
-    void update(bool doUpload);
-    void download();
+    void updateReceive();
+    void updateSend();
 };
 
 } // namespace rn

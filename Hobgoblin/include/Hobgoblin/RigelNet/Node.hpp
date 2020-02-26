@@ -25,6 +25,11 @@ enum class RN_NodeType {
     UdpServer
 };
 
+enum class RN_UpdateMode {
+    Receive,
+    Send
+};
+
 class RN_Node;
 
 namespace detail {

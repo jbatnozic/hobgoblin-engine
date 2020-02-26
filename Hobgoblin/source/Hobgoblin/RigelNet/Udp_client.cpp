@@ -40,12 +40,28 @@ void RN_UdpClient::disconnect() {
     _running = false;
 }
 
-void RN_UdpClient::update() {
-    update(true);
-}
+void RN_UdpClient::update(RN_UpdateMode mode) {
+    if (!_running) {
+        return;
+    }
 
-void RN_UdpClient::updateWithoutUpload() {
-    update(false);
+    if (!_eventQueue.empty()) {
+        // TODO Error
+    }
+
+    switch (mode) {
+    case RN_UpdateMode::Receive:
+        updateReceive();
+        break;
+
+    case RN_UpdateMode::Send:
+        updateSend();
+        break;
+
+    default:
+        assert(0 && "Unreachable");
+        break;
+    }
 }
 
 const RN_RemoteInfo& RN_UdpClient::getServerInfo() const {
@@ -54,6 +70,14 @@ const RN_RemoteInfo& RN_UdpClient::getServerInfo() const {
 
 RN_ConnectorStatus RN_UdpClient::getConnectorStatus() const {
     return _connector.getStatus();
+}
+
+PZInteger RN_UdpClient::getSendBufferSize() const {
+    return _connector.getSendBufferSize();
+}
+
+PZInteger RN_UdpClient::getRecvBufferSize() const {
+    return _connector.getRecvBufferSize();
 }
 
 // Protected
@@ -65,25 +89,7 @@ void RN_UdpClient::compose(int receiver, const void* data, std::size_t sizeInByt
 
 // Private
 
-void RN_UdpClient::update(bool doUpload) {
-    if (!_running) {
-        return;
-    }
-
-    if (!_eventQueue.empty()) {
-        // TODO Error
-    }
-
-    if (true /*client->connected()*/) {
-        // ping
-        // send uord
-    }
-    _connector.update(Self, 0, true); // TODO
-    
-    download();
-}
-
-void RN_UdpClient::download() {
+void RN_UdpClient::updateReceive() {
     RN_Packet packet;
     sf::IpAddress senderIp;
     std::uint16_t senderPort;
@@ -99,7 +105,19 @@ void RN_UdpClient::download() {
         packet.clear();
     }
 
-    _connector.handleDataMessages(Self);
+    if (_connector.getStatus() == RN_ConnectorStatus::Connected) {
+        _connector.sendAcks();
+    }
+    if (_connector.getStatus() != RN_ConnectorStatus::Disconnected) {
+        _connector.handleDataMessages(Self);
+    }
+    if (_connector.getStatus() != RN_ConnectorStatus::Disconnected) {
+        _connector.checkForTimeout();
+    }
+}
+
+void RN_UdpClient::updateSend() {
+    _connector.send(Self);
 }
 
 } // namespace rn

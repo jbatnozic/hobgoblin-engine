@@ -54,12 +54,16 @@ public:
     void connect(sf::IpAddress addr, std::uint16_t port);
     void disconnect(bool notfiyRemote);
 
-    void update(RN_Node& node, PZInteger slotIndex, bool doUpload);
+    void checkForTimeout();
+    void send(RN_Node& node);
     void receivedPacket(RN_Packet& packet);
-    void handleDataMessages(RN_Node& node);
-
+    void handleDataMessages(RN_Node& node); // TODO - Do I need this?
+    void sendAcks();
+    
     const RN_RemoteInfo& getRemoteInfo() const noexcept;
     RN_ConnectorStatus getStatus() const noexcept;
+    PZInteger getSendBufferSize() const;
+    PZInteger getRecvBufferSize() const;
 
     void appendToNextOutgoingPacket(const void *data, std::size_t sizeInBytes);
 
@@ -86,6 +90,12 @@ private:
     void initializeSession();
     void prepareNextOutgoingPacket();
     void receiveDataMessage(RN_Packet& packet);
+    
+    void processHelloPacket(RN_Packet& packet);
+    void processConnectPacket(RN_Packet& packet);
+    void processDisconnectPacket(RN_Packet& packet);
+    void processDataPacket(RN_Packet& packet);
+    void processAcksPacket(RN_Packet& packet);
 };
 
 } // namespace detail

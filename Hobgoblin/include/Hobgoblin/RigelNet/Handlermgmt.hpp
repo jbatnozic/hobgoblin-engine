@@ -10,7 +10,7 @@
 HOBGOBLIN_NAMESPACE_START
 namespace rn {
 
-void RN_IndexHandlers();
+extern void RN_IndexHandlers();
 
 class RN_Node;
 
