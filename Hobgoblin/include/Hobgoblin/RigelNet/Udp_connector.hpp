@@ -41,7 +41,7 @@ struct TaggedPacket {
         Unpacked,
     };
 
-    RN_Packet packet;
+    RN_PacketWrapper packetWrap;
     util::Stopwatch stopwatch;
     Tag tag = DefaultTag;
 };
@@ -50,14 +50,14 @@ class RN_UdpConnector {
 public:
     RN_UdpConnector(sf::UdpSocket& socket, const std::string& passphrase);
 
-    void tryAccept(sf::IpAddress addr, std::uint16_t port, RN_Packet& packet);
+    void tryAccept(sf::IpAddress addr, std::uint16_t port, RN_PacketWrapper& packetWrap);
     void connect(sf::IpAddress addr, std::uint16_t port);
     void disconnect(bool notfiyRemote);
 
     void checkForTimeout();
     void send(RN_Node& node);
-    void receivedPacket(RN_Packet& packet);
-    void handleDataMessages(RN_Node& node); // TODO - Do I need this?
+    void receivedPacket(RN_PacketWrapper& packetWrap);
+    void handleDataMessages(RN_Node& node);
     void sendAcks();
     
     const RN_RemoteInfo& getRemoteInfo() const noexcept;
@@ -89,13 +89,13 @@ private:
     void receivedAck(std::uint32_t ordinal);
     void initializeSession();
     void prepareNextOutgoingPacket();
-    void receiveDataMessage(RN_Packet& packet);
+    void receiveDataMessage(RN_PacketWrapper& packetWrapper);
     
-    void processHelloPacket(RN_Packet& packet);
-    void processConnectPacket(RN_Packet& packet);
-    void processDisconnectPacket(RN_Packet& packet);
-    void processDataPacket(RN_Packet& packet);
-    void processAcksPacket(RN_Packet& packet);
+    void processHelloPacket(RN_PacketWrapper& packpacketWrapperet);
+    void processConnectPacket(RN_PacketWrapper& packetWrapper);
+    void processDisconnectPacket(RN_PacketWrapper& packetWrapper);
+    void processDataPacket(RN_PacketWrapper& packetWrapper);
+    void processAcksPacket(RN_PacketWrapper& packetWrapper);
 };
 
 } // namespace detail

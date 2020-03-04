@@ -1,4 +1,6 @@
 
-Use std::string as a "binary blob" container
 
-[receiver set] class
+RIGELNET:
+	Use std::string as a "binary blob" container
+	[receiver set] class
+	Remove acks from data messages OR use them for latency counting w/ "weak" acks

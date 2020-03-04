@@ -135,22 +135,22 @@ void RN_UdpServer::compose(int receiver, const void* data, std::size_t sizeInByt
 // Private:
 
 void RN_UdpServer::updateReceive() {
-    RN_Packet packet;
+    RN_PacketWrapper packetWrap;
     sf::IpAddress senderIp;
     std::uint16_t senderPort;
 
-    while (_mySocket.receive(packet, senderIp, senderPort) == sf::Socket::Status::Done) {
+    while (_mySocket.receive(packetWrap.packet, senderIp, senderPort) == sf::Socket::Status::Done) {
         const int senderConnectorIndex = findConnector(senderIp, senderPort);
 
         if (senderConnectorIndex != -1) {
             _senderIndex = senderConnectorIndex;
-            _clients[senderConnectorIndex].receivedPacket(packet);
+            _clients[senderConnectorIndex].receivedPacket(packetWrap);
         }
         else {
-            handlePacketFromUnknownSender(senderIp, senderPort, packet);
+            handlePacketFromUnknownSender(senderIp, senderPort, packetWrap);
         }
 
-        packet.clear();
+        packetWrap.packet.clear();
     }
 
     for (PZInteger i = 0; i < getSize(); i += 1) {
@@ -189,10 +189,10 @@ int RN_UdpServer::findConnector(sf::IpAddress addr, std::uint16_t port) const {
     return -1;
 }
 
-void RN_UdpServer::handlePacketFromUnknownSender(sf::IpAddress senderIp, std::uint16_t senderPort, RN_Packet& packet) {
+void RN_UdpServer::handlePacketFromUnknownSender(sf::IpAddress senderIp, std::uint16_t senderPort, RN_PacketWrapper& packetWrap) {
     for (auto& connector : _clients) {
         if (connector.getStatus() == RN_ConnectorStatus::Disconnected) {
-            connector.tryAccept(senderIp, senderPort, packet);
+            connector.tryAccept(senderIp, senderPort, packetWrap);
             break;
         }
     }

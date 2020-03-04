@@ -90,19 +90,19 @@ void RN_UdpClient::compose(int receiver, const void* data, std::size_t sizeInByt
 // Private
 
 void RN_UdpClient::updateReceive() {
-    RN_Packet packet;
+    RN_PacketWrapper packetWrap;
     sf::IpAddress senderIp;
     std::uint16_t senderPort;
 
-    while (_mySocket.receive(packet, senderIp, senderPort) == sf::Socket::Status::Done) {
+    while (_mySocket.receive(packetWrap.packet, senderIp, senderPort) == sf::Socket::Status::Done) {
         if (senderIp == _connector.getRemoteInfo().ipAddress
             && senderPort == _connector.getRemoteInfo().port) {
-            _connector.receivedPacket(packet);
+            _connector.receivedPacket(packetWrap);
         }
         else {
             // handlePacketFromUnknownSender(senderIp, senderPort, packet); TODO
         }
-        packet.clear();
+        packetWrap.packet.clear();
     }
 
     if (_connector.getStatus() == RN_ConnectorStatus::Connected) {

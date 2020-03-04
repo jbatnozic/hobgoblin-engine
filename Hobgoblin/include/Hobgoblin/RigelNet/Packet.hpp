@@ -1,8 +1,10 @@
 #ifndef UHOBGOBLIN_RN_PACKET_HPP
 #define UHOBGOBLIN_RN_PACKET_HPP
 
+#include <Hobgoblin/Utility/Exceptions.hpp>
 #include <SFML/Network/Packet.hpp>
 
+#include <stdexcept>
 #include <utility>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
@@ -13,32 +15,49 @@ namespace rn {
 using RN_PacketBase = sf::Packet;
 
 class RN_Packet : public RN_PacketBase {
+};
+
+class RN_PacketReadError : public util::TracedException {
 public:
+    using util::TracedException::TracedException;
+};
+
+class RN_PacketWrapper {
+public:
+    RN_Packet packet;
 
     template <class T>
-    T extractValue();
+    T extractOrThrow();
 
-protected:
+    template <class T>
+    void insert(T&& value);
 };
 
 template <class T>
-T RN_Packet::extractValue() {
+T RN_PacketWrapper::extractOrThrow() {
     T value;
-    Self >> value;
+    if (!(packet >> value)) {
+        throw RN_PacketReadError{"Bad read from RN_Packet"};
+    }
     return value;
+}
+
+template <class T>
+void RN_PacketWrapper::insert(T&& value) {
+    packet << std::forward<T>(value);
 }
 
 namespace detail {
 
-template <class ... NoArgs>
-typename std::enable_if_t<sizeof...(NoArgs) == 0, void> PackArgs(RN_PacketBase& packet) {
+template <class ...NoArgs>
+typename std::enable_if_t<sizeof...(NoArgs) == 0, void> PackArgs(RN_PacketWrapper& packetWrap) {
     // Do nothing
 }
 
-template <class ArgsHead, class ... ArgsRest>
-void PackArgs(RN_PacketBase& packet, ArgsHead argsHead, ArgsRest&&... argsRest) {
-    packet << argsHead;
-    PackArgs<ArgsRest...>(packet, std::forward<ArgsRest>(argsRest)...);
+template <class ArgsHead, class ...ArgsRest>
+void PackArgs(RN_PacketWrapper& packetWrap, ArgsHead argsHead, ArgsRest&&... argsRest) {
+    packetWrap.insert(argsHead);
+    PackArgs<ArgsRest...>(packetWrap, std::forward<ArgsRest>(argsRest)...);
 }
 
 } // namespace detail

@@ -415,7 +415,7 @@
     <ClInclude Include="include\Hobgoblin\RigelNet\Event.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Handlers.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Node.hpp" />
-    <ClCompile Include="include\Hobgoblin\Utility.hpp" />
+    <ClCompile Include="include\Hobgoblin\DEP_Utility.hpp" />
     <ClCompile Include="source\Hobgoblin\Main.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
@@ -445,6 +445,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="source\Hobgoblin\Utility\Exceptions.cpp" />
     <ClCompile Include="source\Hobgoblin\Utility\MaxRectsBinPack.cpp" />
     <ClCompile Include="source\Hobgoblin\Utility\Rect.cpp" />
   </ItemGroup>
@@ -473,12 +474,14 @@
     <ClInclude Include="include\Hobgoblin\RigelNet\Macro_pass_compose_args.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Remote_info.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Packet.hpp" />
+    <ClInclude Include="include\Hobgoblin\RigelNet\Remote_object_mapper.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Server.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Template.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Udp_client.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Udp_connector.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Udp_server.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet_Macros.hpp" />
+    <ClInclude Include="include\Hobgoblin\Utility\Exceptions.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Visitor.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Stopwatch.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\template.hpp" />

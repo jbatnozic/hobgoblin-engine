@@ -19,6 +19,7 @@ constexpr std::uint32_t UDP_PACKET_TYPE_CONNECT    = 0x83C96CA4;
 constexpr std::uint32_t UDP_PACKET_TYPE_DISCONNECT = 0xD0F235AB;
 constexpr std::uint32_t UDP_PACKET_TYPE_DATA       = 0xA765B8F6;
 constexpr std::uint32_t UDP_PACKET_TYPE_ACKS       = 0x71AC2519;
+//constexpr std::uint32_t UDP_PACKET_TYPE_CUSTOM     = 0xBC005703;
 
 constexpr bool UPLOAD_PACKET_SUCCESS = true;
 constexpr bool UPLOAD_PACKET_FAILURE = false;
@@ -62,15 +63,13 @@ RN_UdpConnector::RN_UdpConnector(sf::UdpSocket& socket, const std::string& passp
 {
 }
 
-void RN_UdpConnector::tryAccept(sf::IpAddress addr, std::uint16_t port, RN_Packet& packet) {
+void RN_UdpConnector::tryAccept(sf::IpAddress addr, std::uint16_t port, RN_PacketWrapper& packetWrap) {
     assert(_status == RN_ConnectorStatus::Disconnected);
 
-    std::uint32_t msgType;
-    std::string receivedPassphrase;
+    const std::uint32_t msgType = packetWrap.extractOrThrow<std::uint32_t>();
+    const std::string receivedPassphrase = packetWrap.extractOrThrow<std::string>();
 
-    if ((packet >> msgType)
-        && msgType == UDP_PACKET_TYPE_HELLO
-        && (packet >> receivedPassphrase)
+    if (msgType == UDP_PACKET_TYPE_HELLO 
         && receivedPassphrase == _passphrase) {
 
         _remoteInfo = RN_RemoteInfo{addr, port};
@@ -128,7 +127,7 @@ void RN_UdpConnector::send(RN_Node& node) {
         {
             RN_Packet packet;
             packet << ((_status == RN_ConnectorStatus::Accepting) ? UDP_PACKET_TYPE_CONNECT 
-                                                                    : UDP_PACKET_TYPE_HELLO);
+                                                                  : UDP_PACKET_TYPE_HELLO);
             packet << _passphrase;
             if (UploadPacket(_socket, packet, _remoteInfo.ipAddress, _remoteInfo.port) != UPLOAD_PACKET_SUCCESS) {
                 reset();
@@ -147,33 +146,30 @@ void RN_UdpConnector::send(RN_Node& node) {
     }
 }
 
-void RN_UdpConnector::receivedPacket(RN_Packet& packet) {
+void RN_UdpConnector::receivedPacket(RN_PacketWrapper& packetWrap) {
     assert(_status != RN_ConnectorStatus::Disconnected);
 
-    const auto packetType = packet.extractValue<std::uint32_t>();
-    if (!packet) {
-        // TODO - Handle error
-    }
+    const auto packetType = packetWrap.extractOrThrow<std::uint32_t>();
 
     switch (packetType) {
     case UDP_PACKET_TYPE_HELLO:
-        processHelloPacket(packet);
+        processHelloPacket(packetWrap);
         break;
 
     case UDP_PACKET_TYPE_CONNECT:
-        processConnectPacket(packet);
+        processConnectPacket(packetWrap);
         break;
 
     case UDP_PACKET_TYPE_DISCONNECT:
-        processDisconnectPacket(packet);
+        processDisconnectPacket(packetWrap);
         break;
 
     case UDP_PACKET_TYPE_DATA:
-        processDataPacket(packet);
+        processDataPacket(packetWrap);
         break;
 
     case UDP_PACKET_TYPE_ACKS:
-        processAcksPacket(packet);
+        processAcksPacket(packetWrap);
         break;
 
     default:
@@ -208,7 +204,7 @@ void RN_UdpConnector::handleDataMessages(RN_Node& node) {
     // TODO Assert correct state
 
     while (!_recvBuffer.empty() && _recvBuffer[0].tag == TaggedPacket::ReadyForUnpacking) {
-        detail::HandleDataMessages(node, _recvBuffer[0].packet);
+        detail::HandleDataMessages(node, _recvBuffer[0].packetWrap);
         _recvBuffer.pop_front();
         _recvBufferHeadIndex++;
     }
@@ -232,7 +228,7 @@ PZInteger RN_UdpConnector::getRecvBufferSize() const {
 
 void RN_UdpConnector::appendToNextOutgoingPacket(const void *data, std::size_t sizeInBytes) {
     // TODO temp.
-    _sendBuffer[_sendBuffer.size() - 1u].packet.append(data, sizeInBytes);
+    _sendBuffer[_sendBuffer.size() - 1u].packetWrap.packet.append(data, sizeInBytes);
 }
 
 // Private
@@ -279,15 +275,15 @@ void RN_UdpConnector::uploadAllData() {
         if ((taggedPacket.tag == TaggedPacket::ReadyForSending)
             || ShouldRetransmit(taggedPacket.stopwatch.getElapsedTime(), _remoteInfo.latency)) {
 
-            const int* pOrd = static_cast<const int*>(taggedPacket.packet.getData());
+            /*const int* pOrd = static_cast<const int*>(taggedPacket.packet.getData());
             RN_Packet dummyPacket;
             dummyPacket.append(pOrd + 1, sizeof(int));
             int ord = dummyPacket.extractValue<int>();
-            std::cout << "SEND: " << ord << '\n';
+            std::cout << "SEND: " << ord << '\n';*/
 
             if (UploadPacket(
                 _socket,
-                taggedPacket.packet,
+                taggedPacket.packetWrap.packet,
                 _remoteInfo.ipAddress,
                 _remoteInfo.port) != UPLOAD_PACKET_SUCCESS) {
 
@@ -327,7 +323,7 @@ void RN_UdpConnector::receivedAck(std::uint32_t ordinal) {
     _remoteInfo.timeoutStopwatch.restart();
 
     _sendBuffer[ind].tag = TaggedPacket::Acknowledged;
-    _sendBuffer[ind].packet.clear();
+    _sendBuffer[ind].packetWrap.packet.clear();
 
     if (ind == 0) {
         while (!_sendBuffer.empty() && _sendBuffer[0].tag == TaggedPacket::Acknowledged) {
@@ -347,7 +343,7 @@ void RN_UdpConnector::prepareNextOutgoingPacket() {
     _sendBuffer.emplace_back();
     _sendBuffer.back().tag = TaggedPacket::ReadyForSending;
 
-    RN_Packet& packet = _sendBuffer.back().packet;
+    RN_Packet& packet = _sendBuffer.back().packetWrap.packet;
     // Message type:
     packet << UDP_PACKET_TYPE_DATA;
     // Message ordinal:
@@ -360,11 +356,8 @@ void RN_UdpConnector::prepareNextOutgoingPacket() {
     _ackOrdinals.clear(); // TODO Pep
 }
 
-void RN_UdpConnector::receiveDataMessage(RN_Packet& packet) {
-    const std::uint32_t messageOrdinal = packet.extractValue<std::uint32_t>();
-    if (!packet) {
-        // TODO
-    }
+void RN_UdpConnector::receiveDataMessage(RN_PacketWrapper& packetWrap) {
+    const std::uint32_t messageOrdinal = packetWrap.extractOrThrow<std::uint32_t>();
 
     if (messageOrdinal < _recvBufferHeadIndex) {
         // Old data - acknowledge and ignore
@@ -383,26 +376,21 @@ void RN_UdpConnector::receiveDataMessage(RN_Packet& packet) {
     }
 
     while (true) {
-        const std::uint32_t ackOrdinal = packet.extractValue<std::uint32_t>();
-        if (!packet) {
-            // Error -- STUB
-        }
-
+        const std::uint32_t ackOrdinal = packetWrap.extractOrThrow<std::uint32_t>();
         if (ackOrdinal == 0u) {
             break;
         }
-        
         receivedAck(ackOrdinal);
     }
 
-    _recvBuffer[indexInBuffer].packet = std::move(packet);
+    _recvBuffer[indexInBuffer].packetWrap = std::move(packetWrap);
     _recvBuffer[indexInBuffer].tag = TaggedPacket::ReadyForUnpacking;
 
     prepareAck(messageOrdinal);
 }
 
 
-void RN_UdpConnector::processHelloPacket(RN_Packet& packet) {
+void RN_UdpConnector::processHelloPacket(RN_PacketWrapper& packetWrap) {
     switch (_status) {
     case RN_ConnectorStatus::Connecting:
         // TODO erroneous, fatal
@@ -422,15 +410,11 @@ void RN_UdpConnector::processHelloPacket(RN_Packet& packet) {
     }
 }
 
-void RN_UdpConnector::processConnectPacket(RN_Packet& packet) {
+void RN_UdpConnector::processConnectPacket(RN_PacketWrapper& packetWrap) {
     switch (_status) {
     case RN_ConnectorStatus::Connecting:
         {
-            const std::string receivedPassphrase = packet.extractValue<std::string>();
-            if (!packet) {
-                // TODO - Handle error
-            }
-
+            const std::string receivedPassphrase = packetWrap.extractOrThrow<std::string>();
             if (receivedPassphrase == _passphrase) {
                 // Client connected to server
                 initializeSession();
@@ -457,7 +441,7 @@ void RN_UdpConnector::processConnectPacket(RN_Packet& packet) {
     }
 }
 
-void RN_UdpConnector::processDisconnectPacket(RN_Packet& packet) {
+void RN_UdpConnector::processDisconnectPacket(RN_PacketWrapper& packetWrap) {
     switch (_status) {
     case RN_ConnectorStatus::Connecting:
     case RN_ConnectorStatus::Accepting:
@@ -472,7 +456,7 @@ void RN_UdpConnector::processDisconnectPacket(RN_Packet& packet) {
     }
 }
 
-void RN_UdpConnector::processDataPacket(RN_Packet& packet) {
+void RN_UdpConnector::processDataPacket(RN_PacketWrapper& packetWrap) {
     switch (_status) {
     case RN_ConnectorStatus::Connecting:
         // TODO erroneous, fatal
@@ -483,7 +467,7 @@ void RN_UdpConnector::processDataPacket(RN_Packet& packet) {
         SWITCH_FALLTHROUGH;
 
     case RN_ConnectorStatus::Connected:
-        receiveDataMessage(packet);
+        receiveDataMessage(packetWrap);
         break;
 
     default:
@@ -492,7 +476,7 @@ void RN_UdpConnector::processDataPacket(RN_Packet& packet) {
     }
 }
 
-void RN_UdpConnector::processAcksPacket(RN_Packet& packet) {
+void RN_UdpConnector::processAcksPacket(RN_PacketWrapper& packetWrap) {
     switch (_status) {
     case RN_ConnectorStatus::Connecting:
     case RN_ConnectorStatus::Accepting:
@@ -500,11 +484,8 @@ void RN_UdpConnector::processAcksPacket(RN_Packet& packet) {
         break;
 
     case RN_ConnectorStatus::Connected:
-        while (!packet.endOfPacket()) {
-            const std::uint32_t ackOrd = packet.extractValue<std::uint32_t>();
-            if (!packet) {
-                // TODO Handle error
-            }
+        while (!packetWrap.packet.endOfPacket()) {
+            const std::uint32_t ackOrd = packetWrap.extractOrThrow<std::uint32_t>();
             receivedAck(ackOrd);
         }
         break;

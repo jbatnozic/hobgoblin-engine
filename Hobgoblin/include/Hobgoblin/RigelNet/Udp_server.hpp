@@ -64,7 +64,7 @@ private:
     void updateReceive();
     void updateSend();
     int  findConnector(sf::IpAddress addr, std::uint16_t port) const;
-    void handlePacketFromUnknownSender(sf::IpAddress senderIp, std::uint16_t senderPort, RN_Packet& packet);
+    void handlePacketFromUnknownSender(sf::IpAddress senderIp, std::uint16_t senderPort, RN_PacketWrapper& packetWrap);
 };
 
 } // namespace rn

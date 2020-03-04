@@ -11,15 +11,11 @@ namespace rn {
 
 namespace detail {
 
-void HandleDataMessages(RN_Node& node, RN_Packet& packet) {
-    node._currentPacket = &packet;
+void HandleDataMessages(RN_Node& node, RN_PacketWrapper& packetWrap) {
+    node._currentPacket = &packetWrap;
 
-    while (!packet.endOfPacket()) {
-        RN_HandlerId handlerId = packet.extractValue<RN_HandlerId>();
-        if (!packet) {
-            // TODO - Handle error
-        }
-
+    while (!packetWrap.packet.endOfPacket()) {
+        const RN_HandlerId handlerId = packetWrap.extractOrThrow<RN_HandlerId>();
         RN_HandlerFunc handlerFunc = RN_GlobalHandlerMapper::getInstance().handlerWithId(handlerId);
         (*handlerFunc)(node);
     }
