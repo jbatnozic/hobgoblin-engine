@@ -33,9 +33,25 @@
   <ImportGroup Label="Shared" />
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(SolutionDir)$(ProjectName)\build\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)$(ProjectName)\build\interm\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)$(ProjectName)\build\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)$(ProjectName)\build\interm\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)$(ProjectName)\build\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)$(ProjectName)\build\interm\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)$(ProjectName)\build\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)$(ProjectName)\build\interm\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
   <ItemGroup>
-    <ClCompile Include="gtest_main.cpp" />
-    <ClCompile Include="test.cpp" />
+    <ClCompile Include="source\gtest_main.cpp" />
+    <ClCompile Include="source\test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Hobgoblin\Hobgoblin.vcxproj">
@@ -56,7 +72,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MinimalRebuild>true</MinimalRebuild>
+      <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
@@ -78,7 +94,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>X64;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MinimalRebuild>true</MinimalRebuild>
+      <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
