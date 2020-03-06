@@ -8,3 +8,4 @@
 #undef Self
 #undef SWITCH_FALLTHROUGH
 #undef NO_OP
+#undef CRTP_METHOD

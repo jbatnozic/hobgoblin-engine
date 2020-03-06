@@ -2,6 +2,7 @@
 #define UHOBGOBLIN_RN_UDP_CONNECTOR_HPP
 
 #include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/RigelNet/Connector.hpp>
 #include <Hobgoblin/RigelNet/Node.hpp>
 #include <Hobgoblin/RigelNet/Packet.hpp>
 #include <Hobgoblin/RigelNet/Remote_info.hpp>
@@ -18,13 +19,6 @@
 
 HOBGOBLIN_NAMESPACE_START
 namespace rn {
-
-enum class RN_ConnectorStatus {
-    Disconnected,
-    Accepting,
-    Connecting,
-    Connected
-};
 
 namespace detail {
 
@@ -46,7 +40,7 @@ struct TaggedPacket {
     Tag tag = DefaultTag;
 };
 
-class RN_UdpConnector {
+class RN_UdpConnector : public RN_Connector<RN_UdpConnector> {
 public:
     RN_UdpConnector(sf::UdpSocket& socket, const std::string& passphrase);
 
@@ -74,8 +68,8 @@ private:
     const std::string& _passphrase;
     RN_ConnectorStatus _status;
 
-    std::deque<TaggedPacket> _sendBuffer;
-    std::deque<TaggedPacket> _recvBuffer;
+    std::deque<detail::TaggedPacket> _sendBuffer;
+    std::deque<detail::TaggedPacket> _recvBuffer;
     std::uint32_t _sendBufferHeadIndex;
     std::uint32_t _recvBufferHeadIndex;
 

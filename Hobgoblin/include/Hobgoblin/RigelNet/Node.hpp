@@ -1,15 +1,14 @@
 #ifndef UHOBGOBLIN_RN_NODE_HPP
 #define UHOBGOBLIN_RN_NODE_HPP
 
-#include <Hobgoblin/RigelNet/Client.hpp>
 #include <Hobgoblin/RigelNet/Handlermgmt.hpp>
 #include <Hobgoblin/RigelNet/Packet.hpp>
-#include <Hobgoblin/RigelNet/Server.hpp>
 #include <Hobgoblin/Utility/NoCopyNoMove.hpp>
 
 #include <cassert>
 #include <cstdint>
 #include <deque>
+#include <functional>
 #include <type_traits>
 #include <variant>
 
@@ -18,12 +17,28 @@
 HOBGOBLIN_NAMESPACE_START
 namespace rn {
 
-enum class RN_NodeType {
-    TcpClient,
-    TcpServer,
-    UdpClient,
-    UdpServer
+// class RN_TcpClient;
+// class RN_TcpServer;
+class RN_UdpClient;
+class RN_UdpServer;
+
+#define CLIENT 0
+#define SERVER 1
+
+enum class RN_NodeType : int {
+    // TcpClient = (0 << 1 | CLIENT),
+    // TcpServer = (1 << 1 | SERVER),
+    UdpClient = (2 << 1 | CLIENT),
+    UdpServer = (3 << 1 | SERVER)
 };
+
+inline
+bool RN_IsServer(RN_NodeType type) {
+    return ((static_cast<int>(type) & 1) == SERVER);
+}
+
+#undef CLIENT
+#undef SERVER
 
 enum class RN_UpdateMode {
     Receive,
@@ -44,22 +59,21 @@ public:
     RN_Node(RN_NodeType nodeType);
     virtual ~RN_Node() = 0 {}
 
-    // Compose template
-
     bool pollEvent(int& ev);
 
     RN_NodeType getType() const noexcept;
 
-    template <class S, class C>
-    void visit(S&& serverVisitor, C&& clientVisitor);
+    template <class ...NoArgs>
+    std::enable_if_t<sizeof...(NoArgs) == 0, void> visit();
+
+    template <class ArgsHead, class ...ArgsTail>
+    void visit(ArgsHead&& argsHead, ArgsTail&&... argsTail);
 
 protected:
     std::deque<int> _eventQueue;
 
     void  clearEvents();
     void  queueEvent(int ev);
-
-    // virtual std::vector<RN_Packet*> getPacketsToComposeInto() const;
 
     virtual void compose(int receiver, const void* data, std::size_t sizeInBytes) = 0;
 
@@ -69,6 +83,13 @@ private:
 
     template <class T>
     T extractArgument();
+
+    static constexpr bool VISIT_IMPL_MATCHED = true;
+
+    // bool visitImpl(std::function<void(RN_TcpClient&)> callable);
+    // bool visitImpl(std::function<void(RN_TcpServer&)> callable);
+    bool visitImpl(std::function<void(RN_UdpClient&)> callable);
+    bool visitImpl(std::function<void(RN_UdpServer&)> callable);
 
     template <class ... Args>
     friend void UHOBGOBLIN_RN_ComposeImpl(RN_Node& node, int receiver, detail::RN_HandlerId handlerId, Args... args);
@@ -86,25 +107,20 @@ T RN_Node::extractArgument() {
     return retVal;
 }
 
-/*template <class S, class C>
-void RN_Node::visit(S&& serverVisitor, C&& clientVisitor) {
-    switch (_nodeType) {
-    case RN_NodeType::UdpServer:
-        serverVisitor(static_cast<RN_Server&>(static_cast<RN_UdpServer&>(Self)));
-        break;
+template <class ...NoArgs>
+std::enable_if_t<sizeof...(NoArgs) == 0, void> RN_Node::visit() {
+    // Do nothing
+}
 
-    case RN_NodeType::UdpClient:
-        clientVisitor(static_cast<RN_Client&>(static_cast<RN_UdpClient&>(Self)));
-        break;
-
-    case RN_NodeType::TcpServer:
-    case RN_NodeType::TcpClient:
-    default:
-        assert(0 && "Unreachable");
+template <class ArgsHead, class ...ArgsTail>
+void RN_Node::visit(ArgsHead&& argsHead, ArgsTail&&... argsTail) {
+    if (visitImpl(std::forward<ArgsHead>(argsHead)) == VISIT_IMPL_MATCHED) {
+        return;
     }
-}*/
+    visit(std::forward<ArgsTail...>(argsTail)...);
+}
 
-template <class ... Args>
+template <class ...Args>
 void UHOBGOBLIN_RN_ComposeImpl(RN_Node& node, int receiver, detail::RN_HandlerId handlerId, Args... args) {
     // TODO
     RN_PacketWrapper packetWrap;

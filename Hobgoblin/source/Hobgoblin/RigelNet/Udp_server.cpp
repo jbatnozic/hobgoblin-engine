@@ -11,7 +11,7 @@ HOBGOBLIN_NAMESPACE_START
 namespace rn {
 
 RN_UdpServer::RN_UdpServer(PZInteger size)
-    : RN_Node{RN_NodeType::UdpServer}
+    : RN_Server<RN_UdpServer, detail::RN_UdpConnector>{RN_NodeType::UdpServer}
 {
     _clients.reserve(static_cast<std::size_t>(size));
     for (PZInteger i = 0; i < size; i += 1) {

@@ -14,11 +14,11 @@ namespace detail {
 
 namespace {
 
-constexpr std::uint32_t UDP_PACKET_TYPE_HELLO      = 0x3BF0E110;
-constexpr std::uint32_t UDP_PACKET_TYPE_CONNECT    = 0x83C96CA4;
+constexpr std::uint32_t UDP_PACKET_TYPE_HELLO = 0x3BF0E110;
+constexpr std::uint32_t UDP_PACKET_TYPE_CONNECT = 0x83C96CA4;
 constexpr std::uint32_t UDP_PACKET_TYPE_DISCONNECT = 0xD0F235AB;
-constexpr std::uint32_t UDP_PACKET_TYPE_DATA       = 0xA765B8F6;
-constexpr std::uint32_t UDP_PACKET_TYPE_ACKS       = 0x71AC2519;
+constexpr std::uint32_t UDP_PACKET_TYPE_DATA = 0xA765B8F6;
+constexpr std::uint32_t UDP_PACKET_TYPE_ACKS = 0x71AC2519;
 //constexpr std::uint32_t UDP_PACKET_TYPE_CUSTOM     = 0xBC005703;
 
 constexpr bool UPLOAD_PACKET_SUCCESS = true;
@@ -27,7 +27,7 @@ constexpr bool UPLOAD_PACKET_FAILURE = false;
 bool UploadPacket(sf::UdpSocket& socket, RN_Packet& packet, sf::IpAddress ip, std::uint16_t port) {
     if (packet.getDataSize() == 0u) return UPLOAD_PACKET_SUCCESS;
 
-    RETRY:
+RETRY:
     switch (socket.send(packet, ip, port)) {
     case sf::Socket::Done:
         return UPLOAD_PACKET_SUCCESS;
@@ -69,7 +69,7 @@ void RN_UdpConnector::tryAccept(sf::IpAddress addr, std::uint16_t port, RN_Packe
     const std::uint32_t msgType = packetWrap.extractOrThrow<std::uint32_t>();
     const std::string receivedPassphrase = packetWrap.extractOrThrow<std::string>();
 
-    if (msgType == UDP_PACKET_TYPE_HELLO 
+    if (msgType == UDP_PACKET_TYPE_HELLO
         && receivedPassphrase == _passphrase) {
 
         _remoteInfo = RN_RemoteInfo{addr, port};
@@ -124,17 +124,17 @@ void RN_UdpConnector::send(RN_Node& node) {
     switch (_status) {
     case RN_ConnectorStatus::Accepting:  // Send CONNECT messages to the client, until a DATA message is received     
     case RN_ConnectorStatus::Connecting: // Send HELLO messages to the server, until a CONNECT message is received
-        {
-            RN_Packet packet;
-            packet << ((_status == RN_ConnectorStatus::Accepting) ? UDP_PACKET_TYPE_CONNECT 
-                                                                  : UDP_PACKET_TYPE_HELLO);
-            packet << _passphrase;
-            if (UploadPacket(_socket, packet, _remoteInfo.ipAddress, _remoteInfo.port) != UPLOAD_PACKET_SUCCESS) {
-                reset();
-                // TODO Maybe log event?
-            }
+    {
+        RN_Packet packet;
+        packet << ((_status == RN_ConnectorStatus::Accepting) ? UDP_PACKET_TYPE_CONNECT
+            : UDP_PACKET_TYPE_HELLO);
+        packet << _passphrase;
+        if (UploadPacket(_socket, packet, _remoteInfo.ipAddress, _remoteInfo.port) != UPLOAD_PACKET_SUCCESS) {
+            reset();
+            // TODO Maybe log event?
         }
-        break;
+    }
+    break;
 
     case RN_ConnectorStatus::Connected:
         uploadAllData();
@@ -413,19 +413,19 @@ void RN_UdpConnector::processHelloPacket(RN_PacketWrapper& packetWrap) {
 void RN_UdpConnector::processConnectPacket(RN_PacketWrapper& packetWrap) {
     switch (_status) {
     case RN_ConnectorStatus::Connecting:
-        {
-            const std::string receivedPassphrase = packetWrap.extractOrThrow<std::string>();
-            if (receivedPassphrase == _passphrase) {
-                // Client connected to server
-                initializeSession();
-                // node->queue_event(EventFactory::create_connect()); TODO
-            }
-            else {
-                reset();
-                // node->queue_event(EventFactory::create_bad_passphrase(temp)); TODO
-            }
+    {
+        const std::string receivedPassphrase = packetWrap.extractOrThrow<std::string>();
+        if (receivedPassphrase == _passphrase) {
+            // Client connected to server
+            initializeSession();
+            // node->queue_event(EventFactory::create_connect()); TODO
         }
-        break;
+        else {
+            reset();
+            // node->queue_event(EventFactory::create_bad_passphrase(temp)); TODO
+        }
+    }
+    break;
 
     case RN_ConnectorStatus::Accepting:
         // TODO erroneous, fatal

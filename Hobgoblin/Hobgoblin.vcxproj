@@ -405,6 +405,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="include\Hobgoblin\RigelNet\Connector.hpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Handlermgmt.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Handlers.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Node.cpp" />

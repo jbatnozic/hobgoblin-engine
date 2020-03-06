@@ -19,7 +19,14 @@ namespace hg = jbatnozic::hobgoblin;
 using namespace hg::rn;
 
 RN_DEFINE_HANDLER(Foo, RN_ARGS()) {
-    std::cout << "Foo called\n";
+    RN_HANDLER_NODE().visit(
+        [](RN_UdpServer& server) {
+            std::cout << "Foo called on server\n";
+        },
+        [](RN_UdpClient& client) {
+            std::cout << "Foo called on client\n";
+        }
+    );
 }
 
 RN_DEFINE_HANDLER(Bar, RN_ARGS(int, a)) {
@@ -87,8 +94,6 @@ int main() {
     RN_Compose_Foo(server, 0);
     RN_Compose_Bar(server, 0, 1);
     RN_Compose_Baz(server, 0, 1, "asdf");
-
-    return 0;
 #else 
     RN_IndexHandlers();
 
@@ -106,7 +111,12 @@ int main() {
             }
 
             server.update(RN_UpdateMode::Receive);
+
             // step();
+            if (server.getClient(0).getStatus() == RN_ConnectorStatus::Connected) {
+                RN_Compose_Foo(server, 0);
+            }
+
             server.update(RN_UpdateMode::Send);
 
             std::this_thread::sleep_for(std::chrono::milliseconds(500));
@@ -124,12 +134,16 @@ int main() {
 
             client.update(RN_UpdateMode::Receive);
             // step();
+            if (client.getConnectorStatus() == RN_ConnectorStatus::Connected) {
+                RN_Compose_Foo(client, 0);
+            }
+
             client.update(RN_UpdateMode::Send);
 
             std::this_thread::sleep_for(std::chrono::milliseconds(500));
             std::cout << "Latency = " << client.getServerInfo().latency.count() << "us; SBS = " << client.getSendBufferSize() << '\n';
         }
     }
-
 #endif
+    return EXIT_SUCCESS;
 }
