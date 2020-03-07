@@ -2,7 +2,7 @@
 #define UHOBGOBLIN_RN_NODE_HPP
 
 #include <Hobgoblin/RigelNet/Handlermgmt.hpp>
-#include <Hobgoblin/RigelNet/Packet.hpp>
+#include <Hobgoblin/RigelNet/Packet_wrapper.hpp>
 #include <Hobgoblin/Utility/NoCopyNoMove.hpp>
 
 #include <cassert>
@@ -78,7 +78,7 @@ protected:
     virtual void compose(int receiver, const void* data, std::size_t sizeInBytes) = 0;
 
 private:
-    RN_PacketWrapper* _currentPacket;
+    detail::RN_PacketWrapper* _currentPacket;
     RN_NodeType _nodeType;
 
     template <class T>
@@ -123,7 +123,7 @@ void RN_Node::visit(ArgsHead&& argsHead, ArgsTail&&... argsTail) {
 template <class ...Args>
 void UHOBGOBLIN_RN_ComposeImpl(RN_Node& node, int receiver, detail::RN_HandlerId handlerId, Args... args) {
     // TODO
-    RN_PacketWrapper packetWrap;
+    detail::RN_PacketWrapper packetWrap;
     packetWrap.insert(handlerId);
     detail::PackArgs(packetWrap, std::forward<Args>(args)...);
     node.compose(receiver, packetWrap.packet.getData(), packetWrap.packet.getDataSize());

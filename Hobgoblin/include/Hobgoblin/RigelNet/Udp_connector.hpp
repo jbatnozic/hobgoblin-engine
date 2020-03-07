@@ -4,7 +4,7 @@
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/RigelNet/Connector.hpp>
 #include <Hobgoblin/RigelNet/Node.hpp>
-#include <Hobgoblin/RigelNet/Packet.hpp>
+#include <Hobgoblin/RigelNet/Packet_wrapper.hpp>
 #include <Hobgoblin/RigelNet/Remote_info.hpp>
 
 #include <Hobgoblin/Utility/Stopwatch.hpp>

@@ -76,7 +76,7 @@ void RN_UdpClient::compose(int receiver, const void* data, std::size_t sizeInByt
 // Private
 
 void RN_UdpClient::updateReceive() {
-    RN_PacketWrapper packetWrap;
+    detail::RN_PacketWrapper packetWrap;
     sf::IpAddress senderIp;
     std::uint16_t senderPort;
 

@@ -1,5 +1,5 @@
 
-#include <Hobgoblin/RigelNet/Packet.hpp>
+#include <Hobgoblin/RigelNet/Packet_wrapper.hpp>
 
 #include <vector>
 

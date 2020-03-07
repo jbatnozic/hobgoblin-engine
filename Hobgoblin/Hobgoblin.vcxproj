@@ -474,7 +474,7 @@
     <ClInclude Include="include\Hobgoblin\RigelNet\Macro_pass_args.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Macro_pass_compose_args.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Remote_info.hpp" />
-    <ClInclude Include="include\Hobgoblin\RigelNet\Packet.hpp" />
+    <ClInclude Include="include\Hobgoblin\RigelNet\Packet_wrapper.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Remote_object_mapper.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Server.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Template.hpp" />
@@ -483,6 +483,7 @@
     <ClInclude Include="include\Hobgoblin\RigelNet\Udp_server.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet_Macros.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Exceptions.hpp" />
+    <ClInclude Include="include\Hobgoblin\Utility\Packet.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Visitor.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Stopwatch.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\template.hpp" />

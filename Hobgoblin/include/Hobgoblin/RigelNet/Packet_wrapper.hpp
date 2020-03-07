@@ -1,8 +1,8 @@
-#ifndef UHOBGOBLIN_RN_PACKET_HPP
-#define UHOBGOBLIN_RN_PACKET_HPP
+#ifndef UHOBGOBLIN_RN_PACKET_WRAPPER_HPP
+#define UHOBGOBLIN_RN_PACKET_WRAPPER_HPP
 
 #include <Hobgoblin/Utility/Exceptions.hpp>
-#include <SFML/Network/Packet.hpp>
+#include <Hobgoblin/Utility/Packet.hpp>
 
 #include <stdexcept>
 #include <utility>
@@ -12,19 +12,16 @@
 HOBGOBLIN_NAMESPACE_START
 namespace rn {
 
-using RN_PacketBase = sf::Packet;
-
-class RN_Packet : public RN_PacketBase {
-};
-
 class RN_PacketReadError : public util::TracedException {
 public:
     using util::TracedException::TracedException;
 };
 
+namespace detail {
+
 class RN_PacketWrapper {
 public:
-    RN_Packet packet;
+    util::Packet packet;
 
     template <class T>
     T extractOrThrow();
@@ -47,8 +44,6 @@ void RN_PacketWrapper::insert(T&& value) {
     packet << std::forward<T>(value);
 }
 
-namespace detail {
-
 template <class ...NoArgs>
 typename std::enable_if_t<sizeof...(NoArgs) == 0, void> PackArgs(RN_PacketWrapper& packetWrap) {
     // Do nothing
@@ -67,4 +62,4 @@ HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
 
-#endif // !UHOBGOBLIN_RN_PACKET_HPP
+#endif // !UHOBGOBLIN_RN_PACKET_WRAPPER_HPP

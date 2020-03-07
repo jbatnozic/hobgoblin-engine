@@ -24,7 +24,7 @@ constexpr std::uint32_t UDP_PACKET_TYPE_ACKS = 0x71AC2519;
 constexpr bool UPLOAD_PACKET_SUCCESS = true;
 constexpr bool UPLOAD_PACKET_FAILURE = false;
 
-bool UploadPacket(sf::UdpSocket& socket, RN_Packet& packet, sf::IpAddress ip, std::uint16_t port) {
+bool UploadPacket(sf::UdpSocket& socket, util::Packet& packet, sf::IpAddress ip, std::uint16_t port) {                 
     if (packet.getDataSize() == 0u) return UPLOAD_PACKET_SUCCESS;
 
 RETRY:
@@ -50,8 +50,7 @@ RETRY:
 }
 
 bool ShouldRetransmit(std::chrono::microseconds timeSinceLastSend, std::chrono::microseconds currentLatency) {
-    //return timeSinceLastSend > 2 * currentLatency;
-    return false; // TODO
+    return timeSinceLastSend > 2 * currentLatency; // TODO Test and optimize
 }
 
 } // namespace
@@ -100,7 +99,7 @@ void RN_UdpConnector::connect(sf::IpAddress addr, std::uint16_t port) {
 void RN_UdpConnector::disconnect(bool notfiyRemote) {
     // TODO Assert correct state
     if (notfiyRemote) {
-        RN_Packet packet;
+        util::Packet packet;
         packet << UDP_PACKET_TYPE_DISCONNECT;
         if (UploadPacket(_socket, packet, _remoteInfo.ipAddress, _remoteInfo.port) != UPLOAD_PACKET_SUCCESS) {
             // TODO
@@ -125,9 +124,8 @@ void RN_UdpConnector::send(RN_Node& node) {
     case RN_ConnectorStatus::Accepting:  // Send CONNECT messages to the client, until a DATA message is received     
     case RN_ConnectorStatus::Connecting: // Send HELLO messages to the server, until a CONNECT message is received
     {
-        RN_Packet packet;
-        packet << ((_status == RN_ConnectorStatus::Accepting) ? UDP_PACKET_TYPE_CONNECT
-            : UDP_PACKET_TYPE_HELLO);
+        util::Packet packet;
+        packet << ((_status == RN_ConnectorStatus::Accepting) ? UDP_PACKET_TYPE_CONNECT : UDP_PACKET_TYPE_HELLO);
         packet << _passphrase;
         if (UploadPacket(_socket, packet, _remoteInfo.ipAddress, _remoteInfo.port) != UPLOAD_PACKET_SUCCESS) {
             reset();
@@ -186,7 +184,7 @@ void RN_UdpConnector::sendAcks() {
         return;
     }
 
-    RN_Packet packet;
+    util::Packet packet;
     packet << UDP_PACKET_TYPE_ACKS;
     for (std::uint32_t ackOrdinal : _ackOrdinals) {
         packet << ackOrdinal;
@@ -350,7 +348,7 @@ void RN_UdpConnector::prepareNextOutgoingPacket() {
     _sendBuffer.emplace_back();
     _sendBuffer.back().tag = TaggedPacket::ReadyForSending;
 
-    RN_Packet& packet = _sendBuffer.back().packetWrap.packet;
+    util::Packet& packet = _sendBuffer.back().packetWrap.packet;
     // Message type:
     packet << UDP_PACKET_TYPE_DATA;
     // Message ordinal:

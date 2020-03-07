@@ -1,5 +1,5 @@
 
-#include <Hobgoblin/RigelNet/Packet.hpp>
+#include <Hobgoblin/RigelNet/Packet_wrapper.hpp>
 #include <Hobgoblin/RigelNet/Udp_server.hpp>
 
 #include <cassert>
@@ -121,7 +121,7 @@ void RN_UdpServer::compose(int receiver, const void* data, std::size_t sizeInByt
 // Private:
 
 void RN_UdpServer::updateReceive() {
-    RN_PacketWrapper packetWrap;
+    detail::RN_PacketWrapper packetWrap;
     sf::IpAddress senderIp;
     std::uint16_t senderPort;
 
@@ -175,7 +175,7 @@ int RN_UdpServer::findConnector(sf::IpAddress addr, std::uint16_t port) const {
     return -1;
 }
 
-void RN_UdpServer::handlePacketFromUnknownSender(sf::IpAddress senderIp, std::uint16_t senderPort, RN_PacketWrapper& packetWrap) {
+void RN_UdpServer::handlePacketFromUnknownSender(sf::IpAddress senderIp, std::uint16_t senderPort, detail::RN_PacketWrapper& packetWrap) {
     for (auto& connector : _clients) {
         if (connector.getStatus() == RN_ConnectorStatus::Disconnected) {
             connector.tryAccept(senderIp, senderPort, packetWrap);
