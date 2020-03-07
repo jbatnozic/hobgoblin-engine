@@ -31,14 +31,10 @@ public:
     void update(RN_UpdateMode mode);
 
     // Client management:
-    const RN_Connector<detail::RN_UdpConnector>& getClient(PZInteger clientIndex) { // TODO -> To .cpp
+    const RN_Connector<detail::RN_UdpConnector>& getClient(PZInteger clientIndex) const { // TODO -> To .cpp
         return _clients[clientIndex];
     }
 
-    const RN_RemoteInfo& getClientInfo(PZInteger index) const; // TODO Remove
-    RN_ConnectorStatus getConnectorStatus(PZInteger index) const; // TODO Remove
-    PZInteger getSendBufferSize(PZInteger index) const; // TODO Remove
-    PZInteger getRecvBufferSize(PZInteger index) const; // TODO Remove
     void swapClients(PZInteger index1, PZInteger index2);
 
     void kick(PZInteger index); // TODO To getClient().kick(), add reason

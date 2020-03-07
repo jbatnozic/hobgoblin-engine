@@ -29,6 +29,7 @@ RN_DEFINE_HANDLER(Foo, RN_ARGS()) {
     );
 }
 
+
 RN_DEFINE_HANDLER(Bar, RN_ARGS(int, a)) {
     std::cout << "Bar called (" << a << ")\n";
 }
@@ -106,7 +107,7 @@ int main() {
         RN_UdpServer server{2, 8888, "pass"};
 
         for (int i = 0; ; i += 1) {
-            if (server.getConnectorStatus(0) != RN_ConnectorStatus::Connected) {
+            if (server.getClient(0).getStatus() != RN_ConnectorStatus::Connected) {
                 i = -1;
             }
 
@@ -119,8 +120,9 @@ int main() {
 
             server.update(RN_UpdateMode::Send);
 
-            std::this_thread::sleep_for(std::chrono::milliseconds(500));
-            std::cout << "Latency = " << server.getClientInfo(0).latency.count() << "us; SBS = " << server.getSendBufferSize(0) << '\n';
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            std::cout << "Latency = " << server.getClient(0).getRemoteInfo().latency.count() 
+                      << "us; SBS = " << server.getClient(0).getSendBufferSize() << '\n';
         }
     }
     else {
@@ -128,20 +130,21 @@ int main() {
         RN_UdpClient client{9999, "localhost", 8888, "pass"};
 
         for (int i = 0; ; i += 1) {
-            if (client .getConnectorStatus() != RN_ConnectorStatus::Connected) {
+            if (client.getServer().getStatus() != RN_ConnectorStatus::Connected) {
                 i = -1;
             }
 
             client.update(RN_UpdateMode::Receive);
             // step();
-            if (client.getConnectorStatus() == RN_ConnectorStatus::Connected) {
+            if (client.getServer().getStatus() == RN_ConnectorStatus::Connected) {
                 RN_Compose_Foo(client, 0);
             }
 
             client.update(RN_UpdateMode::Send);
 
-            std::this_thread::sleep_for(std::chrono::milliseconds(500));
-            std::cout << "Latency = " << client.getServerInfo().latency.count() << "us; SBS = " << client.getSendBufferSize() << '\n';
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            std::cout << "Latency = " << client.getServer().getRemoteInfo().latency.count() 
+                      << "us; SBS = " << client.getServer().getSendBufferSize() << '\n';
         }
     }
 #endif

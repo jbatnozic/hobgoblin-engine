@@ -192,7 +192,7 @@ void RN_UdpConnector::sendAcks() {
         packet << ackOrdinal;
     }
 
-    _ackOrdinals.clear();
+    // _ackOrdinals.clear();
 
     if (UploadPacket(_socket, packet, _remoteInfo.ipAddress, _remoteInfo.port) != UPLOAD_PACKET_SUCCESS) {
         reset();
@@ -267,7 +267,8 @@ void RN_UdpConnector::uploadAllData() {
 
     PZInteger uploadCounter = 0;
     for (auto& taggedPacket : _sendBuffer) {
-        if (taggedPacket.tag == TaggedPacket::Acknowledged) {
+        if (taggedPacket.tag == TaggedPacket::AcknowledgedWeakly ||
+            taggedPacket.tag == TaggedPacket::AcknowledgedStrongly) {
             continue;
         }
 
@@ -305,7 +306,7 @@ void RN_UdpConnector::prepareAck(std::uint32_t ordinal) {
     _ackOrdinals.push_back(ordinal);
 }
 
-void RN_UdpConnector::receivedAck(std::uint32_t ordinal) {
+void RN_UdpConnector::receivedAck(std::uint32_t ordinal, bool strong) {
     std::cout << "ACK: " << ordinal << '\n';
 
     if (ordinal < _sendBufferHeadIndex) {
@@ -317,18 +318,24 @@ void RN_UdpConnector::receivedAck(std::uint32_t ordinal) {
         // TODO -- Error
     }
 
-    // TODO Temp - Time between send & ack = latency
-    // Temp because it should average out all the values or something
-    _remoteInfo.latency = _sendBuffer[ind].stopwatch.getElapsedTime<std::chrono::microseconds>();
-    _remoteInfo.timeoutStopwatch.restart();
+    if (!strong) {
+        _sendBuffer[ind].tag = TaggedPacket::AcknowledgedWeakly;
+        _sendBuffer[ind].packetWrap.packet.clear();
+    } 
+    else {
+        // TODO Temp - Time between send & ack = latency
+        // Temp because it should average out all the values or something
+        _remoteInfo.latency = _sendBuffer[ind].stopwatch.getElapsedTime<std::chrono::microseconds>();
+        _remoteInfo.timeoutStopwatch.restart();
 
-    _sendBuffer[ind].tag = TaggedPacket::Acknowledged;
-    _sendBuffer[ind].packetWrap.packet.clear();
+        _sendBuffer[ind].tag = TaggedPacket::AcknowledgedStrongly;
+        _sendBuffer[ind].packetWrap.packet.clear();
 
-    if (ind == 0) {
-        while (!_sendBuffer.empty() && _sendBuffer[0].tag == TaggedPacket::Acknowledged) {
-            _sendBuffer.pop_front();
-            _sendBufferHeadIndex += 1;
+        if (ind == 0) {
+            while (!_sendBuffer.empty() && _sendBuffer[0].tag == TaggedPacket::AcknowledgedStrongly) {
+                _sendBuffer.pop_front();
+                _sendBufferHeadIndex += 1;
+            }
         }
     }
 }
@@ -348,12 +355,12 @@ void RN_UdpConnector::prepareNextOutgoingPacket() {
     packet << UDP_PACKET_TYPE_DATA;
     // Message ordinal:
     packet << static_cast<std::uint32_t>(_sendBuffer.size() + _sendBufferHeadIndex - 1u);
-    // Acknowledges (zero-terminated):
+    // Strong Acknowledges (zero-terminated):
     for (std::uint32_t ackOrdinal : _ackOrdinals) {
         packet << ackOrdinal;
     }
     packet << static_cast<std::uint32_t>(0);
-    _ackOrdinals.clear(); // TODO Pep
+    _ackOrdinals.clear();
 }
 
 void RN_UdpConnector::receiveDataMessage(RN_PacketWrapper& packetWrap) {
@@ -380,7 +387,7 @@ void RN_UdpConnector::receiveDataMessage(RN_PacketWrapper& packetWrap) {
         if (ackOrdinal == 0u) {
             break;
         }
-        receivedAck(ackOrdinal);
+        receivedAck(ackOrdinal, true);
     }
 
     _recvBuffer[indexInBuffer].packetWrap = std::move(packetWrap);
@@ -486,7 +493,7 @@ void RN_UdpConnector::processAcksPacket(RN_PacketWrapper& packetWrap) {
     case RN_ConnectorStatus::Connected:
         while (!packetWrap.packet.endOfPacket()) {
             const std::uint32_t ackOrd = packetWrap.extractOrThrow<std::uint32_t>();
-            receivedAck(ackOrd);
+            receivedAck(ackOrd, false);
         }
         break;
 

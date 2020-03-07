@@ -28,10 +28,10 @@ public:
     void update(RN_UpdateMode mode);
 
     // Utility:
-    const RN_RemoteInfo& getServerInfo() const;
-    RN_ConnectorStatus getConnectorStatus() const;
-    PZInteger getSendBufferSize() const;
-    PZInteger getRecvBufferSize() const;
+    const detail::RN_UdpConnector& getServer() const {
+        return _connector;
+    }
+
     std::chrono::microseconds getTimeoutLimit() const;
     void setTimeoutLimit(std::chrono::microseconds limit);
 

@@ -77,21 +77,7 @@ void RN_UdpServer::update(RN_UpdateMode mode) {
 }
 
 // Client management:
-const RN_RemoteInfo& RN_UdpServer::getClientInfo(PZInteger index) const {
-    return _clients[index].getRemoteInfo();
-}
-
-RN_ConnectorStatus RN_UdpServer::getConnectorStatus(PZInteger index) const {
-    return _clients[index].getStatus();
-}
-
-PZInteger RN_UdpServer::getSendBufferSize(PZInteger index) const {
-    return _clients[index].getSendBufferSize();
-}
-
-PZInteger RN_UdpServer::getRecvBufferSize(PZInteger index) const {
-    return _clients[index].getRecvBufferSize();
-}
+// TODO getClinet
 
 void RN_UdpServer::swapClients(PZInteger index1, PZInteger index2) {
     // TODO
@@ -111,7 +97,7 @@ PZInteger RN_UdpServer::getSize() const {
 }
 
 void RN_UdpServer::resize(PZInteger newSize) {
-
+    // TODO
 }
 
 std::chrono::microseconds RN_UdpServer::getTimeoutLimit() const {
@@ -181,8 +167,8 @@ void RN_UdpServer::updateSend() {
 
 int RN_UdpServer::findConnector(sf::IpAddress addr, std::uint16_t port) const {
     for (int i = 0; i < getSize(); i += 1) {
-        const auto& conn = getClientInfo(i);
-        if (conn.port == port && conn.ipAddress == addr) {
+        const auto& remote = getClient(i).getRemoteInfo();
+        if (remote.port == port && remote.ipAddress == addr) {
             return i;
         }
     }

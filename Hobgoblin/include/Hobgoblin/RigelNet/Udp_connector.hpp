@@ -28,7 +28,8 @@ struct TaggedPacket {
     // SEND:
         ReadyForSending = DefaultTag,
         NotAcknowledged,
-        Acknowledged,
+        AcknowledgedWeakly,
+        AcknowledgedStrongly,
     // RECV:
         WaitingForData = DefaultTag,
         ReadyForUnpacking,
@@ -70,8 +71,8 @@ private:
 
     std::deque<detail::TaggedPacket> _sendBuffer;
     std::deque<detail::TaggedPacket> _recvBuffer;
-    std::uint32_t _sendBufferHeadIndex;
-    std::uint32_t _recvBufferHeadIndex;
+    std::uint32_t _sendBufferHeadIndex = 0;
+    std::uint32_t _recvBufferHeadIndex = 0;
 
     std::vector<std::uint32_t> _ackOrdinals;
 
@@ -80,7 +81,7 @@ private:
     bool connectionTimedOut() const;
     void uploadAllData();
     void prepareAck(std::uint32_t ordinal);
-    void receivedAck(std::uint32_t ordinal);
+    void receivedAck(std::uint32_t ordinal, bool strong);
     void initializeSession();
     void prepareNextOutgoingPacket();
     void receiveDataMessage(RN_PacketWrapper& packetWrapper);

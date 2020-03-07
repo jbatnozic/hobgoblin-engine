@@ -64,21 +64,7 @@ void RN_UdpClient::update(RN_UpdateMode mode) {
     }
 }
 
-const RN_RemoteInfo& RN_UdpClient::getServerInfo() const {
-    return _connector.getRemoteInfo();
-}
-
-RN_ConnectorStatus RN_UdpClient::getConnectorStatus() const {
-    return _connector.getStatus();
-}
-
-PZInteger RN_UdpClient::getSendBufferSize() const {
-    return _connector.getSendBufferSize();
-}
-
-PZInteger RN_UdpClient::getRecvBufferSize() const {
-    return _connector.getRecvBufferSize();
-}
+// TODO - GEt server
 
 // Protected
 

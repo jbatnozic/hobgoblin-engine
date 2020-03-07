@@ -20,6 +20,28 @@ class RN_Client : public RN_Node {
 public:
     RN_Client(RN_NodeType type);
 
+    // Running:
+    void connect(std::uint16_t localPort, sf::IpAddress serverIp, std::uint16_t serverPort, std::string passphrase)
+        CRTP_METHOD(T, connect, localPort, serverIp, serverPort, passphrase)
+
+    void disconnect()
+        CRTP_METHOD(T, disconnect)
+
+    void update(RN_UpdateMode mode)
+        CRTP_METHOD(T, update, mode)
+
+    // Utility:
+    const RN_Connector<U>& getServer() const
+        CRTP_METHOD(const T, getServer)
+
+    std::chrono::microseconds getTimeoutLimit() const
+        CRTP_METHOD(const T, getTimeoutLimit)
+
+    void setTimeoutLimit(std::chrono::microseconds limit)
+        CRTP_METHOD(T, setTimeoutLimit, limit)
+
+    const std::string& getPassphrase() const
+        CRTP_METHOD(const T, getPassphrase)
 };
 
 template <class T, class U>
