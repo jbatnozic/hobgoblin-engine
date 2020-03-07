@@ -1,9 +1,24 @@
 
 #include <Hobgoblin/Utility/Stopwatch.hpp>
+#include <Hobgoblin/RigelNet.hpp>
+#include <Hobgoblin/RigelNet_Macros.hpp>
+#include <Hobgoblin/QAO.hpp>
+
+namespace hg = jbatnozic::hobgoblin;
+using namespace hg::qao;
+using namespace hg::rn;
 
 #include <deque>
 #include <iostream>
+#include <variant>
 #include <SFML/Graphics.hpp>
+
+#include "Networking_manager.hpp"
+
+struct GlobalData : public QAO_UserData {
+    QAO_Runtime qaoRuntime;
+    NetworkingManager netMgr;
+};
 
 struct PlayerInput {
     bool up = false;
@@ -12,14 +27,21 @@ struct PlayerInput {
     bool right = false;
 };
 
-struct Player {
-    float x, y;
-    float xspeed, yspeed;
-    float width, height;
-    
+class Player : public QAO_Base {
+public:
     static constexpr float MAX_SPEED = 5.f;
     static constexpr float GRAVITY = 1.f;
     static constexpr float JUMP_POWER = 16.f;
+
+    Player()
+        : QAO_Base(0, 0, "Player")
+    {
+    }
+
+//private:
+    float x, y;
+    float xspeed, yspeed;
+    float width, height;
 };
 
 constexpr int INPUT_DELAY = 6;
@@ -28,7 +50,7 @@ constexpr int INPUT_DELAY = 6;
 #define WINDOW_H int{400}
 
 int main() {
-    Player player = {400.f, 400.f, 0.f, 0.f, 48.f, 64.f};
+    Player player{}; // = {400.f, 400.f, 0.f, 0.f, 48.f, 64.f}; TODO
     bool oldUp = false;
 
     std::deque<PlayerInput> inputQueue;
@@ -54,7 +76,6 @@ int main() {
         const PlayerInput input = inputQueue.front();
         inputQueue.pop_front();
         
-
         if (player.y < static_cast<float>(WINDOW_H) - player.height) {
             player.yspeed += Player::GRAVITY;
         }

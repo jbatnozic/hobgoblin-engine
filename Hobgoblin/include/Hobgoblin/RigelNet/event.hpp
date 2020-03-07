@@ -1,9 +1,12 @@
 #ifndef UHOBGOBLIN_RN_EVENT_HPP
 #define UHOBGOBLIN_RN_EVENT_HPP
 
+#include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Utility/Visitor.hpp>
 
+#include <optional>
 #include <string>
+#include <utility>
 #include <variant>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
@@ -14,26 +17,24 @@ namespace rn {
 struct RN_Event {
 
     struct BadPassphrase {
-        int clientIndex; // Not used on client side
+        std::optional<PZInteger> clientIndex; // Not used on client side
+        std::string incorrectPassphrase;
     };
 
     struct AttemptTimedOut {
     };
 
     struct Connected {
-        int clientIndex; // Not used on client side
+        std::optional<PZInteger> clientIndex; // Not used on client side
     };
 
     struct Disconnected {
-        int clientIndex; // Not used on client side
+        std::optional<PZInteger> clientIndex; // Not used on client side
+        std::string reason;
     };
 
     struct ConnectionTimedOut {
-        int clientIndex; // Not used on client side
-    };
-
-    struct Kicked {
-        std::string reason;
+        std::optional<PZInteger> clientIndex; // Not used on client side
     };
 
     using EventVariant = std::variant<
@@ -41,8 +42,13 @@ struct RN_Event {
         AttemptTimedOut,
         Connected,
         Disconnected,
-        ConnectionTimedOut,
-        Kicked>;
+        ConnectionTimedOut>;
+
+    template <class T>
+    RN_Event(T&& arg)
+        : eventVariant{std::forward<T>(arg)}
+    {
+    }
 
     EventVariant eventVariant;
 
@@ -51,6 +57,28 @@ struct RN_Event {
         std::visit(util::MakeVisitor(std::forward<Callables>(callables)...), eventVariant);
     }
 };
+
+class RN_Node;
+
+namespace detail {
+    
+class EventFactory {
+public:
+    explicit EventFactory(RN_Node& node);
+    explicit EventFactory(RN_Node& node, PZInteger clientIndex);
+
+    void createBadPassphrase(std::string incorrectPassphrase) const;
+    void createAttemptTimedOut() const;
+    void createConnected() const;
+    void createDisconnected(std::string reason) const;
+    void createConnectionTimedOut() const;
+
+private:
+    RN_Node& _node;
+    std::optional<PZInteger> _clientIndex;
+};
+
+} // namespace detail
 
 } // namespace rn
 HOBGOBLIN_NAMESPACE_END

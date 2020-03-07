@@ -55,8 +55,9 @@ bool ShouldRetransmit(std::chrono::microseconds timeSinceLastSend, std::chrono::
 
 } // namespace
 
-RN_UdpConnector::RN_UdpConnector(sf::UdpSocket& socket, const std::string& passphrase)
-    : _socket{socket}
+RN_UdpConnector::RN_UdpConnector(sf::UdpSocket& socket, const std::string& passphrase, EventFactory eventFactory)
+    : _eventFactory{eventFactory}
+    , _socket{socket}
     , _passphrase{passphrase}
     , _status{RN_ConnectorStatus::Disconnected}
 {
@@ -110,9 +111,9 @@ void RN_UdpConnector::disconnect(bool notfiyRemote) {
 
 void RN_UdpConnector::checkForTimeout() {
     assert(_status != RN_ConnectorStatus::Disconnected);
-    if (connectionTimedOut()) {
+    if (isConnectionTimedOut()) {
         reset();
-        //node->queue_event(EventFactory::create_conn_timeout(slot_index));
+        _eventFactory.createAttemptTimedOut();
         return;
     }
 }
@@ -243,7 +244,7 @@ void RN_UdpConnector::reset() {
     _status = RN_ConnectorStatus::Disconnected;
 }
 
-bool RN_UdpConnector::connectionTimedOut() const {
+bool RN_UdpConnector::isConnectionTimedOut() const {
     if (_timeoutLimit <= std::chrono::microseconds{0}) {
         return false;
     }
@@ -419,15 +420,15 @@ void RN_UdpConnector::processConnectPacket(RN_PacketWrapper& packetWrap) {
     switch (_status) {
     case RN_ConnectorStatus::Connecting:
     {
-        const std::string receivedPassphrase = packetWrap.extractOrThrow<std::string>();
+        std::string receivedPassphrase = packetWrap.extractOrThrow<std::string>();
         if (receivedPassphrase == _passphrase) {
             // Client connected to server
             initializeSession();
-            // node->queue_event(EventFactory::create_connect()); TODO
+            _eventFactory.createConnected();
         }
         else {
             reset();
-            // node->queue_event(EventFactory::create_bad_passphrase(temp)); TODO
+            _eventFactory.createBadPassphrase(std::move(receivedPassphrase));
         }
     }
     break;
@@ -469,6 +470,7 @@ void RN_UdpConnector::processDataPacket(RN_PacketWrapper& packetWrap) {
 
     case RN_ConnectorStatus::Accepting:
         initializeSession(); // New connection confirmed
+        _eventFactory.createConnected();
         SWITCH_FALLTHROUGH;
 
     case RN_ConnectorStatus::Connected:

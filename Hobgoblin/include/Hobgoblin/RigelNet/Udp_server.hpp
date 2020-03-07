@@ -19,9 +19,9 @@ namespace rn {
 
 class RN_UdpServer : public RN_Server<RN_UdpServer, detail::RN_UdpConnector> {
 public:
-    RN_UdpServer();
-    RN_UdpServer(PZInteger size);
-    RN_UdpServer(PZInteger size, std::uint16_t port, std::string passphrase);
+    explicit RN_UdpServer();
+    explicit RN_UdpServer(PZInteger size);
+    explicit RN_UdpServer(PZInteger size, std::uint16_t port, std::string passphrase);
 
     ~RN_UdpServer();
 

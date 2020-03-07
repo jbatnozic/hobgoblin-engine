@@ -46,14 +46,14 @@ public:
     void _internal_setThisId(QAO_GenericId id, util::Passkey<QAO_Runtime>);
 
 protected:
-    virtual void eventFrameStart(QAO_Runtime& rt) { }
-    virtual void eventPreUpdate(QAO_Runtime& rt)  { }
-    virtual void eventUpdate(QAO_Runtime& rt)     { }
-    virtual void eventPostUpdate(QAO_Runtime& rt) { }
-    virtual void eventDraw1(QAO_Runtime& rt)      { }
-    virtual void eventDraw2(QAO_Runtime& rt)      { }
-    virtual void eventDrawGUI(QAO_Runtime& rt)    { }
-    virtual void eventFrameEnd(QAO_Runtime& rt)   { }
+    virtual void eventFrameStart() { }
+    virtual void eventPreUpdate()  { }
+    virtual void eventUpdate()     { }
+    virtual void eventPostUpdate() { }
+    virtual void eventDraw1()      { }
+    virtual void eventDraw2()      { }
+    virtual void eventDrawGUI()    { }
+    virtual void eventFrameEnd()   { }
 
 private:
     std::string _instance_name;

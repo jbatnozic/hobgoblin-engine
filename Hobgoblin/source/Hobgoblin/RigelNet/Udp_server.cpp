@@ -15,7 +15,7 @@ RN_UdpServer::RN_UdpServer(PZInteger size)
 {
     _clients.reserve(static_cast<std::size_t>(size));
     for (PZInteger i = 0; i < size; i += 1) {
-        _clients.emplace_back(_mySocket, _passphrase);
+        _clients.emplace_back(_mySocket, _passphrase, detail::EventFactory{Self, i});
     }
 
     _mySocket.setBlocking(false);

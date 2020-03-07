@@ -1,6 +1,7 @@
 #ifndef UHOBGOBLIN_RN_NODE_HPP
 #define UHOBGOBLIN_RN_NODE_HPP
 
+#include <Hobgoblin/RigelNet/Event.hpp>
 #include <Hobgoblin/RigelNet/Handlermgmt.hpp>
 #include <Hobgoblin/RigelNet/Packet_wrapper.hpp>
 #include <Hobgoblin/Utility/NoCopyNoMove.hpp>
@@ -59,7 +60,7 @@ public:
     RN_Node(RN_NodeType nodeType);
     virtual ~RN_Node() = 0 {}
 
-    bool pollEvent(int& ev);
+    bool pollEvent(RN_Event& ev);
 
     RN_NodeType getType() const noexcept;
 
@@ -70,10 +71,8 @@ public:
     void visit(ArgsHead&& argsHead, ArgsTail&&... argsTail);
 
 protected:
-    std::deque<int> _eventQueue;
-
-    void  clearEvents();
-    void  queueEvent(int ev);
+    std::deque<RN_Event> _eventQueue;
+    friend class detail::EventFactory;
 
     virtual void compose(int receiver, const void* data, std::size_t sizeInBytes) = 0;
 

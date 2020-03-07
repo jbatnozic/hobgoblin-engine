@@ -18,8 +18,9 @@ namespace rn {
 
 class RN_UdpClient : public RN_Client<RN_UdpClient, detail::RN_UdpConnector> {
 public:
-    RN_UdpClient();
-    RN_UdpClient(std::uint16_t localPort, sf::IpAddress serverIp, std::uint16_t serverPort, std::string passphrase);
+    explicit RN_UdpClient();
+    explicit RN_UdpClient(std::uint16_t localPort, sf::IpAddress serverIp, std::uint16_t serverPort, 
+                          std::string passphrase);
 
     ~RN_UdpClient();
 

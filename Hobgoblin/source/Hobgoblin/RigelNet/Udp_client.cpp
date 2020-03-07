@@ -11,7 +11,7 @@ namespace rn {
 
 RN_UdpClient::RN_UdpClient()
     : RN_Client<RN_UdpClient, detail::RN_UdpConnector>{RN_NodeType::UdpClient}
-    , _connector{_mySocket, _passphrase}
+    , _connector{_mySocket, _passphrase, detail::EventFactory{Self}}
 {
     _mySocket.setBlocking(false);
 }

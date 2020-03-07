@@ -3,6 +3,7 @@
 
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/RigelNet/Connector.hpp>
+#include <Hobgoblin/RigelNet/Event.hpp>
 #include <Hobgoblin/RigelNet/Node.hpp>
 #include <Hobgoblin/RigelNet/Packet_wrapper.hpp>
 #include <Hobgoblin/RigelNet/Remote_info.hpp>
@@ -19,7 +20,6 @@
 
 HOBGOBLIN_NAMESPACE_START
 namespace rn {
-
 namespace detail {
 
 struct TaggedPacket {
@@ -43,7 +43,7 @@ struct TaggedPacket {
 
 class RN_UdpConnector : public RN_Connector<RN_UdpConnector> {
 public:
-    RN_UdpConnector(sf::UdpSocket& socket, const std::string& passphrase);
+    RN_UdpConnector(sf::UdpSocket& socket, const std::string& passphrase, EventFactory eventFactory);
 
     void tryAccept(sf::IpAddress addr, std::uint16_t port, RN_PacketWrapper& packetWrap);
     void connect(sf::IpAddress addr, std::uint16_t port);
@@ -63,6 +63,7 @@ public:
     void appendToNextOutgoingPacket(const void *data, std::size_t sizeInBytes);
 
 private:
+    EventFactory _eventFactory;
     RN_RemoteInfo _remoteInfo;
     std::chrono::microseconds _timeoutLimit = std::chrono::microseconds{0};
     sf::UdpSocket& _socket;
@@ -78,7 +79,7 @@ private:
 
     void cleanUp();
     void reset();
-    bool connectionTimedOut() const;
+    bool isConnectionTimedOut() const;
     void uploadAllData();
     void prepareAck(std::uint32_t ordinal);
     void receivedAck(std::uint32_t ordinal, bool strong);
