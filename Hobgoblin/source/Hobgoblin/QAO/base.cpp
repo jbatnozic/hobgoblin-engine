@@ -64,7 +64,7 @@ void QAO_Base::setName(const std::string& new_name) {
 
 void QAO_Base::_internal_callEvent(QAO_Event::Enum ev, QAO_Runtime& rt, util::Passkey<QAO_Runtime>) {
     using EventHandlerPointer = void(QAO_Base::*)();
-    static constexpr EventHandlerPointer handlers[QAO_Event::Count] = {
+    const EventHandlerPointer handlers[QAO_Event::Count] = {
         &QAO_Base::eventFrameStart,
         &QAO_Base::eventPreUpdate,
         &QAO_Base::eventUpdate,
@@ -76,6 +76,16 @@ void QAO_Base::_internal_callEvent(QAO_Event::Enum ev, QAO_Runtime& rt, util::Pa
     };
     assert(ev >= 0 && ev < QAO_Event::Count);
     (this->*handlers[ev])();
+    /*switch (ev) {
+    case QAO_Event::FrameStart: this->eventFrameStart(); break;
+    case QAO_Event::PreUpdate: this->eventPreUpdate(); break;
+    case QAO_Event::Update: this->eventUpdate(); break;
+    case QAO_Event::PostUpdate: this->eventPostUpdate(); break;
+    case QAO_Event::Draw1: this->eventDraw1(); break;
+    case QAO_Event::Draw2: this->eventDraw2(); break;
+    case QAO_Event::DrawGUI: this->eventDrawGUI(); break;
+    case QAO_Event::Render: this->eventRender(); break;
+    }*/
 }
 
 void QAO_Base::_internal_setOrdererIterator(QAO_OrdererIterator orderer_iterator, util::Passkey<QAO_Runtime>) {

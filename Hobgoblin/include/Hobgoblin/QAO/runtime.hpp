@@ -60,6 +60,9 @@ public:
     void setUserData(QAO_UserData* user_data);
     QAO_UserData* getUserData() const noexcept;  
     PZInteger getObjectCount() const noexcept;
+    std::int64_t getIterationOrdinal() const noexcept {
+        return _iteration_ordinal; // TODO
+    }
 
     // TODO Orderer iterations
 
@@ -67,6 +70,7 @@ private:
     detail::QAO_Registry _registry;
     detail::QAO_Orderer _orderer;
     std::int64_t _step_counter;
+    std::int64_t _iteration_ordinal;
     QAO_Event::Enum _current_event;
     QAO_OrdererIterator _step_orderer_iterator;
     QAO_UserData* _user_data;

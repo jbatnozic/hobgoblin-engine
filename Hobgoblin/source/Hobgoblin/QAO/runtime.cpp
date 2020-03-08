@@ -14,8 +14,10 @@ constexpr std::int64_t MIN_STEP_ORDINAL = std::numeric_limits<std::int64_t>::min
 
 QAO_Runtime::QAO_Runtime()
     : _step_counter{MIN_STEP_ORDINAL + 1}
+    , _iteration_ordinal{-1}
     , _current_event{QAO_Event::NoEvent}
     , _step_orderer_iterator{_orderer.end()}
+    , _user_data{nullptr}
 {
 }
 
@@ -153,6 +155,7 @@ void QAO_Runtime::updateExecutionPriorityForObject(QAO_Base* object, int new_pri
 void QAO_Runtime::startStep() {
     _current_event = QAO_Event::FrameStart;
     _step_orderer_iterator = _orderer.begin();
+    _iteration_ordinal += 1;
 }
 
 void QAO_Runtime::advanceStep(bool& done, std::int32_t eventFlags) {

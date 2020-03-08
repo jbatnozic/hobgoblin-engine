@@ -29,16 +29,18 @@ struct PlayerInput {
     bool right = false;
 };
 
-class Player : public QAO_Base {
+class Player2 : public QAO_Base {
 public:
     static constexpr float MAX_SPEED = 5.f;
     static constexpr float GRAVITY = 1.f;
     static constexpr float JUMP_POWER = 16.f;
 
-    Player()
+    Player2()
         : QAO_Base(0, 0, "Player")
     {
     }
+
+    void eventUpdate() override {}
 
 //private:
     float x, y;
@@ -52,7 +54,7 @@ constexpr int INPUT_DELAY = 6;
 #define WINDOW_H int{400}
 
 int main_old() {
-    Player player{}; // = {400.f, 400.f, 0.f, 0.f, 48.f, 64.f}; TODO
+    Player2 player{}; // = {400.f, 400.f, 0.f, 0.f, 48.f, 64.f}; TODO
     bool oldUp = false;
 
     std::deque<PlayerInput> inputQueue;
@@ -79,7 +81,7 @@ int main_old() {
         inputQueue.pop_front();
         
         if (player.y < static_cast<float>(WINDOW_H) - player.height) {
-            player.yspeed += Player::GRAVITY;
+            player.yspeed += Player2::GRAVITY;
         }
         else {
             player.y = static_cast<float>(WINDOW_H) - player.height;
@@ -87,10 +89,10 @@ int main_old() {
         }
 
         if (input.up && !oldUp) {
-            player.yspeed -= Player::JUMP_POWER;
+            player.yspeed -= Player2::JUMP_POWER;
         }
 
-        player.xspeed = (static_cast<float>(input.right) - static_cast<float>(input.left)) * Player::MAX_SPEED;   
+        player.xspeed = (static_cast<float>(input.right) - static_cast<float>(input.left)) * Player2::MAX_SPEED;   
 
         player.x += player.xspeed;
         player.y += player.yspeed;

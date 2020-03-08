@@ -13,6 +13,7 @@ public:
 
     Player(float x, float y, hg::PZInteger playerIndex);
 
+protected:
     void eventUpdate() override;
     void eventDraw1() override;
 

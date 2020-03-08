@@ -12,8 +12,8 @@ struct GlobalProgramState : public QAO_UserData {
     WindowManager windowMgr;
 
     GlobalProgramState() {
+        qaoRuntime.setUserData(this);
         qaoRuntime.addObjectNoOwn(windowMgr);
-
         QAO_Create<Player>(qaoRuntime, 200.f, 200.f, 0);
     }
 };

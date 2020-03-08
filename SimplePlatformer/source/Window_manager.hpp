@@ -1,6 +1,8 @@
 #ifndef WINDOW_MANAGER_HPP
 #define WINDOW_MANAGER_HPP
 
+#include <iostream>
+
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 
@@ -15,10 +17,17 @@ public:
         : GameObject{0, -1000, "WindowManager"}
     {
         window.create(sf::VideoMode(800, 800), "Window");
-        appSurface.create(800, 800);
-
+        // vSync and Framerate limiter perform near identically as far as
+        // time correctness is concerned, but the game is usually smoother
+        // with vSync. TODO Make it a toggle in the settings.
         window.setVerticalSyncEnabled(true);
-        //window.setFramerateLimit(60);
+        // window.setFramerateLimit(60);
+
+        appSurface.create(800, 800);
+    }
+
+    void eventPostUpdate() {
+        appSurface.clear();
     }
 
     void eventRender() override {

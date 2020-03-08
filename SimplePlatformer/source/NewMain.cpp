@@ -1,4 +1,6 @@
 
+#include <Hobgoblin/Utility/stopwatch.hpp>
+
 #include <chrono>
 #include <iostream>
 #include <memory>
@@ -14,7 +16,9 @@ int  MainProgramLoop(GlobalProgramState& globalState);
 int main() {
 	std::unique_ptr<GlobalProgramState> globalState = ProgramSetup();
 
+    hg::util::Stopwatch sw;
 	int rv = MainProgramLoop(*globalState);
+    std::cout << "Program ran for " << sw.getElapsedTime<std::chrono::milliseconds>().count() << "ms.\n";
 
 	ProgramTeardown(std::move(globalState));
 
@@ -44,6 +48,7 @@ int MainProgramLoop(GlobalProgramState& globalState) {
 	Duration accumulatorTime = deltaTime;
 	auto currentTime = steady_clock::now();
 
+    int itercnt = 0;
 	int cnt = 0;
 	while (!globalState.quit) {
 		//std::cout << "==================\n";
@@ -56,8 +61,10 @@ int MainProgramLoop(GlobalProgramState& globalState) {
 				break;
 			}
 
+            itercnt += 1;
+
 			if (i == 1) {
-				std::cout << "Double update " << cnt << '\n';
+				//std::cout << "Double update " << cnt << '\n';
 				cnt += 1;
 			}
 
@@ -77,6 +84,9 @@ int MainProgramLoop(GlobalProgramState& globalState) {
 			return rv;
 		}
 	} // End while
+
+    std::cout << "double updates = " << cnt << '\n';
+    std::cout << "itercnt = " << itercnt << '\n';
 
 	return EXIT_SUCCESS;
 }

@@ -1,4 +1,6 @@
 
+#include <iostream>
+
 #include "Global_program_state.hpp"
 #include "Player.hpp"
 
@@ -42,6 +44,10 @@ void Player::eventUpdate() {
     y += yspeed;
 
     oldUp = input.up;
+
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
+        global().quit = true;
+    }
 }
 
 void Player::eventDraw1() {

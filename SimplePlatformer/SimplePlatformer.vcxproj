@@ -168,7 +168,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="source\Main.cpp" />
     <ClCompile Include="source\Networking_manager.cpp" />
     <ClCompile Include="source\NewMain.cpp" />
     <ClCompile Include="source\Object_framework.cpp" />
