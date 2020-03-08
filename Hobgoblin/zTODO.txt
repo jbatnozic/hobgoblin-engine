@@ -1,0 +1,3 @@
+
+ALL add "namespace hg = jbatnozic::hobgoblin" if HOBGOBLIN_SHORT_NAMESPACE is defined
+QAO event flags are error prone and cumbersome

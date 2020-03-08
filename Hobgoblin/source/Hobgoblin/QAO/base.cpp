@@ -72,7 +72,7 @@ void QAO_Base::_internal_callEvent(QAO_Event::Enum ev, QAO_Runtime& rt, util::Pa
         &QAO_Base::eventDraw1,
         &QAO_Base::eventDraw2,
         &QAO_Base::eventDrawGUI,
-        &QAO_Base::eventFrameEnd
+        &QAO_Base::eventRender
     };
     assert(ev >= 0 && ev < QAO_Event::Count);
     (this->*handlers[ev])();

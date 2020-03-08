@@ -155,12 +155,16 @@ void QAO_Runtime::startStep() {
     _step_orderer_iterator = _orderer.begin();
 }
 
-void QAO_Runtime::advanceStep(bool& done) {
+void QAO_Runtime::advanceStep(bool& done, std::int32_t eventFlags) {
     done = false;
     QAO_OrdererIterator& curr = _step_orderer_iterator;
 
     //-----------------------------------------//
-    for (int i = _current_event; i < QAO_Event::Count; i += 1) {          
+    for (std::int32_t i = _current_event; i < QAO_Event::Count; i += 1) {
+        if ((eventFlags & (1 << i)) == 0) {
+            continue;
+        }
+
         auto ev = static_cast<QAO_Event::Enum>(i);
         _current_event = ev;
 

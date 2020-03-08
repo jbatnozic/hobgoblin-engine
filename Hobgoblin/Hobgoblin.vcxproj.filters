@@ -214,5 +214,6 @@
     <Text Include="include\Hobgoblin\Private\HobgoblinCodingStyle.txt" />
     <Text Include="include\Hobgoblin\RigelNet\PROTOCOL.txt" />
     <Text Include="include\Hobgoblin\zTODO.txt" />
+    <Text Include="zTODO.txt" />
   </ItemGroup>
 </Project>

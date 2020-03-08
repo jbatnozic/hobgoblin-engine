@@ -170,9 +170,16 @@
   <ItemGroup>
     <ClCompile Include="source\Main.cpp" />
     <ClCompile Include="source\Networking_manager.cpp" />
+    <ClCompile Include="source\NewMain.cpp" />
+    <ClCompile Include="source\Object_framework.cpp" />
+    <ClCompile Include="source\Player.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="source\Global_program_state.hpp" />
     <ClInclude Include="source\Networking_manager.hpp" />
+    <ClInclude Include="source\Object_framework.hpp" />
+    <ClInclude Include="source\Player.hpp" />
+    <ClInclude Include="source\Window_manager.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

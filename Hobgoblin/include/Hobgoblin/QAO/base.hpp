@@ -53,7 +53,7 @@ protected:
     virtual void eventDraw1()      { }
     virtual void eventDraw2()      { }
     virtual void eventDrawGUI()    { }
-    virtual void eventFrameEnd()   { }
+    virtual void eventRender()     { }
 
 private:
     std::string _instance_name;

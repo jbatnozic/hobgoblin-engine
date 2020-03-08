@@ -18,6 +18,8 @@
 HOBGOBLIN_NAMESPACE_START
 namespace qao {
 
+constexpr std::int32_t QAO_ALL_EVENT_FLAGS = 0xFFFFFFFF;
+
 struct QAO_UserData {
 };
 
@@ -51,7 +53,7 @@ public:
 
     // Execution
     void startStep();
-    void advanceStep(bool& done);
+    void advanceStep(bool& done, std::int32_t eventFlags = QAO_ALL_EVENT_FLAGS);
     QAO_Event::Enum getCurrentEvent();
 
     // Other

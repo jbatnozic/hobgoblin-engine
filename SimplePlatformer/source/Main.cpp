@@ -4,6 +4,8 @@
 #include <Hobgoblin/RigelNet_Macros.hpp>
 #include <Hobgoblin/QAO.hpp>
 
+#include "Object_framework.hpp"
+
 namespace hg = jbatnozic::hobgoblin;
 using namespace hg::qao;
 using namespace hg::rn;
@@ -49,7 +51,7 @@ constexpr int INPUT_DELAY = 6;
 #define WINDOW_W int{800}
 #define WINDOW_H int{400}
 
-int main() {
+int main_old() {
     Player player{}; // = {400.f, 400.f, 0.f, 0.f, 48.f, 64.f}; TODO
     bool oldUp = false;
 
