@@ -3,7 +3,6 @@
 
 #include <Hobgoblin/QAO.hpp>
 
-namespace hg = jbatnozic::hobgoblin;
 using namespace hg::qao;
 
 struct GlobalProgramState;

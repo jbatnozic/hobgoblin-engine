@@ -35,7 +35,7 @@ public:
 
     using QAO_Base::setExecutionPriority;
 
-    void eventUpdate(QAO_Runtime& rt) override {
+    void eventUpdate() override {
         _myVec.push_back(_myNumber);
     }
 

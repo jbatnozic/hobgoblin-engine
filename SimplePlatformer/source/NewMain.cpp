@@ -64,7 +64,7 @@ int MainProgramLoop(GlobalProgramState& globalState) {
             itercnt += 1;
 
 			if (i == 1) {
-				//std::cout << "Double update " << cnt << '\n';
+				std::cout << "Double update " << cnt << '\n';
 				cnt += 1;
 			}
 

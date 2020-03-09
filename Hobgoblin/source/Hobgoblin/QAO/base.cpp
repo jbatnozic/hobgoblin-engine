@@ -21,7 +21,7 @@ QAO_Base::QAO_Base(int type_id_, int execution_priority_, const std::string & na
 
 QAO_Base::~QAO_Base() {
     if (_runtime) {
-        _runtime->releaseObject(_this_id).reset();
+        _runtime->releaseObject(_this_id).release(); // TODO PEP
     }
 }
 

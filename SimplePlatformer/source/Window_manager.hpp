@@ -38,7 +38,7 @@ public:
 
         sf::Event event;
         while (window.pollEvent(event)) {
-            // Swallow events (TODO)
+            // Swallow events (TODO: Add event listeners)
             /*if (event.type == sf::Event::Closed) {
                 window.close();
             }*/

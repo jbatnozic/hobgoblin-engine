@@ -11,20 +11,8 @@ Player::Player(float x, float y, hg::PZInteger playerIndex)
 {
 }
 
-struct PlayerInput {
-    bool up = false;
-    bool down = false;
-    bool left = false;
-    bool right = false;
-};
-
 void Player::eventUpdate() {
-    PlayerInput input = {
-            sf::Keyboard::isKeyPressed(sf::Keyboard::Up) || sf::Mouse::isButtonPressed(sf::Mouse::Left),
-            sf::Keyboard::isKeyPressed(sf::Keyboard::Down),
-            sf::Keyboard::isKeyPressed(sf::Keyboard::Left),
-            sf::Keyboard::isKeyPressed(sf::Keyboard::Right)
-        };
+    PlayerControls controls = global().controlsMgr.getCurrentControlsForPlayer(global().playerIndex);
 
     if (y < static_cast<float>(800) - height) {
         yspeed += GRAVITY;
@@ -34,16 +22,16 @@ void Player::eventUpdate() {
         yspeed = 0.f;
     }
 
-    if (input.up && !oldUp) {
+    if (controls.up && !oldUp) {
         yspeed -= JUMP_POWER;
     }
 
-    xspeed = (static_cast<float>(input.right) - static_cast<float>(input.left)) * MAX_SPEED;
+    xspeed = (static_cast<float>(controls.right) - static_cast<float>(controls.left)) * MAX_SPEED;
 
     x += xspeed;
     y += yspeed;
 
-    oldUp = input.up;
+    oldUp = controls.up;
 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
         global().quit = true;

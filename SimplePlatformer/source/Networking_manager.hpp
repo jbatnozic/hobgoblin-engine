@@ -3,13 +3,12 @@
 
 #include <Hobgoblin/RigelNet.hpp>
 #include <Hobgoblin/RigelNet_Macros.hpp>
-#include <Hobgoblin/QAO.hpp>
-
-namespace hg = jbatnozic::hobgoblin; // TODO Centralize
-using namespace hg::qao;
-using namespace hg::rn;
 
 #include <optional>
+
+#include "Object_framework.hpp"
+
+using namespace hg::rn;
 
 class NetworkingManager : public QAO_Base {
 public:
