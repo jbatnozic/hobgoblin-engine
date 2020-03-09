@@ -18,5 +18,6 @@ class Packet : public PacketBase {
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
+#include <Hobgoblin/Private/Short_namespace.hpp>
 
 #endif // !UHOBGOBLIN_UTIL_PACKET_HPP

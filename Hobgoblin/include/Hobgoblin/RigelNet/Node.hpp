@@ -137,5 +137,6 @@ typename std::remove_reference<T>::type UHOBGOBLIN_RN_ExtractArg(RN_Node& node) 
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
+#include <Hobgoblin/Private/Short_namespace.hpp>
 
 #endif // !UHOBGOBLIN_RN_NODE_HPP

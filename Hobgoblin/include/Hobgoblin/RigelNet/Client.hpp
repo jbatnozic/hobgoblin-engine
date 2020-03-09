@@ -54,5 +54,6 @@ RN_Client<T, U>::RN_Client(RN_NodeType type)
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
+#include <Hobgoblin/Private/Short_namespace.hpp>
 
 #endif // !UHOBGOBLIN_RN_CLIENT_HPP

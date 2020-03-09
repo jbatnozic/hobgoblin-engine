@@ -12,3 +12,11 @@
 #include <Hobgoblin/RigelNet/Udp_client.hpp>
 #include <Hobgoblin/RigelNet/Udp_connector.hpp>
 #include <Hobgoblin/RigelNet/Udp_server.hpp>
+
+namespace jbatnozic {
+namespace hobgoblin {
+
+using namespace rn;
+
+}
+}
