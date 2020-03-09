@@ -86,5 +86,6 @@ QAO_Id<T> QAO_GenericId::cast() const noexcept {
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
+#include <Hobgoblin/Private/Short_namespace.hpp>
 
 #endif // !UHOBGOBLIN_QAO_ID_HPP

@@ -1,5 +1,3 @@
-#ifndef HOBGOBLIN_QAO_HPP
-#define HOBGOBLIN_QAO_HPP
 
 #include <Hobgoblin/QAO/base.hpp>
 #include <Hobgoblin/QAO/config.hpp>
@@ -17,6 +15,4 @@ using namespace qao;
 
 }
 }
-
-#endif // !HOBGOBLIN_QAO_HPP
 

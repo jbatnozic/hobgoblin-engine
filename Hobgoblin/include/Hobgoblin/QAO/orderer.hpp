@@ -29,5 +29,6 @@ using QAO_OrdererConstReverseIterator = detail::QAO_Orderer::const_reverse_itera
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
+#include <Hobgoblin/Private/Short_namespace.hpp>
 
 #endif // !UHOBGOBLIN_QAO_ORDERER_HPP
