@@ -455,7 +455,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Hobgoblin\Common.hpp" />
-    <ClInclude Include="include\Hobgoblin\DEP_Macros.hpp" />
     <ClInclude Include="include\Hobgoblin\Preprocessor.hpp" />
     <ClInclude Include="include\Hobgoblin\Private\Pmacro_define.hpp" />
     <ClInclude Include="include\Hobgoblin\Private\Pmacro_undef.hpp" />
@@ -476,6 +475,7 @@
     <ClInclude Include="include\Hobgoblin\RigelNet\Macro_normalize_args.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Macro_pass_args.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Macro_pass_compose_args.hpp" />
+    <ClInclude Include="include\Hobgoblin\RigelNet\Receiver_set.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Remote_info.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Packet_wrapper.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Remote_object_mapper.hpp" />

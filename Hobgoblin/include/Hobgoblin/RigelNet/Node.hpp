@@ -11,6 +11,7 @@
 #include <deque>
 #include <functional>
 #include <type_traits>
+#include <utility>
 #include <variant>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
@@ -55,6 +56,9 @@ void HandleDataMessages(RN_Node& node, RN_PacketWrapper& packetWrap);
 
 } // namespace detail
 
+struct RN_ComposeForAllType {};
+constexpr RN_ComposeForAllType RN_COMPOSE_FOR_ALL{};
+
 class RN_Node : NO_COPY, NO_MOVE {
 public:
     RN_Node(RN_NodeType nodeType);
@@ -74,7 +78,8 @@ protected:
     std::deque<RN_Event> _eventQueue;
     friend class detail::EventFactory;
 
-    virtual void compose(int receiver, const void* data, std::size_t sizeInBytes) = 0;
+    virtual void compose(RN_ComposeForAllType receiver, const void* data, std::size_t sizeInBytes) = 0;
+    virtual void compose(PZInteger receiver, const void* data, std::size_t sizeInBytes) = 0;
 
 private:
     detail::RN_PacketWrapper* _currentPacket;
@@ -90,8 +95,8 @@ private:
     bool visitImpl(std::function<void(RN_UdpClient&)> callable);
     bool visitImpl(std::function<void(RN_UdpServer&)> callable);
 
-    template <class ... Args>
-    friend void UHOBGOBLIN_RN_ComposeImpl(RN_Node& node, int receiver, detail::RN_HandlerId handlerId, Args... args);
+    template <class R, class ...Args>
+    friend void UHOBGOBLIN_RN_ComposeImpl(RN_Node& node, R&& receiver, detail::RN_HandlerId handlerId, Args...args);
 
     template <class T>
     friend typename std::remove_reference<T>::type UHOBGOBLIN_RN_ExtractArg(RN_Node& node);
@@ -119,13 +124,23 @@ void RN_Node::visit(ArgsHead&& argsHead, ArgsTail&&... argsTail) {
     visit(std::forward<ArgsTail...>(argsTail)...);
 }
 
-template <class ...Args>
-void UHOBGOBLIN_RN_ComposeImpl(RN_Node& node, int receiver, detail::RN_HandlerId handlerId, Args... args) {
-    // TODO
+template <class R,  class ...Args>
+void UHOBGOBLIN_RN_ComposeImpl(RN_Node& node, R&& receivers, detail::RN_HandlerId handlerId, Args... args) {
     detail::RN_PacketWrapper packetWrap;
     packetWrap.insert(handlerId);
     detail::PackArgs(packetWrap, std::forward<Args>(args)...);
-    node.compose(receiver, packetWrap.packet.getData(), packetWrap.packet.getDataSize());
+
+    if constexpr (std::is_same_v<std::remove_cv_t<std::remove_reference_t<R>>, RN_ComposeForAllType>) {
+        node.compose(RN_ComposeForAllType{}, packetWrap.packet.getData(), packetWrap.packet.getDataSize());
+    }
+    else if constexpr (std::is_convertible_v<R, PZInteger>) {    
+        node.compose(std::forward<R>(receivers), packetWrap.packet.getData(), packetWrap.packet.getDataSize());
+    } 
+    else {
+        for (PZInteger i : std::forward<R>(receivers)) {
+            node.compose(i, packetWrap.packet.getData(), packetWrap.packet.getDataSize());
+        }
+    }
 }
 
 template <class T>

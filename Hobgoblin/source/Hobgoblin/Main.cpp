@@ -1,4 +1,5 @@
 
+#define HOBGOBLIN_SHORT_NAMESPACE
 #include <Hobgoblin/RigelNet/handlermgmt.hpp>
 #include <Hobgoblin/RigelNet/Udp_server.hpp>
 #include <Hobgoblin/RigelNet/Udp_client.hpp>
@@ -15,11 +16,10 @@
 #include <memory>
 #include <thread>
 
-namespace hg = jbatnozic::hobgoblin;
 using namespace hg::rn;
 
 RN_DEFINE_HANDLER(Foo, RN_ARGS()) {
-    RN_HANDLER_NODE().visit(
+    RN_NODE_IN_HANDLER().visit(
         [](RN_UdpServer& server) {
             std::cout << "Foo called on server\n";
         },
@@ -28,7 +28,6 @@ RN_DEFINE_HANDLER(Foo, RN_ARGS()) {
         }
     );
 }
-
 
 RN_DEFINE_HANDLER(Bar, RN_ARGS(int, a)) {
     std::cout << "Bar called (" << a << ")\n";
@@ -102,6 +101,8 @@ int main() {
     std::cout << "1 = server, other = client\n";
     std::cin >> mode;
 
+    std::vector<hg::PZInteger> rec = {0};
+
     if (mode == 1) { 
     // Server /////////////////////////
         RN_UdpServer server{2, 8888, "pass"};
@@ -115,7 +116,7 @@ int main() {
 
             // step();
             if (server.getClient(0).getStatus() == RN_ConnectorStatus::Connected) {
-                RN_Compose_Foo(server, 0);
+                RN_Compose_Foo(server, rec);
             }
 
             server.update(RN_UpdateMode::Send);

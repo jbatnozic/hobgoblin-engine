@@ -40,6 +40,7 @@ public:
 
 protected:
     void compose(int receiver, const void* data, std::size_t sizeInBytes) override;
+    void compose(RN_ComposeForAllType receiver, const void* data, std::size_t sizeInBytes) override { /* TODO */ }
 
 private:
     detail::RN_UdpConnector _connector;

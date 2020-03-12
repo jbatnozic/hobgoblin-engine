@@ -1,4 +1,7 @@
 
+For creating handlers:
+The RN_ARGS types can be either pure types, or be single reference types to prevent copying in some places.
+
 0000  0     000
 0  0  0     0  0
 0  0  0     0  0
