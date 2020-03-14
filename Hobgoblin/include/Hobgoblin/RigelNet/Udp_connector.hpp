@@ -15,6 +15,7 @@
 
 #include <chrono>
 #include <cstdint>
+#include <optional>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
@@ -55,6 +56,8 @@ public:
     void handleDataMessages(RN_Node& node);
     void sendAcks();
     
+    void setClientIndex(std::optional<PZInteger> clientIndex);
+    std::optional<PZInteger> getClientIndex() const;
     const RN_RemoteInfo& getRemoteInfo() const noexcept;
     RN_ConnectorStatus getStatus() const noexcept;
     PZInteger getSendBufferSize() const;
@@ -69,6 +72,7 @@ private:
     sf::UdpSocket& _socket;
     const std::string& _passphrase;
     RN_ConnectorStatus _status;
+    std::optional<PZInteger> _clientIndex;
 
     std::deque<detail::TaggedPacket> _sendBuffer;
     std::deque<detail::TaggedPacket> _recvBuffer;

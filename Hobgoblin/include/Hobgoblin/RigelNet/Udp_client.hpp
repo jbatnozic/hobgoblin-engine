@@ -29,9 +29,8 @@ public:
     void update(RN_UpdateMode mode);
 
     // Utility:
-    const detail::RN_UdpConnector& getServer() const {
-        return _connector;
-    }
+    const detail::RN_UdpConnector& getServer() const;
+    PZInteger getClientIndex() const;
 
     std::chrono::microseconds getTimeoutLimit() const;
     void setTimeoutLimit(std::chrono::microseconds limit);

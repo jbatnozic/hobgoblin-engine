@@ -64,7 +64,14 @@ void RN_UdpClient::update(RN_UpdateMode mode) {
     }
 }
 
-// TODO - GEt server
+const detail::RN_UdpConnector& RN_UdpClient::getServer() const {
+    return _connector;
+}
+
+PZInteger RN_UdpClient::getClientIndex() const {
+    assert(_running && _connector.getStatus() == RN_ConnectorStatus::Connected);
+    return *_connector.getClientIndex();
+}
 
 // Protected
 

@@ -122,12 +122,21 @@ void RN_UdpConnector::send(RN_Node& node) {
     assert(_status != RN_ConnectorStatus::Disconnected);
 
     switch (_status) {
-    case RN_ConnectorStatus::Accepting:  // Send CONNECT messages to the client, until a DATA message is received     
+    case RN_ConnectorStatus::Accepting:  // Send CONNECT messages to the client, until a DATA message is received  
+    {
+        util::Packet packet;
+        packet << UDP_PACKET_TYPE_CONNECT << _passphrase << _clientIndex.value();
+        if (UploadPacket(_socket, packet, _remoteInfo.ipAddress, _remoteInfo.port) != UPLOAD_PACKET_SUCCESS) {
+            reset();
+            // TODO Maybe log event?
+        }
+    }
+    break;
+
     case RN_ConnectorStatus::Connecting: // Send HELLO messages to the server, until a CONNECT message is received
     {
         util::Packet packet;
-        packet << ((_status == RN_ConnectorStatus::Accepting) ? UDP_PACKET_TYPE_CONNECT : UDP_PACKET_TYPE_HELLO);
-        packet << _passphrase;
+        packet << UDP_PACKET_TYPE_HELLO << _passphrase;
         if (UploadPacket(_socket, packet, _remoteInfo.ipAddress, _remoteInfo.port) != UPLOAD_PACKET_SUCCESS) {
             reset();
             // TODO Maybe log event?
@@ -209,6 +218,14 @@ void RN_UdpConnector::handleDataMessages(RN_Node& node) {
     }
 }
 
+void RN_UdpConnector::setClientIndex(std::optional<PZInteger> clientIndex) {
+    _clientIndex = clientIndex;
+}
+
+std::optional<PZInteger> RN_UdpConnector::getClientIndex() const {
+    return _clientIndex;
+}
+
 const RN_RemoteInfo& RN_UdpConnector::getRemoteInfo() const noexcept {
     return _remoteInfo;
 }
@@ -242,6 +259,7 @@ void RN_UdpConnector::reset() {
     cleanUp();
     _remoteInfo = RN_RemoteInfo{};
     _status = RN_ConnectorStatus::Disconnected;
+    _clientIndex.reset();
 }
 
 bool RN_UdpConnector::isConnectionTimedOut() const {
@@ -421,8 +439,10 @@ void RN_UdpConnector::processConnectPacket(RN_PacketWrapper& packetWrap) {
     case RN_ConnectorStatus::Connecting:
     {
         std::string receivedPassphrase = packetWrap.extractOrThrow<std::string>();
+        const PZInteger receivedClientIndex = packetWrap.extractOrThrow<PZInteger>();
         if (receivedPassphrase == _passphrase) {
             // Client connected to server
+            _clientIndex = receivedClientIndex;
             initializeSession();
             _eventFactory.createConnected();
         }

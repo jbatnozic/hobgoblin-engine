@@ -2,31 +2,27 @@
 For creating handlers:
 The RN_ARGS types can be either pure types, or be single reference types to prevent copying in some places.
 
-0000  0     000
-0  0  0     0  0
-0  0  0     0  0
-0000  0000  000
-
-1. Upload
-2. Download -> ACKs into the next upload batch
-
 > Message types [4B]:
-	Hello      = 1
-	Connect    = 2
-	Disconnect = 3
-	Data       = 4
+	Hello     
+	Connect   
+	Disconnect
+	Data      
+	Acks
 
 > Hello:
 	[Type][Passphrase]
 
 > Connect:
-	[Connect][Passphrase]
+	[Connect][Passphrase][ClientID]
 
 > Disconnect:
-	[Disconnect]
+	[Disconnect][Reason]
 
 > Data:
 	[Data][MessageOrdinal][Ack1][Ack2][...][0][DataMessage1][DataMessage2][...]
 
-> DataMessage:
-	[HandlerID][Arg1][Arg2][...]
+	> DataMessage:
+		[HandlerID][Arg1][Arg2][...]
+
+> Acks:
+	[]

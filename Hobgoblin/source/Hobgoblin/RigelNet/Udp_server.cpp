@@ -176,10 +176,12 @@ int RN_UdpServer::findConnector(sf::IpAddress addr, std::uint16_t port) const {
 }
 
 void RN_UdpServer::handlePacketFromUnknownSender(sf::IpAddress senderIp, std::uint16_t senderPort, detail::RN_PacketWrapper& packetWrap) {
-    for (auto& connector : _clients) {
+    for (PZInteger i = 0; i < getSize(); i += 1) {
+        auto& connector = _clients[i];
         if (connector.getStatus() == RN_ConnectorStatus::Disconnected) {
+            connector.setClientIndex(i);
             connector.tryAccept(senderIp, senderPort, packetWrap);
-            break;
+            return;
         }
     }
     // TODO Send disconnect message (no room left)
