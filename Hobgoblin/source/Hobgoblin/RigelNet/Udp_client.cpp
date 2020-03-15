@@ -11,7 +11,7 @@ namespace rn {
 
 RN_UdpClient::RN_UdpClient()
     : RN_Client<RN_UdpClient, detail::RN_UdpConnector>{RN_NodeType::UdpClient}
-    , _connector{_mySocket, _passphrase, detail::EventFactory{Self}}
+    , _connector{_mySocket, _timeoutLimit, _passphrase, detail::EventFactory{Self}}
 {
     _mySocket.setBlocking(false);
 }
@@ -27,6 +27,8 @@ RN_UdpClient::~RN_UdpClient() {
 }
 
 void RN_UdpClient::connect(std::uint16_t localPort, sf::IpAddress serverIp, std::uint16_t serverPort, std::string passphrase) {
+    assert(!_running || _connector.getStatus() == RN_ConnectorStatus::Disconnected);
+    
     auto status = _mySocket.bind(localPort);
     assert(status == sf::Socket::Done); // TODO - Throw exception on failure
     _passphrase = std::move(passphrase);
@@ -42,6 +44,10 @@ void RN_UdpClient::disconnect() {
 
 void RN_UdpClient::update(RN_UpdateMode mode) {
     if (!_running) {
+        return;
+    }
+    else if (_connector.getStatus() == RN_ConnectorStatus::Disconnected) {
+        _running = false;
         return;
     }
 
@@ -71,6 +77,18 @@ const detail::RN_UdpConnector& RN_UdpClient::getServer() const {
 PZInteger RN_UdpClient::getClientIndex() const {
     assert(_running && _connector.getStatus() == RN_ConnectorStatus::Connected);
     return *_connector.getClientIndex();
+}
+
+std::chrono::microseconds RN_UdpClient::getTimeoutLimit() const {
+    return _timeoutLimit;
+}
+
+void RN_UdpClient::setTimeoutLimit(std::chrono::microseconds limit) {
+    _timeoutLimit = limit;
+}
+
+const std::string& RN_UdpClient::getPassphrase() const {
+    return _passphrase;
 }
 
 // Protected

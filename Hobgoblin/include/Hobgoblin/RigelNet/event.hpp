@@ -44,17 +44,19 @@ struct RN_Event {
         Disconnected,
         ConnectionTimedOut>;
 
+    RN_Event() = default;
+
     template <class T>
     RN_Event(T&& arg)
         : eventVariant{std::forward<T>(arg)}
     {
     }
 
-    EventVariant eventVariant;
+    std::optional<EventVariant> eventVariant;
 
     template <class ...Callables>
     void visit(Callables&&... callables) {
-        std::visit(util::MakeVisitor(std::forward<Callables>(callables)...), eventVariant);
+        std::visit(util::MakeVisitor(std::forward<Callables>(callables)...), eventVariant.value());
     }
 };
 

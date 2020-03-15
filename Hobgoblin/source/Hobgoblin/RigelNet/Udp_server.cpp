@@ -8,14 +8,15 @@
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_START
-namespace rn {
+namespace rn
+{
 
 RN_UdpServer::RN_UdpServer(PZInteger size)
     : RN_Server<RN_UdpServer, detail::RN_UdpConnector>{RN_NodeType::UdpServer}
 {
     _clients.reserve(static_cast<std::size_t>(size));
     for (PZInteger i = 0; i < size; i += 1) {
-        _clients.emplace_back(_mySocket, _passphrase, detail::EventFactory{Self, i});
+        _clients.emplace_back(_mySocket, _timeoutLimit, _passphrase, detail::EventFactory{Self, i});
     }
 
     _mySocket.setBlocking(false);

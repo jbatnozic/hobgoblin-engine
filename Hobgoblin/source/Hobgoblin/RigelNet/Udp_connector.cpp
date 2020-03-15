@@ -4,7 +4,7 @@
 
 #include <cassert>
 #include <chrono>
-#include <iostream> // TODO Temp.
+//#include <iostream> // TODO Temp.
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
@@ -55,9 +55,11 @@ bool ShouldRetransmit(std::chrono::microseconds timeSinceLastSend, std::chrono::
 
 } // namespace
 
-RN_UdpConnector::RN_UdpConnector(sf::UdpSocket& socket, const std::string& passphrase, EventFactory eventFactory)
+RN_UdpConnector::RN_UdpConnector(sf::UdpSocket& socket, const std::chrono::microseconds& timeoutLimit, 
+                                 const std::string& passphrase, EventFactory eventFactory)
     : _eventFactory{eventFactory}
     , _socket{socket}
+    , _timeoutLimit{timeoutLimit}
     , _passphrase{passphrase}
     , _status{RN_ConnectorStatus::Disconnected}
 {
@@ -111,9 +113,17 @@ void RN_UdpConnector::disconnect(bool notfiyRemote) {
 
 void RN_UdpConnector::checkForTimeout() {
     assert(_status != RN_ConnectorStatus::Disconnected);
+
     if (isConnectionTimedOut()) {
         reset();
-        _eventFactory.createAttemptTimedOut();
+
+        if (_status == RN_ConnectorStatus::Accepting || _status == RN_ConnectorStatus::Connecting) {
+            _eventFactory.createAttemptTimedOut();
+        }
+        else {
+            _eventFactory.createConnectionTimedOut();
+        }
+
         return;
     }
 }
@@ -128,7 +138,7 @@ void RN_UdpConnector::send(RN_Node& node) {
         packet << UDP_PACKET_TYPE_CONNECT << _passphrase << _clientIndex.value();
         if (UploadPacket(_socket, packet, _remoteInfo.ipAddress, _remoteInfo.port) != UPLOAD_PACKET_SUCCESS) {
             reset();
-            // TODO Maybe log event?
+            // TODO log event
         }
     }
     break;
@@ -139,7 +149,7 @@ void RN_UdpConnector::send(RN_Node& node) {
         packet << UDP_PACKET_TYPE_HELLO << _passphrase;
         if (UploadPacket(_socket, packet, _remoteInfo.ipAddress, _remoteInfo.port) != UPLOAD_PACKET_SUCCESS) {
             reset();
-            // TODO Maybe log event?
+            // TODO log event
         }
     }
     break;
@@ -182,6 +192,7 @@ void RN_UdpConnector::receivedPacket(RN_PacketWrapper& packetWrap) {
 
     default:
         // TODO erroneous, fatal
+        // TODO log event
         reset();
         break;
     }
@@ -200,11 +211,9 @@ void RN_UdpConnector::sendAcks() {
         packet << ackOrdinal;
     }
 
-    // _ackOrdinals.clear();
-
     if (UploadPacket(_socket, packet, _remoteInfo.ipAddress, _remoteInfo.port) != UPLOAD_PACKET_SUCCESS) {
         reset();
-        // TODO Maybe log event?
+        // TODO log event
     }
 }
 
@@ -305,7 +314,7 @@ void RN_UdpConnector::uploadAllData() {
                 _remoteInfo.ipAddress,
                 _remoteInfo.port) != UPLOAD_PACKET_SUCCESS) {
 
-                // TODO Handle error
+                // TODO Handle error, log event
             }
 
             taggedPacket.stopwatch.restart();
@@ -324,8 +333,6 @@ void RN_UdpConnector::prepareAck(std::uint32_t ordinal) {
 }
 
 void RN_UdpConnector::receivedAck(std::uint32_t ordinal, bool strong) {
-    std::cout << "ACK: " << ordinal << '\n';
-
     if (ordinal < _sendBufferHeadIndex) {
         return; // Already acknowledged before
     }
@@ -341,7 +348,7 @@ void RN_UdpConnector::receivedAck(std::uint32_t ordinal, bool strong) {
     } 
     else {
         // TODO Temp - Time between send & ack = latency
-        // Temp because it should average out all the values or something
+        // (Temp because it should average out all the values or something)
         _remoteInfo.latency = _sendBuffer[ind].stopwatch.getElapsedTime<std::chrono::microseconds>();
         _remoteInfo.timeoutStopwatch.restart();
 
@@ -358,7 +365,6 @@ void RN_UdpConnector::receivedAck(std::uint32_t ordinal, bool strong) {
 }
 
 void RN_UdpConnector::initializeSession() {
-    std::cout << "Session Initialized\n";
     _status = RN_ConnectorStatus::Connected;
     _remoteInfo.timeoutStopwatch.restart();
 }
@@ -418,6 +424,7 @@ void RN_UdpConnector::processHelloPacket(RN_PacketWrapper& packetWrap) {
     switch (_status) {
     case RN_ConnectorStatus::Connecting:
         // TODO erroneous, fatal
+        // TODO log event
         break;
 
     case RN_ConnectorStatus::Accepting:
@@ -426,6 +433,7 @@ void RN_UdpConnector::processHelloPacket(RN_PacketWrapper& packetWrap) {
 
     case RN_ConnectorStatus::Connected:
         // TODO erroneous, nonfatal
+        // TODO log event
         break;
 
     default:
@@ -455,10 +463,12 @@ void RN_UdpConnector::processConnectPacket(RN_PacketWrapper& packetWrap) {
 
     case RN_ConnectorStatus::Accepting:
         // TODO erroneous, fatal
+        // TODO log event
         break;
 
     case RN_ConnectorStatus::Connected:
         // TODO erroneous, nonfatal
+        // TODO log event
         break;
 
     default:
@@ -486,6 +496,7 @@ void RN_UdpConnector::processDataPacket(RN_PacketWrapper& packetWrap) {
     switch (_status) {
     case RN_ConnectorStatus::Connecting:
         // TODO erroneous, fatal
+        // TODO log event
         break;
 
     case RN_ConnectorStatus::Accepting:
@@ -508,6 +519,7 @@ void RN_UdpConnector::processAcksPacket(RN_PacketWrapper& packetWrap) {
     case RN_ConnectorStatus::Connecting:
     case RN_ConnectorStatus::Accepting:
         // TODO erroneous, fatal
+        // TODO log event
         break;
 
     case RN_ConnectorStatus::Connected:

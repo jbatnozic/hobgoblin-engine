@@ -52,6 +52,7 @@
   <ItemGroup>
     <ClCompile Include="source\gtest_main.cpp" />
     <ClCompile Include="source\test.cpp" />
+    <ClCompile Include="source\Util_test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Hobgoblin\Hobgoblin.vcxproj">

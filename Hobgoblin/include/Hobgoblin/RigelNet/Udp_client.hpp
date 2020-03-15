@@ -46,7 +46,7 @@ private:
     sf::UdpSocket _mySocket;
     std::string _passphrase;
     std::chrono::microseconds _timeoutLimit = std::chrono::microseconds{0};
-    bool _running = false; // TODO Update this value
+    bool _running = false;
 
     void updateReceive();
     void updateSend();

@@ -6,4 +6,5 @@ RIGELNET:
 	Operations with disconnected clients should throw exceptions (except getStatus)
 	Remove test #include <iostream>s
 	Fix timeout limits
-	Fix Events
+	Deal with events
+	Connect/disconnect/connect - something's messed up

@@ -44,7 +44,8 @@ struct TaggedPacket {
 
 class RN_UdpConnector : public RN_Connector<RN_UdpConnector> {
 public:
-    RN_UdpConnector(sf::UdpSocket& socket, const std::string& passphrase, EventFactory eventFactory);
+    RN_UdpConnector(sf::UdpSocket& socket, const std::chrono::microseconds& timeoutLimit, 
+                    const std::string& passphrase, EventFactory eventFactory);
 
     void tryAccept(sf::IpAddress addr, std::uint16_t port, RN_PacketWrapper& packetWrap);
     void connect(sf::IpAddress addr, std::uint16_t port);
@@ -68,9 +69,9 @@ public:
 private:
     EventFactory _eventFactory;
     RN_RemoteInfo _remoteInfo;
-    std::chrono::microseconds _timeoutLimit = std::chrono::microseconds{0};
     sf::UdpSocket& _socket;
     const std::string& _passphrase;
+    const std::chrono::microseconds& _timeoutLimit;
     RN_ConnectorStatus _status;
     std::optional<PZInteger> _clientIndex;
 

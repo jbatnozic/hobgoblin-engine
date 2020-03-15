@@ -106,6 +106,7 @@ int main() {
     if (mode == 1) { 
     // Server /////////////////////////
         RN_UdpServer server{2, 8888, "pass"};
+        server.setTimeoutLimit(std::chrono::microseconds{2'000'000});
 
         for (int i = 0; ; i += 1) {
             if (server.getClient(0).getStatus() != RN_ConnectorStatus::Connected) {
@@ -129,6 +130,7 @@ int main() {
     else {
     // Client /////////////////////////
         RN_UdpClient client{9999, "localhost", 8888, "pass"};
+        client.setTimeoutLimit(std::chrono::microseconds{2'000'000});
 
         for (int i = 0; ; i += 1) {
             if (client.getServer().getStatus() != RN_ConnectorStatus::Connected) {
@@ -136,6 +138,7 @@ int main() {
             }
 
             client.update(RN_UpdateMode::Receive);
+
             // step();
             if (client.getServer().getStatus() == RN_ConnectorStatus::Connected) {
                 RN_Compose_Foo(client, 0);

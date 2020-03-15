@@ -27,6 +27,11 @@ private:
     std::vector<std::string> _stackTrace;
 };
 
+class TracedLogicError : public TracedException {
+public:
+    using TracedException::TracedException;
+};
+
 } // namespace util
 HOBGOBLIN_NAMESPACE_END
 

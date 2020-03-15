@@ -17,8 +17,8 @@ QAO_Runtime::QAO_Runtime()
     , _iteration_ordinal{-1}
     , _current_event{QAO_Event::NoEvent}
     , _step_orderer_iterator{_orderer.end()}
-    , _user_data{nullptr}
 {
+    setUserData(nullptr);
 }
 
 QAO_Runtime::~QAO_Runtime() {
@@ -199,12 +199,10 @@ PZInteger QAO_Runtime::getObjectCount() const noexcept {
     return _registry.instanceCount();
 }
 
-void QAO_Runtime::setUserData(QAO_UserData* user_data) {
-    _user_data = user_data;
-}
+// User data
 
-QAO_UserData* QAO_Runtime::getUserData() const noexcept {
-    return _user_data;
+void QAO_Runtime::setUserData(std::nullptr_t) {
+    _user_data.reset(nullptr);
 }
 
 }

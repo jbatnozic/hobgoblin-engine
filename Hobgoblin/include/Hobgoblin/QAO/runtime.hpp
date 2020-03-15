@@ -6,12 +6,14 @@
 #include <Hobgoblin/QAO/id.hpp>
 #include <Hobgoblin/QAO/orderer.hpp>
 #include <Hobgoblin/QAO/registry.hpp>
+#include <Hobgoblin/Utility/Any_ptr.hpp>
 #include <Hobgoblin/Utility/NoCopyNoMove.hpp>
 #include <Hobgoblin/Utility/Passkey.hpp>
 
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <typeinfo>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
@@ -19,9 +21,6 @@ HOBGOBLIN_NAMESPACE_START
 namespace qao {
 
 constexpr std::int32_t QAO_ALL_EVENT_FLAGS = 0xFFFFFFFF;
-
-struct QAO_UserData {
-};
 
 class QAO_Base;
 
@@ -57,12 +56,22 @@ public:
     QAO_Event::Enum getCurrentEvent();
 
     // Other
-    void setUserData(QAO_UserData* user_data);
-    QAO_UserData* getUserData() const noexcept;  
     PZInteger getObjectCount() const noexcept;
     std::int64_t getIterationOrdinal() const noexcept {
         return _iteration_ordinal; // TODO
     }
+
+    // User data
+    void setUserData(std::nullptr_t);
+
+    template <class T>
+    void setUserData(T* value);
+
+    template <class T>
+    T* getUserData() const;
+
+    template <class T>
+    T* getUserDataOrThrow() const;
 
     // TODO Orderer iterations
 
@@ -73,7 +82,7 @@ private:
     std::int64_t _iteration_ordinal;
     QAO_Event::Enum _current_event;
     QAO_OrdererIterator _step_orderer_iterator;
-    QAO_UserData* _user_data;
+    util::AnyPtr _user_data;
 
     QAO_Base* addObjectImpl(std::unique_ptr<QAO_Base> object);
     QAO_Base* addObjectNoOwnImpl(QAO_Base& object);
@@ -92,6 +101,21 @@ T* QAO_Runtime::addObjectNoOwn(T& object) {
 template<class T>
 T* QAO_Runtime::find(QAO_Id<T> id) const {
     return static_cast<T>(find(QAO_GenericId{id}));
+}
+
+template <class T>
+void QAO_Runtime::setUserData(T* value) {
+    _user_data.reset(value);
+}
+
+template <class T>
+T* QAO_Runtime::getUserData() const {
+    return _user_data.get<T>();
+}
+
+template <class T>
+T* QAO_Runtime::getUserDataOrThrow() const {
+    return _user_data.getOrThrow<T>();
 }
 
 } // namespace qao

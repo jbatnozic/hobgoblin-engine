@@ -27,12 +27,60 @@ int main() {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+template <class T>
+T InputPrompt(const std::string& name, T defaultValue) {
+	std::cout << "Input " << name << " (press Enter for deault - " << defaultValue << "): ";
+	std::string temp;
+	std::getline(std::cin, temp);
+	if (temp.empty()) {
+		return defaultValue;
+	}
+	else {
+		std::stringstream ss;
+		ss << temp;
+		T t;
+		ss >> t;
+		return t;
+	}
+}
+
 std::unique_ptr<GlobalProgramState> ProgramSetup() {
+	
+	bool isHost;
+	hg::PZInteger size;
+	std::uint16_t localPort;
+	std::uint16_t serverPort;
+	std::string serverIp;
+
+	isHost = InputPrompt<int>("mode - 1 = host; 2 = client", 2) == 1;
+	if (isHost) {
+		size = InputPrompt<hg::PZInteger>("player count", 2);
+		localPort = InputPrompt<std::uint16_t>("local port - 0 for any", 8888);
+	}
+	else {
+		localPort = InputPrompt<std::uint16_t>("local port", 0);
+		serverIp = InputPrompt<std::string>("server IP", "127.0.0.1");
+		serverPort = InputPrompt<std::uint16_t>("server port", 8888);
+	}
+
 	auto globalState = std::unique_ptr<GlobalProgramState>{
 		// Explicit NEW call is safe here, and it's used to enable autocomplete
 		// for constructor arguments (using std::make_unique prevents that).
-		new GlobalProgramState()
+		new GlobalProgramState(isHost)
 	};
+
+	globalState->netMgr.getNode().visit(
+		[=](NetworkingManager::ServerType& server) {
+			server.start(localPort, "beetlejuice");
+			server.setTimeoutLimit(std::chrono::seconds{2});
+			std::cout << "Server started on port " << server.getLocalPort() << "\n";
+		},
+		[=](NetworkingManager::ClientType& client) {
+			client.connect(localPort, serverIp, serverPort, "beetlejuice");
+			client.setTimeoutLimit(std::chrono::seconds{2});
+		}
+	);
+
 	return globalState;
 }
 
@@ -64,7 +112,7 @@ int MainProgramLoop(GlobalProgramState& globalState) {
             itercnt += 1;
 
 			if (i == 1) {
-				std::cout << "Double update " << cnt << '\n';
+				//std::cout << "Double update " << cnt << '\n';
 				cnt += 1;
 			}
 

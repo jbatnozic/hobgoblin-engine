@@ -33,6 +33,15 @@ RN_Node::RN_Node(RN_NodeType nodeType)
 {
 }
 
+bool RN_Node::pollEvent(RN_Event& ev) {
+    if (_eventQueue.empty()) {
+        return false;
+    }
+    ev = _eventQueue.front();
+    _eventQueue.pop_front();
+    return true;
+}
+
 RN_NodeType RN_Node::getType() const noexcept {
     return _nodeType;
 }

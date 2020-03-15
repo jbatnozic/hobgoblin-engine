@@ -15,7 +15,7 @@ public:
     using ServerType = RN_UdpServer;
     using ClientType = RN_UdpClient;
 
-    NetworkingManager();
+    NetworkingManager(bool isServer);
 
     bool isServer() const noexcept;
     RN_Node& getNode();
@@ -24,12 +24,14 @@ public:
 
 protected:
     void eventPreUpdate() override;
-    void eventUpdate() override;
+    // void eventUpdate() override;
     void eventPostUpdate() override;
 
 private:
     std::variant<ServerType, ClientType> _node;
     bool _isServer;
+
+    void handleEvents();
 };
 
 #endif // !NETWORKING_MANAGER_HPP
