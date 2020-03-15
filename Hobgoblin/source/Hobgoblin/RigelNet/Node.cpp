@@ -46,6 +46,10 @@ RN_NodeType RN_Node::getType() const noexcept {
     return _nodeType;
 }
 
+void RN_Node::setUserData(std::nullptr_t) {
+    _userData.reset(nullptr);
+}
+
 bool RN_Node::visitImpl(std::function<void(RN_UdpClient&)> callable) {
     if (_nodeType != RN_NodeType::UdpClient) {
         return !VISIT_IMPL_MATCHED;

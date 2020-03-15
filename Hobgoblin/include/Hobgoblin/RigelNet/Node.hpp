@@ -4,6 +4,7 @@
 #include <Hobgoblin/RigelNet/Event.hpp>
 #include <Hobgoblin/RigelNet/Handlermgmt.hpp>
 #include <Hobgoblin/RigelNet/Packet_wrapper.hpp>
+#include <Hobgoblin/Utility/Any_ptr.hpp>
 #include <Hobgoblin/Utility/NoCopyNoMove.hpp>
 
 #include <cassert>
@@ -74,6 +75,18 @@ public:
     template <class ArgsHead, class ...ArgsTail>
     void visit(ArgsHead&& argsHead, ArgsTail&&... argsTail);
 
+    // User data
+    void setUserData(std::nullptr_t);
+
+    template <class T>
+    void setUserData(T* value);
+
+    template <class T>
+    T* getUserData() const;
+
+    template <class T>
+    T* getUserDataOrThrow() const;
+
 protected:
     std::deque<RN_Event> _eventQueue;
     friend class detail::EventFactory;
@@ -84,6 +97,7 @@ protected:
 private:
     detail::RN_PacketWrapper* _currentPacket;
     RN_NodeType _nodeType;
+    util::AnyPtr _userData;
 
     template <class T>
     T extractArgument();
@@ -122,6 +136,21 @@ void RN_Node::visit(ArgsHead&& argsHead, ArgsTail&&... argsTail) {
         return;
     }
     visit(std::forward<ArgsTail...>(argsTail)...);
+}
+
+template <class T>
+void RN_Node::setUserData(T* value) {
+    _userData.reset(value);
+}
+
+template <class T>
+T* RN_Node::getUserData() const {
+    return _userData.get<T>();
+}
+
+template <class T>
+T* RN_Node::getUserDataOrThrow() const {
+    return _userData.getOrThrow<T>();
 }
 
 template <class R,  class ...Args>
