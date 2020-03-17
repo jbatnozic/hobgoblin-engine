@@ -36,9 +36,6 @@
     <ClCompile Include="source\Hobgoblin\Utility\Rect.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="source\Hobgoblin\Main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="source\Hobgoblin\TextRect.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -73,6 +70,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="source\Hobgoblin\RigelNet\Event.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Hobgoblin\Utility\Serialization.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Hobgoblin\RigelNetMain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Hobgoblin\SerializationMain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -210,6 +216,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Hobgoblin\Utility\Any_ptr.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Hobgoblin\Utility\Serialization.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

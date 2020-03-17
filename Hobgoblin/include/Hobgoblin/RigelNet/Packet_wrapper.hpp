@@ -41,7 +41,7 @@ T RN_PacketWrapper::extractOrThrow() {
 
 template <class T>
 void RN_PacketWrapper::insert(T&& value) {
-    packet << std::forward<T>(value);
+    packet.insert(std::forward<T>(value));
 }
 
 template <class ...NoArgs>

@@ -18,9 +18,6 @@
     <ClCompile Include="source\Networking_manager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="source\NewMain.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="source\Player.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -31,6 +28,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="source\Controls_manager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ZMain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -51,6 +51,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="source\Controls_manager.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Doro.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\SerializableObject.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

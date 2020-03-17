@@ -32,6 +32,11 @@ public:
     using TracedException::TracedException;
 };
 
+class TracedRuntimeError : public TracedException {
+public:
+    using TracedException::TracedException;
+};
+
 } // namespace util
 HOBGOBLIN_NAMESPACE_END
 

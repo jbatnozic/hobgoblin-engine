@@ -7,6 +7,8 @@
 
 namespace {
 
+// TODO (Better approach): Make a class with the same layout and just reinterpret_cast to it
+
 template <class High, class Low>
 std::ptrdiff_t ByteOffset(High* hi, Low* lo) {
     return  reinterpret_cast<const char*>(hi) - reinterpret_cast<const char*>(lo);

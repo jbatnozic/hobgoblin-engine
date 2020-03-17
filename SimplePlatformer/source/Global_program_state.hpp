@@ -19,19 +19,21 @@ struct GlobalProgramState {
     NetworkingManager netMgr;
 
     Player* player1;
-    Player* player2;
+    //Player* player2;
 
     GlobalProgramState(bool isHost)
         : controlsMgr{1, 3}
         , netMgr{isHost}
     {
         qaoRuntime.setUserData(this);
+        netMgr.getNode().setUserData(this);
+
         qaoRuntime.addObjectNoOwn(windowMgr);
         qaoRuntime.addObjectNoOwn(controlsMgr);
         qaoRuntime.addObjectNoOwn(netMgr);
 
         player1 = QAO_Create<Player>(qaoRuntime, 200.f, 200.f, 0);
-        player2 = QAO_Create<Player>(qaoRuntime, 300.f, 200.f, 1);
+        //player2 = QAO_Create<Player>(qaoRuntime, 300.f, 200.f, 1);
     }
 };
 

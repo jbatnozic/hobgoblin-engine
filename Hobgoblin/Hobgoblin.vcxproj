@@ -416,12 +416,14 @@
     <ClCompile Include="source\Hobgoblin\RigelNet\Udp_client.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Udp_connector.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Udp_server.cpp" />
+    <ClCompile Include="source\Hobgoblin\Utility\Serialization.cpp" />
+    <ClCompile Include="source\Hobgoblin\SerializationMain.cpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Event.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Handlers.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Node.hpp" />
     <ClCompile Include="include\Hobgoblin\DEP_Utility.hpp" />
-    <ClCompile Include="source\Hobgoblin\Main.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+    <ClCompile Include="source\Hobgoblin\RigelNetMain.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
@@ -487,6 +489,7 @@
     <ClInclude Include="include\Hobgoblin\RigelNet_Macros.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Any_ptr.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Exceptions.hpp" />
+    <ClInclude Include="include\Hobgoblin\Utility\Serialization.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Packet.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Visitor.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Stopwatch.hpp" />
