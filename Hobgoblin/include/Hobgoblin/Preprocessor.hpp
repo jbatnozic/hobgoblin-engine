@@ -39,4 +39,13 @@
 
 #endif
 
+#define HG_PP_DO_BEFORE_MAIN(_name_) \
+    namespace { \
+    struct UHOBGOBLIN_DoBeforeMainImpl_##_name_ { \
+        explicit UHOBGOBLIN_DoBeforeMainImpl_##_name_(); \
+    }; \
+    } \
+    UHOBGOBLIN_DoBeforeMainImpl_##_name_ UHOBGOBLIN_DoBeforeMainInstance_##_name_{}; \
+    UHOBGOBLIN_DoBeforeMainImpl_##_name_::UHOBGOBLIN_DoBeforeMainImpl_##_name_()
+
 #endif // !UHOBGOBLIN_PREPROCESSOR_HPP

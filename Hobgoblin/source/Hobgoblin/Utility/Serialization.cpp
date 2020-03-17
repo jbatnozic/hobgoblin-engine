@@ -1,4 +1,5 @@
 
+#include <Hobgoblin/Utility/Exceptions.hpp>
 #include <Hobgoblin/Utility/Serialization.hpp>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
@@ -8,38 +9,33 @@ namespace util {
 
 namespace detail {
 
-GlobalSerializableObjectMapper& GlobalSerializableObjectMapper::getInstance() {
-    static GlobalSerializableObjectMapper singletonInstance{};
+GlobalSerializableRegistry& GlobalSerializableRegistry::getInstance() {
+    static GlobalSerializableRegistry singletonInstance{};
     return singletonInstance;
 }
 
-void GlobalSerializableObjectMapper::addMapping(std::string tag, SerializableCreateFunc createFunc) {
-    // TODO
-    _mapping[tag] = createFunc;
+void GlobalSerializableRegistry::registerClass(std::string tag, DeserializeMethod createFunc) {
+    auto iter = _deserializeMethods.find(tag); 
+    if (iter != _deserializeMethods.end()) {
+        throw TracedLogicError("Serializable with tag " + tag + " was already registered!");
+    }
+
+    _deserializeMethods.emplace(std::make_pair(std::move(tag), createFunc));
+    // [tag] = createFunc;
 }
 
-SerializableCreateFunc GlobalSerializableObjectMapper::getMapping(const std::string& tag) const {
-    // TODO
-    return _mapping.at(tag);
-}
+DeserializeMethod GlobalSerializableRegistry::getDeserializeMethod(const std::string& tag) const {
+    auto iter = _deserializeMethods.find(tag);
+    if (iter == _deserializeMethods.end()) {
+        throw TracedLogicError("No serializable with tag " + tag + " was registered!");
+    }
 
-StaticSerializableObjectMappingInitializer::StaticSerializableObjectMappingInitializer(std::string tag,
-                                                                                       SerializableCreateFunc createFunc) {
-    GlobalSerializableObjectMapper::getInstance().addMapping(tag, std::move(createFunc));
+    return (*iter).second;
 }
 
 } // namespace detail
 
-void Serialize(Packet& packet, const Serializable& serializable) {
-    Packet intermediaryPacket;
-    serializable.serialize(intermediaryPacket);
-
-    packet << serializable.getSerializationTag();
-    packet << intermediaryPacket.getDataSize(); // TODO Ensure it's std::size_t
-    packet.append(intermediaryPacket.getData(), intermediaryPacket.getDataSize());
-}
-
-void Deserialize(Packet& packet, AnyPtr context) {
+void Deserialize(Packet& packet, AnyPtr context, int contextTag) {
     // Format: tag, dataSize, data
     while (!packet.endOfPacket()) {
         const std::string tag = packet.extractOrThrow<std::string>();
@@ -57,11 +53,10 @@ void Deserialize(Packet& packet, AnyPtr context) {
         }
         // TODO - Ends here
 
-        detail::SerializableCreateFunc cf = detail::GlobalSerializableObjectMapper::getInstance().getMapping(tag);
-        cf(intermediaryPacket, context);
+        DeserializeMethod _deserialize = detail::GlobalSerializableRegistry::getInstance().getDeserializeMethod(tag);
+        _deserialize(intermediaryPacket, context, contextTag);
     }
 }
-
 
 } // namespace util
 HOBGOBLIN_NAMESPACE_END
