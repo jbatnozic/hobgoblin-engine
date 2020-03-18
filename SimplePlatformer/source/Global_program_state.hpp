@@ -8,6 +8,7 @@
 #include "Object_framework.hpp"
 #include "Player.hpp"
 #include "Window_manager.hpp"
+#include "Isometric_tester.hpp"
 
 struct GlobalProgramState {
     hg::PZInteger playerIndex = 0;
@@ -20,6 +21,7 @@ struct GlobalProgramState {
 
     Player* player1;
     //Player* player2;
+    IsometricTester* isomTest;
 
     GlobalProgramState(bool isHost)
         : controlsMgr{1, 3}
@@ -34,6 +36,8 @@ struct GlobalProgramState {
 
         player1 = QAO_Create<Player>(qaoRuntime, 200.f, 200.f, 0);
         //player2 = QAO_Create<Player>(qaoRuntime, 300.f, 200.f, 1);
+
+        isomTest = QAO_Create<IsometricTester>(qaoRuntime);
     }
 };
 

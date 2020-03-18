@@ -5,3 +5,4 @@ QAO needs a lot of file, method and variable renaming
 QAO remove _internal_ passkey-based methods (ugly)
 QAO getting id from instance is screwed up
 RN  update() method to RN_Node
+RN  typeIndex -> std::type_info

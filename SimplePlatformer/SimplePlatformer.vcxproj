@@ -170,6 +170,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="source\Controls_manager.cpp" />
+    <ClCompile Include="source\Isometric_tester.cpp" />
     <ClCompile Include="source\Networking_manager.cpp" />
     <ClCompile Include="source\ZMain.cpp" />
     <ClCompile Include="source\Object_framework.cpp" />
@@ -180,6 +181,7 @@
     <ClInclude Include="source\Controls_manager.hpp" />
     <ClInclude Include="source\Doro.hpp" />
     <ClInclude Include="source\Global_program_state.hpp" />
+    <ClInclude Include="source\Isometric_tester.hpp" />
     <ClInclude Include="source\Networking_manager.hpp" />
     <ClInclude Include="source\Object_framework.hpp" />
     <ClInclude Include="source\Player.hpp" />
