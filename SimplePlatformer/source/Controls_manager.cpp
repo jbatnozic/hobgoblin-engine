@@ -5,7 +5,7 @@
 #include "Global_program_state.hpp"
 
 ControlsManager::ControlsManager(hg::PZInteger size, hg::PZInteger inputDelay)
-    : GameObject{0, 50, "ControlsManager"}
+    : GOF_Base{0, 50, "ControlsManager"}
     , _defaultInputDelay{inputDelay}
 {
     _controls.resize(static_cast<std::size_t>(size));

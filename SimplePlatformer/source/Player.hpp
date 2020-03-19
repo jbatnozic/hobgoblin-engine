@@ -3,9 +3,9 @@
 
 #include <Hobgoblin/Common.hpp>
 
-#include "Object_framework.hpp"
+#include "Game_object_framework.hpp"
 
-class Player : public GameObject {
+class Player : public GOF_Base {
 public:
     static constexpr float MAX_SPEED = 5.f;
     static constexpr float GRAVITY = 1.f;

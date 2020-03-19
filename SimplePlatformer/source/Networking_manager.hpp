@@ -6,11 +6,11 @@
 
 #include <optional>
 
-#include "Object_framework.hpp"
+#include "Game_object_framework.hpp"
 
 using namespace hg::rn;
 
-class NetworkingManager : public QAO_Base {
+class NetworkingManager : public GOF_StateObject {
 public:
     using ServerType = RN_UdpServer;
     using ClientType = RN_UdpClient;

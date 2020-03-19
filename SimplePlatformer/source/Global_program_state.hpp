@@ -4,8 +4,8 @@
 #include <Hobgoblin/Common.hpp>
 
 #include "Controls_manager.hpp"
+#include "Game_object_framework.hpp"
 #include "Networking_manager.hpp"
-#include "Object_framework.hpp"
 #include "Player.hpp"
 #include "Window_manager.hpp"
 #include "Isometric_tester.hpp"
@@ -14,14 +14,14 @@ struct GlobalProgramState {
     hg::PZInteger playerIndex = 0;
     bool quit = false;
 
-    QAO_Runtime qaoRuntime;
+    hg::QAO_Runtime qaoRuntime;
     WindowManager windowMgr;
     ControlsManager controlsMgr;
     NetworkingManager netMgr;
 
     Player* player1;
     //Player* player2;
-    IsometricTester* isomTest;
+    //IsometricTester* isomTest;
 
     GlobalProgramState(bool isHost)
         : controlsMgr{1, 3}
@@ -37,7 +37,7 @@ struct GlobalProgramState {
         player1 = QAO_Create<Player>(qaoRuntime, 200.f, 200.f, 0);
         //player2 = QAO_Create<Player>(qaoRuntime, 300.f, 200.f, 1);
 
-        isomTest = QAO_Create<IsometricTester>(qaoRuntime);
+        //isomTest = QAO_Create<IsometricTester>(qaoRuntime);
     }
 };
 

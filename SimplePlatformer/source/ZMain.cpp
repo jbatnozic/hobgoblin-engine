@@ -7,7 +7,7 @@
 #include <stdexcept>
 
 #include "Global_program_state.hpp"
-#include "Object_framework.hpp"
+#include "Game_object_framework.hpp"
 
 std::unique_ptr<GlobalProgramState> ProgramSetup();
 void ProgramTeardown(std::unique_ptr<GlobalProgramState> globalState);

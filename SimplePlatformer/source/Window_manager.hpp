@@ -6,15 +6,15 @@
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 
-#include "Object_framework.hpp"
+#include "Game_object_framework.hpp"
 
-class WindowManager : public GameObject {
+class WindowManager : public GOF_Base {
 public:
     sf::RenderTexture appSurface;
     sf::RenderWindow window;
 
     WindowManager()
-        : GameObject{0, -1000, "WindowManager"}
+        : GOF_Base{0, -1000, "WindowManager"}
     {
         window.create(sf::VideoMode(800, 800), "Window");
         // vSync and Framerate limiter perform near identically as far as

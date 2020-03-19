@@ -5,7 +5,7 @@
 #include "Player.hpp"
 
 Player::Player(float x, float y, hg::PZInteger playerIndex)
-    : GameObject{0, 0, "Player"}
+    : GOF_Base{0, 0, "Player"}
     , x{x}
     , y{y}
 {

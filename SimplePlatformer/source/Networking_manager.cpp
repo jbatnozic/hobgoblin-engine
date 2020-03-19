@@ -4,7 +4,7 @@
 #include "Networking_manager.hpp"
 
 NetworkingManager::NetworkingManager(bool isServer)
-    : QAO_Base{0, 0, "NetworkingManager"}
+    : GOF_StateObject{0, 0, "NetworkingManager"}
     , _isServer{isServer}
 {
     if (isServer) {

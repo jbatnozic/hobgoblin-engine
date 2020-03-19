@@ -6,7 +6,7 @@
 #include <deque>
 #include <vector>
 
-#include "Object_framework.hpp"
+#include "Game_object_framework.hpp"
 
 struct PlayerControls {
     bool left = false;
@@ -14,7 +14,7 @@ struct PlayerControls {
     bool up = false;
 };
 
-class ControlsManager : public GameObject {
+class ControlsManager : public GOF_Base {
 public:
     ControlsManager(hg::PZInteger size = 1, hg::PZInteger inputDelay = 0);
 

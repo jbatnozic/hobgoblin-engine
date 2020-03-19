@@ -4,7 +4,7 @@
 #include <Hobgoblin/RigelNet_Macros.hpp>
 #include <Hobgoblin/QAO.hpp>
 
-#include "Object_framework.hpp"
+#include "Game_object_framework.hpp"
 
 namespace hg = jbatnozic::hobgoblin;
 using namespace hg::qao;

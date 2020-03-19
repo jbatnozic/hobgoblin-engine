@@ -6,14 +6,14 @@
 #include <functional>
 #include <vector>
 
-#include "Object_framework.hpp"
+#include "Game_object_framework.hpp"
 
-class IsometricTester : public GameObject {
+class IsometricTester : public GOF_Base {
 public:
     static constexpr int SIZE = 8;
 
     IsometricTester()
-        : GameObject(0, 0, "IsometricTester")
+        : GOF_Base(0, 0, "IsometricTester")
         , _building{2, 2, 1, 1, 3, 2}
     {
         // 16x16 grid (row (x) major)
