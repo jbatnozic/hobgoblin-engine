@@ -30,6 +30,8 @@ public:
     ~QAO_Runtime();
 
     // Object manipulation
+    detail::RuntimeInsertInfo addObject(QAO_Base& obj);
+
     template <class T>
     T* addObject(std::unique_ptr<T> object);
 

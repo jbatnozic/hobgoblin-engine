@@ -8,19 +8,19 @@
 #include <Hobgoblin/Utility/Passkey.hpp>
 
 #include <string>
+#include <typeinfo>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_START
 namespace qao {
 
-class QAO_Base;
 class QAO_Runtime;
 
 class QAO_Base : NO_COPY, NO_MOVE {
 public:
     QAO_Base() = delete;
-    QAO_Base(int type_id, int execution_priority = 0, const std::string& name = "Undefined");
+    QAO_Base(QAO_Runtime* runtime, const std::type_info& typeInfo, int executionPriority, std::string name);
     virtual ~QAO_Base() = 0;
     
     QAO_Runtime* getRuntime() const noexcept;
@@ -28,10 +28,14 @@ public:
     void setExecutionPriority(int priority);
     int getExecutionPriority() const noexcept;
 
-    void setName(const std::string& name);
+    void setName(std::string newName);
     std::string getName() const;
 
     QAO_GenericId getId() const noexcept;
+
+    const std::type_info& getTypeInfo() const {
+        return _typeInfo; // TODO
+    }
 
     virtual QAO_Base* clone() const;
 
@@ -56,14 +60,24 @@ protected:
     virtual void eventRender()     { }
 
 private:
-    std::string _instance_name;
+    std::string _instanceName;
     QAO_GenericId _this_id;
     QAO_OrdererIterator _orderer_iterator;
-    QAO_Runtime* _runtime;
     std::int64_t _step_ordinal;
-    int _type_id;
+    QAO_Runtime* _runtime;
+    const std::type_info& _typeInfo;
     int _execution_priority;
 };
+
+namespace detail {
+
+struct RuntimeInsertInfo {
+    QAO_GenericId id;
+    QAO_OrdererIterator ordererIterator;
+    std::int64_t stepOrdinal;
+};
+
+} // namespace detail
 
 } // namespace qao
 HOBGOBLIN_NAMESPACE_END

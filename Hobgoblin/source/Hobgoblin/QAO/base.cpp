@@ -10,13 +10,20 @@
 HOBGOBLIN_NAMESPACE_START
 namespace qao {
 
-QAO_Base::QAO_Base(int type_id_, int execution_priority_, const std::string & name)
-    : _instance_name{name}
-    , _runtime{nullptr}
+QAO_Base::QAO_Base(QAO_Runtime* runtime, const std::type_info& typeInfo, int executionPriority, std::string name)
+    : _instanceName{std::move(name)}
     , _step_ordinal{}
-    , _type_id{type_id_}
-    , _execution_priority{execution_priority_}
+    , _runtime{nullptr}
+    , _typeInfo{typeInfo}
+    , _execution_priority{executionPriority}
 {
+    if (runtime) {
+        auto info = runtime->addObject(Self);
+        _this_id = info.id;
+        _orderer_iterator = info.ordererIterator;
+        _step_ordinal = info.stepOrdinal;
+        _runtime = runtime;
+    }
 }
 
 QAO_Base::~QAO_Base() {
@@ -34,7 +41,7 @@ int QAO_Base::getExecutionPriority() const noexcept {
 }
 
 std::string QAO_Base::getName() const {
-    return _instance_name;
+    return _instanceName;
 }
 
 QAO_GenericId QAO_Base::getId() const noexcept {
@@ -56,8 +63,8 @@ void QAO_Base::setExecutionPriority(int new_priority) {
     }
 }
 
-void QAO_Base::setName(const std::string& new_name) {
-    _instance_name = new_name;
+void QAO_Base::setName(std::string newName) {
+    _instanceName = std::move(newName);
 }
 
 // Internal
@@ -76,16 +83,6 @@ void QAO_Base::_internal_callEvent(QAO_Event::Enum ev, QAO_Runtime& rt, util::Pa
     };
     assert(ev >= 0 && ev < QAO_Event::Count);
     (this->*handlers[ev])();
-    /*switch (ev) {
-    case QAO_Event::FrameStart: this->eventFrameStart(); break;
-    case QAO_Event::PreUpdate: this->eventPreUpdate(); break;
-    case QAO_Event::Update: this->eventUpdate(); break;
-    case QAO_Event::PostUpdate: this->eventPostUpdate(); break;
-    case QAO_Event::Draw1: this->eventDraw1(); break;
-    case QAO_Event::Draw2: this->eventDraw2(); break;
-    case QAO_Event::DrawGUI: this->eventDrawGUI(); break;
-    case QAO_Event::Render: this->eventRender(); break;
-    }*/
 }
 
 void QAO_Base::_internal_setOrdererIterator(QAO_OrdererIterator orderer_iterator, util::Passkey<QAO_Runtime>) {

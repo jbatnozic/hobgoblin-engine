@@ -466,7 +466,6 @@
     <ClInclude Include="include\Hobgoblin\QAO\id.hpp" />
     <ClInclude Include="include\Hobgoblin\QAO\base.hpp" />
     <ClInclude Include="include\Hobgoblin\QAO\orderer.hpp" />
-    <ClInclude Include="include\Hobgoblin\QAO\property.hpp" />
     <ClInclude Include="include\Hobgoblin\QAO\registry.hpp" />
     <ClInclude Include="include\Hobgoblin\QAO\runtime.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet.hpp" />

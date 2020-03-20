@@ -6,6 +6,10 @@
 
 using namespace jbatnozic::hobgoblin::qao;
 
+#define TYPEID_SELF typeid(decltype(*this))
+#define QAO_New(_x_) (new _x_)
+#define QAO_Delete(_x_) (delete _x_)
+
 class QAO_Test : public ::testing::Test {
 protected:
     QAO_Test()
@@ -26,8 +30,8 @@ protected:
 
 class SimpleActiveObject : public QAO_Base {
 public:
-    SimpleActiveObject(std::vector<int>& vec, int number)
-        : QAO_Base{0, 0, "SimpleActiveObject"}
+    SimpleActiveObject(QAO_Runtime* runtime, std::vector<int>& vec, int number)
+        : QAO_Base{runtime, TYPEID_SELF, 0, "SimpleActiveObject"}
         , _myVec{vec}
         , _myNumber{number}
     {
@@ -45,15 +49,15 @@ private:
 };
 
 TEST_F(QAO_Test, ObjectCountTest) {
-    auto obj = QAO_Create<SimpleActiveObject>(_runtime, _numbers, 0);
+    auto obj = QAO_New(SimpleActiveObject(&_runtime, _numbers, 0));
     ASSERT_EQ(_runtime.getObjectCount(), 1);
-    QAO_Destroy(obj);
+    QAO_Delete(obj);
     ASSERT_EQ(_runtime.getObjectCount(), 0);
 }
 
 TEST_F(QAO_Test, SimpleEventTest) {
     constexpr int VALUE_0 = 1;
-    auto obj = QAO_Create<SimpleActiveObject>(_runtime, _numbers, VALUE_0);
+    auto obj = QAO_New(SimpleActiveObject(&_runtime, _numbers, VALUE_0));
     performStep();
     ASSERT_EQ(_numbers.size(), 1u);
     ASSERT_EQ(_numbers[0], VALUE_0);
@@ -63,9 +67,9 @@ TEST_F(QAO_Test, OrderingTest) {
     constexpr int VALUE_0 = 1;
     constexpr int VALUE_1 = 2;
     constexpr int VALUE_2 = 3;
-    auto obj0 = QAO_Create<SimpleActiveObject>(_runtime, _numbers, VALUE_0);
-    auto obj1 = QAO_Create<SimpleActiveObject>(_runtime, _numbers, VALUE_1);
-    auto obj2 = QAO_Create<SimpleActiveObject>(_runtime, _numbers, VALUE_2);
+    auto obj0 = QAO_New(SimpleActiveObject(&_runtime, _numbers, VALUE_0));
+    auto obj1 = QAO_New(SimpleActiveObject(&_runtime, _numbers, VALUE_1));
+    auto obj2 = QAO_New(SimpleActiveObject(&_runtime, _numbers, VALUE_2));
 
     obj0->setExecutionPriority(80);
     obj1->setExecutionPriority(70);
@@ -92,9 +96,9 @@ TEST_F(QAO_Test, OrderingTest) {
 }
 
 TEST_F(QAO_Test, DestroyTest) {
-    auto obj = QAO_Create<SimpleActiveObject>(_runtime, _numbers, 0);
+    auto obj = QAO_New(SimpleActiveObject(&_runtime, _numbers, 0));
     ASSERT_EQ(_runtime.getObjectCount(), 1);
 
-    QAO_Destroy(obj);
+    QAO_Delete(obj);
     ASSERT_EQ(_runtime.getObjectCount(), 0);
 }

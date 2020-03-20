@@ -4,7 +4,6 @@
 #include <Hobgoblin/QAO/func.hpp>
 #include <Hobgoblin/QAO/id.hpp>
 #include <Hobgoblin/QAO/orderer.hpp>
-#include <Hobgoblin/QAO/property.hpp>
 #include <Hobgoblin/QAO/registry.hpp>
 #include <Hobgoblin/QAO/runtime.hpp>
 

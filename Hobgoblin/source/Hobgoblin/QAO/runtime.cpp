@@ -17,8 +17,8 @@ QAO_Runtime::QAO_Runtime()
     , _iteration_ordinal{-1}
     , _current_event{QAO_Event::NoEvent}
     , _step_orderer_iterator{_orderer.end()}
+    , _user_data{nullptr}
 {
-    setUserData(nullptr);
 }
 
 QAO_Runtime::~QAO_Runtime() {
@@ -28,6 +28,19 @@ QAO_Runtime::~QAO_Runtime() {
             eraseObject(obj->getId());
         }
     }
+}
+
+detail::RuntimeInsertInfo QAO_Runtime::addObject(QAO_Base& obj) {
+    const auto reg_pair = _registry.insert(std::unique_ptr<QAO_Base>{&obj});
+
+    auto ordPair = _orderer.insert(&obj); // first = iterator, second = added_new
+    assert(ordPair.second);
+
+    return {
+        QAO_GenericId{reg_pair.serial, reg_pair.index},
+        ordPair.first, 
+        MIN_STEP_ORDINAL
+    };
 }
 
 QAO_Base* QAO_Runtime::addObjectImpl(std::unique_ptr<QAO_Base> object) {

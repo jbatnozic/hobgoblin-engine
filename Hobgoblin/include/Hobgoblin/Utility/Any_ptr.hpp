@@ -19,6 +19,10 @@ public:
         reset();
     }
 
+    AnyPtr(std::nullptr_t) {
+        reset(nullptr);
+    }
+
     template <class T>
     AnyPtr(T* value) {
         reset(value);

@@ -98,9 +98,6 @@
     <ClInclude Include="include\Hobgoblin\QAO\orderer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Hobgoblin\QAO\property.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\Hobgoblin\QAO\registry.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>

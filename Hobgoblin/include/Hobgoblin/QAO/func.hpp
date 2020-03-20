@@ -15,6 +15,7 @@ namespace qao {
 template <class T, class ... Args>
 T* QAO_Create(QAO_Runtime& runtime, Args&&... args) {
 	return runtime.addObject(std::make_unique<T>(std::forward<Args>(args)...));
+    //return new 
 }
 
 inline void QAO_Destroy(QAO_Base* obj) {
