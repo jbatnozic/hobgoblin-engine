@@ -39,16 +39,6 @@ public:
 
     virtual QAO_Base* clone() const;
 
-    // TODO Give common prefix to passkey-restricted methods
-    // Internal methods are not part of API
-    void _internal_callEvent(QAO_Event::Enum ev, QAO_Runtime& rt, util::Passkey<QAO_Runtime>);
-    void _internal_setOrdererIterator(QAO_OrdererIterator orderer_iterator, util::Passkey<QAO_Runtime>);
-    void _internal_setExecutionPriority(int priority, util::Passkey<QAO_Runtime>);
-    std::int64_t _internal_getStepOrdinal(util::Passkey<QAO_Runtime>) const noexcept;
-    void _internal_setStepOrdinal(std::int64_t step_oridinal, util::Passkey<QAO_Runtime>);
-    void _internal_setRuntime(QAO_Runtime* runtime, util::Passkey<QAO_Runtime>);
-    void _internal_setThisId(QAO_GenericId id, util::Passkey<QAO_Runtime>);
-
 protected:
     virtual void eventFrameStart() { }
     virtual void eventPreUpdate()  { }
@@ -60,24 +50,34 @@ protected:
     virtual void eventRender()     { }
 
 private:
+    struct Context {
+        std::int64_t stepOrdinal = 0;
+        QAO_GenericId id;
+        QAO_OrdererIterator ordererIterator;
+        QAO_Runtime* runtime = nullptr;
+
+        Context() = default;
+
+        Context(std::int64_t stepOrdinal, QAO_GenericId id,
+            QAO_OrdererIterator ordererIterator, QAO_Runtime* runtime)
+            : stepOrdinal{stepOrdinal}
+            , id{id}
+            , ordererIterator{ordererIterator}
+            , runtime{runtime}
+        {
+        }
+    };
+
     std::string _instanceName;
-    QAO_GenericId _this_id;
-    QAO_OrdererIterator _orderer_iterator;
-    std::int64_t _step_ordinal;
-    QAO_Runtime* _runtime;
+    Context _context;
     const std::type_info& _typeInfo;
     int _execution_priority;
+
+    void _callEvent(QAO_Event::Enum ev);
+
+    friend class QAO_Runtime;
+    friend class QAO_GenericId;
 };
-
-namespace detail {
-
-struct RuntimeInsertInfo {
-    QAO_GenericId id;
-    QAO_OrdererIterator ordererIterator;
-    std::int64_t stepOrdinal;
-};
-
-} // namespace detail
 
 } // namespace qao
 HOBGOBLIN_NAMESPACE_END

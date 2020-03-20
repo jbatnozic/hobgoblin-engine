@@ -30,55 +30,58 @@ QAO_Runtime::~QAO_Runtime() {
     }
 }
 
-detail::RuntimeInsertInfo QAO_Runtime::addObject(QAO_Base& obj) {
-    const auto reg_pair = _registry.insert(std::unique_ptr<QAO_Base>{&obj});
+void QAO_Runtime::addObject(std::unique_ptr<QAO_Base> obj) {
+    QAO_Base* const objRaw = obj.get();
+    const auto reg_pair = _registry.insert(std::move(obj));
 
-    auto ordPair = _orderer.insert(&obj); // first = iterator, second = added_new
+    auto ordPair = _orderer.insert(objRaw); // first = iterator, second = added_new
     assert(ordPair.second);
 
-    return {
+    // Friend access
+    objRaw->_context = QAO_Base::Context{
+        MIN_STEP_ORDINAL,
         QAO_GenericId{reg_pair.serial, reg_pair.index},
-        ordPair.first, 
-        MIN_STEP_ORDINAL
+        ordPair.first,
+        this
     };
 }
 
 QAO_Base* QAO_Runtime::addObjectImpl(std::unique_ptr<QAO_Base> object) {
-    QAO_Base* const object_raw = object.get();
-    const auto reg_pair = _registry.insert(std::move(object));
+    //QAO_Base* const object_raw = object.get();
+    //const auto reg_pair = _registry.insert(std::move(object));
 
-    const auto ord_pair = _orderer.insert(object_raw); // first = iterator, second = added_new
-    assert(ord_pair.second);
+    //const auto ord_pair = _orderer.insert(object_raw); // first = iterator, second = added_new
+    //assert(ord_pair.second);
 
-    object_raw->_internal_setRuntime(this, PASSKEY);
-    object_raw->_internal_setThisId(QAO_GenericId{reg_pair.serial, reg_pair.index}, PASSKEY);
-    object_raw->_internal_setOrdererIterator(ord_pair.first, PASSKEY);
-    object_raw->_internal_setStepOrdinal(MIN_STEP_ORDINAL, PASSKEY);
+    //object_raw->_internal_setRuntime(this, PASSKEY);
+    //object_raw->_internal_setThisId(QAO_GenericId{reg_pair.serial, reg_pair.index}, PASSKEY);
+    //object_raw->_internal_setOrdererIterator(ord_pair.first, PASSKEY);
+    //object_raw->_internal_setStepOrdinal(MIN_STEP_ORDINAL, PASSKEY);
 
-    return object_raw;
+    //return object_raw;
+    return nullptr;
 }
 
-QAO_Base* QAO_Runtime::addObjectNoOwnImpl(QAO_Base& object) {
-    // TODO Resolve code duplication
-    QAO_Base* const object_raw = &object;
-    const auto reg_pair = _registry.insertNoOwn(object_raw);
+void QAO_Runtime::addObjectNoOwn(QAO_Base& obj) {
+    const auto reg_pair = _registry.insertNoOwn(&obj);
 
-    const auto ord_pair = _orderer.insert(object_raw); // first = iterator, second = added_new
-    assert(ord_pair.second);
+    auto ordPair = _orderer.insert(&obj); // first = iterator, second = added_new
+    assert(ordPair.second);
 
-    object_raw->_internal_setRuntime(this, PASSKEY);
-    object_raw->_internal_setThisId(QAO_GenericId{reg_pair.serial, reg_pair.index}, PASSKEY);
-    object_raw->_internal_setOrdererIterator(ord_pair.first, PASSKEY);
-    object_raw->_internal_setStepOrdinal(MIN_STEP_ORDINAL, PASSKEY);
-
-    return object_raw;
+    // Friend access
+    obj._context = QAO_Base::Context{
+        MIN_STEP_ORDINAL,
+        QAO_GenericId{reg_pair.serial, reg_pair.index},
+        ordPair.first,
+        this
+    };
 }
 
 std::unique_ptr<QAO_Base> QAO_Runtime::releaseObject(QAO_GenericId id) {
     const auto index = id.getIndex();
     const auto serial = id.getSerial();
 
-    QAO_Base* obj_raw = find(id);
+    QAO_Base* const obj_raw = find(id);
     assert(obj_raw);
 
     std::unique_ptr<QAO_Base> rv = _registry.release(index); // nullptr if object wasn't owned
@@ -89,8 +92,8 @@ std::unique_ptr<QAO_Base> QAO_Runtime::releaseObject(QAO_GenericId id) {
     }
     _orderer.erase(obj_raw);
 
-    obj_raw->_internal_setRuntime(nullptr, PASSKEY);
-    obj_raw->_internal_setThisId(nullptr, PASSKEY);
+    // Friend access
+    obj_raw->_context = QAO_Base::Context{};
 
     return rv;
 }
@@ -110,8 +113,8 @@ std::unique_ptr<QAO_Base> QAO_Runtime::releaseObject(QAO_Base* obj) {
     }
     _orderer.erase(obj);
 
-    obj->_internal_setRuntime(nullptr, PASSKEY);
-    obj->_internal_setThisId(nullptr, PASSKEY);
+    // Friend access
+    obj->_context = QAO_Base::Context{};
 
     return rv;
 }
@@ -146,10 +149,12 @@ void QAO_Runtime::updateExecutionPriorityForObject(QAO_GenericId id, int new_pri
     assert(obj_raw);
 
     _orderer.erase(obj_raw);
-    obj_raw->_internal_setExecutionPriority(new_priority, PASSKEY);
+    // Friend access
+    obj_raw->_execution_priority = new_priority;
 
     const auto ord_pair = _orderer.insert(obj_raw); // first = iterator, second = added_new
-    obj_raw->_internal_setOrdererIterator(ord_pair.first, PASSKEY);
+    // Friend access
+    obj_raw->_context.ordererIterator = ord_pair.first;
 }
 
 void QAO_Runtime::updateExecutionPriorityForObject(QAO_Base* object, int new_priority) {
@@ -157,10 +162,12 @@ void QAO_Runtime::updateExecutionPriorityForObject(QAO_Base* object, int new_pri
     assert(find(object->getId()) == object);
 
     _orderer.erase(object);
-    object->_internal_setExecutionPriority(new_priority, PASSKEY);
+    // Friend access
+    object->_execution_priority = new_priority;
 
     const auto ord_pair = _orderer.insert(object); // first = iterator, second = added_new
-    object->_internal_setOrdererIterator(ord_pair.first, PASSKEY);
+    // Friend access
+    object->_context.ordererIterator = ord_pair.first;
 }
 
 // Execution
@@ -185,11 +192,12 @@ void QAO_Runtime::advanceStep(bool& done, std::int32_t eventFlags) {
         _current_event = ev;
 
         while (curr != _orderer.end()) {
-            QAO_Base* instance = *curr;
+            QAO_Base* const instance = *curr;
             curr = std::next(curr);
-            if (instance->_internal_getStepOrdinal(PASSKEY) < _step_counter) {
-                instance->_internal_callEvent(ev, *this, PASSKEY);
-                instance->_internal_setStepOrdinal(_step_counter, PASSKEY);
+            // Friend access
+            if (instance->_context.stepOrdinal < _step_counter) {
+                instance->_callEvent(ev);
+                instance->_context.stepOrdinal = _step_counter;
             }
         }
 

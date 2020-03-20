@@ -12,28 +12,23 @@ namespace qao {
 
 QAO_Base::QAO_Base(QAO_Runtime* runtime, const std::type_info& typeInfo, int executionPriority, std::string name)
     : _instanceName{std::move(name)}
-    , _step_ordinal{}
-    , _runtime{nullptr}
     , _typeInfo{typeInfo}
     , _execution_priority{executionPriority}
 {
     if (runtime) {
-        auto info = runtime->addObject(Self);
-        _this_id = info.id;
-        _orderer_iterator = info.ordererIterator;
-        _step_ordinal = info.stepOrdinal;
-        _runtime = runtime;
+        // TODO _context = runtime->addObject(Self);
+        runtime->addObject(std::unique_ptr<QAO_Base>{this});
     }
 }
 
 QAO_Base::~QAO_Base() {
-    if (_runtime) {
-        _runtime->releaseObject(_this_id).release(); // TODO PEP
+    if (_context.runtime) {
+        _context.runtime->releaseObject(_context.id).release(); // TODO PEP
     }
 }
 
 QAO_Runtime* QAO_Base::getRuntime() const noexcept {
-    return _runtime;
+    return _context.runtime;
 }
 
 int QAO_Base::getExecutionPriority() const noexcept {
@@ -45,7 +40,7 @@ std::string QAO_Base::getName() const {
 }
 
 QAO_GenericId QAO_Base::getId() const noexcept {
-    return _this_id;
+    return _context.id;
 }
 
 QAO_Base* QAO_Base::clone() const {
@@ -56,8 +51,8 @@ void QAO_Base::setExecutionPriority(int new_priority) {
     if (_execution_priority == new_priority) {
         return;
     }
-    if (_runtime != nullptr) {
-        _runtime->updateExecutionPriorityForObject(this, new_priority);
+    if (_context.runtime != nullptr) {
+        _context.runtime->updateExecutionPriorityForObject(this, new_priority);
     } else {
         _execution_priority = new_priority;
     }
@@ -67,9 +62,9 @@ void QAO_Base::setName(std::string newName) {
     _instanceName = std::move(newName);
 }
 
-// Internal
+// Private
 
-void QAO_Base::_internal_callEvent(QAO_Event::Enum ev, QAO_Runtime& rt, util::Passkey<QAO_Runtime>) {
+void QAO_Base::_callEvent(QAO_Event::Enum ev) {
     using EventHandlerPointer = void(QAO_Base::*)();
     const EventHandlerPointer handlers[QAO_Event::Count] = {
         &QAO_Base::eventFrameStart,
@@ -83,30 +78,6 @@ void QAO_Base::_internal_callEvent(QAO_Event::Enum ev, QAO_Runtime& rt, util::Pa
     };
     assert(ev >= 0 && ev < QAO_Event::Count);
     (this->*handlers[ev])();
-}
-
-void QAO_Base::_internal_setOrdererIterator(QAO_OrdererIterator orderer_iterator, util::Passkey<QAO_Runtime>) {
-    _orderer_iterator = orderer_iterator;
-}
-
-void QAO_Base::_internal_setExecutionPriority(int priority, util::Passkey<QAO_Runtime>) {
-    _execution_priority = priority;
-}
-
-std::int64_t QAO_Base::_internal_getStepOrdinal(util::Passkey<QAO_Runtime>) const noexcept {
-    return _step_ordinal;
-}
-
-void QAO_Base::_internal_setStepOrdinal(std::int64_t step_oridinal, util::Passkey<QAO_Runtime>) {
-    _step_ordinal = step_oridinal;
-}
-
-void QAO_Base::_internal_setRuntime(QAO_Runtime* runtime, util::Passkey<QAO_Runtime>) {
-    _runtime = runtime;
-}
-
-void QAO_Base::_internal_setThisId(QAO_GenericId id, util::Passkey<QAO_Runtime>) {
-    _this_id = id;
 }
 
 }

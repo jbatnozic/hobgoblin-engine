@@ -30,13 +30,12 @@ public:
     ~QAO_Runtime();
 
     // Object manipulation
-    detail::RuntimeInsertInfo addObject(QAO_Base& obj);
+    void addObject(std::unique_ptr<QAO_Base> obj);
 
-    template <class T>
-    T* addObject(std::unique_ptr<T> object);
+    /*template <class T>
+    T* addObject(std::unique_ptr<T> object);*/
 
-    template <class T>
-    T* addObjectNoOwn(T& object);
+    void addObjectNoOwn(QAO_Base& object);
 
     std::unique_ptr<QAO_Base> releaseObject(QAO_GenericId id);
     std::unique_ptr<QAO_Base> releaseObject(QAO_Base* obj);
@@ -59,9 +58,7 @@ public:
 
     // Other
     PZInteger getObjectCount() const noexcept;
-    std::int64_t getIterationOrdinal() const noexcept {
-        return _iteration_ordinal; // TODO
-    }
+
 
     // User data
     void setUserData(std::nullptr_t);
@@ -90,15 +87,15 @@ private:
     QAO_Base* addObjectNoOwnImpl(QAO_Base& object);
 };
 
-template <class T>
-T* QAO_Runtime::addObject(std::unique_ptr<T> object) {
-    return static_cast<T*>(addObjectImpl(std::move(object)));
-}
-
-template <class T>
-T* QAO_Runtime::addObjectNoOwn(T& object) {
-    return static_cast<T*>(addObjectNoOwnImpl(object));
-}
+//template <class T>
+//T* QAO_Runtime::addObject(std::unique_ptr<T> object) {
+//    return static_cast<T*>(addObjectImpl(std::move(object)));
+//}
+//
+//template <class T>
+//T* QAO_Runtime::addObjectNoOwn(T& object) {
+//    return static_cast<T*>(addObjectNoOwnImpl(object));
+//}
 
 template<class T>
 T* QAO_Runtime::find(QAO_Id<T> id) const {
