@@ -9,3 +9,4 @@
 #undef SWITCH_FALLTHROUGH
 #undef NO_OP
 #undef CRTP_METHOD
+#undef FRIEND_ACCESS

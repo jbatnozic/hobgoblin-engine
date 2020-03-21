@@ -26,13 +26,14 @@ public:
     QAO_SerialIndexPair insert(std::unique_ptr<QAO_Base> ptr);
     QAO_SerialIndexPair insertNoOwn(QAO_Base* ptr);
     std::unique_ptr<QAO_Base> release(PZInteger index);
-    void erase(int index);
+    void erase(PZInteger index);
 
     PZInteger size() const;
-    QAO_Base* objectAt(int index) const;
-    std::int64_t serialAt(int index) const;
+    QAO_Base* objectAt(PZInteger index) const;
+    bool isObjectAtOwned(PZInteger index) const;
+    std::int64_t serialAt(PZInteger index) const;
     PZInteger instanceCount() const;
-    bool isSlotEmpty(int index) const;
+    bool isSlotEmpty(PZInteger index) const;
 
 private:
     struct Elem {

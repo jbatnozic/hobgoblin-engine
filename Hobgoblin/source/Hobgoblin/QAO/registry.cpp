@@ -19,7 +19,7 @@ QAO_Registry::QAO_Registry(PZInteger capacity)
 }
 
 QAO_SerialIndexPair QAO_Registry::insert(std::unique_ptr<QAO_Base> ptr) {
-    const auto index = static_cast<int>(_indexer.acquire());
+    const auto index = static_cast<PZInteger>(_indexer.acquire());
     const auto serial = nextSerial();
 
     adjustSize();
@@ -45,7 +45,7 @@ QAO_SerialIndexPair QAO_Registry::insertNoOwn(QAO_Base* ptr) {
     return QAO_SerialIndexPair{serial, index};
 }
 
-std::unique_ptr<QAO_Base> QAO_Registry::release(int index) {
+std::unique_ptr<QAO_Base> QAO_Registry::release(PZInteger index) {
     Elem& elem = _elements[index];
     if (elem.no_own) {
         elem.ptr.release();
@@ -59,7 +59,7 @@ std::unique_ptr<QAO_Base> QAO_Registry::release(int index) {
     }
 }
 
-void QAO_Registry::erase(int index) {
+void QAO_Registry::erase(PZInteger index) {
     Elem& elem = _elements[index];
     if (elem.no_own) {
         elem.ptr.release();
@@ -73,15 +73,19 @@ int QAO_Registry::size() const {
     return _indexer.getSize();
 }
 
-QAO_Base* QAO_Registry::objectAt(int index) const {
+QAO_Base* QAO_Registry::objectAt(PZInteger index) const {
     return _elements[index].ptr.get();
 }
 
-std::int64_t QAO_Registry::serialAt(int index) const {
+bool QAO_Registry::isObjectAtOwned(PZInteger index) const {
+    return !_elements[index].no_own;
+}
+
+std::int64_t QAO_Registry::serialAt(PZInteger index) const {
     return _elements[index].serial;
 }
 
-int QAO_Registry::instanceCount() const {
+PZInteger QAO_Registry::instanceCount() const {
     return _indexer.countFilled();
 }
 
@@ -93,7 +97,7 @@ void QAO_Registry::adjustSize() {
     }
 }
 
-bool QAO_Registry::isSlotEmpty(int index) const {
+bool QAO_Registry::isSlotEmpty(PZInteger index) const {
     return _indexer.isSlotEmpty(static_cast<std::size_t>(index));
 }
 

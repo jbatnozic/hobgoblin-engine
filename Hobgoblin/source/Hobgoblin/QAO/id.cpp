@@ -12,12 +12,6 @@
 HOBGOBLIN_NAMESPACE_START
 namespace qao {
 
-QAO_GenericId::QAO_GenericId(std::int64_t serial, PZInteger index)
-    : _serial{serial}
-    , _index{index}
-{
-}
-
 QAO_GenericId::QAO_GenericId()
     : QAO_GenericId(QAO_NULL_SERIAL, QAO_NULL_INDEX)
 {
@@ -25,6 +19,22 @@ QAO_GenericId::QAO_GenericId()
 
 QAO_GenericId::QAO_GenericId(std::nullptr_t p)
     : QAO_GenericId(QAO_NULL_SERIAL, QAO_NULL_INDEX)
+{
+}
+
+QAO_GenericId::QAO_GenericId(const QAO_Base* object)
+    : QAO_GenericId{object ? object->_context.id : nullptr}
+{
+}
+
+QAO_GenericId::QAO_GenericId(const QAO_Base& object)
+    : QAO_GenericId{object._context.id}
+{
+}
+
+QAO_GenericId::QAO_GenericId(std::int64_t serial, PZInteger index)
+    : _serial{serial}
+    , _index{index}
 {
 }
 

@@ -21,6 +21,8 @@ class QAO_GenericId {
 public:
     QAO_GenericId();
     QAO_GenericId(std::nullptr_t p);
+    QAO_GenericId(const QAO_Base* object);
+    QAO_GenericId(const QAO_Base& object);
 
     bool operator==(const QAO_GenericId& other) const;
     bool operator!=(const QAO_GenericId& other) const;
@@ -43,7 +45,7 @@ public:
 
 protected:
     friend class QAO_Runtime;
-    QAO_GenericId(std::int64_t serial, int index);
+    QAO_GenericId(std::int64_t serial, PZInteger index);
 
 private:
     std::int64_t _serial;
@@ -53,8 +55,7 @@ private:
 template <class T>
 class QAO_Id : public QAO_GenericId {
 public:
-    QAO_Id(): QAO_GenericId() { }
-    QAO_Id(std::nullptr_t p): QAO_GenericId(p) { }
+    using QAO_GenericId::QAO_GenericId;
 
     // Copy:
     QAO_Id(const QAO_Id<T> &other) = default;
@@ -74,7 +75,6 @@ protected:
         : QAO_GenericId{serial, index} 
     {
     }
-
 };
 
 template<class T>

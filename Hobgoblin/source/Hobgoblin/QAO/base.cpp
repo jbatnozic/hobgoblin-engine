@@ -16,7 +16,6 @@ QAO_Base::QAO_Base(QAO_Runtime* runtime, const std::type_info& typeInfo, int exe
     , _execution_priority{executionPriority}
 {
     if (runtime) {
-        // TODO _context = runtime->addObject(Self);
         runtime->addObject(std::unique_ptr<QAO_Base>{this});
     }
 }

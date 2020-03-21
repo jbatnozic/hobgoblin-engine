@@ -31,15 +31,9 @@ public:
 
     // Object manipulation
     void addObject(std::unique_ptr<QAO_Base> obj);
-
-    /*template <class T>
-    T* addObject(std::unique_ptr<T> object);*/
-
     void addObjectNoOwn(QAO_Base& object);
 
-    std::unique_ptr<QAO_Base> releaseObject(QAO_GenericId id);
     std::unique_ptr<QAO_Base> releaseObject(QAO_Base* obj);
-    void eraseObject(QAO_GenericId id);
     void eraseObject(QAO_Base* obj);
 
     QAO_Base* find(const std::string& name) const;
@@ -48,7 +42,6 @@ public:
     template<class T>
     T* find(QAO_Id<T> id) const;
 
-    void updateExecutionPriorityForObject(QAO_GenericId id, int new_priority);
     void updateExecutionPriorityForObject(QAO_Base* object, int new_priority);
 
     // Execution
@@ -58,7 +51,7 @@ public:
 
     // Other
     PZInteger getObjectCount() const noexcept;
-
+    bool ownsObject(const QAO_Base* object) const;
 
     // User data
     void setUserData(std::nullptr_t);
@@ -82,20 +75,7 @@ private:
     QAO_Event::Enum _current_event;
     QAO_OrdererIterator _step_orderer_iterator;
     util::AnyPtr _user_data;
-
-    QAO_Base* addObjectImpl(std::unique_ptr<QAO_Base> object);
-    QAO_Base* addObjectNoOwnImpl(QAO_Base& object);
 };
-
-//template <class T>
-//T* QAO_Runtime::addObject(std::unique_ptr<T> object) {
-//    return static_cast<T*>(addObjectImpl(std::move(object)));
-//}
-//
-//template <class T>
-//T* QAO_Runtime::addObjectNoOwn(T& object) {
-//    return static_cast<T*>(addObjectNoOwnImpl(object));
-//}
 
 template<class T>
 T* QAO_Runtime::find(QAO_Id<T> id) const {
