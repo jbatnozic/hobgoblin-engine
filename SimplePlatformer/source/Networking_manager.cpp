@@ -3,8 +3,8 @@
 
 #include "Networking_manager.hpp"
 
-NetworkingManager::NetworkingManager(bool isServer)
-    : GOF_StateObject{0, 0, "NetworkingManager"}
+NetworkingManager::NetworkingManager(QAO_Runtime* runtime, bool isServer)
+    : GOF_StateObject{runtime, TYPEID_SELF, 0, "NetworkingManager"}
     , _isServer{isServer}
 {
     if (isServer) {

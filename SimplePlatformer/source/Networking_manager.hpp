@@ -15,12 +15,17 @@ public:
     using ServerType = RN_UdpServer;
     using ClientType = RN_UdpClient;
 
-    NetworkingManager(bool isServer);
+    NetworkingManager(QAO_Runtime* runtime, bool isServer);
 
     bool isServer() const noexcept;
     RN_Node& getNode();
     ServerType& getServer();
     ClientType& getClient();
+
+    class EventListener {
+    public:
+        virtual void onNetworkingEvent(const RN_Event& event_) = 0;
+    };
 
 protected:
     void eventPreUpdate() override;

@@ -11,7 +11,7 @@ public:
     static constexpr float GRAVITY = 1.f;
     static constexpr float JUMP_POWER = 16.f;
 
-    Player(float x, float y, hg::PZInteger playerIndex);
+    Player(QAO_Runtime* runtime, float x, float y, hg::PZInteger playerIndex);
 
 protected:
     void eventUpdate() override;

@@ -4,8 +4,8 @@
 #include "Global_program_state.hpp"
 #include "Player.hpp"
 
-Player::Player(float x, float y, hg::PZInteger playerIndex)
-    : GOF_Base{0, 0, "Player"}
+Player::Player(QAO_Runtime* runtime, float x, float y, hg::PZInteger playerIndex)
+    : GOF_Base{runtime, TYPEID_SELF, 0, "Player"}
     , x{x}
     , y{y}
 {

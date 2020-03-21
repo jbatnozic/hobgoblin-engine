@@ -12,8 +12,8 @@ class IsometricTester : public GOF_Base {
 public:
     static constexpr int SIZE = 8;
 
-    IsometricTester()
-        : GOF_Base(0, 0, "IsometricTester")
+    IsometricTester(QAO_Runtime* runtime)
+        : GOF_Base(runtime, TYPEID_SELF, 0, "IsometricTester")
         , _building{2, 2, 1, 1, 3, 2}
     {
         // 16x16 grid (row (x) major)

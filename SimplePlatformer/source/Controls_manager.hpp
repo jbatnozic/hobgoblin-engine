@@ -16,7 +16,7 @@ struct PlayerControls {
 
 class ControlsManager : public GOF_Base {
 public:
-    ControlsManager(hg::PZInteger size = 1, hg::PZInteger inputDelay = 0);
+    ControlsManager(QAO_Runtime* runtime, hg::PZInteger size = 1, hg::PZInteger inputDelay = 0);
 
     void resize(hg::PZInteger newSize);
     void resetWithInputDelay(hg::PZInteger inputDelay);

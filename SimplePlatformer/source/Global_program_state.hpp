@@ -24,8 +24,9 @@ struct GlobalProgramState {
     //IsometricTester* isomTest;
 
     GlobalProgramState(bool isHost)
-        : controlsMgr{1, 3}
-        , netMgr{isHost}
+        : windowMgr{nullptr}
+        , controlsMgr{nullptr, 1, 3}
+        , netMgr{nullptr, isHost}
     {
         qaoRuntime.setUserData(this);
         netMgr.getNode().setUserData(this);
@@ -34,7 +35,7 @@ struct GlobalProgramState {
         qaoRuntime.addObjectNoOwn(controlsMgr);
         qaoRuntime.addObjectNoOwn(netMgr);
 
-        player1 = QAO_Create<Player>(qaoRuntime, 200.f, 200.f, 0);
+        player1 = QAO_PCreate<Player>(&qaoRuntime, 200.f, 200.f, 0);
         //player2 = QAO_Create<Player>(qaoRuntime, 300.f, 200.f, 1);
 
         //isomTest = QAO_Create<IsometricTester>(qaoRuntime);

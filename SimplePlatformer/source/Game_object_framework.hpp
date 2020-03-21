@@ -1,10 +1,11 @@
 #ifndef GAME_OBJECT_FRAMEWORK_HPP
 #define GAME_OBJECT_FRAMEWORK_HPP
 
-// TODO: Rename to Game_object_framework.hpp
-
 #include <Hobgoblin/QAO.hpp>
 using namespace hg::qao;
+
+#include <typeinfo>
+#define TYPEID_SELF typeid(decltype(*this))
 
 struct GlobalProgramState;
 
@@ -51,9 +52,9 @@ class GOF_SynchronizedObject : public GOF_StateObject {
 public:
     GOF_SynchronizedObject(RemoteObjectMapper& rom);
 
-    virtual void onCreate();
-    virtual void onUpdate();
-    virtual void onDestroy();
+    virtual void syncCreate();
+    virtual void syncUpdate();
+    virtual void syncDestroy();
 
 private:
     // RemoteObjectMapper& _remoteObjectMapper;

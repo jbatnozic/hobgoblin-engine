@@ -4,8 +4,8 @@
 #include "Controls_manager.hpp"
 #include "Global_program_state.hpp"
 
-ControlsManager::ControlsManager(hg::PZInteger size, hg::PZInteger inputDelay)
-    : GOF_Base{0, 50, "ControlsManager"}
+ControlsManager::ControlsManager(QAO_Runtime* runtime, hg::PZInteger size, hg::PZInteger inputDelay)
+    : GOF_Base{runtime, TYPEID_SELF, 50, "ControlsManager"}
     , _defaultInputDelay{inputDelay}
 {
     _controls.resize(static_cast<std::size_t>(size));
