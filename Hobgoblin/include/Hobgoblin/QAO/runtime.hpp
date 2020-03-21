@@ -79,7 +79,7 @@ private:
 
 template<class T>
 T* QAO_Runtime::find(QAO_Id<T> id) const {
-    return static_cast<T>(find(QAO_GenericId{id}));
+    return static_cast<T*>(find(QAO_GenericId{id}));
 }
 
 template <class T>

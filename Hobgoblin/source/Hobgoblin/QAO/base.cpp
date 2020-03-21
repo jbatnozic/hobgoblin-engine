@@ -22,7 +22,7 @@ QAO_Base::QAO_Base(QAO_Runtime* runtime, const std::type_info& typeInfo, int exe
 
 QAO_Base::~QAO_Base() {
     if (_context.runtime) {
-        _context.runtime->releaseObject(_context.id).release(); // TODO PEP
+        _context.runtime->releaseObject(this).release(); // TODO PEP
     }
 }
 
