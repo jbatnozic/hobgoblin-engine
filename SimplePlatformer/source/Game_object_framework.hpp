@@ -4,6 +4,9 @@
 #include <Hobgoblin/QAO.hpp>
 using namespace hg::qao;
 
+#include <Hobgoblin/RigelNet.hpp>
+using namespace hg::rn;
+
 #include <typeinfo>
 #define TYPEID_SELF typeid(decltype(*this))
 
@@ -34,8 +37,6 @@ public:
     using GOF_Base::GOF_Base;
 };
 
-
-
 // remoteId -> universalId / globalId / distributedId, [syncId] ?
 
 class RemoteObjectMapper {
@@ -50,11 +51,14 @@ class RemoteObjectMapper {
 // game objects).
 class GOF_SynchronizedObject : public GOF_StateObject {
 public:
-    GOF_SynchronizedObject(RemoteObjectMapper& rom);
+    //GOF_SynchronizedObject(RemoteObjectMapper& rom);
+    using GOF_StateObject::GOF_StateObject;
 
-    virtual void syncCreate();
-    virtual void syncUpdate();
-    virtual void syncDestroy();
+    RN_Node& getNode() const;
+
+    virtual void syncCreate(RN_Node& node, const std::vector<hg::PZInteger>& rec) = 0;
+    virtual void syncUpdate(RN_Node& node, const std::vector<hg::PZInteger>& rec) = 0;
+    virtual void syncDestroy(RN_Node& node, const std::vector<hg::PZInteger>& rec) = 0;
 
 private:
     // RemoteObjectMapper& _remoteObjectMapper;
