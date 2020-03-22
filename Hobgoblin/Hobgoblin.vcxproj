@@ -489,6 +489,7 @@
     <ClInclude Include="include\Hobgoblin\RigelNet\Udp_server.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet_Macros.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Any_ptr.hpp" />
+    <ClInclude Include="include\Hobgoblin\Utility\Autopack.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Exceptions.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Serialization.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Packet.hpp" />
