@@ -27,9 +27,9 @@ public:
     static void deserialize(hg::util::Packet& packet, hg::util::AnyPtr context, int /* contextTag */) {
     }
 
-    virtual void syncCreate(RN_Node& node, const std::vector<hg::PZInteger>& rec) override;
-    virtual void syncUpdate(RN_Node& node, const std::vector<hg::PZInteger>& rec) override;
-    virtual void syncDestroy(RN_Node& node, const std::vector<hg::PZInteger>& rec) override;
+    virtual void syncCreateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) override;
+    virtual void syncUpdateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) override;
+    //virtual void syncDestroy(RN_Node& node, const std::vector<hg::PZInteger>& rec) override;
 
     friend RN_HANDLER_SIGNATURE(UpdatePlayer, RN_ARGS(SyncId, syncId, float, x, float, y));
 

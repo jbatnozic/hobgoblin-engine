@@ -169,9 +169,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="source\Autopack.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="source\Controls_manager.cpp" />
     <ClCompile Include="source\Isometric_tester.cpp" />
     <ClCompile Include="source\Networking_manager.cpp" />

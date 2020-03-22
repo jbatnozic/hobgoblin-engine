@@ -67,17 +67,17 @@ Player::Player(QAO_Runtime* runtime, SynchronizedObjectMapper& syncObjMapper, Sy
 {
 }
 
-void Player::syncCreate(RN_Node& node, const std::vector<hg::PZInteger>& rec) {
+void Player::syncCreateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) {
     RN_Compose_CreatePlayer(node, rec, getSyncId(), x, y, playerIndex);
 }
 
-void Player::syncUpdate(RN_Node& node, const std::vector<hg::PZInteger>& rec) {
+void Player::syncUpdateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) {
     RN_Compose_UpdatePlayer(node, rec, getSyncId(), x, y); // TODO
 }
 
-void Player::syncDestroy(RN_Node& node, const std::vector<hg::PZInteger>& rec) {
-    RN_Compose_DestroyPlayer(node, rec, getSyncId()); // TODO
-}
+//void Player::syncDestroyImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) {
+//    RN_Compose_DestroyPlayer(node, rec, getSyncId()); // TODO
+//}
 
 void Player::eventUpdate() {
     if (playerIndex != global().playerIndex) {

@@ -42,17 +42,22 @@ public:
 using SyncId = std::int64_t;
 class GOF_SynchronizedObject;
 
-class SynchronizedObjectMapper {
+class SynchronizedObjectMapper { // TODO Rename class
 public:
-    SyncId mapMasterObject(GOF_SynchronizedObject& object);
-    void mapDummyObject(GOF_SynchronizedObject& object, SyncId masterSyncId);
+    SynchronizedObjectMapper(RN_Node& node);
+
+    SyncId createMasterObject(GOF_SynchronizedObject* object);
+    void createDummyObject(GOF_SynchronizedObject* object, SyncId masterSyncId);
+    void destroyMasterObject(GOF_SynchronizedObject* object);
+
     GOF_SynchronizedObject* getMapping(SyncId syncId) const;
     const std::unordered_map<SyncId, GOF_SynchronizedObject*>& getAllMappings() const;
-    void unmap(SyncId syncId);
 
 private:
     std::unordered_map<SyncId, GOF_SynchronizedObject*> _mappings;
+    std::vector<hg::PZInteger> _recepientVec;
     SyncId _syncIdCounter = 0;
+    RN_Node& _node;
 };
 
 // Objects which are essential to the game's state, so they are both saved when
@@ -92,10 +97,12 @@ public:
         return _syncId;
     }
 
-    virtual void syncCreate(RN_Node& node, const std::vector<hg::PZInteger>& rec) = 0;
-    virtual void syncUpdate(RN_Node& node, const std::vector<hg::PZInteger>& rec) = 0;
-    virtual void syncDestroy(RN_Node& node, const std::vector<hg::PZInteger>& rec) = 0; 
+    virtual void syncCreateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) = 0;
+    virtual void syncUpdateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) = 0;
+    // virtual void syncDestroy(RN_Node& node, const std::vector<hg::PZInteger>& rec) = 0; 
     // TODO Remove this ^ (destruction sync should be automatic and without parameters)
+    void syncCreate();
+    void syncUpdate();
 
 private:
     SynchronizedObjectMapper& _syncObjMapper;
