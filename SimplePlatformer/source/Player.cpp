@@ -4,13 +4,13 @@
 #include "Global_program_state.hpp"
 #include "Player.hpp"
 
-RN_DEFINE_HANDLER(CreatePlayer, RN_ARGS(SyncId, syncId, float, x, float, y, hg::PZInteger, playerIndex)) {
+RN_DEFINE_HANDLER(CreatePlayer, RN_ARGS(SyncId, syncId, Player::State&, state)) {
     RN_NODE_IN_HANDLER().visit(
         [=](NetworkingManager::ClientType& client) {
             auto& global = *client.getUserData<GlobalProgramState>();
             auto& runtime = global.qaoRuntime;
             auto& syncObjMapper = global.syncObjMgr;
-            QAO_PCreate<Player>(&runtime, syncObjMapper, syncId, x, y, playerIndex);
+            QAO_PCreate<Player>(&runtime, syncObjMapper, syncId, state.x, state.y, state.playerIndex);
         },
         [](NetworkingManager::ServerType& server) {
             // ERROR
@@ -18,15 +18,14 @@ RN_DEFINE_HANDLER(CreatePlayer, RN_ARGS(SyncId, syncId, float, x, float, y, hg::
     );
 }
 
-RN_DEFINE_HANDLER(UpdatePlayer, RN_ARGS(SyncId, syncId, float, x, float, y)) {
+RN_DEFINE_HANDLER(UpdatePlayer, RN_ARGS(SyncId, syncId, Player::State&, state)) {
     RN_NODE_IN_HANDLER().visit(
         [=](NetworkingManager::ClientType& client) {
             auto& global = *client.getUserData<GlobalProgramState>();
             auto& runtime = global.qaoRuntime;
             auto& syncObjMapper = global.syncObjMgr;
             auto* player = static_cast<Player*>(syncObjMapper.getMapping(syncId));
-            player->x = x;
-            player->y = y;
+            player->s = state;
         },
         [](NetworkingManager::ServerType& server) {
             // ERROR
@@ -52,27 +51,27 @@ RN_DEFINE_HANDLER(DestroyPlayer, RN_ARGS(SyncId, syncId)) {
 Player::Player(QAO_Runtime* runtime, SynchronizedObjectManager& syncObjMapper, 
                float x, float y, hg::PZInteger playerIndex)
     : GOF_SynchronizedObject{runtime, TYPEID_SELF, 0, "Player", syncObjMapper}
-    , playerIndex{playerIndex}
-    , x{x}
-    , y{y}
 {
+    s.playerIndex = playerIndex;
+    s.x = x;
+    s.y = y;
 }
 
 Player::Player(QAO_Runtime* runtime, SynchronizedObjectManager& syncObjMapper, SyncId masterSyncId,
                float x, float y, hg::PZInteger playerIndex)
     : GOF_SynchronizedObject{runtime, TYPEID_SELF, 0, "Player", syncObjMapper, masterSyncId}
-    , playerIndex{playerIndex}
-    , x{x}
-    , y{y}
 {
+    s.playerIndex = playerIndex;
+    s.x = x;
+    s.y = y;
 }
 
 void Player::syncCreateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const {
-    RN_Compose_CreatePlayer(node, rec, getSyncId(), x, y, playerIndex);
+    RN_Compose_CreatePlayer(node, rec, getSyncId(), s);
 }
 
 void Player::syncUpdateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const {
-    RN_Compose_UpdatePlayer(node, rec, getSyncId(), x, y); // TODO
+    RN_Compose_UpdatePlayer(node, rec, getSyncId(), s); // TODO
 }
 
 void Player::syncDestroyImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const {
@@ -83,33 +82,33 @@ void Player::eventUpdate() {
     PlayerControls controls{};
 
     if (global().playerIndex == 0) {
-        controls = global().controlsMgr.getCurrentControlsForPlayer(playerIndex);
+        controls = global().controlsMgr.getCurrentControlsForPlayer(s.playerIndex);
     }
 
-    if (y < static_cast<float>(800) - height) {
-        yspeed += GRAVITY;
+    if (s.y < static_cast<float>(800) - s.height) {
+        s.yspeed += GRAVITY;
     }
     else {
-        y = static_cast<float>(800) - height;
-        yspeed = 0.f;
+        s.y = static_cast<float>(800) - s.height;
+        s.yspeed = 0.f;
     }
 
     if (controls.up && !oldUp) {
-        yspeed -= JUMP_POWER;
+        s.yspeed -= JUMP_POWER;
     }
 
-    xspeed = (static_cast<float>(controls.right) - static_cast<float>(controls.left)) * MAX_SPEED;
+    s.xspeed = (static_cast<float>(controls.right) - static_cast<float>(controls.left)) * MAX_SPEED;
 
-    x += xspeed;
-    y += yspeed;
+    s.x += s.xspeed;
+    s.y += s.yspeed;
 
     oldUp = controls.up;
 }
 
 void Player::eventDraw1() {
-    sf::RectangleShape rect{{width, height}};
+    sf::RectangleShape rect{{s.width, s.height}};
     rect.setFillColor(sf::Color{204, 0, 204, 255});
-    rect.setPosition(x, y);
+    rect.setPosition(s.x, s.y);
 
     global().windowMgr.appSurface.draw(rect);
 }

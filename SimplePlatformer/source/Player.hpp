@@ -32,18 +32,24 @@ public:
     virtual void syncUpdateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const override;
     virtual void syncDestroyImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const override;
 
-    friend RN_HANDLER_SIGNATURE(UpdatePlayer, RN_ARGS(SyncId, syncId, float, x, float, y));
-
 protected:
     void eventUpdate() override;
     void eventDraw1() override;
 
+public: // State object must be public
+    struct State {
+        hg::PZInteger playerIndex;
+        float x, y;
+        float xspeed = 0.f, yspeed = 0.f;
+        float width = 48.f, height = 64.f;
+        HG_ENABLE_AUTOPACK(State, playerIndex, x, y, xspeed, yspeed, width, height);
+    };
+
 private:
-    hg::PZInteger playerIndex;
-    float x, y;
-    float xspeed = 0.f, yspeed = 0.f;
-    float width = 48.f, height = 64.f;
+    State s;
     bool oldUp = false;
+
+    friend RN_HANDLER_SIGNATURE(UpdatePlayer, RN_ARGS(SyncId, syncId, State&, state));
 };
 
 #endif // !PLAYER_HPP
