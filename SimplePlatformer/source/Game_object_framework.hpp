@@ -74,7 +74,7 @@ public:
                            SynchronizedObjectMapper& syncObjMapper)
         : GOF_StateObject{runtime, typeInfo, executionPriority, std::move(name)}
         , _syncObjMapper{syncObjMapper}
-        , _syncId{syncObjMapper.mapMasterObject(*this)}
+        , _syncId{syncObjMapper.createMasterObject(this)}
     {
     }
 
@@ -86,11 +86,11 @@ public:
         , _syncObjMapper{syncObjMapper}
         , _syncId{syncId}
     {
-        syncObjMapper.mapDummyObject(*this, _syncId);
+        syncObjMapper.createDummyObject(this, _syncId);
     }
 
     virtual ~GOF_SynchronizedObject() {
-        _syncObjMapper.unmap(_syncId);
+        _syncObjMapper.destroyMasterObject(this); // TODO Must not call for dummy object!
     }
 
     SyncId getSyncId() const noexcept {
