@@ -11,6 +11,7 @@ using namespace hg::rn;
 #define TYPEID_SELF typeid(decltype(*this))
 
 #include <unordered_map>
+#include <unordered_set>
 
 struct GlobalProgramState;
 
@@ -42,19 +43,28 @@ public:
 using SyncId = std::int64_t;
 class GOF_SynchronizedObject;
 
-class SynchronizedObjectMapper { // TODO Rename class
+class SynchronizedObjectManager {
+    // TODO Cover edge case when an object is created and then immediately destoryed (in the same step)
 public:
-    SynchronizedObjectMapper(RN_Node& node);
+    SynchronizedObjectManager(RN_Node& node);
 
     SyncId createMasterObject(GOF_SynchronizedObject* object);
     void createDummyObject(GOF_SynchronizedObject* object, SyncId masterSyncId);
-    void destroyMasterObject(GOF_SynchronizedObject* object);
+    void destroyObject(GOF_SynchronizedObject* object);
 
     GOF_SynchronizedObject* getMapping(SyncId syncId) const;
-    const std::unordered_map<SyncId, GOF_SynchronizedObject*>& getAllMappings() const;
+    void syncAll();
+    void syncAllToNewClient(hg::PZInteger clientIndex);
+
+    void syncObjectCreate(const GOF_SynchronizedObject* object);
+    void syncObjectUpdate(const GOF_SynchronizedObject* object);
+    void syncObjectDestroy(const GOF_SynchronizedObject* object);
 
 private:
     std::unordered_map<SyncId, GOF_SynchronizedObject*> _mappings;
+    std::unordered_set<const GOF_SynchronizedObject*> _newlyCreatedObjects;
+    std::unordered_set<const GOF_SynchronizedObject*> _alreadyUpdatedObjects;
+    std::unordered_set<const GOF_SynchronizedObject*> _alreadyDestroyedObjects;
     std::vector<hg::PZInteger> _recepientVec;
     SyncId _syncIdCounter = 0;
     RN_Node& _node;
@@ -71,9 +81,9 @@ public:
     // Constructor for Master object
     GOF_SynchronizedObject(QAO_Runtime* runtime, const std::type_info& typeInfo, 
                            int executionPriority, std::string name, 
-                           SynchronizedObjectMapper& syncObjMapper)
+                           SynchronizedObjectManager& syncObjMapper)
         : GOF_StateObject{runtime, typeInfo, executionPriority, std::move(name)}
-        , _syncObjMapper{syncObjMapper}
+        , _syncObjMgr{syncObjMapper}
         , _syncId{syncObjMapper.createMasterObject(this)}
     {
     }
@@ -81,31 +91,36 @@ public:
     // Constructor for Dummy object (has preassigned syncId)
     GOF_SynchronizedObject(QAO_Runtime* runtime, const std::type_info& typeInfo,
                            int executionPriority, std::string name,
-                           SynchronizedObjectMapper& syncObjMapper, SyncId syncId)
+                           SynchronizedObjectManager& syncObjMapper, SyncId syncId)
         : GOF_StateObject{runtime, typeInfo, executionPriority, std::move(name)}
-        , _syncObjMapper{syncObjMapper}
+        , _syncObjMgr{syncObjMapper}
         , _syncId{syncId}
     {
         syncObjMapper.createDummyObject(this, _syncId);
     }
 
     virtual ~GOF_SynchronizedObject() {
-        _syncObjMapper.destroyMasterObject(this); // TODO Must not call for dummy object!
+        _syncObjMgr.destroyObject(this);
     }
 
     SyncId getSyncId() const noexcept {
-        return _syncId;
+        return _syncId & ~std::int64_t{1};
     }
 
-    virtual void syncCreateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) = 0;
-    virtual void syncUpdateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) = 0;
-    // virtual void syncDestroy(RN_Node& node, const std::vector<hg::PZInteger>& rec) = 0; 
-    // TODO Remove this ^ (destruction sync should be automatic and without parameters)
-    void syncCreate();
-    void syncUpdate();
+    bool isMasterObject() const noexcept {
+        return (_syncId & 1) != 0;
+    }
+
+    virtual void syncCreateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const = 0;
+    virtual void syncUpdateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const = 0;
+    virtual void syncDestroyImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const = 0;
+
+    void syncCreate() const;
+    void syncUpdate() const;
+    void syncDestroy() const;
 
 private:
-    SynchronizedObjectMapper& _syncObjMapper;
+    SynchronizedObjectManager& _syncObjMgr;
     const SyncId _syncId;
 };
 

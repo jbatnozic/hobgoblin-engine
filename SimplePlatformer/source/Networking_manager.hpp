@@ -37,7 +37,6 @@ private:
     bool _isServer;
 
     void handleEvents();
-    void syncNewClient(hg::PZInteger clientIndex);
 };
 
 #endif // !NETWORKING_MANAGER_HPP

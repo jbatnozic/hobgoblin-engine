@@ -9,7 +9,7 @@ RN_DEFINE_HANDLER(CreatePlayer, RN_ARGS(SyncId, syncId, float, x, float, y, hg::
         [=](NetworkingManager::ClientType& client) {
             auto& global = *client.getUserData<GlobalProgramState>();
             auto& runtime = global.qaoRuntime;
-            auto& syncObjMapper = global.syncObjMapper;
+            auto& syncObjMapper = global.syncObjMgr;
             QAO_PCreate<Player>(&runtime, syncObjMapper, syncId, x, y, playerIndex);
         },
         [](NetworkingManager::ServerType& server) {
@@ -23,7 +23,7 @@ RN_DEFINE_HANDLER(UpdatePlayer, RN_ARGS(SyncId, syncId, float, x, float, y)) {
         [=](NetworkingManager::ClientType& client) {
             auto& global = *client.getUserData<GlobalProgramState>();
             auto& runtime = global.qaoRuntime;
-            auto& syncObjMapper = global.syncObjMapper;
+            auto& syncObjMapper = global.syncObjMgr;
             auto* player = static_cast<Player*>(syncObjMapper.getMapping(syncId));
             player->x = x;
             player->y = y;
@@ -39,7 +39,7 @@ RN_DEFINE_HANDLER(DestroyPlayer, RN_ARGS(SyncId, syncId)) {
         [=](NetworkingManager::ClientType& client) {
             auto& global = *client.getUserData<GlobalProgramState>();
             auto& runtime = global.qaoRuntime;
-            auto& syncObjMapper = global.syncObjMapper;
+            auto& syncObjMapper = global.syncObjMgr;
             auto* player = static_cast<Player*>(syncObjMapper.getMapping(syncId));
             runtime.eraseObject(player);
         },
@@ -49,7 +49,7 @@ RN_DEFINE_HANDLER(DestroyPlayer, RN_ARGS(SyncId, syncId)) {
     );
 }
 
-Player::Player(QAO_Runtime* runtime, SynchronizedObjectMapper& syncObjMapper, 
+Player::Player(QAO_Runtime* runtime, SynchronizedObjectManager& syncObjMapper, 
                float x, float y, hg::PZInteger playerIndex)
     : GOF_SynchronizedObject{runtime, TYPEID_SELF, 0, "Player", syncObjMapper}
     , playerIndex{playerIndex}
@@ -58,7 +58,7 @@ Player::Player(QAO_Runtime* runtime, SynchronizedObjectMapper& syncObjMapper,
 {
 }
 
-Player::Player(QAO_Runtime* runtime, SynchronizedObjectMapper& syncObjMapper, SyncId masterSyncId,
+Player::Player(QAO_Runtime* runtime, SynchronizedObjectManager& syncObjMapper, SyncId masterSyncId,
                float x, float y, hg::PZInteger playerIndex)
     : GOF_SynchronizedObject{runtime, TYPEID_SELF, 0, "Player", syncObjMapper, masterSyncId}
     , playerIndex{playerIndex}
@@ -67,17 +67,17 @@ Player::Player(QAO_Runtime* runtime, SynchronizedObjectMapper& syncObjMapper, Sy
 {
 }
 
-void Player::syncCreateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) {
+void Player::syncCreateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const {
     RN_Compose_CreatePlayer(node, rec, getSyncId(), x, y, playerIndex);
 }
 
-void Player::syncUpdateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) {
+void Player::syncUpdateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const {
     RN_Compose_UpdatePlayer(node, rec, getSyncId(), x, y); // TODO
 }
 
-//void Player::syncDestroyImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) {
-//    RN_Compose_DestroyPlayer(node, rec, getSyncId()); // TODO
-//}
+void Player::syncDestroyImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const {
+    RN_Compose_DestroyPlayer(node, rec, getSyncId()); // TODO
+}
 
 void Player::eventUpdate() {
     if (playerIndex != global().playerIndex) {

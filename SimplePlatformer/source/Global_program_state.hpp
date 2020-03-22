@@ -15,15 +15,16 @@ struct GlobalProgramState {
     bool quit = false;
 
     hg::QAO_Runtime qaoRuntime;
-    SynchronizedObjectMapper syncObjMapper;
     WindowManager windowMgr;
     ControlsManager controlsMgr;
     NetworkingManager netMgr;
+    SynchronizedObjectManager syncObjMgr;
 
     GlobalProgramState(bool isHost)
         : windowMgr{nullptr}
         , controlsMgr{nullptr, 1, 3}
         , netMgr{nullptr, isHost}
+        , syncObjMgr{netMgr.getNode()}
     {
         qaoRuntime.setUserData(this);
         netMgr.getNode().setUserData(this);
@@ -33,7 +34,7 @@ struct GlobalProgramState {
         qaoRuntime.addObjectNoOwn(netMgr);
 
         if (isHost) {
-            QAO_PCreate<Player>(&qaoRuntime, syncObjMapper, 200.f, 200.f, 0);
+            QAO_PCreate<Player>(&qaoRuntime, syncObjMgr, 200.f, 200.f, 0);
             playerIndex = 0;
         }
         else {

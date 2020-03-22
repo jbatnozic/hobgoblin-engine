@@ -50,17 +50,7 @@ void NetworkingManager::eventPreUpdate()  {
 void NetworkingManager::eventPostUpdate() {
     // Update all Synchronized objects
     if (RN_IsServer(getNode().getType())) {
-        std::vector<hg::PZInteger> rec;
-        for (hg::PZInteger i = 0; i < getServer().getSize(); i += 1) {
-            if (getServer().getClient(i).getStatus() == RN_ConnectorStatus::Connected) {
-                rec.push_back(i);
-            }
-        }
-
-        for (auto& item : global().syncObjMapper.getAllMappings()) {
-            auto* syncObject = item.second;
-            syncObject->syncUpdate(getServer(), rec);
-        }
+        global().syncObjMgr.syncAll(); // TODO Maybe this shouldn't be a responsibility of this object?
     }
 
     if (_isServer) {
@@ -85,7 +75,7 @@ void NetworkingManager::handleEvents() {
             [this](const RN_Event::Connected& ev) {
                 if (RN_IsServer(getNode().getType())) {
                     std::cout << "New client connected\n";
-                    syncNewClient(*ev.clientIndex);
+                    global().syncObjMgr.syncAllToNewClient(*ev.clientIndex);
                 }
                 else {
                     std::cout << "Connected to server\n";
@@ -99,16 +89,5 @@ void NetworkingManager::handleEvents() {
                 std::cout << "Connection timed out\n";
             }
         );
-    }
-}
-
-void NetworkingManager::syncNewClient(hg::PZInteger clientIndex) {
-    std::vector<hg::PZInteger> rec;
-    rec.push_back(clientIndex);
-
-    for (auto& item : global().syncObjMapper.getAllMappings()) {
-        auto* syncObject = item.second;
-        syncObject->syncCreate(getServer(), rec);
-        syncObject->syncUpdate(getServer(), rec);
     }
 }
