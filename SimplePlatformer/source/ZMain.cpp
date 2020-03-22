@@ -45,7 +45,8 @@ T InputPrompt(const std::string& name, T defaultValue) {
 }
 
 std::unique_ptr<GlobalProgramState> ProgramSetup() {
-	
+	RN_IndexHandlers();
+
 	bool isHost;
 	hg::PZInteger size;
 	std::uint16_t localPort;

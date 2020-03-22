@@ -15,7 +15,11 @@ public:
     static constexpr float GRAVITY = 1.f;
     static constexpr float JUMP_POWER = 16.f;
 
-    Player(QAO_Runtime* runtime, float x, float y, hg::PZInteger playerIndex);
+    Player(QAO_Runtime* runtime, SynchronizedObjectMapper& syncObjMapper, 
+           float x, float y, hg::PZInteger playerIndex);
+
+    Player(QAO_Runtime* runtime, SynchronizedObjectMapper& syncObjMapper, SyncId masterSyncId,
+           float x, float y, hg::PZInteger playerIndex);
 
     void serialize(hg::util::Packet& packet) const {
     }
@@ -27,11 +31,14 @@ public:
     virtual void syncUpdate(RN_Node& node, const std::vector<hg::PZInteger>& rec) override;
     virtual void syncDestroy(RN_Node& node, const std::vector<hg::PZInteger>& rec) override;
 
+    friend RN_HANDLER_SIGNATURE(UpdatePlayer, RN_ARGS(SyncId, syncId, float, x, float, y));
+
 protected:
     void eventUpdate() override;
     void eventDraw1() override;
 
 private:
+    hg::PZInteger playerIndex;
     float x, y;
     float xspeed = 0.f, yspeed = 0.f;
     float width = 48.f, height = 64.f;

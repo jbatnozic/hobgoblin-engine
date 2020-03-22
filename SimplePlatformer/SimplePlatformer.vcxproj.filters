@@ -36,6 +36,9 @@
     <ClCompile Include="source\Game_object_framework.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="source\Autopack.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Networking_manager.hpp">

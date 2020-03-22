@@ -169,10 +169,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="source\Autopack.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="source\Controls_manager.cpp" />
     <ClCompile Include="source\Isometric_tester.cpp" />
     <ClCompile Include="source\Networking_manager.cpp" />
-    <ClCompile Include="source\ZMain.cpp" />
+    <ClCompile Include="source\ZMain.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="source\Game_object_framework.cpp" />
     <ClCompile Include="source\Player.cpp" />
     <ClCompile Include="source\Window_manager.cpp" />

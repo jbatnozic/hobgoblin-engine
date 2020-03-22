@@ -4,11 +4,13 @@
 #include "Global_program_state.hpp"
 #include "Player.hpp"
 
-RN_DEFINE_HANDLER(CreatePlayer, RN_ARGS(float, x, float, y)) {
+RN_DEFINE_HANDLER(CreatePlayer, RN_ARGS(SyncId, syncId, float, x, float, y, hg::PZInteger, playerIndex)) {
     RN_NODE_IN_HANDLER().visit(
-        [](NetworkingManager::ClientType& client) {
+        [=](NetworkingManager::ClientType& client) {
             auto& global = *client.getUserData<GlobalProgramState>();
-
+            auto& runtime = global.qaoRuntime;
+            auto& syncObjMapper = global.syncObjMapper;
+            QAO_PCreate<Player>(&runtime, syncObjMapper, syncId, x, y, playerIndex);
         },
         [](NetworkingManager::ServerType& server) {
             // ERROR
@@ -16,38 +18,72 @@ RN_DEFINE_HANDLER(CreatePlayer, RN_ARGS(float, x, float, y)) {
     );
 }
 
-RN_DEFINE_HANDLER(UpdatePlayer, RN_ARGS()) {
-
+RN_DEFINE_HANDLER(UpdatePlayer, RN_ARGS(SyncId, syncId, float, x, float, y)) {
+    RN_NODE_IN_HANDLER().visit(
+        [=](NetworkingManager::ClientType& client) {
+            auto& global = *client.getUserData<GlobalProgramState>();
+            auto& runtime = global.qaoRuntime;
+            auto& syncObjMapper = global.syncObjMapper;
+            auto* player = static_cast<Player*>(syncObjMapper.getMapping(syncId));
+            player->x = x;
+            player->y = y;
+        },
+        [](NetworkingManager::ServerType& server) {
+            // ERROR
+        }
+    );
 }
 
-RN_DEFINE_HANDLER(DestroyPlayer, RN_ARGS()) {
-
+RN_DEFINE_HANDLER(DestroyPlayer, RN_ARGS(SyncId, syncId)) {
+    RN_NODE_IN_HANDLER().visit(
+        [=](NetworkingManager::ClientType& client) {
+            auto& global = *client.getUserData<GlobalProgramState>();
+            auto& runtime = global.qaoRuntime;
+            auto& syncObjMapper = global.syncObjMapper;
+            auto* player = static_cast<Player*>(syncObjMapper.getMapping(syncId));
+            runtime.eraseObject(player);
+        },
+        [](NetworkingManager::ServerType& server) {
+            // ERROR
+        }
+    );
 }
 
-Player::Player(QAO_Runtime* runtime, float x, float y, hg::PZInteger playerIndex)
-    : GOF_SynchronizedObject{runtime, TYPEID_SELF, 0, "Player"}
+Player::Player(QAO_Runtime* runtime, SynchronizedObjectMapper& syncObjMapper, 
+               float x, float y, hg::PZInteger playerIndex)
+    : GOF_SynchronizedObject{runtime, TYPEID_SELF, 0, "Player", syncObjMapper}
+    , playerIndex{playerIndex}
     , x{x}
     , y{y}
 {
-    // syncCreate
-    if (RN_IsServer(global().netMgr.getNode().getType())) {
-        RN_Compose_CreatePlayer(global().netMgr.getNode(), RN_COMPOSE_FOR_ALL, x, y);
-    }
+}
+
+Player::Player(QAO_Runtime* runtime, SynchronizedObjectMapper& syncObjMapper, SyncId masterSyncId,
+               float x, float y, hg::PZInteger playerIndex)
+    : GOF_SynchronizedObject{runtime, TYPEID_SELF, 0, "Player", syncObjMapper, masterSyncId}
+    , playerIndex{playerIndex}
+    , x{x}
+    , y{y}
+{
 }
 
 void Player::syncCreate(RN_Node& node, const std::vector<hg::PZInteger>& rec) {
-    RN_Compose_CreatePlayer(node, rec, x, y);
+    RN_Compose_CreatePlayer(node, rec, getSyncId(), x, y, playerIndex);
 }
 
 void Player::syncUpdate(RN_Node& node, const std::vector<hg::PZInteger>& rec) {
-    RN_Compose_UpdatePlayer(node, rec); // TODO
+    RN_Compose_UpdatePlayer(node, rec, getSyncId(), x, y); // TODO
 }
 
 void Player::syncDestroy(RN_Node& node, const std::vector<hg::PZInteger>& rec) {
-    RN_Compose_DestroyPlayer(node, rec); // TODO
+    RN_Compose_DestroyPlayer(node, rec, getSyncId()); // TODO
 }
 
 void Player::eventUpdate() {
+    if (playerIndex != global().playerIndex) {
+        return;
+    }
+
     PlayerControls controls = global().controlsMgr.getCurrentControlsForPlayer(global().playerIndex);
 
     if (y < static_cast<float>(800) - height) {

@@ -27,7 +27,8 @@ void ControlsManager::overwriteControls(const PlayerControls& controls, hg::PZIn
 }
 
 void ControlsManager::eventPreUpdate() {
-    auto& queue = _controls[global().playerIndex];
+    //auto& queue = _controls[global().playerIndex];
+    auto& queue = _controls[0];
     bool focus = global().windowMgr.window.hasFocus();
     queue.pop_front();
     queue.push_back(PlayerControls{

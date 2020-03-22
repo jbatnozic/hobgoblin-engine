@@ -11,17 +11,14 @@
 #include "Isometric_tester.hpp"
 
 struct GlobalProgramState {
-    hg::PZInteger playerIndex = 0;
+    hg::PZInteger playerIndex;
     bool quit = false;
 
     hg::QAO_Runtime qaoRuntime;
+    SynchronizedObjectMapper syncObjMapper;
     WindowManager windowMgr;
     ControlsManager controlsMgr;
     NetworkingManager netMgr;
-
-    Player* player1;
-    //Player* player2;
-    //IsometricTester* isomTest;
 
     GlobalProgramState(bool isHost)
         : windowMgr{nullptr}
@@ -35,10 +32,13 @@ struct GlobalProgramState {
         qaoRuntime.addObjectNoOwn(controlsMgr);
         qaoRuntime.addObjectNoOwn(netMgr);
 
-        player1 = QAO_PCreate<Player>(&qaoRuntime, 200.f, 200.f, 0);
-        //player2 = QAO_Create<Player>(qaoRuntime, 300.f, 200.f, 1);
-
-        //isomTest = QAO_Create<IsometricTester>(qaoRuntime);
+        if (isHost) {
+            QAO_PCreate<Player>(&qaoRuntime, syncObjMapper, 200.f, 200.f, 0);
+            playerIndex = 0;
+        }
+        else {
+            playerIndex = -1;
+        }
     }
 };
 

@@ -1,10 +1,11 @@
 
 #include <iostream>
 
+#include "Global_program_state.hpp"
 #include "Networking_manager.hpp"
 
 NetworkingManager::NetworkingManager(QAO_Runtime* runtime, bool isServer)
-    : GOF_StateObject{runtime, TYPEID_SELF, 0, "NetworkingManager"}
+    : GOF_StateObject{runtime, TYPEID_SELF, 50, "NetworkingManager"}
     , _isServer{isServer}
 {
     if (isServer) {
@@ -47,6 +48,21 @@ void NetworkingManager::eventPreUpdate()  {
 }
 
 void NetworkingManager::eventPostUpdate() {
+    // Update all Synchronized objects
+    if (RN_IsServer(getNode().getType())) {
+        std::vector<hg::PZInteger> rec;
+        for (hg::PZInteger i = 0; i < getServer().getSize(); i += 1) {
+            if (getServer().getClient(i).getStatus() == RN_ConnectorStatus::Connected) {
+                rec.push_back(i);
+            }
+        }
+
+        for (auto& item : global().syncObjMapper.getAllMappings()) {
+            auto* syncObject = item.second;
+            syncObject->syncUpdate(getServer(), rec);
+        }
+    }
+
     if (_isServer) {
         getServer().update(RN_UpdateMode::Send);
     }
@@ -66,8 +82,15 @@ void NetworkingManager::handleEvents() {
             [](const RN_Event::AttemptTimedOut& ev) {
                 std::cout << "Attempt timed out\n";
             },
-            [](const RN_Event::Connected& ev) {
-                std::cout << "Connected\n";
+            [this](const RN_Event::Connected& ev) {
+                if (RN_IsServer(getNode().getType())) {
+                    std::cout << "New client connected\n";
+                    syncNewClient(*ev.clientIndex);
+                }
+                else {
+                    std::cout << "Connected to server\n";
+                    global().playerIndex = getClient().getClientIndex() + 1;
+                }
             },
             [](const RN_Event::Disconnected& ev) {
                 std::cout << "Disconnected\n";
@@ -76,5 +99,16 @@ void NetworkingManager::handleEvents() {
                 std::cout << "Connection timed out\n";
             }
         );
+    }
+}
+
+void NetworkingManager::syncNewClient(hg::PZInteger clientIndex) {
+    std::vector<hg::PZInteger> rec;
+    rec.push_back(clientIndex);
+
+    for (auto& item : global().syncObjMapper.getAllMappings()) {
+        auto* syncObject = item.second;
+        syncObject->syncCreate(getServer(), rec);
+        syncObject->syncUpdate(getServer(), rec);
     }
 }
