@@ -11,7 +11,7 @@
 #include "Isometric_tester.hpp"
 
 struct GlobalProgramState {
-    hg::PZInteger playerIndex;
+    int playerIndex;
     bool quit = false;
 
     hg::QAO_Runtime qaoRuntime;
@@ -22,7 +22,7 @@ struct GlobalProgramState {
 
     GlobalProgramState(bool isHost)
         : windowMgr{nullptr}
-        , controlsMgr{nullptr, 1, 3}
+        , controlsMgr{nullptr, 4, 4} // runtime, size, inputDelay (in steps)
         , netMgr{nullptr, isHost}
         , syncObjMgr{netMgr.getNode()}
     {

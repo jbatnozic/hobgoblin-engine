@@ -76,6 +76,8 @@ void NetworkingManager::handleEvents() {
                 if (RN_IsServer(getNode().getType())) {
                     std::cout << "New client connected\n";
                     global().syncObjMgr.syncAllToNewClient(*ev.clientIndex);
+                    QAO_PCreate<Player>(&global().qaoRuntime, global().syncObjMgr,
+                                        200.f, 200.f, *ev.clientIndex + 1);
                 }
                 else {
                     std::cout << "Connected to server\n";

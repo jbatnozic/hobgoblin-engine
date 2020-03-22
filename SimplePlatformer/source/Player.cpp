@@ -80,11 +80,11 @@ void Player::syncDestroyImpl(RN_Node& node, const std::vector<hg::PZInteger>& re
 }
 
 void Player::eventUpdate() {
-    if (playerIndex != global().playerIndex) {
-        return;
-    }
+    PlayerControls controls{};
 
-    PlayerControls controls = global().controlsMgr.getCurrentControlsForPlayer(global().playerIndex);
+    if (global().playerIndex == 0) {
+        controls = global().controlsMgr.getCurrentControlsForPlayer(playerIndex);
+    }
 
     if (y < static_cast<float>(800) - height) {
         yspeed += GRAVITY;
@@ -104,10 +104,6 @@ void Player::eventUpdate() {
     y += yspeed;
 
     oldUp = controls.up;
-
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
-        global().quit = true;
-    }
 }
 
 void Player::eventDraw1() {

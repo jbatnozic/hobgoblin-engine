@@ -2,6 +2,7 @@
 #define CONTROLS_MANAGER_HPP
 
 #include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/Utility/Autopack.hpp>
 
 #include <deque>
 #include <vector>
@@ -12,6 +13,7 @@ struct PlayerControls {
     bool left = false;
     bool right = false;
     bool up = false;
+    HG_ENABLE_AUTOPACK(PlayerControls, left, right, up);
 };
 
 class ControlsManager : public GOF_Base {
@@ -21,10 +23,11 @@ public:
     void resize(hg::PZInteger newSize);
     void resetWithInputDelay(hg::PZInteger inputDelay);
     PlayerControls getCurrentControlsForPlayer(hg::PZInteger playerIndex);
-    void overwriteControls(const PlayerControls& controls, hg::PZInteger delayBy);
+    void overwriteControls(hg::PZInteger playerIndex, const PlayerControls& controls, hg::PZInteger delayBy);
 
 protected:
     void eventPreUpdate() override;
+    void eventUpdate() override;
 
 private:
     std::vector<std::deque<PlayerControls>> _controls;
