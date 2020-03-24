@@ -47,7 +47,7 @@ public:
     RN_UdpConnector(sf::UdpSocket& socket, const std::chrono::microseconds& timeoutLimit, 
                     const std::string& passphrase, EventFactory eventFactory);
 
-    void tryAccept(sf::IpAddress addr, std::uint16_t port, RN_PacketWrapper& packetWrap);
+    bool tryAccept(sf::IpAddress addr, std::uint16_t port, RN_PacketWrapper& packetWrap);
     void connect(sf::IpAddress addr, std::uint16_t port);
     void disconnect(bool notfiyRemote);
 

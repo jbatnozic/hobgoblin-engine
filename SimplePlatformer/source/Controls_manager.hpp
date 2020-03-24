@@ -31,6 +31,7 @@ protected:
 
 private:
     std::vector<std::deque<PlayerControls>> _controls;
+    std::vector<int> _offsets;
     hg::PZInteger _defaultInputDelay;
 };
 

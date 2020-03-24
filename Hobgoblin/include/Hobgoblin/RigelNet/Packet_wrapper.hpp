@@ -24,6 +24,9 @@ public:
     util::Packet packet;
 
     template <class T>
+    T extract();
+
+    template <class T>
     T extractOrThrow();
 
     template <class T>
@@ -31,10 +34,17 @@ public:
 };
 
 template <class T>
+T RN_PacketWrapper::extract() {
+    T value;
+    packet >> value;
+    return value;
+}
+
+template <class T>
 T RN_PacketWrapper::extractOrThrow() {
     T value;
     if (!(packet >> value)) {
-        throw RN_PacketReadError{"Bad read from RN_Packet"};
+        throw RN_PacketReadError{"Bad read from hg::util::Packet"};
     }
     return value;
 }

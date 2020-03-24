@@ -21,7 +21,11 @@ struct RN_Event {
         std::string incorrectPassphrase;
     };
 
-    struct AttemptTimedOut {
+    struct ConnectAttemptFailed {
+        enum class Reason {
+            Error, TimedOut
+        };
+        Reason reason;
     };
 
     struct Connected {
@@ -29,20 +33,19 @@ struct RN_Event {
     };
 
     struct Disconnected {
+        enum class Reason {
+            Error, TimedOut
+        };
         std::optional<PZInteger> clientIndex; // Not used on client side
-        std::string reason;
-    };
-
-    struct ConnectionTimedOut {
-        std::optional<PZInteger> clientIndex; // Not used on client side
+        Reason reason;
+        std::string message;
     };
 
     using EventVariant = std::variant<
         BadPassphrase,
-        AttemptTimedOut,
+        ConnectAttemptFailed,
         Connected,
-        Disconnected,
-        ConnectionTimedOut>;
+        Disconnected>;
 
     RN_Event() = default;
 
@@ -70,10 +73,9 @@ public:
     explicit EventFactory(RN_Node& node, PZInteger clientIndex);
 
     void createBadPassphrase(std::string incorrectPassphrase) const;
-    void createAttemptTimedOut() const;
+    void createConnectAttemptFailed(RN_Event::ConnectAttemptFailed::Reason reason) const;
     void createConnected() const;
-    void createDisconnected(std::string reason) const;
-    void createConnectionTimedOut() const;
+    void createDisconnected(RN_Event::Disconnected::Reason reason, std::string message) const;
 
 private:
     RN_Node& _node;

@@ -126,6 +126,10 @@ int MainProgramLoop(GlobalProgramState& globalState) {
 			accumulatorTime -= deltaTime;
 		} // End for
 
+		if (accumulatorTime >= deltaTime / 2) {
+			accumulatorTime = deltaTime / 2;
+		}
+
 		// Render step:
 		//std::cout << "Render; " << accumulatorTime.count() << "us in accumulator\n";
 		int rv = SingleQAOIteration(globalState, (1 << static_cast<std::int32_t>(QAO_Event::Render)));

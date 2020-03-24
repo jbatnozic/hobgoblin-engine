@@ -38,6 +38,7 @@ NetworkingManager::ClientType& NetworkingManager::getClient() {
 }
 
 void NetworkingManager::eventPreUpdate()  {
+    //std::cout << " ===== \n";
     if (_isServer) {
         getServer().update(RN_UpdateMode::Receive);
     }
@@ -69,8 +70,8 @@ void NetworkingManager::handleEvents() {
             [](const RN_Event::BadPassphrase& ev) {
                 std::cout << "Bad passphrase\n";
             },
-            [](const RN_Event::AttemptTimedOut& ev) {
-                std::cout << "Attempt timed out\n";
+            [](const RN_Event::ConnectAttemptFailed& ev) {
+                std::cout << "Connection attempt failed\n";
             },
             [this](const RN_Event::Connected& ev) {
                 if (RN_IsServer(getNode().getType())) {
@@ -85,10 +86,7 @@ void NetworkingManager::handleEvents() {
                 }
             },
             [](const RN_Event::Disconnected& ev) {
-                std::cout << "Disconnected\n";
-            },
-            [](const RN_Event::ConnectionTimedOut& ev) {
-                std::cout << "Connection timed out\n";
+                std::cout << "Disconnected (message: " << ev.message << ")\n";
             }
         );
     }

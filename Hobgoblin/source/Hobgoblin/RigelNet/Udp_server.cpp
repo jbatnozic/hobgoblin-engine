@@ -115,7 +115,7 @@ const std::string& RN_UdpServer::getPassphrase() const {
 
 // Protected:
 void RN_UdpServer::compose(int receiver, const void* data, std::size_t sizeInBytes) {
-    // TODO Temp.
+    // TODO Temp - Check if client is even connected!
     _clients[receiver].appendToNextOutgoingPacket(data, sizeInBytes);
 }
 
@@ -181,7 +181,9 @@ void RN_UdpServer::handlePacketFromUnknownSender(sf::IpAddress senderIp, std::ui
         auto& connector = _clients[i];
         if (connector.getStatus() == RN_ConnectorStatus::Disconnected) {
             connector.setClientIndex(i);
-            connector.tryAccept(senderIp, senderPort, packetWrap);
+            if (!connector.tryAccept(senderIp, senderPort, packetWrap)) {
+                // TODO Notify of error
+            }
             return;
         }
     }

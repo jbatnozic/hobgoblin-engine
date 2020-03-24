@@ -4,7 +4,7 @@
 
 #include <cassert>
 #include <chrono>
-//#include <iostream> // TODO Temp.
+#include <stdexcept>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
@@ -19,7 +19,6 @@ constexpr std::uint32_t UDP_PACKET_TYPE_CONNECT = 0x83C96CA4;
 constexpr std::uint32_t UDP_PACKET_TYPE_DISCONNECT = 0xD0F235AB;
 constexpr std::uint32_t UDP_PACKET_TYPE_DATA = 0xA765B8F6;
 constexpr std::uint32_t UDP_PACKET_TYPE_ACKS = 0x71AC2519;
-//constexpr std::uint32_t UDP_PACKET_TYPE_CUSTOM     = 0xBC005703;
 
 constexpr bool UPLOAD_PACKET_SUCCESS = true;
 constexpr bool UPLOAD_PACKET_FAILURE = false;
@@ -53,6 +52,11 @@ bool ShouldRetransmit(std::chrono::microseconds timeSinceLastSend, std::chrono::
     return timeSinceLastSend > 2 * currentLatency; // TODO Test and optimize
 }
 
+class FatalMessageTypeReceived : public std::runtime_error {
+public:
+    using std::runtime_error::runtime_error;
+};
+
 } // namespace
 
 RN_UdpConnector::RN_UdpConnector(sf::UdpSocket& socket, const std::chrono::microseconds& timeoutLimit, 
@@ -65,11 +69,15 @@ RN_UdpConnector::RN_UdpConnector(sf::UdpSocket& socket, const std::chrono::micro
 {
 }
 
-void RN_UdpConnector::tryAccept(sf::IpAddress addr, std::uint16_t port, RN_PacketWrapper& packetWrap) {
+bool RN_UdpConnector::tryAccept(sf::IpAddress addr, std::uint16_t port, RN_PacketWrapper& packetWrap) {
     assert(_status == RN_ConnectorStatus::Disconnected);
 
-    const std::uint32_t msgType = packetWrap.extractOrThrow<std::uint32_t>();
-    const std::string receivedPassphrase = packetWrap.extractOrThrow<std::string>();
+    const std::uint32_t msgType = packetWrap.extract<std::uint32_t>();
+    const std::string receivedPassphrase = packetWrap.extract<std::string>();
+    if (!packetWrap.packet) {
+        // TODO Notify of error
+        return false;
+    }
 
     if (msgType == UDP_PACKET_TYPE_HELLO
         && receivedPassphrase == _passphrase) {
@@ -84,7 +92,10 @@ void RN_UdpConnector::tryAccept(sf::IpAddress addr, std::uint16_t port, RN_Packe
     }
     else {
         // TODO - Notify of erroneous message from unknown sender...
+        return false;
     }
+
+    return true;
 }
 
 void RN_UdpConnector::connect(sf::IpAddress addr, std::uint16_t port) {
@@ -100,12 +111,13 @@ void RN_UdpConnector::connect(sf::IpAddress addr, std::uint16_t port) {
 }
 
 void RN_UdpConnector::disconnect(bool notfiyRemote) {
-    // TODO Assert correct state
-    if (notfiyRemote) {
+    assert(_status != RN_ConnectorStatus::Disconnected);
+
+    if (notfiyRemote && _status == RN_ConnectorStatus::Connected) {
         util::Packet packet;
         packet << UDP_PACKET_TYPE_DISCONNECT;
         if (UploadPacket(_socket, packet, _remoteInfo.ipAddress, _remoteInfo.port) != UPLOAD_PACKET_SUCCESS) {
-            // TODO
+            // Do nothing - The connector is getting disconnected anyway...
         }
     }
     reset();
@@ -118,10 +130,10 @@ void RN_UdpConnector::checkForTimeout() {
         reset();
 
         if (_status == RN_ConnectorStatus::Accepting || _status == RN_ConnectorStatus::Connecting) {
-            _eventFactory.createAttemptTimedOut();
+            _eventFactory.createConnectAttemptFailed(RN_Event::ConnectAttemptFailed::Reason::TimedOut);
         }
         else {
-            _eventFactory.createConnectionTimedOut();
+            _eventFactory.createDisconnected(RN_Event::Disconnected::Reason::TimedOut, "Connection timed out");
         }
 
         return;
@@ -138,7 +150,7 @@ void RN_UdpConnector::send(RN_Node& node) {
         packet << UDP_PACKET_TYPE_CONNECT << _passphrase << _clientIndex.value();
         if (UploadPacket(_socket, packet, _remoteInfo.ipAddress, _remoteInfo.port) != UPLOAD_PACKET_SUCCESS) {
             reset();
-            // TODO log event
+            _eventFactory.createConnectAttemptFailed(RN_Event::ConnectAttemptFailed::Reason::Error);
         }
     }
     break;
@@ -149,7 +161,7 @@ void RN_UdpConnector::send(RN_Node& node) {
         packet << UDP_PACKET_TYPE_HELLO << _passphrase;
         if (UploadPacket(_socket, packet, _remoteInfo.ipAddress, _remoteInfo.port) != UPLOAD_PACKET_SUCCESS) {
             reset();
-            // TODO log event
+            _eventFactory.createConnectAttemptFailed(RN_Event::ConnectAttemptFailed::Reason::Error);
         }
     }
     break;
@@ -167,39 +179,51 @@ void RN_UdpConnector::send(RN_Node& node) {
 void RN_UdpConnector::receivedPacket(RN_PacketWrapper& packetWrap) {
     assert(_status != RN_ConnectorStatus::Disconnected);
 
-    const auto packetType = packetWrap.extractOrThrow<std::uint32_t>();
+    try {
+        const auto packetType = packetWrap.extractOrThrow<std::uint32_t>();
 
-    switch (packetType) {
-    case UDP_PACKET_TYPE_HELLO:
-        processHelloPacket(packetWrap);
-        break;
+        switch (packetType) {
+        case UDP_PACKET_TYPE_HELLO:
+            processHelloPacket(packetWrap);
+            break;
 
-    case UDP_PACKET_TYPE_CONNECT:
-        processConnectPacket(packetWrap);
-        break;
+        case UDP_PACKET_TYPE_CONNECT:
+            processConnectPacket(packetWrap);
+            break;
 
-    case UDP_PACKET_TYPE_DISCONNECT:
-        processDisconnectPacket(packetWrap);
-        break;
+        case UDP_PACKET_TYPE_DISCONNECT:
+            processDisconnectPacket(packetWrap);
+            break;
 
-    case UDP_PACKET_TYPE_DATA:
-        processDataPacket(packetWrap);
-        break;
+        case UDP_PACKET_TYPE_DATA:
+            processDataPacket(packetWrap);
+            break;
 
-    case UDP_PACKET_TYPE_ACKS:
-        processAcksPacket(packetWrap);
-        break;
+        case UDP_PACKET_TYPE_ACKS:
+            processAcksPacket(packetWrap);
+            break;
 
-    default:
-        // TODO erroneous, fatal
-        // TODO log event
-        reset();
-        break;
+        default:
+            throw FatalMessageTypeReceived{"Received UNKNOWN message type"};
+            break;
+        }
     }
+    catch (FatalMessageTypeReceived& ex) {
+        reset();
+        if (_status == RN_ConnectorStatus::Connected) {
+            _eventFactory.createDisconnected(RN_Event::Disconnected::Reason::Error, ex.what());
+        }
+        else {
+            _eventFactory.createConnectAttemptFailed(RN_Event::ConnectAttemptFailed::Reason::Error);
+        }
+    }
+    //catch (RN_PacketReadError & ex) {
+    //    // TODO
+    //}
 }
 
 void RN_UdpConnector::sendAcks() {
-    // TODO Assert correct state
+    assert(_status == RN_ConnectorStatus::Connected);
 
     if (_ackOrdinals.empty()) {
         return;
@@ -213,15 +237,16 @@ void RN_UdpConnector::sendAcks() {
 
     if (UploadPacket(_socket, packet, _remoteInfo.ipAddress, _remoteInfo.port) != UPLOAD_PACKET_SUCCESS) {
         reset();
-        // TODO log event
+        _eventFactory.createConnectAttemptFailed(RN_Event::ConnectAttemptFailed::Reason::Error);
     }
 }
 
 void RN_UdpConnector::handleDataMessages(RN_Node& node) {
-    // TODO Assert correct state
+    assert(_status != RN_ConnectorStatus::Disconnected);
 
     while (!_recvBuffer.empty() && _recvBuffer[0].tag == TaggedPacket::ReadyForUnpacking) {
-        detail::HandleDataMessages(node, _recvBuffer[0].packetWrap);
+        // TODO Handle nonexistant handler and packet extraction errors (if the user's handler throws... oh, well...)
+        detail::HandleDataMessages(node, _recvBuffer[0].packetWrap); 
         _recvBuffer.pop_front();
         _recvBufferHeadIndex++;
     }
@@ -252,7 +277,7 @@ PZInteger RN_UdpConnector::getRecvBufferSize() const {
 }
 
 void RN_UdpConnector::appendToNextOutgoingPacket(const void *data, std::size_t sizeInBytes) {
-    // TODO temp.
+    // TODO temp. -- seems to be working pretty well!
     _sendBuffer[_sendBuffer.size() - 1u].packetWrap.packet.append(data, sizeInBytes);
 }
 
@@ -282,6 +307,7 @@ bool RN_UdpConnector::isConnectionTimedOut() const {
 }
 
 void RN_UdpConnector::uploadAllData() {
+    // TODO - Error handling here
     /*
     if (item.clock.getElapsedTime().asMilliseconds() > std::min(latency.asMilliseconds() * 2, 400)) { // STUB -- Could be better
         // min{2 * latency, 4 * frame_duration * interval}
@@ -301,12 +327,6 @@ void RN_UdpConnector::uploadAllData() {
         // TODO Send, restart clock etc.
         if ((taggedPacket.tag == TaggedPacket::ReadyForSending)
             || ShouldRetransmit(taggedPacket.stopwatch.getElapsedTime(), _remoteInfo.latency)) {
-
-            /*const int* pOrd = static_cast<const int*>(taggedPacket.packet.getData());
-            RN_Packet dummyPacket;
-            dummyPacket.append(pOrd + 1, sizeof(int));
-            int ord = dummyPacket.extractValue<int>();
-            std::cout << "SEND: " << ord << '\n';*/
 
             if (UploadPacket(
                 _socket,
@@ -337,7 +357,7 @@ void RN_UdpConnector::receivedAck(std::uint32_t ordinal, bool strong) {
         return; // Already acknowledged before
     }
 
-    const auto ind = (ordinal - _sendBufferHeadIndex); // TODO PEP
+    const auto ind = (ordinal - _sendBufferHeadIndex);
     if (ind >= _sendBuffer.size()) {
         // TODO -- Error
     }
@@ -423,8 +443,7 @@ void RN_UdpConnector::receiveDataMessage(RN_PacketWrapper& packetWrap) {
 void RN_UdpConnector::processHelloPacket(RN_PacketWrapper& packetWrap) {
     switch (_status) {
     case RN_ConnectorStatus::Connecting:
-        // TODO erroneous, fatal
-        // TODO log event
+        throw FatalMessageTypeReceived{"Received HELLO message (status: Connecting)"};
         break;
 
     case RN_ConnectorStatus::Accepting:
@@ -462,8 +481,7 @@ void RN_UdpConnector::processConnectPacket(RN_PacketWrapper& packetWrap) {
     break;
 
     case RN_ConnectorStatus::Accepting:
-        // TODO erroneous, fatal
-        // TODO log event
+        throw FatalMessageTypeReceived{"Received CONNECT message (status: Accepting)"};
         break;
 
     case RN_ConnectorStatus::Connected:
@@ -495,8 +513,7 @@ void RN_UdpConnector::processDisconnectPacket(RN_PacketWrapper& packetWrap) {
 void RN_UdpConnector::processDataPacket(RN_PacketWrapper& packetWrap) {
     switch (_status) {
     case RN_ConnectorStatus::Connecting:
-        // TODO erroneous, fatal
-        // TODO log event
+        throw FatalMessageTypeReceived{"Received DATA message (status: Connecting)"};
         break;
 
     case RN_ConnectorStatus::Accepting:
@@ -517,9 +534,11 @@ void RN_UdpConnector::processDataPacket(RN_PacketWrapper& packetWrap) {
 void RN_UdpConnector::processAcksPacket(RN_PacketWrapper& packetWrap) {
     switch (_status) {
     case RN_ConnectorStatus::Connecting:
+        throw FatalMessageTypeReceived{"Received ACKS message (status: Connecting)"};
+        break;
+
     case RN_ConnectorStatus::Accepting:
-        // TODO erroneous, fatal
-        // TODO log event
+        throw FatalMessageTypeReceived{"Received ACKS message (status: Accepting)"};
         break;
 
     case RN_ConnectorStatus::Connected:

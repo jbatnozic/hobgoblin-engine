@@ -26,20 +26,16 @@ void EventFactory::createBadPassphrase(std::string incorrectPassphrase) const {
     ENQUEUE_EVENT(RN_Event::BadPassphrase{_clientIndex, std::move(incorrectPassphrase)});
 }
 
-void EventFactory::createAttemptTimedOut() const {
-    ENQUEUE_EVENT(RN_Event::AttemptTimedOut{});
+void EventFactory::createConnectAttemptFailed(RN_Event::ConnectAttemptFailed::Reason reason) const {
+    ENQUEUE_EVENT(RN_Event::ConnectAttemptFailed{reason});
 }
 
 void EventFactory::createConnected() const {
     ENQUEUE_EVENT(RN_Event::Connected{_clientIndex});
 }
 
-void EventFactory::createDisconnected(std::string reason) const {
-    ENQUEUE_EVENT(RN_Event::Disconnected{_clientIndex, std::move(reason)});
-}
-
-void EventFactory::createConnectionTimedOut() const {
-    ENQUEUE_EVENT(RN_Event::ConnectionTimedOut{_clientIndex});
+void EventFactory::createDisconnected(RN_Event::Disconnected::Reason reason, std::string message) const {
+    ENQUEUE_EVENT(RN_Event::Disconnected{_clientIndex, reason, std::move(message)});
 }
 
 } // namespace detail
