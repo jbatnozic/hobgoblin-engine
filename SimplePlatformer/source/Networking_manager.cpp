@@ -9,7 +9,7 @@ NetworkingManager::NetworkingManager(QAO_Runtime* runtime, bool isServer)
     , _isServer{isServer}
 {
     if (isServer) {
-        _node.emplace<ServerType>(1); // TODO refactor hardcoded 4 player limit
+        _node.emplace<ServerType>(4); // TODO refactor hardcoded 4 player limit
     }
     else {
         _node.emplace<ClientType>();

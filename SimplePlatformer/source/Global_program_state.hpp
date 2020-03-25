@@ -22,7 +22,7 @@ struct GlobalProgramState {
 
     GlobalProgramState(bool isHost)
         : windowMgr{nullptr}
-        , controlsMgr{nullptr, 4, 0} // runtime, size, inputDelay (in steps)
+        , controlsMgr{nullptr, 4, 4} // runtime, playerCount, inputDelay (in steps)
         , netMgr{nullptr, isHost}
         , syncObjMgr{netMgr.getNode()}
     {

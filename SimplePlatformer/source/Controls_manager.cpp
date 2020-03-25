@@ -15,50 +15,35 @@ RN_DEFINE_HANDLER(SetClientControls, RN_ARGS(PlayerControls&, controls)) {
             auto& global = *server.getUserData<GlobalProgramState>();
             auto& controlsMgr = global.controlsMgr;
 
-            const hg::PZInteger clientIndex = server.getSenderIndex();
-            const hg::PZInteger delay =
-                (server.getClient(clientIndex).getRemoteInfo().latency / std::chrono::microseconds{2 * 16'666}); // TODO Hardcoded value
-            controlsMgr.overwriteControls(server.getSenderIndex() + 1, controls, 4 - delay);
-            //std::cout << "c " << delay << '\n';
+            const auto clientIndex = server.getSenderIndex();
+            const std::chrono::microseconds delay = server.getClient(clientIndex).getRemoteInfo().latency / 2LL;
+
+            controlsMgr.putNewControls(server.getSenderIndex() + 1, controls, delay);
         }
     );
 }
 
-ControlsManager::ControlsManager(QAO_Runtime* runtime, hg::PZInteger size, hg::PZInteger inputDelay)
-    : GOF_Base{runtime, TYPEID_SELF, 60, "ControlsManager"}
-    , _defaultInputDelay{inputDelay}
+ControlsManager::ControlsManager(QAO_Runtime* runtime, hg::PZInteger playerCount, hg::PZInteger inputDelayInSteps)
+    : GOF_Base{runtime, TYPEID_SELF, 30, "ControlsManager"} // Run after NetMgr
 {
-    _controls.resize(static_cast<std::size_t>(size));
-    for (auto& queue : _controls) {
-        queue.resize(inputDelay + 1);
+    _controls.reserve(playerCount);
+    for (hg::PZInteger i = 0; i < playerCount; i += 1) {
+        _controls.emplace_back(inputDelayInSteps);
     }
-    _offsets.resize(static_cast<std::size_t>(size));
 }
 
 void ControlsManager::resetWithInputDelay(hg::PZInteger inputDelay) {
-    // TODO
+    // TODO (Can probably copy contructor code)
 }
 
 PlayerControls ControlsManager::getCurrentControlsForPlayer(hg::PZInteger playerIndex) {
-    return _controls[static_cast<std::size_t>(playerIndex)][0];
+    return _controls[static_cast<std::size_t>(playerIndex)].getCurrentControls();
 }
 
-void ControlsManager::overwriteControls(hg::PZInteger playerIndex, const PlayerControls& controls,
-                                        hg::PZInteger delayBy) {
+void ControlsManager::putNewControls(hg::PZInteger playerIndex, const PlayerControls& controls,
+                                     std::chrono::microseconds delay) {
     // TODO Temp. implementation
-    auto& queue = _controls[playerIndex];
-
-    //int i = delayBy + _offsets[playerIndex];
-    //if (i < 0 || i >= queue.size()) {
-    //    // Ignore
-    //}
-    //else {
-    //    queue[i] = controls;
-    //}
-
-    //_offsets[playerIndex] += 1;
-
-    queue.push_back(controls);
+    _controls[playerIndex].putNewControls(controls, delay);
 }
 
 void ControlsManager::eventPreUpdate() {
@@ -66,56 +51,29 @@ void ControlsManager::eventPreUpdate() {
         return;
     }
 
-    for (auto& i : _offsets) {
-        i = 0;
-    }
+    // Local controls:
+    auto& sch = _controls[global().playerIndex];
+    bool focus = global().windowMgr.window.hasFocus();
+    sch.putNewControls(PlayerControls{focus && sf::Keyboard::isKeyPressed(sf::Keyboard::A),
+                                      focus && sf::Keyboard::isKeyPressed(sf::Keyboard::D),
+                                      focus && sf::Keyboard::isKeyPressed(sf::Keyboard::W)},
+                       std::chrono::microseconds{0});
 
-    if (global().playerIndex == 0) {
-        // SERVER
-        int i = 0;
-        for (auto& queue : _controls) {
-            if (i == global().playerIndex) {
-                // Local
-                bool focus = global().windowMgr.window.hasFocus();
-                queue.pop_front();
-                queue.push_back(PlayerControls{
-                    focus && sf::Keyboard::isKeyPressed(sf::Keyboard::A),
-                    focus && sf::Keyboard::isKeyPressed(sf::Keyboard::D),
-                    focus && sf::Keyboard::isKeyPressed(sf::Keyboard::W)
-                });
-            }
-            else {
-                // Remote
-                if (queue.size() > 3) {
-                    queue.resize(1);
-                    queue[0] = PlayerControls{};
-                }
-                else {
-                    if (queue.size() == 1) {
-                        queue.push_back(queue[queue.size() - 1]);
-                    }
-                    queue.pop_front();
-                }
-            }
-            i += 1;
-        }
-    }
-    else {
-        // CLIENT
-        auto& queue = _controls[global().playerIndex];
-        bool focus = global().windowMgr.window.hasFocus();
-        queue.pop_front();
-        queue.push_back(PlayerControls{
-            focus && sf::Keyboard::isKeyPressed(sf::Keyboard::A),
-            focus && sf::Keyboard::isKeyPressed(sf::Keyboard::D),
-            focus && sf::Keyboard::isKeyPressed(sf::Keyboard::W)
-        });
+    for (auto& sch : _controls) {
+        sch.integrateNewControls();
     }
 }
 
 void ControlsManager::eventUpdate() {
-    if (global().playerIndex > 0) {
-        auto& queue = _controls[global().playerIndex];
-        RN_Compose_SetClientControls(global().netMgr.getNode(), 0, queue[queue.size() - 1]);
+    if (global().playerIndex > 0 && 
+        global().netMgr.getClient().getServer().getStatus() == RN_ConnectorStatus::Connected) {
+        auto& sch = _controls[global().playerIndex];
+        RN_Compose_SetClientControls(global().netMgr.getClient(), 0, sch.getLatestControls());
+    }
+}
+
+void ControlsManager::eventPostUpdate() {
+    for (auto& sch : _controls) {
+        sch.advanceStep();
     }
 }
