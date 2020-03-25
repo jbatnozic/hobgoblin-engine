@@ -38,7 +38,6 @@ NetworkingManager::ClientType& NetworkingManager::getClient() {
 }
 
 void NetworkingManager::eventPreUpdate()  {
-    //std::cout << " ===== \n";
     if (_isServer) {
         getServer().update(RN_UpdateMode::Receive);
     }

@@ -81,8 +81,12 @@ void Player::syncDestroyImpl(RN_Node& node, const std::vector<hg::PZInteger>& re
 void Player::eventUpdate() {
     PlayerControls controls{};
 
-    if (global().playerIndex == 0) {
+    if (global().isHost() || global().playerIndex == s.playerIndex) {
         controls = global().controlsMgr.getCurrentControlsForPlayer(s.playerIndex);
+        if (global().isHost() && s.playerIndex > 0) {
+            //printf("[%d, %d, %d]\n", (int)controls.left, (int)controls.right, (int)controls.up);
+            global().file << (int)controls.left << ' ' << (int)controls.right << ' ' << (int)controls.up << std::endl;
+        }
     }
 
     if (s.y < static_cast<float>(800) - s.height) {

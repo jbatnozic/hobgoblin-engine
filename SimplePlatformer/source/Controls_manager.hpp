@@ -14,6 +14,7 @@ struct PlayerControls {
     bool left = false;
     bool right = false;
     bool up = false;
+
     HG_ENABLE_AUTOPACK(PlayerControls, left, right, up);
 
     void integrate(const PlayerControls& other) {
@@ -21,15 +22,37 @@ struct PlayerControls {
         right = right || other.right;
         up = up || other.up;
     }
+
+    void unstuck(const std::deque<PlayerControls>& history) {
+        PlayerControls dummy{};
+
+        for (const auto& controls : history) {
+            dummy.integrate(controls);
+        }
+
+        left = left && dummy.left;
+        right = right && dummy.right;
+        up = up && dummy.up;
+    }
 };
 
-class InputScheduler {
+class ControlsScheduler {
 public:
-    InputScheduler(hg::PZInteger defaultDelayInSteps)
+    ControlsScheduler(hg::PZInteger defaultDelayInSteps)
         : _newControlsDelay{0} 
     {
-        assert(defaultDelayInSteps >= 0);
-        _controlsQueue.resize(defaultDelayInSteps + 1);
+        setInputDelay(defaultDelayInSteps);
+    }
+
+    void setInputDelay(hg::PZInteger inputDelayInSteps) {
+        assert(inputDelayInSteps >= 0);
+        if (_controlsQueue.size() != inputDelayInSteps + 1) {
+            _controlsQueue.clear();
+            _controlsQueue.resize(inputDelayInSteps + 1);
+            
+            _rawHistory.clear();
+            _rawHistory.resize(inputDelayInSteps + 1);
+        }
     }
 
     const PlayerControls& getCurrentControls() const {
@@ -42,13 +65,15 @@ public:
 
     void advanceStep() {
         _controlsQueue.push_back(_controlsQueue.back());
-        //_controlsQueue.push_back(PlayerControls{}); // This doesn't work very well
         _controlsQueue.pop_front();
     }
 
     void putNewControls(const PlayerControls& newControls, std::chrono::microseconds delay) {
         _newControlsQueue.push_back(newControls);
         _newControlsDelay = delay;
+
+        _rawHistory.pop_front();
+        _rawHistory.push_back(newControls);
     }
 
     void integrateNewControls() {
@@ -67,10 +92,15 @@ public:
         }
 
         _newControlsQueue.clear();
+
+        for (auto& controls : _controlsQueue) {
+            controls.unstuck(_rawHistory);
+        }
     }
 
 private:
     std::deque<PlayerControls> _controlsQueue;
+    std::deque<PlayerControls> _rawHistory;
     std::vector<PlayerControls> _newControlsQueue;
     std::chrono::microseconds _newControlsDelay;
 };
@@ -79,8 +109,8 @@ class ControlsManager : public GOF_Base {
 public:
     ControlsManager(QAO_Runtime* runtime, hg::PZInteger playerCount, hg::PZInteger inputDelayInSteps);
 
-    void resize(hg::PZInteger newSize);
-    void resetWithInputDelay(hg::PZInteger inputDelay);
+    void setPlayerCount(hg::PZInteger playerCount);
+    void setInputDelay(hg::PZInteger inputDelayInSteps);
     PlayerControls getCurrentControlsForPlayer(hg::PZInteger playerIndex);
 
     void putNewControls(hg::PZInteger playerIndex, const PlayerControls& controls, std::chrono::microseconds delay);
@@ -91,7 +121,7 @@ protected:
     void eventPostUpdate() override;
 
 private:
-    std::vector<InputScheduler> _controls;
+    std::vector<ControlsScheduler> _schedulers;
 };
 
 #endif // !CONTROLS_MANAGER_HPP
