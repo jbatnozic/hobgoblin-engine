@@ -456,6 +456,8 @@
     <ClCompile Include="source\Hobgoblin\Utility\Exceptions.cpp" />
     <ClCompile Include="source\Hobgoblin\Utility\MaxRectsBinPack.cpp" />
     <ClCompile Include="source\Hobgoblin\Utility\Rect.cpp" />
+    <ClInclude Include="include\Hobgoblin\QAO\Priority_resolver.hpp" />
+    <ClCompile Include="source\Hobgoblin\QAO\Priority_resolver.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Hobgoblin\Common.hpp" />

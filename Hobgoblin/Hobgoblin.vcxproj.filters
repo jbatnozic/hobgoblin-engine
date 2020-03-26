@@ -81,6 +81,9 @@
     <ClCompile Include="source\Hobgoblin\SerializationMain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="source\Hobgoblin\QAO\Priority_resolver.cpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Hobgoblin\QAO\base.hpp">
@@ -219,6 +222,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Hobgoblin\Utility\Autopack.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Hobgoblin\QAO\Priority_resolver.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

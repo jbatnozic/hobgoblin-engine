@@ -4,6 +4,7 @@
 #include <Hobgoblin/QAO/func.hpp>
 #include <Hobgoblin/QAO/id.hpp>
 #include <Hobgoblin/QAO/orderer.hpp>
+#include <Hobgoblin/QAO/Priority_resolver.hpp>
 #include <Hobgoblin/QAO/registry.hpp>
 #include <Hobgoblin/QAO/runtime.hpp>
 

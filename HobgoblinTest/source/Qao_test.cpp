@@ -167,3 +167,76 @@ TEST_F(QAO_Test, NullIdFindsNullptr) {
     QAO_GenericId nullId{};
     ASSERT_EQ(_runtime.find(nullId), nullptr);
 }
+
+TEST_F(QAO_Test, PriorityResolverBasics) {
+    enum Categories {
+        A, B, C
+    };
+    
+    QAO_PriorityResolver resolver;
+    resolver.category(A);
+    resolver.category(B).dependsOn(A);
+    resolver.category(C).dependsOn(A, B);
+    resolver.resolveAll();
+
+    ASSERT_GT(resolver.getPriorityOf(A), resolver.getPriorityOf(B)); // A before B
+    ASSERT_GT(resolver.getPriorityOf(B), resolver.getPriorityOf(C)); // B before C
+}
+
+TEST_F(QAO_Test, PriorityResolverReversedInput) {
+    enum Categories {
+        A, B, C
+    };
+
+    QAO_PriorityResolver resolver;
+    resolver.category(C).dependsOn(A, B);
+    resolver.category(B).dependsOn(A);
+    resolver.category(A);
+    
+    resolver.resolveAll();
+
+    ASSERT_GT(resolver.getPriorityOf(A), resolver.getPriorityOf(B)); // A before B
+    ASSERT_GT(resolver.getPriorityOf(B), resolver.getPriorityOf(C)); // B before C
+}
+
+TEST_F(QAO_Test, PriorityResolverImpossibleCycle) {
+    enum Categories {
+        A, B, C
+    };
+
+    QAO_PriorityResolver resolver;
+    resolver.category(A).dependsOn(C);
+    resolver.category(B).dependsOn(A);
+    resolver.category(C).dependsOn(B);
+
+    ASSERT_THROW(resolver.resolveAll(), hg::util::TracedLogicError);
+}
+
+TEST_F(QAO_Test, PriorityResolverMissingDefinition) {
+    enum Categories {
+        A, B
+    };
+
+    QAO_PriorityResolver resolver;
+    resolver.category(A).dependsOn(B);
+
+    ASSERT_THROW(resolver.resolveAll(), hg::util::TracedLogicError);
+}
+
+TEST_F(QAO_Test, PriorityResolverComplexResolve) {
+    enum Categories {
+        A, B, C, D
+    };
+
+    QAO_PriorityResolver resolver;
+    resolver.category(B);
+    resolver.category(C).dependsOn(B);
+    resolver.category(A).dependsOn(B, C);
+    resolver.category(D).dependsOn(C, A);
+
+    resolver.resolveAll();
+
+    ASSERT_GT(resolver.getPriorityOf(B), resolver.getPriorityOf(C)); // B before C
+    ASSERT_GT(resolver.getPriorityOf(C), resolver.getPriorityOf(A)); // C before A
+    ASSERT_GT(resolver.getPriorityOf(A), resolver.getPriorityOf(D)); // A before D
+}
