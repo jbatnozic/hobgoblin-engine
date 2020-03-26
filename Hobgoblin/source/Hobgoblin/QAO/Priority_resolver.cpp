@@ -23,21 +23,6 @@ bool QAO_PriorityResolver::CategoryDefinition::dependenciesSatisfied() const {
     return (static_cast<int>(_dependencies.size()) == _dependencyFulfilledCounter);
 }
 
-int QAO_PriorityResolver::getPriorityOf(int categoryId) const {
-    return _priorityMapping.at(categoryId);
-}
-
-QAO_PriorityResolver::CategoryDefinition& QAO_PriorityResolver::category(int categoryId) {
-    for (auto& definition : _definitions) {
-        if (FRIEND_ACCESS definition._categoryId == categoryId) {
-            assert(false && "Definition with the same category ID already exists");
-        }
-    }
-
-    _definitions.emplace_back(categoryId);
-    return _definitions.back();
-}
-
 void QAO_PriorityResolver::resolveAll() {
     _priorityCounter = 0; // TODO Parametrize
 

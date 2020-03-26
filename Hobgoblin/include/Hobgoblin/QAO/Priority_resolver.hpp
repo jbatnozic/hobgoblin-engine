@@ -1,8 +1,7 @@
 #ifndef UHOBGOBLIN_QAO_PRIORITY_RESOLVER_HPP
 #define UHOBGOBLIN_QAO_PRIORITY_RESOLVER_HPP
 
-// #include <Hobgoblin/Common.hpp>
-
+#include <cassert>
 #include <list>
 #include <optional>
 #include <type_traits>
@@ -45,9 +44,11 @@ public:
         friend class QAO_PriorityResolver;
     };
 
-    int getPriorityOf(int categoryId) const;
+    template <class T>
+    int getPriorityOf(T&& categoryId) const;
 
-    CategoryDefinition& category(int categoryId);
+    template <class T>
+    CategoryDefinition& category(T&& categoryId);
 
     void resolveAll();
 
@@ -68,6 +69,25 @@ template <class ArgsHead, class ...ArgsRest>
 void QAO_PriorityResolver::CategoryDefinition::dependsOn(ArgsHead&& argsHead, ArgsRest&&... argsRest) {
     _dependencies.push_back(static_cast<int>(std::forward<ArgsHead>(argsHead)));
     dependsOn(std::forward<ArgsRest>(argsRest)...);
+}
+
+template <class T>
+int QAO_PriorityResolver::getPriorityOf(T&& categoryId) const {
+    const int idAsInt = static_cast<int>(std::forward<T>(categoryId));
+    return _priorityMapping.at(idAsInt);
+}
+
+template <class T>
+QAO_PriorityResolver::CategoryDefinition& QAO_PriorityResolver::category(T&& categoryId) {
+    const int idAsInt = static_cast<int>(std::forward<T>(categoryId));
+    for (auto& definition : _definitions) {
+        if (FRIEND_ACCESS definition._categoryId == idAsInt) {
+            assert(false && "Definition with the same category ID already exists");
+        }
+    }
+
+    _definitions.emplace_back(idAsInt);
+    return _definitions.back();
 }
 
 } // namespace qao

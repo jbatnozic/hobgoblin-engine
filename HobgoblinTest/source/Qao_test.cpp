@@ -183,6 +183,21 @@ TEST_F(QAO_Test, PriorityResolverBasics) {
     ASSERT_GT(resolver.getPriorityOf(B), resolver.getPriorityOf(C)); // B before C
 }
 
+TEST_F(QAO_Test, PriorityResolverWithEnumClass) {
+    enum Categories {
+        A, B, C
+    };
+
+    QAO_PriorityResolver resolver;
+    resolver.category(Categories::A);
+    resolver.category(Categories::B).dependsOn(Categories::A);
+    resolver.category(Categories::C).dependsOn(Categories::A, Categories::B);
+    resolver.resolveAll();
+
+    ASSERT_GT(resolver.getPriorityOf(Categories::A), resolver.getPriorityOf(Categories::B)); // A before B
+    ASSERT_GT(resolver.getPriorityOf(Categories::B), resolver.getPriorityOf(Categories::C)); // B before C
+}
+
 TEST_F(QAO_Test, PriorityResolverReversedInput) {
     enum Categories {
         A, B, C
