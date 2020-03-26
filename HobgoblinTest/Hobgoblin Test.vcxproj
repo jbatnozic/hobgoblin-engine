@@ -51,7 +51,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ClCompile Include="source\gtest_main.cpp" />
-    <ClCompile Include="source\Qao_test.cpp" />
+    <ClCompile Include="source\QAO_test.cpp" />
     <ClCompile Include="source\Util_test.cpp" />
   </ItemGroup>
   <ItemGroup>

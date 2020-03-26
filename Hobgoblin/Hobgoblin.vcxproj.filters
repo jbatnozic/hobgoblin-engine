@@ -84,6 +84,9 @@
     <ClCompile Include="source\Hobgoblin\QAO\Priority_resolver.cpp">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="source\Hobgoblin\QAO\Priority_resolver2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Hobgoblin\QAO\base.hpp">
@@ -225,6 +228,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Hobgoblin\QAO\Priority_resolver.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Hobgoblin\QAO\Priority_resolver2.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

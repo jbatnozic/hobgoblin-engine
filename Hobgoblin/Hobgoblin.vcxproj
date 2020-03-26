@@ -408,6 +408,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="include\Hobgoblin\RigelNet\Connector.hpp" />
+    <ClCompile Include="source\Hobgoblin\QAO\Priority_resolver2.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Event.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Handlermgmt.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Handlers.cpp" />
@@ -420,6 +421,7 @@
     <ClCompile Include="source\Hobgoblin\SerializationMain.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClInclude Include="include\Hobgoblin\QAO\Priority_resolver2.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Event.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Handlers.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Node.hpp" />

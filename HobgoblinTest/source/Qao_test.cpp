@@ -48,6 +48,9 @@ private:
     int _myNumber;
 };
 
+///////////////////////////////////////////////////////////////////////////////
+// QAO_Runtime tests:
+
 TEST_F(QAO_Test, ObjectCount) {
     auto obj = QAO_PCreate<SimpleActiveObject>(&_runtime, _numbers, 0);
     ASSERT_EQ(_runtime.getObjectCount(), 1);
@@ -94,6 +97,9 @@ TEST_F(QAO_Test, Ordering) {
     ASSERT_EQ(_numbers[1], VALUE_1);
     ASSERT_EQ(_numbers[2], VALUE_0);
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// Create/Destroy function tests:
 
 TEST_F(QAO_Test, PCreatePDestroy) {
     auto obj = QAO_PCreate<SimpleActiveObject>(&_runtime, _numbers, 0);
@@ -157,6 +163,9 @@ TEST_F(QAO_Test, ReleaseObjectFails) {
     ASSERT_EQ(upReleased.get(), nullptr);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// QAO_GenericId tests:
+
 TEST_F(QAO_Test, NullIdEquality) {
     QAO_GenericId id1{};
     QAO_GenericId id2{nullptr};
@@ -167,6 +176,9 @@ TEST_F(QAO_Test, NullIdFindsNullptr) {
     QAO_GenericId nullId{};
     ASSERT_EQ(_runtime.find(nullId), nullptr);
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// PriorityResolver tests:
 
 TEST_F(QAO_Test, PriorityResolverBasics) {
     enum Categories {
@@ -254,4 +266,72 @@ TEST_F(QAO_Test, PriorityResolverComplexResolve) {
     ASSERT_GT(resolver.getPriorityOf(B), resolver.getPriorityOf(C)); // B before C
     ASSERT_GT(resolver.getPriorityOf(C), resolver.getPriorityOf(A)); // C before A
     ASSERT_GT(resolver.getPriorityOf(A), resolver.getPriorityOf(D)); // A before D
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// PriorityResolver2 tests:
+
+TEST_F(QAO_Test, PriorityResolver2Basics) {
+    int A = 1000, B = 1000, C = 1000;
+
+    QAO_PriorityResolver2 resolver;
+    resolver.category(&A);
+    resolver.category(&B).dependsOn(&A);
+    resolver.category(&C).dependsOn(&A, &B);
+    resolver.resolveAll();
+
+    ASSERT_GT(A, B); // A before B
+    ASSERT_GT(B, C); // B before C
+}
+
+TEST_F(QAO_Test, PriorityResolver2ReversedInput) {
+    int A = 1000, B = 1000, C = 1000;
+
+    QAO_PriorityResolver2 resolver;
+    resolver.category(&C).dependsOn(&A, &B);
+    resolver.category(&B).dependsOn(&A);
+    resolver.category(&A);
+
+    resolver.resolveAll();
+
+    ASSERT_GT(A, B); // A before B
+    ASSERT_GT(B, C); // B before C
+}
+
+TEST_F(QAO_Test, PriorityResolver2ImpossibleCycle) {
+    int A = 1000, B = 1000, C = 1000;
+
+    QAO_PriorityResolver2 resolver;
+    resolver.category(&A).dependsOn(&C);
+    resolver.category(&B).dependsOn(&A);
+    resolver.category(&C).dependsOn(&B);
+
+    ASSERT_THROW(resolver.resolveAll(), hg::util::TracedLogicError);
+}
+
+TEST_F(QAO_Test, PriorityResolver2MissingDefinition) {
+    int A = 1000, B = 1000;
+
+    QAO_PriorityResolver2 resolver;
+    resolver.category(&A).dependsOn(&B);
+
+    resolver.resolveAll();
+
+    ASSERT_GT(B, A); // B before A
+}
+
+TEST_F(QAO_Test, PriorityResolver2ComplexResolve) {
+    int A = 1000, B = 1000, C = 1000, D = 1000;
+
+    QAO_PriorityResolver2 resolver;
+    resolver.category(&B);
+    resolver.category(&C).dependsOn(&B);
+    resolver.category(&A).dependsOn(&B, &C);
+    resolver.category(&D).dependsOn(&C, &A);
+
+    resolver.resolveAll();
+
+    ASSERT_GT(B, C); // B before C
+    ASSERT_GT(C, A); // C before A
+    ASSERT_GT(A, D); // A before D
 }
