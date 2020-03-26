@@ -28,13 +28,13 @@ public:
         std::enable_if_t<sizeof...(NoArgs) == 0, void> dependsOn();
 
         template <class ...ArgsRest>
-        void dependsOn(int* argsHead, ArgsRest&&... argsRest);
+        DependencyInserter& dependsOn(int* argsHead, ArgsRest&&... argsRest);
 
         template <class ...NoArgs>
         std::enable_if_t<sizeof...(NoArgs) == 0, void> precedes();
 
         template <class ...ArgsRest>
-        void precedes(int* argsHead, ArgsRest&&... argsRest);
+        DependencyInserter& precedes(int* argsHead, ArgsRest&&... argsRest);
 
     private:
         QAO_PriorityResolver2& _resolver;
@@ -70,6 +70,7 @@ private:
     int _priorityCounter;
 
     void categoryDependsOn(int* category, int* dependency);
+    void categoryPrecedes(int* category, int* dependee);
     std::vector<CategoryDefinition>::iterator findDefinition(int categoryId);
 };
 
@@ -79,9 +80,24 @@ std::enable_if_t<sizeof...(NoArgs) == 0, void> QAO_PriorityResolver2::Dependency
 }
 
 template <class ...ArgsRest>
-void QAO_PriorityResolver2::DependencyInserter::dependsOn(int* argsHead, ArgsRest&&... argsRest) {
+QAO_PriorityResolver2::DependencyInserter& 
+QAO_PriorityResolver2::DependencyInserter::dependsOn(int* argsHead, ArgsRest&&... argsRest) {
     FRIEND_ACCESS _resolver.categoryDependsOn(_category, argsHead);
     dependsOn(std::forward<ArgsRest>(argsRest)...);
+    return Self;
+}
+
+template <class ...NoArgs>
+std::enable_if_t<sizeof...(NoArgs) == 0, void> QAO_PriorityResolver2::DependencyInserter::precedes() {
+    // Do nothing
+}
+
+template <class ...ArgsRest>
+QAO_PriorityResolver2::DependencyInserter&
+QAO_PriorityResolver2::DependencyInserter::precedes(int* argsHead, ArgsRest&&... argsRest) {
+    FRIEND_ACCESS _resolver.categoryPrecedes(_category, argsHead);
+    precedes(std::forward<ArgsRest>(argsRest)...);
+    return Self;
 }
 
 } // namespace qao

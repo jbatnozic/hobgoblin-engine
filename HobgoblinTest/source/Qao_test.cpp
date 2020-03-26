@@ -365,3 +365,18 @@ TEST_F(QAO_Test, PriorityResolver2ComplexResolve) {
     ASSERT_GT(C, A); // C before A
     ASSERT_GT(A, D); // A before D
 }
+
+TEST_F(QAO_Test, PriorityResolver2PrecedesMethod) {
+    int A = 1000, B = 1000, C = 1000, D = 1000;
+
+    QAO_PriorityResolver2 resolver;
+    resolver.category(&B).precedes(&A);
+    resolver.category(&C).dependsOn(&B).precedes(&A, &D);
+    resolver.category(&D).dependsOn(&C, &A);
+
+    resolver.resolveAll();
+
+    ASSERT_GT(B, C); // B before C
+    ASSERT_GT(C, A); // C before A
+    ASSERT_GT(A, D); // A before D
+}

@@ -90,6 +90,10 @@ void QAO_PriorityResolver2::categoryDependsOn(int* category, int* dependency) {
     _definitions[dependency].dependees.push_back(dependeeIter);
 }
 
+void QAO_PriorityResolver2::categoryPrecedes(int* category, int* dependee) {
+    categoryDependsOn(dependee, category);
+}
+
 } // namespace qao
 HOBGOBLIN_NAMESPACE_END
 
