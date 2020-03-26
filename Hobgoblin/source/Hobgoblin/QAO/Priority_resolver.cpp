@@ -9,6 +9,18 @@
 HOBGOBLIN_NAMESPACE_START
 namespace qao {
 
+QAO_PriorityResolver::QAO_PriorityResolver()
+    : _initialPriority{0}
+    , _priorityStep{1}
+{
+}
+
+QAO_PriorityResolver::QAO_PriorityResolver(int initialPriority, int priorityStep) 
+    : _initialPriority{initialPriority}
+    , _priorityStep{priorityStep}
+{
+}
+
 void QAO_PriorityResolver::CategoryDefinition::reset() {
     _dependees.clear();
     _priority.reset();
@@ -24,7 +36,7 @@ bool QAO_PriorityResolver::CategoryDefinition::dependenciesSatisfied() const {
 }
 
 void QAO_PriorityResolver::resolveAll() {
-    _priorityCounter = 0; // TODO Parametrize
+    _priorityCounter = _initialPriority;
 
     // Reset all definitions:
     for (auto& definition : _definitions) {
@@ -58,7 +70,7 @@ void QAO_PriorityResolver::resolveAll() {
         }
 
         FRIEND_ACCESS (*curr)._priority = _priorityCounter;
-        _priorityCounter -= 1; // TODO Parametrize
+        _priorityCounter -= _priorityStep;
     }
 
     // Verify & populate mapping:

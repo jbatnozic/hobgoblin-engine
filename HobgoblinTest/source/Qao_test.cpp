@@ -195,6 +195,22 @@ TEST_F(QAO_Test, PriorityResolverBasics) {
     ASSERT_GT(resolver.getPriorityOf(B), resolver.getPriorityOf(C)); // B before C
 }
 
+TEST_F(QAO_Test, PriorityResolverBasicsWithPriorityStartAndStep) {
+    enum Categories {
+        A, B, C
+    };
+
+    QAO_PriorityResolver resolver{500, 50};
+    resolver.category(A);
+    resolver.category(B).dependsOn(A);
+    resolver.category(C).dependsOn(A, B);
+    resolver.resolveAll();
+
+    ASSERT_EQ(resolver.getPriorityOf(A), 500);
+    ASSERT_EQ(resolver.getPriorityOf(B), 450);
+    ASSERT_EQ(resolver.getPriorityOf(C), 400);
+}
+
 TEST_F(QAO_Test, PriorityResolverWithEnumClass) {
     enum Categories {
         A, B, C
@@ -282,6 +298,20 @@ TEST_F(QAO_Test, PriorityResolver2Basics) {
 
     ASSERT_GT(A, B); // A before B
     ASSERT_GT(B, C); // B before C
+}
+
+TEST_F(QAO_Test, PriorityResolver2BasicsWithPriorityStartAndStep) {
+    int A = 1000, B = 1000, C = 1000;
+
+    QAO_PriorityResolver2 resolver{500, 50};
+    resolver.category(&A);
+    resolver.category(&B).dependsOn(&A);
+    resolver.category(&C).dependsOn(&A, &B);
+    resolver.resolveAll();
+
+    ASSERT_EQ(A, 500);
+    ASSERT_EQ(B, 450);
+    ASSERT_EQ(C, 400);
 }
 
 TEST_F(QAO_Test, PriorityResolver2ReversedInput) {

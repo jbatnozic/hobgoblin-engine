@@ -9,6 +9,18 @@
 HOBGOBLIN_NAMESPACE_START
 namespace qao {
 
+QAO_PriorityResolver2::QAO_PriorityResolver2()
+    : _initialPriority{0}
+    , _priorityStep{1}
+{
+}
+
+QAO_PriorityResolver2::QAO_PriorityResolver2(int initialPriority, int priorityStep)
+    : _initialPriority{initialPriority}
+    , _priorityStep{priorityStep}
+{
+}
+
 void QAO_PriorityResolver2::CategoryDefinition::reset() {
     // dependencyCounter = 0;
     dependencyFulfilledCounter = 0;
@@ -28,7 +40,7 @@ QAO_PriorityResolver2::DependencyInserter QAO_PriorityResolver2::category(int* c
 }
 
 void QAO_PriorityResolver2::resolveAll() {
-    _priorityCounter = 0; // TODO Parametrize
+    _priorityCounter = _initialPriority;
 
     // Reset all definitions:
     for (auto& definition : _definitions) {
@@ -54,7 +66,7 @@ void QAO_PriorityResolver2::resolveAll() {
         }
 
         (*curr).second.priority = _priorityCounter;
-        _priorityCounter -= 1; // TODO Parametrize
+        _priorityCounter -= _priorityStep;
     }
 
     // Verify & populate output:

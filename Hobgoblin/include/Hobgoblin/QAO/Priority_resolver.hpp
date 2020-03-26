@@ -44,6 +44,9 @@ public:
         friend class QAO_PriorityResolver;
     };
 
+    QAO_PriorityResolver();
+    QAO_PriorityResolver(int initialPriority, int priorityStep);
+
     template <class T>
     int getPriorityOf(T&& categoryId) const;
 
@@ -55,6 +58,8 @@ public:
 private:
     std::vector<CategoryDefinition> _definitions;
     std::unordered_map<int, int> _priorityMapping;
+    int _initialPriority;
+    int _priorityStep;
     int _priorityCounter;
 
     std::vector<CategoryDefinition>::iterator findDefinition(int categoryId);

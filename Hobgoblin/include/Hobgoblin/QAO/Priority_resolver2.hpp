@@ -41,12 +41,12 @@ public:
         int* _category;
     };
 
+    QAO_PriorityResolver2();
+    QAO_PriorityResolver2(int initialPriority, int priorityStep);
+
     DependencyInserter category(int* category);
 
     void resolveAll();
-
-    template <class T>
-    int getPriorityOf(T&& categoryId) const;
 
 private:
     friend class DependencyInserter;
@@ -65,6 +65,8 @@ private:
     };
 
     DefinitionMap _definitions;
+    int _initialPriority;
+    int _priorityStep;
     int _priorityCounter;
 
     void categoryDependsOn(int* category, int* dependency);
@@ -81,12 +83,6 @@ void QAO_PriorityResolver2::DependencyInserter::dependsOn(int* argsHead, ArgsRes
     FRIEND_ACCESS _resolver.categoryDependsOn(_category, argsHead);
     dependsOn(std::forward<ArgsRest>(argsRest)...);
 }
-
-//template <class T>
-//int QAO_PriorityResolver2::getPriorityOf(T&& categoryId) const {
-//    const int idAsInt = static_cast<int>(std::forward<T>(categoryId));
-//    return _priorityMapping.at(idAsInt);
-//}
 
 } // namespace qao
 HOBGOBLIN_NAMESPACE_END
