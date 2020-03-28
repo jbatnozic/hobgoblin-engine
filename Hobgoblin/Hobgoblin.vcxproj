@@ -408,6 +408,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="include\Hobgoblin\RigelNet\Connector.hpp" />
+    <ClCompile Include="source\Hobgoblin\Collisions\BoundingBox.cpp" />
+    <ClCompile Include="source\Hobgoblin\Collisions\MTQuadTreeDomain.cpp" />
+    <ClCompile Include="source\Hobgoblin\Collisions\MTQuadTreeNode.cpp" />
+    <ClCompile Include="source\Hobgoblin\Collisions\NewMain.cpp" />
+    <ClCompile Include="source\Hobgoblin\Collisions\Qtree_collision_domain.cpp" />
+    <ClCompile Include="source\Hobgoblin\Collisions\QuadTreeDomain.cpp" />
+    <ClCompile Include="source\Hobgoblin\Collisions\QuadTreeEntity.cpp" />
+    <ClCompile Include="source\Hobgoblin\Collisions\QuadTreeNode.cpp" />
     <ClCompile Include="source\Hobgoblin\QAO\Priority_resolver2.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Event.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Handlermgmt.cpp" />
@@ -418,26 +426,21 @@
     <ClCompile Include="source\Hobgoblin\RigelNet\Udp_connector.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Udp_server.cpp" />
     <ClCompile Include="source\Hobgoblin\Utility\Serialization.cpp" />
-    <ClCompile Include="source\Hobgoblin\SerializationMain.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
+    <ClInclude Include="include\Hobgoblin\Collisions\BoundingBox.hpp" />
+    <ClInclude Include="include\Hobgoblin\Collisions\GenericPtr.hpp" />
+    <ClInclude Include="include\Hobgoblin\Collisions\MTQuadTreeDomain.hpp" />
+    <ClInclude Include="include\Hobgoblin\Collisions\MTQuadTreeNode.hpp" />
+    <ClInclude Include="include\Hobgoblin\Collisions\Qtree_collision_domain.hpp" />
+    <ClInclude Include="include\Hobgoblin\Collisions\QuadTreeDomain.hpp" />
+    <ClInclude Include="include\Hobgoblin\Collisions\QuadTreeEntity.hpp" />
+    <ClInclude Include="include\Hobgoblin\Collisions\QuadTreeNode.hpp" />
+    <ClInclude Include="include\Hobgoblin\Utility\Rectangle.hpp" />
+    <ClInclude Include="include\Hobgoblin\Utility\Semaphore.hpp" />
     <ClInclude Include="include\Hobgoblin\QAO\Priority_resolver2.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Event.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Handlers.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Node.hpp" />
     <ClCompile Include="include\Hobgoblin\DEP_Utility.hpp" />
-    <ClCompile Include="source\Hobgoblin\RigelNetMain.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release-Lib|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">false</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="source\Hobgoblin\QAO\base.cpp" />
     <ClCompile Include="source\Hobgoblin\QAO\orderer.cpp" />
     <ClCompile Include="source\Hobgoblin\QAO\registry.cpp" />
