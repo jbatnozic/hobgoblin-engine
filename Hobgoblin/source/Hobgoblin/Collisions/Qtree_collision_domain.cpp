@@ -33,7 +33,7 @@ public:
         // TODO
     }
 
-    std::pair<EntityList&, EntityList::iterator> insertEntityPerfectFit(const Entity& entity) {
+    std::pair<QuadTreeNode*, EntityList::iterator> insertEntityPerfectFit(const Entity& entity) {
         if (_children[0] == nullptr) {
             return insertEntity(entity);
         }
@@ -52,6 +52,41 @@ public:
         _entities.erase(entityIter);
         for (QuadTreeNode* curr = this; curr != nullptr; curr = curr->_parent) {
             curr->_childrenEntitiesCount -= 1;
+        }
+    }
+
+    void setEntityBbox(EntityList::iterator entityIter, const BoundingBox& bbox) {
+        auto& entity = (*entityIter);
+        entity.bbox = bbox;
+
+        if (entityFits(entity) || _parent == nullptr) {
+            return;
+        }
+
+        _childrenEntitiesCount -= 1;
+
+        for (QuadTreeNode* curr = _parent; true; curr = curr->_parent) {
+            curr->_childrenEntitiesCount -= 1;
+
+            if (curr->entityFits(entity) || curr->_parent == nullptr) {
+                // Find new holder:
+                QuadTreeNode* newHolder = curr;
+
+                REPEAT:
+                if (newHolder->_children[0] != nullptr) {
+                    for (auto& child : newHolder->_children) {
+                        if (child->entityFits(entity)) {
+                            newHolder->_childrenEntitiesCount += 1;
+                            newHolder = child.get();
+                            goto REPEAT;
+                        }
+                    }
+                }
+
+                // New holder found:
+                newHolder->insertEntitySplice(_entities, entityIter);
+                break;
+            }
         }
     }
 
@@ -152,11 +187,11 @@ private:
         return entity.bbox.envelopedBy(_bbox);
     }
 
-    std::pair<EntityList&, EntityList::iterator> insertEntity(const Entity& entity) {
+    std::pair<QuadTreeNode*, EntityList::iterator> insertEntity(const Entity& entity) {
         _entities.push_back(entity);
         _childrenEntitiesCount += 1;
 
-        auto rv = std::make_pair(std::ref(_entities), std::prev(_entities.end()));
+        auto rv = std::make_pair(this, std::prev(_entities.end()));
 
         if (_entities.size() > _maxEntities && _depth < _maxDepth) {
             split();
@@ -182,10 +217,7 @@ private:
         }
     }
 
-    /*
-    void migrate_entity(QuadTreeEntity& entity, QuadTreeNode* new_holder);
-    void draw(sf::RenderTarget* rt);
-    */
+    //void draw(sf::RenderTarget* rt);
 
     QuadTreeNode* newEntityHolder(const Entity& entity) {
         for (auto& child : _children) {
@@ -200,21 +232,95 @@ private:
 } // namespace detail
 
 ///////////////////////////////////////////////////////////////////////////////
+// EntityHandle methods:
+
+QuadTreeCollisionDomain::EntityHandle::EntityHandle(detail::QuadTreeNode* qtreeNode,
+                                                    std::list<Entity>::iterator entityListIter)
+    : _myNode{qtreeNode}
+    , _myIter{entityListIter}
+{
+}
+
+QuadTreeCollisionDomain::EntityHandle::~EntityHandle() {
+    invalidate();
+}
+
+void QuadTreeCollisionDomain::EntityHandle::invalidate() {
+    if (_myNode) {
+        _myNode->eraseEntity(_myIter);
+        _myNode = nullptr;
+    }
+}
+
+void QuadTreeCollisionDomain::EntityHandle::update(const BoundingBox& bbox) {
+    _myNode->setEntityBbox(_myIter, bbox);
+}
+
+void QuadTreeCollisionDomain::EntityHandle::update(const BoundingBox& bbox, std::int32_t groupMask) {
+    update(bbox);
+    (*_myIter).groupMask = groupMask;
+}
+
+void QuadTreeCollisionDomain::EntityHandle::update(std::int32_t groupMask) {
+    (*_myIter).groupMask = groupMask;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // QuadTreeCollisionDomain methods:
 
-QuadTreeCollisionDomain::EntityHandle QuadTreeCollisionDomain::insertEntity(PZInteger entitySlabIndex, 
-                                                                            const BoundingBox& bbox) {
-    if (entitySlabIndex >= static_cast<int>(_entitiyIterators.size())) {
-        _entitiyIterators.resize(entitySlabIndex + 1);
+QuadTreeCollisionDomain::~QuadTreeCollisionDomain() {
+
+}
+
+QuadTreeCollisionDomain::QuadTreeCollisionDomain(double width, double height, PZInteger maxDepth,
+                                                 PZInteger maxEntitiesPerNode, PZInteger workerThreadsCount)
+    : _maxDepth{maxDepth}
+    , _maxEntitiesPerNode{maxEntitiesPerNode}
+    , _maxNodesPerRow{1 << maxDepth}
+    , _width{width}
+    , _height{height}
+    , _minWidth{width / _maxNodesPerRow}
+    , _minHeight{height / _maxNodesPerRow}
+    , _nodeTable{_maxNodesPerRow, std::vector<detail::QuadTreeNode*>{static_cast<std::size_t>(_maxNodesPerRow)}} // TODO PEP
+    , _rootNode{std::make_unique<detail::QuadTreeNode>(Self, BoundingBox{0.0, 0.0, width, height},
+                                                       maxDepth, maxEntitiesPerNode, nullptr)}
+{
+
+}
+
+QuadTreeCollisionDomain::EntityHandle QuadTreeCollisionDomain::insertEntity(INDEX entitySlabIndex, 
+                                                                            const BoundingBox& bbox,
+                                                                            std::int32_t groupMask) {
+    auto pair = _rootNode->insertEntityPerfectFit(Entity{bbox, groupMask, entitySlabIndex});
+    return EntityHandle{pair.first, pair.second};
+}
+
+PZInteger QuadTreeCollisionDomain::recalcPairs() {
+    _pairs.clear();
+
+    std::vector<detail::QuadTreeNode*> leafNodes;
+    _rootNode->listLeafNodes(leafNodes);
+
+    for (auto& node : leafNodes) {
+        node->visit(_pairs);
     }
 
-    assert(!_entitiyIterators[entitySlabIndex].has_value());
+    pairs_hand = 0; // TODO Temp.
 
-    auto pair = _rootNode->insertEntityPerfectFit(Entity{bbox, 0, entitySlabIndex}); // TODO (group)
-    _entitiyIterators[entitySlabIndex] = pair.second;
-
-    //return EntityHandle{Self}; // TODO
+    return static_cast<PZInteger>(_pairs.size());
 }
+
+bool QuadTreeCollisionDomain::pairsNext(INDEX& index1, INDEX& index2) {
+    if (pairs_hand >= _pairs.size()) {
+        return false;
+    }
+
+    index1 = _pairs[pairs_hand].first;
+    index2 = _pairs[pairs_hand].second;
+    pairs_hand++;
+
+    return true;
+ }
 
 } // namespace util
 HOBGOBLIN_NAMESPACE_END

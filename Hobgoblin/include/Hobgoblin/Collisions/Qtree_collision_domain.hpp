@@ -16,6 +16,8 @@
 HOBGOBLIN_NAMESPACE_START
 namespace util {
 
+#define INDEX PZInteger
+
 namespace detail {
 
 class CollisionEntity {
@@ -24,7 +26,7 @@ public:
 
     BoundingBox bbox;
     std::int32_t groupMask;
-    PZInteger index;
+    INDEX index;
 
     bool collidesWith(const CollisionEntity& other) const {
         return (((groupMask & other.groupMask) != 0) && bbox.overlaps(other.bbox));
@@ -35,43 +37,63 @@ class QuadTreeNode;
 
 } // namespace detail
 
-using CollisionPair = std::pair<PZInteger, PZInteger>;
+using CollisionPair = std::pair<INDEX, INDEX>;
 
 class QuadTreeCollisionDomain : NO_COPY, NO_MOVE {
 public:
     using Entity = detail::CollisionEntity;
     using BoundingBox = Entity::BoundingBox;
 
-    class EntityHandle {
+    class EntityHandle : NO_COPY {
     public:
+        EntityHandle()
+            : EntityHandle{nullptr, {}}
+        {
+        }
+
+        EntityHandle(detail::QuadTreeNode* qtreeNode, std::list<Entity>::iterator entityListIter);
         ~EntityHandle();
-        void reset();
-        void move();
+
+        void invalidate();
+        void update(const BoundingBox& bbox);
+        void update(const BoundingBox& bbox, std::int32_t groupMask);
+        void update(std::int32_t groupMask);
+
+        // Move: (TODO - Move to .cpp file)
+        EntityHandle(EntityHandle&& other)
+            : _myNode{other._myNode}
+            , _myIter{other._myIter}
+        {
+            other._myNode = nullptr;
+        }
+
+        EntityHandle& operator=(EntityHandle&& other) {
+            _myNode = other._myNode;
+            _myIter = other._myIter;
+
+            other._myNode = nullptr;
+            return Self;
+        }
 
     private:
-        QuadTreeCollisionDomain& _domain;
+        detail::QuadTreeNode* _myNode;
+        std::list<Entity>::iterator _myIter;
+
     };
 
-    const size_t MAX_DEPTH;
-    const size_t MAX_OBJECTS;
-
-    QuadTreeCollisionDomain() = delete;
-    QuadTreeCollisionDomain(double w, double h, PZInteger maxDepth, PZInteger maxObjectsPerNode,
-                            PZInteger workerThreadsCount = 0);
+    QuadTreeCollisionDomain(double width, double height, PZInteger maxDepth, 
+                            PZInteger maxEntitiesPerNode, PZInteger workerThreadsCount = 0);
     ~QuadTreeCollisionDomain();
 
     // Main functionality:
     void clear();
 
-    EntityHandle insertEntity(PZInteger entitySlabIndex, const BoundingBox& bbox);
-    //void updateEntity(PZInteger entitySlabIndex, const BoundingBox& bb);
-    //bool entityExists(PZInteger entitySlabIndex) const;
-    //void removeEntity(PZInteger entitySlabIndex);
+    EntityHandle insertEntity(INDEX entitiyIndex, const BoundingBox& bbox, std::int32_t groupMask);
 
     PZInteger recalcPairs();
     void recalcPairsStart();
     PZInteger recalcPairsJoin();
-    //bool pairs_next(GenericPtr& inst1, GenericPtr& inst2);
+    bool pairsNext(INDEX& index1, INDEX& index2);
 
     //// Scanning - Point:
     //GenericPtr scan_point_one(GroupMask groups,
@@ -99,20 +121,21 @@ private:
 
     //friend void worker_body(MTQuadTreeDomain*, size_t, int*);
 
+    PZInteger _maxDepth;
+    PZInteger _maxEntitiesPerNode;
+    PZInteger _maxNodesPerRow;
     double _width, _height;
     double _minWidth, _minHeight;
-    //size_t nt_size;
-
-    std::unique_ptr<detail::QuadTreeNode> _rootNode;
+    
     std::vector<std::vector<detail::QuadTreeNode*>> _nodeTable; // [x][y]
-
-    std::vector<std::optional<EntityList::iterator>> _entitiyIterators;
-
+    std::unique_ptr<detail::QuadTreeNode> _rootNode;
+    
+    std::vector<CollisionPair> _pairs;
     //std::vector<MTQuadTreeNode*> cleanup_stack;
 
     //PairsContainer pairs_deq[4];
 
-    //size_t pairs_hand;
+    size_t pairs_hand;
     //size_t deq_selector;
 
     //std::thread worker[4];
@@ -126,7 +149,6 @@ private:
     //QuadTreeEntity& get_entity(size_t index) const;
     //void node_table_update(MTQuadTreeNode* node);
     //void clean_up();
-
 };
 
 } // namespace util

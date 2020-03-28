@@ -408,10 +408,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="include\Hobgoblin\RigelNet\Connector.hpp" />
+    <ClCompile Include="source\Hobgoblin\CollisionsMain.cpp" />
     <ClCompile Include="source\Hobgoblin\Collisions\BoundingBox.cpp" />
     <ClCompile Include="source\Hobgoblin\Collisions\MTQuadTreeDomain.cpp" />
     <ClCompile Include="source\Hobgoblin\Collisions\MTQuadTreeNode.cpp" />
-    <ClCompile Include="source\Hobgoblin\Collisions\NewMain.cpp" />
     <ClCompile Include="source\Hobgoblin\Collisions\Qtree_collision_domain.cpp" />
     <ClCompile Include="source\Hobgoblin\Collisions\QuadTreeDomain.cpp" />
     <ClCompile Include="source\Hobgoblin\Collisions\QuadTreeEntity.cpp" />

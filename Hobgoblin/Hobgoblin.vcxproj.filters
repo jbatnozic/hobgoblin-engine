@@ -90,9 +90,6 @@
     <ClCompile Include="source\Hobgoblin\Collisions\MTQuadTreeNode.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="source\Hobgoblin\Collisions\NewMain.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="source\Hobgoblin\Collisions\QuadTreeNode.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -103,6 +100,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="source\Hobgoblin\Collisions\Qtree_collision_domain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Hobgoblin\CollisionsMain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
