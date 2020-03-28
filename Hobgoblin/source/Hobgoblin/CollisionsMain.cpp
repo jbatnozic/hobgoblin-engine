@@ -12,9 +12,6 @@
 #include <SFML\Window.hpp>
 #include <SFML\Graphics.hpp>
 
-// !!! ODKOMENTIRAJ KAD IMAS IMPLEMENTACIJU !!!
-#define HAS_IMPL
-
 //#define DomainType hg::util:QuadTreeCollisionDomain
 using hg::util::QuadTreeCollisionDomain;
 using BoundingBox = QuadTreeCollisionDomain::BoundingBox;
@@ -22,12 +19,12 @@ using BoundingBox = QuadTreeCollisionDomain::BoundingBox;
 const size_t WINDOW_W = 1400u;
 const size_t WINDOW_H = 900u;
 //const size_t INST_CNT = 30'000;
-const size_t INST_CNT = 2500;
+const size_t INST_CNT = 30'000;
 const size_t MON_INDEX = INST_CNT + 5;
 
 #define THREAD_CNT  6
-#define SQUARE_SIZE (2.0)
-#define SQUARE_DRAW_SIZE (2.f)
+#define SQUARE_SIZE (0.8)
+#define SQUARE_DRAW_SIZE (1.f)
 
 sf::RenderWindow* g_window;
 
@@ -53,7 +50,7 @@ public:
         , m_index(index)
     {
         if (m_dom) {
-            cHandle = std::move(m_dom->insertEntity(m_index, m_bb, 1));
+            cHandle = m_dom->insertEntity(m_index, m_bb, 1);
         }
 
         dest_x = rand(WINDOW_W);
@@ -200,12 +197,13 @@ protected:
     QuadTreeCollisionDomain* m_dom;
     BoundingBox m_bb;
     QuadTreeCollisionDomain::EntityHandle cHandle;
-
 };
 
 int main() {
     QuadTreeCollisionDomain* domain = nullptr;
-    QuadTreeCollisionDomain dom_impl{double(WINDOW_W), double(WINDOW_H), 0, 0};//8, 8};
+    const hg::PZInteger maxDepth = 8;
+    const hg::PZInteger maxEntitiesPerNode = 8;
+    QuadTreeCollisionDomain dom_impl{double(WINDOW_W), double(WINDOW_H), maxDepth, maxEntitiesPerNode}; //8, 8};
     domain = &dom_impl;
 
     std::deque<RedSquare> rsdeq;
@@ -221,7 +219,7 @@ int main() {
     sf::RenderWindow window{sf::VideoMode(WINDOW_W, WINDOW_H), "Collision detection"};
 
     g_window = &window;
-    window.setFramerateLimit(60u);
+    window.setFramerateLimit(30u);
     window.setVerticalSyncEnabled(true);
 
     while (window.isOpen()) {
@@ -277,6 +275,8 @@ int main() {
 
         };
 
+        //domain->draw(window);
+
         for (auto& rs : rsdeq) {
             rs.draw();
         }
@@ -284,7 +284,6 @@ int main() {
         mon.draw();
 
         window.display();
-
     }
 
     std::cout << "\nHappy end!\n";

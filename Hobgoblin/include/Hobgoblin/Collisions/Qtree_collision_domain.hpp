@@ -4,6 +4,7 @@
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Utility/NoCopyNoMove.hpp>
 #include <Hobgoblin/Utility/Rectangle.hpp>
+#include <SFML/Graphics.hpp> // TODO Temp.
 
 #include <cstdint>
 #include <list>
@@ -20,11 +21,14 @@ namespace util {
 
 namespace detail {
 
+class QuadTreeNode;
+
 class CollisionEntity {
 public:
     using BoundingBox = Rectangle<double>;
 
     BoundingBox bbox;
+    QuadTreeNode* holder;
     std::int32_t groupMask;
     INDEX index;
 
@@ -32,8 +36,6 @@ public:
         return (((groupMask & other.groupMask) != 0) && bbox.overlaps(other.bbox));
     }
 };
-
-class QuadTreeNode;
 
 } // namespace detail
 
@@ -46,12 +48,8 @@ public:
 
     class EntityHandle : NO_COPY {
     public:
-        EntityHandle()
-            : EntityHandle{nullptr, {}}
-        {
-        }
-
-        EntityHandle(detail::QuadTreeNode* qtreeNode, std::list<Entity>::iterator entityListIter);
+        EntityHandle() = default;
+        EntityHandle(std::list<Entity>::iterator entityListIter);
         ~EntityHandle();
 
         void invalidate();
@@ -60,25 +58,20 @@ public:
         void update(std::int32_t groupMask);
 
         // Move: (TODO - Move to .cpp file)
-        EntityHandle(EntityHandle&& other)
-            : _myNode{other._myNode}
-            , _myIter{other._myIter}
+        EntityHandle(EntityHandle&& other) noexcept
+            : _myIter{other._myIter}
         {
-            other._myNode = nullptr;
+            other._myIter.reset();
         }
 
-        EntityHandle& operator=(EntityHandle&& other) {
-            _myNode = other._myNode;
+        EntityHandle& operator=(EntityHandle&& other) noexcept {
             _myIter = other._myIter;
-
-            other._myNode = nullptr;
+            other._myIter.reset();
             return Self;
         }
 
     private:
-        detail::QuadTreeNode* _myNode;
-        std::list<Entity>::iterator _myIter;
-
+        std::optional<std::list<Entity>::iterator> _myIter;
     };
 
     QuadTreeCollisionDomain(double width, double height, PZInteger maxDepth, 
@@ -87,6 +80,7 @@ public:
 
     // Main functionality:
     void clear();
+    void prune(); // Call from time to time to reclaim memory
 
     EntityHandle insertEntity(INDEX entitiyIndex, const BoundingBox& bbox, std::int32_t groupMask);
 
@@ -115,6 +109,9 @@ public:
 
     //void scan_circle_vector(GroupMask groups, bool must_envelop,
     //                        double x, double y, double r, std::vector<GenericPtr>& vec) const;
+
+    void draw(sf::RenderTarget& rt); // TODO Temp.
+    void print() const;
 
 private:
     using EntityList = std::list<Entity>;
@@ -148,7 +145,6 @@ private:
 
     //QuadTreeEntity& get_entity(size_t index) const;
     //void node_table_update(MTQuadTreeNode* node);
-    //void clean_up();
 };
 
 } // namespace util

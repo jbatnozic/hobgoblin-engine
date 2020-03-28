@@ -17,9 +17,9 @@
 #define DomainType MTQuadTreeDomain
 const size_t WINDOW_W = 1400u;
 const size_t WINDOW_H = 900u;
-const size_t INST_CNT = 30000;
+const size_t INST_CNT = 30'000;
 const size_t MON_INDEX = INST_CNT + 5;
-#define THREAD_CNT  6
+#define THREAD_CNT  4
 #define SQUARE_SIZE 0.8
 #define SQUARE_DRAW_SIZE 1.f
 

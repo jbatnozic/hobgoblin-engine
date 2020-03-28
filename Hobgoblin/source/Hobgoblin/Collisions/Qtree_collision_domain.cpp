@@ -1,5 +1,6 @@
 
 #include <Hobgoblin/Collisions/Qtree_collision_domain.hpp>
+#include <SFML/Graphics.hpp> // TODO Temp.
 
 #include <array>
 #include <cassert>
@@ -20,7 +21,7 @@ public:
     QuadTreeNode(QuadTreeCollisionDomain& domain, const BoundingBox& bbox,
                  PZInteger maxDepth, PZInteger maxEntitiesPerNode, QuadTreeNode* parent)
         : _domain{domain}
-        , _parent{nullptr}
+        , _parent{parent}
         , _bbox{bbox}
         , _depth{parent ? (parent->_depth + 1) : 0}
         , _childrenEntitiesCount{0}
@@ -30,10 +31,9 @@ public:
     }
 
     ~QuadTreeNode() {
-        // TODO
     }
 
-    std::pair<QuadTreeNode*, EntityList::iterator> insertEntityPerfectFit(const Entity& entity) {
+    EntityList::iterator insertEntityPerfectFit(const Entity& entity) {
         if (_children[0] == nullptr) {
             return insertEntity(entity);
         }
@@ -64,7 +64,7 @@ public:
         }
 
         _childrenEntitiesCount -= 1;
-
+        
         for (QuadTreeNode* curr = _parent; true; curr = curr->_parent) {
             curr->_childrenEntitiesCount -= 1;
 
@@ -90,13 +90,11 @@ public:
         }
     }
 
-    void listLeafNodes(std::vector<QuadTreeNode*>& nodeVec) {
-        if (_children[0] == nullptr) {
-            nodeVec.push_back(this);
-        }
-        else {
+    void listAllNodes(std::vector<QuadTreeNode*>& nodeVec) {
+        nodeVec.push_back(this);
+        if (_children[0] != nullptr) {
             for (auto& child : _children) {
-                child->listLeafNodes(nodeVec);
+                child->listAllNodes(nodeVec);
             }
         }
     }
@@ -121,6 +119,41 @@ public:
                 supernode = supernode->_parent;
             }
         }
+    }
+
+    // TODO Temp.
+    void draw(sf::RenderTarget& rt) const {
+        sf::RectangleShape rec(sf::Vector2f(float(_bbox.w), float(_bbox.h)));
+        rec.setPosition(float(_bbox.x), float(_bbox.y));
+        rec.setOutlineColor(sf::Color::Green);
+        rec.setFillColor(sf::Color::Transparent);
+        rec.setOutlineThickness(1);
+
+        rt.draw(rec);
+
+        if (_children[0] != nullptr) {
+            for (int i = 0; i < 4; i += 1) {
+                _children[i]->draw(rt);
+            }
+        }
+    }
+
+    void print() const {
+        /*for (int i = 0; i < _depth; i += 1) {
+            std::cout << "  ";
+        }
+        std::cout << "Node at depth " << _depth << "\n";
+        for (auto& entity : _entities) {
+            for (int i = 0; i < _depth + 1; i += 1) {
+                std::cout << "  ";
+            }
+            std::cout << "Entity with index " << entity.index << '\n';
+        }
+        for (auto& child : _children) {
+            if (child != nullptr) {
+                child->print();
+            }
+        }*/
     }
 
 private:
@@ -187,11 +220,12 @@ private:
         return entity.bbox.envelopedBy(_bbox);
     }
 
-    std::pair<QuadTreeNode*, EntityList::iterator> insertEntity(const Entity& entity) {
+    EntityList::iterator insertEntity(const Entity& entity) {
         _entities.push_back(entity);
+        _entities.back().holder = this;
         _childrenEntitiesCount += 1;
 
-        auto rv = std::make_pair(this, std::prev(_entities.end()));
+        auto rv = std::prev(_entities.end());
 
         if (_entities.size() > _maxEntities && _depth < _maxDepth) {
             split();
@@ -202,6 +236,7 @@ private:
 
     void insertEntitySplice(EntityList& donorList, EntityList::iterator iterToEntity) {
         _entities.splice(_entities.end(), donorList, iterToEntity);
+        _entities.back().holder = this;
         _childrenEntitiesCount += 1;
 
         if (_entities.size() > _maxEntities && _depth < _maxDepth) {
@@ -216,8 +251,6 @@ private:
             }
         }
     }
-
-    //void draw(sf::RenderTarget* rt);
 
     QuadTreeNode* newEntityHolder(const Entity& entity) {
         for (auto& child : _children) {
@@ -234,10 +267,8 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 // EntityHandle methods:
 
-QuadTreeCollisionDomain::EntityHandle::EntityHandle(detail::QuadTreeNode* qtreeNode,
-                                                    std::list<Entity>::iterator entityListIter)
-    : _myNode{qtreeNode}
-    , _myIter{entityListIter}
+QuadTreeCollisionDomain::EntityHandle::EntityHandle(std::list<Entity>::iterator entityListIter)
+    : _myIter{entityListIter}
 {
 }
 
@@ -246,30 +277,30 @@ QuadTreeCollisionDomain::EntityHandle::~EntityHandle() {
 }
 
 void QuadTreeCollisionDomain::EntityHandle::invalidate() {
-    if (_myNode) {
-        _myNode->eraseEntity(_myIter);
-        _myNode = nullptr;
+    if (_myIter) {
+        detail::QuadTreeNode* const holder = (**_myIter).holder;
+        holder->eraseEntity(*_myIter);
     }
 }
 
 void QuadTreeCollisionDomain::EntityHandle::update(const BoundingBox& bbox) {
-    _myNode->setEntityBbox(_myIter, bbox);
+    (**_myIter).holder->setEntityBbox(*_myIter, bbox);
 }
 
 void QuadTreeCollisionDomain::EntityHandle::update(const BoundingBox& bbox, std::int32_t groupMask) {
     update(bbox);
-    (*_myIter).groupMask = groupMask;
+    (**_myIter).groupMask = groupMask;
 }
 
 void QuadTreeCollisionDomain::EntityHandle::update(std::int32_t groupMask) {
-    (*_myIter).groupMask = groupMask;
+    (**_myIter).groupMask = groupMask;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // QuadTreeCollisionDomain methods:
 
 QuadTreeCollisionDomain::~QuadTreeCollisionDomain() {
-
+    // TODO
 }
 
 QuadTreeCollisionDomain::QuadTreeCollisionDomain(double width, double height, PZInteger maxDepth,
@@ -285,23 +316,22 @@ QuadTreeCollisionDomain::QuadTreeCollisionDomain(double width, double height, PZ
     , _rootNode{std::make_unique<detail::QuadTreeNode>(Self, BoundingBox{0.0, 0.0, width, height},
                                                        maxDepth, maxEntitiesPerNode, nullptr)}
 {
-
 }
 
 QuadTreeCollisionDomain::EntityHandle QuadTreeCollisionDomain::insertEntity(INDEX entitySlabIndex, 
                                                                             const BoundingBox& bbox,
                                                                             std::int32_t groupMask) {
-    auto pair = _rootNode->insertEntityPerfectFit(Entity{bbox, groupMask, entitySlabIndex});
-    return EntityHandle{pair.first, pair.second};
+    auto iter = _rootNode->insertEntityPerfectFit(Entity{bbox, nullptr, groupMask, entitySlabIndex});
+    return EntityHandle{iter};
 }
 
 PZInteger QuadTreeCollisionDomain::recalcPairs() {
     _pairs.clear();
 
-    std::vector<detail::QuadTreeNode*> leafNodes;
-    _rootNode->listLeafNodes(leafNodes);
+    std::vector<detail::QuadTreeNode*> allNodes;
+    _rootNode->listAllNodes(allNodes);
 
-    for (auto& node : leafNodes) {
+    for (auto& node : allNodes) {
         node->visit(_pairs);
     }
 
@@ -321,6 +351,18 @@ bool QuadTreeCollisionDomain::pairsNext(INDEX& index1, INDEX& index2) {
 
     return true;
  }
+
+void QuadTreeCollisionDomain::draw(sf::RenderTarget& rt) {
+    _rootNode->draw(rt);
+}
+
+void QuadTreeCollisionDomain::print() const {
+    _rootNode->print();
+}
+
+void QuadTreeCollisionDomain::prune() {
+
+}
 
 } // namespace util
 HOBGOBLIN_NAMESPACE_END
