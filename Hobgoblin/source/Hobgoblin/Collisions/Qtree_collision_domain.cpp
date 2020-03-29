@@ -121,11 +121,15 @@ public:
         }
     }
 
+    PZInteger getChildEntityCount() const {
+        return _childrenEntitiesCount;
+    }
+
     // TODO Temp.
     void draw(sf::RenderTarget& rt) const {
         sf::RectangleShape rec(sf::Vector2f(float(_bbox.w), float(_bbox.h)));
         rec.setPosition(float(_bbox.x), float(_bbox.y));
-        rec.setOutlineColor(sf::Color::Green);
+        rec.setOutlineColor(sf::Color(41, 77, 51));
         rec.setFillColor(sf::Color::Transparent);
         rec.setOutlineThickness(1);
 
@@ -299,10 +303,6 @@ void QuadTreeCollisionDomain::EntityHandle::update(std::int32_t groupMask) {
 ///////////////////////////////////////////////////////////////////////////////
 // QuadTreeCollisionDomain methods:
 
-QuadTreeCollisionDomain::~QuadTreeCollisionDomain() {
-    // TODO
-}
-
 QuadTreeCollisionDomain::QuadTreeCollisionDomain(double width, double height, PZInteger maxDepth,
                                                  PZInteger maxEntitiesPerNode, PZInteger workerThreadsCount)
     : _maxDepth{maxDepth}
@@ -315,19 +315,15 @@ QuadTreeCollisionDomain::QuadTreeCollisionDomain(double width, double height, PZ
     , _nodeTable{_maxNodesPerRow, std::vector<detail::QuadTreeNode*>{static_cast<std::size_t>(_maxNodesPerRow)}}
     , _rootNode{std::make_unique<detail::QuadTreeNode>(Self, BoundingBox{0.0, 0.0, width, height},
                                                        maxDepth, maxEntitiesPerNode, nullptr)}
-    , _semaphore{0}
-    , _doneSem{0}
 {
-    _exiting = false;
-    
-    // TODO Very unsafe because the contexts can get relocated...
-    for (PZInteger i = 0; i < workerThreadsCount; i += 1) {
-        _workerContexts.emplace_back(std::ref(_nodesToProcess), std::ref(_mutex), std::ref(_semaphore),
-                                     std::ref(_doneSem), std::ref(_exiting));
+    if (workerThreadsCount > 0) {
+        _mtData = std::make_unique<MultithreadingData>(workerThreadsCount, _nodesToProcess);
     }
-    for (PZInteger i = 0; i < workerThreadsCount; i += 1) {
-        _workers.push_back(std::thread{workerBody, std::ref(_workerContexts[i])});
-    }
+}
+
+QuadTreeCollisionDomain::~QuadTreeCollisionDomain() {
+    assert(_rootNode->getChildEntityCount() == 0 && "Must remove all entities from the domain before destructing it");
+    _mtData.reset();
 }
 
 QuadTreeCollisionDomain::EntityHandle QuadTreeCollisionDomain::insertEntity(INDEX entitySlabIndex, 
@@ -343,80 +339,104 @@ PZInteger QuadTreeCollisionDomain::recalcPairs() {
 }
 
 void QuadTreeCollisionDomain::recalcPairsStart() {
+    // TODO clearGeneratedPairs
+
     _nodesToProcess.clear();
     _rootNode->listAllNodes(_nodesToProcess);
 
-    _waitCount = static_cast<PZInteger>(_nodesToProcess.size());
-    for (PZInteger i = 0; i < _waitCount; i += 1) {
-        _semaphore.signal();
+    if (isMultithreading()) {
+        _mtData->jobCount = static_cast<PZInteger>(_nodesToProcess.size());
+        for (PZInteger i = 0; i < _mtData->jobCount; i += 1) {
+            _mtData->jobAvailableSem.signal();
+        }
     }
 }
 
 PZInteger QuadTreeCollisionDomain::recalcPairsJoin() {
-    while (true) {
-        if (_semaphore.tryWait()) {
-            detail::QuadTreeNode* node;
-            {
-                std::lock_guard lock(_mutex);
-                if (!_nodesToProcess.empty()) {
-                    node = _nodesToProcess.back();
-                    _nodesToProcess.pop_back();
+    if (!isMultithreading()) {
+        for (auto& node : _nodesToProcess) {
+            node->visit(_generatedPairs);
+        }
+        return stopz(_generatedPairs.size());
+    }
+    else {
+        // Help the workers while waiting:
+        while (true) {
+            if (_mtData->jobAvailableSem.tryWait()) {
+                detail::QuadTreeNode* node;
+                {
+                    std::lock_guard lock(_mtData->jobMutex);
+                    if (!_nodesToProcess.empty()) {
+                        node = _nodesToProcess.back();
+                        _nodesToProcess.pop_back();
+                    }
+                    else {
+                        break;
+                    }
                 }
-                else {
-                    break;
-                }
+                node->visit(_generatedPairs);
+                _mtData->jobCompletedSem.signal();
             }
-            node->visit(_pairs);
-            _doneSem.signal();
+            else {
+                break;
+            }
         }
-        else {
-            break;
+
+        // Wait for all to complete jobs:
+        for (PZInteger i = 0; i < _mtData->jobCount; i += 1) {
+            _mtData->jobCompletedSem.wait();
         }
+        assert(_mtData->jobCompletedSem.getValue() == 0);
+
+        // Count results:
+        std::size_t rv = _generatedPairs.size();
+        for (auto& ctx : _mtData->workerContexts) {
+            rv += ctx.generatedPairs.size();
+        }
+
+        _mtData->resultSelector = -1;
+
+        return stopz(rv);
     }
-
-    for (PZInteger i = 0; i < _waitCount; i += 1) {
-        _doneSem.wait();
-    }
-    assert(_doneSem.getValue() == 0);
-
-    PZInteger rv = _pairs.size();
-    for (auto& ctx : _workerContexts) {
-        rv += ctx.pairs.size();
-    }
-
-    _pairsVecSelector = -1;
-
-    return rv;
 }
 
 bool QuadTreeCollisionDomain::pairsNext(INDEX& index1, INDEX& index2) {
-    std::vector<CollisionPair>* vec;
+    if (!isMultithreading()) {
+        if (_generatedPairs.empty()) {
+            return false;
+        }
 
-    NEXT:
-    if (_pairsVecSelector == -1) {
-        vec = &_pairs;
-    }
-    else if (_pairsVecSelector >= _workerContexts.size()) { // TODO cast to PZInteger (stopz)
-        return false;
+        index1 = _generatedPairs.back().first;
+        index2 = _generatedPairs.back().second;
+        _generatedPairs.pop_back();
+
+        return true;
     }
     else {
-        vec = &(_workerContexts[_pairsVecSelector].pairs);
+        std::vector<CollisionPair>* resultVec;
+
+    NEXT_RESULT_VEC:
+        if (_mtData->resultSelector == -1) {
+            resultVec = &_generatedPairs;
+        }
+        else if (_mtData->resultSelector >= stopz(_mtData->workerContexts.size())) {
+            return false;
+        }
+        else {
+            resultVec = &(_mtData->workerContexts[_mtData->resultSelector].generatedPairs);
+        }
+
+        if (resultVec->empty()) {
+            _mtData->resultSelector += 1;
+            goto NEXT_RESULT_VEC;
+        }
+
+        index1 = resultVec->back().first;
+        index2 = resultVec->back().second;
+        resultVec->pop_back();
+
+        return true;
     }
-
-    if (vec->empty()) {
-        _pairsVecSelector += 1;
-        goto NEXT;
-    }
-
-    if (vec->back().first < 0 || vec->back().second < 0) {
-        int i = 0;
-    }
-
-    index1 = vec->back().first;
-    index2 = vec->back().second;
-    vec->pop_back();
-
-    return true;
  }
 
 void QuadTreeCollisionDomain::draw(sf::RenderTarget& rt) {
@@ -431,26 +451,61 @@ void QuadTreeCollisionDomain::prune() {
 
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// QuadTreeCollisionDomain multithreading stuff:
+
+QuadTreeCollisionDomain::WorkerContext::WorkerContext(MultithreadingData& mtData,
+                                                      std::vector<detail::QuadTreeNode*>& nodesToProcess)
+    : data{mtData}
+    , nodesToProcess{nodesToProcess}
+{
+}
+
+QuadTreeCollisionDomain::MultithreadingData::MultithreadingData(PZInteger threadCount,
+                                                                std::vector<detail::QuadTreeNode*>& nodesToProcessVec)
+    : jobAvailableSem{0}
+    , jobCompletedSem{0}
+{
+    // IMPORTANT: Reserve memory beforehand so the contexts don't get relocated.
+    workerContexts.reserve(pztos(threadCount));
+    workers.reserve(pztos(threadCount));
+
+    for (PZInteger i = 0; i < threadCount; i += 1) {
+        workerContexts.emplace_back(std::ref(Self), std::ref(nodesToProcessVec));
+        workers.push_back(std::thread{QuadTreeCollisionDomain::workerBody, std::ref(workerContexts.back())});
+    }
+}
+
+QuadTreeCollisionDomain::MultithreadingData::~MultithreadingData() {
+    workersShouldReturn = true;
+    for (auto& ctx : workerContexts) {
+        jobAvailableSem.signal();
+    }
+    for (auto& worker : workers) {
+        worker.join();
+    }
+}
+
 void QuadTreeCollisionDomain::workerBody(WorkerContext& ctx) {
     while (true) {
-        ctx.semaphore.wait();
-        if (ctx.exiting) {
+        ctx.data.jobAvailableSem.wait();
+        if (ctx.data.workersShouldReturn) {
             return;
         }
         detail::QuadTreeNode* node;
         {
-            std::lock_guard lock(ctx.mutex);
-            if (!ctx.nodesToProcess.empty()) {
-                node = ctx.nodesToProcess.back();
-                ctx.nodesToProcess.pop_back();
-            }
-            else {
-                continue;
-            }
+            std::lock_guard lock(ctx.data.jobMutex);
+            assert(!ctx.nodesToProcess.empty());
+            node = ctx.nodesToProcess.back();
+            ctx.nodesToProcess.pop_back();
         }
-        node->visit(ctx.pairs);
-        ctx.doneSem.signal();
+        node->visit(ctx.generatedPairs);
+        ctx.data.jobCompletedSem.signal();
     }
+}
+
+bool QuadTreeCollisionDomain::isMultithreading() const {
+    return _mtData != nullptr;
 }
 
 } // namespace util

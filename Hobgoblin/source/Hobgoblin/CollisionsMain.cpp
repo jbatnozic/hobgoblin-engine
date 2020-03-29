@@ -18,12 +18,12 @@ using BoundingBox = QuadTreeCollisionDomain::BoundingBox;
 
 const size_t WINDOW_W = 1400u;
 const size_t WINDOW_H = 900u;
-//const size_t INST_CNT = 30'000;
-const size_t INST_CNT = 40'000;
+//const size_t INST_CNT = 40'000;
+const size_t INST_CNT = 30'000;
 const size_t MON_INDEX = INST_CNT + 5;
 
-#define SQUARE_SIZE (0.8 * 1)
-#define SQUARE_DRAW_SIZE (1.f * 1)
+#define SQUARE_SIZE (2.0 * 1)
+#define SQUARE_DRAW_SIZE (2.f * 1)
 
 sf::RenderWindow* g_window;
 
@@ -199,91 +199,92 @@ protected:
 };
 
 int main() {
-    QuadTreeCollisionDomain* domain = nullptr;
-    const hg::PZInteger maxDepth = 6;
-    const hg::PZInteger maxEntitiesPerNode = 10;
-    QuadTreeCollisionDomain dom_impl{double(WINDOW_W), double(WINDOW_H), maxDepth, maxEntitiesPerNode, 3};
-    domain = &dom_impl;
+    {
+        QuadTreeCollisionDomain* domain = nullptr;
+        const hg::PZInteger maxDepth = 6;
+        const hg::PZInteger maxEntitiesPerNode = 10;
+        QuadTreeCollisionDomain dom_impl{double(WINDOW_W), double(WINDOW_H), maxDepth, maxEntitiesPerNode, 3};
+        domain = &dom_impl;
 
-    std::deque<RedSquare> rsdeq;
-    size_t index_cnt = 0u;
-    Monitor mon{domain};
+        std::deque<RedSquare> rsdeq;
+        size_t index_cnt = 0u;
+        Monitor mon{domain};
 
-    for (int i = 0; i < INST_CNT; i += 1) {
-        rsdeq.emplace_back(domain, size_t(i), WINDOW_W / 2, WINDOW_H / 2);
+        for (int i = 0; i < INST_CNT; i += 1) {
+            rsdeq.emplace_back(domain, size_t(i), WINDOW_W / 2, WINDOW_H / 2);
+        }
+
+        ///////////////////////////////////////////////////////////////////////////
+
+        sf::RenderWindow window{sf::VideoMode(WINDOW_W, WINDOW_H), "Collision detection"};
+
+        g_window = &window;
+        window.setFramerateLimit(30u);
+        window.setVerticalSyncEnabled(true);
+
+        while (window.isOpen()) {
+
+            sf::Event ev;
+            while (window.pollEvent(ev)) {
+                if (ev.type == sf::Event::Closed) {
+                    window.close();
+                    break;
+                }
+                // ...
+            }
+
+            // clear -> draw -> display
+
+            window.clear(sf::Color::Black);
+
+            for (auto& rs : rsdeq) {
+                rs.move();
+            }
+
+            mon.move();
+
+            // Collisions:
+            sf::Clock clock;
+            clock.restart();
+            //domain->pairs_recalc_start();
+            //size_t pn = domain->pairs_recalc_join();
+            size_t pn = domain->recalcPairs();
+
+            int tm = clock.getElapsedTime().asMilliseconds();
+
+            std::cout << "\r";
+            std::cout << tm << "ms ";
+            std::cout << "(" << pn << " pairs)       ";
+
+            hg::PZInteger index1, index2;
+            while (domain->pairsNext(index1, index2)) {
+
+                if (index1 != MON_INDEX && index2 != MON_INDEX) { // Both are RedSquare
+                    rsdeq[index1].coll_redsquare();
+                    rsdeq[index2].coll_redsquare();
+                }
+                else if (index1 == MON_INDEX && index2 != MON_INDEX) { // gp1 is monitor
+                    rsdeq[index2].coll_monitor();
+                }
+                else if (index2 == MON_INDEX && index1 != MON_INDEX) { // gp2 is monitor
+                    rsdeq[index1].coll_monitor();
+                }
+                else {
+                    assert(0);
+                }
+            };
+
+            domain->draw(window);
+
+            for (auto& rs : rsdeq) {
+                rs.draw();
+            }
+
+            mon.draw();
+
+            window.display();
+        }
     }
-
-    ///////////////////////////////////////////////////////////////////////////
-
-    sf::RenderWindow window{sf::VideoMode(WINDOW_W, WINDOW_H), "Collision detection"};
-
-    g_window = &window;
-    window.setFramerateLimit(30u);
-    window.setVerticalSyncEnabled(true);
-
-    while (window.isOpen()) {
-
-        sf::Event ev;
-        while (window.pollEvent(ev)) {
-            if (ev.type == sf::Event::Closed) {
-                window.close();
-                break;
-            }
-            // ...
-        }
-
-        // clear -> draw -> display
-
-        window.clear(sf::Color::Black);
-
-        for (auto& rs : rsdeq) {
-            rs.move();
-        }
-
-        mon.move();
-
-        // Collisions:
-        sf::Clock clock;
-        clock.restart();
-        //domain->pairs_recalc_start();
-        //size_t pn = domain->pairs_recalc_join();
-        size_t pn = domain->recalcPairs();
-
-        int tm = clock.getElapsedTime().asMilliseconds();
-
-        std::cout << "\r";
-        std::cout << tm << "ms ";
-        std::cout << "(" << pn << " pairs)       ";
-
-        hg::PZInteger index1, index2;
-        while (domain->pairsNext(index1, index2)) {
-
-            if (index1 != MON_INDEX && index2 != MON_INDEX) { // Both are RedSquare
-                rsdeq[index1].coll_redsquare();
-                rsdeq[index2].coll_redsquare();
-            }
-            else if (index1 == MON_INDEX && index2 != MON_INDEX) { // gp1 is monitor
-                rsdeq[index2].coll_monitor();
-            }
-            else if (index2 == MON_INDEX && index1 != MON_INDEX) { // gp2 is monitor
-                rsdeq[index1].coll_monitor();
-            }
-            else {
-                assert(0);
-            }
-        };
-
-        //domain->draw(window);
-
-        for (auto& rs : rsdeq) {
-            rs.draw();
-        }
-
-        mon.draw();
-
-        window.display();
-    }
-
     std::cout << "\nHappy end!\n";
-
+    std::cin.get();
 }

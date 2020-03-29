@@ -118,27 +118,6 @@ public:
 private:
     using EntityList = std::list<Entity>;
 
-    struct WorkerContext {
-        std::vector<CollisionPair> pairs;
-        std::vector<detail::QuadTreeNode*>& nodesToProcess;
-        std::mutex& mutex;
-        util::Semaphore& semaphore;
-        util::Semaphore& doneSem;
-        bool& exiting;
-
-        WorkerContext(std::vector<detail::QuadTreeNode*>& nodesToProcess, std::mutex& mutex,
-                      util::Semaphore& semaphore, util::Semaphore& doneSem, bool& exiting)
-            : nodesToProcess{nodesToProcess}
-            , mutex{mutex}
-            , semaphore{semaphore}
-            , exiting{exiting}
-            , doneSem{doneSem}
-        {
-        }
-
-        WorkerContext(const WorkerContext& other) = default;
-    };
-
     PZInteger _maxDepth;
     PZInteger _maxEntitiesPerNode;
     PZInteger _maxNodesPerRow;
@@ -149,25 +128,43 @@ private:
     std::unique_ptr<detail::QuadTreeNode> _rootNode;
     
     std::vector<detail::QuadTreeNode*> _nodesToProcess;
-    std::vector<CollisionPair> _pairs;
+    std::vector<CollisionPair> _generatedPairs;
 
-    // Worker thread stuff:
-    std::vector<WorkerContext> _workerContexts;
-    std::vector<std::thread> _workers;
-    std::mutex _mutex;
-    util::Semaphore _semaphore; // TODO rename
-    util::Semaphore _doneSem; // TODO rename
-    bool _exiting;
+    //void node_table_update(MTQuadTreeNode* node);
+
+///////////////////////////////////////////////////////////////////////////////
+// Multithreading stuff:
+
+    struct MultithreadingData;
+
+    struct WorkerContext {
+        MultithreadingData& data;
+        std::vector<detail::QuadTreeNode*>& nodesToProcess;
+        std::vector<CollisionPair> generatedPairs;
+
+        WorkerContext(MultithreadingData& mtData, std::vector<detail::QuadTreeNode*>& nodesToProcess);
+        WorkerContext(const WorkerContext& other) = default;
+    };
+
+    struct MultithreadingData {
+        std::vector<WorkerContext> workerContexts;
+        std::vector<std::thread> workers;
+        std::mutex jobMutex;
+        util::Semaphore jobAvailableSem;
+        util::Semaphore jobCompletedSem;
+        PZInteger jobCount = 0;
+        bool workersShouldReturn = false;
+        int resultSelector = -1;
+
+        MultithreadingData(PZInteger threadCount, std::vector<detail::QuadTreeNode*>& nodesToProcessVec);
+        ~MultithreadingData();
+    };
+
+    std::unique_ptr<MultithreadingData> _mtData;
 
     static void workerBody(WorkerContext& ctx);
 
-    PZInteger _waitCount;
-    PZInteger _pairsVecSelector;
-
-    //bool domain_locked;
-
-    //QuadTreeEntity& get_entity(size_t index) const;
-    //void node_table_update(MTQuadTreeNode* node);
+    bool isMultithreading() const;
 };
 
 } // namespace util
