@@ -19,12 +19,11 @@ using BoundingBox = QuadTreeCollisionDomain::BoundingBox;
 const size_t WINDOW_W = 1400u;
 const size_t WINDOW_H = 900u;
 //const size_t INST_CNT = 30'000;
-const size_t INST_CNT = 30'000;
+const size_t INST_CNT = 40'000;
 const size_t MON_INDEX = INST_CNT + 5;
 
-#define THREAD_CNT  6
-#define SQUARE_SIZE (0.8)
-#define SQUARE_DRAW_SIZE (1.f)
+#define SQUARE_SIZE (0.8 * 1)
+#define SQUARE_DRAW_SIZE (1.f * 1)
 
 sf::RenderWindow* g_window;
 
@@ -201,9 +200,9 @@ protected:
 
 int main() {
     QuadTreeCollisionDomain* domain = nullptr;
-    const hg::PZInteger maxDepth = 8;
-    const hg::PZInteger maxEntitiesPerNode = 8;
-    QuadTreeCollisionDomain dom_impl{double(WINDOW_W), double(WINDOW_H), maxDepth, maxEntitiesPerNode}; //8, 8};
+    const hg::PZInteger maxDepth = 6;
+    const hg::PZInteger maxEntitiesPerNode = 10;
+    QuadTreeCollisionDomain dom_impl{double(WINDOW_W), double(WINDOW_H), maxDepth, maxEntitiesPerNode, 3};
     domain = &dom_impl;
 
     std::deque<RedSquare> rsdeq;
@@ -272,7 +271,6 @@ int main() {
             else {
                 assert(0);
             }
-
         };
 
         //domain->draw(window);

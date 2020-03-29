@@ -40,6 +40,10 @@ public:
         return false;
     }
 
+    int getValue() const {
+        return _val;
+    }
+
 private:
     std::mutex _mutex;
     std::condition_variable _condition;

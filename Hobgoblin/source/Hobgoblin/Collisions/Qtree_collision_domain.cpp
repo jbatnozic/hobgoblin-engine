@@ -312,10 +312,22 @@ QuadTreeCollisionDomain::QuadTreeCollisionDomain(double width, double height, PZ
     , _height{height}
     , _minWidth{width / _maxNodesPerRow}
     , _minHeight{height / _maxNodesPerRow}
-    , _nodeTable{_maxNodesPerRow, std::vector<detail::QuadTreeNode*>{static_cast<std::size_t>(_maxNodesPerRow)}} // TODO PEP
+    , _nodeTable{_maxNodesPerRow, std::vector<detail::QuadTreeNode*>{static_cast<std::size_t>(_maxNodesPerRow)}}
     , _rootNode{std::make_unique<detail::QuadTreeNode>(Self, BoundingBox{0.0, 0.0, width, height},
                                                        maxDepth, maxEntitiesPerNode, nullptr)}
+    , _semaphore{0}
+    , _doneSem{0}
 {
+    _exiting = false;
+    
+    // TODO Very unsafe because the contexts can get relocated...
+    for (PZInteger i = 0; i < workerThreadsCount; i += 1) {
+        _workerContexts.emplace_back(std::ref(_nodesToProcess), std::ref(_mutex), std::ref(_semaphore),
+                                     std::ref(_doneSem), std::ref(_exiting));
+    }
+    for (PZInteger i = 0; i < workerThreadsCount; i += 1) {
+        _workers.push_back(std::thread{workerBody, std::ref(_workerContexts[i])});
+    }
 }
 
 QuadTreeCollisionDomain::EntityHandle QuadTreeCollisionDomain::insertEntity(INDEX entitySlabIndex, 
@@ -326,28 +338,83 @@ QuadTreeCollisionDomain::EntityHandle QuadTreeCollisionDomain::insertEntity(INDE
 }
 
 PZInteger QuadTreeCollisionDomain::recalcPairs() {
-    _pairs.clear();
+    recalcPairsStart();
+    return recalcPairsJoin();
+}
 
-    std::vector<detail::QuadTreeNode*> allNodes;
-    _rootNode->listAllNodes(allNodes);
+void QuadTreeCollisionDomain::recalcPairsStart() {
+    _nodesToProcess.clear();
+    _rootNode->listAllNodes(_nodesToProcess);
 
-    for (auto& node : allNodes) {
-        node->visit(_pairs);
+    _waitCount = static_cast<PZInteger>(_nodesToProcess.size());
+    for (PZInteger i = 0; i < _waitCount; i += 1) {
+        _semaphore.signal();
+    }
+}
+
+PZInteger QuadTreeCollisionDomain::recalcPairsJoin() {
+    while (true) {
+        if (_semaphore.tryWait()) {
+            detail::QuadTreeNode* node;
+            {
+                std::lock_guard lock(_mutex);
+                if (!_nodesToProcess.empty()) {
+                    node = _nodesToProcess.back();
+                    _nodesToProcess.pop_back();
+                }
+                else {
+                    break;
+                }
+            }
+            node->visit(_pairs);
+            _doneSem.signal();
+        }
+        else {
+            break;
+        }
     }
 
-    pairs_hand = 0; // TODO Temp.
+    for (PZInteger i = 0; i < _waitCount; i += 1) {
+        _doneSem.wait();
+    }
+    assert(_doneSem.getValue() == 0);
 
-    return static_cast<PZInteger>(_pairs.size());
+    PZInteger rv = _pairs.size();
+    for (auto& ctx : _workerContexts) {
+        rv += ctx.pairs.size();
+    }
+
+    _pairsVecSelector = -1;
+
+    return rv;
 }
 
 bool QuadTreeCollisionDomain::pairsNext(INDEX& index1, INDEX& index2) {
-    if (pairs_hand >= _pairs.size()) {
+    std::vector<CollisionPair>* vec;
+
+    NEXT:
+    if (_pairsVecSelector == -1) {
+        vec = &_pairs;
+    }
+    else if (_pairsVecSelector >= _workerContexts.size()) { // TODO cast to PZInteger (stopz)
         return false;
     }
+    else {
+        vec = &(_workerContexts[_pairsVecSelector].pairs);
+    }
 
-    index1 = _pairs[pairs_hand].first;
-    index2 = _pairs[pairs_hand].second;
-    pairs_hand++;
+    if (vec->empty()) {
+        _pairsVecSelector += 1;
+        goto NEXT;
+    }
+
+    if (vec->back().first < 0 || vec->back().second < 0) {
+        int i = 0;
+    }
+
+    index1 = vec->back().first;
+    index2 = vec->back().second;
+    vec->pop_back();
 
     return true;
  }
@@ -362,6 +429,28 @@ void QuadTreeCollisionDomain::print() const {
 
 void QuadTreeCollisionDomain::prune() {
 
+}
+
+void QuadTreeCollisionDomain::workerBody(WorkerContext& ctx) {
+    while (true) {
+        ctx.semaphore.wait();
+        if (ctx.exiting) {
+            return;
+        }
+        detail::QuadTreeNode* node;
+        {
+            std::lock_guard lock(ctx.mutex);
+            if (!ctx.nodesToProcess.empty()) {
+                node = ctx.nodesToProcess.back();
+                ctx.nodesToProcess.pop_back();
+            }
+            else {
+                continue;
+            }
+        }
+        node->visit(ctx.pairs);
+        ctx.doneSem.signal();
+    }
 }
 
 } // namespace util

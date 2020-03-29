@@ -4,12 +4,14 @@
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Utility/NoCopyNoMove.hpp>
 #include <Hobgoblin/Utility/Rectangle.hpp>
+#include <Hobgoblin/Utility/Semaphore.hpp>
 #include <SFML/Graphics.hpp> // TODO Temp.
 
 #include <cstdint>
 #include <list>
 #include <memory>
 #include <optional>
+#include <thread>
 #include <vector>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
@@ -116,7 +118,26 @@ public:
 private:
     using EntityList = std::list<Entity>;
 
-    //friend void worker_body(MTQuadTreeDomain*, size_t, int*);
+    struct WorkerContext {
+        std::vector<CollisionPair> pairs;
+        std::vector<detail::QuadTreeNode*>& nodesToProcess;
+        std::mutex& mutex;
+        util::Semaphore& semaphore;
+        util::Semaphore& doneSem;
+        bool& exiting;
+
+        WorkerContext(std::vector<detail::QuadTreeNode*>& nodesToProcess, std::mutex& mutex,
+                      util::Semaphore& semaphore, util::Semaphore& doneSem, bool& exiting)
+            : nodesToProcess{nodesToProcess}
+            , mutex{mutex}
+            , semaphore{semaphore}
+            , exiting{exiting}
+            , doneSem{doneSem}
+        {
+        }
+
+        WorkerContext(const WorkerContext& other) = default;
+    };
 
     PZInteger _maxDepth;
     PZInteger _maxEntitiesPerNode;
@@ -127,19 +148,21 @@ private:
     std::vector<std::vector<detail::QuadTreeNode*>> _nodeTable; // [x][y]
     std::unique_ptr<detail::QuadTreeNode> _rootNode;
     
+    std::vector<detail::QuadTreeNode*> _nodesToProcess;
     std::vector<CollisionPair> _pairs;
-    //std::vector<MTQuadTreeNode*> cleanup_stack;
 
-    //PairsContainer pairs_deq[4];
+    // Worker thread stuff:
+    std::vector<WorkerContext> _workerContexts;
+    std::vector<std::thread> _workers;
+    std::mutex _mutex;
+    util::Semaphore _semaphore; // TODO rename
+    util::Semaphore _doneSem; // TODO rename
+    bool _exiting;
 
-    size_t pairs_hand;
-    //size_t deq_selector;
+    static void workerBody(WorkerContext& ctx);
 
-    //std::thread worker[4];
-    //int         status[4];
-
-    ///*util::Semaphore wsem[4];
-    //util::Semaphore dsem;*/
+    PZInteger _waitCount;
+    PZInteger _pairsVecSelector;
 
     //bool domain_locked;
 
