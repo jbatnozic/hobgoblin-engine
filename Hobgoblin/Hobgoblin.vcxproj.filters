@@ -281,6 +281,9 @@
     <ClInclude Include="include\Hobgoblin\Collisions\Qtree_collision_domain.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\Hobgoblin\ColDetect\Common.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="include\Hobgoblin\Private\HobgoblinCodingStyle.txt" />

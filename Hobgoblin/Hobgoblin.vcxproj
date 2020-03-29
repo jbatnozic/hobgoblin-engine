@@ -426,6 +426,7 @@
     <ClCompile Include="source\Hobgoblin\RigelNet\Udp_connector.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Udp_server.cpp" />
     <ClCompile Include="source\Hobgoblin\Utility\Serialization.cpp" />
+    <ClInclude Include="include\Hobgoblin\ColDetect\Common.hpp" />
     <ClInclude Include="include\Hobgoblin\Collisions\BoundingBox.hpp" />
     <ClInclude Include="include\Hobgoblin\Collisions\GenericPtr.hpp" />
     <ClInclude Include="include\Hobgoblin\Collisions\MTQuadTreeDomain.hpp" />
