@@ -409,13 +409,7 @@
   <ItemGroup>
     <ClCompile Include="include\Hobgoblin\RigelNet\Connector.hpp" />
     <ClCompile Include="source\Hobgoblin\CollisionsMain.cpp" />
-    <ClCompile Include="source\Hobgoblin\Collisions\BoundingBox.cpp" />
-    <ClCompile Include="source\Hobgoblin\Collisions\MTQuadTreeDomain.cpp" />
-    <ClCompile Include="source\Hobgoblin\Collisions\MTQuadTreeNode.cpp" />
-    <ClCompile Include="source\Hobgoblin\Collisions\Qtree_collision_domain.cpp" />
-    <ClCompile Include="source\Hobgoblin\Collisions\QuadTreeDomain.cpp" />
-    <ClCompile Include="source\Hobgoblin\Collisions\QuadTreeEntity.cpp" />
-    <ClCompile Include="source\Hobgoblin\Collisions\QuadTreeNode.cpp" />
+    <ClCompile Include="source\Hobgoblin\ColDetect\Qtree_collision_domain.cpp" />
     <ClCompile Include="source\Hobgoblin\QAO\Priority_resolver2.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Event.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Handlermgmt.cpp" />
@@ -427,14 +421,7 @@
     <ClCompile Include="source\Hobgoblin\RigelNet\Udp_server.cpp" />
     <ClCompile Include="source\Hobgoblin\Utility\Serialization.cpp" />
     <ClInclude Include="include\Hobgoblin\ColDetect\Common.hpp" />
-    <ClInclude Include="include\Hobgoblin\Collisions\BoundingBox.hpp" />
-    <ClInclude Include="include\Hobgoblin\Collisions\GenericPtr.hpp" />
-    <ClInclude Include="include\Hobgoblin\Collisions\MTQuadTreeDomain.hpp" />
-    <ClInclude Include="include\Hobgoblin\Collisions\MTQuadTreeNode.hpp" />
-    <ClInclude Include="include\Hobgoblin\Collisions\Qtree_collision_domain.hpp" />
-    <ClInclude Include="include\Hobgoblin\Collisions\QuadTreeDomain.hpp" />
-    <ClInclude Include="include\Hobgoblin\Collisions\QuadTreeEntity.hpp" />
-    <ClInclude Include="include\Hobgoblin\Collisions\QuadTreeNode.hpp" />
+    <ClInclude Include="include\Hobgoblin\ColDetect\Qtree_collision_domain.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Rectangle.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Semaphore.hpp" />
     <ClInclude Include="include\Hobgoblin\QAO\Priority_resolver2.hpp" />

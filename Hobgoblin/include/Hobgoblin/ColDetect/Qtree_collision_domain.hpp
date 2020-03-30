@@ -1,10 +1,12 @@
-#ifndef UHOBGOBLIN_UTIL_QTREE_COLLISION_DOMAIN_HPP
-#define UHOBGOBLIN_UTIL_QTREE_COLLISION_DOMAIN_HPP
+#ifndef UHOBGOBLIN_CD_QTREE_COLLISION_DOMAIN_HPP
+#define UHOBGOBLIN_CD_QTREE_COLLISION_DOMAIN_HPP
 
 #include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/ColDetect/Common.hpp>
 #include <Hobgoblin/Utility/NoCopyNoMove.hpp>
 #include <Hobgoblin/Utility/Rectangle.hpp>
 #include <Hobgoblin/Utility/Semaphore.hpp>
+
 #include <SFML/Graphics.hpp> // TODO Temp.
 
 #include <cstdint>
@@ -17,36 +19,29 @@
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_START
-namespace util {
-
-#define INDEX PZInteger
+namespace cd {
 
 namespace detail {
 
 class QuadTreeNode;
 
-class CollisionEntity {
+class QuadTreeCollisionEntity {
 public:
-    using BoundingBox = Rectangle<double>;
-
     BoundingBox bbox;
     QuadTreeNode* holder;
     std::int32_t groupMask;
-    INDEX index;
+    EntityTag tag;
 
-    bool collidesWith(const CollisionEntity& other) const {
+    bool collidesWith(const QuadTreeCollisionEntity& other) const {
         return (((groupMask & other.groupMask) != 0) && bbox.overlaps(other.bbox));
     }
 };
 
 } // namespace detail
 
-using CollisionPair = std::pair<INDEX, INDEX>;
-
 class QuadTreeCollisionDomain : NO_COPY, NO_MOVE {
 public:
-    using Entity = detail::CollisionEntity;
-    using BoundingBox = Entity::BoundingBox;
+    using Entity = detail::QuadTreeCollisionEntity;
 
     class EntityHandle : NO_COPY {
     public:
@@ -81,15 +76,13 @@ public:
     ~QuadTreeCollisionDomain();
 
     // Main functionality:
-    void clear();
-    void prune(); // Call from time to time to reclaim memory
-
-    EntityHandle insertEntity(INDEX entitiyIndex, const BoundingBox& bbox, std::int32_t groupMask);
+    EntityHandle insertEntity(EntityTag tag, const BoundingBox& bbox, std::int32_t groupMask);
+    void prune();
 
     PZInteger recalcPairs();
     void recalcPairsStart();
     PZInteger recalcPairsJoin();
-    bool pairsNext(INDEX& index1, INDEX& index2);
+    bool pairsNext(CollisionPair& collisionPair);
 
     //// Scanning - Point:
     //GenericPtr scan_point_one(GroupMask groups,
@@ -167,10 +160,10 @@ private:
     bool isMultithreading() const;
 };
 
-} // namespace util
+} // namespace cd
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
-#endif // !UHOBGOBLIN_UTIL_QTREE_COLLISION_DOMAIN_HPP
+#endif // !UHOBGOBLIN_CD_QTREE_COLLISION_DOMAIN_HPP

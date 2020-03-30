@@ -6,21 +6,21 @@
 #include <assert.h>
 
 #define HOBGOBLIN_SHORT_NAMESPACE
-#include <Hobgoblin/Collisions/Qtree_collision_domain.hpp>
+#include <Hobgoblin/ColDetect.hpp>
 
 #include <SFML\System.hpp>
 #include <SFML\Window.hpp>
 #include <SFML\Graphics.hpp>
 
 //#define DomainType hg::util:QuadTreeCollisionDomain
-using hg::util::QuadTreeCollisionDomain;
-using BoundingBox = QuadTreeCollisionDomain::BoundingBox;
+using hg::cd::QuadTreeCollisionDomain;
+using BoundingBox = hg::cd::BoundingBox;
 
 const size_t WINDOW_W = 1400u;
 const size_t WINDOW_H = 900u;
 //const size_t INST_CNT = 40'000;
-const size_t INST_CNT = 30'000;
-const size_t MON_INDEX = INST_CNT + 5;
+const hg::PZInteger INST_CNT = 20'000;
+const hg::PZInteger MON_INDEX = INST_CNT + 5;
 
 #define SQUARE_SIZE (2.0 * 1)
 #define SQUARE_DRAW_SIZE (2.f * 1)
@@ -49,7 +49,7 @@ public:
         , m_index(index)
     {
         if (m_dom) {
-            cHandle = m_dom->insertEntity(m_index, m_bb, 1);
+            cHandle = m_dom->insertEntity(hg::cd::MakeTag(m_index), m_bb, 1);
         }
 
         dest_x = rand(WINDOW_W);
@@ -79,10 +79,13 @@ public:
         if (done) return;
 
         if (distance(m_bb.x, m_bb.y, dest_x, dest_y) < 8) {
+            /*auto mpos = sf::Mouse::getPosition(*g_window);
+
+            dest_x = mpos.x + rand(WINDOW_W / 2) - WINDOW_W / 4;
+            dest_y = mpos.y + rand(WINDOW_H / 2) - WINDOW_H / 4;*/
 
             dest_x = rand(WINDOW_W);
             dest_y = rand(WINDOW_H);
-
         }
 
         double dir = atan2(dest_y - m_bb.y, dest_x - m_bb.x);
@@ -139,7 +142,7 @@ protected:
     int white_cnt;
     BoundingBox m_bb;
     QuadTreeCollisionDomain* m_dom;
-    size_t m_index;
+    hg::PZInteger m_index;
     double dest_x, dest_y;
     bool done;
     QuadTreeCollisionDomain::EntityHandle cHandle;
@@ -157,7 +160,7 @@ public:
         , m_bb(0.0, 0.0, 64.0, 64.0)
     {
         if (m_dom) {
-            cHandle = m_dom->insertEntity(MON_INDEX, m_bb, 1);
+            cHandle = m_dom->insertEntity(hg::cd::MakeTag(MON_INDEX), m_bb, 1);
         }
     }
 
@@ -256,8 +259,10 @@ int main() {
             std::cout << tm << "ms ";
             std::cout << "(" << pn << " pairs)       ";
 
-            hg::PZInteger index1, index2;
-            while (domain->pairsNext(index1, index2)) {
+            hg::cd::CollisionPair pair;
+            while (domain->pairsNext(pair)) {
+                auto index1 = std::get<hg::PZInteger>(pair.first);
+                auto index2 = std::get<hg::PZInteger>(pair.second);
 
                 if (index1 != MON_INDEX && index2 != MON_INDEX) { // Both are RedSquare
                     rsdeq[index1].coll_redsquare();
@@ -273,6 +278,8 @@ int main() {
                     assert(0);
                 }
             };
+
+            domain->prune();
 
             domain->draw(window);
 

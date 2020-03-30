@@ -1,6 +1,7 @@
 
-ALL add "namespace hg = jbatnozic::hobgoblin" if HOBGOBLIN_SHORT_NAMESPACE is defined
 QAO event flags are error prone and cumbersome
 QAO needs a lot of file, method and variable renaming
-RN  update() method to RN_Node
 QAO runtime.nonowning()
+RN  update() method to RN_Node
+CD  Add support for skewed bounding boxes
+CD  Implement scan functions

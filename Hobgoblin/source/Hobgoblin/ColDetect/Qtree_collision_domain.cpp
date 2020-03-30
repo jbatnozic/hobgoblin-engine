@@ -1,5 +1,5 @@
 
-#include <Hobgoblin/Collisions/Qtree_collision_domain.hpp>
+#include <Hobgoblin/ColDetect/Qtree_collision_domain.hpp>
 #include <SFML/Graphics.hpp> // TODO Temp.
 
 #include <array>
@@ -8,14 +8,13 @@
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_START
-namespace util {
+namespace cd {
 
 namespace detail {
 
 class QuadTreeNode {
 public:
-    using BoundingBox = QuadTreeCollisionDomain::BoundingBox;
-    using Entity = detail::CollisionEntity;
+    using Entity = detail::QuadTreeCollisionEntity;
     using EntityList = std::list<Entity>;
 
     QuadTreeNode(QuadTreeCollisionDomain& domain, const BoundingBox& bbox,
@@ -28,6 +27,7 @@ public:
         , _maxDepth{maxDepth}
         , _maxEntities{maxEntitiesPerNode}
     {
+        // TODO domain.updateNodeTable(Self);
     }
 
     ~QuadTreeNode() {
@@ -53,6 +53,33 @@ public:
         for (QuadTreeNode* curr = this; curr != nullptr; curr = curr->_parent) {
             curr->_childrenEntitiesCount -= 1;
         }
+    }
+
+    void prune() {
+        if (_children[0] == nullptr) {
+            return;
+        }
+
+        for (auto& child : _children) {
+            child->prune();
+        }
+
+        if (_childrenEntitiesCount <= _maxEntities) {
+            // Migrate all child entities to this node:
+            for (auto& child : _children) {
+                while (!child->_entities.empty()) {
+                    _entities.splice(_entities.end(), child->_entities, std::prev(child->_entities.end()));
+                    _entities.back().holder = this;
+                }
+            }
+
+            for (auto& child : _children) {
+                assert(child->_entities.empty());
+                child.reset();
+            }
+        }
+
+        // TODO domain.updateNodeTable(Self);
     }
 
     void setEntityBbox(EntityList::iterator entityIter, const BoundingBox& bbox) {
@@ -107,7 +134,7 @@ public:
             for (auto head = std::next(curr); head != _entities.end(); head = std::next(head)) {
                 auto& other = *head;
                 if (entity.collidesWith(other)) {
-                    collisionPairs.push_back(std::make_pair(entity.index, other.index));
+                    collisionPairs.push_back(std::make_pair(entity.tag, other.tag));
                 }
             }
 
@@ -142,6 +169,7 @@ public:
         }
     }
 
+    // TODO Temp.
     void print() const {
         /*for (int i = 0; i < _depth; i += 1) {
             std::cout << "  ";
@@ -209,17 +237,6 @@ private:
         }
     }
 
-    // TODO
-    void collapse() { // Maybe tryCollapse / prune?
-        // TODO - what if children still have entities? Splice them into this node!
-
-        for (auto& child : _children) {
-            child.reset();
-        }
-
-        // domain.updateNodeTable(Self);
-    }
-
     bool entityFits(const Entity& entity) const {
         return entity.bbox.envelopedBy(_bbox);
     }
@@ -251,7 +268,7 @@ private:
     void visitWith(std::vector<CollisionPair>& collisionPairs, const Entity& entity) const {
         for (auto& myEntity : _entities) {
             if (myEntity.collidesWith(entity)) {
-                collisionPairs.push_back(std::make_pair(myEntity.index, entity.index));
+                collisionPairs.push_back(std::make_pair(myEntity.tag, entity.tag));
             }
         }
     }
@@ -326,11 +343,15 @@ QuadTreeCollisionDomain::~QuadTreeCollisionDomain() {
     _mtData.reset();
 }
 
-QuadTreeCollisionDomain::EntityHandle QuadTreeCollisionDomain::insertEntity(INDEX entitySlabIndex, 
+QuadTreeCollisionDomain::EntityHandle QuadTreeCollisionDomain::insertEntity(EntityTag tag, 
                                                                             const BoundingBox& bbox,
                                                                             std::int32_t groupMask) {
-    auto iter = _rootNode->insertEntityPerfectFit(Entity{bbox, nullptr, groupMask, entitySlabIndex});
+    auto iter = _rootNode->insertEntityPerfectFit(Entity{bbox, nullptr, groupMask, tag});
     return EntityHandle{iter};
+}
+
+void QuadTreeCollisionDomain::prune() {
+    _rootNode->prune();
 }
 
 PZInteger QuadTreeCollisionDomain::recalcPairs() {
@@ -400,14 +421,13 @@ PZInteger QuadTreeCollisionDomain::recalcPairsJoin() {
     }
 }
 
-bool QuadTreeCollisionDomain::pairsNext(INDEX& index1, INDEX& index2) {
+bool QuadTreeCollisionDomain::pairsNext(CollisionPair& collisionPair) {
     if (!isMultithreading()) {
         if (_generatedPairs.empty()) {
             return false;
         }
 
-        index1 = _generatedPairs.back().first;
-        index2 = _generatedPairs.back().second;
+        collisionPair = _generatedPairs.back();
         _generatedPairs.pop_back();
 
         return true;
@@ -431,8 +451,7 @@ bool QuadTreeCollisionDomain::pairsNext(INDEX& index1, INDEX& index2) {
             goto NEXT_RESULT_VEC;
         }
 
-        index1 = resultVec->back().first;
-        index2 = resultVec->back().second;
+        collisionPair = resultVec->back();
         resultVec->pop_back();
 
         return true;
@@ -445,10 +464,6 @@ void QuadTreeCollisionDomain::draw(sf::RenderTarget& rt) {
 
 void QuadTreeCollisionDomain::print() const {
     _rootNode->print();
-}
-
-void QuadTreeCollisionDomain::prune() {
-
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -508,7 +523,7 @@ bool QuadTreeCollisionDomain::isMultithreading() const {
     return _mtData != nullptr;
 }
 
-} // namespace util
+} // namespace cd
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>

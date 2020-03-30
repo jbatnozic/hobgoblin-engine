@@ -81,28 +81,10 @@
     <ClCompile Include="source\Hobgoblin\QAO\Priority_resolver2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="source\Hobgoblin\Collisions\BoundingBox.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Hobgoblin\Collisions\MTQuadTreeDomain.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Hobgoblin\Collisions\MTQuadTreeNode.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Hobgoblin\Collisions\QuadTreeNode.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Hobgoblin\Collisions\QuadTreeEntity.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Hobgoblin\Collisions\QuadTreeDomain.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Hobgoblin\Collisions\Qtree_collision_domain.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="source\Hobgoblin\CollisionsMain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Hobgoblin\ColDetect\Qtree_collision_domain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -251,37 +233,16 @@
     <ClInclude Include="include\Hobgoblin\QAO\Priority_resolver2.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Hobgoblin\Collisions\BoundingBox.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Hobgoblin\Collisions\GenericPtr.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Hobgoblin\Collisions\MTQuadTreeDomain.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Hobgoblin\Collisions\MTQuadTreeNode.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Hobgoblin\Collisions\QuadTreeDomain.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Hobgoblin\Collisions\QuadTreeEntity.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Hobgoblin\Collisions\QuadTreeNode.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\Hobgoblin\Utility\Semaphore.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Hobgoblin\Utility\Rectangle.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Hobgoblin\Collisions\Qtree_collision_domain.hpp">
+    <ClInclude Include="include\Hobgoblin\ColDetect\Common.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Hobgoblin\ColDetect\Common.hpp">
+    <ClInclude Include="include\Hobgoblin\ColDetect\Qtree_collision_domain.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -7,6 +7,7 @@
 
 #include <cstdint>
 #include <variant>
+#include <utility>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
@@ -18,13 +19,21 @@ using BoundingBox = util::Rectangle<double>;
 using EntityTag = 
     std::variant<
         util::AnyPtr,
-        PZInteger,
         std::int32_t,
         std::uint32_t,
         std::int64_t,
         std::uint64_t,
         void*
     >;
+
+using CollisionPair = std::pair<EntityTag, EntityTag>;
+
+template <class T>
+EntityTag MakeTag(T&& value) {
+    EntityTag rv{};
+    rv = std::forward<T>(value);
+    return rv;
+}
 
 } // namespace cd
 HOBGOBLIN_NAMESPACE_END
