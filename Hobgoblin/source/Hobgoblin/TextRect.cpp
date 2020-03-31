@@ -28,7 +28,7 @@ public:
     }
 
     void addIntoPacker(rbp::MaxRectsBinPack& packer) {
-        _rect = packer.Insert(_size.width, _size.height, false, rbp::MaxRectsBinPack::RectBestShortSideFit);
+        _rect = packer.Insert(_size.width, _size.height, false, rbp::MaxRectsBinPack::RectBestAreaFit);
         if (_rect.width * _rect.height == 0) {
             std::cout << "Couldn't fit rectangle\n";
         }
@@ -53,13 +53,13 @@ private:
 };
 
 std::vector<Sprite> MakeSprites() {
-    static constexpr int AMOUNT = 100;
+    static constexpr int AMOUNT = 125;
     std::vector<Sprite> rv;
     rv.reserve(std::size_t(AMOUNT));
 
     for (int i = 0; i < AMOUNT; i += 1) {
         const sf::Color col{(sf::Uint8)Random(1, 256), (sf::Uint8)Random(1, 256), (sf::Uint8)Random(1, 256)};
-        rv.push_back(Sprite{Random(1, 4) * 32, Random(1, 4) * 32, col});
+        rv.push_back(Sprite{Random(1, 16) * 8, Random(1, 16) * 8, col});
     }
 
     std::sort(rv.begin(), rv.end(), [](const Sprite& a, const Sprite& b) {

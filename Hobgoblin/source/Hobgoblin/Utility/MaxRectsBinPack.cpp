@@ -85,9 +85,12 @@ Rect MaxRectsBinPack::Insert(int width, int height, bool rot, FreeRectChoiceHeur
 
 void MaxRectsBinPack::Insert(std::vector<RectSize> &rects, std::vector<Rect> &dst, bool rot, FreeRectChoiceHeuristic method)
 {
-	dst.clear();
+	dst.resize(rects.size());
+	std::vector<char> completed;
+	completed.resize(rects.size(), false);
+	auto remaining = rects.size();
 
-	while(rects.size() > 0)
+	while(remaining > 0)
 	{
 		int bestScore1 = std::numeric_limits<int>::max();
 		int bestScore2 = std::numeric_limits<int>::max();
@@ -96,6 +99,10 @@ void MaxRectsBinPack::Insert(std::vector<RectSize> &rects, std::vector<Rect> &ds
 
 		for(size_t i = 0; i < rects.size(); ++i)
 		{
+			if (completed[i]) {
+				continue;
+			}
+
 			int score1;
 			int score2;
 			Rect newNode = ScoreRect(rects[i].width, rects[i].height, rot, method, score1, score2);
@@ -110,14 +117,16 @@ void MaxRectsBinPack::Insert(std::vector<RectSize> &rects, std::vector<Rect> &ds
 		}
 
 		if (bestRectIndex == -1)
-			return;
+			return; // TODO Throw exception/assert
 
-		PlaceRect(bestNode);
-		rects.erase(rects.begin() + bestRectIndex);
+		completed[bestRectIndex] = true;
+		PlaceRect(bestNode, &dst[bestRectIndex]);
+		//rects.erase(rects.begin() + bestRectIndex);
+		remaining -= 1;
 	}
 }
 
-void MaxRectsBinPack::PlaceRect(const Rect &node)
+void MaxRectsBinPack::PlaceRect(const Rect &node, Rect* dst)
 {
 	size_t numRectanglesToProcess = freeRectangles.size();
 	for(size_t i = 0; i < numRectanglesToProcess; ++i)
@@ -134,6 +143,9 @@ void MaxRectsBinPack::PlaceRect(const Rect &node)
 
 	usedRectangles.push_back(node);
 	//		dst.push_back(bestNode); ///\todo Refactor so that this compiles.
+	if (dst) {
+		*dst = node;
+	}
 }
 
 Rect MaxRectsBinPack::ScoreRect(int width, int height, bool rot, FreeRectChoiceHeuristic method, int &score1, int &score2) const

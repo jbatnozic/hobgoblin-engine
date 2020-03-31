@@ -64,7 +64,7 @@ private:
 	Rect ScoreRect(int width, int height, bool rot, FreeRectChoiceHeuristic method, int &score1, int &score2) const;
 
 	/// Places the given rectangle into the bin.
-	void PlaceRect(const Rect &node);
+	void PlaceRect(const Rect &node, Rect* dst);
 
 	/// Computes the placement score for the -CP variant.
 	int ContactPointScoreNode(int x, int y, int width, int height) const;

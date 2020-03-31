@@ -408,8 +408,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="include\Hobgoblin\RigelNet\Connector.hpp" />
-    <ClCompile Include="source\Hobgoblin\CollisionsMain.cpp" />
     <ClCompile Include="source\Hobgoblin\ColDetect\Qtree_collision_domain.cpp" />
+    <ClCompile Include="source\Hobgoblin\Graphics\Sprite_manager.cpp" />
     <ClCompile Include="source\Hobgoblin\QAO\Priority_resolver2.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Event.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Handlermgmt.cpp" />
@@ -419,33 +419,25 @@
     <ClCompile Include="source\Hobgoblin\RigelNet\Udp_client.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Udp_connector.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Udp_server.cpp" />
+    <ClCompile Include="source\Hobgoblin\SpriteManagerMain.cpp" />
     <ClCompile Include="source\Hobgoblin\Utility\Serialization.cpp" />
+    <ClInclude Include="include\Hobgoblin\ColDetect.hpp" />
     <ClInclude Include="include\Hobgoblin\ColDetect\Common.hpp" />
     <ClInclude Include="include\Hobgoblin\ColDetect\Qtree_collision_domain.hpp" />
+    <ClInclude Include="include\Hobgoblin\Graphics\Multisprite.hpp" />
+    <ClInclude Include="include\Hobgoblin\Graphics\Sprite_manager.hpp" />
+    <ClInclude Include="include\Hobgoblin\Graphics\Template.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Rectangle.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Semaphore.hpp" />
     <ClInclude Include="include\Hobgoblin\QAO\Priority_resolver2.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Event.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Handlers.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Node.hpp" />
-    <ClCompile Include="include\Hobgoblin\DEP_Utility.hpp" />
     <ClCompile Include="source\Hobgoblin\QAO\base.cpp" />
     <ClCompile Include="source\Hobgoblin\QAO\orderer.cpp" />
     <ClCompile Include="source\Hobgoblin\QAO\registry.cpp" />
     <ClCompile Include="source\Hobgoblin\QAO\id.cpp" />
     <ClCompile Include="source\Hobgoblin\QAO\runtime.cpp" />
-    <ClCompile Include="source\Hobgoblin\TextRect.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release-Lib|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="source\Hobgoblin\Utility\Exceptions.cpp" />
     <ClCompile Include="source\Hobgoblin\Utility\MaxRectsBinPack.cpp" />
     <ClCompile Include="source\Hobgoblin\Utility\Rect.cpp" />
@@ -488,6 +480,7 @@
     <ClInclude Include="include\Hobgoblin\Utility\Exceptions.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Serialization.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Packet.hpp" />
+    <ClInclude Include="include\Hobgoblin\Utility\Texture_packer.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Visitor.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Stopwatch.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\template.hpp" />

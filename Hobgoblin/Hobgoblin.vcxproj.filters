@@ -36,9 +36,6 @@
     <ClCompile Include="source\Hobgoblin\Utility\Rect.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="source\Hobgoblin\TextRect.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="source\Hobgoblin\RigelNet\Udp_client.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -63,9 +60,6 @@
     <ClCompile Include="source\Hobgoblin\Utility\Exceptions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="include\Hobgoblin\DEP_Utility.hpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="include\Hobgoblin\RigelNet\Connector.hpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -81,10 +75,13 @@
     <ClCompile Include="source\Hobgoblin\QAO\Priority_resolver2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="source\Hobgoblin\CollisionsMain.cpp">
+    <ClCompile Include="source\Hobgoblin\ColDetect\Qtree_collision_domain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="source\Hobgoblin\ColDetect\Qtree_collision_domain.cpp">
+    <ClCompile Include="source\Hobgoblin\Graphics\Sprite_manager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Hobgoblin\SpriteManagerMain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -243,6 +240,21 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Hobgoblin\ColDetect\Qtree_collision_domain.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Hobgoblin\ColDetect.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Hobgoblin\Utility\Texture_packer.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Hobgoblin\Graphics\Template.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Hobgoblin\Graphics\Multisprite.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Hobgoblin\Graphics\Sprite_manager.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
