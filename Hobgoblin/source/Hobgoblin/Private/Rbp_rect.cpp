@@ -3,9 +3,9 @@
 
 	This work is released to Public Domain, do whatever you want with it.
 */
-#include <utility>
+#include <Hobgoblin/Private/Rbp_rect.hpp>
 
-#include <Hobgoblin/Utility/Rect.h>
+#include <utility>
 
 namespace rbp {
 

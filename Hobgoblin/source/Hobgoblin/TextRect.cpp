@@ -1,6 +1,6 @@
 
 #include <SFML/Graphics.hpp>
-#include <Hobgoblin/Utility/MaxRectsBinPack.hpp> // namespace rbp
+#include <Hobgoblin/Private/Max_rects_bin_pack.hpp> // namespace rbp
 
 #include <algorithm>
 #include <random>

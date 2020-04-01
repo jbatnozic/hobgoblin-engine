@@ -30,12 +30,6 @@
     <ClCompile Include="source\Hobgoblin\QAO\runtime.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="source\Hobgoblin\Utility\MaxRectsBinPack.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Hobgoblin\Utility\Rect.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="source\Hobgoblin\RigelNet\Udp_client.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -78,10 +72,16 @@
     <ClCompile Include="source\Hobgoblin\ColDetect\Qtree_collision_domain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="source\Hobgoblin\Graphics\Sprite_manager.cpp">
+    <ClCompile Include="source\Hobgoblin\SpriteManagerMain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="source\Hobgoblin\SpriteManagerMain.cpp">
+    <ClCompile Include="source\Hobgoblin\Graphics\Texture_packing.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Hobgoblin\Private\Rbp_rect.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Hobgoblin\Private\Max_rects_bin_pack.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -107,16 +107,10 @@
     <ClInclude Include="include\Hobgoblin\QAO\runtime.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Hobgoblin\Utility\MaxRectsBinPack.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\Hobgoblin\Utility\NoCopyNoMove.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Hobgoblin\Utility\Passkey.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Hobgoblin\Utility\Rect.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Hobgoblin\Utility\template.hpp">
@@ -245,9 +239,6 @@
     <ClInclude Include="include\Hobgoblin\ColDetect.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Hobgoblin\Utility\Texture_packer.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\Hobgoblin\Graphics\Template.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -255,6 +246,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Hobgoblin\Graphics\Sprite_manager.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Hobgoblin\Graphics\Texture_packing.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Hobgoblin\Private\Max_rects_bin_pack.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Hobgoblin\Private\Rbp_rect.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

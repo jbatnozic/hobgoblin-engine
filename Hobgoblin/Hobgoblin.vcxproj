@@ -409,7 +409,7 @@
   <ItemGroup>
     <ClCompile Include="include\Hobgoblin\RigelNet\Connector.hpp" />
     <ClCompile Include="source\Hobgoblin\ColDetect\Qtree_collision_domain.cpp" />
-    <ClCompile Include="source\Hobgoblin\Graphics\Sprite_manager.cpp" />
+    <ClCompile Include="source\Hobgoblin\Graphics\Texture_packing.cpp" />
     <ClCompile Include="source\Hobgoblin\QAO\Priority_resolver2.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Event.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Handlermgmt.cpp" />
@@ -439,8 +439,8 @@
     <ClCompile Include="source\Hobgoblin\QAO\id.cpp" />
     <ClCompile Include="source\Hobgoblin\QAO\runtime.cpp" />
     <ClCompile Include="source\Hobgoblin\Utility\Exceptions.cpp" />
-    <ClCompile Include="source\Hobgoblin\Utility\MaxRectsBinPack.cpp" />
-    <ClCompile Include="source\Hobgoblin\Utility\Rect.cpp" />
+    <ClCompile Include="source\Hobgoblin\Private\Max_rects_bin_pack.cpp" />
+    <ClCompile Include="source\Hobgoblin\Private\Rbp_rect.cpp" />
     <ClInclude Include="include\Hobgoblin\QAO\Priority_resolver.hpp" />
     <ClCompile Include="source\Hobgoblin\QAO\Priority_resolver.cpp" />
   </ItemGroup>
@@ -480,14 +480,14 @@
     <ClInclude Include="include\Hobgoblin\Utility\Exceptions.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Serialization.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Packet.hpp" />
-    <ClInclude Include="include\Hobgoblin\Utility\Texture_packer.hpp" />
+    <ClInclude Include="include\Hobgoblin\Graphics\Texture_packing.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Visitor.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Stopwatch.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\template.hpp" />
-    <ClInclude Include="include\Hobgoblin\Utility\MaxRectsBinPack.hpp" />
+    <ClInclude Include="include\Hobgoblin\Private\Max_rects_bin_pack.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\NoCopyNoMove.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Passkey.hpp" />
-    <ClInclude Include="include\Hobgoblin\Utility\Rect.h" />
+    <ClInclude Include="include\Hobgoblin\Private\Rbp_rect.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Slab_indexer.hpp" />
   </ItemGroup>
   <ItemGroup>

@@ -3,7 +3,8 @@
 
 	This work is released to Public Domain, do whatever you want with it.
 */
-#pragma once
+#ifndef UHOBGOBLIN_PRIV_RBP_RECT_HPP
+#define UHOBGOBLIN_PRIV_RBP_RECT_HPP
 
 #include <vector>
 #include <cassert>
@@ -15,8 +16,6 @@
 #else
 #define debug_assert(x)
 #endif
-
-//using namespace std;
 
 namespace rbp {
 
@@ -92,3 +91,5 @@ public:
 };
 
 }
+
+#endif // !UHOBGOBLIN_PRIV_RBP_RECT_HPP

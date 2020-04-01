@@ -5,11 +5,13 @@
 
 	This work is released to Public Domain, do whatever you want with it.
 */
-#pragma once
+
+#ifndef UHOBGOBLIN_PRIV_MAX_RECTS_BIN_PACK_HPP
+#define UHOBGOBLIN_PRIV_MAX_RECTS_BIN_PACK_HPP
+
+#include <Hobgoblin/Private/Rbp_rect.hpp>
 
 #include <vector>
-
-#include "Rect.h"
 
 namespace rbp {
 
@@ -42,7 +44,7 @@ public:
 	/// @param rects The list of rectangles to insert. This vector will be destroyed in the process.
 	/// @param dst [out] This list will contain the packed rectangles. The indices will not correspond to that of rects.
 	/// @param method The rectangle placement rule to use when packing.
-	void Insert(std::vector<RectSize> &rects, std::vector<Rect> &dst, bool rot, FreeRectChoiceHeuristic method);
+	std::vector<Rect> Insert(std::vector<RectSize> &rects, bool rot, FreeRectChoiceHeuristic method);
 
 	/// Inserts a single rectangle into the bin, possibly rotated.
 	Rect Insert(int width, int height, bool rot, FreeRectChoiceHeuristic method);
@@ -64,7 +66,7 @@ private:
 	Rect ScoreRect(int width, int height, bool rot, FreeRectChoiceHeuristic method, int &score1, int &score2) const;
 
 	/// Places the given rectangle into the bin.
-	void PlaceRect(const Rect &node, Rect* dst);
+	void PlaceRect(const Rect &node);
 
 	/// Computes the placement score for the -CP variant.
 	int ContactPointScoreNode(int x, int y, int width, int height) const;
@@ -83,3 +85,5 @@ private:
 };
 
 }
+
+#endif // !UHOBGOBLIN_PRIV_MAX_RECTS_BIN_PACK_HPP

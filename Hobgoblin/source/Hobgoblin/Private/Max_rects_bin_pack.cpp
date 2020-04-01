@@ -5,20 +5,23 @@
 
 	This work is released to Public Domain, do whatever you want with it.
 */
-#include <utility>
-#include <iostream>
-#include <limits>
 
+#include <Hobgoblin/Private/Max_rects_bin_pack.hpp>
+#include <Hobgoblin/Utility/Exceptions.hpp>
+
+#include <algorithm>
 #include <cassert>
 #include <cstring>
 #include <cmath>
-#include <algorithm>
-
-#include "Hobgoblin/Utility/MaxRectsBinPack.hpp"
+#include <limits>
+#include <iostream>
+#include <utility>
 
 namespace rbp {
 
-using namespace std;
+using std::min;
+using std::max;
+using std::abs;
 
 MaxRectsBinPack::MaxRectsBinPack()
     : binWidth(0)
@@ -36,21 +39,21 @@ void MaxRectsBinPack::Init(int width, int height)
 	binWidth = width;
 	binHeight = height;
 
+	usedRectangles.clear();
+	freeRectangles.clear();
+
 	Rect n;
 	n.x = 0;
 	n.y = 0;
 	n.width = width;
 	n.height = height;
 
-	usedRectangles.clear();
-
-	freeRectangles.clear();
 	freeRectangles.push_back(n);
 }
 
 Rect MaxRectsBinPack::Insert(int width, int height, bool rot, FreeRectChoiceHeuristic method)
 {
-	Rect newNode;
+	Rect newNode{};
 	// Unused in this function. We don't need to know the score after finding the position.
 	int score1 = std::numeric_limits<int>::max();
 	int score2 = std::numeric_limits<int>::max();
@@ -63,8 +66,9 @@ Rect MaxRectsBinPack::Insert(int width, int height, bool rot, FreeRectChoiceHeur
 		case RectBestAreaFit: newNode = FindPositionForNewNodeBestAreaFit(rot, width, height, score1, score2); break;
 	}
 		
-	if (newNode.height == 0)
+	if (newNode.height == 0) {
 		return newNode;
+	}
 
 	size_t numRectanglesToProcess = freeRectangles.size();
 	for(size_t i = 0; i < numRectanglesToProcess; ++i)
@@ -83,13 +87,14 @@ Rect MaxRectsBinPack::Insert(int width, int height, bool rot, FreeRectChoiceHeur
 	return newNode;
 }
 
-void MaxRectsBinPack::Insert(std::vector<RectSize> &rects, std::vector<Rect> &dst, bool rot, FreeRectChoiceHeuristic method)
-{
-	dst.resize(rects.size());
+std::vector<Rect> MaxRectsBinPack::Insert(std::vector<RectSize> &rects, bool rot, FreeRectChoiceHeuristic method) {
+	std::vector<Rect> rv;
+	rv.resize(rects.size());
+
 	std::vector<char> completed;
 	completed.resize(rects.size(), false);
-	auto remaining = rects.size();
 
+	size_t remaining = rects.size();
 	while(remaining > 0)
 	{
 		int bestScore1 = std::numeric_limits<int>::max();
@@ -116,17 +121,21 @@ void MaxRectsBinPack::Insert(std::vector<RectSize> &rects, std::vector<Rect> &ds
 			}
 		}
 
-		if (bestRectIndex == -1)
-			return; // TODO Throw exception/assert
+		if (bestRectIndex == -1) {
+			const std::string msg = "Not enough room on the texture to place all sprites";
+			throw jbatnozic::hobgoblin::util::TracedRuntimeError(msg);
+		}
 
 		completed[bestRectIndex] = true;
-		PlaceRect(bestNode, &dst[bestRectIndex]);
-		//rects.erase(rects.begin() + bestRectIndex);
+		PlaceRect(bestNode);
+		rv[bestRectIndex] = bestNode;
 		remaining -= 1;
 	}
+
+	return rv;
 }
 
-void MaxRectsBinPack::PlaceRect(const Rect &node, Rect* dst)
+void MaxRectsBinPack::PlaceRect(const Rect &node)
 {
 	size_t numRectanglesToProcess = freeRectangles.size();
 	for(size_t i = 0; i < numRectanglesToProcess; ++i)
@@ -142,10 +151,6 @@ void MaxRectsBinPack::PlaceRect(const Rect &node, Rect* dst)
 	PruneFreeList();
 
 	usedRectangles.push_back(node);
-	//		dst.push_back(bestNode); ///\todo Refactor so that this compiles.
-	if (dst) {
-		*dst = node;
-	}
 }
 
 Rect MaxRectsBinPack::ScoreRect(int width, int height, bool rot, FreeRectChoiceHeuristic method, int &score1, int &score2) const
