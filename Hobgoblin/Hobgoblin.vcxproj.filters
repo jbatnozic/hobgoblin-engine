@@ -84,6 +84,9 @@
     <ClCompile Include="source\Hobgoblin\Private\Max_rects_bin_pack.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="source\Hobgoblin\Graphics\Sprite_loader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Hobgoblin\QAO\base.hpp">
@@ -245,9 +248,6 @@
     <ClInclude Include="include\Hobgoblin\Graphics\Multisprite.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Hobgoblin\Graphics\Sprite_manager.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\Hobgoblin\Graphics\Texture_packing.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -255,6 +255,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Hobgoblin\Private\Rbp_rect.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Hobgoblin\Graphics\Sprite_loader.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

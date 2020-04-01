@@ -1,10 +1,8 @@
-#ifndef UHOBGOBLIN_GR_SPRITE_MANAGER_HPP
-#define UHOBGOBLIN_GR_SPRITE_MANAGER_HPP
+#ifndef UHOBGOBLIN_GR_SPRITE_LOADER_HPP
+#define UHOBGOBLIN_GR_SPRITE_LOADER_HPP
 
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Graphics/Multisprite.hpp>
-
-#include <Hobgoblin/Utility/Rect.h> // TODO Temp.
 
 #include <string>
 #include <unordered_map>
@@ -19,28 +17,28 @@ using TextureHandle = int;
 
 constexpr struct AutoIndexType {} AUTO_INDEX;
 
-class SpriteManager {
+class SpriteLoader {
 public:
 
     TextureHandle addTexture(PZInteger width, PZInteger height);
 
     // Loading from file:
-    void loadFromFile(TextureHandle textureHandle, PZInteger spriteIndex,
-                      PZInteger subspriteIndex, const std::string& filePath);
+    SpriteLoader& loadFromFile(TextureHandle textureHandle, PZInteger spriteIndex,
+                               PZInteger subspriteIndex, const std::string& filePath);
 
-    void loadFromFile(TextureHandle textureHandle, PZInteger spriteIndex,
-                      AutoIndexType, const std::string& filePath);
+    SpriteLoader& loadFromFile(TextureHandle textureHandle, PZInteger spriteIndex,
+                               AutoIndexType, const std::string& filePath);
 
-    void loadFromFile(TextureHandle textureHandle, std::string spriteName,
-                      PZInteger subspriteIndex, const std::string& filePath);
+    SpriteLoader& loadFromFile(TextureHandle textureHandle, std::string spriteName,
+                               PZInteger subspriteIndex, const std::string& filePath);
 
-    void loadFromFile(TextureHandle textureHandle, std::string spriteName,
-                      AutoIndexType, const std::string& filePath);
+    SpriteLoader& loadFromFile(TextureHandle textureHandle, std::string spriteName,
+                               AutoIndexType, const std::string& filePath);
 
     // Loading from directory:
-    void loadFromDirectory(TextureHandle textureHandle, PZInteger spriteIndex, const std::string& filePath);
+    SpriteLoader& loadFromDirectory(TextureHandle textureHandle, PZInteger spriteIndex, const std::string& filePath);
 
-    void loadFromDirectory(TextureHandle textureHandle, std::string spriteName, const std::string& filePath);
+    SpriteLoader& loadFromDirectory(TextureHandle textureHandle, std::string spriteName, const std::string& filePath);
 
     // Loading from memory:
     // TODO loadFromMemory
@@ -58,7 +56,6 @@ private:
         struct A { // TODO
             TextureHandle textureHandle;
             sf::Image image;
-            rbp::Rect rect;
             bool vacant = true;
         };
 
@@ -78,4 +75,4 @@ HOBGOBLIN_NAMESPACE_END
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
-#endif // !UHOBGOBLIN_GR_SPRITE_MANAGER_HPP
+#endif // !UHOBGOBLIN_GR_SPRITE_LOADER_HPP

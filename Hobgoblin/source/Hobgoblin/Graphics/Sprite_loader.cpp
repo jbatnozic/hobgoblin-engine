@@ -1,8 +1,6 @@
 
-#include <Hobgoblin/Graphics/Sprite_manager.hpp>
-
-#include <Hobgoblin/Utility/MaxRectsBinPack.hpp> // TODO Temp.
-#include <Hobgoblin/Utility/Rect.h> // TODO Temp.
+#include <Hobgoblin/Graphics/Sprite_loader.hpp>
+#include <Hobgoblin/Graphics/Texture_packing.hpp>
 
 #include <cassert>
 
@@ -11,7 +9,7 @@
 HOBGOBLIN_NAMESPACE_START
 namespace gr {
 
-TextureHandle SpriteManager::addTexture(PZInteger width, PZInteger height) {
+TextureHandle SpriteLoader::addTexture(PZInteger width, PZInteger height) {
     _textures.emplace_back();
     if (!_textures.back().create(static_cast<unsigned>(width), static_cast<unsigned>(height))) {
         // TODO Handle error properly
@@ -21,8 +19,8 @@ TextureHandle SpriteManager::addTexture(PZInteger width, PZInteger height) {
 }
 
 // Loading from file:
-void SpriteManager::loadFromFile(TextureHandle textureHandle, PZInteger spriteIndex,
-                                 PZInteger subspriteIndex, const std::string& filePath) {
+SpriteLoader& SpriteLoader::loadFromFile(TextureHandle textureHandle, PZInteger spriteIndex,
+                                         PZInteger subspriteIndex, const std::string& filePath) {
     assert(textureHandle < static_cast<TextureHandle>(_textures.size()));
 
     if (spriteIndex >= stopz(_indexedSprites.size())) {
@@ -40,7 +38,7 @@ void SpriteManager::loadFromFile(TextureHandle textureHandle, PZInteger spriteIn
     assert(subspriteData.vacant == true);
     
     if (!subspriteData.image.loadFromFile(filePath)) {
-        // TODO Handle error properly
+        // TODO Handle error properly (exception)
         assert(false && "Could not load image");
     }
 
@@ -48,27 +46,29 @@ void SpriteManager::loadFromFile(TextureHandle textureHandle, PZInteger spriteIn
     subspriteData.vacant = false;
 }
 
-void SpriteManager::loadFromFile(TextureHandle texture, PZInteger spriteIndex,
-                                 AutoIndexType, const std::string& filePath) {
+SpriteLoader& SpriteLoader::loadFromFile(TextureHandle texture, PZInteger spriteIndex,
+                                         AutoIndexType, const std::string& filePath) {
 
 }
 
-void SpriteManager::loadFromFile(TextureHandle texture, std::string spriteName,
-                                 PZInteger subspriteIndex, const std::string& filePath) {
+SpriteLoader& SpriteLoader::loadFromFile(TextureHandle texture, std::string spriteName,
+                                         PZInteger subspriteIndex, const std::string& filePath) {
 
 }
 
-void SpriteManager::loadFromFile(TextureHandle texture, std::string spriteName,
-                                 AutoIndexType, const std::string& filePath) {
+SpriteLoader& SpriteLoader::loadFromFile(TextureHandle texture, std::string spriteName,
+                                         AutoIndexType, const std::string& filePath) {
 
 }
 
 // Loading from directory:
-void SpriteManager::loadFromDirectory(TextureHandle texture, PZInteger spriteIndex, const std::string& filePath) {
+SpriteLoader& SpriteLoader::loadFromDirectory(TextureHandle texture, PZInteger spriteIndex,
+                                              const std::string& filePath) {
     
 }
 
-void SpriteManager::loadFromDirectory(TextureHandle texture, std::string spriteName, const std::string& filePath) {
+SpriteLoader& SpriteLoader::loadFromDirectory(TextureHandle texture, std::string spriteName,
+                                              const std::string& filePath) {
 
 }
 
@@ -76,16 +76,16 @@ void SpriteManager::loadFromDirectory(TextureHandle texture, std::string spriteN
 // TODO loadFromMemory
 
 // Search loaded sprites:
-Multisprite SpriteManager::getSprite(PZInteger spriteIndex) const {
+Multisprite SpriteLoader::getSprite(PZInteger spriteIndex) const {
     return Multisprite{};
 }
 
-Multisprite SpriteManager::getSprite(const std::string& spriteName) const {
+Multisprite SpriteLoader::getSprite(const std::string& spriteName) const {
     return Multisprite{};
 }
 
 // Other:
-void SpriteManager::finalize() {
+void SpriteLoader::finalize() {
     std::vector<std::vector<SpriteData::A*>> texturePackRequests;
     texturePackRequests.resize(_textures.size());
 
@@ -103,26 +103,22 @@ void SpriteManager::finalize() {
         auto& requestVec = texturePackRequests[pztos(i)];
         auto& texture = _textures[pztos(i)];
 
-        std::vector<rbp::RectSize> rectSizes;
+        std::vector<sf::Image*> images;
         for (auto& subsprite : requestVec) {
-            rbp::RectSize rectSize;
-            rectSizes.push_back(rbp::RectSize{(int)subsprite->image.getSize().x,
-                                              (int)subsprite->image.getSize().y});
+            images.push_back(&(subsprite->image));
         }
 
-        std::vector<rbp::Rect> placedRects;
-        rbp::MaxRectsBinPack packer(texture.getSize().x, texture.getSize().y);
-        packer.Insert(rectSizes, placedRects, false, rbp::MaxRectsBinPack::RectBestAreaFit); // TODO No verification is done!
+        auto results = PackTexture(texture, images, TexturePackingHeuristic::BestAreaFit, nullptr);
 
         for (PZInteger j = 0; j < stopz(requestVec.size()); j += 1) {
             auto& subsprite = requestVec[j];
-            subsprite->rect = placedRects[j];
+            //subsprite->
         }
     }
 
 }
 
-void SpriteManager::clear() {
+void SpriteLoader::clear() {
 
 }
 
