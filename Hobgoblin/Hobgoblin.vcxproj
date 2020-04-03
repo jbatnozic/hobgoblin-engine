@@ -409,6 +409,7 @@
   <ItemGroup>
     <ClCompile Include="include\Hobgoblin\RigelNet\Connector.hpp" />
     <ClCompile Include="source\Hobgoblin\ColDetect\Qtree_collision_domain.cpp" />
+    <ClCompile Include="source\Hobgoblin\Graphics\Multisprite.cpp" />
     <ClCompile Include="source\Hobgoblin\Graphics\Sprite_loader.cpp" />
     <ClCompile Include="source\Hobgoblin\Graphics\Texture_packing.cpp" />
     <ClCompile Include="source\Hobgoblin\QAO\Priority_resolver2.cpp" />

@@ -1,5 +1,6 @@
 
 #define HOBGOBLIN_SHORT_NAMESPACE
+#include <Hobgoblin/Graphics/Sprite_loader.hpp>
 #include <Hobgoblin/Graphics/Texture_packing.hpp>
 #include <Hobgoblin/Utility/Exceptions.hpp>
 #include <SFML/Graphics.hpp>
@@ -7,20 +8,55 @@
 #include <iostream>
 
 enum Sprites {
-    Player, Enemy, Block
+    Player, Enemy, Block, Misc
 };
 
-#define TEXTURE_PACKING_TEST
+using hg::gr::AUTO_INDEX;
+
+#define SPRITE_LOADER_TEST
 
 int main() {
 #ifdef SPRITE_LOADER_TEST
-    hg::gr::SpriteManager sm;
-    auto tex = sm.addTexture(800, 800);
+#define WIDTH 600
+#define HEIGHT 600
 
-    sm.loadFromFile(tex, Player, 0, "sprites/player.png");
-    sm.loadFromFile(tex, Enemy, 0, "sprites/enemy.png");
-    sm.loadFromFile(tex, Block, 0, "sprites/block.png");
-    sm.finalize();
+    hg::gr::SpriteLoader sprLd;
+    auto tex = sprLd.addTexture(WIDTH, HEIGHT);
+
+    sprLd
+        .loadFromFile(tex, Player, 0, "sprites/player.png")
+        .loadFromFile(tex, Enemy, 0, "sprites/enemy.png")
+        .loadFromFile(tex, Block, 0, "sprites/block.png")
+        .loadFromFile(tex, Misc, AUTO_INDEX, "sprites/block.png")
+        .loadFromFile(tex, Misc, AUTO_INDEX, "sprites/block.png")
+        .loadFromFile(tex, Misc, AUTO_INDEX, "sprites/Brick.png")
+        .loadFromFile(tex, Misc, AUTO_INDEX, "sprites/Btn_UnDrop.png")
+        .loadFromFile(tex, Misc, AUTO_INDEX, "sprites/obj_window_0.png")
+        .loadFromFile(tex, Misc, AUTO_INDEX, "sprites/spr_ctrl_camera_foot_0.png")
+        .loadFromFile(tex, Misc, AUTO_INDEX, "sprites/spr_enemy_brain_0.png")
+        .loadFromFile(tex, Misc, AUTO_INDEX, "sprites/spr_item_consumable_default_0.png")
+        .loadFromFile(tex, Misc, AUTO_INDEX, "sprites/spr_tom_0.png")
+        .finalize(hg::gr::TexturePackingHeuristic::BestAreaFit);
+
+    sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "Sprite loader");
+
+    while (window.isOpen()) {
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed) {
+                window.close();
+            }
+        }
+
+        window.clear();
+
+        sf::Sprite texSprite;
+        texSprite.setTexture(sprLd.getTexture(tex));
+        texSprite.setTextureRect({0, 0, WIDTH, HEIGHT});
+        window.draw(texSprite);
+
+        window.display();
+    }
 
     std::cin.get();
 #endif

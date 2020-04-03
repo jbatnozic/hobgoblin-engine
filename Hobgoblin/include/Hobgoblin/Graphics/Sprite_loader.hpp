@@ -3,6 +3,8 @@
 
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Graphics/Multisprite.hpp>
+#include <Hobgoblin/Graphics/Texture_packing.hpp>
+#include <Hobgoblin/Utility/Rectangle.hpp>
 
 #include <string>
 #include <unordered_map>
@@ -17,10 +19,12 @@ using TextureHandle = int;
 
 constexpr struct AutoIndexType {} AUTO_INDEX;
 
+// TODO use std::filesystem::path instead of path strings
 class SpriteLoader {
 public:
 
     TextureHandle addTexture(PZInteger width, PZInteger height);
+    sf::Texture& getTexture(TextureHandle textureHandle);
 
     // Loading from file:
     SpriteLoader& loadFromFile(TextureHandle textureHandle, PZInteger spriteIndex,
@@ -48,24 +52,29 @@ public:
     Multisprite getSprite(const std::string& spriteName) const;
 
     // Other:
-    void finalize();
+    void finalize(TexturePackingHeuristic heuristic);
     void clear();
 
 private:
     struct SpriteData {
-        struct A { // TODO
-            TextureHandle textureHandle;
+        Multisprite multisprite;
+
+        struct PackRequest {
             sf::Image image;
-            bool vacant = true;
+            TextureHandle textureHandle;
+            util::Rectangle<PZInteger> rextureRect;
+            bool unused = true;
         };
 
-        Multisprite multisprite;
-        std::vector<A> subspriteData;
+        std::vector<PackRequest> packRequests;
     };
 
     std::vector<sf::Texture> _textures;
     std::vector<SpriteData> _indexedSprites;
     std::unordered_map<std::string, SpriteData> _mappedSprites;
+    bool _isFinalized = false;
+
+    void assertNotFinalized() const;
 };
 
 

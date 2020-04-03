@@ -2,6 +2,7 @@
 #define UHOBGOBLIN_GR_MULTISPRITE_HPP
 
 #include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/Utility/Rectangle.hpp>
 #include <SFML/Graphics.hpp>
 
 #include <variant>
@@ -15,13 +16,21 @@ namespace gr {
 class Multisprite : public sf::Drawable, public sf::Transformable {
 public:
 
-    PZInteger getSubspriteCount();
+    void setSubspriteIndex(PZInteger subspriteIndex);
+    void setColor(const sf::Color& color);
+    sf::Color getColor() const;
 
-    void draw(sf::RenderTarget& target, sf::RenderStates states) const override {}
+    void addSubsprite(sf::Texture& texture, util::Rectangle<PZInteger>& textureRect);
+    PZInteger getSubspriteCount() const;
 
 private:
     std::variant<sf::Sprite, std::vector<sf::Sprite>> _subsprites;
-    PZInteger _subspriteCount;
+    PZInteger _subspriteCount = 0;
+    PZInteger _subspriteIndex = 0;
+    sf::Color _color;
+
+    void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
+    const sf::Sprite* addressOfFirstSprite() const;
 };
 
 } // namespace gr
