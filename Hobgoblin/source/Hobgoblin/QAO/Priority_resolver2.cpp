@@ -36,7 +36,7 @@ bool QAO_PriorityResolver2::CategoryDefinition::dependenciesSatisfied() const {
 }
 
 QAO_PriorityResolver2::DependencyInserter QAO_PriorityResolver2::category(int* category) {
-    return DependencyInserter(Self, category);
+    return DependencyInserter(SELF, category);
 }
 
 void QAO_PriorityResolver2::resolveAll() {

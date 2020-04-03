@@ -27,7 +27,7 @@ public:
         , _maxDepth{maxDepth}
         , _maxEntities{maxEntitiesPerNode}
     {
-        // TODO domain.updateNodeTable(Self);
+        // TODO domain.updateNodeTable(SELF);
     }
 
     ~QuadTreeNode() {
@@ -79,7 +79,7 @@ public:
             }
         }
 
-        // TODO domain.updateNodeTable(Self);
+        // TODO domain.updateNodeTable(SELF);
     }
 
     void setEntityBbox(EntityList::iterator entityIter, const BoundingBox& bbox) {
@@ -330,7 +330,7 @@ QuadTreeCollisionDomain::QuadTreeCollisionDomain(double width, double height, PZ
     , _minWidth{width / _maxNodesPerRow}
     , _minHeight{height / _maxNodesPerRow}
     , _nodeTable{_maxNodesPerRow, std::vector<detail::QuadTreeNode*>{static_cast<std::size_t>(_maxNodesPerRow)}}
-    , _rootNode{std::make_unique<detail::QuadTreeNode>(Self, BoundingBox{0.0, 0.0, width, height},
+    , _rootNode{std::make_unique<detail::QuadTreeNode>(SELF, BoundingBox{0.0, 0.0, width, height},
                                                        maxDepth, maxEntitiesPerNode, nullptr)}
 {
     if (workerThreadsCount > 0) {
@@ -486,7 +486,7 @@ QuadTreeCollisionDomain::MultithreadingData::MultithreadingData(PZInteger thread
     workers.reserve(pztos(threadCount));
 
     for (PZInteger i = 0; i < threadCount; i += 1) {
-        workerContexts.emplace_back(std::ref(Self), std::ref(nodesToProcessVec));
+        workerContexts.emplace_back(std::ref(SELF), std::ref(nodesToProcessVec));
         workers.push_back(std::thread{QuadTreeCollisionDomain::workerBody, std::ref(workerContexts.back())});
     }
 }

@@ -7,7 +7,7 @@
 #define NO_COPY public util::NonCopyable
 #define NO_MOVE public util::NonMoveable
 #define PASSKEY {}
-#define Self (*this)
+#define SELF (*this)
 #define SWITCH_FALLTHROUGH (void)0
 #define NO_OP() (void)0
 #define CRTP_METHOD(_type_param_, _name_, ...) { return static_cast<_type_param_*>(this)->_name_(__VA_ARGS__); }

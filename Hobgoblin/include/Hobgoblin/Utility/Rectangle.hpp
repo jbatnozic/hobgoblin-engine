@@ -44,10 +44,10 @@ public:
     }
 
     void reset(T x, T y, T w, T h) {
-        Self.x = x;
-        Self.y = y;
-        Self.w = w;
-        Self.h = h;
+        SELF.x = x;
+        SELF.y = y;
+        SELF.w = w;
+        SELF.h = h;
     }
 
     // Copy:

@@ -23,7 +23,7 @@ public:
 template <class T>
 T Packet::extractOrThrow() {
     T value;
-    if (!(Self >> value)) {
+    if (!(SELF >> value)) {
         throw TracedRuntimeError{"Bad read from Packet"};
     }
     return value;
@@ -31,7 +31,7 @@ T Packet::extractOrThrow() {
 
 template <class T>
 void Packet::insert(T&& value) {
-    Self << std::forward<T>(value);
+    SELF << std::forward<T>(value);
 }
 
 } // namespace util

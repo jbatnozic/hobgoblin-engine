@@ -84,7 +84,7 @@ QAO_PriorityResolver2::DependencyInserter&
 QAO_PriorityResolver2::DependencyInserter::dependsOn(int* argsHead, ArgsRest&&... argsRest) {
     FRIEND_ACCESS _resolver.categoryDependsOn(_category, argsHead);
     dependsOn(std::forward<ArgsRest>(argsRest)...);
-    return Self;
+    return SELF;
 }
 
 template <class ...NoArgs>
@@ -97,7 +97,7 @@ QAO_PriorityResolver2::DependencyInserter&
 QAO_PriorityResolver2::DependencyInserter::precedes(int* argsHead, ArgsRest&&... argsRest) {
     FRIEND_ACCESS _resolver.categoryPrecedes(_category, argsHead);
     precedes(std::forward<ArgsRest>(argsRest)...);
-    return Self;
+    return SELF;
 }
 
 } // namespace qao

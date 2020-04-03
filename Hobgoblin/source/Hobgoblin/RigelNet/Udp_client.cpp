@@ -11,7 +11,7 @@ namespace rn {
 
 RN_UdpClient::RN_UdpClient()
     : RN_Client<RN_UdpClient, detail::RN_UdpConnector>{RN_NodeType::UdpClient}
-    , _connector{_mySocket, _timeoutLimit, _passphrase, detail::EventFactory{Self}}
+    , _connector{_mySocket, _timeoutLimit, _passphrase, detail::EventFactory{SELF}}
 {
     _mySocket.setBlocking(false);
 }
@@ -120,7 +120,7 @@ void RN_UdpClient::updateReceive() {
         _connector.sendAcks();
     }
     if (_connector.getStatus() != RN_ConnectorStatus::Disconnected) {
-        _connector.handleDataMessages(Self);
+        _connector.handleDataMessages(SELF);
     }
     if (_connector.getStatus() != RN_ConnectorStatus::Disconnected) {
         _connector.checkForTimeout();
@@ -128,7 +128,7 @@ void RN_UdpClient::updateReceive() {
 }
 
 void RN_UdpClient::updateSend() {
-    _connector.send(Self);
+    _connector.send(SELF);
 }
 
 } // namespace rn

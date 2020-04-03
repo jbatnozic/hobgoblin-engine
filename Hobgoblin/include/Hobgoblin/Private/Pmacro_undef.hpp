@@ -5,7 +5,7 @@
 #undef NO_COPY
 #undef NO_MOVE
 #undef PASSKEY
-#undef Self
+#undef SELF
 #undef SWITCH_FALLTHROUGH
 #undef NO_OP
 #undef CRTP_METHOD

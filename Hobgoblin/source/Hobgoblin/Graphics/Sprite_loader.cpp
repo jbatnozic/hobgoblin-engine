@@ -57,7 +57,7 @@ SpriteLoader& SpriteLoader::loadFromFile(TextureHandle textureHandle, PZInteger 
     packRequest.textureHandle = textureHandle;
     packRequest.unused = false;
 
-    return Self;
+    return SELF;
 }
 
 SpriteLoader& SpriteLoader::loadFromFile(TextureHandle textureHandle, PZInteger spriteIndex,
@@ -87,20 +87,20 @@ SpriteLoader& SpriteLoader::loadFromFile(TextureHandle textureHandle, PZInteger 
     packRequest.textureHandle = textureHandle;
     packRequest.unused = false;
 
-    return Self;
+    return SELF;
 }
 
 SpriteLoader& SpriteLoader::loadFromFile(TextureHandle texture, std::string spriteName,
                                          PZInteger subspriteIndex, const std::string& filePath) {
     assertNotFinalized();
     // TODO
-    return Self;
+    return SELF;
 }
 
 SpriteLoader& SpriteLoader::loadFromFile(TextureHandle texture, std::string spriteName,
                                          AutoIndexType, const std::string& filePath) {
     // TODO
-    return Self;
+    return SELF;
 }
 
 // Loading from directory:
@@ -117,13 +117,13 @@ SpriteLoader& SpriteLoader::loadFromDirectory(TextureHandle texture, PZInteger s
         loadFromFile(texture, spriteIndex, AUTO_INDEX, file);
     }
 
-    return Self;
+    return SELF;
 }
 
 SpriteLoader& SpriteLoader::loadFromDirectory(TextureHandle texture, std::string spriteName,
                                               const std::string& filePath) {
     // TODO
-    return Self;
+    return SELF;
 }
 
 // Loading from memory:

@@ -64,7 +64,7 @@ public:
         EntityHandle& operator=(EntityHandle&& other) noexcept {
             _myIter = other._myIter;
             other._myIter.reset();
-            return Self;
+            return SELF;
         }
 
     private:
