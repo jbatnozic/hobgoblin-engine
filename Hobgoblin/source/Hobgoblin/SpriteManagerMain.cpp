@@ -5,10 +5,11 @@
 #include <Hobgoblin/Utility/Exceptions.hpp>
 #include <SFML/Graphics.hpp>
 
+#include <filesystem>
 #include <iostream>
 
 enum Sprites {
-    Player, Enemy, Block, Misc
+    Player, Enemy, Block, Misc, Dir
 };
 
 using hg::gr::AUTO_INDEX;
@@ -16,27 +17,37 @@ using hg::gr::AUTO_INDEX;
 #define SPRITE_LOADER_TEST
 
 int main() {
+    std::filesystem::path path("asdf");
+
 #ifdef SPRITE_LOADER_TEST
-#define WIDTH 600
-#define HEIGHT 600
+#define WIDTH 800
+#define HEIGHT 800
 
     hg::gr::SpriteLoader sprLd;
     auto tex = sprLd.addTexture(WIDTH, HEIGHT);
 
-    sprLd
-        .loadFromFile(tex, Player, 0, "sprites/player.png")
-        .loadFromFile(tex, Enemy, 0, "sprites/enemy.png")
-        .loadFromFile(tex, Block, 0, "sprites/block.png")
-        .loadFromFile(tex, Misc, AUTO_INDEX, "sprites/block.png")
-        .loadFromFile(tex, Misc, AUTO_INDEX, "sprites/block.png")
-        .loadFromFile(tex, Misc, AUTO_INDEX, "sprites/Brick.png")
-        .loadFromFile(tex, Misc, AUTO_INDEX, "sprites/Btn_UnDrop.png")
-        .loadFromFile(tex, Misc, AUTO_INDEX, "sprites/obj_window_0.png")
-        .loadFromFile(tex, Misc, AUTO_INDEX, "sprites/spr_ctrl_camera_foot_0.png")
-        .loadFromFile(tex, Misc, AUTO_INDEX, "sprites/spr_enemy_brain_0.png")
-        .loadFromFile(tex, Misc, AUTO_INDEX, "sprites/spr_item_consumable_default_0.png")
-        .loadFromFile(tex, Misc, AUTO_INDEX, "sprites/spr_tom_0.png")
-        .finalize(hg::gr::TexturePackingHeuristic::BestAreaFit);
+    try {
+        sprLd
+            .loadFromFile(tex, Player, 0, "sprites/player.png")
+            .loadFromFile(tex, Enemy, 0, "sprites/enemy.png")
+            .loadFromFile(tex, Block, 0, "sprites/block.png")
+            .loadFromFile(tex, Misc, AUTO_INDEX, "sprites/block.png")
+            .loadFromFile(tex, Misc, AUTO_INDEX, "sprites/block.png")
+            .loadFromFile(tex, Misc, AUTO_INDEX, "sprites/Brick.png")
+            .loadFromFile(tex, Misc, AUTO_INDEX, "sprites/Btn_UnDrop.png")
+            .loadFromFile(tex, Misc, AUTO_INDEX, "sprites/obj_window_0.png")
+            .loadFromFile(tex, Misc, AUTO_INDEX, "sprites/spr_ctrl_camera_foot_0.png")
+            .loadFromFile(tex, Misc, AUTO_INDEX, "sprites/spr_enemy_brain_0.png")
+            .loadFromFile(tex, Misc, AUTO_INDEX, "sprites/spr_item_consumable_default_0.png")
+            .loadFromFile(tex, Misc, AUTO_INDEX, "sprites/spr_tom_0.png")
+            .loadFromDirectory(tex, Dir, "sprites")
+            .finalize(hg::gr::TexturePackingHeuristic::BestAreaFit);
+    }
+    catch (std::exception& ex) {
+        std::cout << "CAUGHT EXCEPTION: " << ex.what() << '\n';
+        std::cin.get();
+        return EXIT_FAILURE;
+    }
 
     sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "Sprite loader");
 

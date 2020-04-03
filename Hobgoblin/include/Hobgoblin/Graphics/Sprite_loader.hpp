@@ -7,6 +7,7 @@
 #include <Hobgoblin/Utility/Rectangle.hpp>
 
 #include <string>
+#include <filesystem>
 #include <unordered_map>
 #include <vector>
 

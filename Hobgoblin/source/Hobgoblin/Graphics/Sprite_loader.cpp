@@ -106,10 +106,17 @@ SpriteLoader& SpriteLoader::loadFromFile(TextureHandle texture, std::string spri
 // Loading from directory:
 SpriteLoader& SpriteLoader::loadFromDirectory(TextureHandle texture, PZInteger spriteIndex,
                                               const std::string& filePath) {
-    /*std::vector<std::string> filesInDirectory;
+    std::vector<std::string> filesInDirectory;
     for (auto& entry : std::filesystem::directory_iterator(filePath)) {
-        filesInDirectory.push_back(entry.path().c_str());
-    }*/
+        filesInDirectory.push_back(entry.path().generic_string()); // TODO This fails for non-ASCII paths/files
+    }
+
+    std::sort(filesInDirectory.begin(), filesInDirectory.end());
+
+    for (auto& file : filesInDirectory) {
+        loadFromFile(texture, spriteIndex, AUTO_INDEX, file);
+    }
+
     return Self;
 }
 
