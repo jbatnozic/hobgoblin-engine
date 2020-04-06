@@ -4,6 +4,7 @@
 
 #include <array>
 #include <cassert>
+#include <cmath>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
@@ -27,7 +28,7 @@ public:
         , _maxDepth{maxDepth}
         , _maxEntities{maxEntitiesPerNode}
     {
-        // TODO domain.updateNodeTable(SELF);
+        FRIEND_ACCESS _domain.updateNodeTable(SELF);
     }
 
     ~QuadTreeNode() {
@@ -79,7 +80,7 @@ public:
             }
         }
 
-        // TODO domain.updateNodeTable(SELF);
+        FRIEND_ACCESS _domain.updateNodeTable(SELF);
     }
 
     void setEntityBbox(EntityList::iterator entityIter, const BoundingBox& bbox) {
@@ -87,11 +88,12 @@ public:
         entity.bbox = bbox;
 
         if (entityFits(entity) || _parent == nullptr) {
+            // TODO - Maybe try to move downward?
             return;
         }
 
         _childrenEntitiesCount -= 1;
-        
+
         for (QuadTreeNode* curr = _parent; true; curr = curr->_parent) {
             curr->_childrenEntitiesCount -= 1;
 
@@ -99,7 +101,7 @@ public:
                 // Find new holder:
                 QuadTreeNode* newHolder = curr;
 
-                REPEAT:
+            REPEAT:
                 if (newHolder->_children[0] != nullptr) {
                     for (auto& child : newHolder->_children) {
                         if (child->entityFits(entity)) {
@@ -148,8 +150,58 @@ public:
         }
     }
 
+    bool scanBbox(const BoundingBox& bbox, std::int32_t groupMask, bool mustEnvelop, EntityTag& tag) const {
+        if (!mustEnvelop) {
+            for (auto& entity : _entities) {
+                if ((entity.groupMask & groupMask != 0) && entity.bbox.overlaps(bbox)) {
+                    tag = entity.tag;
+                    return true;
+                }
+            }
+        }
+        else {
+            for (auto& entity : _entities) {
+                if ((entity.groupMask & groupMask != 0) && entity.bbox.envelopedBy(bbox)) {
+                    tag = entity.tag;
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    PZInteger scanBbox(const BoundingBox& bbox, std::int32_t groupMask, bool mustEnvelop, 
+                       std::vector<EntityTag>& tags) const {
+        PZInteger rv = 0;
+        if (!mustEnvelop) {
+            for (auto& entity : _entities) {
+                if ((entity.groupMask & groupMask != 0) && entity.bbox.overlaps(bbox)) {
+                    tags.push_back(entity.tag);
+                    rv += 1;
+                }
+            }
+        }
+        else {
+            for (auto& entity : _entities) {
+                if ((entity.groupMask & groupMask != 0) && entity.bbox.envelopedBy(bbox)) {
+                    tags.push_back(entity.tag);
+                    rv += 1;
+                }
+            }
+        }
+        return rv;
+    }
+
     PZInteger getChildEntityCount() const {
         return _childrenEntitiesCount;
+    }
+
+    const BoundingBox& getBoundingBox() const {
+        return _bbox;
+    }
+
+    const QuadTreeNode* getParent() const {
+        return _parent;
     }
 
     // TODO Temp.
@@ -458,12 +510,61 @@ bool QuadTreeCollisionDomain::pairsNext(CollisionPair& collisionPair) {
     }
  }
 
+bool QuadTreeCollisionDomain::scanPoint(double x, double y, std::int32_t groupMask,
+                                        EntityTag& entityTag) const {
+    const BoundingBox dummyBbox{x, y, 0.0, 0.0};
+    
+    const auto startX = static_cast<std::size_t>(floor(x / _minWidth));
+    const auto startY = static_cast<std::size_t>(floor(y / _minHeight));
+
+    const detail::QuadTreeNode* currentNode = _nodeTable[startX][startY];
+    for (NO_OP(); currentNode != nullptr; currentNode = currentNode->getParent()) {
+        if (currentNode->scanBbox(dummyBbox, groupMask, false, entityTag)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+PZInteger QuadTreeCollisionDomain::scanPoint(double x, double y, std::int32_t groupMask,
+                                             std::vector<EntityTag>& entityTags) const {
+    const BoundingBox dummyBbox{x, y, 0.0, 0.0};
+
+    const auto startX = static_cast<std::size_t>(floor(x / _minWidth));
+    const auto startY = static_cast<std::size_t>(floor(y / _minHeight));
+
+    PZInteger rv = 0;
+    const detail::QuadTreeNode* currentNode = _nodeTable[startX][startY];
+    for (NO_OP(); currentNode != nullptr; currentNode = currentNode->getParent()) {
+        rv += currentNode->scanBbox(dummyBbox, groupMask, false, entityTags);
+    }
+    return rv;
+}
+
 void QuadTreeCollisionDomain::draw(sf::RenderTarget& rt) {
     _rootNode->draw(rt);
 }
 
 void QuadTreeCollisionDomain::print() const {
     _rootNode->print();
+}
+
+void QuadTreeCollisionDomain::updateNodeTable(detail::QuadTreeNode& node) {
+    using std::round;
+
+    const auto& nodeBbox = node.getBoundingBox();
+
+    const auto startX = static_cast<std::size_t>(round(nodeBbox.x / _minWidth));
+    const auto startY = static_cast<std::size_t>(round(nodeBbox.y / _minHeight));
+
+    const auto lenX = static_cast<std::size_t>(round(nodeBbox.w / _minWidth));
+    const auto lenY = static_cast<std::size_t>(round(nodeBbox.h / _minHeight));
+
+    for (auto t = startY; t < startY + lenY; t += 1) {
+        for (auto i = startX; i < startX + lenX; i += 1) {
+            _nodeTable[i][t] = &node;
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

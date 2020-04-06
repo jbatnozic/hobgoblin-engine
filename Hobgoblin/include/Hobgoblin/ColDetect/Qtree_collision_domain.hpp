@@ -84,12 +84,10 @@ public:
     PZInteger recalcPairsJoin();
     bool pairsNext(CollisionPair& collisionPair);
 
-    //// Scanning - Point:
-    //GenericPtr scan_point_one(GroupMask groups,
-    //                          double x, double y) const;
+    // Scanning - Point:
+    bool scanPoint(double x, double y, std::int32_t groupMask, EntityTag& entityTag) const;
 
-    //void scan_point_vector(GroupMask groups,
-    //                       double x, double y, std::vector<GenericPtr>& vec) const;
+    PZInteger scanPoint(double x, double y, std::int32_t groupMask, std::vector<EntityTag>& entityTags) const;
 
     //// Scanning - Rectangle:
     //GenericPtr scan_rect_one(GroupMask groups, bool must_envelop,
@@ -123,7 +121,9 @@ private:
     std::vector<detail::QuadTreeNode*> _nodesToProcess;
     std::vector<CollisionPair> _generatedPairs;
 
-    //void node_table_update(MTQuadTreeNode* node);
+    void updateNodeTable(detail::QuadTreeNode& node);
+
+    friend class detail::QuadTreeNode;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Multithreading stuff:

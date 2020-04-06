@@ -72,9 +72,6 @@
     <ClCompile Include="source\Hobgoblin\ColDetect\Qtree_collision_domain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="source\Hobgoblin\SpriteManagerMain.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="source\Hobgoblin\Graphics\Texture_packing.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -88,6 +85,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="source\Hobgoblin\Graphics\Multisprite.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Hobgoblin\CollisionsMain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -269,5 +269,6 @@
     <Text Include="include\Hobgoblin\RigelNet\PROTOCOL.txt" />
     <Text Include="include\Hobgoblin\zTODO.txt" />
     <Text Include="zTODO.txt" />
+    <Text Include="Pathfinding.txt" />
   </ItemGroup>
 </Project>

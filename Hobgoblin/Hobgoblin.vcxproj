@@ -409,6 +409,7 @@
   <ItemGroup>
     <ClCompile Include="include\Hobgoblin\RigelNet\Connector.hpp" />
     <ClCompile Include="source\Hobgoblin\ColDetect\Qtree_collision_domain.cpp" />
+    <ClCompile Include="source\Hobgoblin\CollisionsMain.cpp" />
     <ClCompile Include="source\Hobgoblin\Graphics\Multisprite.cpp" />
     <ClCompile Include="source\Hobgoblin\Graphics\Sprite_loader.cpp" />
     <ClCompile Include="source\Hobgoblin\Graphics\Texture_packing.cpp" />
@@ -421,7 +422,6 @@
     <ClCompile Include="source\Hobgoblin\RigelNet\Udp_client.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Udp_connector.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Udp_server.cpp" />
-    <ClCompile Include="source\Hobgoblin\SpriteManagerMain.cpp" />
     <ClCompile Include="source\Hobgoblin\Utility\Serialization.cpp" />
     <ClInclude Include="include\Hobgoblin\ColDetect.hpp" />
     <ClInclude Include="include\Hobgoblin\ColDetect\Common.hpp" />
@@ -496,6 +496,7 @@
     <Text Include="include\Hobgoblin\Private\HobgoblinCodingStyle.txt" />
     <Text Include="include\Hobgoblin\RigelNet\PROTOCOL.txt" />
     <Text Include="include\Hobgoblin\zTODO.txt" />
+    <Text Include="Pathfinding.txt" />
     <Text Include="zTODO.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

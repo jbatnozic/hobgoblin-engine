@@ -19,7 +19,7 @@ using BoundingBox = hg::cd::BoundingBox;
 const size_t WINDOW_W = 1400u;
 const size_t WINDOW_H = 900u;
 //const size_t INST_CNT = 40'000;
-const hg::PZInteger INST_CNT = 20'000;
+const hg::PZInteger INST_CNT = 20'0;
 const hg::PZInteger MON_INDEX = INST_CNT + 5;
 
 #define SQUARE_SIZE (2.0 * 1)

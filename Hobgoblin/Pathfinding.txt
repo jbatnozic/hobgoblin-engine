@@ -1,0 +1,7 @@
+https://medium.com/@mscansian/a-with-navigation-meshes-246fd9e72424
+https://gamedev.stackexchange.com/questions/160400/rts-pathfinding
+https://github.com/daancode/a-star
+https://dev.to/jansonsa/a-star-a-path-finding-c-4a4h
+https://forum.unity.com/threads/ai-pathfinding-with-variable-unit-size.498653/
+https://www.geeksforgeeks.org/a-search-algorithm/
+https://howtorts.github.io/2014/01/04/basic-flow-fields.html
