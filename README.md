@@ -1,4 +1,4 @@
-## Hobgoblin Engine
+# Hobgoblin Engine
 
 Small and simple game engine, intended to serve as a basis for small and simple games.
 It is written in C++17 and uses [SFML](https://www.sfml-dev.org/) as its core.
