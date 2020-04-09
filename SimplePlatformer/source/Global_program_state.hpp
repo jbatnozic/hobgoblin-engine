@@ -25,7 +25,7 @@ struct GlobalProgramState {
 
     GlobalProgramState(bool isHost)
         : windowMgr{nullptr}
-        , controlsMgr{nullptr, 4, 4} // runtime, playerCount, inputDelay (in steps)
+        , controlsMgr{nullptr, 4, 8, 1} // runtime, playerCount, inputDelay (in steps), historySize
         , netMgr{nullptr, isHost}
         , syncObjMgr{netMgr.getNode()}
         , file{"logs.txt", std::ostream::out}

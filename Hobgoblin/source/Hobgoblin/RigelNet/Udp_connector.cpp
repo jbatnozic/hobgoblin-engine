@@ -50,6 +50,7 @@ RETRY:
 
 bool ShouldRetransmit(std::chrono::microseconds timeSinceLastSend, std::chrono::microseconds currentLatency) {
     return timeSinceLastSend > 2 * currentLatency; // TODO Test and optimize
+    //return true; <-- Better user experience but also higher bandwidth usage
 }
 
 class FatalMessageTypeReceived : public std::runtime_error {

@@ -23,18 +23,19 @@ RN_DEFINE_HANDLER(SetClientControls, RN_ARGS(PlayerControls&, controls)) {
     );
 }
 
-ControlsManager::ControlsManager(QAO_Runtime* runtime, hg::PZInteger playerCount, hg::PZInteger inputDelayInSteps)
+ControlsManager::ControlsManager(QAO_Runtime* runtime, hg::PZInteger playerCount, 
+                                 hg::PZInteger inputDelayInSteps, hg::PZInteger historySize)
     : GOF_Base{runtime, TYPEID_SELF, 30, "ControlsManager"} // Run after NetMgr
 {
     _schedulers.reserve(playerCount);
     for (hg::PZInteger i = 0; i < playerCount; i += 1) {
-        _schedulers.emplace_back(inputDelayInSteps);
+        _schedulers.emplace_back(inputDelayInSteps, historySize);
     }
 }
 
-void ControlsManager::setInputDelay(hg::PZInteger inputDelayInSteps) {
+void ControlsManager::setInputDelay(hg::PZInteger inputDelayInSteps, hg::PZInteger historySize) {
     for (auto& scheduler : _schedulers) {
-        scheduler.setInputDelay(inputDelayInSteps);
+        scheduler.reset(inputDelayInSteps, historySize);
     }
 }
 
@@ -55,11 +56,11 @@ void ControlsManager::eventPreUpdate() {
 
     // Local controls:
     auto& scheduler = _schedulers[global().playerIndex];
-    bool focus = global().windowMgr.window.hasFocus();
+    bool focus = true; //global().windowMgr.window.hasFocus();
     scheduler.putNewControls(PlayerControls{focus && sf::Keyboard::isKeyPressed(sf::Keyboard::A),
                                             focus && sf::Keyboard::isKeyPressed(sf::Keyboard::D),
                                             focus && sf::Keyboard::isKeyPressed(sf::Keyboard::W)},
-                       std::chrono::microseconds{0});
+                             std::chrono::microseconds{0});
 
     for (auto& scheduler : _schedulers) {
         scheduler.integrateNewControls();

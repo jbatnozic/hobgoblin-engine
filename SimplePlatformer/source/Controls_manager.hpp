@@ -34,29 +34,44 @@ struct PlayerControls {
         right = right && dummy.right;
         up = up && dummy.up;
     }
+
+    void debounce(const std::deque<PlayerControls>& q, std::size_t currentPos) {
+        if (currentPos > 0) {
+            auto& prev = q[currentPos - 1];
+            auto& next = q[currentPos + 1];
+            
+            if (prev.left == next.left) left = prev.left;
+            if (prev.right == next.right) right = prev.right;
+            if (prev.up == next.up) up = prev.up;
+        }
+    }
 };
 
+template <class T>
+const T& Clamp(const T& value, const T& low, const T& high) {
+    return std::max(low, std::min(high, value));
+}
+ 
 class ControlsScheduler {
 public:
-    ControlsScheduler(hg::PZInteger defaultDelayInSteps)
+    ControlsScheduler(hg::PZInteger defaultDelayInSteps, hg::PZInteger historySize)
         : _newControlsDelay{0} 
     {
-        setInputDelay(defaultDelayInSteps);
+        reset(defaultDelayInSteps, historySize);
     }
 
-    void setInputDelay(hg::PZInteger inputDelayInSteps) {
-        assert(inputDelayInSteps >= 0);
-        if (_controlsQueue.size() != inputDelayInSteps + 1) {
-            _controlsQueue.clear();
-            _controlsQueue.resize(inputDelayInSteps + 1);
+    void reset(hg::PZInteger inputDelayInSteps, hg::PZInteger historySize) {
+        _historySize = hg::pztos(historySize);
+
+        _controlsQueue.clear();
+        _controlsQueue.resize(inputDelayInSteps + 1 + historySize);
             
-            _rawHistory.clear();
-            _rawHistory.resize(inputDelayInSteps + 1);
-        }
+        _rawHistory.clear();
+        _rawHistory.resize(inputDelayInSteps + 1);
     }
 
     const PlayerControls& getCurrentControls() const {
-        return _controlsQueue.front();
+        return _controlsQueue[_historySize];
     }
 
     const PlayerControls& getLatestControls() const {
@@ -81,7 +96,7 @@ public:
         int place = _controlsQueue.size() - (offset + 1);
 
         for (auto iter = _newControlsQueue.rbegin(); iter != _newControlsQueue.rend(); iter = std::next(iter)) {
-            place = std::max(0, place);
+            place = std::max(int(_historySize), place);
             if (place == _controlsQueue.size() - 1) {
                 _controlsQueue[place] = *iter;
             }
@@ -96,6 +111,8 @@ public:
         for (auto& controls : _controlsQueue) {
             controls.unstuck(_rawHistory);
         }
+
+        _controlsQueue[_historySize].debounce(_controlsQueue, _historySize);
     }
 
 private:
@@ -103,14 +120,16 @@ private:
     std::deque<PlayerControls> _rawHistory;
     std::vector<PlayerControls> _newControlsQueue;
     std::chrono::microseconds _newControlsDelay;
+    std::size_t _historySize;
 };
 
 class ControlsManager : public GOF_Base {
 public:
-    ControlsManager(QAO_Runtime* runtime, hg::PZInteger playerCount, hg::PZInteger inputDelayInSteps);
+    ControlsManager(QAO_Runtime* runtime, hg::PZInteger playerCount, 
+                    hg::PZInteger inputDelayInSteps, hg::PZInteger historySize);
 
     void setPlayerCount(hg::PZInteger playerCount);
-    void setInputDelay(hg::PZInteger inputDelayInSteps);
+    void setInputDelay(hg::PZInteger inputDelayInSteps, hg::PZInteger historySize); // TODO Rename
     PlayerControls getCurrentControlsForPlayer(hg::PZInteger playerIndex);
 
     void putNewControls(hg::PZInteger playerIndex, const PlayerControls& controls, std::chrono::microseconds delay);

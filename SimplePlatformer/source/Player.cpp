@@ -111,7 +111,12 @@ void Player::eventUpdate() {
 
 void Player::eventDraw1() {
     sf::RectangleShape rect{{s.width, s.height}};
-    rect.setFillColor(sf::Color{204, 0, 204, 255});
+    if (s.playerIndex == 0) {
+        rect.setFillColor(sf::Color::Blue);
+    }
+    else {
+        rect.setFillColor(sf::Color{204, 0, 204, 255});
+    }
     rect.setPosition(s.x, s.y);
 
     global().windowMgr.appSurface.draw(rect);
