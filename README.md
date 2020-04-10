@@ -7,13 +7,9 @@ basis for small ~~and simple~~ games", unit tests for the engine and some exampl
 ### Directories:
  - **Dependencies:** Prebuilt libraries (mainly, SFML) on which Hobgoblin depends on. Note to self: I really
 should start using Conan for this...
-
  - **Hobgoblin:** The engine itself.
- 
  - **HobgoblinTest:** Unit tests for the engine.
- 
  - **SimplePlatformer:** A small showcase game which uses Hobgoblin.
- 
  - **SpaceshipPhysics:** Some old horrible code which may or may not compile successfully. Not really related
 to any of the above.
 
