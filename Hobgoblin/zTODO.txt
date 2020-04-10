@@ -6,3 +6,12 @@ RN  update() method to RN_Node
 CD  Add support for skewed bounding boxes
 CD  Implement scan functions
 CD  Test scan functions
+
+RIGELNET:
+	Use std::string as a "binary blob" container
+	~ Remove acks from data messages OR use them for latency counting w/ "weak" acks
+	Operations with disconnected clients should throw exceptions (except getStatus)
+	Remove test #include <iostream>s
+	Fix timeout limits
+	Deal with events
+	Connect/disconnect/connect - something's messed up
