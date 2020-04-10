@@ -353,6 +353,7 @@ void QuadTreeCollisionDomain::EntityHandle::invalidate() {
     if (_myIter) {
         detail::QuadTreeNode* const holder = (**_myIter).holder;
         holder->eraseEntity(*_myIter);
+        _myIter.reset();
     }
 }
 
