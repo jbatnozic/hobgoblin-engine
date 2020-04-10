@@ -48,11 +48,6 @@ RETRY:
     return UPLOAD_PACKET_FAILURE;
 }
 
-bool ShouldRetransmit(std::chrono::microseconds timeSinceLastSend, std::chrono::microseconds currentLatency) {
-    return timeSinceLastSend > 2 * currentLatency; // TODO Test and optimize
-    //return true; <-- Better user experience but also higher bandwidth usage
-}
-
 class FatalMessageTypeReceived : public std::runtime_error {
 public:
     using std::runtime_error::runtime_error;
@@ -61,10 +56,12 @@ public:
 } // namespace
 
 RN_UdpConnector::RN_UdpConnector(sf::UdpSocket& socket, const std::chrono::microseconds& timeoutLimit, 
-                                 const std::string& passphrase, EventFactory eventFactory)
+                                 const std::string& passphrase, 
+                                 const RetransmitPredicate& retransmitPredicate, EventFactory eventFactory)
     : _eventFactory{eventFactory}
     , _socket{socket}
     , _timeoutLimit{timeoutLimit}
+    , _retransmitPredicate{retransmitPredicate}
     , _passphrase{passphrase}
     , _status{RN_ConnectorStatus::Disconnected}
 {
@@ -327,7 +324,8 @@ void RN_UdpConnector::uploadAllData() {
 
         // TODO Send, restart clock etc.
         if ((taggedPacket.tag == TaggedPacket::ReadyForSending)
-            || ShouldRetransmit(taggedPacket.stopwatch.getElapsedTime(), _remoteInfo.latency)) {
+            || _retransmitPredicate(taggedPacket.cyclesSinceLastTransmit, taggedPacket.stopwatch.getElapsedTime(),
+                                    _remoteInfo.latency)) {
 
             if (UploadPacket(
                 _socket,
@@ -339,10 +337,12 @@ void RN_UdpConnector::uploadAllData() {
             }
 
             taggedPacket.stopwatch.restart();
+            taggedPacket.cyclesSinceLastTransmit = 0;
             uploadCounter += 1;
             // TODO Break if uploadCounter too large [configurable]
         }
-
+            
+        taggedPacket.cyclesSinceLastTransmit += 1;
         taggedPacket.tag = TaggedPacket::NotAcknowledged;
     }
 

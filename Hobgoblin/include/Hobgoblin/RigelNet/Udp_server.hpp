@@ -48,6 +48,8 @@ public:
     std::chrono::microseconds getTimeoutLimit() const;
     void setTimeoutLimit(std::chrono::microseconds limit);
 
+    void setRetransmitPredicate(RetransmitPredicate pred);
+
     const std::string& getPassphrase() const;
 
 protected:
@@ -58,7 +60,8 @@ private:
     std::vector<detail::RN_UdpConnector> _clients;
     sf::UdpSocket _mySocket;
     std::string _passphrase;
-    std::chrono::microseconds _timeoutLimit;
+    std::chrono::microseconds _timeoutLimit = std::chrono::microseconds{0};
+    RetransmitPredicate _retransmitPredicate;
     int _senderIndex = -1;
     bool _running = false;
 

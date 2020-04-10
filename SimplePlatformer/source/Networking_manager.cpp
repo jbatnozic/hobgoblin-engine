@@ -8,11 +8,24 @@ NetworkingManager::NetworkingManager(QAO_Runtime* runtime, bool isServer)
     : GOF_StateObject{runtime, TYPEID_SELF, 50, "NetworkingManager"}
     , _isServer{isServer}
 {
+    auto retransmitPredicate =
+        [](hg::PZInteger cyclesSinceLastTransmit,
+           std::chrono::microseconds timeSinceLastTransmit,
+           std::chrono::microseconds currentLatency) 
+    {
+               std::cout << "Predicate(" << cyclesSinceLastTransmit << ", " << timeSinceLastTransmit.count()
+                         << ", " << currentLatency.count() << ")\n";
+               //return timeSinceLastTransmit > 2 * currentLatency;
+               return 1; // Maximize user experience (super bandwidth-unfriendly)
+    };
+
     if (isServer) {
         _node.emplace<ServerType>(4); // TODO refactor hardcoded 4 player limit
+        getServer().setRetransmitPredicate(retransmitPredicate);
     }
     else {
         _node.emplace<ClientType>();
+        getClient().setRetransmitPredicate(retransmitPredicate);
     }
 }
 

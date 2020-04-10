@@ -11,7 +11,8 @@ namespace rn {
 
 RN_UdpClient::RN_UdpClient()
     : RN_Client<RN_UdpClient, detail::RN_UdpConnector>{RN_NodeType::UdpClient}
-    , _connector{_mySocket, _timeoutLimit, _passphrase, detail::EventFactory{SELF}}
+    , _connector{_mySocket, _timeoutLimit, _passphrase, _retransmitPredicate, detail::EventFactory{SELF}}
+    , _retransmitPredicate{DefaultRetransmitPredicate}
 {
     _mySocket.setBlocking(false);
 }
@@ -85,6 +86,10 @@ std::chrono::microseconds RN_UdpClient::getTimeoutLimit() const {
 
 void RN_UdpClient::setTimeoutLimit(std::chrono::microseconds limit) {
     _timeoutLimit = limit;
+}
+
+void RN_UdpClient::setRetransmitPredicate(RetransmitPredicate pred) {
+    _retransmitPredicate = pred;
 }
 
 const std::string& RN_UdpClient::getPassphrase() const {

@@ -13,10 +13,12 @@ namespace rn
 
 RN_UdpServer::RN_UdpServer(PZInteger size)
     : RN_Server<RN_UdpServer, detail::RN_UdpConnector>{RN_NodeType::UdpServer}
+    , _retransmitPredicate{DefaultRetransmitPredicate}
 {
     _clients.reserve(static_cast<std::size_t>(size));
     for (PZInteger i = 0; i < size; i += 1) {
-        _clients.emplace_back(_mySocket, _timeoutLimit, _passphrase, detail::EventFactory{SELF, i});
+        _clients.emplace_back(_mySocket, _timeoutLimit, _passphrase, _retransmitPredicate,
+                              detail::EventFactory{SELF, i});
     }
 
     _mySocket.setBlocking(false);
@@ -107,6 +109,10 @@ std::chrono::microseconds RN_UdpServer::getTimeoutLimit() const {
 
 void RN_UdpServer::setTimeoutLimit(std::chrono::microseconds limit) {
     _timeoutLimit = limit;
+}
+
+void RN_UdpServer::setRetransmitPredicate(RetransmitPredicate pred) {
+    _retransmitPredicate = pred;
 }
 
 const std::string& RN_UdpServer::getPassphrase() const {
