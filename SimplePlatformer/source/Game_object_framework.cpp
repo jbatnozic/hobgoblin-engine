@@ -39,7 +39,7 @@ void GetIndicesForComposingToEveryone(const RN_Node& node, std::vector<hg::PZInt
     }*/
 }
 
-}
+} // namespace
 
 SynchronizedObjectManager::SynchronizedObjectManager(RN_Node& node)
     : _node{node}
@@ -50,7 +50,7 @@ SyncId SynchronizedObjectManager::createMasterObject(GOF_SynchronizedObject* obj
     assert(object);
 
     // Bit 0 represents "masterness"
-    SyncId id = _syncIdCounter | 1;
+    const SyncId id = _syncIdCounter | 1;
     _syncIdCounter += 2;
     _mappings[id] = object;
 
@@ -67,6 +67,8 @@ void SynchronizedObjectManager::createDummyObject(GOF_SynchronizedObject* object
 void SynchronizedObjectManager::destroyObject(GOF_SynchronizedObject* object) {
     assert(object);
     if (object->isMasterObject()) {
+        // TODO If object is in _newlyCreatedObjects, erase it from there,
+        // sync create, then continue
         auto iter = _alreadyDestroyedObjects.find(object);
         if (iter != _alreadyDestroyedObjects.end()) {
             _alreadyDestroyedObjects.erase(iter);
@@ -104,7 +106,7 @@ void SynchronizedObjectManager::syncAll() {
         }
     }
 
-    // Sync destroys not needed (dealt with in constructors)
+    // Sync destroys - not needed (dealt with in destructors)
 }
 
 void SynchronizedObjectManager::syncAllToNewClient(hg::PZInteger clientIndex) {
@@ -146,21 +148,21 @@ void SynchronizedObjectManager::syncObjectDestroy(const GOF_SynchronizedObject* 
 
 void GOF_SynchronizedObject::syncCreate() const {
     if (!isMasterObject()) {
-        throw hg::util::TracedLogicError("Dummy objects cannot request syncs!");
+        throw hg::util::TracedLogicError("Dummy objects cannot request synchronization!");
     }
     _syncObjMgr.syncObjectCreate(this);
 }
 
 void GOF_SynchronizedObject::syncUpdate() const {
     if (!isMasterObject()) {
-        throw hg::util::TracedLogicError("Dummy objects cannot request syncs!");
+        throw hg::util::TracedLogicError("Dummy objects cannot request synchronization!");
     }
     _syncObjMgr.syncObjectUpdate(this);
 }
 
 void GOF_SynchronizedObject::syncDestroy() const {
     if (!isMasterObject()) {
-        throw hg::util::TracedLogicError("Dummy objects cannot request syncs!");
+        throw hg::util::TracedLogicError("Dummy objects cannot request synchronization!");
     }
     _syncObjMgr.syncObjectDestroy(this);
 }

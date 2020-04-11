@@ -8,6 +8,8 @@
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
+#define BITAND(x, y) ((x) & (y))
+
 HOBGOBLIN_NAMESPACE_START
 namespace cd {
 
@@ -153,7 +155,7 @@ public:
     bool scanBbox(const BoundingBox& bbox, std::int32_t groupMask, bool mustEnvelop, EntityTag& tag) const {
         if (!mustEnvelop) {
             for (auto& entity : _entities) {
-                if ((entity.groupMask & groupMask != 0) && entity.bbox.overlaps(bbox)) {
+                if ((BITAND(entity.groupMask, groupMask) != 0) && entity.bbox.overlaps(bbox)) {
                     tag = entity.tag;
                     return true;
                 }
@@ -161,7 +163,7 @@ public:
         }
         else {
             for (auto& entity : _entities) {
-                if ((entity.groupMask & groupMask != 0) && entity.bbox.envelopedBy(bbox)) {
+                if ((BITAND(entity.groupMask, groupMask) != 0) && entity.bbox.envelopedBy(bbox)) {
                     tag = entity.tag;
                     return true;
                 }
@@ -175,7 +177,7 @@ public:
         PZInteger rv = 0;
         if (!mustEnvelop) {
             for (auto& entity : _entities) {
-                if ((entity.groupMask & groupMask != 0) && entity.bbox.overlaps(bbox)) {
+                if ((BITAND(entity.groupMask, groupMask) != 0) && entity.bbox.overlaps(bbox)) {
                     tags.push_back(entity.tag);
                     rv += 1;
                 }
@@ -183,7 +185,7 @@ public:
         }
         else {
             for (auto& entity : _entities) {
-                if ((entity.groupMask & groupMask != 0) && entity.bbox.envelopedBy(bbox)) {
+                if ((BITAND(entity.groupMask, groupMask) != 0) && entity.bbox.envelopedBy(bbox)) {
                     tags.push_back(entity.tag);
                     rv += 1;
                 }
@@ -300,7 +302,7 @@ private:
 
         auto rv = std::prev(_entities.end());
 
-        if (_entities.size() > _maxEntities && _depth < _maxDepth) {
+        if ((_entities.size() > _maxEntities) && (_depth < _maxDepth)) {
             split();
         }
 
@@ -312,7 +314,7 @@ private:
         _entities.back().holder = this;
         _childrenEntitiesCount += 1;
 
-        if (_entities.size() > _maxEntities && _depth < _maxDepth) {
+        if ((_entities.size() > _maxEntities) && (_depth < _maxDepth)) {
             split();
         }
     }

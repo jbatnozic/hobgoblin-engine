@@ -13,8 +13,8 @@ public:
     sf::RenderTexture appSurface;
     sf::RenderWindow window;
     
-    WindowManager(QAO_Runtime* runtime)
-        : GOF_Base{runtime, TYPEID_SELF, -1000, "WindowManager"}
+    WindowManager(QAO_RuntimeRef runtimeRef)
+        : GOF_Base{runtimeRef, TYPEID_SELF, -1000, "WindowManager"}
     {
         window.create(sf::VideoMode(800, 800), "Window");
         // vSync and Framerate limiter perform near identically as far as

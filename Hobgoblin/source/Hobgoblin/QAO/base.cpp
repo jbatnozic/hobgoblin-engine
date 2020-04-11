@@ -1,6 +1,5 @@
 
 #include <Hobgoblin/QAO/base.hpp>
-#include <Hobgoblin/QAO/runtime.hpp>
 #include <Hobgoblin/Utility/Passkey.hpp>
 
 #include <cassert>
@@ -10,13 +9,19 @@
 HOBGOBLIN_NAMESPACE_START
 namespace qao {
 
-QAO_Base::QAO_Base(QAO_Runtime* runtime, const std::type_info& typeInfo, int executionPriority, std::string name)
+QAO_Base::QAO_Base(QAO_RuntimeRef runtimeRef, const std::type_info& typeInfo, int executionPriority, std::string name)
     : _instanceName{std::move(name)}
     , _typeInfo{typeInfo}
     , _execution_priority{executionPriority}
 {
+    QAO_Runtime* runtime = runtimeRef.ptr();
     if (runtime) {
-        runtime->addObject(std::unique_ptr<QAO_Base>{this});
+        if (runtimeRef.isOwning()) {
+            runtime->addObject(std::unique_ptr<QAO_Base>{this});
+        }
+        else {
+            runtime->addObjectNoOwn(SELF);
+        }
     }
 }
 

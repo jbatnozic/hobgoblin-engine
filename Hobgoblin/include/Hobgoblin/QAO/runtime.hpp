@@ -23,11 +23,51 @@ namespace qao {
 constexpr std::int32_t QAO_ALL_EVENT_FLAGS = 0xFFFFFFFF;
 
 class QAO_Base;
+class QAO_Runtime;
+
+class QAO_RuntimeRef {
+public:
+    QAO_RuntimeRef() noexcept = default;
+
+    QAO_RuntimeRef(std::nullptr_t) noexcept
+        : QAO_RuntimeRef{}
+    {
+    }
+
+    QAO_RuntimeRef(QAO_Runtime& runtime) noexcept
+        : _runtime{&runtime}
+        , _isOwning{true}
+    {
+    }
+
+    QAO_RuntimeRef(QAO_Runtime* runtime) noexcept
+        : _runtime{runtime}
+        , _isOwning{true}
+    {
+    }
+
+    QAO_Runtime* ptr() const noexcept {
+        return _runtime;
+    }
+
+    bool isOwning() const noexcept {
+        return _isOwning;
+    }
+
+private:
+    QAO_Runtime* _runtime = nullptr;
+    bool _isOwning = false;
+
+    friend class QAO_Runtime;
+};
 
 class QAO_Runtime : NO_COPY, NO_MOVE {
 public:
     QAO_Runtime();
+    QAO_Runtime(util::AnyPtr userData);
     ~QAO_Runtime();
+
+    QAO_RuntimeRef nonOwning();
 
     // Object manipulation
     void addObject(std::unique_ptr<QAO_Base> obj);

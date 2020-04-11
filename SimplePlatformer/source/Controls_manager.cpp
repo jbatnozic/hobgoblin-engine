@@ -23,9 +23,9 @@ RN_DEFINE_HANDLER(SetClientControls, RN_ARGS(PlayerControls&, controls)) {
     );
 }
 
-ControlsManager::ControlsManager(QAO_Runtime* runtime, hg::PZInteger playerCount, 
+ControlsManager::ControlsManager(QAO_RuntimeRef runtimeRef, hg::PZInteger playerCount, 
                                  hg::PZInteger inputDelayInSteps, hg::PZInteger historySize)
-    : GOF_Base{runtime, TYPEID_SELF, 30, "ControlsManager"} // Run after NetMgr
+    : GOF_Base{runtimeRef, TYPEID_SELF, 30, "ControlsManager"} // Run after NetMgr
 {
     _schedulers.reserve(playerCount);
     for (hg::PZInteger i = 0; i < playerCount; i += 1) {
@@ -56,7 +56,7 @@ void ControlsManager::eventPreUpdate() {
 
     // Local controls:
     auto& scheduler = _schedulers[global().playerIndex];
-    bool focus = true; //global().windowMgr.window.hasFocus();
+    bool focus = true; //global().windowMgr.window.hasFocus(); TODO Temp.
     scheduler.putNewControls(PlayerControls{focus && sf::Keyboard::isKeyPressed(sf::Keyboard::A),
                                             focus && sf::Keyboard::isKeyPressed(sf::Keyboard::D),
                                             focus && sf::Keyboard::isKeyPressed(sf::Keyboard::W)},

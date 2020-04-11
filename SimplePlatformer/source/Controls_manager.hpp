@@ -125,7 +125,7 @@ private:
 
 class ControlsManager : public GOF_Base {
 public:
-    ControlsManager(QAO_Runtime* runtime, hg::PZInteger playerCount, 
+    ControlsManager(QAO_RuntimeRef runtimeRef, hg::PZInteger playerCount, 
                     hg::PZInteger inputDelayInSteps, hg::PZInteger historySize);
 
     void setPlayerCount(hg::PZInteger playerCount);

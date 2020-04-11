@@ -36,6 +36,9 @@
     <ClCompile Include="source\Game_object_framework.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="source\Main_game_controller.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Networking_manager.hpp">
@@ -57,6 +60,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="source\Game_object_framework.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Main_game_controller.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

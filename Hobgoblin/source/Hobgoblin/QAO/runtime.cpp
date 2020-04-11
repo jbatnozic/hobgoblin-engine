@@ -13,11 +13,16 @@ namespace qao {
 constexpr std::int64_t MIN_STEP_ORDINAL = std::numeric_limits<std::int64_t>::min(); // TODO to config.hpp
 
 QAO_Runtime::QAO_Runtime()
+    : QAO_Runtime{nullptr}
+{
+}
+
+QAO_Runtime::QAO_Runtime(util::AnyPtr userData)
     : _step_counter{MIN_STEP_ORDINAL + 1}
     , _iteration_ordinal{-1}
     , _current_event{QAO_Event::NoEvent}
     , _step_orderer_iterator{_orderer.end()}
-    , _user_data{nullptr}
+    , _user_data{userData}
 {
 }
 
@@ -28,6 +33,12 @@ QAO_Runtime::~QAO_Runtime() {
             delete object;
         }
     }
+}
+
+QAO_RuntimeRef QAO_Runtime::nonOwning() {
+    QAO_RuntimeRef rv{this};
+    FRIEND_ACCESS rv._isOwning = false;
+    return rv;
 }
 
 void QAO_Runtime::addObject(std::unique_ptr<QAO_Base> object) {

@@ -30,7 +30,7 @@ protected:
 
 class SimpleActiveObject : public QAO_Base {
 public:
-    SimpleActiveObject(QAO_Runtime* runtime, std::vector<int>& vec, int number)
+    SimpleActiveObject(QAO_RuntimeRef runtime, std::vector<int>& vec, int number)
         : QAO_Base{runtime, TYPEID_SELF, 0, "SimpleActiveObject"}
         , _myVec{vec}
         , _myNumber{number}
@@ -109,16 +109,29 @@ TEST_F(QAO_Test, PCreatePDestroy) {
     ASSERT_EQ(_runtime.getObjectCount(), 0);
 }
 
-TEST_F(QAO_Test, PCreateFails) {
+TEST_F(QAO_Test, PCreateFailsBecauseOfNull) {
     EXPECT_THROW(QAO_PCreate<SimpleActiveObject>(nullptr, _numbers, 0), hg::util::TracedLogicError);
 }
 
-TEST_F(QAO_Test, UPCreateTest) {
+TEST_F(QAO_Test, PCreateFailsBecauseOfNonOwningRef) {
+    EXPECT_THROW(QAO_PCreate<SimpleActiveObject>(_runtime.nonOwning(), _numbers, 0), hg::util::TracedLogicError);
+}
+
+TEST_F(QAO_Test, UPCreate) {
     auto obj = QAO_UPCreate<SimpleActiveObject>(nullptr, _numbers, 0);
     ASSERT_EQ(_runtime.getObjectCount(), 0);
     ASSERT_EQ(obj->getRuntime(), nullptr);
 
     _runtime.addObjectNoOwn(*obj);
+    ASSERT_EQ(_runtime.getObjectCount(), 1);
+    ASSERT_EQ(obj->getRuntime(), &_runtime);
+
+    QAO_UPDestroy(std::move(obj));
+    ASSERT_EQ(_runtime.getObjectCount(), 0);
+}
+
+TEST_F(QAO_Test, UPCreateWithNonOwningInsert) {
+    auto obj = QAO_UPCreate<SimpleActiveObject>(_runtime.nonOwning(), _numbers, 0);
     ASSERT_EQ(_runtime.getObjectCount(), 1);
     ASSERT_EQ(obj->getRuntime(), &_runtime);
 
@@ -142,8 +155,12 @@ TEST_F(QAO_Test, ICreate) {
     ASSERT_EQ(_runtime.getObjectCount(), 0);
 }
 
-TEST_F(QAO_Test, ICreateFails) {
+TEST_F(QAO_Test, ICreateFailsBecauseOfNull) {
     EXPECT_THROW(QAO_ICreate<SimpleActiveObject>(nullptr, _numbers, 0), hg::util::TracedLogicError);
+}
+
+TEST_F(QAO_Test, ICreateFailsBecauseOfNonOwningRef) {
+    EXPECT_THROW(QAO_ICreate<SimpleActiveObject>(_runtime.nonOwning(), _numbers, 0), hg::util::TracedLogicError);
 }
 
 TEST_F(QAO_Test, ReleaseObject) {

@@ -8,10 +8,10 @@ using namespace hg::qao;
 using namespace hg::rn;
 
 #include <typeinfo>
-#define TYPEID_SELF typeid(decltype(*this))
-
 #include <unordered_map>
 #include <unordered_set>
+
+#define TYPEID_SELF typeid(decltype(*this))
 
 struct GlobalProgramState;
 
@@ -24,9 +24,13 @@ public:
     // TODO: Add more utility methods
 };
 
+// I:
 // Objects which are not essential to the game's state and thus not saved (when
 // writing game state) nor synchronized with clients (in multiplayer sessions).
 // For example, particle effects and such.
+// II:
+// Controllers which are always created when the game starts and thus always
+// implicitly present, so we don't need to save them.
 class GOF_NonstateObject : public GOF_Base {
 public:
     using GOF_Base::GOF_Base;
@@ -44,7 +48,7 @@ using SyncId = std::int64_t;
 class GOF_SynchronizedObject;
 
 class SynchronizedObjectManager {
-    // TODO Cover edge case when an object is created and then immediately destoryed (in the same step)
+    // TODO Cover edge case when an object is created and then immediately destroyed (in the same step)
 public:
     SynchronizedObjectManager(RN_Node& node);
 
@@ -79,24 +83,24 @@ public:
     // TODO: Implement methods in .cpp file
 
     // Constructor for Master object
-    GOF_SynchronizedObject(QAO_Runtime* runtime, const std::type_info& typeInfo, 
+    GOF_SynchronizedObject(QAO_RuntimeRef runtimeRef, const std::type_info& typeInfo, 
                            int executionPriority, std::string name, 
-                           SynchronizedObjectManager& syncObjMapper)
-        : GOF_StateObject{runtime, typeInfo, executionPriority, std::move(name)}
-        , _syncObjMgr{syncObjMapper}
-        , _syncId{syncObjMapper.createMasterObject(this)}
+                           SynchronizedObjectManager& syncObjMgr)
+        : GOF_StateObject{runtimeRef, typeInfo, executionPriority, std::move(name)}
+        , _syncObjMgr{syncObjMgr}
+        , _syncId{_syncObjMgr.createMasterObject(this)}
     {
     }
 
     // Constructor for Dummy object (has preassigned syncId)
-    GOF_SynchronizedObject(QAO_Runtime* runtime, const std::type_info& typeInfo,
+    GOF_SynchronizedObject(QAO_RuntimeRef runtimeRef, const std::type_info& typeInfo,
                            int executionPriority, std::string name,
-                           SynchronizedObjectManager& syncObjMapper, SyncId syncId)
-        : GOF_StateObject{runtime, typeInfo, executionPriority, std::move(name)}
-        , _syncObjMgr{syncObjMapper}
+                           SynchronizedObjectManager& syncObjMgr, SyncId syncId)
+        : GOF_StateObject{runtimeRef, typeInfo, executionPriority, std::move(name)}
+        , _syncObjMgr{syncObjMgr}
         , _syncId{syncId}
     {
-        syncObjMapper.createDummyObject(this, _syncId);
+        _syncObjMgr.createDummyObject(this, _syncId);
     }
 
     virtual ~GOF_SynchronizedObject() {

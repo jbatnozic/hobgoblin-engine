@@ -61,6 +61,11 @@ struct RN_Event {
     void visit(Callables&&... callables) {
         std::visit(util::MakeVisitor(std::forward<Callables>(callables)...), eventVariant.value());
     }
+
+    template <class ...Callables>
+    void visit(Callables&&... callables) const {
+        std::visit(util::MakeVisitor(std::forward<Callables>(callables)...), eventVariant.value());
+    }
 };
 
 class RN_Node;

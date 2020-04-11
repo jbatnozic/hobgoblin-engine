@@ -4,8 +4,8 @@
 #include "Global_program_state.hpp"
 #include "Networking_manager.hpp"
 
-NetworkingManager::NetworkingManager(QAO_Runtime* runtime, bool isServer)
-    : GOF_StateObject{runtime, TYPEID_SELF, 50, "NetworkingManager"}
+NetworkingManager::NetworkingManager(QAO_RuntimeRef runtimeRef, bool isServer)
+    : GOF_StateObject{runtimeRef, TYPEID_SELF, 50, "NetworkingManager"}
     , _isServer{isServer}
 {
     auto retransmitPredicate =
@@ -13,8 +13,8 @@ NetworkingManager::NetworkingManager(QAO_Runtime* runtime, bool isServer)
            std::chrono::microseconds timeSinceLastTransmit,
            std::chrono::microseconds currentLatency) 
     {
-               std::cout << "Predicate(" << cyclesSinceLastTransmit << ", " << timeSinceLastTransmit.count()
-                         << ", " << currentLatency.count() << ")\n";
+               /*std::cout << "Predicate(" << cyclesSinceLastTransmit << ", " << timeSinceLastTransmit.count()
+                         << ", " << currentLatency.count() << ")\n";*/
                //return timeSinceLastTransmit > 2 * currentLatency;
                return 1; // Maximize user experience (super bandwidth-unfriendly)
     };
@@ -75,6 +75,17 @@ void NetworkingManager::eventPostUpdate() {
     handleEvents();
 }
 
+void NetworkingManager::addEventListener(EventListener* listener) {
+    _eventListeners.push_back(listener);
+}
+
+void NetworkingManager::removeEventListener(EventListener* listener) {
+    _eventListeners.remove_if(
+        [=](EventListener* listener_) {
+            return listener_ == listener;
+        });
+}
+
 void NetworkingManager::handleEvents() {
     RN_Event event;
     while (getNode().pollEvent(event)) {
@@ -89,8 +100,6 @@ void NetworkingManager::handleEvents() {
                 if (RN_IsServer(getNode().getType())) {
                     std::cout << "New client connected\n";
                     global().syncObjMgr.syncAllToNewClient(*ev.clientIndex);
-                    QAO_PCreate<Player>(&global().qaoRuntime, global().syncObjMgr,
-                                        200.f, 200.f, *ev.clientIndex + 1);
                 }
                 else {
                     std::cout << "Connected to server\n";
@@ -101,5 +110,9 @@ void NetworkingManager::handleEvents() {
                 std::cout << "Disconnected (message: " << ev.message << ")\n";
             }
         );
+
+        for (auto& listener : _eventListeners) {
+            listener->onNetworkingEvent(event);
+        }
     }
 }
