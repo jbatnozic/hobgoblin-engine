@@ -24,7 +24,7 @@ struct QAO_Event {
         Draw1,
         Draw2,
         DrawGUI,
-        Render,
+        Render, // TODO Rename to eventDisplay
 
         Count,
         NoEvent

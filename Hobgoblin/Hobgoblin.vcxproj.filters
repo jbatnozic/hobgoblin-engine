@@ -87,7 +87,7 @@
     <ClCompile Include="source\Hobgoblin\Graphics\Multisprite.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="source\Hobgoblin\CollisionsMain.cpp">
+    <ClCompile Include="source\Hobgoblin\BrushMain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -261,6 +261,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Hobgoblin\Graphics\Sprite_loader.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Hobgoblin\Graphics\Views.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Hobgoblin\Graphics\Brush.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Hobgoblin\Graphics\Canvas.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -408,8 +408,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="include\Hobgoblin\RigelNet\Connector.hpp" />
+    <ClCompile Include="source\Hobgoblin\BrushMain.cpp" />
     <ClCompile Include="source\Hobgoblin\ColDetect\Qtree_collision_domain.cpp" />
-    <ClCompile Include="source\Hobgoblin\CollisionsMain.cpp" />
     <ClCompile Include="source\Hobgoblin\Graphics\Multisprite.cpp" />
     <ClCompile Include="source\Hobgoblin\Graphics\Sprite_loader.cpp" />
     <ClCompile Include="source\Hobgoblin\Graphics\Texture_packing.cpp" />
@@ -426,9 +426,12 @@
     <ClInclude Include="include\Hobgoblin\ColDetect.hpp" />
     <ClInclude Include="include\Hobgoblin\ColDetect\Common.hpp" />
     <ClInclude Include="include\Hobgoblin\ColDetect\Qtree_collision_domain.hpp" />
+    <ClInclude Include="include\Hobgoblin\Graphics\Brush.hpp" />
+    <ClInclude Include="include\Hobgoblin\Graphics\Canvas.hpp" />
     <ClInclude Include="include\Hobgoblin\Graphics\Multisprite.hpp" />
     <ClInclude Include="include\Hobgoblin\Graphics\Sprite_loader.hpp" />
     <ClInclude Include="include\Hobgoblin\Graphics\Template.hpp" />
+    <ClInclude Include="include\Hobgoblin\Graphics\Views.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Rectangle.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Semaphore.hpp" />
     <ClInclude Include="include\Hobgoblin\QAO\Priority_resolver2.hpp" />

@@ -15,7 +15,6 @@ namespace gr {
 
 class Multisprite : public sf::Drawable, public sf::Transformable {
 public:
-
     void setSubspriteIndex(PZInteger subspriteIndex);
     void setColor(const sf::Color& color);
     sf::Color getColor() const;
