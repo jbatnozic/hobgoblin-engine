@@ -119,5 +119,5 @@ void Player::eventDraw1() {
     }
     rect.setPosition(s.x, s.y);
 
-    global().windowMgr.appSurface.draw(rect);
+    global().windowMgr.getMainRenderTexture().draw(rect);
 }

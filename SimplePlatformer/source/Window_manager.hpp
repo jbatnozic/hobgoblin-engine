@@ -3,47 +3,39 @@
 
 #include <iostream>
 
+#include <Hobgoblin/Graphics.hpp>
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 
 #include "Game_object_framework.hpp"
 
+enum class DrawPosition {
+    Fill, 
+    Fit, 
+    Stretch, 
+    Centre
+};
+
 class WindowManager : public GOF_Base {
 public:
-    sf::RenderTexture appSurface;
-    sf::RenderWindow window;
-    
-    WindowManager(QAO_RuntimeRef runtimeRef)
-        : GOF_Base{runtimeRef, TYPEID_SELF, -1000, "WindowManager"}
-    {
-        window.create(sf::VideoMode(800, 800), "Window");
-        // vSync and Framerate limiter perform near identically as far as
-        // time correctness is concerned, but the game is usually smoother
-        // with vSync. TODO Make it a toggle in the settings.
-        window.setVerticalSyncEnabled(true);
-        // window.setFramerateLimit(60);
+    WindowManager(QAO_RuntimeRef runtimeRef);
+    WindowManager(QAO_RuntimeRef runtimeRef, sf::Vector2u windowSize, const sf::String& windowTitle,
+                  sf::Vector2u mainRenderTargetSize);
 
-        appSurface.create(800, 800);
-    }
+    sf::RenderWindow& getWindow();
+    sf::RenderTexture& getMainRenderTexture();
+    hg::gr::Brush getBrush();
 
-    void eventPostUpdate() {
-        appSurface.clear();
-    }
+    void eventPostUpdate();
+    void eventRender();
 
-    void eventRender() override {
-        appSurface.display();
-        sf::Sprite sprite{appSurface.getTexture()};
-        window.draw(sprite);
-        window.display();
+    void drawMainRenderTexture(DrawPosition drawPosition);
 
-        sf::Event event;
-        while (window.pollEvent(event)) {
-            // Swallow events (TODO: Add event listeners)
-            /*if (event.type == sf::Event::Closed) {
-                window.close();
-            }*/
-        }
-    }
+private:
+    sf::RenderWindow _window;
+    sf::RenderTexture _mainRenderTexture;
+    hg::gr::CanvasAdapter _windowAdapter;
+    hg::gr::MultiViewRenderTargetAdapter _mainRenderTextureAdapter;
 };
 
 #endif // !WINDOW_MANAGER_HPP

@@ -17,27 +17,29 @@ class Brush {
 public:
     // TODO: Implementation to .cpp file
 
-    Brush(Canvas* canvas, sf::RenderStates renderStates = sf::RenderStates::Default)
-        : _canvas{canvas}
-        , _renderStates{renderStates}
-    {
-    }
+    Brush(Canvas* canvas, sf::RenderStates renderStates = sf::RenderStates::Default);
 
-    void setCanvas(Canvas* canvas) {
-        _canvas = canvas;
-    }
+    void setCanvas(Canvas* canvas);
 
     void setRenderStates(sf::RenderStates renderStates);
+
     const sf::RenderStates& getRenderStates() const noexcept;
 
-    void drawCircle(float x, float y, float radius) const {
-        assert(_canvas && "Cannot draw with canvas set to null");
-        sf::CircleShape circle{radius};
-        circle.setPosition({x, y});
-        _canvas->draw(circle, _renderStates);
-    }
+    void drawCircle(float x, float y, float radius) const;
 
     // drawRectangle, drawSprite, drawMultisprite, drawLine, drawRectangle, drawTexture, ...
+
+    //void draw(const sf::Drawable& drawable,
+    //          const sf::RenderStates& states = sf::RenderStates::Default);
+
+    //void draw(const sf::Vertex* vertices, std::size_t vertexCount, sf::PrimitiveType type,
+    //          const sf::RenderStates& states = sf::RenderStates::Default);
+
+    //void draw(const sf::VertexBuffer& vertexBuffer,
+    //          const sf::RenderStates& states = sf::RenderStates::Default);
+
+    //void draw(const sf::VertexBuffer& vertexBuffer, std::size_t firstVertex, std::size_t vertexCount,
+    //          const sf::RenderStates& states = sf::RenderStates::Default);
 
 private:
     Canvas* _canvas;
