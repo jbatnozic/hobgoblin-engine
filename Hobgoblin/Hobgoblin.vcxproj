@@ -437,11 +437,11 @@
     <ClInclude Include="include\Hobgoblin\Graphics\Sprite_loader.hpp" />
     <ClInclude Include="include\Hobgoblin\Graphics\Template.hpp" />
     <ClInclude Include="include\Hobgoblin\Graphics\Views.hpp" />
-    <ClInclude Include="include\Hobgoblin\Private\Font_cmu_serif_roman.h" />
-    <ClInclude Include="include\Hobgoblin\Private\Font_cmu_typewriter_text.h" />
-    <ClInclude Include="include\Hobgoblin\Private\Font_ebgaramond12_regular.h" />
-    <ClInclude Include="include\Hobgoblin\Private\Font_inconsolata_regular.h" />
-    <ClInclude Include="include\Hobgoblin\Private\Font_titillium_webregular.h" />
+    <ClInclude Include="include\Hobgoblin\Private\Font_cmu_serif_roman.hpp" />
+    <ClInclude Include="include\Hobgoblin\Private\Font_cmu_typewriter_text.hpp" />
+    <ClInclude Include="include\Hobgoblin\Private\Font_ebgaramond12_regular.hpp" />
+    <ClInclude Include="include\Hobgoblin\Private\Font_inconsolata_regular.hpp" />
+    <ClInclude Include="include\Hobgoblin\Private\Font_titillium_webregular.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Rectangle.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Semaphore.hpp" />
     <ClInclude Include="include\Hobgoblin\QAO\Priority_resolver2.hpp" />

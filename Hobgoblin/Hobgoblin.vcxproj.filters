@@ -284,22 +284,22 @@
     <ClInclude Include="include\Hobgoblin\Graphics.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Hobgoblin\Private\Font_cmu_serif_roman.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Hobgoblin\Private\Font_cmu_typewriter_text.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Hobgoblin\Private\Font_inconsolata_regular.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Hobgoblin\Private\Font_titillium_webregular.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Hobgoblin\Private\Font_ebgaramond12_regular.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\Hobgoblin\Graphics\Builtin_fonts.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Hobgoblin\Private\Font_cmu_serif_roman.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Hobgoblin\Private\Font_cmu_typewriter_text.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Hobgoblin\Private\Font_ebgaramond12_regular.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Hobgoblin\Private\Font_inconsolata_regular.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Hobgoblin\Private\Font_titillium_webregular.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -6,11 +6,11 @@
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 namespace {
-#include <Hobgoblin/Private/Font_cmu_serif_roman.h>
-#include <Hobgoblin/Private/Font_cmu_typewriter_text.h>
-#include <Hobgoblin/Private/Font_ebgaramond12_regular.h>
-#include <Hobgoblin/Private/Font_inconsolata_regular.h>
-#include <Hobgoblin/Private/Font_titillium_webregular.h>
+#include <Hobgoblin/Private/Font_cmu_serif_roman.hpp>
+#include <Hobgoblin/Private/Font_cmu_typewriter_text.hpp>
+#include <Hobgoblin/Private/Font_ebgaramond12_regular.hpp>
+#include <Hobgoblin/Private/Font_inconsolata_regular.hpp>
+#include <Hobgoblin/Private/Font_titillium_webregular.hpp>
 } // namespace
 
 HOBGOBLIN_NAMESPACE_START
