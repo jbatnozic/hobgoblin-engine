@@ -12,8 +12,8 @@ WindowManager::WindowManager(QAO_RuntimeRef runtimeRef)
     // vSync and Framerate limiter perform near identically as far as
     // time correctness is concerned, but the game is usually smoother
     // with vSync. TODO Make it a toggle in the settings.
-    _window.setVerticalSyncEnabled(true);
-    // window.setFramerateLimit(60);
+    //_window.setVerticalSyncEnabled(true);
+    _window.setFramerateLimit(60);
 
     _mainRenderTexture.create(800, 800);
 }

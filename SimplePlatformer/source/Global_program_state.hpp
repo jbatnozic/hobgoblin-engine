@@ -12,6 +12,7 @@
 #include "Networking_manager.hpp"
 #include "Player.hpp"
 #include "Window_manager.hpp"
+#include "Lighting.hpp"
 
 struct GlobalProgramState {
     int playerIndex;
@@ -24,6 +25,7 @@ struct GlobalProgramState {
     ControlsManager controlsMgr;
     MainGameController mainGameCtrl;
     std::ofstream file;
+    LightingManager lightMgr;
 
     GlobalProgramState(bool isHost)
         : qaoRuntime{this}
@@ -33,11 +35,12 @@ struct GlobalProgramState {
         , syncObjMgr{netMgr.getNode()}
         , mainGameCtrl{qaoRuntime.nonOwning()}
         , file{"logs.txt", std::ostream::out}
+        , lightMgr{qaoRuntime.nonOwning()}
     {
         netMgr.getNode().setUserData(this);
 
         if (isHost) {
-            QAO_PCreate<Player>(&qaoRuntime, syncObjMgr, 200.f, 200.f, 0);
+            // QAO_PCreate<Player>(&qaoRuntime, syncObjMgr, 200.f, 200.f, 0);
             playerIndex = 0;
         }
         else {
