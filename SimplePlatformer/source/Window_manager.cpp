@@ -94,7 +94,7 @@ void WindowManager::drawMainRenderTexture(DrawPosition drawPosition) {
 }
 
 void WindowManager::eventPostUpdate() {
-    _mainRenderTexture.clear(sf::Color(200, 200, 200));
+    _mainRenderTexture.clear(hg::gr::Color::Khaki);
 }
 
 void WindowManager::eventRender() {

@@ -412,6 +412,7 @@
     <ClCompile Include="source\Hobgoblin\ColDetect\Qtree_collision_domain.cpp" />
     <ClCompile Include="source\Hobgoblin\Graphics\Brush.cpp" />
     <ClCompile Include="source\Hobgoblin\Graphics\Builtin_fonts.cpp" />
+    <ClCompile Include="source\Hobgoblin\Graphics\Color.cpp" />
     <ClCompile Include="source\Hobgoblin\Graphics\Multisprite.cpp" />
     <ClCompile Include="source\Hobgoblin\Graphics\Sprite_loader.cpp" />
     <ClCompile Include="source\Hobgoblin\Graphics\Texture_packing.cpp" />
@@ -433,6 +434,7 @@
     <ClInclude Include="include\Hobgoblin\Graphics\Brush.hpp" />
     <ClInclude Include="include\Hobgoblin\Graphics\Builtin_fonts.hpp" />
     <ClInclude Include="include\Hobgoblin\Graphics\Canvas.hpp" />
+    <ClInclude Include="include\Hobgoblin\Graphics\Color.hpp" />
     <ClInclude Include="include\Hobgoblin\Graphics\Multisprite.hpp" />
     <ClInclude Include="include\Hobgoblin\Graphics\Sprite_loader.hpp" />
     <ClInclude Include="include\Hobgoblin\Graphics\Template.hpp" />
@@ -442,6 +444,8 @@
     <ClInclude Include="include\Hobgoblin\Private\Font_ebgaramond12_regular.hpp" />
     <ClInclude Include="include\Hobgoblin\Private\Font_inconsolata_regular.hpp" />
     <ClInclude Include="include\Hobgoblin\Private\Font_titillium_webregular.hpp" />
+    <ClInclude Include="include\Hobgoblin\Private\Short_namespace.hpp" />
+    <ClInclude Include="include\Hobgoblin\Private\Xmacro_html_colors.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Grids.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Math.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Rectangle.hpp" />
