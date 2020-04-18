@@ -28,15 +28,6 @@ RN_DEFINE_HANDLER(UpdatePlayer, RN_ARGS(SyncId, syncId, Player::State&, state)) 
 
             const std::chrono::microseconds delay = client.getServer().getRemoteInfo().latency / 2LL;
             player->_ssch.putNewState(state, global.calcDelay(delay));
-            //for (auto& state : player->_ssch) {
-            //    printf("[%d, %d]", (int)state.x, (int)state.y);
-            //}
-            //printf(" ((%d, %d)) -> ", (int)state.x, (int)state.y);
-            //player->_ssch.putNewState(state, 2);/*
-            /*for (auto& state : player->_ssch) {
-                printf("[%d, %d]", (int)state.x, (int)state.y);
-            }
-            printf("\n");*/
         },
         [](NetworkingManager::ServerType& server) {
             // ERROR
@@ -51,7 +42,7 @@ RN_DEFINE_HANDLER(DestroyPlayer, RN_ARGS(SyncId, syncId)) {
             auto& runtime = global.qaoRuntime;
             auto& syncObjMapper = global.syncObjMgr;
             auto* player = static_cast<Player*>(syncObjMapper.getMapping(syncId));
-            runtime.eraseObject(player);
+            QAO_PDestroy(player);
         },
         [](NetworkingManager::ServerType& server) {
             // ERROR
@@ -61,7 +52,7 @@ RN_DEFINE_HANDLER(DestroyPlayer, RN_ARGS(SyncId, syncId)) {
 
 Player::Player(QAO_Runtime* runtime, SynchronizedObjectManager& syncObjMapper, 
                float x, float y, hg::PZInteger playerIndex)
-    : GOF_SynchronizedObject{runtime, TYPEID_SELF, 75, "Player", syncObjMapper}
+    : GOF_SynchronizedObject{runtime, TYPEID_SELF, 75, "Player", syncObjMapper} // TODO Unified constructor for SynchronizedObject
     , _ssch{global().syncBufferLength, global().syncBufferHistoryLength, false, false}
 {
     for (auto& state : _ssch) {
@@ -73,7 +64,7 @@ Player::Player(QAO_Runtime* runtime, SynchronizedObjectManager& syncObjMapper,
 
 Player::Player(QAO_Runtime* runtime, SynchronizedObjectManager& syncObjMapper, SyncId masterSyncId,
                float x, float y, hg::PZInteger playerIndex)
-    : GOF_SynchronizedObject{runtime, TYPEID_SELF, 75, "Player", syncObjMapper, masterSyncId}
+    : GOF_SynchronizedObject{runtime, TYPEID_SELF, 75, "Player", syncObjMapper, masterSyncId} // TODO Unified constructor for SynchronizedObject
     , _ssch{global().syncBufferLength, global().syncBufferHistoryLength, false, false}
 {
     for (auto& state : _ssch) {
@@ -105,14 +96,10 @@ void Player::eventUpdate() {
     if (global().isHost()) {
         auto& self = _ssch.getCurrentState();
 
-        PlayerControls controls{};
-        if (global().isHost() || global().playerIndex == self.playerIndex) {
-            controls = global().controlsMgr.getCurrentControlsForPlayer(self.playerIndex);
-            if (global().isHost() && self.playerIndex > 0) {
-                //printf("[%d, %d, %d]\n", (int)controls.left, (int)controls.right, (int)controls.up);
-                //global().file << (int)controls.left << ' ' << (int)controls.right << ' ' << (int)controls.up << std::endl;
-            }
-        }
+        PlayerControls controls = global().controlsMgr.getCurrentControlsForPlayer(self.playerIndex);
+        /*if (self.playerIndex > 0) {
+            printf("[%d, %d, %d]\n", (int)controls.left, (int)controls.right, (int)controls.up);
+        }*/
 
         if (self.y < static_cast<float>(800) - self.height) {
             self.yspeed += GRAVITY;
@@ -135,10 +122,6 @@ void Player::eventUpdate() {
     }
     else {
         _ssch.scheduleNewStates();
-        /*for (auto& state : _ssch) {
-            printf("[%d, %d]", (int)state.x, (int)state.y);
-        }
-        printf("\n");*/
     }
 }
 
