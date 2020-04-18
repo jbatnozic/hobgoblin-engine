@@ -45,6 +45,8 @@ public:
 };
 
 using SyncId = std::int64_t;
+constexpr SyncId SYNC_ID_CREATE_MASTER = 0;
+
 class GOF_SynchronizedObject;
 
 class SynchronizedObjectManager {
@@ -70,7 +72,7 @@ private:
     std::unordered_set<const GOF_SynchronizedObject*> _alreadyUpdatedObjects;
     std::unordered_set<const GOF_SynchronizedObject*> _alreadyDestroyedObjects;
     std::vector<hg::PZInteger> _recepientVec;
-    SyncId _syncIdCounter = 0;
+    SyncId _syncIdCounter = 2;
     RN_Node& _node;
 };
 
@@ -82,23 +84,14 @@ class GOF_SynchronizedObject : public GOF_StateObject {
 public:
     // TODO: Implement methods in .cpp file
 
-    // Constructor for Master object
-    GOF_SynchronizedObject(QAO_RuntimeRef runtimeRef, const std::type_info& typeInfo, 
-                           int executionPriority, std::string name, 
-                           SynchronizedObjectManager& syncObjMgr)
-        : GOF_StateObject{runtimeRef, typeInfo, executionPriority, std::move(name)}
-        , _syncObjMgr{syncObjMgr}
-        , _syncId{_syncObjMgr.createMasterObject(this)}
-    {
-    }
-
-    // Constructor for Dummy object (has preassigned syncId)
+    // if syncId.has_value() == true, create dummy object. Otherwise, create
+    // master object.
     GOF_SynchronizedObject(QAO_RuntimeRef runtimeRef, const std::type_info& typeInfo,
                            int executionPriority, std::string name,
-                           SynchronizedObjectManager& syncObjMgr, SyncId syncId)
+                           SynchronizedObjectManager& syncObjMgr, SyncId syncId = SYNC_ID_CREATE_MASTER)
         : GOF_StateObject{runtimeRef, typeInfo, executionPriority, std::move(name)}
         , _syncObjMgr{syncObjMgr}
-        , _syncId{syncId}
+        , _syncId{(syncId == SYNC_ID_CREATE_MASTER) ? _syncObjMgr.createMasterObject(this) : syncId}
     {
         _syncObjMgr.createDummyObject(this, _syncId);
     }

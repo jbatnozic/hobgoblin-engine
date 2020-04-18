@@ -41,7 +41,7 @@ struct GlobalProgramState {
         netMgr.getNode().setUserData(this);
 
         if (isHost) {
-            QAO_PCreate<Player>(&qaoRuntime, syncObjMgr, 200.f, 200.f, 0);
+            QAO_PCreate<Player>(&qaoRuntime, syncObjMgr, SYNC_ID_CREATE_MASTER, 200.f, 200.f, 0);
             playerIndex = 0;
         }
         else {

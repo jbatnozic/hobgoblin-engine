@@ -17,10 +17,7 @@ public:
     static constexpr float GRAVITY = 1.f;
     static constexpr float JUMP_POWER = 16.f;
 
-    Player(QAO_Runtime* runtime, SynchronizedObjectManager& syncObjMgr, 
-           float x, float y, hg::PZInteger playerIndex);
-
-    Player(QAO_Runtime* runtime, SynchronizedObjectManager& syncObjMgr, SyncId masterSyncId,
+    Player(QAO_Runtime* runtime, SynchronizedObjectManager& syncObjMgr, SyncId syncId,
            float x, float y, hg::PZInteger playerIndex);
 
     void serialize(hg::util::Packet& packet) const {

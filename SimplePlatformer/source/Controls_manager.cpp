@@ -71,7 +71,7 @@ void ControlsManager::eventUpdate() {
     if (global().playerIndex > 0 && 
         global().netMgr.getClient().getServer().getStatus() == RN_ConnectorStatus::Connected) {
         auto& scheduler = _schedulers[global().playerIndex];
-        RN_Compose_SetClientControls(global().netMgr.getClient(), 0, scheduler.getLatestState());
+        Compose_SetClientControls(global().netMgr.getClient(), 0, scheduler.getLatestState());
     }
 }
 

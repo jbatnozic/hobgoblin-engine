@@ -105,7 +105,18 @@ public:
     template <class T>
     T* getUserDataOrThrow() const;
 
-    // TODO Orderer iterations
+    // Orderer/instance iterations:
+    QAO_OrdererIterator begin();
+    QAO_OrdererIterator end();
+
+    QAO_OrdererReverseIterator rbegin();
+    QAO_OrdererReverseIterator rend();
+
+    QAO_OrdererConstIterator cbegin() const;
+    QAO_OrdererConstIterator cend() const;
+
+    QAO_OrdererConstReverseIterator crbegin() const;
+    QAO_OrdererConstReverseIterator crend() const;
 
 private:
     detail::QAO_Registry _registry;

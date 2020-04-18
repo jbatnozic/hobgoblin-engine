@@ -5,8 +5,8 @@
 #include <Hobgoblin/QAO/id.hpp>
 #include <Hobgoblin/QAO/orderer.hpp>
 #include <Hobgoblin/QAO/runtime.hpp>
+#include <Hobgoblin/Utility/Any_ptr.hpp>
 #include <Hobgoblin/Utility/NoCopyNoMove.hpp>
-#include <Hobgoblin/Utility/Passkey.hpp>
 
 #include <string>
 #include <typeinfo>
@@ -34,11 +34,9 @@ public:
 
     QAO_GenericId getId() const noexcept;
 
-    const std::type_info& getTypeInfo() const {
-        return _typeInfo; // TODO
-    }
+    const std::type_info& getTypeInfo() const;
 
-    virtual QAO_Base* clone() const;
+    virtual bool message(int tag, util::AnyPtr context);
 
 protected:
     virtual void eventFrameStart() { }

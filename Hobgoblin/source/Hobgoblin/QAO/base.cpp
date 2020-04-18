@@ -47,8 +47,12 @@ QAO_GenericId QAO_Base::getId() const noexcept {
     return _context.id;
 }
 
-QAO_Base* QAO_Base::clone() const {
-    return nullptr;
+const std::type_info& QAO_Base::getTypeInfo() const {
+    return _typeInfo;
+}
+
+bool QAO_Base::message(int tag, util::AnyPtr context) {
+    return false;
 }
 
 void QAO_Base::setExecutionPriority(int new_priority) {

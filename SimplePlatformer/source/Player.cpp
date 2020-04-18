@@ -50,21 +50,9 @@ RN_DEFINE_HANDLER(DestroyPlayer, RN_ARGS(SyncId, syncId)) {
     );
 }
 
-Player::Player(QAO_Runtime* runtime, SynchronizedObjectManager& syncObjMapper, 
+Player::Player(QAO_Runtime* runtime, SynchronizedObjectManager& syncObjMapper, SyncId syncId,
                float x, float y, hg::PZInteger playerIndex)
-    : GOF_SynchronizedObject{runtime, TYPEID_SELF, 75, "Player", syncObjMapper} // TODO Unified constructor for SynchronizedObject
-    , _ssch{global().syncBufferLength, global().syncBufferHistoryLength, false, false}
-{
-    for (auto& state : _ssch) {
-        state.playerIndex = playerIndex;
-        state.x = x;
-        state.y = y;
-    }
-}
-
-Player::Player(QAO_Runtime* runtime, SynchronizedObjectManager& syncObjMapper, SyncId masterSyncId,
-               float x, float y, hg::PZInteger playerIndex)
-    : GOF_SynchronizedObject{runtime, TYPEID_SELF, 75, "Player", syncObjMapper, masterSyncId} // TODO Unified constructor for SynchronizedObject
+    : GOF_SynchronizedObject{runtime, TYPEID_SELF, 75, "Player", syncObjMapper, syncId}
     , _ssch{global().syncBufferLength, global().syncBufferHistoryLength, false, false}
 {
     for (auto& state : _ssch) {
@@ -75,15 +63,15 @@ Player::Player(QAO_Runtime* runtime, SynchronizedObjectManager& syncObjMapper, S
 }
 
 void Player::syncCreateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const {
-    RN_Compose_CreatePlayer(node, rec, getSyncId(), _ssch.getCurrentState());
+    Compose_CreatePlayer(node, rec, getSyncId(), _ssch.getCurrentState());
 }
 
 void Player::syncUpdateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const {
-    RN_Compose_UpdatePlayer(node, rec, getSyncId(), _ssch.getCurrentState()); // TODO
+    Compose_UpdatePlayer(node, rec, getSyncId(), _ssch.getCurrentState()); // TODO
 }
 
 void Player::syncDestroyImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const {
-    RN_Compose_DestroyPlayer(node, rec, getSyncId()); // TODO
+    Compose_DestroyPlayer(node, rec, getSyncId()); // TODO
 }
 
 void Player::eventPreUpdate() {

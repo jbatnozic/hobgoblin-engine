@@ -188,6 +188,40 @@ void QAO_Runtime::setUserData(std::nullptr_t) {
     _user_data.reset(nullptr);
 }
 
+// Orderer/instance iterations
+
+QAO_OrdererIterator QAO_Runtime::begin() {
+    return _orderer.begin();
+}
+
+QAO_OrdererIterator QAO_Runtime::end() {
+    return _orderer.end();
+}
+
+QAO_OrdererReverseIterator QAO_Runtime::rbegin() {
+    return _orderer.rbegin();
+}
+
+QAO_OrdererReverseIterator QAO_Runtime::rend() {
+    return _orderer.rend();
+}
+
+QAO_OrdererConstIterator QAO_Runtime::cbegin() const {
+    return _orderer.cbegin();
+}
+
+QAO_OrdererConstIterator QAO_Runtime::cend() const {
+    return _orderer.cend();
+}
+
+QAO_OrdererConstReverseIterator QAO_Runtime::crbegin() const {
+    return _orderer.crbegin();
+}
+
+QAO_OrdererConstReverseIterator QAO_Runtime::crend() const {
+    return _orderer.crend();
+}
+
 }
 HOBGOBLIN_NAMESPACE_END
 

@@ -20,7 +20,8 @@ void MainGameController::onNetworkingEvent(const RN_Event& event_) {
         },
         [this](const RN_Event::Connected& ev) {
             if (global().isHost()) {
-                QAO_PCreate<Player>(getRuntime(), global().syncObjMgr, 200.f, 200.f, *ev.clientIndex + 1);
+                QAO_PCreate<Player>(getRuntime(), global().syncObjMgr, SYNC_ID_CREATE_MASTER,
+                                    200.f, 200.f, *ev.clientIndex + 1);
             }
         },
         [](const RN_Event::Disconnected& ev) {

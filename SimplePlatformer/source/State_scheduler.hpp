@@ -39,6 +39,9 @@ public:
     typename std::deque<TState>::const_iterator cbegin() const;
     typename std::deque<TState>::const_iterator cend() const;
 
+    hg::PZInteger getBufferLength() const noexcept;
+    hg::PZInteger getHistoryLength() const noexcept;
+
 private:
     std::deque<TState> _stateBuffer;
     std::deque<TState> _rawStateHistory;
@@ -159,6 +162,16 @@ typename std::deque<TState>::const_iterator StateScheduler<TState>::cbegin() con
 template <class TState>
 typename std::deque<TState>::const_iterator StateScheduler<TState>::cend() const {
     return _stateBuffer.cend();
+}
+
+template <class TState>
+hg::PZInteger StateScheduler<TState>::getBufferLength() const noexcept {
+    return (hg::ToPz(_stateBuffer.size()) - _historyLength);
+}
+
+template <class TState>
+hg::PZInteger StateScheduler<TState>::getHistoryLength() const noexcept {
+    return _historyLength;
 }
 
 #endif // !STATE_SCHEDULER_HPP
