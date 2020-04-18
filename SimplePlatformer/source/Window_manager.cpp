@@ -16,6 +16,10 @@ WindowManager::WindowManager(QAO_RuntimeRef runtimeRef)
     _window.setFramerateLimit(60);
 
     _mainRenderTexture.create(800, 800);
+    _mainRenderTextureAdapter.setViewCount(1);
+    _mainRenderTextureAdapter.getView(0).setSize({800, 800});
+    _mainRenderTextureAdapter.getView(0).setCenter({400, 400});
+    _mainRenderTextureAdapter.getView(0).setViewport({0, 0, 1, 1});
 }
 
 WindowManager::WindowManager(QAO_RuntimeRef runtimeRef, sf::Vector2u windowSize, const sf::String& windowTitle,
@@ -35,11 +39,15 @@ sf::RenderTexture& WindowManager::getMainRenderTexture() {
 }
 
 hg::gr::Brush WindowManager::getBrush() {
+    return hg::gr::Brush{&getCanvas()};
+}
+
+hg::gr::Canvas& WindowManager::getCanvas() {
     if (getRuntime()->getCurrentEvent() == QAO_Event::DrawGUI) {
-        return hg::gr::Brush{&_windowAdapter};
+        return _windowAdapter;
     }
     else {
-        return hg::gr::Brush{&_mainRenderTextureAdapter};
+        return _mainRenderTextureAdapter;
     }
 }
 
@@ -86,11 +94,12 @@ void WindowManager::drawMainRenderTexture(DrawPosition drawPosition) {
 }
 
 void WindowManager::eventPostUpdate() {
-    _mainRenderTexture.clear(sf::Color::White);
+    _mainRenderTexture.clear(sf::Color(200, 200, 200));
 }
 
 void WindowManager::eventRender() {
-    drawMainRenderTexture(DrawPosition::Fill);
+    _window.clear(sf::Color::Black);
+    drawMainRenderTexture(DrawPosition::Centre);
     _window.display();
 
     sf::Event event;

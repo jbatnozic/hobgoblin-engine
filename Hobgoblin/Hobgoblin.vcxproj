@@ -442,6 +442,7 @@
     <ClInclude Include="include\Hobgoblin\Private\Font_ebgaramond12_regular.hpp" />
     <ClInclude Include="include\Hobgoblin\Private\Font_inconsolata_regular.hpp" />
     <ClInclude Include="include\Hobgoblin\Private\Font_titillium_webregular.hpp" />
+    <ClInclude Include="include\Hobgoblin\Utility\Grids.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Math.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Rectangle.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Semaphore.hpp" />

@@ -51,7 +51,10 @@ public: // State object must be public
 
 private:
     StateScheduler<State> _ssch;
+    State _doppelganger;
+
     bool oldUp = false;
+    void move(State& self);
 
     friend RN_HANDLER_SIGNATURE(UpdatePlayer, RN_ARGS(SyncId, syncId, State&, state));
 };

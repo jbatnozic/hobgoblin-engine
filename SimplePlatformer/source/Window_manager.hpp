@@ -25,6 +25,7 @@ public:
     sf::RenderWindow& getWindow();
     sf::RenderTexture& getMainRenderTexture();
     hg::gr::Brush getBrush();
+    hg::gr::Canvas& getCanvas();
 
     void eventPostUpdate();
     void eventRender();

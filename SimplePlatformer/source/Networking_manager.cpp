@@ -13,10 +13,8 @@ NetworkingManager::NetworkingManager(QAO_RuntimeRef runtimeRef, bool isServer)
            std::chrono::microseconds timeSinceLastTransmit,
            std::chrono::microseconds currentLatency) 
     {
-               /*std::cout << "Predicate(" << cyclesSinceLastTransmit << ", " << timeSinceLastTransmit.count()
-                         << ", " << currentLatency.count() << ")\n";*/
-               //return timeSinceLastTransmit > 2 * currentLatency;
-               return 1; // Maximize user experience (super bandwidth-unfriendly)
+               return (timeSinceLastTransmit >= 2 * currentLatency) || cyclesSinceLastTransmit >= 3;
+               //return 1; // Maximize user experience (super bandwidth-unfriendly)
     };
 
     if (isServer) {

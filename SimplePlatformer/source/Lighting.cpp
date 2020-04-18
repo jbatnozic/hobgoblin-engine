@@ -1,27 +1,21 @@
 
-#include "Global_program_state.hpp"
-#include "Lighting.hpp"
+#include <Hobgoblin/Utility/Math.hpp>
 
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
 
+#include "Global_program_state.hpp"
+#include "Lighting.hpp"
+
 namespace {
-
-template <class T>
-const T& Clamp_(const T& val, const T& low, const T& high) {
-    return std::min(high, std::max(val, low));
-}
-
-template <class T>
-T Sqr_(T val) {
-    return val * val;
-}
+using hg::util::Clamp;
+using hg::util::Sqr;
 
 template <class T>
 T Dist_(T x1, T y1, T x2, T y2) {
-     return std::sqrt(Sqr_(x2 - x1) + Sqr_(y2 - y1));
+     return std::sqrt(Sqr(x2 - x1) + Sqr(y2 - y1));
 }
 
 } // namespace
@@ -47,7 +41,7 @@ void LightingManager::eventUpdate() {
     resetLights();
 
     auto pos = sf::Mouse::getPosition(global().windowMgr.getWindow());
-    renderLight(Clamp_(pos.x, 0, 639), Clamp_(pos.y, 0, 639), 3000.f);
+    renderLight(Clamp(pos.x, 0, 639), Clamp(pos.y, 0, 639), 3000.f);
 }
 
 void LightingManager::eventDraw1() {
@@ -81,7 +75,7 @@ void LightingManager::renderLight(float lightX, float lightY, float intensity) {
     const int startY = static_cast<int>(lightY / _cellResolution);
 
     // Centre
-    if (Clamp_(startX, 0, _width - 1) == startX && Clamp_(startY, 0, _height - 1) == startY) {
+    if (Clamp(startX, 0, _width - 1) == startX && Clamp(startY, 0, _height - 1) == startY) {
         cellAt(startX, startY).intensity = std::min(1.f, intensity);
     }
 
@@ -89,13 +83,13 @@ void LightingManager::renderLight(float lightX, float lightY, float intensity) {
         // Upper row
         {
             const int y = startY - offset;
-            if (Clamp_(y, 0, _height - 1) == y) {
+            if (Clamp(y, 0, _height - 1) == y) {
                 for (int x = startX - offset; x <= startX + offset; x += 1) {
                     if (x == startX) {
                         int __break = 5;
                     }
 
-                    if (Clamp_(x, 0, _width - 1) == x) {
+                    if (Clamp(x, 0, _width - 1) == x) {
                         cellAt(x, y).intensity = std::min(1.f, intensity * factor(x, y, lightX, lightY));
                     }
                 }
@@ -105,9 +99,9 @@ void LightingManager::renderLight(float lightX, float lightY, float intensity) {
         // Lower row
         {
             const int y = startY + offset;
-            if (Clamp_(y, 0, _height - 1) == y) {
+            if (Clamp(y, 0, _height - 1) == y) {
                 for (int x = startX - offset; x <= startX + offset; x += 1) {
-                    if (Clamp_(x, 0, _width - 1) == x) {
+                    if (Clamp(x, 0, _width - 1) == x) {
                         cellAt(x, y).intensity = std::min(1.f, intensity * factor(x, y, lightX, lightY));
                     }
                 }
@@ -117,9 +111,9 @@ void LightingManager::renderLight(float lightX, float lightY, float intensity) {
         // Left column
         {
             const int x = startX - offset;
-            if (Clamp_(x, 0, _width - 1) == x) {
+            if (Clamp(x, 0, _width - 1) == x) {
                 for (int y = startY - offset + 1; y < startY + offset; y += 1) {
-                    if (Clamp_(y, 0, _height - 1) == y) {
+                    if (Clamp(y, 0, _height - 1) == y) {
                         cellAt(x, y).intensity = std::min(1.f, intensity * factor(x, y, lightX, lightY));
                     }
                 }
@@ -129,9 +123,9 @@ void LightingManager::renderLight(float lightX, float lightY, float intensity) {
         // Right column
         {
             const int x = startX + offset;
-            if (Clamp_(x, 0, _width - 1) == x) {
+            if (Clamp(x, 0, _width - 1) == x) {
                 for (int y = startY - offset + 1; y < startY + offset; y += 1) {
-                    if (Clamp_(y, 0, _height - 1) == y) {
+                    if (Clamp(y, 0, _height - 1) == y) {
                         cellAt(x, y).intensity = std::min(1.f, intensity * factor(x, y, lightX, lightY));
                     }
                 }
@@ -178,5 +172,5 @@ float LightingManager::factor(hg::PZInteger cellX, hg::PZInteger cellY, float li
         }
     }
 
-    return 1.f / Sqr_(Dist_(xx, yy, lightX, lightY));
+    return 1.f / Sqr(Dist_(xx, yy, lightX, lightY));
 }
