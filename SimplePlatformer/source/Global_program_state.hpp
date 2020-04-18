@@ -3,6 +3,7 @@
 
 #include <Hobgoblin/Common.hpp>
 
+#include <chrono>
 #include <fstream>
 
 #include "Controls_manager.hpp"
@@ -16,6 +17,8 @@
 
 struct GlobalProgramState {
     int playerIndex;
+    hg::PZInteger syncBufferLength = 2;
+    hg::PZInteger syncBufferHistoryLength = 1;
     bool quit = false;
 
     hg::QAO_Runtime qaoRuntime;
@@ -24,23 +27,21 @@ struct GlobalProgramState {
     SynchronizedObjectManager syncObjMgr;
     ControlsManager controlsMgr;
     MainGameController mainGameCtrl;
-    std::ofstream file;
-    LightingManager lightMgr;
+    //LightingManager lightMgr;
 
     GlobalProgramState(bool isHost)
         : qaoRuntime{this}
         , windowMgr{qaoRuntime.nonOwning()}
-        , controlsMgr{qaoRuntime.nonOwning(), 4, 4, 1} // runtime, playerCount, inputDelay (in steps), historySize
+        , controlsMgr{qaoRuntime.nonOwning(), 4, syncBufferLength, syncBufferHistoryLength}
         , netMgr{qaoRuntime.nonOwning(), isHost}
         , syncObjMgr{netMgr.getNode()}
         , mainGameCtrl{qaoRuntime.nonOwning()}
-        , file{"logs.txt", std::ostream::out}
-        , lightMgr{qaoRuntime.nonOwning()}
+        //, lightMgr{qaoRuntime.nonOwning()}
     {
         netMgr.getNode().setUserData(this);
 
         if (isHost) {
-            // QAO_PCreate<Player>(&qaoRuntime, syncObjMgr, 200.f, 200.f, 0);
+            QAO_PCreate<Player>(&qaoRuntime, syncObjMgr, 200.f, 200.f, 0);
             playerIndex = 0;
         }
         else {
@@ -50,6 +51,10 @@ struct GlobalProgramState {
 
     bool isHost() const {
         return (playerIndex == 0);
+    }
+
+    int calcDelay(std::chrono::microseconds currentLatency) const {
+        return static_cast<int>(currentLatency / std::chrono::microseconds{16'666});
     }
 
 };

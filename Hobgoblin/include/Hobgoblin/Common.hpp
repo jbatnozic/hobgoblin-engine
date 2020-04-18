@@ -2,6 +2,7 @@
 #define UHOBGOBLIN_COMMON_HPP
 
 #include <cstddef>
+#include <utility>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
@@ -21,6 +22,16 @@ PZInteger stopz(std::size_t value) {
 inline 
 std::size_t pztos(PZInteger value) {
     return static_cast<std::size_t>(value);
+}
+
+template <class T>
+PZInteger ToPz(T&& value) {
+    return static_cast<PZInteger>(std::forward<T>(value));
+}
+
+template <class T>
+std::size_t ToSz(T&& value) {
+    return static_cast<std::size_t>(std::forward<T>(value));
 }
 
 HOBGOBLIN_NAMESPACE_END

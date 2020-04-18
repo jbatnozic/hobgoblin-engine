@@ -7,6 +7,7 @@
 #include <Hobgoblin/Utility/Packet.hpp>
 
 #include "Game_object_framework.hpp"
+#include "State_scheduler.hpp"
 
 class Player : public GOF_SynchronizedObject {
 public:
@@ -33,6 +34,7 @@ public:
     virtual void syncDestroyImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const override;
 
 protected:
+    void eventPreUpdate() override;
     void eventUpdate() override;
     void eventDraw1() override;
 
@@ -43,10 +45,15 @@ public: // State object must be public
         float xspeed = 0.f, yspeed = 0.f;
         float width = 48.f, height = 64.f;
         HG_ENABLE_AUTOPACK(State, playerIndex, x, y, xspeed, yspeed, width, height);
+
+        // State scheduling:
+        void debounce(const std::deque<State>& q, std::size_t currentPos) {}
+        void unstuck(const std::deque<State>& history) {}
+        void integrate(const State& other) { *this = other; }
     };
 
 private:
-    State s;
+    StateScheduler<State> _ssch;
     bool oldUp = false;
 
     friend RN_HANDLER_SIGNATURE(UpdatePlayer, RN_ARGS(SyncId, syncId, State&, state));

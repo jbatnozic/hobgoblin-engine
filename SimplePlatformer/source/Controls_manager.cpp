@@ -40,13 +40,14 @@ void ControlsManager::setInputDelay(hg::PZInteger inputDelayInSteps, hg::PZInteg
 }
 
 PlayerControls ControlsManager::getCurrentControlsForPlayer(hg::PZInteger playerIndex) {
-    return _schedulers[static_cast<std::size_t>(playerIndex)].getCurrentControls();
+    return _schedulers[static_cast<std::size_t>(playerIndex)].getCurrentState();
 }
 
 void ControlsManager::putNewControls(hg::PZInteger playerIndex, const PlayerControls& controls,
                                      std::chrono::microseconds delay) {
     // TODO Temp. implementation
-    _schedulers[playerIndex].putNewControls(controls, delay);
+    _schedulers[playerIndex].putNewState(controls, (delay / std::chrono::microseconds{16'666}));
+    //_schedulers[playerIndex].putNewState(controls, delay);
 }
 
 void ControlsManager::eventPreUpdate() {
@@ -56,14 +57,13 @@ void ControlsManager::eventPreUpdate() {
 
     // Local controls:
     auto& scheduler = _schedulers[global().playerIndex];
-    bool focus = true; //global().windowMgr.window.hasFocus(); TODO Temp.
-    scheduler.putNewControls(PlayerControls{focus && sf::Keyboard::isKeyPressed(sf::Keyboard::A),
-                                            focus && sf::Keyboard::isKeyPressed(sf::Keyboard::D),
-                                            focus && sf::Keyboard::isKeyPressed(sf::Keyboard::W)},
-                             std::chrono::microseconds{0});
+    bool focus = global().windowMgr.getWindow().hasFocus(); //TODO Temp.
+    scheduler.putNewState(PlayerControls{focus && sf::Keyboard::isKeyPressed(sf::Keyboard::A),
+                                         focus && sf::Keyboard::isKeyPressed(sf::Keyboard::D),
+                                         focus && sf::Keyboard::isKeyPressed(sf::Keyboard::W)});
 
     for (auto& scheduler : _schedulers) {
-        scheduler.integrateNewControls();
+        scheduler.scheduleNewStates();
     }
 }
 
@@ -71,12 +71,12 @@ void ControlsManager::eventUpdate() {
     if (global().playerIndex > 0 && 
         global().netMgr.getClient().getServer().getStatus() == RN_ConnectorStatus::Connected) {
         auto& scheduler = _schedulers[global().playerIndex];
-        RN_Compose_SetClientControls(global().netMgr.getClient(), 0, scheduler.getLatestControls());
+        RN_Compose_SetClientControls(global().netMgr.getClient(), 0, scheduler.getLatestState());
     }
 }
 
 void ControlsManager::eventPostUpdate() {
     for (auto& scheduler : _schedulers) {
-        scheduler.advanceStep();
+        scheduler.advance();
     }
 }
