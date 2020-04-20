@@ -15,6 +15,7 @@
 #include "Window_manager.hpp"
 #include "Lighting.hpp"
 
+// TODO Rename to GameContext
 struct GlobalProgramState {
     int playerIndex;
     hg::PZInteger syncBufferLength = 2;
@@ -27,7 +28,7 @@ struct GlobalProgramState {
     SynchronizedObjectManager syncObjMgr;
     ControlsManager controlsMgr;
     MainGameController mainGameCtrl;
-    //LightingManager lightMgr;
+    LightingManager lightMgr;
 
     GlobalProgramState(bool isHost)
         : qaoRuntime{this}
@@ -36,7 +37,7 @@ struct GlobalProgramState {
         , netMgr{qaoRuntime.nonOwning(), isHost}
         , syncObjMgr{netMgr.getNode()}
         , mainGameCtrl{qaoRuntime.nonOwning()}
-        //, lightMgr{qaoRuntime.nonOwning()}
+        , lightMgr{qaoRuntime.nonOwning()}
     {
         netMgr.getNode().setUserData(this);
 
@@ -46,6 +47,18 @@ struct GlobalProgramState {
         }
         else {
             playerIndex = -1;
+        }
+    }
+
+    ~GlobalProgramState() {
+        std::vector<QAO_Base*> objectsToDestroy;
+        for (auto object : qaoRuntime) {
+            if (qaoRuntime.ownsObject(object)) {
+                objectsToDestroy.push_back(object);
+            }
+        }
+        for (auto object : objectsToDestroy) {
+            qaoRuntime.eraseObject(object);
         }
     }
 

@@ -85,6 +85,10 @@ Player::Player(QAO_Runtime* runtime, SynchronizedObjectManager& syncObjMapper, S
     _doppelganger.y = y;
 }
 
+Player::~Player() {
+    syncDestroy(); // TODO Game crashes if syncDestroy is not manually called in destructor
+}
+
 void Player::eventPreUpdate() {
     if (!global().isHost()) {
         _ssch.advance();

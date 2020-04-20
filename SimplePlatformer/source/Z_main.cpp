@@ -144,12 +144,14 @@ int MainProgramLoop(GlobalProgramState& globalState) {
 	return EXIT_SUCCESS;
 }
 
+#define CATCH_EXCEPTIONS
 int SingleQAOIteration(GlobalProgramState& globalState, std::int32_t eventFlags) {
 	QAO_Runtime& runtime = globalState.qaoRuntime;
 
 	runtime.startStep();
 	bool done = false;
 	do {
+#ifdef CATCH_EXCEPTIONS
 		try {
 			runtime.advanceStep(done, eventFlags);
 		}
@@ -161,6 +163,9 @@ int SingleQAOIteration(GlobalProgramState& globalState, std::int32_t eventFlags)
 			std::cout << "Unknown exception caught!\n";
 			return 2;
 		}
+#else
+		runtime.advanceStep(done, eventFlags);
+#endif
 	} while (!done);
 
 	return 0;

@@ -20,6 +20,8 @@ public:
     Player(QAO_Runtime* runtime, SynchronizedObjectManager& syncObjMgr, SyncId syncId,
            float x, float y, hg::PZInteger playerIndex);
 
+    ~Player();
+
     void serialize(hg::util::Packet& packet) const {
     }
 

@@ -27,5 +27,5 @@ private:
     void renderLight(float lightX, float lightY, float intensity);
     Cell& cellAt(hg::PZInteger x, hg::PZInteger y);
     const Cell& cellAt(hg::PZInteger x, hg::PZInteger y) const;
-    float factor(hg::PZInteger cellX, hg::PZInteger cellY, float lightX, float lightY) const;
+    float factor(hg::PZInteger cellX, hg::PZInteger cellY, float lightX, float lightY, float intensity) const;
 };
