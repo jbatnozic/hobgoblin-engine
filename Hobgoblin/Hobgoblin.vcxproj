@@ -418,7 +418,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="include\Hobgoblin\RigelNet\Connector.hpp" />
-    <ClCompile Include="source\Hobgoblin\BrushMain.cpp" />
     <ClCompile Include="source\Hobgoblin\ColDetect\Qtree_collision_domain.cpp" />
     <ClCompile Include="source\Hobgoblin\Graphics\Brush.cpp" />
     <ClCompile Include="source\Hobgoblin\Graphics\Builtin_fonts.cpp" />
@@ -436,6 +435,8 @@
     <ClCompile Include="source\Hobgoblin\RigelNet\Udp_client.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Udp_connector.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Udp_server.cpp" />
+    <ClCompile Include="source\Hobgoblin\Sleep.cpp" />
+    <ClCompile Include="source\Hobgoblin\TimingMain.cpp" />
     <ClCompile Include="source\Hobgoblin\Utility\Serialization.cpp" />
     <ClInclude Include="include\Hobgoblin\ColDetect.hpp" />
     <ClInclude Include="include\Hobgoblin\ColDetect\Common.hpp" />
@@ -512,6 +513,7 @@
     <ClInclude Include="include\Hobgoblin\Utility\Serialization.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Packet.hpp" />
     <ClInclude Include="include\Hobgoblin\Graphics\Texture_packing.hpp" />
+    <ClInclude Include="include\Hobgoblin\Utility\Sleep.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Visitor.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Stopwatch.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\template.hpp" />
