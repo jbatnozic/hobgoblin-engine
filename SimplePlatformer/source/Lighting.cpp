@@ -31,7 +31,7 @@ LightingManager::LightingManager(QAO_RuntimeRef runtimeRef)
     _cellMatrix.resize(hg::pztos(_width * _height));
 
     for (auto& cell : _cellMatrix) {
-        cell.isWall = ((std::rand() % 100) < 15);
+        cell.isWall = ((std::rand() % 100) < 24);
     }
 
     resetLights();

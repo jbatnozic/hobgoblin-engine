@@ -1,5 +1,6 @@
 
 #include <Hobgoblin/Utility/stopwatch.hpp>
+#include <SFML/System.hpp>
 
 #include <chrono>
 #include <iostream>
@@ -118,11 +119,16 @@ int MainProgramLoop(GlobalProgramState& globalState) {
 			}
 
 			// All steps except render:
-			//std::cout << "Update\n";
+			hg::util::Stopwatch stopwatch{};
 			int rv = SingleQAOIteration(globalState, ~(1 << static_cast<std::int32_t>(QAO_Event::Render)));
 			if (rv != 0) {
 				return rv;
 			}
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::T)) {
+				auto time = stopwatch.getElapsedTime<std::chrono::microseconds>().count();
+				std::cout << "Time for step: " << time << "us\n";
+			}
+
 			accumulatorTime -= deltaTime;
 		} // End for
 
