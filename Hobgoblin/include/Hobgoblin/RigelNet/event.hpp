@@ -34,7 +34,7 @@ struct RN_Event {
 
     struct Disconnected {
         enum class Reason {
-            Error, TimedOut
+            Graceful, Error, TimedOut
         };
         std::optional<PZInteger> clientIndex; // Not used on client side
         Reason reason;

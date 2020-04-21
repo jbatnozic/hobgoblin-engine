@@ -1,6 +1,7 @@
 
 #include <Hobgoblin/RigelNet/Packet_wrapper.hpp>
 #include <Hobgoblin/RigelNet/Udp_server.hpp>
+#include <Hobgoblin/Utility/Exceptions.hpp>
 
 #include <cassert>
 #include <utility>
@@ -41,8 +42,11 @@ RN_UdpServer::~RN_UdpServer() {
 
 void RN_UdpServer::start(std::uint16_t localPort, std::string passphrase) {
     assert(_running == false);
-    auto status = _mySocket.bind(localPort);
-    assert(status == sf::Socket::Done); // TODO - Throw exception on failure
+
+    if (_mySocket.bind(localPort) != sf::Socket::Done) {
+        throw util::TracedRuntimeError("Could not bind UDP socket");
+    }
+
     _passphrase = std::move(passphrase);
     _running = true;
 }
@@ -58,10 +62,6 @@ bool RN_UdpServer::isRunning() const {
 void RN_UdpServer::update(RN_UpdateMode mode) {
     if (!_running) {
         return;
-    }
-
-    if (!_eventQueue.empty()) {
-        // TODO Error
     }
 
     switch (mode) {
@@ -80,7 +80,10 @@ void RN_UdpServer::update(RN_UpdateMode mode) {
 }
 
 // Client management:
-// TODO getClinet
+
+const RN_Connector<detail::RN_UdpConnector>& RN_UdpServer::getClient(PZInteger clientIndex) const {
+    return _clients[clientIndex];
+}
 
 void RN_UdpServer::swapClients(PZInteger index1, PZInteger index2) {
     // TODO
@@ -120,9 +123,20 @@ const std::string& RN_UdpServer::getPassphrase() const {
 }
 
 // Protected:
+
 void RN_UdpServer::compose(int receiver, const void* data, std::size_t sizeInBytes) {
-    // TODO Temp - Check if client is even connected!
+    if (_clients[receiver].getStatus() != RN_ConnectorStatus::Connected) {
+        throw util::TracedLogicError("Client is not connected; cannot compose messages");
+    }
     _clients[receiver].appendToNextOutgoingPacket(data, sizeInBytes);
+}
+
+void RN_UdpServer::compose(RN_ComposeForAllType receiver, const void* data, std::size_t sizeInBytes) {
+    for (auto& client : _clients) {
+        if (client.getStatus() == RN_ConnectorStatus::Connected) {
+            client.appendToNextOutgoingPacket(data, sizeInBytes);
+        }
+    }
 }
 
 // Private:

@@ -25,8 +25,8 @@ public:
     ~RN_UdpClient();
 
     void connect(std::uint16_t localPort, sf::IpAddress serverIp, std::uint16_t serverPort, std::string passphrase);
-    void disconnect();
-    void update(RN_UpdateMode mode);
+    void disconnect(bool notifyRemote);
+    void update(RN_UpdateMode mode) override;
 
     // Utility:
     const detail::RN_UdpConnector& getServer() const;
@@ -41,7 +41,7 @@ public:
 
 protected:
     void compose(int receiver, const void* data, std::size_t sizeInBytes) override;
-    void compose(RN_ComposeForAllType receiver, const void* data, std::size_t sizeInBytes) override { /* TODO */ }
+    void compose(RN_ComposeForAllType receiver, const void* data, std::size_t sizeInBytes) override;
 
 private:
     detail::RN_UdpConnector _connector;

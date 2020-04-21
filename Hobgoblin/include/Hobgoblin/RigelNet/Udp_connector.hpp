@@ -78,6 +78,8 @@ public:
 
     void appendToNextOutgoingPacket(const void *data, std::size_t sizeInBytes);
 
+    static constexpr PZInteger MAX_PACKET_SIZE = 65'000; // In bytes
+
 private:
     EventFactory _eventFactory;
     RN_RemoteInfo _remoteInfo;

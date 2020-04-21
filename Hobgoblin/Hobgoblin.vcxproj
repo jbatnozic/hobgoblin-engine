@@ -154,6 +154,7 @@
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)$(ProjectName)\build\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)$(ProjectName)\build\interm\$(Platform)\$(Configuration)\</IntDir>
+    <CodeAnalysisRuleSet>CODEANALYSIS.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-Lib|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -161,11 +162,13 @@
     <IntDir>$(SolutionDir)$(ProjectName)\build\interm\$(Platform)\$(Configuration)\</IntDir>
     <TargetExt>.lib</TargetExt>
     <TargetName>hobgoblin32</TargetName>
+    <CodeAnalysisRuleSet>CODEANALYSIS.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)$(ProjectName)\build\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)$(ProjectName)\build\interm\$(Platform)\$(Configuration)\</IntDir>
+    <CodeAnalysisRuleSet>CODEANALYSIS.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">
     <LinkIncremental>true</LinkIncremental>
@@ -173,17 +176,20 @@
     <IntDir>$(SolutionDir)$(ProjectName)\build\interm\$(Platform)\$(Configuration)\</IntDir>
     <TargetExt>.lib</TargetExt>
     <TargetName>hobgoblin32-d</TargetName>
+    <CodeAnalysisRuleSet>CODEANALYSIS.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)$(ProjectName)\lib\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)$(ProjectName)\build\interm\$(Platform)\$(Configuration)\</IntDir>
     <TargetExt>.lib</TargetExt>
+    <CodeAnalysisRuleSet>CODEANALYSIS.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)$(ProjectName)\build\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)$(ProjectName)\build\interm\$(Platform)\$(Configuration)\</IntDir>
+    <CodeAnalysisRuleSet>CODEANALYSIS.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -191,17 +197,20 @@
     <IntDir>$(SolutionDir)$(ProjectName)\build\interm\$(Platform)\$(Configuration)\</IntDir>
     <TargetExt>.lib</TargetExt>
     <TargetName>hobgoblin64-d</TargetName>
+    <CodeAnalysisRuleSet>CODEANALYSIS.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)$(ProjectName)\lib\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)$(ProjectName)\build\interm\$(Platform)\$(Configuration)\</IntDir>
     <TargetExt>.lib</TargetExt>
+    <CodeAnalysisRuleSet>CODEANALYSIS.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)$(ProjectName)\build\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)$(ProjectName)\build\interm\$(Platform)\$(Configuration)\</IntDir>
+    <CodeAnalysisRuleSet>CODEANALYSIS.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -209,6 +218,7 @@
     <IntDir>$(SolutionDir)$(ProjectName)\build\interm\$(Platform)\$(Configuration)\</IntDir>
     <TargetExt>.lib</TargetExt>
     <TargetName>hobgoblin64</TargetName>
+    <CodeAnalysisRuleSet>CODEANALYSIS.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -244,7 +254,7 @@
       <PreprocessorDefinitions>SFML_STATIC;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>C:\Z_Libraries\SFML-2.5.1\include;$(SolutionDir)$(ProjectName)\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\SFML-2.5.1\include;$(SolutionDir)$(ProjectName)\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -396,7 +406,7 @@
       <PreprocessorDefinitions>SFML_STATIC;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>C:\Z_Libraries\SFML-2.5.1-x64\include;$(SolutionDir)$(ProjectName)\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\SFML-2.5.1\include;$(SolutionDir)$(ProjectName)\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -517,6 +527,9 @@
     <Text Include="include\Hobgoblin\zTODO.txt" />
     <Text Include="Pathfinding.txt" />
     <Text Include="zTODO.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="CODEANALYSIS.ruleset" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

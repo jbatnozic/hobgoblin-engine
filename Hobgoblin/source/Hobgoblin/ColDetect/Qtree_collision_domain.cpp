@@ -302,7 +302,7 @@ private:
 
         auto rv = std::prev(_entities.end());
 
-        if ((_entities.size() > _maxEntities) && (_depth < _maxDepth)) {
+        if ((ToPz(_entities.size()) > _maxEntities) && (_depth < _maxDepth)) {
             split();
         }
 
@@ -314,7 +314,7 @@ private:
         _entities.back().holder = this;
         _childrenEntitiesCount += 1;
 
-        if ((_entities.size() > _maxEntities) && (_depth < _maxDepth)) {
+        if ((ToPz(_entities.size()) > _maxEntities) && (_depth < _maxDepth)) {
             split();
         }
     }

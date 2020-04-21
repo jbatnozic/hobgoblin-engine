@@ -328,4 +328,7 @@
     <Text Include="zTODO.txt" />
     <Text Include="Pathfinding.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="CODEANALYSIS.ruleset" />
+  </ItemGroup>
 </Project>

@@ -28,12 +28,10 @@ public:
     void start(std::uint16_t localPort, std::string passphrase);
     void stop();
     bool isRunning() const;
-    void update(RN_UpdateMode mode);
+    void update(RN_UpdateMode mode) override;
 
     // Client management:
-    const RN_Connector<detail::RN_UdpConnector>& getClient(PZInteger clientIndex) const { // TODO -> To .cpp
-        return _clients[clientIndex];
-    }
+    const RN_Connector<detail::RN_UdpConnector>& getClient(PZInteger clientIndex) const;
 
     void swapClients(PZInteger index1, PZInteger index2);
 
@@ -54,7 +52,7 @@ public:
 
 protected:
     void compose(int receiver, const void* data, std::size_t sizeInBytes) override;
-    void compose(RN_ComposeForAllType receiver, const void* data, std::size_t sizeInBytes) override { /* TODO */ }
+    void compose(RN_ComposeForAllType receiver, const void* data, std::size_t sizeInBytes) override;
 
 private:
     std::vector<detail::RN_UdpConnector> _clients;

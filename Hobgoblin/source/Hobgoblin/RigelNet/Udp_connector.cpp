@@ -275,8 +275,18 @@ PZInteger RN_UdpConnector::getRecvBufferSize() const {
 }
 
 void RN_UdpConnector::appendToNextOutgoingPacket(const void *data, std::size_t sizeInBytes) {
-    // TODO temp. -- seems to be working pretty well!
-    _sendBuffer[_sendBuffer.size() - 1u].packetWrap.packet.append(data, sizeInBytes);
+    if (sizeInBytes > MAX_PACKET_SIZE) {
+        throw util::TracedLogicError("Cannot send packets larger than " 
+                                     + std::to_string(MAX_PACKET_SIZE) + " bytes.");
+    }
+    
+    TaggedPacket* latestTaggedPacket = &_sendBuffer.back();
+    if (latestTaggedPacket->packetWrap.packet.getDataSize() + sizeInBytes > MAX_PACKET_SIZE) {
+        prepareNextOutgoingPacket();
+        latestTaggedPacket = &_sendBuffer.back();
+    }
+
+    latestTaggedPacket->packetWrap.packet.append(data, sizeInBytes);
 }
 
 // Private
@@ -305,16 +315,6 @@ bool RN_UdpConnector::isConnectionTimedOut() const {
 }
 
 void RN_UdpConnector::uploadAllData() {
-    // TODO - Error handling here
-    /*
-    if (item.clock.getElapsedTime().asMilliseconds() > std::min(latency.asMilliseconds() * 2, 400)) { // STUB -- Could be better
-        // min{2 * latency, 4 * frame_duration * interval}
-        //std::cout << "Retransmit after " << item.clock.getElapsedTime().asMilliseconds() << "ms \n";
-        }
-    else
-        continue; // Too early
-    */
-
     PZInteger uploadCounter = 0;
     for (auto& taggedPacket : _sendBuffer) {
         if (taggedPacket.tag == TaggedPacket::AcknowledgedWeakly ||
@@ -502,6 +502,8 @@ void RN_UdpConnector::processDisconnectPacket(RN_PacketWrapper& packetWrap) {
     case RN_ConnectorStatus::Accepting:
     case RN_ConnectorStatus::Connected:
         // TODO - Extract reason
+        _eventFactory.createDisconnected(RN_Event::Disconnected::Reason::Graceful,
+                                         "Remote terminated the connection");
         reset();
         break;
 

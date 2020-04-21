@@ -37,9 +37,8 @@ void RN_UdpClient::connect(std::uint16_t localPort, sf::IpAddress serverIp, std:
     _running = true;
 }
 
-void RN_UdpClient::disconnect() {
-    // TODO
-    _connector.disconnect(false); // TODO [configurable]
+void RN_UdpClient::disconnect(bool notifyRemote) {
+    _connector.disconnect(notifyRemote);
     _running = false;
 }
 
@@ -50,10 +49,6 @@ void RN_UdpClient::update(RN_UpdateMode mode) {
     else if (_connector.getStatus() == RN_ConnectorStatus::Disconnected) {
         _running = false;
         return;
-    }
-
-    if (!_eventQueue.empty()) {
-        // TODO Error
     }
 
     switch (mode) {
@@ -99,7 +94,10 @@ const std::string& RN_UdpClient::getPassphrase() const {
 // Protected
 
 void RN_UdpClient::compose(int receiver, const void* data, std::size_t sizeInBytes) {
-    // TODO Temp.
+    _connector.appendToNextOutgoingPacket(data, sizeInBytes);
+}
+
+void RN_UdpClient::compose(RN_ComposeForAllType receiver, const void* data, std::size_t sizeInBytes) {
     _connector.appendToNextOutgoingPacket(data, sizeInBytes);
 }
 

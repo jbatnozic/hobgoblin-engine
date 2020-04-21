@@ -24,8 +24,8 @@ public:
     void connect(std::uint16_t localPort, sf::IpAddress serverIp, std::uint16_t serverPort, std::string passphrase)
         CRTP_METHOD(T, connect, localPort, serverIp, serverPort, passphrase)
 
-    void disconnect()
-        CRTP_METHOD(T, disconnect)
+    void disconnect(bool notifyRemote)
+        CRTP_METHOD(T, disconnect, notifyRemote)
 
     void update(RN_UpdateMode mode)
         CRTP_METHOD(T, update, mode)

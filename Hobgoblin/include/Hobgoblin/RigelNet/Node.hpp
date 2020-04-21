@@ -75,6 +75,8 @@ public:
     template <class ArgsHead, class ...ArgsTail>
     void visit(ArgsHead&& argsHead, ArgsTail&&... argsTail);
 
+    virtual void update(RN_UpdateMode updateMode) = 0;
+
     // User data
     void setUserData(std::nullptr_t);
 
