@@ -8,6 +8,17 @@ WindowManager::WindowManager(QAO_RuntimeRef runtimeRef)
     , _windowAdapter{_window}
     , _mainRenderTextureAdapter{_mainRenderTexture}
 {
+}
+
+WindowManager::WindowManager(QAO_RuntimeRef runtimeRef, sf::Vector2u windowSize, const sf::String& windowTitle,
+                             sf::Vector2u mainRenderTargetSize)
+    : WindowManager{runtimeRef}
+{
+    _window.create(sf::VideoMode{windowSize.x, windowSize.y}, windowTitle);
+    _mainRenderTexture.create(mainRenderTargetSize.x, mainRenderTargetSize.y);
+}
+
+void WindowManager::create() {
     _window.create(sf::VideoMode(800, 800), "Window");
     // vSync and Framerate limiter perform near identically as far as
     // time correctness is concerned, but the game is usually smoother
@@ -20,14 +31,6 @@ WindowManager::WindowManager(QAO_RuntimeRef runtimeRef)
     _mainRenderTextureAdapter.getView(0).setSize({800, 800});
     _mainRenderTextureAdapter.getView(0).setCenter({400, 400});
     _mainRenderTextureAdapter.getView(0).setViewport({0, 0, 1, 1});
-}
-
-WindowManager::WindowManager(QAO_RuntimeRef runtimeRef, sf::Vector2u windowSize, const sf::String& windowTitle,
-                             sf::Vector2u mainRenderTargetSize)
-    : WindowManager{runtimeRef}
-{
-    _window.create(sf::VideoMode{windowSize.x, windowSize.y}, windowTitle);
-    _mainRenderTexture.create(mainRenderTargetSize.x, mainRenderTargetSize.y);
 }
 
 sf::RenderWindow& WindowManager::getWindow() {

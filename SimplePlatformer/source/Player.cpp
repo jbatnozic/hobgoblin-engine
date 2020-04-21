@@ -4,7 +4,7 @@
 #include <cmath>
 #include <iostream>
 
-#include "Global_program_state.hpp"
+#include "Game_context.hpp"
 #include "Player.hpp"
 
 namespace {
@@ -14,7 +14,7 @@ using hg::util::EuclideanDist;
 RN_DEFINE_HANDLER(CreatePlayer, RN_ARGS(SyncId, syncId, Player::State&, state)) {
     RN_NODE_IN_HANDLER().visit(
         [=](NetworkingManager::ClientType& client) {
-            auto& global = *client.getUserData<GlobalProgramState>();
+            auto& global = *client.getUserData<GameContext>();
             auto& runtime = global.qaoRuntime;
             auto& syncObjMapper = global.syncObjMgr;
             QAO_PCreate<Player>(&runtime, syncObjMapper, syncId, state.x, state.y, state.playerIndex);
@@ -28,7 +28,7 @@ RN_DEFINE_HANDLER(CreatePlayer, RN_ARGS(SyncId, syncId, Player::State&, state)) 
 RN_DEFINE_HANDLER(UpdatePlayer, RN_ARGS(SyncId, syncId, Player::State&, state)) {
     RN_NODE_IN_HANDLER().visit(
         [=](NetworkingManager::ClientType& client) {
-            auto& global = *client.getUserData<GlobalProgramState>();
+            auto& global = *client.getUserData<GameContext>();
             auto& runtime = global.qaoRuntime;
             auto& syncObjMapper = global.syncObjMgr;
             auto* player = static_cast<Player*>(syncObjMapper.getMapping(syncId));
@@ -45,7 +45,7 @@ RN_DEFINE_HANDLER(UpdatePlayer, RN_ARGS(SyncId, syncId, Player::State&, state)) 
 RN_DEFINE_HANDLER(DestroyPlayer, RN_ARGS(SyncId, syncId)) {
     RN_NODE_IN_HANDLER().visit(
         [=](NetworkingManager::ClientType& client) {
-            auto& global = *client.getUserData<GlobalProgramState>();
+            auto& global = *client.getUserData<GameContext>();
             auto& runtime = global.qaoRuntime;
             auto& syncObjMapper = global.syncObjMgr;
             auto* player = static_cast<Player*>(syncObjMapper.getMapping(syncId));
@@ -74,7 +74,7 @@ void Player::syncDestroyImpl(RN_Node& node, const std::vector<hg::PZInteger>& re
 Player::Player(QAO_Runtime* runtime, SynchronizedObjectManager& syncObjMapper, SyncId syncId,
                float x, float y, hg::PZInteger playerIndex)
     : GOF_SynchronizedObject{runtime, TYPEID_SELF, 75, "Player", syncObjMapper, syncId}
-    , _ssch{global().syncBufferLength, global().syncBufferHistoryLength, false, false}
+    , _ssch{ctx().syncBufferLength, ctx().syncBufferHistoryLength, false, false}
 {
     for (auto& state : _ssch) {
         state.playerIndex = playerIndex;
@@ -90,13 +90,13 @@ Player::~Player() {
 }
 
 void Player::eventPreUpdate() {
-    if (!global().isHost()) {
+    if (!ctx().isPrivileged()) {
         _ssch.advance();
     }
 }
 
 void Player::eventUpdate() {
-    if (global().isHost()) {
+    if (ctx().isPrivileged()) {
         move(_ssch.getCurrentState());
     }
     else {
@@ -122,13 +122,13 @@ void Player::eventUpdate() {
 void Player::eventDraw1() {
     static const sf::Color COLORS[] = {sf::Color::Blue, sf::Color::Red, sf::Color::Green, sf::Color::Yellow};
 
-    if (global().isHost()) {
+    if (ctx().isPrivileged()) {
         auto& self = _ssch.getCurrentState();
         sf::RectangleShape rect{{self.width, self.height}};
 
         rect.setFillColor(COLORS[self.playerIndex]);
         rect.setPosition(self.x, self.y);
-        global().windowMgr.getCanvas().draw(rect);
+        ctx().windowMgr.getCanvas().draw(rect);
     }
     else {
         auto& self = _ssch.getCurrentState();
@@ -136,7 +136,7 @@ void Player::eventDraw1() {
 
         rect.setFillColor(COLORS[self.playerIndex]);
         rect.setPosition(_doppelganger.x, _doppelganger.y);
-        global().windowMgr.getCanvas().draw(rect);
+        ctx().windowMgr.getCanvas().draw(rect);
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::L)) return; // TODO Temp.
 
@@ -144,12 +144,12 @@ void Player::eventDraw1() {
         rect.setOutlineColor(sf::Color::Black);
         rect.setOutlineThickness(2.0f);
         rect.setPosition(self.x, self.y);
-        global().windowMgr.getCanvas().draw(rect);
+        ctx().windowMgr.getCanvas().draw(rect);
     }
 }
 
 void Player::move(State& self) {
-    PlayerControls controls = global().controlsMgr.getCurrentControlsForPlayer(self.playerIndex);
+    PlayerControls controls = ctx().controlsMgr.getCurrentControlsForPlayer(self.playerIndex);
 
     if (self.y < static_cast<float>(800) - self.height) {
         self.yspeed += GRAVITY;

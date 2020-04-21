@@ -13,13 +13,13 @@ using namespace hg::rn;
 
 #define TYPEID_SELF typeid(decltype(*this))
 
-struct GlobalProgramState;
+class GameContext;
 
 class GOF_Base : public hg::QAO_Base {
 public:
     using hg::QAO_Base::QAO_Base;
 
-    GlobalProgramState& global() const;
+    GameContext& ctx() const;
     QAO_Runtime& rt() const;
     // TODO: Add more utility methods
 };

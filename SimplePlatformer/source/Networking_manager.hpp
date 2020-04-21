@@ -18,6 +18,9 @@ public:
 
     NetworkingManager(QAO_RuntimeRef runtimeRef, bool isServer);
 
+    void convertToServer();
+    void convertToClient();
+
     bool isServer() const noexcept;
     RN_Node& getNode();
     ServerType& getServer();

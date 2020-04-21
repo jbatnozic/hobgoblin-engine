@@ -6,7 +6,7 @@
 #include <cstdlib>
 #include <iostream>
 
-#include "Global_program_state.hpp"
+#include "Game_context.hpp"
 #include "Lighting.hpp"
 
 namespace {
@@ -40,19 +40,19 @@ LightingManager::LightingManager(QAO_RuntimeRef runtimeRef)
 void LightingManager::eventUpdate() {
     resetLights();
 
-    auto pos = sf::Mouse::getPosition(global().windowMgr.getWindow());
+    auto pos = sf::Mouse::getPosition(ctx().windowMgr.getWindow());
     renderLight(Clamp(pos.x, 0, int(_width * _cellResolution) - 1),
                 Clamp(pos.y, 0, int(_height * _cellResolution) - 1),
                 6.5f);
 
-    const int xx = pos.x / _cellResolution;
+    /*const int xx = pos.x / _cellResolution;
     const int yy = pos.y / _cellResolution;
     if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
         cellAt(xx, yy).isWall = true;
     }
     else if (sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
         cellAt(xx, yy).isWall = false;
-    }
+    }*/
 }
 
 void LightingManager::eventDraw1() {
@@ -68,7 +68,7 @@ void LightingManager::eventDraw1() {
             col.b *= std::max(0.05f, cellAt(x, y).intensity);
             rect.setFillColor(col);
 
-            global().windowMgr.getMainRenderTexture().draw(rect);
+            ctx().windowMgr.getMainRenderTexture().draw(rect);
         }
     }
 }

@@ -1,7 +1,7 @@
 
 #include <iostream>
 
-#include "Global_program_state.hpp"
+#include "Game_context.hpp"
 #include "Networking_manager.hpp"
 
 NetworkingManager::NetworkingManager(QAO_RuntimeRef runtimeRef, bool isServer)
@@ -25,6 +25,44 @@ NetworkingManager::NetworkingManager(QAO_RuntimeRef runtimeRef, bool isServer)
         _node.emplace<ClientType>();
         getClient().setRetransmitPredicate(retransmitPredicate);
     }
+}
+
+void NetworkingManager::convertToServer() {
+    auto retransmitPredicate =
+        [](hg::PZInteger cyclesSinceLastTransmit,
+           std::chrono::microseconds timeSinceLastTransmit,
+           std::chrono::microseconds currentLatency)
+    {
+        return (timeSinceLastTransmit >= 2 * currentLatency) || cyclesSinceLastTransmit >= 3;
+        //return 1; // Maximize user experience (super bandwidth-unfriendly)
+    };
+
+    if (_isServer) {
+        return;
+    }
+    _node.emplace<ServerType>(4); // TODO refactor hardcoded 4 player limit
+    getServer().setRetransmitPredicate(retransmitPredicate);
+    getServer().setUserData(&ctx());
+    _isServer = true;
+}
+
+void NetworkingManager::convertToClient() {
+    auto retransmitPredicate =
+        [](hg::PZInteger cyclesSinceLastTransmit,
+           std::chrono::microseconds timeSinceLastTransmit,
+           std::chrono::microseconds currentLatency)
+    {
+        return (timeSinceLastTransmit >= 2 * currentLatency) || cyclesSinceLastTransmit >= 3;
+        //return 1; // Maximize user experience (super bandwidth-unfriendly)
+    };
+
+    if (!_isServer) {
+        return;
+    }
+    _node.emplace<ClientType>();
+    getClient().setRetransmitPredicate(retransmitPredicate);
+    getClient().setUserData(&ctx());
+    _isServer = false;
 }
 
 bool NetworkingManager::isServer() const noexcept {
@@ -61,7 +99,7 @@ void NetworkingManager::eventPreUpdate()  {
 void NetworkingManager::eventPostUpdate() {
     // Update all Synchronized objects
     if (RN_IsServer(getNode().getType())) {
-        global().syncObjMgr.syncAll(); // TODO Maybe this shouldn't be a responsibility of this object?
+        ctx().syncObjMgr.syncAll(); // TODO Maybe this shouldn't be a responsibility of this object?
     }
 
     if (_isServer) {
@@ -97,11 +135,11 @@ void NetworkingManager::handleEvents() {
             [this](const RN_Event::Connected& ev) {
                 if (RN_IsServer(getNode().getType())) {
                     std::cout << "New client connected\n";
-                    global().syncObjMgr.syncAllToNewClient(*ev.clientIndex);
+                    ctx().syncObjMgr.syncAllToNewClient(*ev.clientIndex);
                 }
                 else {
                     std::cout << "Connected to server\n";
-                    global().playerIndex = getClient().getClientIndex() + 1;
+                    ctx().playerIndex = getClient().getClientIndex() + 1;
                 }
             },
             [](const RN_Event::Disconnected& ev) {

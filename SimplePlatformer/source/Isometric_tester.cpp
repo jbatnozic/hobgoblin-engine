@@ -3,10 +3,10 @@
 #include <iostream>
 
 #include "Isometric_tester.hpp"
-#include "Global_program_state.hpp"
+#include "Game_context.hpp"
 
 void IsometricTester::eventDraw1() {
-    auto& renderTarget = global().windowMgr.getMainRenderTexture();
+    auto& renderTarget = ctx().windowMgr.getMainRenderTexture();
 
     for (const auto& block : _blocks) {
         float screenX = (block.y + block.x) * 94 / 2; // width/2  == 94/2
@@ -62,7 +62,7 @@ void IsometricTester::eventDraw2() {
                   return !rv;
               });
 
-    auto& renderTarget = global().windowMgr.getMainRenderTexture();
+    auto& renderTarget = ctx().windowMgr.getMainRenderTexture();
 
     for (const auto& pair : _drawBuffer) {
         pair.second(renderTarget);

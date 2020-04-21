@@ -22,6 +22,8 @@ public:
     WindowManager(QAO_RuntimeRef runtimeRef, sf::Vector2u windowSize, const sf::String& windowTitle,
                   sf::Vector2u mainRenderTargetSize);
 
+    void create(); // TODO Temp.
+
     sf::RenderWindow& getWindow();
     sf::RenderTexture& getMainRenderTexture();
     hg::gr::Brush getBrush();

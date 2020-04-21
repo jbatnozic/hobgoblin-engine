@@ -171,9 +171,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="source\Controls_manager.cpp" />
+    <ClCompile Include="source\Game_context.cpp" />
     <ClCompile Include="source\Isometric_tester.cpp" />
     <ClCompile Include="source\Lighting.cpp" />
     <ClCompile Include="source\Main_game_controller.cpp" />
+    <ClCompile Include="source\Main_menu.cpp" />
     <ClCompile Include="source\Networking_manager.cpp" />
     <ClCompile Include="source\Z_main.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
@@ -181,12 +183,15 @@
     <ClCompile Include="source\Game_object_framework.cpp" />
     <ClCompile Include="source\Player.cpp" />
     <ClCompile Include="source\Window_manager.cpp" />
+    <ClCompile Include="source\Z_main_impl.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Controls_manager.hpp" />
-    <ClInclude Include="source\Global_program_state.hpp" />
+    <ClInclude Include="source\Game_context.hpp" />
     <ClInclude Include="source\Isometric_tester.hpp" />
     <ClInclude Include="source\Lighting.hpp" />
+    <ClInclude Include="source\Main_menu.hpp" />
+    <ClInclude Include="source\Z_main_impl.hpp" />
     <ClInclude Include="source\Main_game_controller.hpp" />
     <ClInclude Include="source\Networking_manager.hpp" />
     <ClInclude Include="source\Game_object_framework.hpp" />
@@ -194,6 +199,9 @@
     <ClInclude Include="source\State_scheduler.hpp" />
     <ClInclude Include="source\Terrain.hpp" />
     <ClInclude Include="source\Window_manager.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="TODO.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

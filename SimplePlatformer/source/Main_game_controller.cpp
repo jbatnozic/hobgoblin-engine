@@ -1,15 +1,15 @@
 
-#include "Global_program_state.hpp"
+#include "Game_context.hpp"
 #include "Main_game_controller.hpp"
 
 MainGameController::MainGameController(QAO_RuntimeRef runtimeRef)
     : GOF_NonstateObject{runtimeRef, TYPEID_SELF, 0, "MainGameController"}
 {
-    global().netMgr.addEventListener(this);
+    ctx().netMgr.addEventListener(this);
 }
 
 MainGameController::~MainGameController() {
-    global().netMgr.removeEventListener(this);
+    ctx().netMgr.removeEventListener(this);
 }
 
 void MainGameController::onNetworkingEvent(const RN_Event& event_) {
@@ -19,8 +19,8 @@ void MainGameController::onNetworkingEvent(const RN_Event& event_) {
         [](const RN_Event::ConnectAttemptFailed& ev) {
         },
         [this](const RN_Event::Connected& ev) {
-            if (global().isHost()) {
-                QAO_PCreate<Player>(getRuntime(), global().syncObjMgr, SYNC_ID_CREATE_MASTER,
+            if (ctx().isPrivileged()) {
+                QAO_PCreate<Player>(getRuntime(), ctx().syncObjMgr, SYNC_ID_CREATE_MASTER,
                                     200.f, 200.f, *ev.clientIndex + 1);
             }
         },

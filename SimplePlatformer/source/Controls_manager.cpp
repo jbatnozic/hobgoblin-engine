@@ -2,7 +2,7 @@
 #include <SFML/System.hpp>
 
 #include "Controls_manager.hpp"
-#include "Global_program_state.hpp"
+#include "Game_context.hpp"
 
 #include <iostream>
 
@@ -12,7 +12,7 @@ RN_DEFINE_HANDLER(SetClientControls, RN_ARGS(PlayerControls&, controls)) {
             // ERROR
         },
         [&](NetworkingManager::ServerType& server) {
-            auto& global = *server.getUserData<GlobalProgramState>();
+            auto& global = *server.getUserData<GameContext>();
             auto& controlsMgr = global.controlsMgr;
 
             const auto clientIndex = server.getSenderIndex();
@@ -51,13 +51,13 @@ void ControlsManager::putNewControls(hg::PZInteger playerIndex, const PlayerCont
 }
 
 void ControlsManager::eventPreUpdate() {
-    if (global().playerIndex == -1) {
+    if (ctx().playerIndex == -1) {
         return;
     }
 
     // Local controls:
-    auto& scheduler = _schedulers[global().playerIndex];
-    bool focus = global().windowMgr.getWindow().hasFocus(); //TODO Temp.
+    auto& scheduler = _schedulers[ctx().playerIndex];
+    bool focus = ctx().windowMgr.getWindow().hasFocus(); //TODO Temp.
     scheduler.putNewState(PlayerControls{focus && sf::Keyboard::isKeyPressed(sf::Keyboard::A),
                                          focus && sf::Keyboard::isKeyPressed(sf::Keyboard::D),
                                          focus && sf::Keyboard::isKeyPressed(sf::Keyboard::W)});
@@ -68,10 +68,10 @@ void ControlsManager::eventPreUpdate() {
 }
 
 void ControlsManager::eventUpdate() {
-    if (global().playerIndex > 0 && 
-        global().netMgr.getClient().getServer().getStatus() == RN_ConnectorStatus::Connected) {
-        auto& scheduler = _schedulers[global().playerIndex];
-        Compose_SetClientControls(global().netMgr.getClient(), 0, scheduler.getLatestState());
+    if (ctx().playerIndex > 0 && 
+        ctx().netMgr.getClient().getServer().getStatus() == RN_ConnectorStatus::Connected) {
+        auto& scheduler = _schedulers[ctx().playerIndex];
+        Compose_SetClientControls(ctx().netMgr.getClient(), 0, scheduler.getLatestState());
     }
 }
 
