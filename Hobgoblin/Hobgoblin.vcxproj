@@ -435,7 +435,7 @@
     <ClCompile Include="source\Hobgoblin\RigelNet\Udp_client.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Udp_connector.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Udp_server.cpp" />
-    <ClCompile Include="source\Hobgoblin\Sleep.cpp" />
+    <ClCompile Include="source\Hobgoblin\Utility\Sleep.cpp" />
     <ClCompile Include="source\Hobgoblin\TimingMain.cpp" />
     <ClCompile Include="source\Hobgoblin\Utility\Serialization.cpp" />
     <ClInclude Include="include\Hobgoblin\ColDetect.hpp" />
@@ -514,6 +514,7 @@
     <ClInclude Include="include\Hobgoblin\Utility\Packet.hpp" />
     <ClInclude Include="include\Hobgoblin\Graphics\Texture_packing.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Sleep.hpp" />
+    <ClInclude Include="include\Hobgoblin\Utility\Timeutil.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Visitor.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Stopwatch.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\template.hpp" />

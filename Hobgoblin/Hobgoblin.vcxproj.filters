@@ -102,7 +102,7 @@
     <ClCompile Include="source\Hobgoblin\TimingMain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="source\Hobgoblin\Sleep.cpp">
+    <ClCompile Include="source\Hobgoblin\Utility\Sleep.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -324,6 +324,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Hobgoblin\Utility\Sleep.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Hobgoblin\Utility\Timeutil.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

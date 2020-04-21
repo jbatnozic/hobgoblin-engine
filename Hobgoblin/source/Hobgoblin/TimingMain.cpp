@@ -7,6 +7,7 @@
 #include <iostream>
 
 using hg::util::Sleep;
+using hg::util::PreciseSleep;
 using hg::util::SuperPreciseSleep;
 using hg::util::Stopwatch;
 
