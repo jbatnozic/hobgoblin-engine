@@ -10,6 +10,8 @@
 
 #include "Game_context.hpp"
 
+#include "Player.hpp" // TODO Temp.
+
 namespace {
 
 #define CATCH_EXCEPTIONS_TOP_LEVEL
@@ -50,6 +52,7 @@ using std::chrono::duration_cast;
 void GameContext::configure(Mode mode) {
     switch (mode) {
     case Mode::Server:
+        playerIndex = PLAYER_INDEX_NONE;
         windowMgr.create(); // TODO Temp.
         netMgr.initializeAsServer();
         netMgr.getServer().start(networkConfig.localPort, NETWORKING_PASSPHRASE);
@@ -60,6 +63,7 @@ void GameContext::configure(Mode mode) {
         break;
 
     case Mode::Client:
+        playerIndex = PLAYER_INDEX_UNKNOWN;
         windowMgr.create();
         netMgr.initializeAsClient();
         netMgr.getClient().connect(networkConfig.localPort, networkConfig.serverIp, 
@@ -69,10 +73,13 @@ void GameContext::configure(Mode mode) {
         break;
 
     case Mode::Solo:
+        playerIndex = 0;
         windowMgr.create();
+        QAO_PCreate<Player>(&qaoRuntime, syncObjMgr, SYNC_ID_CREATE_MASTER, 200, 200, 0);
         break;
 
     case Mode::GameMaster:
+        playerIndex = 0;
         windowMgr.create();
         netMgr.initializeAsServer();
         netMgr.getServer().start(networkConfig.localPort, NETWORKING_PASSPHRASE);

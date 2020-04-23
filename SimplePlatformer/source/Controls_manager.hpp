@@ -46,7 +46,7 @@ struct PlayerControls {
     }
 };
 
-using ControlsScheduler = StateScheduler<PlayerControls>;
+using ControlsScheduler = StateScheduler2<PlayerControls>;
 
 class ControlsManager : public GOF_Base {
 public:

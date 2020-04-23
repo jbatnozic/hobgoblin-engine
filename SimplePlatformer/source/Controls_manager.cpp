@@ -30,6 +30,7 @@ ControlsManager::ControlsManager(QAO_RuntimeRef runtimeRef, hg::PZInteger player
     _schedulers.reserve(playerCount);
     for (hg::PZInteger i = 0; i < playerCount; i += 1) {
         _schedulers.emplace_back(inputDelayInSteps, historySize);
+        _schedulers.back().setDiscardOld(false);
     }
 }
 
@@ -51,20 +52,22 @@ void ControlsManager::putNewControls(hg::PZInteger playerIndex, const PlayerCont
 }
 
 void ControlsManager::eventPreUpdate() {
-    if (ctx().playerIndex == GameContext::PLAYER_INDEX_UNKNOWN ||
-        ctx().playerIndex == GameContext::PLAYER_INDEX_NONE) {
+    if (ctx().playerIndex == GameContext::PLAYER_INDEX_UNKNOWN) {
         return;
     }
 
-    // Local controls:
-    auto& scheduler = _schedulers[ctx().playerIndex];
-    bool focus = ctx().windowMgr.getWindow().hasFocus(); //TODO Temp.
-    scheduler.putNewState(PlayerControls{focus && sf::Keyboard::isKeyPressed(sf::Keyboard::A),
-                                         focus && sf::Keyboard::isKeyPressed(sf::Keyboard::D),
-                                         focus && sf::Keyboard::isKeyPressed(sf::Keyboard::W)});
+    // Local controls (not needed on independent server):
+    if (ctx().playerIndex != GameContext::PLAYER_INDEX_NONE) {
+        auto& scheduler = _schedulers[ctx().playerIndex];
+        //scheduler.putNewState(PlayerControls{1, 1, 1});
+        scheduler.putNewState(PlayerControls{kbi().keyPressed(KbKey::A),
+                                             kbi().keyPressed(KbKey::D),
+                                             kbi().keyPressed(KbKey::W)});
+    }
 
     for (auto& scheduler : _schedulers) {
         scheduler.scheduleNewStates();
+        scheduler.resetIfLargerThan(ctx().syncBufferLength * 2);
     }
 }
 
@@ -80,4 +83,16 @@ void ControlsManager::eventPostUpdate() {
     for (auto& scheduler : _schedulers) {
         scheduler.advance();
     }
+
+    //auto& scheduler = _schedulers[0];
+
+    //int i = 0;
+    //for (auto& item : scheduler) {
+    //    i += 1;
+    //    std::cout << (int)item.up << ' ';
+    //    if (i == 10) break;
+
+    //}
+    //std::cout << "(" << int{scheduler.end() - scheduler.begin()} << ")\n"; 
+    //std::cout.flush();
 }

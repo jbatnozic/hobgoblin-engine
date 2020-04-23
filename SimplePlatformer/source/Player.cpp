@@ -78,6 +78,8 @@ Player::Player(QAO_Runtime* runtime, SynchronizedObjectManager& syncObjMapper, S
     : GOF_SynchronizedObject{runtime, TYPEID_SELF, 75, "Player", syncObjMapper, syncId}
     , _ssch{ctx().syncBufferLength, ctx().syncBufferHistoryLength, false, false}
 {
+    _ssch.setDiscardOld(true);
+
     for (auto& state : _ssch) {
         state.playerIndex = playerIndex;
         state.x = x;
@@ -106,9 +108,12 @@ void Player::eventUpdate() {
     }
     else {
         _ssch.scheduleNewStates();
+        _ssch.resetIfLargerThan(ctx().syncBufferLength * 2);
         
         // Try to predict doppelganger movement: [PREDICTIVE EXECUTION]
-        move(_doppelganger);
+        //move(_doppelganger);
+
+        _doppelganger = _ssch.getLatestState();
 
         //// Interpolate doppelganger state:
         //auto& self = _ssch.getCurrentState();
