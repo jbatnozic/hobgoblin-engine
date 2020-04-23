@@ -8,8 +8,6 @@
 #include <iostream>
 #include <stdexcept>
 
-#include <new>
-
 #include "Game_context.hpp"
 
 namespace {
@@ -49,53 +47,46 @@ using std::chrono::duration_cast;
 
 } // namespace
 
-void GameContext::fullStart() {
-    switch (_mode) {
-    case Mode::Solo:
-        windowMgr.create();
-        break;
-
+void GameContext::configure(Mode mode) {
+    switch (mode) {
     case Mode::Server:
         windowMgr.create(); // TODO Temp.
-        netMgr.convertToServer();
-        netMgr.getServer().start(networkingLocalPort, NETWORKING_PASSPHRASE);
+        netMgr.initializeAsServer();
+        netMgr.getServer().start(networkConfig.localPort, NETWORKING_PASSPHRASE);
+        netMgr.getServer().resize(networkConfig.clientCount);
         netMgr.getServer().setTimeoutLimit(std::chrono::seconds{5});
+        syncObjMgr.setNode(netMgr.getNode());
         std::cout << "Server started on port " << netMgr.getServer().getLocalPort() << '\n';
         break;
 
     case Mode::Client:
         windowMgr.create();
-        netMgr.getClient().connect(networkingLocalPort, networkingServerIp, 
-                                   networkingServerPort, NETWORKING_PASSPHRASE);
+        netMgr.initializeAsClient();
+        netMgr.getClient().connect(networkConfig.localPort, networkConfig.serverIp, 
+                                   networkConfig.serverPort, NETWORKING_PASSPHRASE);
         netMgr.getClient().setTimeoutLimit(std::chrono::seconds{5});
-
-        std::cout << "Client connecting to port " << networkingServerPort << '\n';
+        syncObjMgr.setNode(netMgr.getNode());
         break;
 
-    case Mode::GameMaster:
-        netMgr.convertToServer();
-        netMgr.getServer().start(networkingLocalPort, NETWORKING_PASSPHRASE);
-        netMgr.getServer().setTimeoutLimit(std::chrono::seconds{5});
-        std::cout << "Server started on port " << netMgr.getServer().getLocalPort() << '\n';
+    case Mode::Solo:
         windowMgr.create();
         break;
 
+    case Mode::GameMaster:
+        windowMgr.create();
+        netMgr.initializeAsServer();
+        netMgr.getServer().start(networkConfig.localPort, NETWORKING_PASSPHRASE);
+        netMgr.getServer().resize(networkConfig.clientCount);
+        netMgr.getServer().setTimeoutLimit(std::chrono::seconds{5});
+        syncObjMgr.setNode(netMgr.getNode());
+        std::cout << "Server started on port " << netMgr.getServer().getLocalPort() << '\n';    
+        break;
+
     default:
-        throw hg::util::TracedLogicError("Invalid start configuration");
-    }
-}
-
-void GameContext::changeMode(Mode newMode) {
-    if (_mode != Mode::Initial) {
-        throw hg::util::TracedLogicError("GameContext can change mode only while initial mode");
+        throw hg::util::TracedLogicError("Invalid configuration");
     }
 
-    if (newMode == Mode::Client || newMode == Mode::Solo || newMode == Mode::GameMaster) {
-        _mode = newMode;
-    }
-    else {
-        throw hg::util::TracedLogicError("Invalid mode change");
-    }
+    _mode = mode;
 }
 
 void GameContext::run(GameContext* context, int* retVal) {
@@ -155,4 +146,16 @@ void GameContext::run(GameContext* context, int* retVal) {
     std::cout << "itercnt = " << itercnt << '\n';
 
     *retVal = 0;
+}
+
+bool GameContext::isPrivileged() const {
+    return ((static_cast<int>(_mode) & F_PRIVILEGED) != 0);
+}
+
+bool GameContext::isHeadless() const {
+    return ((static_cast<int>(_mode) & F_HEADLESS) != 0);
+}
+
+bool GameContext::hasNetworking() const {
+    return ((static_cast<int>(_mode) & F_NETWORKING) != 0);
 }

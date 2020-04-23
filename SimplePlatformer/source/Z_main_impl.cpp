@@ -8,7 +8,7 @@
 int MainImpl::run(int argc, char* argv[]) {
 	// Setup:
 	hg::RN_IndexHandlers();
-	_gameContext = std::make_unique<GameContext>(GameContext::Mode::Initial);
+	_gameContext = std::make_unique<GameContext>();
 	QAO_PCreate<MainMenu>(_gameContext->qaoRuntime);
 
 	// Run:

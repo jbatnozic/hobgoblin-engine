@@ -5,7 +5,7 @@
 #include <Hobgoblin/RigelNet_Macros.hpp>
 
 #include <list>
-#include <optional>
+#include <variant>
 
 #include "Game_object_framework.hpp"
 
@@ -16,19 +16,21 @@ public:
     using ServerType = RN_UdpServer;
     using ClientType = RN_UdpClient;
 
-    NetworkingManager(QAO_RuntimeRef runtimeRef, bool isServer);
+    NetworkingManager(QAO_RuntimeRef runtimeRef);
 
-    void convertToServer();
-    void convertToClient();
+    void initializeAsServer();
+    void initializeAsClient();
 
     bool isServer() const noexcept;
+    bool isClient() const noexcept;
+
     RN_Node& getNode();
     ServerType& getServer();
     ClientType& getClient();
 
     class EventListener {
     public:
-        virtual void onNetworkingEvent(const RN_Event& event_) = 0;
+        virtual void onNetworkingEvent(const RN_Event& ev) = 0;
     };
 
     void addEventListener(EventListener* listener);
@@ -36,12 +38,17 @@ public:
 
 protected:
     void eventPreUpdate() override;
-    // void eventUpdate() override;
     void eventPostUpdate() override;
 
 private:
-    std::variant<ServerType, ClientType> _node;
-    bool _isServer;
+    enum class State {
+        NotInitialized,
+        Server,
+        Client
+    };
+
+    std::variant<RN_FakeNode, ServerType, ClientType> _node;
+    State _state = State::NotInitialized;
 
     std::list<EventListener*> _eventListeners;
 

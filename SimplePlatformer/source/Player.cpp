@@ -83,10 +83,13 @@ Player::Player(QAO_Runtime* runtime, SynchronizedObjectManager& syncObjMapper, S
     }
     _doppelganger.x = x;
     _doppelganger.y = y;
+    _doppelganger.playerIndex = playerIndex;
 }
 
 Player::~Player() {
-    syncDestroy(); // TODO Game crashes if syncDestroy is not manually called in destructor
+    if (isMasterObject()) {
+        syncDestroy(); // TODO Game crashes if syncDestroy is not manually called in destructor
+    }
 }
 
 void Player::eventPreUpdate() {
@@ -107,14 +110,21 @@ void Player::eventUpdate() {
 
         // Interpolate doppelganger state:
         auto& self = _ssch.getCurrentState();
-        float dist = EuclideanDist<float>({_doppelganger.x, _doppelganger.y}, {self.x, self.y});
-        if (dist <= 5.f) { // TODO Magic number
+        float dist = EuclideanDist<float>({_doppelganger.x, _doppelganger.y}, {self.x, self.y});  
+        if (dist <= 1.f) { // TODO Magic numbers
             _doppelganger = self;
+        }
+        else if (dist < std::max(20.f, 2.f * EuclideanDist<float>({0.f, 0.f},
+                                                                  {self.xspeed, self.yspeed}))) {
+
+            /*double theta = std::atan2(self.y - _doppelganger.y, self.x - _doppelganger.x);
+            _doppelganger.x += std::cos(theta) * dist * 0.1f;
+            _doppelganger.y += std::sin(theta) * dist * 0.1f;*/
         }
         else {
             double theta = std::atan2(self.y - _doppelganger.y, self.x - _doppelganger.x);
-            _doppelganger.x += std::cos(theta) * dist * 0.5f;
-            _doppelganger.y += std::sin(theta) * dist * 0.5f;
+            _doppelganger.x += std::cos(theta) * dist;// *; 0.25f;
+            _doppelganger.y += std::sin(theta) * dist;// *0.25f;
         }
     }
 }
@@ -149,6 +159,10 @@ void Player::eventDraw1() {
 }
 
 void Player::move(State& self) {
+    if (!ctx().isPrivileged() && sf::Keyboard::isKeyPressed(sf::Keyboard::B)) {
+        int __a = 5;
+    }
+
     PlayerControls controls = ctx().controlsMgr.getCurrentControlsForPlayer(self.playerIndex);
 
     if (self.y < static_cast<float>(800) - self.height) {

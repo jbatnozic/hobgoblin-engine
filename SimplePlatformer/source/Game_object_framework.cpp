@@ -42,8 +42,12 @@ void GetIndicesForComposingToEveryone(const RN_Node& node, std::vector<hg::PZInt
 } // namespace
 
 SynchronizedObjectManager::SynchronizedObjectManager(RN_Node& node)
-    : _node{node}
+    : _node{&node}
 {
+}
+
+void SynchronizedObjectManager::setNode(RN_Node& node) {
+    _node = &node;
 }
 
 SyncId SynchronizedObjectManager::createMasterObject(GOF_SynchronizedObject* object) {
@@ -85,11 +89,11 @@ GOF_SynchronizedObject* SynchronizedObjectManager::getMapping(SyncId syncId) con
 }
 
 void SynchronizedObjectManager::syncAll() {
-    GetIndicesForComposingToEveryone(_node, _recepientVec);
+    GetIndicesForComposingToEveryone(*_node, _recepientVec);
 
     // Sync creations:
     for (auto* object : _newlyCreatedObjects) {
-        object->syncCreateImpl(_node, _recepientVec);
+        object->syncCreateImpl(*_node, _recepientVec);
     }
     _newlyCreatedObjects.clear();
 
@@ -102,7 +106,7 @@ void SynchronizedObjectManager::syncAll() {
             _alreadyUpdatedObjects.erase(iter);
         }
         else {
-            object->syncUpdateImpl(_node, _recepientVec);
+            object->syncUpdateImpl(*_node, _recepientVec);
         }
     }
 
@@ -115,31 +119,31 @@ void SynchronizedObjectManager::syncAllToNewClient(hg::PZInteger clientIndex) {
 
     for (auto& mapping : _mappings) {
         auto* object = mapping.second;
-        object->syncCreateImpl(_node, _recepientVec);
-        object->syncUpdateImpl(_node, _recepientVec);
+        object->syncCreateImpl(*_node, _recepientVec);
+        object->syncUpdateImpl(*_node, _recepientVec);
     }
 }
 
 void SynchronizedObjectManager::syncObjectCreate(const GOF_SynchronizedObject* object) {
     assert(object);
-    GetIndicesForComposingToEveryone(_node, _recepientVec);
-    object->syncCreateImpl(_node, _recepientVec);
+    GetIndicesForComposingToEveryone(*_node, _recepientVec);
+    object->syncCreateImpl(*_node, _recepientVec);
 
     _newlyCreatedObjects.erase(object);
 }
 
 void SynchronizedObjectManager::syncObjectUpdate(const GOF_SynchronizedObject* object) {
     assert(object);
-    GetIndicesForComposingToEveryone(_node, _recepientVec);
-    object->syncUpdateImpl(_node, _recepientVec);
+    GetIndicesForComposingToEveryone(*_node, _recepientVec);
+    object->syncUpdateImpl(*_node, _recepientVec);
 
     _alreadyUpdatedObjects.insert(object);
 }
 
 void SynchronizedObjectManager::syncObjectDestroy(const GOF_SynchronizedObject* object) {
     assert(object);
-    GetIndicesForComposingToEveryone(_node, _recepientVec);
-    object->syncDestroyImpl(_node, _recepientVec);
+    GetIndicesForComposingToEveryone(*_node, _recepientVec);
+    object->syncDestroyImpl(*_node, _recepientVec);
 
     _alreadyDestroyedObjects.insert(object);
 }

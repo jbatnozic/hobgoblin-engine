@@ -51,7 +51,8 @@ void ControlsManager::putNewControls(hg::PZInteger playerIndex, const PlayerCont
 }
 
 void ControlsManager::eventPreUpdate() {
-    if (ctx().playerIndex == -1) {
+    if (ctx().playerIndex == GameContext::PLAYER_INDEX_UNKNOWN ||
+        ctx().playerIndex == GameContext::PLAYER_INDEX_NONE) {
         return;
     }
 

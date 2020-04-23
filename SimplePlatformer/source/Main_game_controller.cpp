@@ -1,4 +1,6 @@
 
+#include <SFML/System.hpp>
+
 #include "Game_context.hpp"
 #include "Main_game_controller.hpp"
 
@@ -10,6 +12,12 @@ MainGameController::MainGameController(QAO_RuntimeRef runtimeRef)
 
 MainGameController::~MainGameController() {
     ctx().netMgr.removeEventListener(this);
+}
+
+void MainGameController::eventUpdate() {
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape) && ctx().windowMgr.getWindow().hasFocus()) {
+        ctx().quit = true;
+    }
 }
 
 void MainGameController::onNetworkingEvent(const RN_Event& event_) {

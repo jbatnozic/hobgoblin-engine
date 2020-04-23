@@ -54,6 +54,8 @@ class SynchronizedObjectManager {
 public:
     SynchronizedObjectManager(RN_Node& node);
 
+    void setNode(RN_Node& node);
+
     SyncId createMasterObject(GOF_SynchronizedObject* object);
     void createDummyObject(GOF_SynchronizedObject* object, SyncId masterSyncId);
     void destroyObject(GOF_SynchronizedObject* object);
@@ -73,7 +75,7 @@ private:
     std::unordered_set<const GOF_SynchronizedObject*> _alreadyDestroyedObjects;
     std::vector<hg::PZInteger> _recepientVec;
     SyncId _syncIdCounter = 2;
-    RN_Node& _node;
+    RN_Node* _node;
 };
 
 // Objects which are essential to the game's state, so they are both saved when

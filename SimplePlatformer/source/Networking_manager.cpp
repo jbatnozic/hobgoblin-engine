@@ -4,77 +4,55 @@
 #include "Game_context.hpp"
 #include "Networking_manager.hpp"
 
-NetworkingManager::NetworkingManager(QAO_RuntimeRef runtimeRef, bool isServer)
+namespace {
+
+const auto RETRANSMIT_PREDICATE = 
+    [](hg::PZInteger cyclesSinceLastTransmit,
+       std::chrono::microseconds timeSinceLastTransmit,
+       std::chrono::microseconds currentLatency)
+    {
+        return (timeSinceLastTransmit >= 2 * currentLatency) || cyclesSinceLastTransmit >= 3;
+        //return 1; // Maximize user experience (super bandwidth-unfriendly)
+    };
+
+} // namespace
+
+NetworkingManager::NetworkingManager(QAO_RuntimeRef runtimeRef)
     : GOF_StateObject{runtimeRef, TYPEID_SELF, 50, "NetworkingManager"}
-    , _isServer{isServer}
 {
-    auto retransmitPredicate =
-        [](hg::PZInteger cyclesSinceLastTransmit,
-           std::chrono::microseconds timeSinceLastTransmit,
-           std::chrono::microseconds currentLatency) 
-    {
-               return (timeSinceLastTransmit >= 2 * currentLatency) || cyclesSinceLastTransmit >= 3;
-               //return 1; // Maximize user experience (super bandwidth-unfriendly)
-    };
-
-    if (isServer) {
-        _node.emplace<ServerType>(4); // TODO refactor hardcoded 4 player limit
-        getServer().setRetransmitPredicate(retransmitPredicate);
-    }
-    else {
-        _node.emplace<ClientType>();
-        getClient().setRetransmitPredicate(retransmitPredicate);
-    }
 }
 
-void NetworkingManager::convertToServer() {
-    auto retransmitPredicate =
-        [](hg::PZInteger cyclesSinceLastTransmit,
-           std::chrono::microseconds timeSinceLastTransmit,
-           std::chrono::microseconds currentLatency)
-    {
-        return (timeSinceLastTransmit >= 2 * currentLatency) || cyclesSinceLastTransmit >= 3;
-        //return 1; // Maximize user experience (super bandwidth-unfriendly)
-    };
-
-    if (_isServer) {
-        return;
-    }
-    _node.emplace<ServerType>(4); // TODO refactor hardcoded 4 player limit
-    getServer().setRetransmitPredicate(retransmitPredicate);
+void NetworkingManager::initializeAsServer() {
+    _node.emplace<ServerType>();
+    getServer().setRetransmitPredicate(RETRANSMIT_PREDICATE);
     getServer().setUserData(&ctx());
-    _isServer = true;
+    _state = State::Server;
 }
 
-void NetworkingManager::convertToClient() {
-    auto retransmitPredicate =
-        [](hg::PZInteger cyclesSinceLastTransmit,
-           std::chrono::microseconds timeSinceLastTransmit,
-           std::chrono::microseconds currentLatency)
-    {
-        return (timeSinceLastTransmit >= 2 * currentLatency) || cyclesSinceLastTransmit >= 3;
-        //return 1; // Maximize user experience (super bandwidth-unfriendly)
-    };
-
-    if (!_isServer) {
-        return;
-    }
+void NetworkingManager::initializeAsClient() {
     _node.emplace<ClientType>();
-    getClient().setRetransmitPredicate(retransmitPredicate);
+    getClient().setRetransmitPredicate(RETRANSMIT_PREDICATE);
     getClient().setUserData(&ctx());
-    _isServer = false;
+    _state = State::Client;
 }
 
 bool NetworkingManager::isServer() const noexcept {
-    return _isServer;
+    return _state == State::Server;
+}
+
+bool NetworkingManager::isClient() const noexcept {
+    return _state == State::Client;
 }
 
 RN_Node& NetworkingManager::getNode() {
-    if (_isServer) {
+    if (isServer()) {
         return getServer();
     }
-    else {
+    else if (isClient()) {
         return getClient();
+    }
+    else {
+        return std::get<RN_FakeNode>(_node);
     }
 }
 
@@ -87,12 +65,7 @@ NetworkingManager::ClientType& NetworkingManager::getClient() {
 }
 
 void NetworkingManager::eventPreUpdate()  {
-    if (_isServer) {
-        getServer().update(RN_UpdateMode::Receive);
-    }
-    else {
-        getClient().update(RN_UpdateMode::Receive);
-    }
+    getNode().update(RN_UpdateMode::Receive);
     handleEvents();
 }
 
@@ -102,12 +75,7 @@ void NetworkingManager::eventPostUpdate() {
         ctx().syncObjMgr.syncAll(); // TODO Maybe this shouldn't be a responsibility of this object?
     }
 
-    if (_isServer) {
-        getServer().update(RN_UpdateMode::Send);
-    }
-    else {
-        getClient().update(RN_UpdateMode::Send);
-    }
+    getNode().update(RN_UpdateMode::Send);
     handleEvents();
 }
 

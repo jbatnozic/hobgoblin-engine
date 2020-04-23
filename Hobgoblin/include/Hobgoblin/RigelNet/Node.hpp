@@ -32,7 +32,8 @@ enum class RN_NodeType : int {
     // TcpClient = (0 << 1 | CLIENT),
     // TcpServer = (1 << 1 | SERVER),
     UdpClient = (2 << 1 | CLIENT),
-    UdpServer = (3 << 1 | SERVER)
+    UdpServer = (3 << 1 | SERVER),
+    Fake = (1000 << 1)
 };
 
 inline
@@ -178,6 +179,20 @@ template <class T>
 typename std::remove_reference<T>::type UHOBGOBLIN_RN_ExtractArg(RN_Node& node) {
     return node.extractArgument<std::remove_reference<T>::type>();
 }
+
+class RN_FakeNode : public RN_Node {
+public:
+    RN_FakeNode()
+        : RN_Node(RN_NodeType::Fake)
+    {
+    }
+
+    void update(RN_UpdateMode updateMode) override {}
+
+protected:
+    void compose(RN_ComposeForAllType receiver, const void* data, std::size_t sizeInBytes) override {}
+    void compose(PZInteger receiver, const void* data, std::size_t sizeInBytes) override {}
+};
 
 } // namespace rn
 HOBGOBLIN_NAMESPACE_END

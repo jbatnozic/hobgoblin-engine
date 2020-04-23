@@ -31,46 +31,48 @@ MainMenu::MainMenu(QAO_RuntimeRef runtimeRef)
 }
 
 void MainMenu::eventUpdate() {
-	int mode;
+#define HOST 1
+#define CLIENT 2
+#define SOLO 3
+#define GAME_MASTER 4
 
-	mode = InputPrompt<int>("mode - 1 = host; 2 = client, 3 = solo, 4 = GM", 2);
-	if (mode == 1) {
-		std::uint16_t serverPort;
-		
+	int mode = InputPrompt<int>("mode - 1 = host; 2 = client, 3 = solo, 4 = GM", 2);
+	if (mode == HOST) {
 		// Start a local server in the background:
-		auto serverCtx = std::make_unique<GameContext>(GameContext::Mode::Server);
-		serverCtx->networkingServerSize = InputPrompt<hg::PZInteger>("player count", 2);
-		serverCtx->networkingLocalPort  = InputPrompt<std::uint16_t>("local port - 0 for any", 8888);
-		serverCtx->fullStart();
+		auto serverCtx = std::make_unique<GameContext>();
+		serverCtx->networkConfig.clientCount = InputPrompt<hg::PZInteger>("client count", 1);
+		serverCtx->networkConfig.localPort = InputPrompt<std::uint16_t>("local port - 0 for any", 8888);
+		serverCtx->configure(GameContext::Mode::Server);
 
-		serverPort = serverCtx->netMgr.getServer().getLocalPort();
+		const std::uint16_t serverPort = serverCtx->netMgr.getServer().getLocalPort();
 
 		ctx().runChildContext(std::move(serverCtx));
 
 		// Connext to the server:
-		ctx().networkingLocalPort = 0;
-		ctx().networkingServerIp = "localhost";
-		ctx().networkingServerPort = serverPort;
-		ctx().changeMode(GameContext::Mode::Client);
-		ctx().fullStart();
+		ctx().networkConfig.localPort = 0; // 0 = any
+		ctx().networkConfig.serverIp = "localhost";
+		ctx().networkConfig.serverPort = serverPort;
+		ctx().configure(GameContext::Mode::Client);
 	}
-	else if (mode == 2) {
-		ctx().networkingLocalPort = InputPrompt<std::uint16_t>("local port", 0);
-		ctx().networkingServerIp = InputPrompt<std::string>("server IP", "127.0.0.1");
-		ctx().networkingServerPort = InputPrompt<std::uint16_t>("server port", 8888);
-		ctx().changeMode(GameContext::Mode::Client);
-		ctx().fullStart();
+	else if (mode == CLIENT) {
+		ctx().networkConfig.localPort = InputPrompt<std::uint16_t>("local port", 0);
+		ctx().networkConfig.serverIp = InputPrompt<std::string>("server IP", "127.0.0.1");
+		ctx().networkConfig.serverPort = InputPrompt<std::uint16_t>("server port", 8888);
+		ctx().configure(GameContext::Mode::Client);
 	}
-	else if (mode == 3) {
-		ctx().changeMode(GameContext::Mode::Solo);
-		ctx().fullStart();
+	else if (mode == SOLO) {
+		ctx().configure(GameContext::Mode::Solo);
 	}
-	else if (mode == 4) {
-		ctx().networkingServerSize = InputPrompt<hg::PZInteger>("player count", 2);
-		ctx().networkingLocalPort = InputPrompt<std::uint16_t>("local port - 0 for any", 8888);
-		ctx().changeMode(GameContext::Mode::GameMaster);
-		ctx().fullStart();
+	else if (mode == GAME_MASTER) {
+		ctx().networkConfig.clientCount = InputPrompt<hg::PZInteger>("client count", 1);
+		ctx().networkConfig.localPort = InputPrompt<std::uint16_t>("local port - 0 for any", 8888);
+		ctx().configure(GameContext::Mode::GameMaster);
 	}
 
 	QAO_PDestroy(this);
+
+#undef HOST 
+#undef CLIENT 
+#undef SOLO 
+#undef GAME_MASTER 
 }

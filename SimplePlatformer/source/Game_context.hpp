@@ -17,11 +17,6 @@
 #include "Window_manager.hpp"
 #include "Lighting.hpp"
 
-// Menu:
-// (1) Host a game: Create a server, set self to Client, connect to server
-// (2) Connect to a server: set to Client
-// (3) Play solo: set to Solo
-
 class GameContext {
 public:
     static constexpr auto NETWORKING_PASSPHRASE = "beetlejuice";
@@ -41,41 +36,45 @@ public:
         GameMaster = F_PRIVILEGED | F_NETWORKING,
     };
 
+    struct NetworkConfig {
+        hg::PZInteger clientCount;
+        sf::IpAddress serverIp;
+        std::uint16_t serverPort;
+        std::uint16_t localPort;
+    };
+
 private:
     GameContext* _parentContext;
     Mode _mode;
 
 public:
     int playerIndex = PLAYER_INDEX_UNKNOWN;
-    hg::PZInteger syncBufferLength = 6;
+    hg::PZInteger syncBufferLength = 2;
     hg::PZInteger syncBufferHistoryLength = 1;
     bool quit = false;
 
-    hg::PZInteger networkingServerSize;
-    std::uint16_t networkingLocalPort;
-    std::uint16_t networkingServerPort;
-    std::string networkingServerIp;
+    NetworkConfig networkConfig;
 
-    hg::QAO_Runtime qaoRuntime;
+    QAO_Runtime qaoRuntime;
     WindowManager windowMgr;
     NetworkingManager netMgr;
-    SynchronizedObjectManager syncObjMgr;
-    ControlsManager controlsMgr;
     MainGameController mainGameCtrl;
+    ControlsManager controlsMgr;
     //LightingManager lightMgr;
+    SynchronizedObjectManager syncObjMgr; // TODO This object isn't really a "manager"
 
-    GameContext(Mode mode)
+    GameContext()
         // Essential:
         : _parentContext{nullptr}
-        , _mode{mode}
+        , _mode{Mode::Initial}
         , qaoRuntime{this}
         , windowMgr{qaoRuntime.nonOwning()}
         // Game-specific:
-        , controlsMgr{qaoRuntime.nonOwning(), 4, syncBufferLength, syncBufferHistoryLength}
-        , netMgr{qaoRuntime.nonOwning(), false}
-        , syncObjMgr{netMgr.getNode()}
+        , netMgr{qaoRuntime.nonOwning()}
         , mainGameCtrl{qaoRuntime.nonOwning()}
+        , controlsMgr{qaoRuntime.nonOwning(), 4, syncBufferLength, syncBufferHistoryLength}
         //, lightMgr{qaoRuntime.nonOwning()}
+        , syncObjMgr{netMgr.getNode()}
     {
         netMgr.getNode().setUserData(this);
     }
@@ -92,25 +91,17 @@ public:
         }
     }
 
-    void fullStart();
+    //void fullStart();
+    //void changeMode(Mode newMode);
+    void configure(Mode mode);
 
-    bool isPrivileged() const {
-        return ((static_cast<int>(_mode) & F_PRIVILEGED) != 0);
-    }
-
-    bool isHeadless() const {
-        return ((static_cast<int>(_mode) & F_HEADLESS) != 0);
-    }
-
-    bool hasNetworking() const {
-        return ((static_cast<int>(_mode) & F_NETWORKING) != 0);
-    }
+    bool isPrivileged() const;
+    bool isHeadless() const;
+    bool hasNetworking() const;
 
     int calcDelay(std::chrono::microseconds currentLatency) const {
         return static_cast<int>(currentLatency / std::chrono::microseconds{16'666});
     }
-
-    void changeMode(Mode newMode);
 
     static void run(GameContext* context, int* retVal);
 

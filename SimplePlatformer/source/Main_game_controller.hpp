@@ -10,10 +10,11 @@ public:
 
     ~MainGameController();
 
-    void onNetworkingEvent(const RN_Event& event) override;
+protected:
+    void eventUpdate() override;
 
 private:
-
+    void onNetworkingEvent(const RN_Event& event) override;
 };
 
 #endif // !MAIN_GAME_CONTROLLER_HPP
