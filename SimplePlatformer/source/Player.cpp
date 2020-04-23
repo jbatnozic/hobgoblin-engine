@@ -35,6 +35,8 @@ RN_DEFINE_HANDLER(UpdatePlayer, RN_ARGS(SyncId, syncId, Player::State&, state)) 
 
             const std::chrono::microseconds delay = client.getServer().getRemoteInfo().latency / 2LL;
             player->_ssch.putNewState(state, global.calcDelay(delay));
+            // TODO Temp. WHY DOES THIS WORK SO WELL
+            // player->_doppelganger = state;
         },
         [](NetworkingManager::ServerType& server) {
             // ERROR
@@ -105,27 +107,27 @@ void Player::eventUpdate() {
     else {
         _ssch.scheduleNewStates();
         
-        // Try to predict doppelganger movement:
+        // Try to predict doppelganger movement: [PREDICTIVE EXECUTION]
         move(_doppelganger);
 
-        // Interpolate doppelganger state:
-        auto& self = _ssch.getCurrentState();
-        float dist = EuclideanDist<float>({_doppelganger.x, _doppelganger.y}, {self.x, self.y});  
-        if (dist <= 1.f) { // TODO Magic numbers
-            _doppelganger = self;
-        }
-        else if (dist < std::max(20.f, 2.f * EuclideanDist<float>({0.f, 0.f},
-                                                                  {self.xspeed, self.yspeed}))) {
+        //// Interpolate doppelganger state:
+        //auto& self = _ssch.getCurrentState();
+        //float dist = EuclideanDist<float>({_doppelganger.x, _doppelganger.y}, {self.x, self.y});  
+        //if (dist <= 1.f) { // TODO Magic numbers
+        //    _doppelganger = self;
+        //}
+        //else if (dist < std::max(20.f, 2.f * EuclideanDist<float>({0.f, 0.f},
+        //                                                          {self.xspeed, self.yspeed}))) {
 
-            /*double theta = std::atan2(self.y - _doppelganger.y, self.x - _doppelganger.x);
-            _doppelganger.x += std::cos(theta) * dist * 0.1f;
-            _doppelganger.y += std::sin(theta) * dist * 0.1f;*/
-        }
-        else {
-            double theta = std::atan2(self.y - _doppelganger.y, self.x - _doppelganger.x);
-            _doppelganger.x += std::cos(theta) * dist;// *; 0.25f;
-            _doppelganger.y += std::sin(theta) * dist;// *0.25f;
-        }
+        //    /*double theta = std::atan2(self.y - _doppelganger.y, self.x - _doppelganger.x);
+        //    _doppelganger.x += std::cos(theta) * dist * 0.1f;
+        //    _doppelganger.y += std::sin(theta) * dist * 0.1f;*/
+        //}
+        //else {
+        //    double theta = std::atan2(self.y - _doppelganger.y, self.x - _doppelganger.x);
+        //    _doppelganger.x += std::cos(theta) * dist;// *; 0.25f;
+        //    _doppelganger.y += std::sin(theta) * dist;// *0.25f;
+        //}
     }
 }
 
@@ -148,7 +150,7 @@ void Player::eventDraw1() {
         rect.setPosition(_doppelganger.x, _doppelganger.y);
         ctx().windowMgr.getCanvas().draw(rect);
 
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::L)) return; // TODO Temp.
+        if (kbi().keyPressed(KbKey::L)) return; // TODO Temp.
 
         rect.setFillColor(sf::Color::Transparent);
         rect.setOutlineColor(sf::Color::Black);
@@ -159,10 +161,6 @@ void Player::eventDraw1() {
 }
 
 void Player::move(State& self) {
-    if (!ctx().isPrivileged() && sf::Keyboard::isKeyPressed(sf::Keyboard::B)) {
-        int __a = 5;
-    }
-
     PlayerControls controls = ctx().controlsMgr.getCurrentControlsForPlayer(self.playerIndex);
 
     if (self.y < static_cast<float>(800) - self.height) {

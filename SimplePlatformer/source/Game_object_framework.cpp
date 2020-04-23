@@ -11,9 +11,8 @@ GameContext& GOF_Base::ctx() const {
     return *(getRuntime()->getUserData<GameContext>());
 }
 
-hg::QAO_Runtime& GOF_Base::rt() const {
-    assert(getRuntime() && "Game object not registered to any runtime!");
-    return *getRuntime();
+KbInputTracker& GOF_Base::kbi() const {
+    return ctx().windowMgr.getKeyboardInput();
 }
 
 // ========================================================================= //

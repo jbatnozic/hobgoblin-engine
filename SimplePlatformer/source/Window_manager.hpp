@@ -8,6 +8,7 @@
 #include <SFML/Graphics.hpp>
 
 #include "Game_object_framework.hpp"
+#include "Keyboard_input.hpp"
 
 enum class DrawPosition {
     Fill, 
@@ -34,11 +35,14 @@ public:
 
     void drawMainRenderTexture(DrawPosition drawPosition);
 
+    KbInputTracker& getKeyboardInput();
+
 private:
     sf::RenderWindow _window;
     sf::RenderTexture _mainRenderTexture;
     hg::gr::CanvasAdapter _windowAdapter;
     hg::gr::MultiViewRenderTargetAdapter _mainRenderTextureAdapter;
+    KbInputTracker _kbi;
 };
 
 #endif // !WINDOW_MANAGER_HPP

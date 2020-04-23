@@ -54,6 +54,10 @@ hg::gr::Canvas& WindowManager::getCanvas() {
     }
 }
 
+KbInputTracker& WindowManager::getKeyboardInput() {
+    return _kbi;
+}
+
 void WindowManager::drawMainRenderTexture(DrawPosition drawPosition) {
     _mainRenderTexture.display();
     sf::Sprite mrtSprite{_mainRenderTexture.getTexture()};
@@ -105,18 +109,33 @@ void WindowManager::eventRender() {
     drawMainRenderTexture(DrawPosition::Centre);
     _window.display();
 
-    sf::Event event;
-    while (_window.pollEvent(event)) {
-        // Swallow events (TODO: Add event listeners)
-        if (event.type == sf::Event::Resized)
-        {
-            // update the view to the new size of the window
-            sf::FloatRect visibleArea(0, 0, event.size.width, event.size.height);
-            _window.setView(sf::View(visibleArea));
+    _kbi.prepForEvents();
+
+    sf::Event ev;
+    while (_window.pollEvent(ev)) {
+        switch (ev.type) {
+        case sf::Event::Closed:
+            // TODO
+            break;
+
+        case sf::Event::KeyPressed:
+        case sf::Event::KeyReleased:
+            _kbi.onKeyEvent(ev);
+            break;
+
+        case sf::Event::Resized:
+            {
+                sf::FloatRect visibleArea(0, 0, ev.size.width, ev.size.height);
+                _window.setView(sf::View(visibleArea));
+            }
+            break;
+        
+        case sf::Event::TextEntered:
+            _kbi.onTextEvent(ev);
+            break;
+
+        default: (void)0;
         }
-        /*if (event.type == sf::Event::Closed) {
-            window.close();
-        }*/
     }
 }
 

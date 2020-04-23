@@ -11,6 +11,8 @@ using namespace hg::rn;
 #include <unordered_map>
 #include <unordered_set>
 
+#include "Keyboard_input.hpp"
+
 #define TYPEID_SELF typeid(decltype(*this))
 
 class GameContext;
@@ -20,7 +22,7 @@ public:
     using hg::QAO_Base::QAO_Base;
 
     GameContext& ctx() const;
-    QAO_Runtime& rt() const;
+    KbInputTracker& kbi() const;
     // TODO: Add more utility methods
 };
 

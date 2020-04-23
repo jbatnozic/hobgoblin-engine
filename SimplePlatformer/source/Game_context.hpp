@@ -49,7 +49,7 @@ private:
 
 public:
     int playerIndex = PLAYER_INDEX_UNKNOWN;
-    hg::PZInteger syncBufferLength = 2;
+    hg::PZInteger syncBufferLength = 3;
     hg::PZInteger syncBufferHistoryLength = 1;
     bool quit = false;
 
