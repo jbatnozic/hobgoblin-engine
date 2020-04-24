@@ -68,6 +68,12 @@ private:
 
         _stateBuffer[hg::ToSz(pos)] = state;
     }
+    
+    void extendLatest() {
+        for (int i = _blueTailPos + 1; i < _stateBufferMinSize; i += 1) {
+            _stateBuffer[hg::ToSz(i)] = _latestBlueState;
+        }
+    }
 };
 
 template <class TState>
@@ -143,6 +149,8 @@ void StateScheduler<TState>::scheduleNewStates() {
     }
 
     _newStates.clear();
+
+    extendLatest();
 }
 
 template <class TState>
