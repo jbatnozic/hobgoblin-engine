@@ -76,9 +76,9 @@ void Player::syncDestroyImpl(RN_Node& node, const std::vector<hg::PZInteger>& re
 Player::Player(QAO_Runtime* runtime, SynchronizedObjectManager& syncObjMapper, SyncId syncId,
                float x, float y, hg::PZInteger playerIndex)
     : GOF_SynchronizedObject{runtime, TYPEID_SELF, 75, "Player", syncObjMapper, syncId}
-    , _ssch{ctx().syncBufferLength, ctx().syncBufferHistoryLength, false, false}
+    , _ssch{ctx().syncBufferLength}
 {
-    _ssch.setDiscardOld(true);
+    _ssch.setDiscardIfOld(true);
 
     for (auto& state : _ssch) {
         state.playerIndex = playerIndex;
@@ -108,7 +108,7 @@ void Player::eventUpdate() {
     }
     else {
         _ssch.scheduleNewStates();
-        _ssch.resetIfLargerThan(ctx().syncBufferLength * 2);
+        _ssch.advanceDownTo(ctx().syncBufferLength * 2);
         
         // Try to predict doppelganger movement: [PREDICTIVE EXECUTION]
         //move(_doppelganger);

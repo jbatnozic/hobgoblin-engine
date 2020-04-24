@@ -29,14 +29,14 @@ ControlsManager::ControlsManager(QAO_RuntimeRef runtimeRef, hg::PZInteger player
 {
     _schedulers.reserve(playerCount);
     for (hg::PZInteger i = 0; i < playerCount; i += 1) {
-        _schedulers.emplace_back(inputDelayInSteps, historySize);
-        _schedulers.back().setDiscardOld(false);
+        _schedulers.emplace_back(inputDelayInSteps);
+        _schedulers.back().setDiscardIfOld(false);
     }
 }
 
 void ControlsManager::setInputDelay(hg::PZInteger inputDelayInSteps, hg::PZInteger historySize) {
     for (auto& scheduler : _schedulers) {
-        scheduler.reset(inputDelayInSteps, historySize);
+        scheduler.reset(inputDelayInSteps);
     }
 }
 
@@ -67,7 +67,7 @@ void ControlsManager::eventPreUpdate() {
 
     for (auto& scheduler : _schedulers) {
         scheduler.scheduleNewStates();
-        scheduler.resetIfLargerThan(ctx().syncBufferLength * 2);
+        scheduler.advanceDownTo(ctx().syncBufferLength * 2);
     }
 }
 

@@ -52,7 +52,7 @@ public: // State object must be public
     };
 
 private:
-    StateScheduler2<State> _ssch;
+    StateScheduler<State> _ssch;
     State _doppelganger;
 
     bool oldUp = false;

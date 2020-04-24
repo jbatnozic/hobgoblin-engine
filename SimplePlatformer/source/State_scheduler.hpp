@@ -2,32 +2,37 @@
 #define STATE_SCHEDULER_HPP
 
 #include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/Utility/Exceptions.hpp>
 #include <Hobgoblin/Utility/Math.hpp>
 
 #include <algorithm>
 #include <deque>
 #include <vector>
 
-#include <cassert>
-
-//struct TState {
-//    void integrate(const TState& other);
-//    void unstuck(const std::deque<TState>& history);
-//    void debounce(const std::deque<TState>& q, std::size_t currentPos);
-//};
-
 template <class TState>
 class StateScheduler {
 public:
-    StateScheduler(hg::PZInteger bufferLength, hg::PZInteger historyLength, bool doDebounce = true, bool doUnstuck = true);
+    StateScheduler(hg::PZInteger defaultDelay);
 
-    void reset(hg::PZInteger bufferLength, hg::PZInteger historyLength, bool doDebounce = true, bool doUnstuck = true);
+    // Main:
+
+    void reset(hg::PZInteger defaultDelay);
 
     void putNewState(const TState& newState, hg::PZInteger delay = 0);
-    
+
     void scheduleNewStates();
 
     void advance();
+
+    void setDiscardIfOld(bool discardIfTooOld);
+
+    // Extra/utility:
+
+    void advanceDownTo(hg::PZInteger maxSize);
+
+    hg::PZInteger getDefaultDelay() const noexcept;
+
+    // Access stored states:
 
     TState& getCurrentState();
     TState& getLatestState();
@@ -41,202 +46,20 @@ public:
     typename std::deque<TState>::const_iterator cbegin() const;
     typename std::deque<TState>::const_iterator cend() const;
 
-    hg::PZInteger getBufferLength() const noexcept;
-    hg::PZInteger getHistoryLength() const noexcept;
-
 private:
     std::deque<TState> _stateBuffer;
-    std::deque<TState> _rawStateHistory;
+    hg::PZInteger _stateBufferMinSize;
+
     std::vector<TState> _newStates;
-    hg::PZInteger _historyLength;
     hg::PZInteger _newStatesDelay;
-    bool _doDebounce, _doUnstuck;
-};
 
-template <class TState>
-StateScheduler<TState>::StateScheduler(hg::PZInteger bufferLength, hg::PZInteger historyLength, 
-                                       bool doDebounce, bool doUnstuck) {
-    reset(bufferLength, historyLength, doDebounce, doUnstuck);
-}
-
-template <class TState>
-void StateScheduler<TState>::reset(hg::PZInteger bufferLength, hg::PZInteger historyLength, 
-                                   bool doDebounce, bool doUnstuck) {
-    _stateBuffer.clear();
-    _stateBuffer.resize(hg::ToSz(bufferLength + 1 + historyLength));
-
-    _newStates.clear();
-
-    _historyLength = historyLength; // Non-raw (!) history length
-
-    _rawStateHistory.clear();
-    _rawStateHistory.resize(hg::ToSz(bufferLength + 1));
-
-    _doDebounce = doDebounce;
-    _doUnstuck = doUnstuck;
-}
-
-template <class TState>
-void StateScheduler<TState>::putNewState(const TState& newState, hg::PZInteger delay) {
-    _newStates.push_back(newState);
-    _newStatesDelay = delay;
-
-    _rawStateHistory.pop_front();
-    _rawStateHistory.push_back(newState);
-}
-
-template <class TState>
-void StateScheduler<TState>::scheduleNewStates() {
-    // Integrate new states:
-    int place = (static_cast<int>(_stateBuffer.size()) - 1) - _newStatesDelay;
-
-    for (auto iter = _newStates.rbegin(); iter != _newStates.rend(); iter = std::next(iter)) {
-        place = std::max(static_cast<int>(_historyLength), place);
-        if (place == static_cast<int>(_stateBuffer.size()) - 1) {
-            _stateBuffer[hg::ToSz(place)] = *iter;
-        }
-        else {
-            _stateBuffer[hg::ToSz(place)].integrate(*iter);
-        }
-        place -= 1;
-    }
-
-    _newStates.clear();
-
-    // Unstuck:
-    if (_doUnstuck) {
-        for (auto& state : _stateBuffer) {
-            state.unstuck(_rawStateHistory);
-        }
-    }
-}
-
-template <class TState>
-void StateScheduler<TState>::advance() {
-    if (!_rawStateHistory.empty()) {
-        _stateBuffer.push_back(_rawStateHistory.back());
-    }
-    else {
-        _stateBuffer.push_back(_stateBuffer.back());
-    }
-    _stateBuffer.pop_front();
-
-    // Debounce:
-    if (_doDebounce) {
-        _stateBuffer[_historyLength].debounce(_stateBuffer, hg::ToSz(_historyLength));
-    }
-}
-
-template <class TState>
-TState& StateScheduler<TState>::getCurrentState() {
-    return _stateBuffer[hg::ToSz(_historyLength)];
-}
-
-template <class TState>
-TState& StateScheduler<TState>::getLatestState() {
-    return _stateBuffer.back();
-}
-
-
-template <class TState>
-const TState& StateScheduler<TState>::getCurrentState() const {
-    return _stateBuffer[hg::ToSz(_historyLength)];
-}
-
-template <class TState>
-const TState& StateScheduler<TState>::getLatestState() const {
-    return _stateBuffer.back();
-}
-
-template <class TState>
-typename std::deque<TState>::iterator StateScheduler<TState>::begin() {
-    return _stateBuffer.begin() + _historyLength;
-}
-
-template <class TState>
-typename std::deque<TState>::iterator StateScheduler<TState>::end() {
-    return _stateBuffer.end();
-}
-
-template <class TState>
-typename std::deque<TState>::const_iterator StateScheduler<TState>::cbegin() const {
-    return _stateBuffer.cbegin() + _historyLength;
-}
-
-template <class TState>
-typename std::deque<TState>::const_iterator StateScheduler<TState>::cend() const {
-    return _stateBuffer.cend();
-}
-
-template <class TState>
-hg::PZInteger StateScheduler<TState>::getBufferLength() const noexcept {
-    return (hg::ToPz(_stateBuffer.size()) - _historyLength);
-}
-
-template <class TState>
-hg::PZInteger StateScheduler<TState>::getHistoryLength() const noexcept {
-    return _historyLength;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-struct TState1 {
-};
-
-template <class TState>
-class StateScheduler2 {
-public:
-    StateScheduler2(hg::PZInteger minBufferLength, hg::PZInteger, bool x = true, bool y = true);
-
-    void reset(hg::PZInteger minBufferLength, hg::PZInteger, bool x = true, bool y = true);
-
-    void putNewState(const TState& newState, hg::PZInteger delay = 0);
-
-    void scheduleNewStates();
-
-    void advance();
-
-    TState& getCurrentState();
-    TState& getLatestState();
-
-    const TState& getCurrentState() const;
-    const TState& getLatestState() const;
-
-    typename std::deque<TState>::iterator begin();
-    typename std::deque<TState>::iterator end();
-
-    typename std::deque<TState>::const_iterator cbegin() const;
-    typename std::deque<TState>::const_iterator cend() const;
-
-    //hg::PZInteger getBufferLength() const noexcept;
-    //hg::PZInteger getHistoryLength() const noexcept;
-
-    void setDiscardOld(bool b) {
-        _discardTooOld = b;
-    }
-
-    void resetIfLargerThan(hg::PZInteger s) {
-        //if (hg::ToPz(_stateBuffer.size()) > s) {
-        //    // TODO Don't fully reset, but keep newest states
-        //    reset(_minBufferLength, 0, false, false);
-        //}
-
-        assert(s > _minBufferLength);
-        while (hg::ToPz(_stateBuffer.size()) > s) {
-            // TODO Don't fully reset, but keep newest states
-            advance();
-        }
-    }
-
-private:
-    std::deque<TState> _stateBuffer;
-    std::vector<TState> _newStates;
+    // NOTE: "Blue" states are those that have been put into the scheduler
+    // explicitly by the user. Inferred states are "Red", though they are not
+    // explicitly tracked.
     TState _latestBlueState;
-    hg::PZInteger _minBufferLength;
-    hg::PZInteger _newStatesDelay;
-    int _blueHead = -1;
-    int _blueTail = -1;
-    bool _discardTooOld = false;
+    int _blueTailPos = -1;
+
+    bool _discardIfTooOld = false;
 
     void setAt(const TState& state, hg::PZInteger pos) {
         if (hg::ToPz(_stateBuffer.size()) <= pos) {
@@ -248,28 +71,32 @@ private:
 };
 
 template <class TState>
-StateScheduler2<TState>::StateScheduler2(hg::PZInteger minBufferLength, hg::PZInteger, bool, bool) {
-    reset(minBufferLength, 0, false, false);
+StateScheduler<TState>::StateScheduler(hg::PZInteger defaultDelay)
+    : _stateBufferMinSize{defaultDelay + 1}
+    , _blueTailPos{-1}
+{
+    _stateBuffer.resize(hg::ToSz(_stateBufferMinSize));
 }
 
-template <class TState>
-void StateScheduler2<TState>::reset(hg::PZInteger minBufferLength, hg::PZInteger, bool, bool) {
-    _stateBuffer.clear();
-    _stateBuffer.resize(hg::ToSz(minBufferLength));
+// Main:
 
-    _minBufferLength = minBufferLength;
+template <class TState>
+void StateScheduler<TState>::reset(hg::PZInteger defaultDelay) {
+    _stateBuffer.clear();
+    _stateBuffer.resize(hg::ToSz(defaultDelay + 1));
+
+    _stateBufferMinSize = defaultDelay + 1;
 
     _newStates.clear();
 
-    _blueHead = -1;
-    _blueTail = -1;
+    _blueTailPos = -1;
 }
 
 template <class TState>
-void StateScheduler2<TState>::putNewState(const TState& newState, hg::PZInteger delay) {
-    if (_blueHead != -1 && _blueTail != -1) {
-        setAt(newState, _blueTail + 1);
-        _blueTail += 1;
+void StateScheduler<TState>::putNewState(const TState& newState, hg::PZInteger delay) {
+    if (_blueTailPos != -1) {
+        setAt(newState, _blueTailPos + 1);
+        _blueTailPos += 1;
     }
     else {
         _newStates.push_back(newState);
@@ -280,132 +107,121 @@ void StateScheduler2<TState>::putNewState(const TState& newState, hg::PZInteger 
 }
 
 template <class TState>
-void StateScheduler2<TState>::scheduleNewStates() {
+void StateScheduler<TState>::scheduleNewStates() {
     if (_newStates.empty()) {
         return;
     }
 
-    int startAt = _minBufferLength - _newStatesDelay - hg::ToPz(_newStates.size());
-    const bool discardTooOld = _discardTooOld;
+    int pos = _stateBufferMinSize - _newStatesDelay - hg::ToPz(_newStates.size());
 
-    if (startAt >= 0) {
-        int i = 0;
+    if (pos >= 0) {
         for (auto& state : _newStates) {
-            setAt(state, startAt + i);
-            i += 1;
+            setAt(state, pos);
+            pos += 1;
         }
-        _blueHead = startAt;
-        _blueTail = startAt + i - 1;
+        _blueTailPos = pos - 1;
     }
-    else if (discardTooOld) {
-        hg::PZInteger stateSelector = -startAt;
-        startAt = 0;
-        int i = 0;
+    else if (_discardIfTooOld) {
+        hg::PZInteger stateSelector = -1 * pos;
+        pos = 0;
 
-        while (true) {
-            if (stateSelector >= hg::ToPz(_newStates.size())) {
-                break;
-            }
-            setAt(_newStates[hg::ToSz(stateSelector)], startAt + i);
+        while (stateSelector < hg::ToPz(_newStates.size())) {
+            setAt(_newStates[hg::ToSz(stateSelector)], pos);
             stateSelector += 1;
-            i += 1;
+            pos += 1;
         }
-
-        _blueHead = startAt;
-        _blueTail = startAt + i - 1;
+        _blueTailPos = pos - 1;
     }
     else {
-        startAt = 0;
-        int i = 0;
+        pos = 0;
+
         for (auto& state : _newStates) {
-            setAt(state, startAt + i);
-            i += 1;
+            setAt(state, pos);
+            pos += 1;
         }
-        _blueHead = startAt;
-        _blueTail = startAt + i - 1;
+        _blueTailPos = pos - 1;
     }
 
     _newStates.clear();
-
-    // Unstuck:
-    //if (_doUnstuck) {
-    //    for (auto& state : _stateBuffer) {
-    //        state.unstuck(_rawStateHistory);
-    //    }
-    //}
 }
 
 template <class TState>
-void StateScheduler2<TState>::advance() {
-    if (hg::ToPz(_stateBuffer.size()) <= _minBufferLength) {
+void StateScheduler<TState>::advance() {
+    if (hg::ToPz(_stateBuffer.size()) <= _stateBufferMinSize) {
         _stateBuffer.push_back(_latestBlueState);
     }
 
-    if (_blueHead >= 0) _blueHead -= 1;
-    if (_blueTail >= 0) _blueTail -= 1;
-
-    if (_blueHead == -1 && _blueTail != -1) {
-        _blueHead = 0;
+    if (_blueTailPos >= 0) {
+        _blueTailPos -= 1;
     }
 
     _stateBuffer.pop_front();
-
-    // Debounce:
-    /*if (_doDebounce) {
-        _stateBuffer[_historyLength].debounce(_stateBuffer, hg::ToSz(_historyLength));
-    }*/
 }
 
 template <class TState>
-TState& StateScheduler2<TState>::getCurrentState() {
-    return _stateBuffer[0];
+void StateScheduler<TState>::setDiscardIfOld(bool discardIfTooOld) {
+    _discardIfTooOld = discardIfTooOld;
+}
+
+// Extra/utility:
+
+template <class TState>
+void StateScheduler<TState>::advanceDownTo(hg::PZInteger maxSize) {
+    if (maxSize < _stateBufferMinSize) {
+        throw hg::util::TracedLogicError("MaxSize must be at least (defaultDelay + 1)");
+    }
+
+    while (hg::ToPz(_stateBuffer.size()) > maxSize) {
+        advance();
+    }
 }
 
 template <class TState>
-TState& StateScheduler2<TState>::getLatestState() {
+hg::PZInteger StateScheduler<TState>::getDefaultDelay() const noexcept {
+    return _stateBufferMinSize - 1;
+}
+
+// Access states:
+
+template <class TState>
+TState& StateScheduler<TState>::getCurrentState() {
+    return _stateBuffer.front();
+}
+
+template <class TState>
+TState& StateScheduler<TState>::getLatestState() {
     return _latestBlueState;
 }
 
-
 template <class TState>
-const TState& StateScheduler2<TState>::getCurrentState() const {
-    return _stateBuffer[0];
+const TState& StateScheduler<TState>::getCurrentState() const {
+    return _stateBuffer.front();
 }
 
 template <class TState>
-const TState& StateScheduler2<TState>::getLatestState() const {
+const TState& StateScheduler<TState>::getLatestState() const {
     return _latestBlueState;
 }
 
 template <class TState>
-typename std::deque<TState>::iterator StateScheduler2<TState>::begin() {
+typename std::deque<TState>::iterator StateScheduler<TState>::begin() {
     return _stateBuffer.begin();
 }
 
 template <class TState>
-typename std::deque<TState>::iterator StateScheduler2<TState>::end() {
+typename std::deque<TState>::iterator StateScheduler<TState>::end() {
     return _stateBuffer.end();
 }
 
 template <class TState>
-typename std::deque<TState>::const_iterator StateScheduler2<TState>::cbegin() const {
+typename std::deque<TState>::const_iterator StateScheduler<TState>::cbegin() const {
     return _stateBuffer.cbegin();
 }
 
 template <class TState>
-typename std::deque<TState>::const_iterator StateScheduler2<TState>::cend() const {
+typename std::deque<TState>::const_iterator StateScheduler<TState>::cend() const {
     return _stateBuffer.cend();
 }
-
-//template <class TState>
-//hg::PZInteger StateScheduler2<TState>::getBufferLength() const noexcept {
-//    return (hg::ToPz(_stateBuffer.size()) - _historyLength);
-//}
-//
-//template <class TState>
-//hg::PZInteger StateScheduler2<TState>::getHistoryLength() const noexcept {
-//    return _historyLength;
-//}
 
 #endif // !STATE_SCHEDULER_HPP
 
