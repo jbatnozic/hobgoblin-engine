@@ -103,7 +103,17 @@ PZInteger RN_UdpServer::getSize() const {
 }
 
 void RN_UdpServer::resize(PZInteger newSize) {
-    // TODO
+    if (newSize <= ToPz(_clients.size())) {
+        // TODO Add support for downsizing
+        return;
+    }
+
+    int i = ToPz(_clients.size());
+    while (i < newSize) {
+        _clients.emplace_back(_mySocket, _timeoutLimit, _passphrase, _retransmitPredicate,
+                              detail::EventFactory{SELF, i});
+        i += 1;
+    }
 }
 
 std::chrono::microseconds RN_UdpServer::getTimeoutLimit() const {
