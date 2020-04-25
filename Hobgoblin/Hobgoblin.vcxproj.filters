@@ -336,6 +336,7 @@
     <Text Include="include\Hobgoblin\zTODO.txt" />
     <Text Include="zTODO.txt" />
     <Text Include="Pathfinding.txt" />
+    <Text Include="On_qao_serialization.txt" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CODEANALYSIS.ruleset" />

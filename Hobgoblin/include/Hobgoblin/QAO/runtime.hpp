@@ -131,7 +131,6 @@ private:
     detail::QAO_Registry _registry;
     detail::QAO_Orderer _orderer;
     std::int64_t _step_counter;
-    std::int64_t _iteration_ordinal;
     QAO_Event::Enum _current_event;
     QAO_OrdererIterator _step_orderer_iterator;
     util::AnyPtr _user_data;

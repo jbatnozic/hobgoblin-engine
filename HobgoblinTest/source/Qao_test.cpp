@@ -48,6 +48,22 @@ private:
     int _myNumber;
 };
 
+class SimpleActiveObjectWhichDeletesItself : public QAO_Base {
+public:
+    SimpleActiveObjectWhichDeletesItself(QAO_RuntimeRef rtRef)
+        : QAO_Base{rtRef, TYPEID_SELF, 0, "SimpleActiveObjectWhichDeletesItself"}
+    {
+    }
+
+    void eventUpdate() {
+        if (getRuntime()->ownsObject(this)) {
+            getRuntime()->eraseObject(this);
+        }
+    }
+
+private:
+};
+
 ///////////////////////////////////////////////////////////////////////////////
 // QAO_Runtime tests:
 
@@ -178,6 +194,22 @@ TEST_F(QAO_Test, ReleaseObjectFails) {
     
     auto upReleased = _runtime.releaseObject(upObj.get());
     ASSERT_EQ(upReleased.get(), nullptr);
+}
+
+TEST_F(QAO_Test, ObjectsDeleteThemselves) {
+    QAO_PCreate<SimpleActiveObjectWhichDeletesItself>(&_runtime);
+    QAO_PCreate<SimpleActiveObjectWhichDeletesItself>(&_runtime);
+    QAO_PCreate<SimpleActiveObjectWhichDeletesItself>(&_runtime);
+    auto controlObject = QAO_PCreate<SimpleActiveObject>(&_runtime, _numbers, 0);
+    controlObject->setExecutionPriority(-1000);
+
+    ASSERT_EQ(_runtime.getObjectCount(), 4);
+
+    performStep();
+
+    ASSERT_EQ(_runtime.getObjectCount(), 1);
+
+    performStep();
 }
 
 ///////////////////////////////////////////////////////////////////////////////

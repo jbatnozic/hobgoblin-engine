@@ -3,6 +3,7 @@
 #include <Hobgoblin/QAO/runtime.hpp>
 
 #include <cassert>
+#include <cstring>
 #include <limits>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
@@ -19,7 +20,6 @@ QAO_Runtime::QAO_Runtime()
 
 QAO_Runtime::QAO_Runtime(util::AnyPtr userData)
     : _step_counter{MIN_STEP_ORDINAL + 1}
-    , _iteration_ordinal{-1}
     , _current_event{QAO_Event::NoEvent}
     , _step_orderer_iterator{_orderer.end()}
     , _user_data{userData}
@@ -100,8 +100,7 @@ void QAO_Runtime::addObjectNoOwn(QAO_Base& object, QAO_GenericId specififcId) {
 }
 
 std::unique_ptr<QAO_Base> QAO_Runtime::releaseObject(QAO_Base* object) {
-    assert(object);
-    assert(object->getRuntime() == this);
+    assert(object && object->getRuntime() == this);
 
     const auto id = object->getId();
     const auto index = id.getIndex();
@@ -137,7 +136,12 @@ void QAO_Runtime::eraseAllNonOwnedObjects() {
 }
 
 QAO_Base* QAO_Runtime::find(const std::string& name) const {
-    return nullptr; // TODO
+    for (auto iter = cbegin(); iter != cend(); iter = std::next(iter)) {
+        if ((*iter)->getName() == name) {
+            return *iter;
+        }
+    }
+    return nullptr;
 }
 
 QAO_Base* QAO_Runtime::find(QAO_GenericId id) const {
@@ -169,7 +173,6 @@ void QAO_Runtime::updateExecutionPriorityForObject(QAO_Base* object, int newPrio
 void QAO_Runtime::startStep() {
     _current_event = QAO_Event::FrameStart;
     _step_orderer_iterator = _orderer.begin();
-    _iteration_ordinal += 1;
 }
 
 void QAO_Runtime::advanceStep(bool& done, std::int32_t eventFlags) {
@@ -187,10 +190,22 @@ void QAO_Runtime::advanceStep(bool& done, std::int32_t eventFlags) {
 
         while (curr != _orderer.end()) {
             QAO_Base* const instance = *curr;
-            curr = std::next(curr);
+
+            char currBeforeEvent[sizeof(curr)];
+            std::memcpy(currBeforeEvent, &curr, sizeof(curr));
+
             if (FRIEND_ACCESS instance->_context.stepOrdinal < _step_counter) {
-                FRIEND_ACCESS instance->_callEvent(ev);
                 FRIEND_ACCESS instance->_context.stepOrdinal = _step_counter;
+                FRIEND_ACCESS instance->_callEvent(ev);
+                // After calling _callEvent, the instance variable must no longer be used until reassigned,
+                // because an instance is allowed to delete itself inside of an event implementation
+            }
+            // If the step orderer iterator wasn't advanced by the _callEvent invocation (by the callee
+            // deleting itself), it must be advanced here. Raw memory compare is necessary because
+            // the iterator being compared then becomes invalid when deleting the list node.
+            const bool stepIteratorStayedTheSame = (std::memcmp(currBeforeEvent, &curr, sizeof(curr)) == 0);
+            if (stepIteratorStayedTheSame && curr != _orderer.end()) {
+                curr = std::next(curr);
             }
         }
 
@@ -265,14 +280,18 @@ QAO_OrdererConstReverseIterator QAO_Runtime::crend() const {
 
 // Pack/Unpack state:
 util::PacketBase& operator<<(util::PacketBase& packet, const QAO_Runtime& self) {
-    packet << self._step_counter << self._iteration_ordinal << std::int32_t{self._current_event};
+    packet << self._step_counter << std::int32_t{self._current_event};
     return packet;
 }
 
 util::PacketBase& operator>>(util::PacketBase& packet, QAO_Runtime& self) {
     std::int32_t currentEvent;
-    packet >> self._step_counter >> self._iteration_ordinal >> currentEvent;
+    packet >> self._step_counter >> currentEvent;
     self._current_event = static_cast<decltype(self._current_event)>(currentEvent);
+
+    // Upon being deserialized, the runtime must start the current event from the beginning
+    self._step_orderer_iterator = self._orderer.begin();
+
     return packet;
 }
 

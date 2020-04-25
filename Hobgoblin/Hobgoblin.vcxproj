@@ -528,6 +528,7 @@
     <Text Include="include\Hobgoblin\Private\HobgoblinCodingStyle.txt" />
     <Text Include="include\Hobgoblin\RigelNet\PROTOCOL.txt" />
     <Text Include="include\Hobgoblin\zTODO.txt" />
+    <Text Include="On_qao_serialization.txt" />
     <Text Include="Pathfinding.txt" />
     <Text Include="zTODO.txt" />
   </ItemGroup>

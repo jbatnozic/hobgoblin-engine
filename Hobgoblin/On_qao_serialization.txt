@@ -1,0 +1,21 @@
+
+ON Serialization and Deserialization inside of a QAO context:
+
+For best results, meaning results you'd most likely logically expect, Serialization and
+Deserialization should be done by an instance of a class derived from QAO_Base, with the following
+recommendations:
+ - The instance should do both serialization and deserialization within the same QAO event
+
+ - This instance should have an execution priority value unique across the whole of its runtime
+
+ - The serialization code should lok like this:
+   1) Serialize the runtime's state:
+      packet << *getRuntime();
+   2) Serialize all instances currently in the runtime:
+      (best via message method)
+
+ - The deserialization code should lok like this: 
+   1) Deserialize the runtime's state:
+      packet << *getRuntime();
+   2) Deserialize instances:
+      hg::util::Deserialize(packet, getRuntime(), MESSAGE_DESERIALIZE); [for example]
