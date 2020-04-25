@@ -70,6 +70,35 @@ void QAO_Runtime::addObjectNoOwn(QAO_Base& object) {
     };
 }
 
+void QAO_Runtime::addObject(std::unique_ptr<QAO_Base> object, QAO_GenericId specififcId) {
+    QAO_Base* const objRaw = object.get();
+    _registry.insert(std::move(object), detail::QAO_SerialIndexPair{specififcId.getSerial(), specififcId.getIndex()});
+
+    auto ordPair = _orderer.insert(objRaw); // first = iterator, second = added_new
+    assert(ordPair.second);
+
+    FRIEND_ACCESS objRaw->_context = QAO_Base::Context{
+        MIN_STEP_ORDINAL,
+        FRIEND_ACCESS objRaw->_context.id,
+        ordPair.first,
+        this
+    };
+}
+
+void QAO_Runtime::addObjectNoOwn(QAO_Base& object, QAO_GenericId specififcId) {
+    _registry.insertNoOwn(&object, detail::QAO_SerialIndexPair{specififcId.getSerial(), specififcId.getIndex()});
+
+    auto ordPair = _orderer.insert(&object); // first = iterator, second = added_new
+    assert(ordPair.second);
+
+    FRIEND_ACCESS object._context = QAO_Base::Context{
+        MIN_STEP_ORDINAL,
+        FRIEND_ACCESS object._context.id,
+        ordPair.first,
+        this
+    };
+}
+
 std::unique_ptr<QAO_Base> QAO_Runtime::releaseObject(QAO_Base* object) {
     assert(object);
     assert(object->getRuntime() == this);
@@ -93,6 +122,18 @@ std::unique_ptr<QAO_Base> QAO_Runtime::releaseObject(QAO_Base* object) {
 
 void QAO_Runtime::eraseObject(QAO_Base* object) {
     releaseObject(object).reset();
+}
+
+void QAO_Runtime::eraseAllNonOwnedObjects() {
+    std::vector<QAO_Base*> objectsToErase;
+    for (auto& object : SELF) {
+        if (ownsObject(object)) {
+            objectsToErase.push_back(object);
+        }
+    }
+    for (auto& object : objectsToErase) {
+        eraseObject(object);
+    }
 }
 
 QAO_Base* QAO_Runtime::find(const std::string& name) const {
@@ -220,6 +261,19 @@ QAO_OrdererConstReverseIterator QAO_Runtime::crbegin() const {
 
 QAO_OrdererConstReverseIterator QAO_Runtime::crend() const {
     return _orderer.crend();
+}
+
+// Pack/Unpack state:
+util::PacketBase& operator<<(util::PacketBase& packet, const QAO_Runtime& self) {
+    packet << self._step_counter << self._iteration_ordinal << std::int32_t{self._current_event};
+    return packet;
+}
+
+util::PacketBase& operator>>(util::PacketBase& packet, QAO_Runtime& self) {
+    std::int32_t currentEvent;
+    packet >> self._step_counter >> self._iteration_ordinal >> currentEvent;
+    self._current_event = static_cast<decltype(self._current_event)>(currentEvent);
+    return packet;
 }
 
 }

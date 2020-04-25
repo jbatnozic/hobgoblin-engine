@@ -1,8 +1,9 @@
 #ifndef UHOBGOBLIN_UTIL_SERIALIZATION_HPP
 #define UHOBGOBLIN_UTIL_SERIALIZATION_HPP
 
-#include <Hobgoblin/Utility/Packet.hpp>
 #include <Hobgoblin/Utility/Any_ptr.hpp>
+#include <Hobgoblin/Utility/Exceptions.hpp>
+#include <Hobgoblin/Utility/Packet.hpp>
 
 #include <string>
 #include <type_traits>
@@ -15,13 +16,13 @@ namespace util {
 
 class PolymorphicSerializable {
 protected:
-    virtual void serialize(Packet& packet) const = 0;
+    virtual void serialize(PacketBase& packet) const = 0;
     virtual std::string getSerializableTag() const = 0;
     template <class T>
-    friend void Serialize(Packet&, const T&);
+    friend void Serialize(PacketBase&, const T&);
 };
 
-using DeserializeMethod = void(*)(Packet&, AnyPtr, int);
+using DeserializeMethod = void(*)(PacketBase&, AnyPtr, int);
 
 namespace detail {
 
@@ -41,7 +42,7 @@ private:
 } // namespace detail
 
 template <class T>
-void Serialize(Packet& packet, const T& serializable) {
+void Serialize(PacketBase& packet, const T& serializable) {
     Packet intermediaryPacket;
     serializable.serialize(intermediaryPacket);
 
@@ -52,7 +53,7 @@ void Serialize(Packet& packet, const T& serializable) {
         packet << T::SERIALIZABLE_TAG;
     }
 
-    packet.insert<std::size_t>(intermediaryPacket.getDataSize());
+    packet << std::size_t{intermediaryPacket.getDataSize()};
     packet.append(intermediaryPacket.getData(), intermediaryPacket.getDataSize());
 }
 
@@ -63,6 +64,11 @@ void RegisterSerializable() {
 }
 
 void Deserialize(Packet& packet, AnyPtr context, int contextTag = 0);
+
+class DeserializationError : public TracedException {
+public:
+    using TracedException::TracedException;
+};
 
 } // namespace util
 HOBGOBLIN_NAMESPACE_END

@@ -1,5 +1,6 @@
 
 #include <Hobgoblin/QAO/base.hpp>
+#include <Hobgoblin/Utility/Exceptions.hpp>
 #include <Hobgoblin/Utility/Passkey.hpp>
 
 #include <cassert>
@@ -21,6 +22,25 @@ QAO_Base::QAO_Base(QAO_RuntimeRef runtimeRef, const std::type_info& typeInfo, in
         }
         else {
             runtime->addObjectNoOwn(SELF);
+        }
+    }
+}
+
+QAO_Base::QAO_Base(QAO_RuntimeRef runtimeRef, const std::type_info& typeInfo, util::PacketBase& packet)
+    : _typeInfo{typeInfo}
+{
+    packet >> _instanceName >> _context.id >> _execution_priority;
+    if (!packet) {
+        throw util::TracedRuntimeError("Deserialization failed");
+    }
+
+    QAO_Runtime* runtime = runtimeRef.ptr();
+    if (runtime) {
+        if (runtimeRef.isOwning()) {
+            runtime->addObject(std::unique_ptr<QAO_Base>{this}, _context.id);
+        }
+        else {
+            runtime->addObjectNoOwn(SELF, _context.id);
         }
     }
 }
@@ -53,6 +73,11 @@ const std::type_info& QAO_Base::getTypeInfo() const {
 
 bool QAO_Base::message(int tag, util::AnyPtr context) {
     return false;
+}
+
+util::PacketBase& operator<<(util::PacketBase& packet, const QAO_Base& self) {
+    packet << self._instanceName << self._context.id << self._execution_priority;
+    return packet;
 }
 
 void QAO_Base::setExecutionPriority(int new_priority) {

@@ -2,6 +2,7 @@
 #define UHOBGOBLIN_QAO_ID_HPP
 
 #include <Hobgoblin/common.hpp>
+#include <Hobgoblin/Utility/Packet.hpp>
 
 #include <cstdint>
 
@@ -43,6 +44,9 @@ public:
     template<class T>
     QAO_Id<T> cast() const noexcept;
 
+    friend util::PacketBase& operator<<(util::PacketBase& packet, const QAO_GenericId& self);
+    friend util::PacketBase& operator>>(util::PacketBase& packet, QAO_GenericId& self);
+
 protected:
     friend class QAO_Runtime;
     QAO_GenericId(std::int64_t serial, PZInteger index);
@@ -67,6 +71,14 @@ public:
 
     operator QAO_GenericId() {
         return QAO_GenericId{_serial, _index};
+    }
+
+    friend util::PacketBase& operator<<(util::PacketBase& packet, const QAO_Id& self) {
+        return (packet << static_cast<const QAO_GenericId&>(SELF));
+    }
+
+    friend util::PacketBase& operator>>(util::PacketBase& packet, QAO_Id& self) {
+        return (packet >> static_cast<QAO_GenericId&>(SELF));
     }
 
 protected:

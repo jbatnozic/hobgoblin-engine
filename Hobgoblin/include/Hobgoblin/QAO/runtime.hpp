@@ -8,7 +8,7 @@
 #include <Hobgoblin/QAO/registry.hpp>
 #include <Hobgoblin/Utility/Any_ptr.hpp>
 #include <Hobgoblin/Utility/NoCopyNoMove.hpp>
-#include <Hobgoblin/Utility/Passkey.hpp>
+#include <Hobgoblin/Utility/Packet.hpp>
 
 #include <cstdint>
 #include <memory>
@@ -73,8 +73,13 @@ public:
     void addObject(std::unique_ptr<QAO_Base> obj);
     void addObjectNoOwn(QAO_Base& object);
 
+    void addObject(std::unique_ptr<QAO_Base> obj, QAO_GenericId specififcId);
+    void addObjectNoOwn(QAO_Base& object, QAO_GenericId specififcId);
+
     std::unique_ptr<QAO_Base> releaseObject(QAO_Base* obj);
     void eraseObject(QAO_Base* obj);
+
+    void eraseAllNonOwnedObjects();
 
     QAO_Base* find(const std::string& name) const;
     QAO_Base* find(QAO_GenericId id) const;
@@ -117,6 +122,10 @@ public:
 
     QAO_OrdererConstReverseIterator crbegin() const;
     QAO_OrdererConstReverseIterator crend() const;
+
+    // Pack/Unpack state:
+    friend util::PacketBase& operator<<(util::PacketBase& packet, const QAO_Runtime& self);
+    friend util::PacketBase& operator>>(util::PacketBase& packet, QAO_Runtime& self);
 
 private:
     detail::QAO_Registry _registry;

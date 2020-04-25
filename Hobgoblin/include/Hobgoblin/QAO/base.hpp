@@ -7,6 +7,7 @@
 #include <Hobgoblin/QAO/runtime.hpp>
 #include <Hobgoblin/Utility/Any_ptr.hpp>
 #include <Hobgoblin/Utility/NoCopyNoMove.hpp>
+#include <Hobgoblin/Utility/Packet.hpp>
 
 #include <string>
 #include <typeinfo>
@@ -22,6 +23,7 @@ class QAO_Base : NO_COPY, NO_MOVE {
 public:
     QAO_Base() = delete;
     QAO_Base(QAO_RuntimeRef runtimeRef, const std::type_info& typeInfo, int executionPriority, std::string name);
+    QAO_Base(QAO_RuntimeRef runtimeRef, const std::type_info& typeInfo, util::PacketBase& packet);
     virtual ~QAO_Base() = 0;
     
     QAO_Runtime* getRuntime() const noexcept;
@@ -37,6 +39,8 @@ public:
     const std::type_info& getTypeInfo() const;
 
     virtual bool message(int tag, util::AnyPtr context);
+
+    friend util::PacketBase& operator<<(util::PacketBase& packet, const QAO_Base& self);
 
 protected:
     virtual void eventFrameStart() { }

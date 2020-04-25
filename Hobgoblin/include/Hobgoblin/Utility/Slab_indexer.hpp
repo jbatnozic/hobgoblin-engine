@@ -18,7 +18,7 @@ class SlabIndexer {
 // TODO This class is a mess
 public:
     // Construction
-    SlabIndexer(PZInteger capacity = 1u);
+    SlabIndexer(PZInteger capacity = 1);
 
     SlabIndexer(const SlabIndexer& other);
     SlabIndexer(SlabIndexer&& other);

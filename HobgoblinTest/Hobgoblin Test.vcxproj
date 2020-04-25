@@ -52,6 +52,7 @@
   <ItemGroup>
     <ClCompile Include="source\ColDetect_test.cpp" />
     <ClCompile Include="source\gtest_main.cpp" />
+    <ClCompile Include="source\QAO_serialization_test.cpp" />
     <ClCompile Include="source\QAO_test.cpp" />
     <ClCompile Include="source\RigelNet_test.cpp" />
     <ClCompile Include="source\Util_test.cpp" />

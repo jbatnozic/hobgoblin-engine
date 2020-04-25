@@ -25,11 +25,14 @@ public:
 
     QAO_SerialIndexPair insert(std::unique_ptr<QAO_Base> ptr);
     QAO_SerialIndexPair insertNoOwn(QAO_Base* ptr);
+    void insert(std::unique_ptr<QAO_Base> ptr, QAO_SerialIndexPair serialIndexPair);
+    void insertNoOwn(QAO_Base* ptr, QAO_SerialIndexPair serialIndexPair);
     std::unique_ptr<QAO_Base> release(PZInteger index);
     void erase(PZInteger index);
 
     PZInteger size() const;
     QAO_Base* objectAt(PZInteger index) const;
+    QAO_Base* objectWithSerial(std::int64_t serial) const;
     bool isObjectAtOwned(PZInteger index) const;
     std::int64_t serialAt(PZInteger index) const;
     PZInteger instanceCount() const;

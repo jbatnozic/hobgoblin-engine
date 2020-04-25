@@ -48,7 +48,7 @@ void Autounpack(PacketBase& packet, ArgsHead&& argsHead, ArgsRest&&... argsRest)
         ::jbatnozic::hobgoblin::util::detail::Autounpack(packet, __VA_ARGS__); \
     } \
     friend ::jbatnozic::hobgoblin::util::PacketBase& operator<<(::jbatnozic::hobgoblin::util::PacketBase& packet, \
-                                                                _class_name_& self) { \
+                                                                const _class_name_& self) { \
         self.UHOBGOBLIN_autopack(packet); return packet; \
     } \
     friend ::jbatnozic::hobgoblin::util::PacketBase& operator>>(::jbatnozic::hobgoblin::util::PacketBase& packet, \

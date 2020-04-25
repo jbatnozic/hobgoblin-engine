@@ -2,6 +2,7 @@
 #include <Hobgoblin/QAO/config.hpp>
 #include <Hobgoblin/QAO/base.hpp>
 #include <Hobgoblin/QAO/registry.hpp>
+#include <Hobgoblin/Utility/Exceptions.hpp>
 
 #include <stdexcept>
 
@@ -13,7 +14,7 @@ namespace detail {
 
 QAO_Registry::QAO_Registry(PZInteger capacity)
     : _indexer{capacity}
-    , _elements{capacity}  
+    , _elements{capacity}
     , _serial_counter{QAO_MIN_SERIAL}
 {
 }
@@ -27,12 +28,11 @@ QAO_SerialIndexPair QAO_Registry::insert(std::unique_ptr<QAO_Base> ptr) {
     _elements[index].ptr = std::move(ptr);
     _elements[index].serial = serial;
     _elements[index].no_own = false;
-    
+
     return QAO_SerialIndexPair{serial, index};
 }
 
 QAO_SerialIndexPair QAO_Registry::insertNoOwn(QAO_Base* ptr) {
-    // TODO Code duplication
     const auto index = static_cast<int>(_indexer.acquire());
     const auto serial = nextSerial();
 
@@ -41,8 +41,40 @@ QAO_SerialIndexPair QAO_Registry::insertNoOwn(QAO_Base* ptr) {
     _elements[index].ptr = std::unique_ptr<QAO_Base>{ptr};
     _elements[index].serial = serial;
     _elements[index].no_own = true;
-    
+
     return QAO_SerialIndexPair{serial, index};
+}
+
+void QAO_Registry::insert(std::unique_ptr<QAO_Base> ptr, QAO_SerialIndexPair serialIndexPair) {
+    if (!_indexer.tryAcquireSpecific(serialIndexPair.index)) {
+        throw util::TracedLogicError("Cannot register object; Index already in use");
+    }
+
+    if (objectWithSerial(serialIndexPair.serial) != nullptr) {
+        throw util::TracedLogicError("Cannot register object; Serial already in use");
+    }
+
+    adjustSize();
+
+    _elements[serialIndexPair.index].ptr = std::move(ptr);
+    _elements[serialIndexPair.index].serial = serialIndexPair.serial;
+    _elements[serialIndexPair.index].no_own = false;
+}
+
+void QAO_Registry::insertNoOwn(QAO_Base* ptr, QAO_SerialIndexPair serialIndexPair) {
+    if (!_indexer.tryAcquireSpecific(serialIndexPair.index)) {
+        throw util::TracedLogicError("Cannot register object; Index already in use");
+    }
+
+    if (objectWithSerial(serialIndexPair.serial) != nullptr) {
+        throw util::TracedLogicError("Cannot register object; Serial already in use");
+    }
+
+    adjustSize();
+
+    _elements[serialIndexPair.index].ptr = std::unique_ptr<QAO_Base>{ptr};
+    _elements[serialIndexPair.index].serial = serialIndexPair.serial;
+    _elements[serialIndexPair.index].no_own = true;
 }
 
 std::unique_ptr<QAO_Base> QAO_Registry::release(PZInteger index) {
@@ -75,6 +107,15 @@ int QAO_Registry::size() const {
 
 QAO_Base* QAO_Registry::objectAt(PZInteger index) const {
     return _elements[index].ptr.get();
+}
+
+QAO_Base* QAO_Registry::objectWithSerial(std::int64_t serial) const {
+    for (auto& elem : _elements) {
+        if (elem.serial == serial && elem.ptr != nullptr) {
+            return elem.ptr.get();
+        }
+    }
+    return nullptr;
 }
 
 bool QAO_Registry::isObjectAtOwned(PZInteger index) const {
