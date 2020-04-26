@@ -139,3 +139,21 @@ void WindowManager::eventRender() {
     }
 }
 
+// Views:
+
+void WindowManager::setViewCount(hg::PZInteger viewCount) {
+    _mainRenderTextureAdapter.setViewCount(viewCount);
+}
+
+hg::PZInteger WindowManager::getViewCount() const noexcept {
+    return _mainRenderTextureAdapter.getViewCount();
+}
+
+sf::View& WindowManager::getView(hg::PZInteger viewIndex) {
+    return _mainRenderTextureAdapter.getView(viewIndex);
+}
+
+const sf::View& WindowManager::getView(hg::PZInteger viewIndex) const {
+    return _mainRenderTextureAdapter.getView(viewIndex);
+}
+

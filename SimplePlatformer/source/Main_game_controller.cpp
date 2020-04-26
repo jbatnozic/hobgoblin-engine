@@ -18,6 +18,18 @@ void MainGameController::eventUpdate() {
     if (kbi().keyPressed(KbKey::Escape)) {
         ctx().stop();
     }
+
+    // Camera movement
+    const bool left  = kbi().keyPressed(KbKey::J);
+    const bool right = kbi().keyPressed(KbKey::L);
+    const bool up    = kbi().keyPressed(KbKey::I);
+    const bool down  = kbi().keyPressed(KbKey::K);
+
+    if (!left && !right && !up && !down) return;
+
+    const float moveSpeed = 16.f;
+    auto& view = ctx().windowMgr.getView();
+    view.move({moveSpeed * static_cast<float>(right - left), moveSpeed * static_cast<float>(down - up)});
 }
 
 void MainGameController::onNetworkingEvent(const RN_Event& event_) {
