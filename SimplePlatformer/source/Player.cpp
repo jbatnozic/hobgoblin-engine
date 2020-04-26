@@ -35,8 +35,6 @@ RN_DEFINE_HANDLER(UpdatePlayer, RN_ARGS(SyncId, syncId, Player::State&, state)) 
 
             const std::chrono::microseconds delay = client.getServer().getRemoteInfo().latency / 2LL;
             player->_ssch.putNewState(state, global.calcDelay(delay));
-            // TODO Temp. WHY DOES THIS WORK SO WELL
-            // player->_doppelganger = state;
         },
         [](NetworkingManager::ServerType& server) {
             // ERROR

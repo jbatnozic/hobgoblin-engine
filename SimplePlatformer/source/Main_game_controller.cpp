@@ -15,8 +15,8 @@ MainGameController::~MainGameController() {
 }
 
 void MainGameController::eventUpdate() {
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape) && ctx().windowMgr.getWindow().hasFocus()) {
-        ctx().quit = true;
+    if (kbi().keyPressed(KbKey::Escape)) {
+        ctx().stop();
     }
 }
 

@@ -59,7 +59,6 @@ void ControlsManager::eventPreUpdate() {
     // Local controls (not needed on independent server):
     if (ctx().playerIndex != GameContext::PLAYER_INDEX_NONE) {
         auto& scheduler = _schedulers[ctx().playerIndex];
-        //scheduler.putNewState(PlayerControls{1, 1, 1});
         scheduler.putNewState(PlayerControls{kbi().keyPressed(KbKey::A),
                                              kbi().keyPressed(KbKey::D),
                                              kbi().keyPressed(KbKey::W)});
@@ -83,16 +82,4 @@ void ControlsManager::eventPostUpdate() {
     for (auto& scheduler : _schedulers) {
         scheduler.advance();
     }
-
-    //auto& scheduler = _schedulers[0];
-
-    //int i = 0;
-    //for (auto& item : scheduler) {
-    //    i += 1;
-    //    std::cout << (int)item.up << ' ';
-    //    if (i == 10) break;
-
-    //}
-    //std::cout << "(" << int{scheduler.end() - scheduler.begin()} << ")\n"; 
-    //std::cout.flush();
 }

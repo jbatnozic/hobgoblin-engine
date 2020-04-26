@@ -51,7 +51,6 @@ public:
     int playerIndex = PLAYER_INDEX_UNKNOWN;
     hg::PZInteger syncBufferLength = 2;
     hg::PZInteger syncBufferHistoryLength = 1;
-    bool quit = false;
 
     NetworkConfig networkConfig;
 
@@ -80,19 +79,9 @@ public:
     }
 
     ~GameContext() {
-        std::vector<QAO_Base*> objectsToDestroy;
-        for (auto object : qaoRuntime) {
-            if (qaoRuntime.ownsObject(object)) {
-                objectsToDestroy.push_back(object);
-            }
-        }
-        for (auto object : objectsToDestroy) {
-            qaoRuntime.eraseObject(object);
-        }
+        qaoRuntime.eraseAllNonOwnedObjects();
     }
 
-    //void fullStart();
-    //void changeMode(Mode newMode);
     void configure(Mode mode);
 
     bool isPrivileged() const;
@@ -103,19 +92,23 @@ public:
         return static_cast<int>(currentLatency / std::chrono::microseconds{16'666});
     }
 
-    static void run(GameContext* context, int* retVal);
+    int run();
+    void stop();
 
-    void runChildContext(std::unique_ptr<GameContext> childContext) {
-        // TODO Error if already running      
-        _childContext = std::move(childContext);
-        _childContext->_parentContext = this;
-        _childContextThread = std::thread{run, _childContext.get(), &_childContextReturnValue};
-    }
+    bool hasChildContext();
+    int stopChildContext();
+    void runChildContext(std::unique_ptr<GameContext> childContext);
 
 private:
+    // Child context stuff:
     std::unique_ptr<GameContext> _childContext;
     std::thread _childContextThread;
     int _childContextReturnValue;
+
+    // Other:
+    bool _quit = false;
+
+    static void runImpl(GameContext* context, int* retVal);
 };
 
 #endif // !GLOBAL_PROGRAM_STATE_HPP

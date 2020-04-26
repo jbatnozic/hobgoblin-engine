@@ -96,7 +96,7 @@ void GameContext::configure(Mode mode) {
     _mode = mode;
 }
 
-void GameContext::run(GameContext* context, int* retVal) {
+void GameContext::runImpl(GameContext* context, int* retVal) {
     assert(context != nullptr);
     assert(retVal != nullptr);
 
@@ -106,7 +106,7 @@ void GameContext::run(GameContext* context, int* retVal) {
 
     int itercnt = 0;
     int cnt = 0;
-    while (!context->quit) {
+    while (!context->_quit) {
         auto now = steady_clock::now();
         accumulatorTime += duration_cast<Duration>(now - currentTime);
         currentTime = now;
@@ -165,4 +165,43 @@ bool GameContext::isHeadless() const {
 
 bool GameContext::hasNetworking() const {
     return ((static_cast<int>(_mode) & F_NETWORKING) != 0);
+}
+
+int GameContext::run() {
+    int rv;
+    runImpl(this, &rv);
+    return rv;
+}
+
+void GameContext::stop() {
+    if (hasChildContext()) {
+        auto childRv = stopChildContext();
+        std::cout << "Child context stopped with exit code " << childRv << '\n';
+    }
+
+    _quit = true;
+}
+
+// Child context stuff:
+
+bool GameContext::hasChildContext() {
+    return (_childContext != nullptr);
+}
+
+int GameContext::stopChildContext() {
+    assert(hasChildContext());
+    
+    _childContext->stop();
+    _childContextThread.join();
+    _childContext.reset();
+
+    return _childContextReturnValue;
+}
+
+void GameContext::runChildContext(std::unique_ptr<GameContext> childContext) {
+    assert(!hasChildContext());
+
+    _childContext = std::move(childContext);
+    _childContext->_parentContext = this;
+    _childContextThread = std::thread{runImpl, _childContext.get(), &_childContextReturnValue};
 }

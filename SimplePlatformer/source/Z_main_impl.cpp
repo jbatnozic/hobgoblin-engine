@@ -12,8 +12,7 @@ int MainImpl::run(int argc, char* argv[]) {
 	QAO_PCreate<MainMenu>(_gameContext->qaoRuntime);
 
 	// Run:
-	int rv;
-	GameContext::run(_gameContext.get(), &rv);
+	const int rv = _gameContext->run();
 
 	// Teardown:
 	_gameContext.reset();
