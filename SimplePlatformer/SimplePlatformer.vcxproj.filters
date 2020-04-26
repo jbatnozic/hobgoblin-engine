@@ -80,9 +80,6 @@
     <ClInclude Include="source\Lighting.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="source\State_scheduler.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="source\Terrain.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>

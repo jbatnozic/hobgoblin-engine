@@ -329,6 +329,9 @@
     <ClInclude Include="include\Hobgoblin\Utility\Timeutil.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\Hobgoblin\Utility\State_scheduler.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="include\Hobgoblin\Private\HobgoblinCodingStyle.txt" />

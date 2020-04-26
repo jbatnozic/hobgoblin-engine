@@ -196,7 +196,6 @@
     <ClInclude Include="source\Networking_manager.hpp" />
     <ClInclude Include="source\Game_object_framework.hpp" />
     <ClInclude Include="source\Player.hpp" />
-    <ClInclude Include="source\State_scheduler.hpp" />
     <ClInclude Include="source\Terrain.hpp" />
     <ClInclude Include="source\Window_manager.hpp" />
   </ItemGroup>

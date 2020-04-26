@@ -514,6 +514,7 @@
     <ClInclude Include="include\Hobgoblin\Utility\Packet.hpp" />
     <ClInclude Include="include\Hobgoblin\Graphics\Texture_packing.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Sleep.hpp" />
+    <ClInclude Include="include\Hobgoblin\Utility\State_scheduler.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Timeutil.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Visitor.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Stopwatch.hpp" />
