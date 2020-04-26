@@ -289,9 +289,6 @@ util::PacketBase& operator>>(util::PacketBase& packet, QAO_Runtime& self) {
     packet >> self._step_counter >> currentEvent;
     self._current_event = static_cast<decltype(self._current_event)>(currentEvent);
 
-    // Upon being deserialized, the runtime must start the current event from the beginning
-    self._step_orderer_iterator = self._orderer.begin();
-
     return packet;
 }
 
