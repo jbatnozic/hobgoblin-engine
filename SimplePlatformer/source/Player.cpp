@@ -90,7 +90,7 @@ Player::Player(QAO_Runtime* runtime, SynchronizedObjectManager& syncObjMapper, S
 
 Player::~Player() {
     if (isMasterObject()) {
-        syncDestroy(); // TODO Game crashes if syncDestroy is not manually called in destructor
+        syncDestroy();
     }
 }
 

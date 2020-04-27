@@ -1,6 +1,7 @@
 #ifndef UHOBGOBLIN_UTIL_PACKET_HPP
 #define UHOBGOBLIN_UTIL_PACKET_HPP
 
+#include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Utility/Exceptions.hpp>
 #include <SFML/Network/Packet.hpp>
 
@@ -16,8 +17,15 @@ public:
     template <class T>
     T extractOrThrow();
 
+    /// Returns a pointer to where the data to be read is stored and advances the internal seek counter by byteCount.
+    /// Users must persist the packet until they're done reading the data.
+    void* extractBytes(std::size_t byteCount);
+
     template <class T>
     void insert(T&& value);
+
+    friend PacketBase& operator<<(PacketBase& dstPacket, const Packet& srcPacket);
+    friend PacketBase& operator>>(PacketBase& dstPacket, Packet& srcPacket);
 };
 
 template <class T>

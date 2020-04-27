@@ -7,6 +7,8 @@ using namespace hg::qao;
 #include <Hobgoblin/RigelNet.hpp>
 using namespace hg::rn;
 
+#include <Hobgoblin/Utility/NoCopyNoMove.hpp>
+
 #include <typeinfo>
 #include <unordered_map>
 #include <unordered_set>
@@ -51,25 +53,25 @@ constexpr SyncId SYNC_ID_CREATE_MASTER = 0;
 
 class GOF_SynchronizedObject;
 
-class SynchronizedObjectManager {
-    // TODO Prevent copy/move
+class SynchronizedObjectManager : public hg::util::NonCopyable, public hg::util::NonMoveable {
     // TODO Cover edge case when an object is created and then immediately destroyed (in the same step)
 public:
     SynchronizedObjectManager(RN_Node& node);
 
     void setNode(RN_Node& node);
 
-    SyncId createMasterObject(GOF_SynchronizedObject* object);
-    void createDummyObject(GOF_SynchronizedObject* object, SyncId masterSyncId);
-    void destroyObject(GOF_SynchronizedObject* object);
+    SyncId registerMasterObject(GOF_SynchronizedObject* object);
+    void registerDummyObject(GOF_SynchronizedObject* object, SyncId masterSyncId);
+    void unregisterObject(GOF_SynchronizedObject* object);
 
     GOF_SynchronizedObject* getMapping(SyncId syncId) const;
-    void syncAll();
-    void syncAllToNewClient(hg::PZInteger clientIndex);
 
     void syncObjectCreate(const GOF_SynchronizedObject* object);
     void syncObjectUpdate(const GOF_SynchronizedObject* object);
     void syncObjectDestroy(const GOF_SynchronizedObject* object);
+
+    void syncStateUpdates();
+    void syncCompleteState(hg::PZInteger clientIndex);
 
 private:
     std::unordered_map<SyncId, GOF_SynchronizedObject*> _mappings;
@@ -96,13 +98,13 @@ public:
                            SynchronizedObjectManager& syncObjMgr, SyncId syncId = SYNC_ID_CREATE_MASTER)
         : GOF_StateObject{runtimeRef, typeInfo, executionPriority, std::move(name)}
         , _syncObjMgr{syncObjMgr}
-        , _syncId{(syncId == SYNC_ID_CREATE_MASTER) ? _syncObjMgr.createMasterObject(this) : syncId}
+        , _syncId{(syncId == SYNC_ID_CREATE_MASTER) ? _syncObjMgr.registerMasterObject(this) : syncId}
     {
-        _syncObjMgr.createDummyObject(this, _syncId);
+        _syncObjMgr.registerDummyObject(this, _syncId);
     }
 
     virtual ~GOF_SynchronizedObject() {
-        _syncObjMgr.destroyObject(this);
+        _syncObjMgr.unregisterObject(this);
     }
 
     SyncId getSyncId() const noexcept {

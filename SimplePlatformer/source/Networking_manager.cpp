@@ -72,7 +72,7 @@ void NetworkingManager::eventPreUpdate()  {
 void NetworkingManager::eventPostUpdate() {
     // Update all Synchronized objects
     if (RN_IsServer(getNode().getType())) {
-        ctx().syncObjMgr.syncAll(); // TODO Maybe this shouldn't be a responsibility of this object?
+        ctx().syncObjMgr.syncStateUpdates(); // TODO Maybe this shouldn't be a responsibility of this object?
     }
 
     getNode().update(RN_UpdateMode::Send);
@@ -103,7 +103,7 @@ void NetworkingManager::handleEvents() {
             [this](const RN_Event::Connected& ev) {
                 if (RN_IsServer(getNode().getType())) {
                     std::cout << "New client connected\n";
-                    ctx().syncObjMgr.syncAllToNewClient(*ev.clientIndex);
+                    ctx().syncObjMgr.syncCompleteState(*ev.clientIndex);
                 }
                 else {
                     std::cout << "Connected to server\n";

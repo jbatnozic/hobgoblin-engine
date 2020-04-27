@@ -1,49 +1,108 @@
 
 #include <Hobgoblin/RigelNet/Packet_wrapper.hpp>
 
+#include <cstring>
+#include <cstdint>
 #include <vector>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 namespace {
 
-// TODO (Better approach): Make a class with the same layout and just reinterpret_cast to it
+struct SfmlPacketClone {
+    std::vector<char> data;    ///< Data stored in the packet
+    std::size_t       readPos; ///< Current reading position in the packet
+    std::size_t       sendPos; ///< Current send position in the packet (for handling partial sends)
+    bool              isValid;
 
-template <class High, class Low>
-std::ptrdiff_t ByteOffset(High* hi, Low* lo) {
-    return  reinterpret_cast<const char*>(hi) - reinterpret_cast<const char*>(lo);
-}
+    // Must also copy virtual methods so the vtable is generated
+    virtual const void* onSend(std::size_t& size) { 
+        size = 0;
+        return nullptr; 
+    }
 
-class SFMLVectorDataAccess {
-public:
-
-    static std::vector<char>& getData(sf::Packet* pack);
-
-private:
-    SFMLVectorDataAccess() {}
-    std::vector<char> _data;
-    std::size_t       _readPos;
-    std::size_t       _sendPos;
-    bool              _isValid;
+    virtual void onReceive(const void* data, std::size_t size) {
+    }
 };
 
-std::vector<char>& SFMLVectorDataAccess::getData(sf::Packet* pack) {
-    const SFMLVectorDataAccess* dummy = 0;
-    const auto offset = ByteOffset(std::addressof(dummy->_data), dummy);
+std::vector<char>& SfmlPacketAccess_GetDataVector(sf::Packet& packet) {
+    return reinterpret_cast<SfmlPacketClone&>(packet).data;
+}
 
-    auto* rv = reinterpret_cast<std::vector<char>*>(reinterpret_cast<char*>(pack) + offset);
+const std::vector<char>& SfmlPacketAccess_GetDataVector(const sf::Packet& packet) {
+    return reinterpret_cast<const SfmlPacketClone&>(packet).data;
+}
 
-    return *rv;
+std::size_t& SfmlPacketAccess_GetReadPosition(sf::Packet& packet) {
+    return reinterpret_cast<SfmlPacketClone&>(packet).readPos;
+}
+
+std::size_t SfmlPacketAccess_GetReadPosition(const sf::Packet& packet) {
+    return reinterpret_cast<const SfmlPacketClone&>(packet).readPos;
+}
+
+std::size_t& SfmlPacketAccess_GetSendPosition(sf::Packet& packet) {
+    return reinterpret_cast<SfmlPacketClone&>(packet).sendPos;
+}
+
+std::size_t SfmlPacketAccess_GetSendPosition(const sf::Packet& packet) {
+    return reinterpret_cast<const SfmlPacketClone&>(packet).sendPos;
+}
+
+bool& SfmlPacketAccess_GetIsValid(sf::Packet& packet) {
+    return reinterpret_cast<SfmlPacketClone&>(packet).isValid;
+}
+
+bool SfmlPacketAccess_GetIsValid(const sf::Packet& packet) {
+    return reinterpret_cast<const SfmlPacketClone&>(packet).isValid;
+}
+
+void* SfmlPacketAccess_ExtractBytes(sf::Packet& packet, std::size_t byteCount) {
+    auto& data = SfmlPacketAccess_GetDataVector(packet);
+    auto& readPos = SfmlPacketAccess_GetReadPosition(packet);
+
+    void* const rv = &(data[readPos]);
+
+    if (readPos + byteCount > data.size()) {
+        SfmlPacketAccess_GetIsValid(packet) = false;
+    }
+    else {
+        readPos += byteCount;
+    }
+
+    return rv;
 }
 
 } // namespace
 
 HOBGOBLIN_NAMESPACE_START
-namespace rn {
+namespace util {
 
+void* Packet::extractBytes(std::size_t byteCount) {
+    return SfmlPacketAccess_ExtractBytes(SELF, byteCount);
+}
 
+PacketBase& operator<<(PacketBase& dstPacket, const Packet& srcPacket) {
+    dstPacket << std::uint32_t{srcPacket.getDataSize()};
+    dstPacket.append(srcPacket.getData(), srcPacket.getDataSize());
 
-} // namespace rn
+    return dstPacket;
+}
+
+PacketBase& operator>>(PacketBase& srcPacket, Packet& dstPacket) {
+    std::uint32_t dataSizeInBytes;
+    srcPacket >> dataSizeInBytes;
+
+    void* const data = SfmlPacketAccess_ExtractBytes(srcPacket, dataSizeInBytes);
+
+    if (srcPacket) {
+        dstPacket.append(data, dataSizeInBytes);
+    }
+
+    return srcPacket;
+}
+
+} // namespace util
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>

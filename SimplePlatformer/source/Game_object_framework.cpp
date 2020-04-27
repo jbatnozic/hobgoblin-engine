@@ -49,7 +49,7 @@ void SynchronizedObjectManager::setNode(RN_Node& node) {
     _node = &node;
 }
 
-SyncId SynchronizedObjectManager::createMasterObject(GOF_SynchronizedObject* object) {
+SyncId SynchronizedObjectManager::registerMasterObject(GOF_SynchronizedObject* object) {
     assert(object);
 
     // Bit 0 represents "masterness"
@@ -62,22 +62,23 @@ SyncId SynchronizedObjectManager::createMasterObject(GOF_SynchronizedObject* obj
     return id;
 }
 
-void SynchronizedObjectManager::createDummyObject(GOF_SynchronizedObject* object, SyncId masterSyncId) {
+void SynchronizedObjectManager::registerDummyObject(GOF_SynchronizedObject* object, SyncId masterSyncId) {
     assert(object);
     _mappings[masterSyncId] = object;
 }
 
-void SynchronizedObjectManager::destroyObject(GOF_SynchronizedObject* object) {
+void SynchronizedObjectManager::unregisterObject(GOF_SynchronizedObject* object) {
     assert(object);
     if (object->isMasterObject()) {
         // TODO If object is in _newlyCreatedObjects, erase it from there,
         // sync create, then continue
+
         auto iter = _alreadyDestroyedObjects.find(object);
-        if (iter != _alreadyDestroyedObjects.end()) {
-            _alreadyDestroyedObjects.erase(iter);
+        if (iter == _alreadyDestroyedObjects.end()) {
+            throw hg::util::TracedLogicError("Unregistering object which did not sync its destruction");
         }
         else {
-            syncObjectDestroy(object);
+            _alreadyDestroyedObjects.erase(iter);
         }
     }
     _mappings.erase(object->getSyncId());
@@ -87,7 +88,7 @@ GOF_SynchronizedObject* SynchronizedObjectManager::getMapping(SyncId syncId) con
     return _mappings.at(syncId);
 }
 
-void SynchronizedObjectManager::syncAll() {
+void SynchronizedObjectManager::syncStateUpdates() {
     GetIndicesForComposingToEveryone(*_node, _recepientVec);
 
     // Sync creations:
@@ -112,9 +113,9 @@ void SynchronizedObjectManager::syncAll() {
     // Sync destroys - not needed (dealt with in destructors)
 }
 
-void SynchronizedObjectManager::syncAllToNewClient(hg::PZInteger clientIndex) {
-    _recepientVec.clear();
-    _recepientVec.push_back(clientIndex);
+void SynchronizedObjectManager::syncCompleteState(hg::PZInteger clientIndex) {
+    _recepientVec.resize(1);
+    _recepientVec[0] = clientIndex;
 
     for (auto& mapping : _mappings) {
         auto* object = mapping.second;

@@ -80,7 +80,7 @@ public:
     {
         netMgr.getNode().setUserData(this);
         // TODO Temp.
-        terrMgr.generate(100, 100, 32.f);
+        terrMgr.generate(128, 128, 32.f);
     }
 
     ~GameContext() {
