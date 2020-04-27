@@ -3,11 +3,11 @@
 
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Utility/Autopack.hpp>
+#include <Hobgoblin/Utility/State_scheduler.hpp>
 
 #include <deque>
 
 #include "Game_object_framework.hpp"
-#include "State_scheduler.hpp"
 
 struct PlayerControls {
     bool left = false;
@@ -46,7 +46,7 @@ struct PlayerControls {
     }
 };
 
-using ControlsScheduler = StateScheduler<PlayerControls>;
+using ControlsScheduler = hg::util::StateScheduler<PlayerControls>;
 
 class ControlsManager : public GOF_Base {
 public:

@@ -37,6 +37,12 @@ public:
 
     KbInputTracker& getKeyboardInput();
 
+    // Views:
+    void setViewCount(hg::PZInteger viewCount);
+    hg::PZInteger getViewCount() const noexcept;
+    sf::View& getView(hg::PZInteger viewIndex = 0);
+    const sf::View& getView(hg::PZInteger viewIndex = 0) const;
+
 private:
     sf::RenderWindow _window;
     sf::RenderTexture _mainRenderTexture;

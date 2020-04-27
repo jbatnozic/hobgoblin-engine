@@ -52,6 +52,7 @@ constexpr SyncId SYNC_ID_CREATE_MASTER = 0;
 class GOF_SynchronizedObject;
 
 class SynchronizedObjectManager {
+    // TODO Prevent copy/move
     // TODO Cover edge case when an object is created and then immediately destroyed (in the same step)
 public:
     SynchronizedObjectManager(RN_Node& node);

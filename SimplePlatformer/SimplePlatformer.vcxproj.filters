@@ -54,6 +54,9 @@
     <ClCompile Include="source\Z_main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="source\Terrain_manager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Networking_manager.hpp">
@@ -80,7 +83,11 @@
     <ClInclude Include="source\Lighting.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+<<<<<<< HEAD
     <ClInclude Include="source\Terrain.hpp">
+=======
+    <ClInclude Include="source\State_scheduler.hpp">
+>>>>>>> 4e15f747ea3b2713feccac75490cd75b1a177eaa
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="source\Game_context.hpp">
@@ -93,6 +100,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="source\Keyboard_input.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Terrain_manager.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

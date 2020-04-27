@@ -16,6 +16,7 @@
 #include "Player.hpp"
 #include "Window_manager.hpp"
 #include "Lighting.hpp"
+#include "Terrain_manager.hpp"
 
 class GameContext {
 public:
@@ -61,6 +62,7 @@ public:
     ControlsManager controlsMgr;
     //LightingManager lightMgr;
     SynchronizedObjectManager syncObjMgr; // TODO This object isn't really a "manager"
+    TerrainManager terrMgr;
 
     GameContext()
         // Essential:
@@ -74,8 +76,11 @@ public:
         , controlsMgr{qaoRuntime.nonOwning(), 4, syncBufferLength, syncBufferHistoryLength}
         //, lightMgr{qaoRuntime.nonOwning()}
         , syncObjMgr{netMgr.getNode()}
+        , terrMgr{qaoRuntime.nonOwning(), syncObjMgr, SYNC_ID_CREATE_MASTER}
     {
         netMgr.getNode().setUserData(this);
+        // TODO Temp.
+        terrMgr.generate(100, 100, 32.f);
     }
 
     ~GameContext() {

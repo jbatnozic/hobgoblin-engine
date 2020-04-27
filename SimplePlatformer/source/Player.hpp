@@ -5,9 +5,9 @@
 #include <Hobgoblin/Utility/Any_ptr.hpp>
 #include <Hobgoblin/Utility/Autopack.hpp>
 #include <Hobgoblin/Utility/Packet.hpp>
+#include <Hobgoblin/Utility/State_scheduler.hpp>
 
 #include "Game_object_framework.hpp"
-#include "State_scheduler.hpp"
 
 class Player : public GOF_SynchronizedObject {
 public:
@@ -52,7 +52,7 @@ public: // State object must be public
     };
 
 private:
-    StateScheduler<State> _ssch;
+    hg::util::StateScheduler<State> _ssch;
     State _doppelganger;
 
     bool oldUp = false;
