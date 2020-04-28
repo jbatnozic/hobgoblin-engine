@@ -39,7 +39,7 @@ void MainMenu::eventUpdate() {
 	int mode = InputPrompt<int>("mode - 1 = host; 2 = client, 3 = solo, 4 = GM", 2);
 	if (mode == HOST) {
 		// Start a local server in the background:
-		auto serverCtx = std::make_unique<GameContext>();
+		auto serverCtx = std::make_unique<GameContext>(ctx().getResourceConfig());
 		serverCtx->networkConfig.clientCount = InputPrompt<hg::PZInteger>("client count", 1);
 		serverCtx->networkConfig.localPort = InputPrompt<std::uint16_t>("local port - 0 for any", 8888);
 		serverCtx->configure(GameContext::Mode::Server);

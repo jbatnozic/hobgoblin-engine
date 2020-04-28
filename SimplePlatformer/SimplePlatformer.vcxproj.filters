@@ -30,8 +30,6 @@
     <ClInclude Include="source\GameObjects\Gameplay\Player.hpp" />
     <ClInclude Include="source\GameObjects\UI\Main_menu.hpp" />
     <ClInclude Include="source\Main\Main_impl.hpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="TODO.txt" />
+    <ClInclude Include="source\Graphics\Sprites.hpp" />
   </ItemGroup>
 </Project>

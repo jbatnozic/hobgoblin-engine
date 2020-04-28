@@ -4,10 +4,15 @@
 #include <Hobgoblin/Graphics.hpp>
 #include <Hobgoblin/Utility/Grids.hpp>
 #include <Hobgoblin/Utility/Packet.hpp>
+#include <Hobgoblin/Utility/Rectangle.hpp>
 
 #include <Hobgoblin/RigelNet_Macros.hpp> // TODO Temp.
 
 #include "GameObjects/Framework/Game_object_framework.hpp"
+
+// Terrain cell: 64 bit
+// [24: rgb][8: UNUSED][12: spriteId][4: UNUSED][8: subspriteIdx][8: collisionMask]
+// 12 unused for TerrainTypeIndex
 
 struct TerrainCell {
     sf::Color color;
@@ -36,6 +41,9 @@ public:
     ~TerrainManager();
 
     void generate(hg::PZInteger width, hg::PZInteger height, float cellResolution);
+
+    bool pointIntersectsTerrain(float x, float y) const;
+    bool rectIntersectsTerrain(const hg::util::Rectangle<float>& rect) const;
 
     virtual void syncCreateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const;
     virtual void syncUpdateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const;

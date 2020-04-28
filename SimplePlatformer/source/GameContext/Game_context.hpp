@@ -18,6 +18,8 @@
 
 #include "GameObjects/Gameplay/Player.hpp"
 
+#include "Graphics/Sprites.hpp"
+
 class GameContext {
 public:
     static constexpr auto NETWORKING_PASSPHRASE = "beetlejuice";
@@ -44,6 +46,10 @@ public:
         std::uint16_t localPort;
     };
 
+    struct ResourceConfig {
+        const hg::gr::SpriteLoader* spriteLoader;
+    };
+
 private:
     GameContext* _parentContext;
     Mode _mode;
@@ -63,7 +69,7 @@ public:
     SynchronizedObjectManager syncObjMgr; // TODO This object isn't really a "manager"
     TerrainManager terrMgr;
 
-    GameContext()
+    GameContext(const ResourceConfig& resourceConfig)
         // Essential:
         : _parentContext{nullptr}
         , _mode{Mode::Initial}
@@ -75,6 +81,8 @@ public:
         , controlsMgr{qaoRuntime.nonOwning(), 4, syncBufferLength, syncBufferHistoryLength}
         , syncObjMgr{netMgr.getNode()}
         , terrMgr{qaoRuntime.nonOwning(), syncObjMgr, SYNC_ID_CREATE_MASTER}
+        // Other:
+        , _resourceConfig{resourceConfig}
     {
         netMgr.getNode().setUserData(this);
         // TODO Temp.
@@ -91,7 +99,11 @@ public:
     bool isHeadless() const;
     bool hasNetworking() const;
 
-    int calcDelay(std::chrono::microseconds currentLatency) const {
+    const ResourceConfig& getResourceConfig() const {
+        return _resourceConfig;
+    }
+
+    int calcDelay(std::chrono::microseconds currentLatency) const { // TODO Mode to Utils class
         return static_cast<int>(currentLatency / std::chrono::microseconds{16'666});
     }
 
@@ -109,6 +121,7 @@ private:
     int _childContextReturnValue;
 
     // Other:
+    ResourceConfig _resourceConfig;
     bool _quit = false;
 
     static void runImpl(GameContext* context, int* retVal);

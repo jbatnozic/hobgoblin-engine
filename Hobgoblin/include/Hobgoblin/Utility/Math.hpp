@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <type_traits>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
@@ -37,6 +38,11 @@ T Sqr(T value) {
 template <class T>
 float EuclideanDist(const Vector2<T>& p1, const Vector2<T>& p2) {
     return std::sqrt(Sqr(p2.x - p1.x) + Sqr(p2.y - p1.y));
+}
+
+template <class T>
+constexpr typename std::enable_if_t<std::is_integral_v<T>, T> IntegralCeilDiv(T dividend, T divisor) {
+    return dividend / divisor - ((-(dividend % divisor)) >> (sizeof(T) * CHAR_BIT - 1));
 }
 
 } // namespace util

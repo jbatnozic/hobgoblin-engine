@@ -3,12 +3,19 @@
 
 #include "GameObjects/Framework/Game_object_framework.hpp"
 #include "GameObjects/UI/Main_menu.hpp"
+#include "Graphics/Sprites.hpp"
 #include "Main/Main_impl.hpp"
+
+// TODO catch exceptions in main
 
 int MainImpl::run(int argc, char* argv[]) {
 	// Setup:
 	hg::RN_IndexHandlers();
-	_gameContext = std::make_unique<GameContext>();
+
+	auto spriteLoader = LoadAllSprites();
+	GameContext::ResourceConfig resConfig;
+	resConfig.spriteLoader = &spriteLoader;
+	_gameContext = std::make_unique<GameContext>(resConfig);
 	QAO_PCreate<MainMenu>(_gameContext->qaoRuntime);
 
 	// Run:

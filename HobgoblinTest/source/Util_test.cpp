@@ -5,6 +5,7 @@
 #include <Hobgoblin/Utility/Any_ptr.hpp>
 #include <Hobgoblin/Utility/Autopack.hpp>
 #include <Hobgoblin/Utility/Packet.hpp>
+#include <Hobgoblin/Utility/Math.hpp>
 
 using namespace hg::util;
 
@@ -138,4 +139,19 @@ TEST(PacketTest, AppendPacketToPacket) {
     ASSERT_TRUE(testPacket.endOfPacket());
     ASSERT_EQ(val808, 808);
     ASSERT_EQ(val123, 123);
+}
+
+TEST(MathTest, IntegralCeilDivTest) {
+    ASSERT_EQ(IntegralCeilDiv(0, 1), 0);
+
+    ASSERT_EQ(IntegralCeilDiv(4, 5), 1);
+    ASSERT_EQ(IntegralCeilDiv(5, 5), 1);
+    ASSERT_EQ(IntegralCeilDiv(12, 5), 3);
+    ASSERT_EQ(IntegralCeilDiv(15, 5), 3);
+
+    ASSERT_EQ(IntegralCeilDiv(-6, 6), -1);
+    ASSERT_EQ(IntegralCeilDiv(6, -6), -1);
+    ASSERT_EQ(IntegralCeilDiv(-6, -6), 1);
+
+    ASSERT_EQ(IntegralCeilDiv(-6, 4), -1);
 }
