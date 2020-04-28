@@ -10,7 +10,7 @@
 #include <vector>
 
 enum class KbKey {
-    Unknown = sf::Keyboard::Unknown,     ///< Unhandled key
+    Unknown   = sf::Keyboard::Unknown,   ///< Unhandled key
     A         = sf::Keyboard::A,         ///< The A key
     B         = sf::Keyboard::B,         ///< The B key
     C         = sf::Keyboard::C,         ///< The C key

@@ -3,7 +3,7 @@
 
 #include <cassert>
 
-#include "Keyboard_input.hpp"
+#include "Utility/Keyboard_input.hpp"
 
 KbInputTracker::KbInputTracker() {
     _controlBlocks.resize(static_cast<std::size_t>(KbKey::KeyCount));

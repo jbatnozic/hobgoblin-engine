@@ -7,7 +7,7 @@
 
 #include <deque>
 
-#include "Game_object_framework.hpp"
+#include "GameObjects/Framework/Game_object_framework.hpp"
 
 struct PlayerControls {
     bool left = false;

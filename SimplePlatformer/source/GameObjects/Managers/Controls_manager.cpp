@@ -1,8 +1,8 @@
 
 #include <SFML/System.hpp>
 
-#include "Controls_manager.hpp"
-#include "Game_context.hpp"
+#include "GameObjects/Managers/Controls_manager.hpp"
+#include "GameContext/Game_context.hpp"
 
 #include <iostream>
 

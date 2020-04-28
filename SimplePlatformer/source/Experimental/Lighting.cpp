@@ -6,8 +6,8 @@
 #include <cstdlib>
 #include <iostream>
 
-#include "Game_context.hpp"
-#include "Lighting.hpp"
+#include "GameContext/Game_context.hpp"
+#include "Experimental/Lighting.hpp"
 
 namespace {
 using hg::util::Clamp;

@@ -8,15 +8,15 @@
 #include <memory>
 #include <thread>
 
-#include "Controls_manager.hpp"
-#include "Game_object_framework.hpp"
-#include "Isometric_tester.hpp"
-#include "Main_game_controller.hpp"
-#include "Networking_manager.hpp"
-#include "Player.hpp"
-#include "Window_manager.hpp"
-#include "Lighting.hpp"
-#include "Terrain_manager.hpp"
+#include "GameObjects/Framework/Game_object_framework.hpp"
+
+#include "GameObjects/Managers/Controls_manager.hpp"
+#include "GameObjects/Managers/Main_game_controller.hpp"
+#include "GameObjects/Managers/Networking_manager.hpp"
+#include "GameObjects/Managers/Terrain_manager.hpp"
+#include "GameObjects/Managers/Window_manager.hpp"
+
+#include "GameObjects/Gameplay/Player.hpp"
 
 class GameContext {
 public:
@@ -60,7 +60,6 @@ public:
     NetworkingManager netMgr;
     MainGameController mainGameCtrl;
     ControlsManager controlsMgr;
-    //LightingManager lightMgr;
     SynchronizedObjectManager syncObjMgr; // TODO This object isn't really a "manager"
     TerrainManager terrMgr;
 
@@ -74,7 +73,6 @@ public:
         , netMgr{qaoRuntime.nonOwning()}
         , mainGameCtrl{qaoRuntime.nonOwning()}
         , controlsMgr{qaoRuntime.nonOwning(), 4, syncBufferLength, syncBufferHistoryLength}
-        //, lightMgr{qaoRuntime.nonOwning()}
         , syncObjMgr{netMgr.getNode()}
         , terrMgr{qaoRuntime.nonOwning(), syncObjMgr, SYNC_ID_CREATE_MASTER}
     {

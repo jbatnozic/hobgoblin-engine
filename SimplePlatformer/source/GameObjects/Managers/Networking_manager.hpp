@@ -7,7 +7,7 @@
 #include <list>
 #include <variant>
 
-#include "Game_object_framework.hpp"
+#include "gameObjects/Framework/Game_object_framework.hpp"
 
 using namespace hg::rn;
 

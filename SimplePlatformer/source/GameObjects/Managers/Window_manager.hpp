@@ -7,8 +7,8 @@
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 
-#include "Game_object_framework.hpp"
-#include "Keyboard_input.hpp"
+#include "GameObjects/Framework/Game_object_framework.hpp"
+#include "Utility/Keyboard_input.hpp"
 
 enum class DrawPosition {
     Fill, 

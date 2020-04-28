@@ -6,7 +6,7 @@
 #include <functional>
 #include <vector>
 
-#include "Game_object_framework.hpp"
+#include "GameObjects/Framework/Game_object_framework.hpp"
 
 class IsometricTester : public GOF_Base {
 public:

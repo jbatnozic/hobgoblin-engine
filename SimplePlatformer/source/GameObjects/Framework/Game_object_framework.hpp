@@ -13,7 +13,7 @@ using namespace hg::rn;
 #include <unordered_map>
 #include <unordered_set>
 
-#include "Keyboard_input.hpp"
+#include "Utility/Keyboard_input.hpp"
 
 #define TYPEID_SELF typeid(decltype(*this))
 

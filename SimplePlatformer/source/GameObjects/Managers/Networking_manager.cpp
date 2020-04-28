@@ -1,8 +1,8 @@
 
 #include <iostream>
 
-#include "Game_context.hpp"
-#include "Networking_manager.hpp"
+#include "GameContext/Game_context.hpp"
+#include "GameObjects/Managers/Networking_manager.hpp"
 
 namespace {
 

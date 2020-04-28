@@ -99,7 +99,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>HOBGOBLIN_SHORT_NAMESPACE; SFML_STATIC; WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\SFML-2.5.1\include;$(SolutionDir)Hobgoblin\include\;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\SFML-2.5.1\include;$(SolutionDir)Hobgoblin\include\;$(ProjectDir)source</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -138,7 +138,7 @@
       <PreprocessorDefinitions>HOBGOBLIN_SHORT_NAMESPACE; SFML_STATIC;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\SFML-2.5.1\include;$(SolutionDir)Hobgoblin\include\;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\SFML-2.5.1\include;$(SolutionDir)Hobgoblin\include\;$(ProjectDir)source;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -170,35 +170,35 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="source\Controls_manager.cpp" />
-    <ClCompile Include="source\Game_context.cpp" />
-    <ClCompile Include="source\Isometric_tester.cpp" />
-    <ClCompile Include="source\Keyboard_input.cpp" />
-    <ClCompile Include="source\Lighting.cpp" />
-    <ClCompile Include="source\Main_game_controller.cpp" />
-    <ClCompile Include="source\Main_menu.cpp" />
-    <ClCompile Include="source\Networking_manager.cpp" />
-    <ClCompile Include="source\Game_object_framework.cpp" />
-    <ClCompile Include="source\Player.cpp" />
-    <ClCompile Include="source\Terrain_manager.cpp" />
-    <ClCompile Include="source\Window_manager.cpp" />
-    <ClCompile Include="source\Z_main.cpp" />
-    <ClCompile Include="source\Z_main_impl.cpp" />
+    <ClCompile Include="source\GameObjects\Managers\Controls_manager.cpp" />
+    <ClCompile Include="source\GameContext\Game_context.cpp" />
+    <ClCompile Include="source\Experimental\Isometric_tester.cpp" />
+    <ClCompile Include="source\Utility\Keyboard_input.cpp" />
+    <ClCompile Include="source\Experimental\Lighting.cpp" />
+    <ClCompile Include="source\GameObjects\Managers\Main_game_controller.cpp" />
+    <ClCompile Include="source\GameObjects\UI\Main_menu.cpp" />
+    <ClCompile Include="source\GameObjects\Managers\Networking_manager.cpp" />
+    <ClCompile Include="source\GameObjects\Framework\Game_object_framework.cpp" />
+    <ClCompile Include="source\GameObjects\Gameplay\Player.cpp" />
+    <ClCompile Include="source\GameObjects\Managers\Terrain_manager.cpp" />
+    <ClCompile Include="source\GameObjects\Managers\Window_manager.cpp" />
+    <ClCompile Include="source\Main\Main.cpp" />
+    <ClCompile Include="source\Main\Main_impl.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="source\Controls_manager.hpp" />
-    <ClInclude Include="source\Game_context.hpp" />
-    <ClInclude Include="source\Isometric_tester.hpp" />
-    <ClInclude Include="source\Keyboard_input.hpp" />
-    <ClInclude Include="source\Lighting.hpp" />
-    <ClInclude Include="source\Main_menu.hpp" />
-    <ClInclude Include="source\Z_main_impl.hpp" />
-    <ClInclude Include="source\Main_game_controller.hpp" />
-    <ClInclude Include="source\Networking_manager.hpp" />
-    <ClInclude Include="source\Game_object_framework.hpp" />
-    <ClInclude Include="source\Player.hpp" />
-    <ClInclude Include="source\Terrain_manager.hpp" />
-    <ClInclude Include="source\Window_manager.hpp" />
+    <ClInclude Include="source\GameObjects\Managers\Controls_manager.hpp" />
+    <ClInclude Include="source\GameContext\Game_context.hpp" />
+    <ClInclude Include="source\Experimental\Isometric_tester.hpp" />
+    <ClInclude Include="source\Utility\Keyboard_input.hpp" />
+    <ClInclude Include="source\Experimental\Lighting.hpp" />
+    <ClInclude Include="source\GameObjects\UI\Main_menu.hpp" />
+    <ClInclude Include="source\Main\Main_impl.hpp" />
+    <ClInclude Include="source\GameObjects\Managers\Main_game_controller.hpp" />
+    <ClInclude Include="source\GameObjects\Managers\Networking_manager.hpp" />
+    <ClInclude Include="source\GameObjects\Framework\Game_object_framework.hpp" />
+    <ClInclude Include="source\GameObjects\Gameplay\Player.hpp" />
+    <ClInclude Include="source\GameObjects\Managers\Terrain_manager.hpp" />
+    <ClInclude Include="source\GameObjects\Managers\Window_manager.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="TODO.txt" />

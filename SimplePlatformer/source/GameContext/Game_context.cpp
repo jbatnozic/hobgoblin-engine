@@ -8,9 +8,9 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "Game_context.hpp"
+#include "GameContext/Game_context.hpp"
 
-#include "Player.hpp" // TODO Temp.
+#include "GameObjects/Gameplay/Player.hpp" // TODO Temp.
 
 namespace {
 

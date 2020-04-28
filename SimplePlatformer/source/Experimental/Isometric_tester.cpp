@@ -2,8 +2,8 @@
 #include <algorithm>
 #include <iostream>
 
-#include "Isometric_tester.hpp"
-#include "Game_context.hpp"
+#include "Experimental/Isometric_tester.hpp"
+#include "GameContext/Game_context.hpp"
 
 void IsometricTester::eventDraw1() {
     auto& renderTarget = ctx().windowMgr.getMainRenderTexture();

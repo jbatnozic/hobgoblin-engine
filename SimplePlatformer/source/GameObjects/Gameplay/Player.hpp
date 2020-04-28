@@ -7,7 +7,7 @@
 #include <Hobgoblin/Utility/Packet.hpp>
 #include <Hobgoblin/Utility/State_scheduler.hpp>
 
-#include "Game_object_framework.hpp"
+#include "GameObjects/Framework/Game_object_framework.hpp"
 
 class Player : public GOF_SynchronizedObject {
 public:
