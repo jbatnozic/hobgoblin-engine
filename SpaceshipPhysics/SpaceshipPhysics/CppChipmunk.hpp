@@ -1,11 +1,11 @@
 #ifndef CPP_CHIPMUNK_HPP
 #define CPP_CHIPMUNK_HPP
 
+#include <Hobgoblin/ChipmunkPhysics.hpp>
+
 #include <cassert>
 #include <memory>
 #include <type_traits>
-
-#include <chipmunk\chipmunk.h>
 
 template <class T>
 class ChipmunkDeleter {

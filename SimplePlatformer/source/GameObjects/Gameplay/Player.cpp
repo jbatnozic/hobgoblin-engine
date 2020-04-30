@@ -1,4 +1,5 @@
 
+#include <Hobgoblin/ChipmunkPhysics.hpp>
 #include <Hobgoblin/Utility/Math.hpp>
 
 #include <cmath>

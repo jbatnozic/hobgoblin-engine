@@ -209,14 +209,14 @@
       <PreprocessorDefinitions>SFML_STATIC;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)Hobgoblin\;C:\Z_Libraries\Chipmunk-7.0.3\include;C:\Z_Libraries\SFML-2.5.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)Hobgoblin\include;$(SolutionDir)Dependencies\SFML-2.5.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)Hobgoblin\lib\;C:\Z_Libraries\Chipmunk-7.0.3\lib;C:\Z_Libraries\SFML-2.5.1\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>hobgoblin32-d.lib;chipmunk32-d.lib;winmm.lib; sfml-system-s-d.lib; opengl32.lib; gdi32.lib; sfml-window-s-d.lib; freetype.lib; jpeg.lib; sfml-graphics-s-d.lib; kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)Hobgoblin\lib\;$(SolutionDir)Dependencies\SFML-2.5.1\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>winmm.lib; sfml-system-s-d.lib; ws2_32.lib; sfml-network-s-d.lib;opengl32.lib; gdi32.lib; sfml-window-s-d.lib; freetype.lib; jpeg.lib; sfml-graphics-s-d.lib; hobgoblin32-d.lib; kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">
@@ -425,36 +425,6 @@
     <ClCompile Include="SpaceshipPhysics\ShipTile.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Chipmunk\include\chipmunk.h" />
-    <ClInclude Include="Chipmunk\include\chipmunk_ffi.h" />
-    <ClInclude Include="Chipmunk\include\chipmunk_private.h" />
-    <ClInclude Include="Chipmunk\include\chipmunk_structs.h" />
-    <ClInclude Include="Chipmunk\include\chipmunk_types.h" />
-    <ClInclude Include="Chipmunk\include\chipmunk_unsafe.h" />
-    <ClInclude Include="Chipmunk\include\cpArbiter.h" />
-    <ClInclude Include="Chipmunk\include\cpBB.h" />
-    <ClInclude Include="Chipmunk\include\cpBody.h" />
-    <ClInclude Include="Chipmunk\include\cpConstraint.h" />
-    <ClInclude Include="Chipmunk\include\cpDampedRotarySpring.h" />
-    <ClInclude Include="Chipmunk\include\cpDampedSpring.h" />
-    <ClInclude Include="Chipmunk\include\cpGearJoint.h" />
-    <ClInclude Include="Chipmunk\include\cpGrooveJoint.h" />
-    <ClInclude Include="Chipmunk\include\cpHastySpace.h" />
-    <ClInclude Include="Chipmunk\include\cpMarch.h" />
-    <ClInclude Include="Chipmunk\include\cpPinJoint.h" />
-    <ClInclude Include="Chipmunk\include\cpPivotJoint.h" />
-    <ClInclude Include="Chipmunk\include\cpPolyline.h" />
-    <ClInclude Include="Chipmunk\include\cpPolyShape.h" />
-    <ClInclude Include="Chipmunk\include\cpRatchetJoint.h" />
-    <ClInclude Include="Chipmunk\include\cpRobust.h" />
-    <ClInclude Include="Chipmunk\include\cpRotaryLimitJoint.h" />
-    <ClInclude Include="Chipmunk\include\cpShape.h" />
-    <ClInclude Include="Chipmunk\include\cpSimpleMotor.h" />
-    <ClInclude Include="Chipmunk\include\cpSlideJoint.h" />
-    <ClInclude Include="Chipmunk\include\cpSpace.h" />
-    <ClInclude Include="Chipmunk\include\cpSpatialIndex.h" />
-    <ClInclude Include="Chipmunk\include\cpTransform.h" />
-    <ClInclude Include="Chipmunk\include\cpVect.h" />
     <ClInclude Include="SpaceshipPhysics\CppChipmunk.hpp" />
     <ClInclude Include="SpaceshipPhysics\PhysicsCommon.hpp" />
     <ClInclude Include="SpaceshipPhysics\RandomGen.hpp" />

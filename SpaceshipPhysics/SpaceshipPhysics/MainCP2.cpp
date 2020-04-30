@@ -1,4 +1,5 @@
 
+#include <Hobgoblin/ChipmunkPhysics.hpp>
 #include <Hobgoblin/QAO.hpp>
 
 #include <cstdio>
@@ -6,7 +7,6 @@
 #include <memory>
 #include <vector>
 
-#include <chipmunk\chipmunk.h>
 #include <SFML\Graphics.hpp>
 
 #include "Ship.hpp"
@@ -19,7 +19,7 @@ namespace hg = jbatnozic::hobgoblin;
 class Ship2 : public hg::QAO_Base {
 public:
     Ship2()
-        : hg::QAO_Base(0)
+        : hg::QAO_Base(nullptr, typeid(decltype(*this)), 0, "Ship2")
     {
     }
 };
