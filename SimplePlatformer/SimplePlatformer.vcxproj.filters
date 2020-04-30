@@ -31,5 +31,6 @@
     <ClInclude Include="source\GameObjects\UI\Main_menu.hpp" />
     <ClInclude Include="source\Main\Main_impl.hpp" />
     <ClInclude Include="source\Graphics\Sprites.hpp" />
+    <ClInclude Include="source\Terrain\Terrain.hpp" />
   </ItemGroup>
 </Project>

@@ -190,6 +190,7 @@
     <ClInclude Include="source\GameContext\Game_context.hpp" />
     <ClInclude Include="source\Experimental\Isometric_tester.hpp" />
     <ClInclude Include="source\Graphics\Sprites.hpp" />
+    <ClInclude Include="source\Terrain\Terrain.hpp" />
     <ClInclude Include="source\Utility\Keyboard_input.hpp" />
     <ClInclude Include="source\Experimental\Lighting.hpp" />
     <ClInclude Include="source\GameObjects\UI\Main_menu.hpp" />
