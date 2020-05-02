@@ -18,21 +18,21 @@
 // [24: rgb][8: UNUSED][12: spriteId][4: UNUSED][8: subspriteIdx][8: collisionMask]
 // 12 unused for TerrainTypeIndex
 
-struct TerrainCell {
-    sf::Color color;
-    
-    friend hg::util::PacketBase& operator<<(hg::util::PacketBase& packet, const TerrainCell& self) {
-        packet << self.color.toInteger();
-        return packet;
-    }
-
-    friend hg::util::PacketBase& operator>>(hg::util::PacketBase& packet, TerrainCell& self) {
-        sf::Uint32 rgba;
-        packet >> rgba;
-        self.color = sf::Color{rgba};
-        return packet;
-    }
-};
+//struct TerrainCell {
+//    sf::Color color;
+//    
+//    friend hg::util::PacketBase& operator<<(hg::util::PacketBase& packet, const TerrainCell& self) {
+//        packet << self.color.toInteger();
+//        return packet;
+//    }
+//
+//    friend hg::util::PacketBase& operator>>(hg::util::PacketBase& packet, TerrainCell& self) {
+//        sf::Uint32 rgba;
+//        packet >> rgba;
+//        self.color = sf::Color{rgba};
+//        return packet;
+//    }
+//};
 
 class TerrainManager : public GOF_SynchronizedObject {
 public:
@@ -43,6 +43,9 @@ public:
     void generate(hg::PZInteger width, hg::PZInteger height, float cellResolution);
     void destroy();
     void setCellType(hg::PZInteger x, hg::PZInteger y, Terrain::TypeId typeId);
+
+    hg::PZInteger getRowCount() const;
+    hg::PZInteger getColumnCount() const;
 
     //bool pointIntersectsTerrain(float x, float y) const;
     //bool rectIntersectsTerrain(const hg::util::Rectangle<float>& rect) const;
@@ -57,14 +60,8 @@ public:
     friend RN_HANDLER_SIGNATURE(SetTerrainRow, RN_ARGS(std::int32_t, rowIndex, hg::util::Packet&, packet));
 
 private:
-    struct PhysicsObject {
-        hg::cpBodyUPtr body;
-        hg::cpShapeUPtr shape;
-    };
-
     hg::util::RowMajorGrid<Terrain::TypeId> _typeIdGrid;
-    hg::util::RowMajorGrid<TerrainCell> _grid;
-    hg::util::RowMajorGrid<PhysicsObject> _physicsGrid;
+    hg::util::RowMajorGrid<hg::cpShapeUPtr> _shapeGrid;
     float _cellResolution = 64.f; // TODO
 
     std::unordered_map<SpriteId, hg::gr::Multisprite> _spriteCache;

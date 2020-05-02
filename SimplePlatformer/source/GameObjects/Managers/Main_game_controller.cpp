@@ -40,6 +40,8 @@ void MainGameController::eventUpdate() {
 
 void MainGameController::eventPostUpdate() {
     cpSpaceStep(ctx().getPhysicsSpace(), 1.0 / 60.0); // TODO Temp. - Magic number
+    //cpSpaceStep(ctx().getPhysicsSpace(), 1.0 / 180.0); // TODO Temp. - Magic number
+    //cpSpaceStep(ctx().getPhysicsSpace(), 1.0 / 180.0); // TODO Temp. - Magic number
 }
 
 void MainGameController::onNetworkingEvent(const RN_Event& event_) {

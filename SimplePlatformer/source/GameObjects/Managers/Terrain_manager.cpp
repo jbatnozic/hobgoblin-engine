@@ -47,7 +47,7 @@ RN_DEFINE_HANDLER(ResizeTerrain, RN_ARGS(std::int32_t, width, std::int32_t, heig
             auto& ctx = *client.getUserData<GameContext>();
             // TODO Fetch TerrainManager instance through SyncObjMgr
 
-            ctx.terrMgr._grid.resize(width, height);
+            ctx.terrMgr._resizeAllGrids(width, height);
         },
         [](NetworkingManager::ServerType& server) {
             // ERROR
@@ -61,8 +61,10 @@ RN_DEFINE_HANDLER(SetTerrainRow, RN_ARGS(std::int32_t, rowIndex, hg::util::Packe
             auto& ctx = *client.getUserData<GameContext>();
             // TODO Fetch TerrainManager instance through SyncObjMgr
 
-            for (hg::PZInteger x = 0; x < ctx.terrMgr._grid.getWidth(); x += 1) {
-                packet >> ctx.terrMgr._grid[rowIndex][x];
+            for (hg::PZInteger x = 0; x < ctx.terrMgr.getColumnCount(); x += 1) {
+                std::int16_t terrainTypeId;
+                packet >> terrainTypeId;
+                ctx.terrMgr.setCellType(x, rowIndex, static_cast<Terrain::TypeId>(terrainTypeId));
             }
         },
         [](NetworkingManager::ServerType& server) {
@@ -87,10 +89,10 @@ void TerrainManager::generate(hg::PZInteger width, hg::PZInteger height, float c
 
     _resizeAllGrids(width, height);
 
-    for (hg::PZInteger y = 0; y < _grid.getHeight(); y += 1) {
-        for (hg::PZInteger x = 0; x < _grid.getWidth(); x += 1) {
+    for (hg::PZInteger y = 0; y < getRowCount(); y += 1) {
+        for (hg::PZInteger x = 0; x < getColumnCount(); x += 1) {
             if ((std::rand() % 100) < 15 ||
-                x == 0 || y == 0 || (x == (_grid.getWidth() - 1)) || (y == (_grid.getHeight() - 1))) {
+                x == 0 || y == 0 || (x == (getColumnCount() - 1)) || (y == (getRowCount() - 1))) {
 
                 setCellType(x, y, Terrain::TypeId::CaveWall);
             }
@@ -129,17 +131,25 @@ void TerrainManager::setCellType(hg::PZInteger x, hg::PZInteger y, Terrain::Type
                                  vertices.data(),
                                  cpTransformIdentity,
                                  0.0);
-    _physicsGrid[y][x].shape = hg::cpShapeUPtr{cpSpaceAddShape(space, shape)};
+    _shapeGrid[y][x] = hg::cpShapeUPtr{cpSpaceAddShape(space, shape)};
 
 }
 
+hg::PZInteger TerrainManager::getRowCount() const {
+    return _typeIdGrid.getHeight();
+}
+
+hg::PZInteger TerrainManager::getColumnCount() const {
+    return _typeIdGrid.getWidth();
+}
+
 void TerrainManager::syncCreateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const {
-    Compose_ResizeTerrain(node, rec, _grid.getWidth(), _grid.getHeight());
+    Compose_ResizeTerrain(node, rec, getColumnCount(), getRowCount());
     
-    for (hg::PZInteger y = 0; y < _grid.getHeight(); y += 1) {
+    for (hg::PZInteger y = 0; y < getRowCount(); y += 1) {
         hg::util::Packet packet;
-        for (hg::PZInteger x = 0; x < _grid.getWidth(); x += 1) {
-            packet << _grid[y][x];
+        for (hg::PZInteger x = 0; x < getColumnCount(); x += 1) {
+            packet << static_cast<std::int16_t>(_typeIdGrid[y][x]);
         }
         Compose_SetTerrainRow(node, rec, y, packet);
     }
@@ -149,23 +159,17 @@ void TerrainManager::syncUpdateImpl(RN_Node& node, const std::vector<hg::PZInteg
 void TerrainManager::syncDestroyImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const {}
 
 void TerrainManager::eventDraw1() {
-    //auto& canvas = ctx().windowMgr.getCanvas();
-    //sf::RectangleShape rect({_cellResolution, _cellResolution});
-
     auto& view = ctx().windowMgr.getView();
     hg::PZInteger startX = std::max(0, (int)std::floor((view.getCenter().x - view.getSize().x / 2.f) / _cellResolution));
     hg::PZInteger startY = std::max(0, (int)std::floor((view.getCenter().y - view.getSize().y / 2.f) / _cellResolution));
 
-    hg::PZInteger endX = std::min(_grid.getWidth(),
+    hg::PZInteger endX = std::min(getColumnCount(),
                                   (int)std::ceil((view.getCenter().x + view.getSize().x / 2.f) / _cellResolution));
-    hg::PZInteger endY = std::min(_grid.getHeight(),
+    hg::PZInteger endY = std::min(getRowCount(),
                                   (int)std::ceil((view.getCenter().y + view.getSize().y / 2.f) / _cellResolution));
 
     for (hg::PZInteger y = startY; y < endY; y += 1) {
         for (hg::PZInteger x = startX; x < endX; x += 1) {
-            //rect.setFillColor(_grid[y][x].color);
-            //rect.setPosition(x * _cellResolution, y * _cellResolution);
-            //canvas.draw(rect);
             _drawCell(x, y);
         }
     }
@@ -173,8 +177,7 @@ void TerrainManager::eventDraw1() {
 
 void TerrainManager::_resizeAllGrids(hg::PZInteger width, hg::PZInteger height) {
     _typeIdGrid.resize(width, height);
-    _grid.resize(width, height);
-    _physicsGrid.resize(width, height);
+    _shapeGrid.resize(width, height);
 }
 
 void TerrainManager::_drawCell(hg::PZInteger x, hg::PZInteger y) {

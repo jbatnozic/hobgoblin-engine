@@ -65,7 +65,7 @@ void GameContext::configure(Mode mode) {
         {
             std::cout << "Generating terrain...\n";
             hg::util::Stopwatch stopwatch;
-            terrMgr.generate(64, 64, 32.f);
+            terrMgr.generate(32, 32, 32.f);
             std::cout << "DONE! Terrain generated (took " << stopwatch.getElapsedTime().count() << "ms)\n";
         }
         break;
@@ -94,7 +94,7 @@ void GameContext::configure(Mode mode) {
         {
             std::cout << "Generating terrain...\n";
             hg::util::Stopwatch stopwatch;
-            terrMgr.generate(64, 64, 32.f);
+            terrMgr.generate(32, 32, 32.f);
             std::cout << "DONE! Terrain generated (took " << stopwatch.getElapsedTime().count() << "ms)\n";
         }
         break;
