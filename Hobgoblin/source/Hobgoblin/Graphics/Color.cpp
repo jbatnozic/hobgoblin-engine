@@ -6,9 +6,9 @@
 HOBGOBLIN_NAMESPACE_START
 namespace gr {
 
-const sf::Color Color::Transparent{0x00000000};
+const Color Color::Transparent{0x00000000};
 
-#define XMACRO(_name_, _hexcode_) const sf::Color Color:: _name_ {_hexcode_};
+#define XMACRO(_name_, _hexcode_) const Color Color:: _name_ {_hexcode_};
 #include <Hobgoblin/Private/Xmacro_html_colors.hpp>
 #undef  XMACRO
 

@@ -142,7 +142,7 @@ void PhysicsPlayer::eventPostUpdate() {
 }
 
 void PhysicsPlayer::eventDraw1() {
-    static const sf::Color COLORS[] = {sf::Color::Blue, sf::Color::Red, sf::Color::Green, sf::Color::Yellow};
+    static const sf::Color COLORS[] = {sf::Color::Red, sf::Color::Yellow, sf::Color::Blue, sf::Color::Green};
 
     auto& canvas = ctx().windowMgr.getCanvas();
     auto& self = _ssch.getCurrentState();

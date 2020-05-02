@@ -75,6 +75,7 @@ RN_DEFINE_HANDLER(SetTerrainRow, RN_ARGS(std::int32_t, rowIndex, hg::util::Packe
 
 TerrainManager::TerrainManager(QAO_RuntimeRef rtRef, SynchronizedObjectManager& syncObjMgr, SyncId syncId)
     : GOF_SynchronizedObject{rtRef, TYPEID_SELF, EXEPR_TERRAIN_MGR, "TerrainManager", syncObjMgr, syncId}
+    , _lightingCtrl{0, 0, 64.f, hg::gr::Color::Navy}
 {
 }
 
@@ -104,6 +105,9 @@ void TerrainManager::generate(hg::PZInteger width, hg::PZInteger height, float c
 
     setCellType(1, 1, Terrain::TypeId::CaveFloor);
     // _cellResolution = cellResolution; TODO
+
+    // TODO Temp.
+    _lightingCtrl.addLight(100, 100, hg::gr::Color::White, 8.f);
 }
 
 void TerrainManager::destroy() {
@@ -133,6 +137,13 @@ void TerrainManager::setCellType(hg::PZInteger x, hg::PZInteger y, Terrain::Type
                                  0.0);
     _shapeGrid[y][x] = hg::cpShapeUPtr{cpSpaceAddShape(space, shape)};
 
+    // Lighting:
+    if (tprop.shape == Terrain::CellShape::FullSquare) {
+        _lightingCtrl.setCellIsWall(x, y, true);
+    }
+    else {
+        _lightingCtrl.setCellIsWall(x, y, false);
+    }
 }
 
 hg::PZInteger TerrainManager::getRowCount() const {
@@ -158,6 +169,10 @@ void TerrainManager::syncCreateImpl(RN_Node& node, const std::vector<hg::PZInteg
 void TerrainManager::syncUpdateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const {}
 void TerrainManager::syncDestroyImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const {}
 
+void TerrainManager::eventPostUpdate() {
+    _lightingCtrl.render();
+}
+
 void TerrainManager::eventDraw1() {
     auto& view = ctx().windowMgr.getView();
     hg::PZInteger startX = std::max(0, (int)std::floor((view.getCenter().x - view.getSize().x / 2.f) / _cellResolution));
@@ -178,6 +193,7 @@ void TerrainManager::eventDraw1() {
 void TerrainManager::_resizeAllGrids(hg::PZInteger width, hg::PZInteger height) {
     _typeIdGrid.resize(width, height);
     _shapeGrid.resize(width, height);
+    _lightingCtrl.resize(width, height, _cellResolution);
 }
 
 void TerrainManager::_drawCell(hg::PZInteger x, hg::PZInteger y) {
@@ -195,7 +211,7 @@ void TerrainManager::_drawCell(hg::PZInteger x, hg::PZInteger y) {
     auto& multisprite = (*iter).second;
     multisprite.setSubspriteIndex(0);
     multisprite.setPosition(x * _cellResolution, y * _cellResolution);
-    multisprite.setColor(sf::Color::White);
+    multisprite.setColor(_lightingCtrl.getColorAt(x, y));
 
     ctx().windowMgr.getCanvas().draw(multisprite);
 }

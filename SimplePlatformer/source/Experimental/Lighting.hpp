@@ -1,31 +1,67 @@
 #pragma once
 
 #include <Hobgoblin/Graphics.hpp>
+#include <Hobgoblin/Utility/Grids.hpp>
+#include <Hobgoblin/Utility/Slab_indexer.hpp>
 
+#include <cstdint>
 #include <vector>
 
 #include "GameObjects/Framework/Game_object_framework.hpp"
 
-class LightingManager : public GOF_NonstateObject {
+class LightingController {
 public:
-    LightingManager(QAO_RuntimeRef runtimeRef);
+    using LightHandle = int;
 
-    void eventUpdate() override;
-    void eventDraw1() override;
+    LightingController();
+
+    LightingController(hg::PZInteger width, hg::PZInteger height, 
+                       float cellResolution, hg::gr::Color ambientColor = hg::gr::Color::White);
+
+    void render();
+
+    LightHandle addLight(float x, float y, hg::gr::Color color, float radius);
+    void moveLight(LightHandle handle, float x, float y); // TODO Do this through handle
+
+    hg::gr::Color getColorAt(hg::PZInteger x, hg::PZInteger y) const;
+
+    void resize(hg::PZInteger width, hg::PZInteger height, float cellResolution);
+
+    void setCellIsWall(hg::PZInteger x, hg::PZInteger y, bool isWall);
 
 private:
     struct Cell {
-        float intensity;
+        hg::gr::Color color;
         bool isWall;
     };
 
-    std::vector<Cell> _cellMatrix;
-    hg::PZInteger _width, _height;
-    float _cellResolution;
+    class Light {
+    public:
+        Light() = default;
 
-    void resetLights();
-    void renderLight(float lightX, float lightY, float intensity);
-    Cell& cellAt(hg::PZInteger x, hg::PZInteger y);
-    const Cell& cellAt(hg::PZInteger x, hg::PZInteger y) const;
-    float factor(hg::PZInteger cellX, hg::PZInteger cellY, float lightX, float lightY, float intensity) const;
+        Light(float x, float y, float radius, hg::gr::Color color);
+
+        void render(const hg::util::RowMajorGrid<Cell>& world, float cellResolution);
+        void integrate(hg::util::RowMajorGrid<Cell>& world, float cellResolution) const;
+
+        void setPosition(float x, float y);
+
+    private:
+        float _x;
+        float _y;
+        float _radius; // Radius is expressed in cells (not pixels)
+        hg::gr::Color _color;
+
+        hg::util::RowMajorGrid<std::uint8_t> _intensities;
+
+        std::uint8_t _trace(const hg::util::RowMajorGrid<Cell>& world, float cellResolution, 
+                            float lightX, float lightY, hg::PZInteger cellX, hg::PZInteger cellY) const;
+    };
+
+    hg::util::RowMajorGrid<Cell> _world;
+    std::vector<Light> _lights;
+    hg::util::SlabIndexer _lightIndexer;
+
+    float _cellResolution;
+    hg::gr::Color _ambientColor;
 };

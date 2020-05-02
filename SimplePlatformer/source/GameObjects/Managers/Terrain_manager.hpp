@@ -11,6 +11,7 @@
 
 #include <unordered_map>
 
+#include "Experimental/Lighting.hpp"
 #include "GameObjects/Framework/Game_object_framework.hpp"
 #include "Terrain/Terrain.hpp"
 
@@ -54,6 +55,7 @@ public:
     virtual void syncUpdateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const;
     virtual void syncDestroyImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const;
 
+    void eventPostUpdate() override;
     void eventDraw1() override;
 
     friend RN_HANDLER_SIGNATURE(ResizeTerrain, RN_ARGS(std::int32_t, width, std::int32_t, height));
@@ -62,6 +64,7 @@ public:
 private:
     hg::util::RowMajorGrid<Terrain::TypeId> _typeIdGrid;
     hg::util::RowMajorGrid<hg::cpShapeUPtr> _shapeGrid;
+    LightingController _lightingCtrl;
     float _cellResolution = 64.f; // TODO
 
     std::unordered_map<SpriteId, hg::gr::Multisprite> _spriteCache;
