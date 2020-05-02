@@ -14,6 +14,7 @@ namespace util {
 template <class TData>
 class RowMajorGrid {
 public:
+    RowMajorGrid();
     RowMajorGrid(PZInteger width, PZInteger height);
     RowMajorGrid(PZInteger width, PZInteger height, const TData& initialValue);
 
@@ -40,6 +41,13 @@ private:
     PZInteger _width;
     PZInteger _height;
 };
+
+template <class TData>
+RowMajorGrid<TData>::RowMajorGrid()
+    : _width{0}
+    , _height{0}
+{
+}
 
 template <class TData>
 RowMajorGrid<TData>::RowMajorGrid(PZInteger width, PZInteger height)

@@ -97,7 +97,7 @@ private:
 
     std::vector<std::uint32_t> _ackOrdinals;
 
-    void cleanUp();
+    void destroy();
     void reset();
     bool isConnectionTimedOut() const;
     void uploadAllData();

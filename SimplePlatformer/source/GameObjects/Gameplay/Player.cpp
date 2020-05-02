@@ -6,6 +6,7 @@
 #include <iostream>
 
 #include "GameContext/Game_context.hpp"
+#include "GameObjects/Framework/Execution_priorities.hpp"
 #include "GameObjects/Gameplay/Player.hpp"
 
 namespace {
@@ -74,7 +75,7 @@ void Player::syncDestroyImpl(RN_Node& node, const std::vector<hg::PZInteger>& re
 
 Player::Player(QAO_Runtime* runtime, SynchronizedObjectManager& syncObjMapper, SyncId syncId,
                float x, float y, hg::PZInteger playerIndex)
-    : GOF_SynchronizedObject{runtime, TYPEID_SELF, 75, "Player", syncObjMapper, syncId}
+    : GOF_SynchronizedObject{runtime, TYPEID_SELF, EXEPR_CREATURES, "Player", syncObjMapper, syncId}
     , _ssch{ctx().syncBufferLength}
 {
     _ssch.setDiscardIfOld(true);

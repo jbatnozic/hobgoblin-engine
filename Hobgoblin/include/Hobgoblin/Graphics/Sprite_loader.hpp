@@ -49,8 +49,8 @@ public:
     // TODO loadFromMemory
 
     // Search loaded sprites:
-    Multisprite getSprite(PZInteger spriteIndex) const;
-    Multisprite getSprite(const std::string& spriteName) const;
+    const Multisprite& getSprite(PZInteger spriteIndex) const;
+    const Multisprite& getSprite(const std::string& spriteName) const;
 
     // Other:
     void finalize(TexturePackingHeuristic heuristic);

@@ -1,9 +1,12 @@
 #ifndef GLOBAL_PROGRAM_STATE_HPP
 #define GLOBAL_PROGRAM_STATE_HPP
 
+#include <Hobgoblin/ChipmunkPhysics.hpp>
 #include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/Utility/stopwatch.hpp>
 
 #include <chrono>
+#include <iostream>
 #include <fstream>
 #include <memory>
 #include <thread>
@@ -85,12 +88,16 @@ public:
         , _resourceConfig{resourceConfig}
     {
         netMgr.getNode().setUserData(this);
-        // TODO Temp.
-        terrMgr.generate(128, 128, 32.f);
+
+        // TODO Temp. - Create terrain
+        _physicsSpace = cpSpaceNew();
     }
 
     ~GameContext() {
         qaoRuntime.eraseAllNonOwnedObjects();
+        // TODO Clean up _physicsSpace
+        terrMgr.generate(0, 0, 0);
+        cpSpaceFree(_physicsSpace);
     }
 
     void configure(Mode mode);
@@ -101,6 +108,10 @@ public:
 
     const ResourceConfig& getResourceConfig() const {
         return _resourceConfig;
+    }
+
+    cpSpace* getPhysicsSpace() const {
+        return _physicsSpace;
     }
 
     int calcDelay(std::chrono::microseconds currentLatency) const { // TODO Mode to Utils class
@@ -122,6 +133,7 @@ private:
 
     // Other:
     ResourceConfig _resourceConfig;
+    cpSpace* _physicsSpace;
     bool _quit = false;
 
     static void runImpl(GameContext* context, int* retVal);

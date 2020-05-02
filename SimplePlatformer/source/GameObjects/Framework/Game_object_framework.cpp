@@ -15,6 +15,10 @@ KbInputTracker& GOF_Base::kbi() const {
     return ctx().windowMgr.getKeyboardInput();
 }
 
+const hg::gr::Multisprite& GOF_Base::getspr(SpriteId spriteId) const {
+    return ctx().getResourceConfig().spriteLoader->getSprite(static_cast<hg::PZInteger>(spriteId));
+}
+
 // ========================================================================= //
 
 namespace {

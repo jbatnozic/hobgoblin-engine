@@ -1,16 +1,23 @@
 
 #include <Hobgoblin/RigelNet.hpp>
 
+#include "GameObjects/Framework/Execution_priorities.hpp"
 #include "GameObjects/Framework/Game_object_framework.hpp"
 #include "GameObjects/UI/Main_menu.hpp"
 #include "Graphics/Sprites.hpp"
 #include "Main/Main_impl.hpp"
+#include "Terrain/Terrain.hpp"
 
 // TODO catch exceptions in main
 
 int MainImpl::run(int argc, char* argv[]) {
 	// Setup:
+	ResolveExecutionPriorities();
 	hg::RN_IndexHandlers();
+
+	// To avoid the risk of initializing later from multiple threads
+	// at the same time.
+	Terrain::initializeSingleton();
 
 	auto spriteLoader = LoadAllSprites();
 	GameContext::ResourceConfig resConfig;

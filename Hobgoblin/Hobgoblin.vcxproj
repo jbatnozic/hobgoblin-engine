@@ -727,6 +727,8 @@
     <ClCompile Include="source\Hobgoblin\TimingMain.cpp" />
     <ClCompile Include="source\Hobgoblin\Utility\Serialization.cpp" />
     <ClInclude Include="include\Hobgoblin\ChipmunkPhysics.hpp" />
+    <ClInclude Include="include\Hobgoblin\ChipmunkPhysics\Memory_mgmt.hpp" />
+    <ClInclude Include="include\Hobgoblin\ChipmunkPhysics\Template.hpp" />
     <ClInclude Include="include\Hobgoblin\Private\chipmunk\chipmunk.h" />
     <ClInclude Include="include\Hobgoblin\Private\chipmunk\chipmunk_ffi.h" />
     <ClInclude Include="include\Hobgoblin\Private\chipmunk\chipmunk_private.h" />

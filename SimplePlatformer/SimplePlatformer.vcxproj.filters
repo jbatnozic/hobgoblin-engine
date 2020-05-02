@@ -15,6 +15,9 @@
     <ClCompile Include="source\GameObjects\UI\Main_menu.cpp" />
     <ClCompile Include="source\Main\Main_impl.cpp" />
     <ClCompile Include="source\Main\Main.cpp" />
+    <ClCompile Include="source\GameObjects\Gameplay\PhysicsPlayer.cpp" />
+    <ClCompile Include="source\GameObjects\Framework\Execution_priorities.cpp" />
+    <ClCompile Include="source\Terrain\Terrain.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Experimental\Isometric_tester.hpp" />
@@ -32,5 +35,7 @@
     <ClInclude Include="source\Main\Main_impl.hpp" />
     <ClInclude Include="source\Graphics\Sprites.hpp" />
     <ClInclude Include="source\Terrain\Terrain.hpp" />
+    <ClInclude Include="source\GameObjects\Gameplay\PhysicsPlayer.hpp" />
+    <ClInclude Include="source\GameObjects\Framework\Execution_priorities.hpp" />
   </ItemGroup>
 </Project>

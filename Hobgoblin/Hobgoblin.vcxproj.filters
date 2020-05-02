@@ -524,6 +524,12 @@
     <ClInclude Include="source\Hobgoblin\ChipmunkPhysics\prime.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\Hobgoblin\ChipmunkPhysics\Memory_mgmt.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Hobgoblin\ChipmunkPhysics\Template.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="include\Hobgoblin\Private\HobgoblinCodingStyle.txt" />

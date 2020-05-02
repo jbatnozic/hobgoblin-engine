@@ -11,10 +11,11 @@
 #include "GameContext/Game_context.hpp"
 
 #include "GameObjects/Gameplay/Player.hpp" // TODO Temp.
+#include "GameObjects/Gameplay/PhysicsPlayer.hpp"
 
 namespace {
 
-#define CATCH_EXCEPTIONS_TOP_LEVEL
+//#define CATCH_EXCEPTIONS_TOP_LEVEL
 
 int DoSingleQaoIteration(GameContext& ctx, std::int32_t eventFlags) {
     QAO_Runtime& runtime = ctx.qaoRuntime;
@@ -60,6 +61,13 @@ void GameContext::configure(Mode mode) {
         netMgr.getServer().setTimeoutLimit(std::chrono::seconds{5});
         syncObjMgr.setNode(netMgr.getNode());
         std::cout << "Server started on port " << netMgr.getServer().getLocalPort() << '\n';
+
+        {
+            std::cout << "Generating terrain...\n";
+            hg::util::Stopwatch stopwatch;
+            terrMgr.generate(64, 64, 32.f);
+            std::cout << "DONE! Terrain generated (took " << stopwatch.getElapsedTime().count() << "ms)\n";
+        }
         break;
 
     case Mode::Client:
@@ -75,7 +83,20 @@ void GameContext::configure(Mode mode) {
     case Mode::Solo:
         playerIndex = 0;
         windowMgr.create();
-        QAO_PCreate<Player>(&qaoRuntime, syncObjMgr, SYNC_ID_CREATE_MASTER, 200, 200, 0);
+        //QAO_PCreate<Player>(&qaoRuntime, syncObjMgr, SYNC_ID_CREATE_MASTER, 200, 200, 0);
+        {
+            PhysicsPlayer::ViState playerState;
+            playerState.playerIndex = 0;
+            playerState.x = 70.f;
+            playerState.y = 70.f;
+            QAO_PCreate<PhysicsPlayer>(&qaoRuntime, syncObjMgr, SYNC_ID_CREATE_MASTER, playerState);
+        }
+        {
+            std::cout << "Generating terrain...\n";
+            hg::util::Stopwatch stopwatch;
+            terrMgr.generate(64, 64, 32.f);
+            std::cout << "DONE! Terrain generated (took " << stopwatch.getElapsedTime().count() << "ms)\n";
+        }
         break;
 
     case Mode::GameMaster:

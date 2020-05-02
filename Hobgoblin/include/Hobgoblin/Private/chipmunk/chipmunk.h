@@ -35,15 +35,16 @@
 	#endif
 #endif
 
-#ifdef _WIN32
-	#define CP_EXPORT __declspec(dllexport)
-#else
-	#define CP_EXPORT
-#endif
+//#ifdef _WIN32
+//	#define CP_EXPORT __declspec(dllexport)
+//#else
+//	#define CP_EXPORT
+//#endif
+#define CP_EXPORT
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+//#ifdef __cplusplus
+//extern "C" {
+//#endif
 
 CP_EXPORT void cpMessage(const char *condition, const char *file, int line, int isError, int isHardError, const char *message, ...);
 #ifdef NDEBUG
@@ -220,7 +221,7 @@ cpBool cpSpaceShapeQuery_b(cpSpace *space, cpShape *shape, cpSpaceShapeQueryBloc
 //@}
 
 #ifdef __cplusplus
-}
+//}
 
 static inline cpVect operator *(const cpVect v, const cpFloat s){return cpvmult(v, s);}
 static inline cpVect operator +(const cpVect v1, const cpVect v2){return cpvadd(v1, v2);}

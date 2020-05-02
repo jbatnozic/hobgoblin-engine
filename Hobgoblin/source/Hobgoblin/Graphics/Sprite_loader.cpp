@@ -130,12 +130,12 @@ SpriteLoader& SpriteLoader::loadFromDirectory(TextureHandle texture, std::string
 // TODO loadFromMemory
 
 // Search loaded sprites:
-Multisprite SpriteLoader::getSprite(PZInteger spriteIndex) const {
+const Multisprite& SpriteLoader::getSprite(PZInteger spriteIndex) const {
     auto spriteIndexSz = static_cast<std::size_t>(spriteIndex);
     return _indexedSprites[spriteIndexSz].multisprite;
 }
 
-Multisprite SpriteLoader::getSprite(const std::string& spriteName) const {
+const Multisprite& SpriteLoader::getSprite(const std::string& spriteName) const {
     auto iter = _mappedSprites.find(spriteName);
     if (iter == _mappedSprites.end()) {
         throw util::TracedLogicError("Sprite with name " + spriteName + " was not loaded.");

@@ -25,7 +25,7 @@ RN_DEFINE_HANDLER(SetClientControls, RN_ARGS(PlayerControls&, controls)) {
 
 ControlsManager::ControlsManager(QAO_RuntimeRef runtimeRef, hg::PZInteger playerCount, 
                                  hg::PZInteger inputDelayInSteps, hg::PZInteger historySize)
-    : GOF_Base{runtimeRef, TYPEID_SELF, 30, "ControlsManager"} // Run after NetMgr
+    : GOF_Base{runtimeRef, TYPEID_SELF, 0, "ControlsManager"} // Run after NetMgr
 {
     _schedulers.reserve(playerCount);
     for (hg::PZInteger i = 0; i < playerCount; i += 1) {
@@ -61,7 +61,8 @@ void ControlsManager::eventPreUpdate() {
         auto& scheduler = _schedulers[ctx().playerIndex];
         scheduler.putNewState(PlayerControls{kbi().keyPressed(KbKey::A),
                                              kbi().keyPressed(KbKey::D),
-                                             kbi().keyPressed(KbKey::W)});
+                                             kbi().keyPressed(KbKey::W),
+                                             kbi().keyPressed(KbKey::S)});
     }
 
     for (auto& scheduler : _schedulers) {

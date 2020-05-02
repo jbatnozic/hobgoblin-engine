@@ -83,7 +83,7 @@ bool RN_UdpConnector::tryAccept(sf::IpAddress addr, std::uint16_t port, RN_Packe
         _remoteInfo = RN_RemoteInfo{addr, port};
         _status = RN_ConnectorStatus::Accepting;
 
-        cleanUp();
+        destroy();
         _sendBufferHeadIndex = 1u;
         _recvBufferHeadIndex = 1u;
         prepareNextOutgoingPacket();
@@ -102,7 +102,7 @@ void RN_UdpConnector::connect(sf::IpAddress addr, std::uint16_t port) {
     _remoteInfo = RN_RemoteInfo{addr, port};
     _status = RN_ConnectorStatus::Connecting;
 
-    cleanUp();
+    destroy();
     _sendBufferHeadIndex = 1u;
     _recvBufferHeadIndex = 1u;
     prepareNextOutgoingPacket();
@@ -291,14 +291,14 @@ void RN_UdpConnector::appendToNextOutgoingPacket(const void *data, std::size_t s
 
 // Private
 
-void RN_UdpConnector::cleanUp() {
+void RN_UdpConnector::destroy() {
     _sendBuffer.clear();
     _recvBuffer.clear();
     _ackOrdinals.clear();
 }
 
 void RN_UdpConnector::reset() {
-    cleanUp();
+    destroy();
     _remoteInfo = RN_RemoteInfo{};
     _status = RN_ConnectorStatus::Disconnected;
     _clientIndex.reset();

@@ -13,6 +13,7 @@ using namespace hg::rn;
 #include <unordered_map>
 #include <unordered_set>
 
+#include "Graphics/Sprites.hpp"
 #include "Utility/Keyboard_input.hpp"
 
 #define TYPEID_SELF typeid(decltype(*this))
@@ -25,6 +26,7 @@ public:
 
     GameContext& ctx() const;
     KbInputTracker& kbi() const;
+    const hg::gr::Multisprite& getspr(SpriteId spriteId) const;
     // TODO: Add more utility methods
 };
 

@@ -1,6 +1,7 @@
 #ifndef TERRAIN_MANAGER_HPP
 #define TERRAIN_MANAGER_HPP
 
+#include <Hobgoblin/ChipmunkPhysics.hpp>
 #include <Hobgoblin/Graphics.hpp>
 #include <Hobgoblin/Utility/Grids.hpp>
 #include <Hobgoblin/Utility/Packet.hpp>
@@ -8,7 +9,10 @@
 
 #include <Hobgoblin/RigelNet_Macros.hpp> // TODO Temp.
 
+#include <unordered_map>
+
 #include "GameObjects/Framework/Game_object_framework.hpp"
+#include "Terrain/Terrain.hpp"
 
 // Terrain cell: 64 bit
 // [24: rgb][8: UNUSED][12: spriteId][4: UNUSED][8: subspriteIdx][8: collisionMask]
@@ -32,18 +36,16 @@ struct TerrainCell {
 
 class TerrainManager : public GOF_SynchronizedObject {
 public:
-    TerrainManager(QAO_RuntimeRef rtRef, SynchronizedObjectManager& syncObjMgr, SyncId syncId)
-        : GOF_SynchronizedObject{rtRef, TYPEID_SELF, 0, "TerrainManager", syncObjMgr, syncId}
-        , _grid{0, 0}
-    {
-    }
+    TerrainManager(QAO_RuntimeRef rtRef, SynchronizedObjectManager& syncObjMgr, SyncId syncId);
 
     ~TerrainManager();
 
     void generate(hg::PZInteger width, hg::PZInteger height, float cellResolution);
+    void destroy();
+    void setCellType(hg::PZInteger x, hg::PZInteger y, Terrain::TypeId typeId);
 
-    bool pointIntersectsTerrain(float x, float y) const;
-    bool rectIntersectsTerrain(const hg::util::Rectangle<float>& rect) const;
+    //bool pointIntersectsTerrain(float x, float y) const;
+    //bool rectIntersectsTerrain(const hg::util::Rectangle<float>& rect) const;
 
     virtual void syncCreateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const;
     virtual void syncUpdateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const;
@@ -55,8 +57,20 @@ public:
     friend RN_HANDLER_SIGNATURE(SetTerrainRow, RN_ARGS(std::int32_t, rowIndex, hg::util::Packet&, packet));
 
 private:
+    struct PhysicsObject {
+        hg::cpBodyUPtr body;
+        hg::cpShapeUPtr shape;
+    };
+
+    hg::util::RowMajorGrid<Terrain::TypeId> _typeIdGrid;
     hg::util::RowMajorGrid<TerrainCell> _grid;
-    float _cellResolution;
+    hg::util::RowMajorGrid<PhysicsObject> _physicsGrid;
+    float _cellResolution = 64.f; // TODO
+
+    std::unordered_map<SpriteId, hg::gr::Multisprite> _spriteCache;
+
+    void _resizeAllGrids(hg::PZInteger width, hg::PZInteger height);
+    void _drawCell(hg::PZInteger x, hg::PZInteger y);
 };
 
 #endif // !TERRAIN_MANAGER_HPP

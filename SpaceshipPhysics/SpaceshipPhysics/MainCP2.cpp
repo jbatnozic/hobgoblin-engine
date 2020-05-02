@@ -104,6 +104,22 @@ void MoveView(sf::View& view) {
 }
 
 int main() {
+    {
+        cpSpace* space = cpSpaceNew();
+        cpBody* body = cpSpaceAddBody(space, cpBodyNew(1.0, 1.0));
+        cpShape* shape = cpSpaceAddShape(space, cpCircleShapeNew(body, 1.0, cpv(0, 0)));
+
+        cpSpaceRemoveShape(space, shape);
+        cpShapeSetBody(shape, NULL);
+        cpShapeFree(shape);
+
+        cpSpaceRemoveBody(space, body);
+        cpBodyFree(body);
+
+        cpSpaceFree(space);
+
+        int __i = 5;
+    }
 
     Initialize();
 

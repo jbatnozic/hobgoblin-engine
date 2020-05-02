@@ -13,37 +13,9 @@ struct PlayerControls {
     bool left = false;
     bool right = false;
     bool up = false;
+    bool down = false;
 
-    HG_ENABLE_AUTOPACK(PlayerControls, left, right, up);
-
-    void integrate(const PlayerControls& other) {
-        left = left || other.left;
-        right = right || other.right;
-        up = up || other.up;
-    }
-
-    void unstuck(const std::deque<PlayerControls>& history) {
-        PlayerControls dummy{};
-
-        for (const auto& controls : history) {
-            dummy.integrate(controls);
-        }
-
-        left = left && dummy.left;
-        right = right && dummy.right;
-        up = up && dummy.up;
-    }
-
-    void debounce(const std::deque<PlayerControls>& q, std::size_t currentPos) {
-        if (currentPos > 0) {
-            auto& prev = q[currentPos - 1];
-            auto& next = q[currentPos + 1];
-            
-            if (prev.left == next.left) left = prev.left;
-            if (prev.right == next.right) right = prev.right;
-            if (prev.up == next.up) up = prev.up;
-        }
-    }
+    HG_ENABLE_AUTOPACK(PlayerControls, left, right, up, down);
 };
 
 using ControlsScheduler = hg::util::StateScheduler<PlayerControls>;
@@ -60,7 +32,7 @@ public:
     void putNewControls(hg::PZInteger playerIndex, const PlayerControls& controls, std::chrono::microseconds delay);
 
 protected:
-    void eventPreUpdate() override;
+    void eventPreUpdate() override; // TODO To frameStart
     void eventUpdate() override;
     void eventPostUpdate() override;
 
