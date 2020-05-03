@@ -176,6 +176,8 @@ void EnvironmentManager::syncDestroyImpl(RN_Node& node, const std::vector<hg::PZ
 
 void EnvironmentManager::eventPostUpdate() {
     _lightingCtrl.render();
+    _lightingCtrl.smooth();
+    //_lightingCtrl.smooth();
 }
 
 void EnvironmentManager::eventDraw1() {

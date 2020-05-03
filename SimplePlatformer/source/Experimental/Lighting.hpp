@@ -44,6 +44,7 @@ public:
                        float cellResolution, Color ambientColor = Color::White);
 
     void render();
+    void smooth();
 
     LightHandle addLight(float x, float y, Color color, float radius);
 
@@ -57,6 +58,7 @@ public:
 private:
     struct Cell {
         hg::gr::Color color;
+        hg::gr::Color tmpColor;
         bool isWall;
     };
 
@@ -91,6 +93,8 @@ private:
 
     float _cellResolution;
     hg::gr::Color _ambientColor;
+
+    void _smoothCell(PZInteger x, PZInteger y);
 
     void _setLightPosition(PZInteger lightIndex, float x, float y);
     void _setLightColor(PZInteger lightIndex, Color color);

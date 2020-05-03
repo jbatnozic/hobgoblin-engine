@@ -77,7 +77,7 @@ PhysicsPlayer::PhysicsPlayer(QAO_RuntimeRef rtRef, SynchronizedObjectManager& sy
     }
 
     //_lightHandle = ctx().envMgr.addLight(initialState.x, initialState.y, hg::gr::Color::MediumBioletRed, 8.f);
-    _lightHandle = ctx().envMgr.addLight(initialState.x, initialState.y, hg::gr::Color::White, 8.f);
+    _lightHandle = ctx().envMgr.addLight(initialState.x, initialState.y, hg::gr::Color::LightCoral, 8.f);
 }
 
 PhysicsPlayer::~PhysicsPlayer() {

@@ -90,6 +90,7 @@ public:
         , _resourceConfig{resourceConfig}
     {
         netMgr.getNode().setUserData(this);
+        cpSpaceSetDamping(_physicsSpace.get(), 0.1);
     }
 
     ~GameContext() {

@@ -282,6 +282,22 @@ void LightingController::render() {
     }
 }
 
+void LightingController::smooth() {
+    // Smooth all cells
+    for (PZInteger y = 0; y < _world.getHeight(); y += 1) {
+        for (PZInteger x = 0; x < _world.getWidth(); x += 1) {
+            _smoothCell(x, y);
+        }
+    }
+
+    // Copy results
+    for (PZInteger y = 0; y < _world.getHeight(); y += 1) {
+        for (PZInteger x = 0; x < _world.getWidth(); x += 1) {
+            _world[y][x].color = _world[y][x].tmpColor;
+        }
+    }
+}
+
 void LightingController::resize(PZInteger width, PZInteger height, float cellResolution) {
     _world.resize(width, height);
     _cellResolution = _cellResolution;
@@ -289,6 +305,50 @@ void LightingController::resize(PZInteger width, PZInteger height, float cellRes
 
 void LightingController::setCellIsWall(PZInteger x, PZInteger y, bool isWall) {
     _world.at(y, x).isWall = isWall;
+}
+
+void LightingController::_smoothCell(PZInteger x, PZInteger y) {
+    const int OFFSET = 1;
+    const int DIVIDER = 3;
+
+    auto& cell = _world[y][x];
+    cell.tmpColor = cell.color;
+
+    if (x - OFFSET > 0) {
+        auto& other = _world[y][x - OFFSET];
+        if (!other.isWall || cell.isWall) {
+            cell.tmpColor.r += (other.color.r - std::min(other.color.r, cell.color.r)) / DIVIDER;
+            cell.tmpColor.g += (other.color.g - std::min(other.color.g, cell.color.g)) / DIVIDER;
+            cell.tmpColor.b += (other.color.b - std::min(other.color.b, cell.color.b)) / DIVIDER;
+        }
+    }
+
+    if (y - OFFSET > 0) {
+        auto& other = _world[y - OFFSET][x];
+        if (!other.isWall || cell.isWall) {
+            cell.tmpColor.r += (other.color.r - std::min(other.color.r, cell.color.r)) / DIVIDER;
+            cell.tmpColor.g += (other.color.g - std::min(other.color.g, cell.color.g)) / DIVIDER;
+            cell.tmpColor.b += (other.color.b - std::min(other.color.b, cell.color.b)) / DIVIDER;
+        }
+    }
+
+    if (x + OFFSET < _world.getWidth()) {
+        auto& other = _world[y][x + OFFSET];
+        if (!other.isWall || cell.isWall) {
+            cell.tmpColor.r += (other.color.r - std::min(other.color.r, cell.color.r)) / DIVIDER;
+            cell.tmpColor.g += (other.color.g - std::min(other.color.g, cell.color.g)) / DIVIDER;
+            cell.tmpColor.b += (other.color.b - std::min(other.color.b, cell.color.b)) / DIVIDER;
+        }
+    }
+
+    if (y + OFFSET < _world.getHeight()) {
+        auto& other = _world[y + OFFSET][x];
+        if (!other.isWall || cell.isWall) {
+            cell.tmpColor.r += (other.color.r - std::min(other.color.r, cell.color.r)) / DIVIDER;
+            cell.tmpColor.g += (other.color.g - std::min(other.color.g, cell.color.g)) / DIVIDER;
+            cell.tmpColor.b += (other.color.b - std::min(other.color.b, cell.color.b)) / DIVIDER;
+        }
+    }
 }
 
 void LightingController::_setLightPosition(PZInteger lightIndex, float x, float y) {
