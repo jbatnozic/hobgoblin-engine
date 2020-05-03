@@ -9,6 +9,9 @@
 #include "GameObjects/Framework/Execution_priorities.hpp"
 #include "GameObjects/Managers/Terrain_manager.hpp"
 
+// TODO Temp.
+#include "GameObjects/Gameplay/PhysicsPlayer.hpp"
+
 namespace {
 
 std::vector<cpVect> GetShapeVertices(Terrain::CellShape shape, cpFloat cellResolution) {
@@ -75,7 +78,7 @@ RN_DEFINE_HANDLER(SetTerrainRow, RN_ARGS(std::int32_t, rowIndex, hg::util::Packe
 
 TerrainManager::TerrainManager(QAO_RuntimeRef rtRef, SynchronizedObjectManager& syncObjMgr, SyncId syncId)
     : GOF_SynchronizedObject{rtRef, TYPEID_SELF, EXEPR_TERRAIN_MGR, "TerrainManager", syncObjMgr, syncId}
-    , _lightingCtrl{0, 0, 64.f, hg::gr::Color::Navy}
+    , _lightingCtrl{0, 0, 32.f, hg::gr::Color{5, 5, 10}}
 {
 }
 
@@ -107,7 +110,7 @@ void TerrainManager::generate(hg::PZInteger width, hg::PZInteger height, float c
     // _cellResolution = cellResolution; TODO
 
     // TODO Temp.
-    _lightingCtrl.addLight(100, 100, hg::gr::Color::White, 8.f);
+    _lightingCtrl.addLight(100, 100, hg::gr::Color::Beige, 7.1f);
 }
 
 void TerrainManager::destroy() {
@@ -170,6 +173,12 @@ void TerrainManager::syncUpdateImpl(RN_Node& node, const std::vector<hg::PZInteg
 void TerrainManager::syncDestroyImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const {}
 
 void TerrainManager::eventPostUpdate() {
+    // TODO Temp.
+    PhysicsPlayer* pp = (PhysicsPlayer*)getRuntime()->find("PhysicsPlayer");
+    assert(pp);
+    _lightingCtrl.moveLight(0, pp->getState().x, pp->getState().y);
+    // ***
+
     _lightingCtrl.render();
 }
 

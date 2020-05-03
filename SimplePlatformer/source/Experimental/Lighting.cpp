@@ -19,7 +19,7 @@ T Dist_(T x1, T y1, T x2, T y2) {
 }
 
 std::uint8_t LightFunc(double normalizedDistance) {
-    return static_cast<std::uint8_t>(255.0 * std::sqrt(1.0 - normalizedDistance));
+    return static_cast<std::uint8_t>(255.0 * /*std::sqrt*/(1.0 - normalizedDistance));
 }
 
 } // namespace
@@ -30,7 +30,7 @@ LightingController::Light::Light(float x, float y, float radius, hg::gr::Color c
     , _radius{radius}
     , _color{color}
 {
-    hg::PZInteger gridDim = static_cast<hg::PZInteger>(std::ceil(radius)) * 2 - 1;
+    hg::PZInteger gridDim = static_cast<hg::PZInteger>(std::ceil(radius)) * 2 + 1;
     _intensities.resize(gridDim, gridDim);
 }
 
@@ -72,20 +72,22 @@ void LightingController::Light::render(const hg::util::RowMajorGrid<Cell>& world
 std::uint8_t LightingController::Light::_trace(const hg::util::RowMajorGrid<Cell>& world, float cellResolution,
                                                float lightX, float lightY,
                                                hg::PZInteger cellX, hg::PZInteger cellY) const {
+    const float PRECISION = 1.0;
+
     const float cellXInWorldCoords = (cellX + 0.5f) * cellResolution;
     const float cellYInWorldCoords = (cellY + 0.5f) * cellResolution;
 
     const float totalDist = Dist_(cellXInWorldCoords, cellYInWorldCoords, lightX, lightY);
-    const auto iterCnt = static_cast<hg::PZInteger>(std::floor(totalDist / cellResolution));
+    const auto iterCnt = static_cast<hg::PZInteger>(std::floor(PRECISION * totalDist / cellResolution));
 
     const double angle = std::atan2(lightY - cellYInWorldCoords, lightX - cellXInWorldCoords);
-    const double stepX = std::cos(angle) * cellResolution;
-    const double stepY = std::sin(angle) * cellResolution;
+    const double stepX = std::cos(angle) * cellResolution / PRECISION;
+    const double stepY = std::sin(angle) * cellResolution / PRECISION;
 
     double currX = cellXInWorldCoords;
     double currY = cellYInWorldCoords;
-    double lastCellX = currX / cellResolution;
-    double lastCellY = currY / cellResolution;
+    auto lastCellX = static_cast<hg::PZInteger>(currX / cellResolution);
+    auto lastCellY = static_cast<hg::PZInteger>(currY / cellResolution);
 
     for (hg::PZInteger i = 0; i <= iterCnt; i += 1) {
         if (i == iterCnt) {
@@ -113,7 +115,7 @@ std::uint8_t LightingController::Light::_trace(const hg::util::RowMajorGrid<Cell
 
         // Light can't go through corners
         if ((lastCellX - currCellX) != 0 && (lastCellY - currCellY) != 0) {
-            if (currCell.isWall && world[lastCellY][currCellX].isWall) {
+            if (world[lastCellY][currCellX].isWall && world[currCellY][lastCellX].isWall) {
                 return 0;
             }
         }

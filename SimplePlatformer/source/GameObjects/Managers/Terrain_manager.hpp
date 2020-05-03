@@ -65,7 +65,7 @@ private:
     hg::util::RowMajorGrid<Terrain::TypeId> _typeIdGrid;
     hg::util::RowMajorGrid<hg::cpShapeUPtr> _shapeGrid;
     LightingController _lightingCtrl;
-    float _cellResolution = 64.f; // TODO
+    float _cellResolution = 32.f; // TODO
 
     std::unordered_map<SpriteId, hg::gr::Multisprite> _spriteCache;
 

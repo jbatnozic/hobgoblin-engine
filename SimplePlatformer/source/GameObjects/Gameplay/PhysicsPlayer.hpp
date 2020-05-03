@@ -32,6 +32,10 @@ public:
 
     ~PhysicsPlayer();
 
+    const ViState& getState() {
+        return _ssch.getCurrentState();
+    }
+
     void syncCreateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const override;
     void syncUpdateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const override;
     void syncDestroyImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const override;
