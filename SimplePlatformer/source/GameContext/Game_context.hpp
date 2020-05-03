@@ -14,9 +14,9 @@
 #include "GameObjects/Framework/Game_object_framework.hpp"
 
 #include "GameObjects/Managers/Controls_manager.hpp"
+#include "GameObjects/Managers/Environment_manager.hpp"
 #include "GameObjects/Managers/Main_game_controller.hpp"
 #include "GameObjects/Managers/Networking_manager.hpp"
-#include "GameObjects/Managers/Terrain_manager.hpp"
 #include "GameObjects/Managers/Window_manager.hpp"
 
 #include "GameObjects/Gameplay/Player.hpp"
@@ -56,6 +56,7 @@ public:
 private:
     GameContext* _parentContext;
     Mode _mode;
+    hg::cpSpaceUPtr _physicsSpace;
 
 public:
     int playerIndex = PLAYER_INDEX_UNKNOWN;
@@ -70,12 +71,13 @@ public:
     MainGameController mainGameCtrl;
     ControlsManager controlsMgr;
     SynchronizedObjectManager syncObjMgr; // TODO This object isn't really a "manager"
-    TerrainManager terrMgr;
+    EnvironmentManager envMgr;
 
     GameContext(const ResourceConfig& resourceConfig)
         // Essential:
         : _parentContext{nullptr}
         , _mode{Mode::Initial}
+        , _physicsSpace{cpSpaceNew()}
         , qaoRuntime{this}
         , windowMgr{qaoRuntime.nonOwning()}
         // Game-specific:
@@ -83,21 +85,15 @@ public:
         , mainGameCtrl{qaoRuntime.nonOwning()}
         , controlsMgr{qaoRuntime.nonOwning(), 4, syncBufferLength, syncBufferHistoryLength}
         , syncObjMgr{netMgr.getNode()}
-        , terrMgr{qaoRuntime.nonOwning(), syncObjMgr, SYNC_ID_CREATE_MASTER}
+        , envMgr{qaoRuntime.nonOwning(), syncObjMgr, SYNC_ID_CREATE_MASTER}
         // Other:
         , _resourceConfig{resourceConfig}
     {
         netMgr.getNode().setUserData(this);
-
-        // TODO Temp. - Create terrain
-        _physicsSpace = cpSpaceNew();
     }
 
     ~GameContext() {
         qaoRuntime.eraseAllNonOwnedObjects();
-        // TODO Clean up _physicsSpace
-        terrMgr.generate(0, 0, 0);
-        cpSpaceFree(_physicsSpace);
     }
 
     void configure(Mode mode);
@@ -111,10 +107,10 @@ public:
     }
 
     cpSpace* getPhysicsSpace() const {
-        return _physicsSpace;
+        return _physicsSpace.get();
     }
 
-    int calcDelay(std::chrono::microseconds currentLatency) const { // TODO Mode to Utils class
+    int calcDelay(std::chrono::microseconds currentLatency) const { // TODO Move to Utils class
         return static_cast<int>(currentLatency / std::chrono::microseconds{16'666});
     }
 
@@ -133,7 +129,6 @@ private:
 
     // Other:
     ResourceConfig _resourceConfig;
-    cpSpace* _physicsSpace;
     bool _quit = false;
 
     static void runImpl(GameContext* context, int* retVal);

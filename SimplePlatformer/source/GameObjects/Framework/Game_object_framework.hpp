@@ -117,6 +117,7 @@ public:
         return (_syncId & 1) != 0;
     }
 
+protected:
     virtual void syncCreateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const = 0;
     virtual void syncUpdateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const = 0;
     virtual void syncDestroyImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const = 0;
@@ -128,6 +129,8 @@ public:
 private:
     SynchronizedObjectManager& _syncObjMgr;
     const SyncId _syncId;
+
+    friend class SynchronizedObjectManager;
 };
 
 #endif // !GAME_OBJECT_FRAMEWORK_HPP

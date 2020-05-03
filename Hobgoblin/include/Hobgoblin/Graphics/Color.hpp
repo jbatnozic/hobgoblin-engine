@@ -26,24 +26,13 @@ public:
 #undef  XMACRO
 };
 
-inline
-Color MultiplyColors(Color c1, Color c2) {
-    Color rv;
-    rv.r = std::min(255, int{c1.r} * int{c2.r} / 255);
-    rv.g = std::min(255, int{c1.g} * int{c2.g} / 255);
-    rv.b = std::min(255, int{c1.b} * int{c2.b} / 255);
-    rv.a = std::min(255, int{c1.a} * int{c2.a} / 255);
-    return rv;
-}
+// TODO Thes functions aren't exactly correct
+Color AddColors(Color c1, Color c2);
+Color MultiplyColors(Color c1, Color c2);
 
 inline
-Color AddColors(Color c1, Color c2) {
-    Color rv;
-    rv.r = std::min(255, int{c1.r} + int{c2.r});
-    rv.g = std::min(255, int{c1.g} + int{c2.g});
-    rv.b = std::min(255, int{c1.b} + int{c2.b});
-    rv.a = std::min(255, int{c1.a} + int{c2.a});
-    return rv;
+Color BlendColors(Color src, Color dst, int blendMode) {
+    // TODO
 }
 
 } // namespace gr

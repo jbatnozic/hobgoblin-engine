@@ -6,6 +6,8 @@ CD  Implement scan functions
 CD  Test scan functions
 RN  Sending very large packets
 QAO eventRender -> eventDisplay
+GR  Color blending functions
+UTL Randomization utilities (random, choose(...) etc.)
 
 RIGELNET:
 	Use std::string as a "binary blob" container

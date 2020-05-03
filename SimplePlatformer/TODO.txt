@@ -1,3 +1,2 @@
-Fix the mess with game initialization (GameContext, MainMenu)
 Finish WindowManager (support for keyboard/mouse input, initialization)
-Make smoother client-side movement
+Directional lights

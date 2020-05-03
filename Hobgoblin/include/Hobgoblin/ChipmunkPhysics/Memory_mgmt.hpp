@@ -37,11 +37,17 @@ void cpCleanUpAndDelete(cpConstraint* constraint) { // TODO To .cpp file
     assert(0 && "Not implemented");
 }
 
+inline
+void cpCleanUpAndDelete(cpSpace* space) { // TODO To .cpp file 
+    cpSpaceFree(space);
+}
+
 template <class T>
 struct cpGenericDeleter {
     static_assert(std::is_same_v<T, cpBody> ||
                   std::is_same_v<T, cpShape> ||
-                  std::is_same_v<T, cpConstraint>,
+                  std::is_same_v<T, cpConstraint> ||
+                  std::is_same_v<T, cpSpace>,
                   "Incompatible type provided");
 
     void operator()(T* object) {
@@ -52,24 +58,14 @@ struct cpGenericDeleter {
 using cpBodyDeleter = cpGenericDeleter<cpBody>;
 using cpShapeDeleter = cpGenericDeleter<cpShape>;
 using cpConstraintDeleter = cpGenericDeleter<cpConstraint>;
+using cpSpaceDeleter = cpGenericDeleter<cpSpace>;
 
 } // namespace detail
 
 using cpBodyUPtr = std::unique_ptr<cpBody, detail::cpBodyDeleter>;
 using cpShapeUPtr = std::unique_ptr<cpShape, detail::cpShapeDeleter>;
 using cpConstraintUPtr = std::unique_ptr<cpConstraint, detail::cpConstraintDeleter>;
-
-/*BodyUniquePtr MakeBodyUniquePtr(cpSpace* space, cpBody* body = nullptr) {
-    return BodyUniquePtr(body, BodyDeleter{space});
-}
-
-ShapeUniquePtr MakeShapeUniquePtr(cpSpace* space, cpShape* shape = nullptr) {
-    return ShapeUniquePtr(shape, ShapeDeleter{space});
-}
-
-ConstraintUniquePtr MakeConstraintUniquePtr(cpSpace* space, cpConstraint* constraint = nullptr) {
-    return ConstraintUniquePtr(constraint, ConstraintDeleter{space});
-}*/
+using cpSpaceUPtr = std::unique_ptr<cpSpace, detail::cpSpaceDeleter>;
 
 } // namespace cp
 HOBGOBLIN_NAMESPACE_END

@@ -19,24 +19,27 @@ T Dist_(T x1, T y1, T x2, T y2) {
 }
 
 std::uint8_t LightFunc(double normalizedDistance) {
-    return static_cast<std::uint8_t>(255.0 * /*std::sqrt*/(1.0 - normalizedDistance));
+    //const double multiplier = 1.0 - normalizedDistance;
+    const double multiplier = (normalizedDistance < 0.5) ? (1.0 - normalizedDistance * 0.5)
+                                                         : (1.5 - normalizedDistance * 1.5);
+    return static_cast<std::uint8_t>(255.0 * multiplier);
 }
 
 } // namespace
 
-LightingController::Light::Light(float x, float y, float radius, hg::gr::Color color)
+LightingController::Light::Light(float x, float y, float radius, Color color)
     : _x{x}
     , _y{y}
     , _radius{radius}
     , _color{color}
 {
-    hg::PZInteger gridDim = static_cast<hg::PZInteger>(std::ceil(radius)) * 2 + 1;
+    PZInteger gridDim = static_cast<PZInteger>(std::ceil(radius)) * 2 + 1;
     _intensities.resize(gridDim, gridDim);
 }
 
 void LightingController::Light::render(const hg::util::RowMajorGrid<Cell>& world, float cellResolution) {
-    const auto lightXInWorldGridCoords = static_cast<hg::PZInteger>(_x / cellResolution);
-    const auto lightYInWorldGridCoords = static_cast<hg::PZInteger>(_y / cellResolution);
+    const auto lightXInWorldGridCoords = static_cast<PZInteger>(_x / cellResolution);
+    const auto lightYInWorldGridCoords = static_cast<PZInteger>(_y / cellResolution);
 
     const auto intensitiesTopLeftXInWorldGridCoords =
         static_cast<int>(lightXInWorldGridCoords - _intensities.getWidth() / 2);
@@ -44,17 +47,17 @@ void LightingController::Light::render(const hg::util::RowMajorGrid<Cell>& world
     const auto intensitiesTopLeftYInWorldGridCoords =
         static_cast<int>(lightYInWorldGridCoords - _intensities.getWidth() / 2);
 
-    for (hg::PZInteger yOffset = 0; yOffset < _intensities.getHeight(); yOffset += 1) {
+    for (PZInteger yOffset = 0; yOffset < _intensities.getHeight(); yOffset += 1) {
         if (intensitiesTopLeftYInWorldGridCoords + yOffset < 0 ||
             intensitiesTopLeftYInWorldGridCoords + yOffset >= world.getHeight()) {
             // Black out row
-            for (hg::PZInteger xOffset = 0; xOffset < _intensities.getWidth(); xOffset += 1) {
+            for (PZInteger xOffset = 0; xOffset < _intensities.getWidth(); xOffset += 1) {
                 _intensities[yOffset][xOffset] = 0;
             }
             continue;
         }
 
-        for (hg::PZInteger xOffset = 0; xOffset < _intensities.getWidth(); xOffset += 1) {
+        for (PZInteger xOffset = 0; xOffset < _intensities.getWidth(); xOffset += 1) {
             if (intensitiesTopLeftXInWorldGridCoords + xOffset < 0 ||
                 intensitiesTopLeftXInWorldGridCoords + xOffset >= world.getWidth()) {
                 // Black out cell
@@ -71,14 +74,14 @@ void LightingController::Light::render(const hg::util::RowMajorGrid<Cell>& world
 
 std::uint8_t LightingController::Light::_trace(const hg::util::RowMajorGrid<Cell>& world, float cellResolution,
                                                float lightX, float lightY,
-                                               hg::PZInteger cellX, hg::PZInteger cellY) const {
+                                               PZInteger cellX, PZInteger cellY) const {
     const float PRECISION = 1.0;
 
     const float cellXInWorldCoords = (cellX + 0.5f) * cellResolution;
     const float cellYInWorldCoords = (cellY + 0.5f) * cellResolution;
 
     const float totalDist = Dist_(cellXInWorldCoords, cellYInWorldCoords, lightX, lightY);
-    const auto iterCnt = static_cast<hg::PZInteger>(std::floor(PRECISION * totalDist / cellResolution));
+    const auto iterCnt = static_cast<PZInteger>(std::floor(PRECISION * totalDist / cellResolution));
 
     const double angle = std::atan2(lightY - cellYInWorldCoords, lightX - cellXInWorldCoords);
     const double stepX = std::cos(angle) * cellResolution / PRECISION;
@@ -86,10 +89,10 @@ std::uint8_t LightingController::Light::_trace(const hg::util::RowMajorGrid<Cell
 
     double currX = cellXInWorldCoords;
     double currY = cellYInWorldCoords;
-    auto lastCellX = static_cast<hg::PZInteger>(currX / cellResolution);
-    auto lastCellY = static_cast<hg::PZInteger>(currY / cellResolution);
+    auto lastCellX = static_cast<PZInteger>(currX / cellResolution);
+    auto lastCellY = static_cast<PZInteger>(currY / cellResolution);
 
-    for (hg::PZInteger i = 0; i <= iterCnt; i += 1) {
+    for (PZInteger i = 0; i <= iterCnt; i += 1) {
         if (i == iterCnt) {
             currX = lightX;
             currY = lightY;
@@ -99,8 +102,8 @@ std::uint8_t LightingController::Light::_trace(const hg::util::RowMajorGrid<Cell
             currY += stepY;
         }
 
-        const auto currCellX = static_cast<hg::PZInteger>(currX / cellResolution);
-        const auto currCellY = static_cast<hg::PZInteger>(currY / cellResolution);
+        const auto currCellX = static_cast<PZInteger>(currX / cellResolution);
+        const auto currCellY = static_cast<PZInteger>(currY / cellResolution);
 
         if (currCellX == lastCellX && currCellY == lastCellY) {
             continue;
@@ -124,13 +127,14 @@ std::uint8_t LightingController::Light::_trace(const hg::util::RowMajorGrid<Cell
         lastCellY = currCellY;
     }
 
+    // Normalized = between 0 and 1
     const double normalizedDistance = totalDist / (_radius * cellResolution);
     return LightFunc(std::min(normalizedDistance, 1.0));
 }
 
 void LightingController::Light::integrate(hg::util::RowMajorGrid<Cell>& world, float cellResolution) const {
-    const auto lightXInWorldGridCoords = static_cast<hg::PZInteger>(_x / cellResolution);
-    const auto lightYInWorldGridCoords = static_cast<hg::PZInteger>(_y / cellResolution);
+    const auto lightXInWorldGridCoords = static_cast<PZInteger>(_x / cellResolution);
+    const auto lightYInWorldGridCoords = static_cast<PZInteger>(_y / cellResolution);
 
     const auto intensitiesTopLeftXInWorldGridCoords =
         static_cast<int>(lightXInWorldGridCoords - _intensities.getWidth() / 2);
@@ -138,13 +142,13 @@ void LightingController::Light::integrate(hg::util::RowMajorGrid<Cell>& world, f
     const auto intensitiesTopLeftYInWorldGridCoords =
         static_cast<int>(lightYInWorldGridCoords - _intensities.getWidth() / 2);
 
-    for (hg::PZInteger yOffset = 0; yOffset < _intensities.getHeight(); yOffset += 1) {
+    for (PZInteger yOffset = 0; yOffset < _intensities.getHeight(); yOffset += 1) {
         if (intensitiesTopLeftYInWorldGridCoords + yOffset < 0 ||
             intensitiesTopLeftYInWorldGridCoords + yOffset >= world.getHeight()) {
             continue;
         }
 
-        for (hg::PZInteger xOffset = 0; xOffset < _intensities.getWidth(); xOffset += 1) {
+        for (PZInteger xOffset = 0; xOffset < _intensities.getWidth(); xOffset += 1) {
             if (intensitiesTopLeftXInWorldGridCoords + xOffset < 0 ||
                 intensitiesTopLeftXInWorldGridCoords + xOffset >= world.getWidth()) {
                 continue;
@@ -154,7 +158,7 @@ void LightingController::Light::integrate(hg::util::RowMajorGrid<Cell>& world, f
                                    [intensitiesTopLeftXInWorldGridCoords + xOffset];
 
             auto intensity = _intensities[yOffset][xOffset];
-            hg::gr::Color intensityDummyColor{intensity, intensity, intensity};
+            Color intensityDummyColor{intensity, intensity, intensity};
             worldCell.color = hg::gr::AddColors(worldCell.color,
                                                 hg::gr::MultiplyColors(_color, intensityDummyColor));
         }
@@ -166,10 +170,73 @@ void LightingController::Light::setPosition(float x, float y) {
     _y = y;
 }
 
+void LightingController::Light::setColor(Color color) {
+    _color = color;
+}
+
+void LightingController::Light::setRadius(float radius) {
+    _radius = radius;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-LightingController::LightingController(hg::PZInteger width, hg::PZInteger height,
-                                       float cellResolution, hg::gr::Color ambientColor)
+LightingController::LightHandle::LightHandle(LightingController& lightingCtrl, PZInteger lightIndex)
+    : _lightingCtrl{&lightingCtrl}
+    , _lightIndex{lightIndex}
+{
+}
+
+LightingController::LightHandle::LightHandle(LightHandle&& other) 
+    : _lightingCtrl{other._lightingCtrl}
+    , _lightIndex{other._lightIndex}
+{
+    other._lightingCtrl = nullptr;
+}
+
+LightingController::LightHandle& LightingController::LightHandle::operator=(LightHandle&& other) {
+    this->_lightingCtrl = other._lightingCtrl;
+    this->_lightIndex = other._lightIndex;
+
+    other._lightingCtrl = nullptr;
+
+    return *this;
+}
+
+LightingController::LightHandle::~LightHandle() {
+    if (isValid()) {
+        invalidate();
+    }
+}
+
+void LightingController::LightHandle::setPosition(float x, float y) const {
+    assert(isValid());
+    _lightingCtrl->_setLightPosition(_lightIndex, x, y);
+}
+
+void LightingController::LightHandle::setColor(Color color) const {
+    assert(isValid());
+    _lightingCtrl->_setLightColor(_lightIndex, color);
+}
+
+void LightingController::LightHandle::setRadius(float radius) const {
+    assert(isValid());
+    _lightingCtrl->_setLightRadius(_lightIndex, radius);
+}
+
+void LightingController::LightHandle::invalidate() {
+    assert(isValid());
+    _lightingCtrl->_removeLight(_lightIndex);
+    _lightingCtrl = nullptr;
+}
+
+bool LightingController::LightHandle::isValid() const noexcept {
+    return (_lightingCtrl != nullptr);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+LightingController::LightingController(PZInteger width, PZInteger height,
+                                       float cellResolution, Color ambientColor)
     : _world{width, height}
     , _cellResolution{cellResolution}
     , _ambientColor{ambientColor}
@@ -181,7 +248,7 @@ LightingController::LightingController()
 {
 }
 
-LightingController::LightHandle LightingController::addLight(float x, float y, hg::gr::Color color, float radius) {
+LightingController::LightHandle LightingController::addLight(float x, float y, Color color, float radius) {
     auto lightIndex = _lightIndexer.acquire();
 
     if (_lights.size() <= lightIndex) {
@@ -190,23 +257,17 @@ LightingController::LightHandle LightingController::addLight(float x, float y, h
 
     _lights[lightIndex] = Light{x, y, radius, color};
 
-    return static_cast<LightHandle>(lightIndex);
+    return LightHandle{*this, hg::ToPz(lightIndex)};
 }
 
-void LightingController::moveLight(LightHandle handle, float x, float y) {
-    auto& light = _lights[hg::ToSz(handle)];
-    light.setPosition(x, y);
-    
-}
-
-hg::gr::Color LightingController::getColorAt(hg::PZInteger x, hg::PZInteger y) const {
+LightingController::Color LightingController::getColorAt(PZInteger x, PZInteger y) const {
     return _world.at(y, x).color;
 }
 
 void LightingController::render() {
     // Clear world with ambient light
-    for (hg::PZInteger y = 0; y < _world.getHeight(); y += 1) {
-        for (hg::PZInteger x = 0; x < _world.getWidth(); x += 1) {
+    for (PZInteger y = 0; y < _world.getHeight(); y += 1) {
+        for (PZInteger x = 0; x < _world.getWidth(); x += 1) {
             _world[y][x].color = _ambientColor;
         }
     }
@@ -221,164 +282,28 @@ void LightingController::render() {
     }
 }
 
-void LightingController::resize(hg::PZInteger width, hg::PZInteger height, float cellResolution) {
+void LightingController::resize(PZInteger width, PZInteger height, float cellResolution) {
     _world.resize(width, height);
     _cellResolution = _cellResolution;
 }
 
-void LightingController::setCellIsWall(hg::PZInteger x, hg::PZInteger y, bool isWall) {
+void LightingController::setCellIsWall(PZInteger x, PZInteger y, bool isWall) {
     _world.at(y, x).isWall = isWall;
 }
 
+void LightingController::_setLightPosition(PZInteger lightIndex, float x, float y) {
+    _lights[hg::ToSz(lightIndex)].setPosition(x, y);
+}
 
+void LightingController::_setLightColor(PZInteger lightIndex, Color color) {
+    _lights[hg::ToSz(lightIndex)].setColor(color);
+}
 
+void LightingController::_setLightRadius(PZInteger lightIndex, float radius) {
+    _lights[hg::ToSz(lightIndex)].setRadius(radius);
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//void LightingController::renderLight(float lightX, float lightY, float intensity) {
-//    const int radius = std::ceil(intensity);
-//
-//    const int startX = static_cast<int>(lightX / _cellResolution);
-//    const int startY = static_cast<int>(lightY / _cellResolution);
-//
-//    // Centre
-//    if (Clamp(startX, 0, _width - 1) == startX && Clamp(startY, 0, _height - 1) == startY) {
-//        cellAt(startX, startY).intensity = std::min(1.f, intensity);
-//    }
-//
-//    for (int offset = 1; offset <= radius; offset += 1) {
-//        // Upper row
-//        {
-//            const int yOffset = startY - offset;
-//            if (Clamp(yOffset, 0, _height - 1) == yOffset) {
-//                for (int xOffset = startX - offset; xOffset <= startX + offset; xOffset += 1) {
-//                    if (xOffset == startX) {
-//                        int __break = 5;
-//                    }
-//
-//                    if (Clamp(xOffset, 0, _width - 1) == xOffset) {
-//                        cellAt(xOffset, yOffset).intensity = std::min(1.f, factor(xOffset, yOffset, lightX, lightY, intensity));
-//                    }
-//                }
-//            }
-//        }
-//
-//        // Lower row
-//        {
-//            const int yOffset = startY + offset;
-//            if (Clamp(yOffset, 0, _height - 1) == yOffset) {
-//                for (int xOffset = startX - offset; xOffset <= startX + offset; xOffset += 1) {
-//                    if (Clamp(xOffset, 0, _width - 1) == xOffset) {
-//                        cellAt(xOffset, yOffset).intensity = std::min(1.f, factor(xOffset, yOffset, lightX, lightY, intensity));
-//                    }
-//                }
-//            }
-//        }
-//
-//        // Left column
-//        {
-//            const int xOffset = startX - offset;
-//            if (Clamp(xOffset, 0, _width - 1) == xOffset) {
-//                for (int yOffset = startY - offset + 1; yOffset < startY + offset; yOffset += 1) {
-//                    if (Clamp(yOffset, 0, _height - 1) == yOffset) {
-//                        cellAt(xOffset, yOffset).intensity = std::min(1.f, factor(xOffset, yOffset, lightX, lightY, intensity));
-//                    }
-//                }
-//            }
-//        }
-//
-//        // Right column
-//        {
-//            const int xOffset = startX + offset;
-//            if (Clamp(xOffset, 0, _width - 1) == xOffset) {
-//                for (int yOffset = startY - offset + 1; yOffset < startY + offset; yOffset += 1) {
-//                    if (Clamp(yOffset, 0, _height - 1) == yOffset) {
-//                        cellAt(xOffset, yOffset).intensity = std::min(1.f, factor(xOffset, yOffset, lightX, lightY, intensity));
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}
-//
-//LightingController::Cell& LightingController::cellAt(hg::PZInteger xOffset, hg::PZInteger yOffset) {
-//    return _cellMatrix.at(hg::pztos(yOffset * _width + xOffset));
-//}
-//
-//const LightingController::Cell& LightingController::cellAt(hg::PZInteger xOffset, hg::PZInteger yOffset) const {
-//    return _cellMatrix.at(hg::pztos(yOffset * _width + xOffset));
-//}
-
-//float LightingController::factor(hg::PZInteger cellX, hg::PZInteger cellY, 
-//                              float lightX, float lightY, float intensity) const {
-//    const float xx = (cellX + 0.5f) * _cellResolution; // cell x in world coordinates
-//    const float yy = (cellY + 0.5f) * _cellResolution; // cell y in world coordinates
-//
-//    const float totalDist = Dist_(xx, yy, lightX, lightY);
-//    const int iterCnt = std::floor(totalDist / _cellResolution);
-//
-//    const double angle = std::atan2(lightY - yy, lightX - xx);
-//    const float stepX = 1.f * _cellResolution * static_cast<float>(std::cos(angle));
-//    const float stepY = 1.f * _cellResolution * static_cast<float>(std::sin(angle));
-//
-//    float currX = xx;
-//    float currY = yy;
-//    float lastCellX = currX / _cellResolution;
-//    float lastCellY = currY / _cellResolution;
-//        
-//    for (int i = 0; i <= iterCnt; i += 1) {
-//        if (i == iterCnt) {
-//            currX = lightX;
-//            currY = lightY;
-//        }
-//        else {
-//            currX += stepX;
-//            currY += stepY;
-//        }
-//
-//        const int currCellX = currX / _cellResolution;
-//        const int currCellY = currY / _cellResolution;
-//
-//        if (currCellX == lastCellX && currCellY == lastCellY) {
-//            continue;
-//        }
-//
-//        auto& currCell = cellAt(currCellX, currCellY);
-//
-//        if (currCell.isWall) { // Walls are opaque
-//            return 0.0f;
-//        }
-//
-//        if ((lastCellX - currCellX) != 0 && (lastCellY - currCellY) != 0) {
-//            if (cellAt(lastCellX, currCellY).isWall && cellAt(currCellX, lastCellY).isWall) {
-//                return 0.0f;
-//            }
-//        }
-//
-//        lastCellX = currCellX;
-//        lastCellY = currCellY;
-//    }
-//    
-//    //auto lightFunc = [](float d) { return std::sqrt(std::cos(d * 3.1415f / 2.f)); };
-//    //auto lightFunc = [](float d) { return std::cos(d * 3.1415f / 2.f); };
-//    auto lightFunc = [](float d) { return std::sqrt(1.f - d); };
-//    
-//    //return 1.f / Sqr(Dist_(xx, yy, lightX, lightY));
-//    const float normalizedDistance = Dist_(xx, yy, lightX, lightY) / (intensity * _cellResolution);
-//    return lightFunc(Clamp(normalizedDistance, 0.f, 1.f));
-//}
+void LightingController::_removeLight(PZInteger lightIndex) {
+    _lights[hg::ToSz(lightIndex)] = Light(0.f, 0.f, 0.f, Color::Transparent);
+    _lightIndexer.free(lightIndex);
+}

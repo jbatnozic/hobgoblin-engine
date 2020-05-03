@@ -7,7 +7,6 @@
     <ClCompile Include="source\GameContext\Game_context.cpp" />
     <ClCompile Include="source\Utility\Keyboard_input.cpp" />
     <ClCompile Include="source\GameObjects\Managers\Networking_manager.cpp" />
-    <ClCompile Include="source\GameObjects\Managers\Terrain_manager.cpp" />
     <ClCompile Include="source\GameObjects\Managers\Window_manager.cpp" />
     <ClCompile Include="source\GameObjects\Managers\Controls_manager.cpp" />
     <ClCompile Include="source\GameObjects\Managers\Main_game_controller.cpp" />
@@ -18,6 +17,7 @@
     <ClCompile Include="source\GameObjects\Gameplay\PhysicsPlayer.cpp" />
     <ClCompile Include="source\GameObjects\Framework\Execution_priorities.cpp" />
     <ClCompile Include="source\Terrain\Terrain.cpp" />
+    <ClCompile Include="source\GameObjects\Managers\Environment_manager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Experimental\Isometric_tester.hpp" />
@@ -27,7 +27,6 @@
     <ClInclude Include="source\Utility\Keyboard_input.hpp" />
     <ClInclude Include="source\GameObjects\Managers\Window_manager.hpp" />
     <ClInclude Include="source\GameObjects\Managers\Networking_manager.hpp" />
-    <ClInclude Include="source\GameObjects\Managers\Terrain_manager.hpp" />
     <ClInclude Include="source\GameObjects\Managers\Controls_manager.hpp" />
     <ClInclude Include="source\GameObjects\Managers\Main_game_controller.hpp" />
     <ClInclude Include="source\GameObjects\Gameplay\Player.hpp" />
@@ -37,5 +36,6 @@
     <ClInclude Include="source\Terrain\Terrain.hpp" />
     <ClInclude Include="source\GameObjects\Gameplay\PhysicsPlayer.hpp" />
     <ClInclude Include="source\GameObjects\Framework\Execution_priorities.hpp" />
+    <ClInclude Include="source\GameObjects\Managers\Environment_manager.hpp" />
   </ItemGroup>
 </Project>

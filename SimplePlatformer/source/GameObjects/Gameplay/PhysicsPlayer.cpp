@@ -75,6 +75,9 @@ PhysicsPlayer::PhysicsPlayer(QAO_RuntimeRef rtRef, SynchronizedObjectManager& sy
         cpBodySetPosition(_body.get(), cpv(initialState.x, initialState.y));
         cpShapeSetElasticity(_shape.get(), 0.5);
     }
+
+    //_lightHandle = ctx().envMgr.addLight(initialState.x, initialState.y, hg::gr::Color::MediumBioletRed, 8.f);
+    _lightHandle = ctx().envMgr.addLight(initialState.x, initialState.y, hg::gr::Color::White, 8.f);
 }
 
 PhysicsPlayer::~PhysicsPlayer() {
@@ -133,12 +136,14 @@ void PhysicsPlayer::eventUpdate() {
 }
 
 void PhysicsPlayer::eventPostUpdate() {
+    auto& self = _ssch.getCurrentState();
     if (isMasterObject()) {
-        auto& self = _ssch.getCurrentState();
         auto physicsPos = cpBodyGetPosition(_body.get());
         self.x = static_cast<float>(physicsPos.x);
         self.y = static_cast<float>(physicsPos.y);
     }
+
+    _lightHandle.setPosition(self.x, self.y);
 }
 
 void PhysicsPlayer::eventDraw1() {

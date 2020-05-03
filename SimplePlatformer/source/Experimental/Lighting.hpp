@@ -2,6 +2,7 @@
 
 #include <Hobgoblin/Graphics.hpp>
 #include <Hobgoblin/Utility/Grids.hpp>
+#include <Hobgoblin/Utility/NoCopyNoMove.hpp>
 #include <Hobgoblin/Utility/Slab_indexer.hpp>
 
 #include <cstdint>
@@ -9,25 +10,49 @@
 
 #include "GameObjects/Framework/Game_object_framework.hpp"
 
-class LightingController {
+class LightingController : public hg::util::NonCopyable, public hg::util::NonMoveable {
 public:
-    using LightHandle = int;
+    using Color = hg::gr::Color;
+    using PZInteger = hg::PZInteger;
+
+    class LightHandle : public hg::util::NonCopyable {
+    public:
+        LightHandle() = default;
+        ~LightHandle();
+
+        LightHandle(LightHandle&& other);
+        LightHandle& operator=(LightHandle&& other);
+
+        void setPosition(float x, float y) const;
+        void setColor(Color color) const;
+        void setRadius(float radius) const;
+
+        void invalidate();
+        bool isValid() const noexcept;
+
+    private:
+        LightingController* _lightingCtrl = nullptr;
+        PZInteger _lightIndex = 0;
+
+        LightHandle(LightingController& lightingCtrl, PZInteger lightIndex);
+        friend class LightingController;
+    };
 
     LightingController();
 
-    LightingController(hg::PZInteger width, hg::PZInteger height, 
-                       float cellResolution, hg::gr::Color ambientColor = hg::gr::Color::White);
+    LightingController(PZInteger width, PZInteger height, 
+                       float cellResolution, Color ambientColor = Color::White);
 
     void render();
 
-    LightHandle addLight(float x, float y, hg::gr::Color color, float radius);
-    void moveLight(LightHandle handle, float x, float y); // TODO Do this through handle
+    LightHandle addLight(float x, float y, Color color, float radius);
 
-    hg::gr::Color getColorAt(hg::PZInteger x, hg::PZInteger y) const;
+    hg::gr::Color getColorAt(PZInteger x, PZInteger y) const;
 
-    void resize(hg::PZInteger width, hg::PZInteger height, float cellResolution);
+    void resize(PZInteger width, PZInteger height, float cellResolution);
 
-    void setCellIsWall(hg::PZInteger x, hg::PZInteger y, bool isWall);
+    // TODO Replace with setCellOpacity(Color) which multiplies light coming through
+    void setCellIsWall(PZInteger x, PZInteger y, bool isWall);
 
 private:
     struct Cell {
@@ -39,23 +64,25 @@ private:
     public:
         Light() = default;
 
-        Light(float x, float y, float radius, hg::gr::Color color);
+        Light(float x, float y, float radius, Color color);
 
         void render(const hg::util::RowMajorGrid<Cell>& world, float cellResolution);
         void integrate(hg::util::RowMajorGrid<Cell>& world, float cellResolution) const;
 
         void setPosition(float x, float y);
+        void setColor(Color color);
+        void setRadius(float radius);
 
     private:
         float _x;
         float _y;
         float _radius; // Radius is expressed in cells (not pixels)
-        hg::gr::Color _color;
+        Color _color;
 
         hg::util::RowMajorGrid<std::uint8_t> _intensities;
 
         std::uint8_t _trace(const hg::util::RowMajorGrid<Cell>& world, float cellResolution, 
-                            float lightX, float lightY, hg::PZInteger cellX, hg::PZInteger cellY) const;
+                            float lightX, float lightY, PZInteger cellX, PZInteger cellY) const;
     };
 
     hg::util::RowMajorGrid<Cell> _world;
@@ -64,4 +91,10 @@ private:
 
     float _cellResolution;
     hg::gr::Color _ambientColor;
+
+    void _setLightPosition(PZInteger lightIndex, float x, float y);
+    void _setLightColor(PZInteger lightIndex, Color color);
+    void _setLightRadius(PZInteger lightIndex, float radius);
+    void _removeLight(PZInteger lightIndex);
+    friend class LightHandle;
 };

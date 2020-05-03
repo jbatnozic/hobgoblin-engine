@@ -183,7 +183,7 @@
     <ClCompile Include="source\GameObjects\Managers\Networking_manager.cpp" />
     <ClCompile Include="source\GameObjects\Framework\Game_object_framework.cpp" />
     <ClCompile Include="source\GameObjects\Gameplay\Player.cpp" />
-    <ClCompile Include="source\GameObjects\Managers\Terrain_manager.cpp" />
+    <ClCompile Include="source\GameObjects\Managers\Environment_manager.cpp" />
     <ClCompile Include="source\GameObjects\Managers\Window_manager.cpp" />
     <ClCompile Include="source\Main\Main.cpp" />
     <ClCompile Include="source\Main\Main_impl.cpp" />
@@ -204,7 +204,7 @@
     <ClInclude Include="source\GameObjects\Managers\Networking_manager.hpp" />
     <ClInclude Include="source\GameObjects\Framework\Game_object_framework.hpp" />
     <ClInclude Include="source\GameObjects\Gameplay\Player.hpp" />
-    <ClInclude Include="source\GameObjects\Managers\Terrain_manager.hpp" />
+    <ClInclude Include="source\GameObjects\Managers\Environment_manager.hpp" />
     <ClInclude Include="source\GameObjects\Managers\Window_manager.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

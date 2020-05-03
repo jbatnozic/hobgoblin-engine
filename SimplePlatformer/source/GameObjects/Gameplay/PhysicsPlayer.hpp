@@ -9,6 +9,7 @@
 #include <Hobgoblin/Utility/State_scheduler.hpp>
 
 #include "GameObjects/Framework/Game_object_framework.hpp"
+#include "Experimental/Lighting.hpp"
 
 class PhysicsPlayer : public GOF_SynchronizedObject {
 public:
@@ -50,6 +51,7 @@ private:
 
     hg::cpBodyUPtr _body;
     hg::cpShapeUPtr _shape;
+    LightingController::LightHandle _lightHandle;
 
     friend RN_HANDLER_SIGNATURE(UpdatePhysicsPlayer, RN_ARGS(SyncId, syncId, PhysicsPlayer::ViState&, state));
 };
