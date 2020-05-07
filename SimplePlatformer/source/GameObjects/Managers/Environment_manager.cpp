@@ -90,6 +90,7 @@ EnvironmentManager::~EnvironmentManager() {
 
 void EnvironmentManager::generate(hg::PZInteger width, hg::PZInteger height, float cellResolution) {
     auto* space = ctx().getPhysicsSpace();
+    //cpSpaceUseSpatialHash(space, 24.f, 1'000);
 
     _resizeAllGrids(width, height);
 
@@ -97,7 +98,6 @@ void EnvironmentManager::generate(hg::PZInteger width, hg::PZInteger height, flo
         for (hg::PZInteger x = 0; x < getTerrainColumnCount(); x += 1) {
             if ((std::rand() % 100) < 15 ||
                 x == 0 || y == 0 || (x == (getTerrainColumnCount() - 1)) || (y == (getTerrainRowCount() - 1))) {
-
                 setCellType(x, y, Terrain::TypeId::CaveWall);
             }
             else {
@@ -122,21 +122,29 @@ void EnvironmentManager::setCellType(hg::PZInteger x, hg::PZInteger y, Terrain::
     _typeIdGrid[y][x] = typeId;
 
     // Physics shape:
-    auto* space = ctx().getPhysicsSpace();
-    auto* body = cpSpaceGetStaticBody(space);
     auto vertices = GetShapeVertices(tprop.shape, _cellResolution);
-    for (auto& vertex : vertices) {
-        vertex.x += cpFloat{_cellResolution} * x;
-        vertex.y += cpFloat{_cellResolution} * y;
+    if (!vertices.empty()) {
+        auto* space = ctx().getPhysicsSpace();
+        auto* body = cpSpaceGetStaticBody(space);
+
+        for (auto& vertex : vertices) {
+            vertex.x += cpFloat{_cellResolution} *x;
+            vertex.y += cpFloat{_cellResolution} *y;
+        }
+
+        auto* shape = cpPolyShapeNew(body,
+                                     static_cast<int>(vertices.size()),
+                                     vertices.data(),
+                                     cpTransformIdentity,
+                                     0.0);
+        _shapeGrid[y][x] = hg::cpShapeUPtr{cpSpaceAddShape(space, shape)};
+        cpShapeSetElasticity(shape, 0.5);
+        cpSpaceReindexShape(space, shape);
     }
-
-    auto* shape = cpPolyShapeNew(body,
-                                 static_cast<int>(vertices.size()),
-                                 vertices.data(),
-                                 cpTransformIdentity,
-                                 0.0);
-    _shapeGrid[y][x] = hg::cpShapeUPtr{cpSpaceAddShape(space, shape)};
-
+    else {
+        _shapeGrid[y][x].reset();
+    }
+    
     // Lighting:
     if (tprop.shape == Terrain::CellShape::FullSquare) {
         _lightingCtrl.setCellIsWall(x, y, true);
@@ -176,7 +184,6 @@ void EnvironmentManager::syncDestroyImpl(RN_Node& node, const std::vector<hg::PZ
 
 void EnvironmentManager::eventPostUpdate() {
     _lightingCtrl.render();
-    _lightingCtrl.smooth();
     //_lightingCtrl.smooth();
 }
 

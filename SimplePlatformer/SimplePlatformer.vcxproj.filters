@@ -18,6 +18,7 @@
     <ClCompile Include="source\GameObjects\Framework\Execution_priorities.cpp" />
     <ClCompile Include="source\Terrain\Terrain.cpp" />
     <ClCompile Include="source\GameObjects\Managers\Environment_manager.cpp" />
+    <ClCompile Include="source\GameObjects\Gameplay\PhysicsBullet.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Experimental\Isometric_tester.hpp" />
@@ -37,5 +38,7 @@
     <ClInclude Include="source\GameObjects\Gameplay\PhysicsPlayer.hpp" />
     <ClInclude Include="source\GameObjects\Framework\Execution_priorities.hpp" />
     <ClInclude Include="source\GameObjects\Managers\Environment_manager.hpp" />
+    <ClInclude Include="source\GameContext\Game_config.hpp" />
+    <ClInclude Include="source\GameObjects\Gameplay\PhysicsBullet.hpp" />
   </ItemGroup>
 </Project>

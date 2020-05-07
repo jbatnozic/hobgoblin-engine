@@ -51,6 +51,8 @@ using std::chrono::duration_cast;
 } // namespace
 
 void GameContext::configure(Mode mode) {
+    _mode = mode;
+
     switch (mode) {
     case Mode::Server:
         playerIndex = PLAYER_INDEX_NONE;
@@ -65,7 +67,7 @@ void GameContext::configure(Mode mode) {
         {
             std::cout << "Generating terrain...\n";
             hg::util::Stopwatch stopwatch;
-            envMgr.generate(32, 32, 32.f);
+            envMgr.generate(100, 100, 32.f);
             std::cout << "DONE! Terrain generated (took " << stopwatch.getElapsedTime().count() << "ms)\n";
         }
         break;
@@ -94,7 +96,7 @@ void GameContext::configure(Mode mode) {
         {
             std::cout << "Generating terrain...\n";
             hg::util::Stopwatch stopwatch;
-            envMgr.generate(32, 32, 32.f);
+            envMgr.generate(100, 100, 32.f); // Up to 2048 x 2048
             std::cout << "DONE! Terrain generated (took " << stopwatch.getElapsedTime().count() << "ms)\n";
         }
         break;
@@ -113,15 +115,13 @@ void GameContext::configure(Mode mode) {
     default:
         throw hg::util::TracedLogicError("Invalid configuration");
     }
-
-    _mode = mode;
 }
 
 void GameContext::runImpl(GameContext* context, int* retVal) {
     assert(context != nullptr);
     assert(retVal != nullptr);
 
-    const Duration deltaTime = Duration{1'000'000} / 60; // TODO Temp.
+    const Duration deltaTime = context->getDeltaTime();
     Duration accumulatorTime = deltaTime;
     auto currentTime = steady_clock::now();
 

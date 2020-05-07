@@ -106,7 +106,7 @@ void WindowManager::eventPostUpdate() {
 
 void WindowManager::eventRender() {
     _window.clear(sf::Color::Black);
-    drawMainRenderTexture(DrawPosition::Centre);
+    drawMainRenderTexture(DrawPosition::Fit);
     _window.display();
 
     _kbi.prepForEvents();

@@ -43,6 +43,11 @@ public:
     sf::View& getView(hg::PZInteger viewIndex = 0);
     const sf::View& getView(hg::PZInteger viewIndex = 0) const;
 
+    sf::Vector2f getMousePos(hg::PZInteger viewIndex = 0) const {
+        auto pixelPos = sf::Mouse::getPosition(_window);
+        return _window.mapPixelToCoords(pixelPos, getView(viewIndex));
+    }
+
 private:
     sf::RenderWindow _window;
     sf::RenderTexture _mainRenderTexture;

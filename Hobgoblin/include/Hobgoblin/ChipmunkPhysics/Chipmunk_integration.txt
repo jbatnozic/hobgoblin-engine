@@ -1,0 +1,11 @@
+
+Overall:
+    Force compiling as C++
+    Fix compile errors (probably just fix pointer conversions in a few places)
+
+In chipmunk_types.h:
+    #include Chipmunk_config
+
+In chipunk.h:
+    #define CP_EXPORT to nothing
+    disable extern "C" block

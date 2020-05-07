@@ -3,6 +3,8 @@
 
 #include <Hobgoblin/ChipmunkPhysics.hpp>
 #include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/RigelNet.hpp>
+#include <Hobgoblin/RigelNet_Macros.hpp>
 #include <Hobgoblin/Utility/Any_ptr.hpp>
 #include <Hobgoblin/Utility/Autopack.hpp>
 #include <Hobgoblin/Utility/Packet.hpp>
@@ -41,6 +43,10 @@ public:
     void syncUpdateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const override;
     void syncDestroyImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const override;
 
+    void applyUpdate(const ViState& state, int delay) {
+        _ssch.putNewState(state, delay);
+    }
+
 protected:
     void eventUpdate() override;
     void eventPostUpdate() override;
@@ -53,7 +59,7 @@ private:
     hg::cpShapeUPtr _shape;
     LightingController::LightHandle _lightHandle;
 
-    friend RN_HANDLER_SIGNATURE(UpdatePhysicsPlayer, RN_ARGS(SyncId, syncId, PhysicsPlayer::ViState&, state));
+    //friend RN_HANDLER_SIGNATURE(UpdatePhysicsPlayer, RN_ARGS(SyncId, syncId, PhysicsPlayer::ViState&, state));
 };
 
 #endif // !PLAYER_PHYSICS_PLAYER_HPP

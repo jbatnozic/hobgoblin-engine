@@ -53,10 +53,14 @@ public:
         const hg::gr::SpriteLoader* spriteLoader;
     };
 
+    static constexpr double MICROSECONDS_PER_SECOND = 1'000'000.0;
+
 private:
     GameContext* _parentContext;
     Mode _mode;
     hg::cpSpaceUPtr _physicsSpace;
+    std::chrono::duration<double> _deltaTime;
+    hg::PZInteger _targetFps;
 
 public:
     int playerIndex = PLAYER_INDEX_UNKNOWN;
@@ -73,11 +77,13 @@ public:
     SynchronizedObjectManager syncObjMgr; // TODO This object isn't really a "manager"
     EnvironmentManager envMgr;
 
-    GameContext(const ResourceConfig& resourceConfig)
+    GameContext(const ResourceConfig& resourceConfig, hg::PZInteger targetFps)
         // Essential:
         : _parentContext{nullptr}
         , _mode{Mode::Initial}
         , _physicsSpace{cpSpaceNew()}
+        , _deltaTime{1.0 / static_cast<double>(targetFps)}
+        , _targetFps{targetFps}
         , qaoRuntime{this}
         , windowMgr{qaoRuntime.nonOwning()}
         // Game-specific:
@@ -111,8 +117,12 @@ public:
         return _physicsSpace.get();
     }
 
+    decltype(_deltaTime) getDeltaTime() const {
+        return _deltaTime;
+    }
+
     int calcDelay(std::chrono::microseconds currentLatency) const { // TODO Move to Utils class
-        return static_cast<int>(currentLatency / std::chrono::microseconds{16'666});
+        return static_cast<int>(currentLatency / _deltaTime);
     }
 
     int run();

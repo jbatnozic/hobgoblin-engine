@@ -1,6 +1,7 @@
 
 #include <Hobgoblin/RigelNet.hpp>
 
+#include "GameContext/Game_config.hpp"
 #include "GameObjects/Framework/Execution_priorities.hpp"
 #include "GameObjects/Framework/Game_object_framework.hpp"
 #include "GameObjects/UI/Main_menu.hpp"
@@ -22,7 +23,7 @@ int MainImpl::run(int argc, char* argv[]) {
 	auto spriteLoader = LoadAllSprites();
 	GameContext::ResourceConfig resConfig;
 	resConfig.spriteLoader = &spriteLoader;
-	_gameContext = std::make_unique<GameContext>(resConfig);
+	_gameContext = std::make_unique<GameContext>(resConfig, GameConfig::TARGET_FRAMERATE);
 	QAO_PCreate<MainMenu>(_gameContext->qaoRuntime);
 
 	// Run:

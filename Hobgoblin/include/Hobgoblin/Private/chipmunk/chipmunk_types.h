@@ -22,6 +22,8 @@
 #ifndef CHIPMUNK_TYPES_H
 #define CHIPMUNK_TYPES_H
 
+#include <Hobgoblin/ChipmunkPhysics/Chipmunk_config.hpp>
+
 #include <stdint.h>
 #include <float.h>
 #include <math.h>

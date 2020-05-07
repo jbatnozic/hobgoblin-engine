@@ -1,55 +1,73 @@
 
+#include <cmath>
+
 #include "GameContext/Game_context.hpp"
 #include "GameObjects/Framework/Execution_priorities.hpp"
+#include "GameObjects/Gameplay/PhysicsBullet.hpp"
 #include "GameObjects/Gameplay/PhysicsPlayer.hpp"
 
-RN_DEFINE_HANDLER(CreatePhysicsPlayer, RN_ARGS(SyncId, syncId, PhysicsPlayer::ViState&, state)) {
-    RN_NODE_IN_HANDLER().visit(
-        [=](NetworkingManager::ClientType& client) {
-            auto& global = *client.getUserData<GameContext>();
-            auto& runtime = global.qaoRuntime;
-            auto& syncObjMapper = global.syncObjMgr;
-
-            QAO_PCreate<PhysicsPlayer>(&runtime, syncObjMapper, syncId, state);
+template <class T>
+void CannonicalCreateImpl(RN_Node& node, SyncId syncId, typename T::ViState& state) {
+    node.visit(
+        [&](NetworkingManager::ClientType& client) {
+            auto& ctx = *client.getUserData<GameContext>();
+            auto& runtime = ctx.qaoRuntime;
+            auto& syncObjMapper = ctx.syncObjMgr;
+            QAO_PCreate<T>(&runtime, syncObjMapper, syncId, state);
         },
         [](NetworkingManager::ServerType& server) {
-            // ERROR
+            // TODO ERROR
         }
     );
 }
 
-RN_DEFINE_HANDLER(UpdatePhysicsPlayer, RN_ARGS(SyncId, syncId, PhysicsPlayer::ViState&, state)) {
-    RN_NODE_IN_HANDLER().visit(
-        [=](NetworkingManager::ClientType& client) {
-            auto& global = *client.getUserData<GameContext>();
-            auto& runtime = global.qaoRuntime;
-            auto& syncObjMapper = global.syncObjMgr;
-            auto* player = static_cast<PhysicsPlayer*>(syncObjMapper.getMapping(syncId));
+template <class T>
+void CannonicalUpdateImpl(RN_Node& node, SyncId syncId, typename T::ViState& state) {
+    node.visit(
+        [&](NetworkingManager::ClientType& client) {
+            auto& ctx = *client.getUserData<GameContext>();
+            auto& runtime = ctx.qaoRuntime;
+            auto& syncObjMapper = ctx.syncObjMgr;
+            auto& object = *static_cast<T*>(syncObjMapper.getMapping(syncId));
 
             const std::chrono::microseconds delay = client.getServer().getRemoteInfo().latency / 2LL;
-            player->_ssch.putNewState(state, global.calcDelay(delay));
+            object.applyUpdate(state, ctx.calcDelay(delay));
         },
         [](NetworkingManager::ServerType& server) {
-            // ERROR
+            // TODO ERROR
         }
     );
 }
 
-RN_DEFINE_HANDLER(DestroyPhysicsPlayer, RN_ARGS(SyncId, syncId)) {
-    RN_NODE_IN_HANDLER().visit(
-        [=](NetworkingManager::ClientType& client) {
-            auto& global = *client.getUserData<GameContext>();
-            auto& runtime = global.qaoRuntime;
-            auto& syncObjMapper = global.syncObjMgr;
-            auto* player = static_cast<PhysicsPlayer*>(syncObjMapper.getMapping(syncId));
+template <class T>
+void CannonicalDestroyImpl(RN_Node& node, SyncId syncId) {
+    node.visit(
+        [&](NetworkingManager::ClientType& client) {
+            auto& ctx = *client.getUserData<GameContext>();
+            auto& runtime = ctx.qaoRuntime;
+            auto& syncObjMapper = ctx.syncObjMgr;
+            auto* object = static_cast<T*>(syncObjMapper.getMapping(syncId));
 
-            QAO_PDestroy(player);
+            QAO_PDestroy(object);
         },
         [](NetworkingManager::ServerType& server) {
-            // ERROR
+            // TODO ERROR
         }
     );
 }
+
+#define GENERATE_CANNONICAL_HANDLERS(_class_name_) \
+    RN_DEFINE_HANDLER(Create##_class_name_, RN_ARGS(SyncId, syncId, _class_name_::ViState&, state)) { \
+        CannonicalCreateImpl<_class_name_>(RN_NODE_IN_HANDLER(), syncId, state); \
+    } \
+    RN_DEFINE_HANDLER(Update##_class_name_, RN_ARGS(SyncId, syncId, _class_name_::ViState&, state)) { \
+        CannonicalUpdateImpl<_class_name_>(RN_NODE_IN_HANDLER(), syncId, state); \
+    } \
+    RN_DEFINE_HANDLER(Destroy##_class_name_, RN_ARGS(SyncId, syncId)) { \
+        CannonicalDestroyImpl<_class_name_>(RN_NODE_IN_HANDLER(), syncId); \
+    }
+
+GENERATE_CANNONICAL_HANDLERS(PhysicsPlayer);
 
 PhysicsPlayer::PhysicsPlayer(QAO_RuntimeRef rtRef, SynchronizedObjectManager& syncObjMgr, SyncId syncId,
                              const ViState& initialState)
@@ -63,10 +81,10 @@ PhysicsPlayer::PhysicsPlayer(QAO_RuntimeRef rtRef, SynchronizedObjectManager& sy
         }
     }
 
-    if (isMasterObject()) {
+    if (ctx().isPrivileged()) {
         auto* space = ctx().getPhysicsSpace();
 
-        cpFloat radius = 12.0;
+        cpFloat radius = 8.0;
         cpFloat mass = 1.0;
         cpFloat moment = cpMomentForCircle(mass, 0.0, radius, cpv(0, 0));
 
@@ -77,7 +95,7 @@ PhysicsPlayer::PhysicsPlayer(QAO_RuntimeRef rtRef, SynchronizedObjectManager& sy
     }
 
     //_lightHandle = ctx().envMgr.addLight(initialState.x, initialState.y, hg::gr::Color::MediumBioletRed, 8.f);
-    _lightHandle = ctx().envMgr.addLight(initialState.x, initialState.y, hg::gr::Color::LightCoral, 8.f);
+    _lightHandle = ctx().envMgr.addLight(initialState.x, initialState.y, hg::gr::Color::AntiqueWhite, 8.f);
 }
 
 PhysicsPlayer::~PhysicsPlayer() {
@@ -99,7 +117,7 @@ void PhysicsPlayer::syncDestroyImpl(RN_Node& node, const std::vector<hg::PZInteg
 }
 
 void PhysicsPlayer::eventUpdate() {
-    if (isMasterObject()) {
+    if (ctx().isPrivileged()) {
         auto& self = _ssch.getCurrentState();
         PlayerControls controls = ctx().controlsMgr.getCurrentControlsForPlayer(self.playerIndex);
 
@@ -111,6 +129,18 @@ void PhysicsPlayer::eventUpdate() {
         const cpVect pos = cpBodyGetPosition(_body.get());
         const cpVect force = cpv((right - left) * 1000.0, (down - up) * 1000.0);
         cpBodyApplyForceAtWorldPoint(_body.get(), force, pos);
+
+        if (kbi().keyPressed(KbKey::Space, KbMode::Repeat)) {
+            std::cout << "Creating bullet\n";       
+            auto mousePos = ctx().windowMgr.getMousePos();
+            auto selfPos = cpBodyGetPosition(_body.get());
+
+            PhysicsBullet::ViState vs;
+            vs.x = selfPos.x;
+            vs.y = selfPos.y;
+            auto* bullet = QAO_PCreate<PhysicsBullet>(getRuntime(), ctx().syncObjMgr, SYNC_ID_CREATE_MASTER, vs);
+            bullet->initWithSpeed(std::atan2(mousePos.y - selfPos.y, mousePos.x - selfPos.x), 50.0);
+        }
     }
     else {
         _ssch.scheduleNewStates();
@@ -137,7 +167,7 @@ void PhysicsPlayer::eventUpdate() {
 
 void PhysicsPlayer::eventPostUpdate() {
     auto& self = _ssch.getCurrentState();
-    if (isMasterObject()) {
+    if (ctx().isPrivileged()) {
         auto physicsPos = cpBodyGetPosition(_body.get());
         self.x = static_cast<float>(physicsPos.x);
         self.y = static_cast<float>(physicsPos.y);

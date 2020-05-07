@@ -35,6 +35,7 @@
 	#endif
 #endif
 
+// HOBGOBLIN EDIT
 //#ifdef _WIN32
 //	#define CP_EXPORT __declspec(dllexport)
 //#else
@@ -42,6 +43,7 @@
 //#endif
 #define CP_EXPORT
 
+// HOBGOBLIN EDIT
 //#ifdef __cplusplus
 //extern "C" {
 //#endif
@@ -221,6 +223,8 @@ cpBool cpSpaceShapeQuery_b(cpSpace *space, cpShape *shape, cpSpaceShapeQueryBloc
 //@}
 
 #ifdef __cplusplus
+
+// HOBGOBLIN EDIT
 //}
 
 static inline cpVect operator *(const cpVect v, const cpFloat s){return cpvmult(v, s);}
