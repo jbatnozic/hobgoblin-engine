@@ -1,22 +1,16 @@
 #ifndef GAME_OBJECT_FRAMEWORK_HPP
 #define GAME_OBJECT_FRAMEWORK_HPP
 
-#include <Hobgoblin/QAO.hpp>
-using namespace hg::qao;
-
-#include <Hobgoblin/RigelNet.hpp>
-using namespace hg::rn;
-
 #include <Hobgoblin/Utility/NoCopyNoMove.hpp>
 
-#include <typeinfo>
-#include <unordered_map>
-#include <unordered_set>
+#include "GameObjects/Framework/Common.hpp"
+#include "GameObjects/Framework/Synchronized_object_registry.hpp"
 
 #include "Graphics/Sprites.hpp"
 #include "Utility/Keyboard_input.hpp"
 
-#define TYPEID_SELF typeid(decltype(*this))
+// ///////////////////////////////////////////////////////////////////////////////////////////// //
+// TYPE HIERARCHY
 
 class GameContext;
 
@@ -27,7 +21,6 @@ public:
     GameContext& ctx() const;
     KbInputTracker& kbi() const;
     const hg::gr::Multisprite& getspr(SpriteId spriteId) const;
-    // TODO: Add more utility methods
 };
 
 // I:
@@ -50,41 +43,6 @@ public:
     using GOF_Base::GOF_Base;
 };
 
-using SyncId = std::int64_t;
-constexpr SyncId SYNC_ID_CREATE_MASTER = 0;
-
-class GOF_SynchronizedObject;
-
-class SynchronizedObjectManager : public hg::util::NonCopyable, public hg::util::NonMoveable {
-    // TODO Cover edge case when an object is created and then immediately destroyed (in the same step)
-public:
-    SynchronizedObjectManager(RN_Node& node);
-
-    void setNode(RN_Node& node);
-
-    SyncId registerMasterObject(GOF_SynchronizedObject* object);
-    void registerDummyObject(GOF_SynchronizedObject* object, SyncId masterSyncId);
-    void unregisterObject(GOF_SynchronizedObject* object);
-
-    GOF_SynchronizedObject* getMapping(SyncId syncId) const;
-
-    void syncObjectCreate(const GOF_SynchronizedObject* object);
-    void syncObjectUpdate(const GOF_SynchronizedObject* object);
-    void syncObjectDestroy(const GOF_SynchronizedObject* object);
-
-    void syncStateUpdates();
-    void syncCompleteState(hg::PZInteger clientIndex);
-
-private:
-    std::unordered_map<SyncId, GOF_SynchronizedObject*> _mappings;
-    std::unordered_set<const GOF_SynchronizedObject*> _newlyCreatedObjects;
-    std::unordered_set<const GOF_SynchronizedObject*> _alreadyUpdatedObjects;
-    std::unordered_set<const GOF_SynchronizedObject*> _alreadyDestroyedObjects;
-    std::vector<hg::PZInteger> _recepientVec;
-    SyncId _syncIdCounter = 2;
-    RN_Node* _node;
-};
-
 // Objects which are essential to the game's state, so they are both saved when
 // writing game state, and synchronized with clients in multiplayer sessions.
 // For example, units, terrain, interactible items (and, basically, most other 
@@ -93,44 +51,130 @@ class GOF_SynchronizedObject : public GOF_StateObject {
 public:
     // TODO: Implement methods in .cpp file
 
-    // if syncId.has_value() == true, create dummy object. Otherwise, create
-    // master object.
     GOF_SynchronizedObject(QAO_RuntimeRef runtimeRef, const std::type_info& typeInfo,
                            int executionPriority, std::string name,
-                           SynchronizedObjectManager& syncObjMgr, SyncId syncId = SYNC_ID_CREATE_MASTER)
-        : GOF_StateObject{runtimeRef, typeInfo, executionPriority, std::move(name)}
-        , _syncObjMgr{syncObjMgr}
-        , _syncId{(syncId == SYNC_ID_CREATE_MASTER) ? _syncObjMgr.registerMasterObject(this) : syncId}
-    {
-        _syncObjMgr.registerDummyObject(this, _syncId);
-    }
+                           GOF_SynchronizedObjectRegistry& syncObjReg, GOF_SyncId syncId = GOF_SYNC_ID_CREATE_MASTER);
 
-    virtual ~GOF_SynchronizedObject() {
-        _syncObjMgr.unregisterObject(this);
-    }
+    virtual ~GOF_SynchronizedObject();
 
-    SyncId getSyncId() const noexcept {
-        return _syncId & ~std::int64_t{1};
-    }
+    GOF_SyncId getSyncId() const noexcept;
 
-    bool isMasterObject() const noexcept {
-        return (_syncId & 1) != 0;
-    }
+    bool isMasterObject() const noexcept;
 
 protected:
-    virtual void syncCreateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const = 0;
-    virtual void syncUpdateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const = 0;
-    virtual void syncDestroyImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const = 0;
-
     void syncCreate() const;
     void syncUpdate() const;
     void syncDestroy() const;
 
 private:
-    SynchronizedObjectManager& _syncObjMgr;
-    const SyncId _syncId;
+    GOF_SynchronizedObjectRegistry& _syncObjReg;
+    const GOF_SyncId _syncId;
 
-    friend class SynchronizedObjectManager;
+    virtual void syncCreateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const = 0;
+    virtual void syncUpdateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const = 0;
+    virtual void syncDestroyImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const = 0;
+
+    friend class GOF_SynchronizedObjectRegistry;
 };
+
+// ///////////////////////////////////////////////////////////////////////////////////////////// //
+// CANNONICAL FORMS
+
+// A Synchronized object has the cannonical forms if it fulfils the following criteria:
+// + Inherits from GOF_SynchronizedObject
+// + Publicly defines a nested struct named "VisibleState" which has defined operators << and >> for insertion and
+//   extraction to and from a hg::util::Packet
+// + Its entire visible (observable by the user/player) state can be described with an instance of the VisibleState
+//   struct
+// + It defines a constructor with the following form:
+//   ClassName(QAO_RuntimeRef rtRef, GOF_SynchronizedObjectRegistry& syncObjReg,
+//             GOF_SyncId syncId, const VisibleState& initialState);
+//   (NOTE: to overcome the limitation of the fixed constructor form, we can utilize the two-step initialization
+//   pattern using init- methods)
+// + Is always created on the heap using QAO_PCreate or QAO_ICreate
+// + Publicly defnes a method void cannonicalSyncApplyUpdate(const VisibleState& state, int delay) which will be
+//   called when a new state description is received from the server
+// + Defines a method (with any access modifier) with the following signature:
+//   const VisibleState& getCurrentState() const;
+//
+// If a Synchronized object has the cannonical form, the following macros can be used to generate appropriate
+// network handlers for that type
+
+#define GOF_GENERATE_CANNONICAL_HANDLERS(_class_name_) \
+    RN_DEFINE_HANDLER(Create##_class_name_, RN_ARGS(GOF_SyncId, syncId, _class_name_::VisibleState&, state)) { \
+        GOF_CannonicalCreateImpl<_class_name_, GameContext>(RN_NODE_IN_HANDLER(), syncId, state); \
+    } \
+    RN_DEFINE_HANDLER(Update##_class_name_, RN_ARGS(GOF_SyncId, syncId, _class_name_::VisibleState&, state)) { \
+        GOF_CannonicalUpdateImpl<_class_name_, GameContext>(RN_NODE_IN_HANDLER(), syncId, state); \
+    } \
+    RN_DEFINE_HANDLER(Destroy##_class_name_, RN_ARGS(GOF_SyncId, syncId)) { \
+        GOF_CannonicalDestroyImpl<_class_name_, GameContext>(RN_NODE_IN_HANDLER(), syncId); \
+    }
+
+#define GOF_GENERATE_CANNONICAL_SYNC_DECLARATIONS \
+    void syncCreateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const override; \
+    void syncUpdateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const override; \
+    void syncDestroyImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const override;
+
+#define GOF_GENERATE_CANNONICAL_SYNC_IMPLEMENTATIONS(_class_name_) \
+    void _class_name_::syncCreateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const { \
+        Compose_Create##_class_name_(node, rec, getSyncId(), getCurrentState()); \
+    } \
+    void _class_name_::syncUpdateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const { \
+        Compose_Update##_class_name_(node, rec, getSyncId(), getCurrentState()); \
+    } \
+    void _class_name_::syncDestroyImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const { \
+        Compose_Destroy##_class_name_(node, rec, getSyncId()); \
+    }
+
+template <class T, class TCtx>
+void GOF_CannonicalCreateImpl(RN_Node& node, GOF_SyncId syncId, typename T::VisibleState& state) {
+    node.visit(
+        [&](RN_UdpClient& client) {
+            auto& ctx = *client.getUserData<TCtx>();
+            auto& runtime = ctx.qaoRuntime;
+            auto& syncObjReg = ctx.syncObjReg;
+            QAO_PCreate<T>(&runtime, syncObjReg, syncId, state);
+        },
+        [](RN_UdpServer& server) {
+            // TODO ERROR
+        }
+    );
+}
+
+template <class T, class TCtx>
+void GOF_CannonicalUpdateImpl(RN_Node& node, GOF_SyncId syncId, typename T::VisibleState& state) {
+    node.visit(
+        [&](RN_UdpClient& client) {
+            auto& ctx = *client.getUserData<TCtx>();
+            auto& runtime = ctx.qaoRuntime;
+            auto& syncObjReg = ctx.syncObjReg;
+            auto& object = *static_cast<T*>(syncObjReg.getMapping(syncId));
+
+            const std::chrono::microseconds delay = client.getServer().getRemoteInfo().latency / 2LL;
+            object.cannonicalSyncApplyUpdate(state, ctx.calcDelay(delay));
+        },
+        [](RN_UdpServer& server) {
+            // TODO ERROR
+        }
+    );
+}
+
+template <class T, class TCtx>
+void GOF_CannonicalDestroyImpl(RN_Node& node, GOF_SyncId syncId) {
+    node.visit(
+        [&](RN_UdpClient& client) {
+            auto& ctx = *client.getUserData<TCtx>();
+            auto& runtime = ctx.qaoRuntime;
+            auto& syncObjReg = ctx.syncObjReg;
+            auto* object = static_cast<T*>(syncObjReg.getMapping(syncId));
+
+            QAO_PDestroy(object);
+        },
+        [](RN_UdpServer& server) {
+            // TODO ERROR
+        }
+    );
+}
 
 #endif // !GAME_OBJECT_FRAMEWORK_HPP

@@ -17,7 +17,7 @@ public:
     static constexpr float GRAVITY = 1.f;
     static constexpr float JUMP_POWER = 16.f;
 
-    Player(QAO_Runtime* runtime, SynchronizedObjectManager& syncObjMgr, SyncId syncId,
+    Player(QAO_Runtime* runtime, GOF_SynchronizedObjectRegistry& syncObjReg, GOF_SyncId syncId,
            float x, float y, hg::PZInteger playerIndex);
 
     ~Player();
@@ -58,7 +58,7 @@ private:
     bool oldUp = false;
     void move(State& self);
 
-    friend RN_HANDLER_SIGNATURE(UpdatePlayer, RN_ARGS(SyncId, syncId, State&, state));
+    friend RN_HANDLER_SIGNATURE(UpdatePlayer, RN_ARGS(GOF_SyncId, syncId, State&, state));
 };
 
 #endif // !PLAYER_HPP

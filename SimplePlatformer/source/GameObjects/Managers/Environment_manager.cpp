@@ -10,6 +10,7 @@
 #include "GameObjects/Managers/Environment_manager.hpp"
 
 // TODO Temp.
+#include "GameObjects/Gameplay/Collisions.hpp"
 #include "GameObjects/Gameplay/PhysicsPlayer.hpp"
 
 namespace {
@@ -48,7 +49,7 @@ RN_DEFINE_HANDLER(ResizeTerrain, RN_ARGS(std::int32_t, width, std::int32_t, heig
     RN_NODE_IN_HANDLER().visit(
         [&](NetworkingManager::ClientType& client) {
             auto& ctx = *client.getUserData<GameContext>();
-            // TODO Fetch TerrainManager instance through SyncObjMgr
+            // TODO Fetch TerrainManager instance through syncObjReg
 
             ctx.envMgr._resizeAllGrids(width, height);
         },
@@ -62,7 +63,7 @@ RN_DEFINE_HANDLER(SetTerrainRow, RN_ARGS(std::int32_t, rowIndex, hg::util::Packe
     RN_NODE_IN_HANDLER().visit(
         [&](NetworkingManager::ClientType& client) {
             auto& ctx = *client.getUserData<GameContext>();
-            // TODO Fetch TerrainManager instance through SyncObjMgr
+            // TODO Fetch TerrainManager instance through syncObjReg
 
             for (hg::PZInteger x = 0; x < ctx.envMgr.getTerrainColumnCount(); x += 1) {
                 std::int16_t terrainTypeId;
@@ -76,8 +77,8 @@ RN_DEFINE_HANDLER(SetTerrainRow, RN_ARGS(std::int32_t, rowIndex, hg::util::Packe
     );
 }
 
-EnvironmentManager::EnvironmentManager(QAO_RuntimeRef rtRef, SynchronizedObjectManager& syncObjMgr, SyncId syncId)
-    : GOF_SynchronizedObject{rtRef, TYPEID_SELF, EXEPR_ENVIRON_MGR, "TerrainManager", syncObjMgr, syncId}
+EnvironmentManager::EnvironmentManager(QAO_RuntimeRef rtRef, GOF_SynchronizedObjectRegistry& syncObjReg, GOF_SyncId syncId)
+    : GOF_SynchronizedObject{rtRef, TYPEID_SELF, EXEPR_ENVIRON_MGR, "TerrainManager", syncObjReg, syncId}
     , _lightingCtrl{0, 0, 32.f, hg::gr::Color{5, 5, 10}}
 {
 }
@@ -139,6 +140,7 @@ void EnvironmentManager::setCellType(hg::PZInteger x, hg::PZInteger y, Terrain::
                                      0.0);
         _shapeGrid[y][x] = hg::cpShapeUPtr{cpSpaceAddShape(space, shape)};
         cpShapeSetElasticity(shape, 0.5);
+        Collideables::initTerrain(shape);
         cpSpaceReindexShape(space, shape);
     }
     else {

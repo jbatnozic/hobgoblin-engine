@@ -5,61 +5,19 @@
 #include "GameObjects/Framework/Execution_priorities.hpp"
 #include "GameObjects/Gameplay/PhysicsBullet.hpp"
 
-RN_DEFINE_HANDLER(CreatePhysicsBullet, RN_ARGS(SyncId, syncId, PhysicsBullet::ViState&, state)) {
-    RN_NODE_IN_HANDLER().visit(
-        [=](NetworkingManager::ClientType& client) {
-            auto& global = *client.getUserData<GameContext>();
-            auto& runtime = global.qaoRuntime;
-            auto& syncObjMapper = global.syncObjMgr;
 
-            QAO_PCreate<PhysicsBullet>(&runtime, syncObjMapper, syncId, state);
-        },
-        [](NetworkingManager::ServerType& server) {
-            // ERROR
-        }
-    );
-}
 
-RN_DEFINE_HANDLER(UpdatePhysicsBullet, RN_ARGS(SyncId, syncId, PhysicsBullet::ViState&, state)) {
-    RN_NODE_IN_HANDLER().visit(
-        [=](NetworkingManager::ClientType& client) {
-            auto& global = *client.getUserData<GameContext>();
-            auto& runtime = global.qaoRuntime;
-            auto& syncObjMapper = global.syncObjMgr;
-            auto* player = static_cast<PhysicsBullet*>(syncObjMapper.getMapping(syncId));
+GOF_GENERATE_CANNONICAL_HANDLERS(PhysicsBullet);
 
-            const std::chrono::microseconds delay = client.getServer().getRemoteInfo().latency / 2LL;
-            player->_ssch.putNewState(state, global.calcDelay(delay));
-        },
-        [](NetworkingManager::ServerType& server) {
-            // ERROR
-        }
-    );
-}
-
-RN_DEFINE_HANDLER(DestroyPhysicsBullet, RN_ARGS(SyncId, syncId)) {
-    RN_NODE_IN_HANDLER().visit(
-        [=](NetworkingManager::ClientType& client) {
-            auto& global = *client.getUserData<GameContext>();
-            auto& runtime = global.qaoRuntime;
-            auto& syncObjMapper = global.syncObjMgr;
-            auto* player = static_cast<PhysicsBullet*>(syncObjMapper.getMapping(syncId));
-
-            QAO_PDestroy(player);
-        },
-        [](NetworkingManager::ServerType& server) {
-            // ERROR
-        }
-    );
-}
+GOF_GENERATE_CANNONICAL_SYNC_IMPLEMENTATIONS(PhysicsBullet);
 
 static void customDampingVelocityFunc(cpBody* body, cpVect gravity, cpFloat damping, cpFloat dt) {
     cpBodyUpdateVelocity(body, cpv(0.0, 0.0), 0.998, dt);
 }
 
-PhysicsBullet::PhysicsBullet(QAO_RuntimeRef rtRef, SynchronizedObjectManager& syncObjMgr, SyncId syncId,
-                             const ViState& initialState)
-    : GOF_SynchronizedObject{rtRef, TYPEID_SELF, EXEPR_CREATURES, "PhysicsPlayer", syncObjMgr, syncId}
+PhysicsBullet::PhysicsBullet(QAO_RuntimeRef rtRef, GOF_SynchronizedObjectRegistry& syncObjReg, GOF_SyncId syncId,
+                             const VisibleState& initialState)
+    : GOF_SynchronizedObject{rtRef, TYPEID_SELF, EXEPR_CREATURES, "PhysicsPlayer", syncObjReg, syncId}
     , _ssch{ctx().syncBufferLength}
 {
     for (auto& state : _ssch) {
@@ -78,7 +36,7 @@ PhysicsBullet::PhysicsBullet(QAO_RuntimeRef rtRef, SynchronizedObjectManager& sy
         cpBodySetPosition(_body.get(), cpv(initialState.x, initialState.y));
         cpShapeSetElasticity(_shape.get(), 0.75);
         cpBodySetVelocityUpdateFunc(_body.get(), customDampingVelocityFunc);
-        //cpShapeSetC
+        Collideables::initProjectile(_shape.get(), *this);
     }
 }
 
@@ -93,16 +51,8 @@ void PhysicsBullet::initWithSpeed(double direction, double speed) {
     cpBodyApplyImpulseAtLocalPoint(_body.get(), force, cpv(0, 0));
 }
 
-void PhysicsBullet::syncCreateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const {
-    Compose_CreatePhysicsBullet(node, rec, getSyncId(), _ssch.getCurrentState());
-}
-
-void PhysicsBullet::syncUpdateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const {
-    Compose_UpdatePhysicsBullet(node, rec, getSyncId(), _ssch.getCurrentState());
-}
-
-void PhysicsBullet::syncDestroyImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const {
-    Compose_DestroyPhysicsBullet(node, rec, getSyncId());
+void PhysicsBullet::cannonicalSyncApplyUpdate(const VisibleState& state, int delay) {
+    _ssch.putNewState(state, delay);
 }
 
 void PhysicsBullet::eventUpdate() {

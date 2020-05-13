@@ -19,6 +19,7 @@
 #include "GameObjects/Managers/Networking_manager.hpp"
 #include "GameObjects/Managers/Window_manager.hpp"
 
+#include "GameObjects/Gameplay/Collisions.hpp"
 #include "GameObjects/Gameplay/Player.hpp"
 
 #include "Graphics/Sprites.hpp"
@@ -74,7 +75,7 @@ public:
     NetworkingManager netMgr;
     MainGameController mainGameCtrl;
     ControlsManager controlsMgr;
-    SynchronizedObjectManager syncObjMgr; // TODO This object isn't really a "manager"
+    GOF_SynchronizedObjectRegistry syncObjReg;
     EnvironmentManager envMgr;
 
     GameContext(const ResourceConfig& resourceConfig, hg::PZInteger targetFps)
@@ -90,13 +91,15 @@ public:
         , netMgr{qaoRuntime.nonOwning()}
         , mainGameCtrl{qaoRuntime.nonOwning()}
         , controlsMgr{qaoRuntime.nonOwning(), 4, syncBufferLength, syncBufferHistoryLength}
-        , syncObjMgr{netMgr.getNode()}
-        , envMgr{qaoRuntime.nonOwning(), syncObjMgr, SYNC_ID_CREATE_MASTER}
+        , syncObjReg{netMgr.getNode()}
+        , envMgr{qaoRuntime.nonOwning(), syncObjReg, GOF_SYNC_ID_CREATE_MASTER}
         // Other:
         , _resourceConfig{resourceConfig}
     {
         netMgr.getNode().setUserData(this);
+        cpSpaceSetUserData(_physicsSpace.get(), this);
         cpSpaceSetDamping(_physicsSpace.get(), 0.1);
+        Collideables::initPhysicsSpace(_physicsSpace.get());
     }
 
     ~GameContext() {

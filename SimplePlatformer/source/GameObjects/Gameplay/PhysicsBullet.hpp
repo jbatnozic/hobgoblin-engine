@@ -5,37 +5,39 @@
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/RigelNet.hpp>
 #include <Hobgoblin/RigelNet_Macros.hpp>
-#include <Hobgoblin/Utility/Any_ptr.hpp>
 #include <Hobgoblin/Utility/Autopack.hpp>
 #include <Hobgoblin/Utility/Packet.hpp>
 #include <Hobgoblin/Utility/State_scheduler.hpp>
 
 #include "GameObjects/Framework/Game_object_framework.hpp"
+#include "GameObjects/Gameplay/Collisions.hpp"
 #include "Experimental/Lighting.hpp"
 
-class PhysicsBullet : public GOF_SynchronizedObject {
+class PhysicsBullet : public GOF_SynchronizedObject, private Collideables::IProjectile {
 public:
-    struct ViState { // Visible state object must be public
+    struct VisibleState { // Visible state object must be public
         // hg::PZInteger playerIndex = -1; // TODO Magic number
         float x = 0.f;
         float y = 0.f;
         // bool hidden = true; // TODO This probably doesn't work right
 
-        HG_ENABLE_AUTOPACK(ViState, x, y);
+        HG_ENABLE_AUTOPACK(VisibleState, x, y);
     };
 
     static constexpr auto SERIALIZABLE_TAG = "PhysicsBullet";
 
-    PhysicsBullet(QAO_RuntimeRef rtRef, SynchronizedObjectManager& syncObjMgr, SyncId syncId,
-                  const ViState& initialState = ViState{});
+    PhysicsBullet(QAO_RuntimeRef rtRef, GOF_SynchronizedObjectRegistry& syncObjReg, GOF_SyncId syncId,
+                  const VisibleState& initialState = VisibleState{});
 
     ~PhysicsBullet();
 
+    const VisibleState& getCurrentState() const {
+        return _ssch.getCurrentState();
+    }
+
     void initWithSpeed(double direction, double speed);
 
-    void syncCreateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const override;
-    void syncUpdateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const override;
-    void syncDestroyImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const override;
+    void cannonicalSyncApplyUpdate(const VisibleState& state, int delay);
 
 protected:
     void eventUpdate() override;
@@ -43,12 +45,12 @@ protected:
     void eventDraw1() override;
 
 private:
-    hg::util::StateScheduler<ViState> _ssch;
+    hg::util::StateScheduler<VisibleState> _ssch;
 
     hg::cpBodyUPtr _body;
     hg::cpShapeUPtr _shape;
 
-    friend RN_HANDLER_SIGNATURE(UpdatePhysicsBullet, RN_ARGS(SyncId, syncId, PhysicsBullet::ViState&, state));
+    GOF_GENERATE_CANNONICAL_SYNC_DECLARATIONS;
 };
 
 #endif // !PLAYER_PHYSICS_BULLET_HPP

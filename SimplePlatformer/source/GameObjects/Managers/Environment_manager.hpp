@@ -17,7 +17,7 @@
 
 class EnvironmentManager : public GOF_SynchronizedObject {
 public:
-    EnvironmentManager(QAO_RuntimeRef rtRef, SynchronizedObjectManager& syncObjMgr, SyncId syncId);
+    EnvironmentManager(QAO_RuntimeRef rtRef, GOF_SynchronizedObjectRegistry& syncObjReg, GOF_SyncId syncId);
 
     ~EnvironmentManager();
 

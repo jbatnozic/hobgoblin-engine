@@ -6,72 +6,13 @@
 #include "GameObjects/Gameplay/PhysicsBullet.hpp"
 #include "GameObjects/Gameplay/PhysicsPlayer.hpp"
 
-template <class T>
-void CannonicalCreateImpl(RN_Node& node, SyncId syncId, typename T::ViState& state) {
-    node.visit(
-        [&](NetworkingManager::ClientType& client) {
-            auto& ctx = *client.getUserData<GameContext>();
-            auto& runtime = ctx.qaoRuntime;
-            auto& syncObjMapper = ctx.syncObjMgr;
-            QAO_PCreate<T>(&runtime, syncObjMapper, syncId, state);
-        },
-        [](NetworkingManager::ServerType& server) {
-            // TODO ERROR
-        }
-    );
-}
+GOF_GENERATE_CANNONICAL_HANDLERS(PhysicsPlayer);
 
-template <class T>
-void CannonicalUpdateImpl(RN_Node& node, SyncId syncId, typename T::ViState& state) {
-    node.visit(
-        [&](NetworkingManager::ClientType& client) {
-            auto& ctx = *client.getUserData<GameContext>();
-            auto& runtime = ctx.qaoRuntime;
-            auto& syncObjMapper = ctx.syncObjMgr;
-            auto& object = *static_cast<T*>(syncObjMapper.getMapping(syncId));
+GOF_GENERATE_CANNONICAL_SYNC_IMPLEMENTATIONS(PhysicsPlayer);
 
-            const std::chrono::microseconds delay = client.getServer().getRemoteInfo().latency / 2LL;
-            object.applyUpdate(state, ctx.calcDelay(delay));
-        },
-        [](NetworkingManager::ServerType& server) {
-            // TODO ERROR
-        }
-    );
-}
-
-template <class T>
-void CannonicalDestroyImpl(RN_Node& node, SyncId syncId) {
-    node.visit(
-        [&](NetworkingManager::ClientType& client) {
-            auto& ctx = *client.getUserData<GameContext>();
-            auto& runtime = ctx.qaoRuntime;
-            auto& syncObjMapper = ctx.syncObjMgr;
-            auto* object = static_cast<T*>(syncObjMapper.getMapping(syncId));
-
-            QAO_PDestroy(object);
-        },
-        [](NetworkingManager::ServerType& server) {
-            // TODO ERROR
-        }
-    );
-}
-
-#define GENERATE_CANNONICAL_HANDLERS(_class_name_) \
-    RN_DEFINE_HANDLER(Create##_class_name_, RN_ARGS(SyncId, syncId, _class_name_::ViState&, state)) { \
-        CannonicalCreateImpl<_class_name_>(RN_NODE_IN_HANDLER(), syncId, state); \
-    } \
-    RN_DEFINE_HANDLER(Update##_class_name_, RN_ARGS(SyncId, syncId, _class_name_::ViState&, state)) { \
-        CannonicalUpdateImpl<_class_name_>(RN_NODE_IN_HANDLER(), syncId, state); \
-    } \
-    RN_DEFINE_HANDLER(Destroy##_class_name_, RN_ARGS(SyncId, syncId)) { \
-        CannonicalDestroyImpl<_class_name_>(RN_NODE_IN_HANDLER(), syncId); \
-    }
-
-GENERATE_CANNONICAL_HANDLERS(PhysicsPlayer);
-
-PhysicsPlayer::PhysicsPlayer(QAO_RuntimeRef rtRef, SynchronizedObjectManager& syncObjMgr, SyncId syncId,
-                             const ViState& initialState)
-    : GOF_SynchronizedObject{rtRef, TYPEID_SELF, EXEPR_CREATURES, "PhysicsPlayer", syncObjMgr, syncId}
+PhysicsPlayer::PhysicsPlayer(QAO_RuntimeRef rtRef, GOF_SynchronizedObjectRegistry& syncObjReg, GOF_SyncId syncId,
+                             const VisibleState& initialState)
+    : GOF_SynchronizedObject{rtRef, TYPEID_SELF, EXEPR_CREATURES, "PhysicsPlayer", syncObjReg, syncId}
     , _ssch{ctx().syncBufferLength}
 {
     for (auto& state : _ssch) {
@@ -92,6 +33,7 @@ PhysicsPlayer::PhysicsPlayer(QAO_RuntimeRef rtRef, SynchronizedObjectManager& sy
         _shape = hg::cpShapeUPtr{cpSpaceAddShape(space, cpCircleShapeNew(_body.get(), radius, cpv(0.0, 0.0)))};
         cpBodySetPosition(_body.get(), cpv(initialState.x, initialState.y));
         cpShapeSetElasticity(_shape.get(), 0.5);
+        Collideables::initCreature(_shape.get(), *this);
     }
 
     //_lightHandle = ctx().envMgr.addLight(initialState.x, initialState.y, hg::gr::Color::MediumBioletRed, 8.f);
@@ -102,18 +44,6 @@ PhysicsPlayer::~PhysicsPlayer() {
     if (isMasterObject()) {
         syncDestroy();
     }
-}
-
-void PhysicsPlayer::syncCreateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const {
-    Compose_CreatePhysicsPlayer(node, rec, getSyncId(), _ssch.getCurrentState());
-}
-
-void PhysicsPlayer::syncUpdateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const {
-    Compose_UpdatePhysicsPlayer(node, rec, getSyncId(), _ssch.getCurrentState());
-}
-
-void PhysicsPlayer::syncDestroyImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const {
-    Compose_DestroyPhysicsPlayer(node, rec, getSyncId());
 }
 
 void PhysicsPlayer::eventUpdate() {
@@ -135,10 +65,10 @@ void PhysicsPlayer::eventUpdate() {
             auto mousePos = ctx().windowMgr.getMousePos();
             auto selfPos = cpBodyGetPosition(_body.get());
 
-            PhysicsBullet::ViState vs;
+            PhysicsBullet::VisibleState vs;
             vs.x = selfPos.x;
             vs.y = selfPos.y;
-            auto* bullet = QAO_PCreate<PhysicsBullet>(getRuntime(), ctx().syncObjMgr, SYNC_ID_CREATE_MASTER, vs);
+            auto* bullet = QAO_PCreate<PhysicsBullet>(getRuntime(), ctx().syncObjReg, GOF_SYNC_ID_CREATE_MASTER, vs);
             bullet->initWithSpeed(std::atan2(mousePos.y - selfPos.y, mousePos.x - selfPos.x), 50.0);
         }
     }

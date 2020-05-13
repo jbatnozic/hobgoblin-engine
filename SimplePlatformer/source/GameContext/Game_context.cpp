@@ -61,7 +61,7 @@ void GameContext::configure(Mode mode) {
         netMgr.getServer().start(networkConfig.localPort, NETWORKING_PASSPHRASE);
         netMgr.getServer().resize(networkConfig.clientCount);
         netMgr.getServer().setTimeoutLimit(std::chrono::seconds{5});
-        syncObjMgr.setNode(netMgr.getNode());
+        syncObjReg.setNode(netMgr.getNode());
         std::cout << "Server started on port " << netMgr.getServer().getLocalPort() << '\n';
 
         {
@@ -79,19 +79,19 @@ void GameContext::configure(Mode mode) {
         netMgr.getClient().connect(networkConfig.localPort, networkConfig.serverIp, 
                                    networkConfig.serverPort, NETWORKING_PASSPHRASE);
         netMgr.getClient().setTimeoutLimit(std::chrono::seconds{5});
-        syncObjMgr.setNode(netMgr.getNode());
+        syncObjReg.setNode(netMgr.getNode());
         break;
 
     case Mode::Solo:
         playerIndex = 0;
         windowMgr.create();
-        //QAO_PCreate<Player>(&qaoRuntime, syncObjMgr, SYNC_ID_CREATE_MASTER, 200, 200, 0);
+        //QAO_PCreate<Player>(&qaoRuntime, syncObjReg, SYNC_ID_CREATE_MASTER, 200, 200, 0);
         {
-            PhysicsPlayer::ViState playerState;
+            PhysicsPlayer::VisibleState playerState;
             playerState.playerIndex = 0;
             playerState.x = 70.f;
             playerState.y = 70.f;
-            QAO_PCreate<PhysicsPlayer>(&qaoRuntime, syncObjMgr, SYNC_ID_CREATE_MASTER, playerState);
+            QAO_PCreate<PhysicsPlayer>(&qaoRuntime, syncObjReg, GOF_SYNC_ID_CREATE_MASTER, playerState);
         }
         {
             std::cout << "Generating terrain...\n";
@@ -108,7 +108,7 @@ void GameContext::configure(Mode mode) {
         netMgr.getServer().start(networkConfig.localPort, NETWORKING_PASSPHRASE);
         netMgr.getServer().resize(networkConfig.clientCount);
         netMgr.getServer().setTimeoutLimit(std::chrono::seconds{5});
-        syncObjMgr.setNode(netMgr.getNode());
+        syncObjReg.setNode(netMgr.getNode());
         std::cout << "Server started on port " << netMgr.getServer().getLocalPort() << '\n';    
         break;
 

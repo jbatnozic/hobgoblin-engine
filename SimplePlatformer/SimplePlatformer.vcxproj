@@ -171,6 +171,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="source\GameObjects\Framework\Execution_priorities.cpp" />
+    <ClCompile Include="source\GameObjects\Framework\Synchronized_object_registry.cpp" />
+    <ClCompile Include="source\GameObjects\Gameplay\Collisions.cpp" />
     <ClCompile Include="source\GameObjects\Gameplay\PhysicsBullet.cpp" />
     <ClCompile Include="source\GameObjects\Gameplay\PhysicsPlayer.cpp" />
     <ClCompile Include="source\GameObjects\Managers\Controls_manager.cpp" />
@@ -191,7 +193,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\GameContext\Game_config.hpp" />
+    <ClInclude Include="source\GameObjects\Framework\Common.hpp" />
     <ClInclude Include="source\GameObjects\Framework\Execution_priorities.hpp" />
+    <ClInclude Include="source\GameObjects\Framework\Synchronized_object_registry.hpp" />
+    <ClInclude Include="source\GameObjects\Gameplay\Collisions.hpp" />
     <ClInclude Include="source\GameObjects\Gameplay\PhysicsBullet.hpp" />
     <ClInclude Include="source\GameObjects\Gameplay\PhysicsPlayer.hpp" />
     <ClInclude Include="source\GameObjects\Managers\Controls_manager.hpp" />

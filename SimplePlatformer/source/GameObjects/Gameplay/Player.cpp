@@ -13,13 +13,13 @@ namespace {
 using hg::util::EuclideanDist;
 } // namespace
 
-RN_DEFINE_HANDLER(CreatePlayer, RN_ARGS(SyncId, syncId, Player::State&, state)) {
+RN_DEFINE_HANDLER(CreatePlayer, RN_ARGS(GOF_SyncId, syncId, Player::State&, state)) {
     RN_NODE_IN_HANDLER().visit(
         [=](NetworkingManager::ClientType& client) {
             auto& global = *client.getUserData<GameContext>();
             auto& runtime = global.qaoRuntime;
-            auto& syncObjMapper = global.syncObjMgr;
-            QAO_PCreate<Player>(&runtime, syncObjMapper, syncId, state.x, state.y, state.playerIndex);
+            auto& syncObjReg = global.syncObjReg;
+            QAO_PCreate<Player>(&runtime, syncObjReg, syncId, state.x, state.y, state.playerIndex);
         },
         [](NetworkingManager::ServerType& server) {
             // ERROR
@@ -27,13 +27,13 @@ RN_DEFINE_HANDLER(CreatePlayer, RN_ARGS(SyncId, syncId, Player::State&, state)) 
     );
 }
 
-RN_DEFINE_HANDLER(UpdatePlayer, RN_ARGS(SyncId, syncId, Player::State&, state)) {
+RN_DEFINE_HANDLER(UpdatePlayer, RN_ARGS(GOF_SyncId, syncId, Player::State&, state)) {
     RN_NODE_IN_HANDLER().visit(
         [=](NetworkingManager::ClientType& client) {
             auto& global = *client.getUserData<GameContext>();
             auto& runtime = global.qaoRuntime;
-            auto& syncObjMapper = global.syncObjMgr;
-            auto* player = static_cast<Player*>(syncObjMapper.getMapping(syncId));
+            auto& syncObjReg = global.syncObjReg;
+            auto* player = static_cast<Player*>(syncObjReg.getMapping(syncId));
 
             const std::chrono::microseconds delay = client.getServer().getRemoteInfo().latency / 2LL;
             player->_ssch.putNewState(state, global.calcDelay(delay));
@@ -44,13 +44,13 @@ RN_DEFINE_HANDLER(UpdatePlayer, RN_ARGS(SyncId, syncId, Player::State&, state)) 
     );
 }
 
-RN_DEFINE_HANDLER(DestroyPlayer, RN_ARGS(SyncId, syncId)) {
+RN_DEFINE_HANDLER(DestroyPlayer, RN_ARGS(GOF_SyncId, syncId)) {
     RN_NODE_IN_HANDLER().visit(
         [=](NetworkingManager::ClientType& client) {
             auto& global = *client.getUserData<GameContext>();
             auto& runtime = global.qaoRuntime;
-            auto& syncObjMapper = global.syncObjMgr;
-            auto* player = static_cast<Player*>(syncObjMapper.getMapping(syncId));
+            auto& syncObjReg = global.syncObjReg;
+            auto* player = static_cast<Player*>(syncObjReg.getMapping(syncId));
             QAO_PDestroy(player);
         },
         [](NetworkingManager::ServerType& server) {
@@ -73,9 +73,9 @@ void Player::syncDestroyImpl(RN_Node& node, const std::vector<hg::PZInteger>& re
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-Player::Player(QAO_Runtime* runtime, SynchronizedObjectManager& syncObjMapper, SyncId syncId,
+Player::Player(QAO_Runtime* runtime, GOF_SynchronizedObjectRegistry& syncObjReg, GOF_SyncId syncId,
                float x, float y, hg::PZInteger playerIndex)
-    : GOF_SynchronizedObject{runtime, TYPEID_SELF, EXEPR_CREATURES, "Player", syncObjMapper, syncId}
+    : GOF_SynchronizedObject{runtime, TYPEID_SELF, EXEPR_CREATURES, "Player", syncObjReg, syncId}
     , _ssch{ctx().syncBufferLength}
 {
     _ssch.setDiscardIfOld(true);

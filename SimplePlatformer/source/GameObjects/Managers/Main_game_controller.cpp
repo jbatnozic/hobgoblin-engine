@@ -49,12 +49,12 @@ void MainGameController::onNetworkingEvent(const RN_Event& event_) {
         },
         [this](const RN_Event::Connected& ev) {
             if (ctx().isPrivileged()) {
-                PhysicsPlayer::ViState vs;
+                PhysicsPlayer::VisibleState vs;
                 vs.playerIndex = *ev.clientIndex + 1;
                 vs.x = 70.f;
                 vs.y = 70.f;
-                QAO_PCreate<PhysicsPlayer>(getRuntime(), ctx().syncObjMgr, SYNC_ID_CREATE_MASTER, vs);
-                //QAO_PCreate<Player>(getRuntime(), ctx().syncObjMgr, SYNC_ID_CREATE_MASTER,
+                QAO_PCreate<PhysicsPlayer>(getRuntime(), ctx().syncObjReg, GOF_SYNC_ID_CREATE_MASTER, vs);
+                //QAO_PCreate<Player>(getRuntime(), ctx().syncObjReg, SYNC_ID_CREATE_MASTER,
                 //                    200.f, 200.f, *ev.clientIndex + 1);
             }
         },

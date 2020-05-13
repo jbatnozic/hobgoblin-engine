@@ -69,6 +69,24 @@ public:
         return const_cast<T*>(static_cast<const T*>(_value));
     }
 
+    bool operator==(const AnyPtr& other) {
+        return _value == other._value && 
+               *_valueType == *other._valueType && 
+               _valueIsConst == other._valueIsConst;
+    }
+
+    bool operator!=(const AnyPtr& other) {
+        return !(SELF == other);
+    }
+
+    bool operator==(const std::nullptr_t) {
+        return _value == nullptr;
+    }
+
+    bool operator!=(const std::nullptr_t) {
+        return _value != nullptr;
+    }
+
 private:
     const void* _value;
     const type_info* _valueType;
