@@ -214,6 +214,7 @@
     <ClInclude Include="source\GameObjects\Gameplay\Player.hpp" />
     <ClInclude Include="source\GameObjects\Managers\Environment_manager.hpp" />
     <ClInclude Include="source\GameObjects\Managers\Window_manager.hpp" />
+    <ClInclude Include="source\Utility\Periodic_counter.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

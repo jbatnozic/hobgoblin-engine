@@ -59,7 +59,11 @@ void ControlsManager::eventPreUpdate() {
     // Local controls (not needed on independent server):
     if (ctx().playerIndex != GameContext::PLAYER_INDEX_NONE) {
         auto& scheduler = _schedulers[ctx().playerIndex];
-        scheduler.putNewState(PlayerControls{kbi().keyPressed(KbKey::A),
+        auto mousePos = ctx().windowMgr.getMousePos();
+        scheduler.putNewState(PlayerControls{mousePos.x,
+                                             mousePos.y,
+                                             sf::Mouse::isButtonPressed(sf::Mouse::Left),
+                                             kbi().keyPressed(KbKey::A),
                                              kbi().keyPressed(KbKey::D),
                                              kbi().keyPressed(KbKey::W),
                                              kbi().keyPressed(KbKey::S)});

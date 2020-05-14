@@ -45,5 +45,6 @@
     <ClInclude Include="source\GameObjects\Framework\Synchronized_object_registry.hpp" />
     <ClInclude Include="source\GameObjects\Framework\Common.hpp" />
     <ClInclude Include="source\GameObjects\Gameplay\Collisions.hpp" />
+    <ClInclude Include="source\Utility\Periodic_counter.hpp" />
   </ItemGroup>
 </Project>

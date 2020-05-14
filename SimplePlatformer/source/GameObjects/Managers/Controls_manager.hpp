@@ -10,12 +10,16 @@
 #include "GameObjects/Framework/Game_object_framework.hpp"
 
 struct PlayerControls {
+    float mouseX = 0.0;
+    float mouseY = 0.0;
+    bool fire = false;
+
     bool left = false;
     bool right = false;
     bool up = false;
     bool down = false;
 
-    HG_ENABLE_AUTOPACK(PlayerControls, left, right, up, down);
+    HG_ENABLE_AUTOPACK(PlayerControls, mouseX, mouseY, fire, left, right, up, down);
 };
 
 using ControlsScheduler = hg::util::StateScheduler<PlayerControls>;

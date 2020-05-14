@@ -14,8 +14,9 @@
 #include "Experimental/Lighting.hpp"
 #include "GameObjects/Framework/Game_object_framework.hpp"
 #include "Terrain/Terrain.hpp"
+#include "GameObjects/Gameplay/Collisions.hpp"
 
-class EnvironmentManager : public GOF_SynchronizedObject {
+class EnvironmentManager : public GOF_SynchronizedObject, private Collideables::ITerrain {
 public:
     EnvironmentManager(QAO_RuntimeRef rtRef, GOF_SynchronizedObjectRegistry& syncObjReg, GOF_SyncId syncId);
 

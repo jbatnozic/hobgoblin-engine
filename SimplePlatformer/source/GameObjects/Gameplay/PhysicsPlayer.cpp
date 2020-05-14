@@ -60,17 +60,17 @@ void PhysicsPlayer::eventUpdate() {
         const cpVect force = cpv((right - left) * 1000.0, (down - up) * 1000.0);
         cpBodyApplyForceAtWorldPoint(_body.get(), force, pos);
 
-        if (kbi().keyPressed(KbKey::Space, KbMode::Repeat)) {
-            std::cout << "Creating bullet\n";       
-            auto mousePos = ctx().windowMgr.getMousePos();
+        if (CountPeriodic(&_fireCounter, 12, controls.fire)) {
+            std::cout << "Creating bullet\n";
             auto selfPos = cpBodyGetPosition(_body.get());
 
             PhysicsBullet::VisibleState vs;
             vs.x = selfPos.x;
             vs.y = selfPos.y;
             auto* bullet = QAO_PCreate<PhysicsBullet>(getRuntime(), ctx().syncObjReg, GOF_SYNC_ID_CREATE_MASTER, vs);
-            bullet->initWithSpeed(std::atan2(mousePos.y - selfPos.y, mousePos.x - selfPos.x), 50.0);
+            bullet->initWithSpeed(std::atan2(controls.mouseY - selfPos.y, controls.mouseX - selfPos.x), 50.0);
         }
+  
     }
     else {
         _ssch.scheduleNewStates();

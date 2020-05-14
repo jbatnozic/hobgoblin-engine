@@ -27,7 +27,7 @@ PhysicsBullet::PhysicsBullet(QAO_RuntimeRef rtRef, GOF_SynchronizedObjectRegistr
     if (isMasterObject()) {
         auto* space = ctx().getPhysicsSpace();
 
-        const cpFloat radius = 4.0;
+        const cpFloat radius = 8.0;
         const cpFloat mass = 0.1;
         const cpFloat moment = cpMomentForCircle(mass, 0.0, radius, cpv(0, 0));
 

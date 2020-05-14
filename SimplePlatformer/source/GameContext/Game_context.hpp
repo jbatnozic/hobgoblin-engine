@@ -70,12 +70,12 @@ public:
 
     NetworkConfig networkConfig;
 
-    QAO_Runtime qaoRuntime;
-    WindowManager windowMgr;
-    NetworkingManager netMgr;
+    QAO_Runtime qaoRuntime; // essential
+    WindowManager windowMgr;  // essential
+    NetworkingManager netMgr;  // essential
     MainGameController mainGameCtrl;
     ControlsManager controlsMgr;
-    GOF_SynchronizedObjectRegistry syncObjReg;
+    GOF_SynchronizedObjectRegistry syncObjReg;  // essential
     EnvironmentManager envMgr;
 
     GameContext(const ResourceConfig& resourceConfig, hg::PZInteger targetFps)
@@ -99,7 +99,7 @@ public:
         netMgr.getNode().setUserData(this);
         cpSpaceSetUserData(_physicsSpace.get(), this);
         cpSpaceSetDamping(_physicsSpace.get(), 0.1);
-        Collideables::initPhysicsSpace(_physicsSpace.get());
+        Collideables::installCollisionHandlers(_physicsSpace.get());
     }
 
     ~GameContext() {

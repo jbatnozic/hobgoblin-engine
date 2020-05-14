@@ -13,6 +13,7 @@
 #include "GameObjects/Framework/Game_object_framework.hpp"
 #include "GameObjects/Gameplay/Collisions.hpp"
 #include "Experimental/Lighting.hpp"
+#include "Utility/Periodic_counter.hpp"
 
 class PhysicsPlayer : public GOF_SynchronizedObject, private Collideables::ICreature {
 public:
@@ -55,6 +56,11 @@ private:
     hg::cpBodyUPtr _body;
     hg::cpShapeUPtr _shape;
     LightingController::LightHandle _lightHandle;
+    int _fireCounter;
+
+    void collisionPostSolve(Collideables::IProjectile* proj, cpArbiter* arb) override {
+        std::cout << "hit POSTSOLVE\n";
+    }
 
     GOF_GENERATE_CANNONICAL_SYNC_DECLARATIONS;
 };

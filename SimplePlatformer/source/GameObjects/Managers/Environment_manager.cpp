@@ -10,7 +10,7 @@
 #include "GameObjects/Managers/Environment_manager.hpp"
 
 // TODO Temp.
-#include "GameObjects/Gameplay/Collisions.hpp"
+
 #include "GameObjects/Gameplay/PhysicsPlayer.hpp"
 
 namespace {
@@ -129,8 +129,8 @@ void EnvironmentManager::setCellType(hg::PZInteger x, hg::PZInteger y, Terrain::
         auto* body = cpSpaceGetStaticBody(space);
 
         for (auto& vertex : vertices) {
-            vertex.x += cpFloat{_cellResolution} *x;
-            vertex.y += cpFloat{_cellResolution} *y;
+            vertex.x += cpFloat{_cellResolution} * x;
+            vertex.y += cpFloat{_cellResolution} * y;
         }
 
         auto* shape = cpPolyShapeNew(body,
@@ -140,7 +140,7 @@ void EnvironmentManager::setCellType(hg::PZInteger x, hg::PZInteger y, Terrain::
                                      0.0);
         _shapeGrid[y][x] = hg::cpShapeUPtr{cpSpaceAddShape(space, shape)};
         cpShapeSetElasticity(shape, 0.5);
-        Collideables::initTerrain(shape);
+        Collideables::initTerrain(shape, *this); // TODO Temp (this instead of individual objects)
         cpSpaceReindexShape(space, shape);
     }
     else {
