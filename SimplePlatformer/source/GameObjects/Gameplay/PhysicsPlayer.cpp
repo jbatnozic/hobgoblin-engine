@@ -68,7 +68,7 @@ void PhysicsPlayer::eventUpdate() {
             vs.x = selfPos.x;
             vs.y = selfPos.y;
             auto* bullet = QAO_PCreate<PhysicsBullet>(getRuntime(), ctx().syncObjReg, GOF_SYNC_ID_CREATE_MASTER, vs);
-            bullet->initWithSpeed(std::atan2(controls.mouseY - selfPos.y, controls.mouseX - selfPos.x), 50.0);
+            bullet->initWithSpeed(this, std::atan2(controls.mouseY - selfPos.y, controls.mouseX - selfPos.x), 50.0);
         }
   
     }

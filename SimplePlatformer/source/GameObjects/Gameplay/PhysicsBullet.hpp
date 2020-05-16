@@ -35,7 +35,7 @@ public:
         return _ssch.getCurrentState();
     }
 
-    void initWithSpeed(double direction, double speed);
+    void initWithSpeed(const Collideables::ICreature* creator, double direction, double speed);
 
     void cannonicalSyncApplyUpdate(const VisibleState& state, int delay);
 
@@ -49,6 +49,11 @@ private:
 
     hg::cpBodyUPtr _body;
     hg::cpShapeUPtr _shape;
+    const Collideables::ICreature* _creator;
+
+    cpBool collisionBegin(Collideables::ICreature* other, cpArbiter* arbiter) override;
+    void collisionPostSolve(Collideables::ICreature* other, cpArbiter* arbiter) override;
+    void collisionSeparate(Collideables::ICreature* other, cpArbiter* arbiter) override;
 
     GOF_GENERATE_CANNONICAL_SYNC_DECLARATIONS;
 };

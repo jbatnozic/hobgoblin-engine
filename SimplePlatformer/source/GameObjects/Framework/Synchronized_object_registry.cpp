@@ -40,7 +40,7 @@ GOF_SyncId GOF_SynchronizedObjectRegistry::registerMasterObject(GOF_Synchronized
     // Bit 0 represents "masterness"
     const GOF_SyncId id = _syncIdCounter | 1;
     _syncIdCounter += 2;
-    _mappings[id] = object;
+    _mappings[(id & ~std::int64_t{1})] = object;
 
     _newlyCreatedObjects.insert(object);
 
@@ -49,7 +49,7 @@ GOF_SyncId GOF_SynchronizedObjectRegistry::registerMasterObject(GOF_Synchronized
 
 void GOF_SynchronizedObjectRegistry::registerDummyObject(GOF_SynchronizedObject* object, GOF_SyncId masterSyncId) {
     assert(object);
-    _mappings[masterSyncId] = object;
+    _mappings[(masterSyncId & ~std::int64_t{1})] = object;
 }
 
 void GOF_SynchronizedObjectRegistry::unregisterObject(GOF_SynchronizedObject* object) {

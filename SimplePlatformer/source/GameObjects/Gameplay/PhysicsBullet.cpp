@@ -12,7 +12,7 @@ GOF_GENERATE_CANNONICAL_HANDLERS(PhysicsBullet);
 GOF_GENERATE_CANNONICAL_SYNC_IMPLEMENTATIONS(PhysicsBullet);
 
 static void customDampingVelocityFunc(cpBody* body, cpVect gravity, cpFloat damping, cpFloat dt) {
-    cpBodyUpdateVelocity(body, cpv(0.0, 0.0), 0.998, dt);
+    cpBodyUpdateVelocity(body, cpv(0.0, 0.0), 1.0, dt);
 }
 
 PhysicsBullet::PhysicsBullet(QAO_RuntimeRef rtRef, GOF_SynchronizedObjectRegistry& syncObjReg, GOF_SyncId syncId,
@@ -46,9 +46,10 @@ PhysicsBullet::~PhysicsBullet() {
     }
 }
 
-void PhysicsBullet::initWithSpeed(double direction, double speed) {
+void PhysicsBullet::initWithSpeed(const Collideables::ICreature* creator, double direction, double speed) {
     const cpVect force = cpv(std::cos(direction) * speed, std::sin(direction) * speed);
     cpBodyApplyImpulseAtLocalPoint(_body.get(), force, cpv(0, 0));
+    _creator = creator;
 }
 
 void PhysicsBullet::cannonicalSyncApplyUpdate(const VisibleState& state, int delay) {
@@ -80,4 +81,27 @@ void PhysicsBullet::eventDraw1() {
     circ.setFillColor(hg::gr::Color::Gold);
     circ.setPosition({self.x, self.y});
     canvas.draw(circ);
+}
+
+cpBool PhysicsBullet::collisionBegin(Collideables::ICreature* other, cpArbiter* arbiter) {
+    if (_creator == other) {
+        return cpFalse;
+    }
+    return cpTrue;
+}
+
+void PhysicsBullet::collisionPostSolve(Collideables::ICreature* other, cpArbiter* arbiter) {
+    using KeyType = QAO_Base;
+
+    auto callback = [](cpSpace* space, void* key, void* data) -> void {
+        QAO_PDestroy(static_cast<KeyType*>(key));
+    }; 
+
+    cpSpaceAddPostStepCallback(ctx().getPhysicsSpace(), callback, static_cast<KeyType*>(this), nullptr);
+}
+
+void PhysicsBullet::collisionSeparate(Collideables::ICreature* other, cpArbiter* arbiter) {
+    if (_creator == other) {
+        _creator = nullptr;
+    }
 }
