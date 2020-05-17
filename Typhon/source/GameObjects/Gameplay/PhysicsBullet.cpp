@@ -5,8 +5,6 @@
 #include "GameObjects/Framework/Execution_priorities.hpp"
 #include "GameObjects/Gameplay/PhysicsBullet.hpp"
 
-
-
 GOF_GENERATE_CANNONICAL_HANDLERS(PhysicsBullet);
 
 GOF_GENERATE_CANNONICAL_SYNC_IMPLEMENTATIONS(PhysicsBullet);
@@ -57,7 +55,12 @@ void PhysicsBullet::cannonicalSyncApplyUpdate(const VisibleState& state, int del
 }
 
 void PhysicsBullet::eventUpdate() {
-    if (!ctx().isPrivileged()) {
+    if (ctx().isPrivileged()) {
+        if (_hitSomething) {
+            QAO_PDestroy(this);
+        }
+    }
+    else{
         _ssch.scheduleNewStates();
         _ssch.advanceDownTo(ctx().syncBufferLength * 2);
     }
@@ -76,32 +79,42 @@ void PhysicsBullet::eventDraw1() {
     auto& canvas = ctx().windowMgr.getCanvas();
     auto& self = _ssch.getCurrentState();
 
-    sf::CircleShape circ{4.0};
+    sf::CircleShape circ{8.0};
     circ.setOrigin(circ.getRadius(), circ.getRadius());
     circ.setFillColor(hg::gr::Color::Gold);
     circ.setPosition({self.x, self.y});
     canvas.draw(circ);
 }
 
-cpBool PhysicsBullet::collisionBegin(Collideables::ICreature* other, cpArbiter* arbiter) {
+bool PhysicsBullet::collisionBegin(Collideables::ICreature* other, cpArbiter* arbiter) {
     if (_creator == other) {
-        return cpFalse;
+        return REJECT_COLLISION;
     }
-    return cpTrue;
+    return ACCEPT_COLLISION;
 }
 
 void PhysicsBullet::collisionPostSolve(Collideables::ICreature* other, cpArbiter* arbiter) {
-    using KeyType = QAO_Base;
-
-    auto callback = [](cpSpace* space, void* key, void* data) -> void {
-        QAO_PDestroy(static_cast<KeyType*>(key));
-    }; 
-
-    cpSpaceAddPostStepCallback(ctx().getPhysicsSpace(), callback, static_cast<KeyType*>(this), nullptr);
+    //destroySelfInPostStep();
+    //_hitSomething = true;
 }
 
 void PhysicsBullet::collisionSeparate(Collideables::ICreature* other, cpArbiter* arbiter) {
     if (_creator == other) {
         _creator = nullptr;
     }
+}
+
+void PhysicsBullet::collisionPostSolve(Collideables::ITerrain* other, cpArbiter* arbiter) {
+    //destroySelfInPostStep();
+    //_hitSomething = true;
+}
+
+void PhysicsBullet::destroySelfInPostStep() {
+    using KeyType = QAO_Base;
+
+    auto callback = [](cpSpace* space, void* key, void* data) -> void {
+        QAO_PDestroy(static_cast<KeyType*>(key));
+    };
+
+    cpSpaceAddPostStepCallback(ctx().getPhysicsSpace(), callback, static_cast<KeyType*>(this), nullptr);
 }

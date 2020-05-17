@@ -9,9 +9,9 @@ basis for small ~~and simple~~ games", unit tests for the engine and some exampl
 should start using Conan for this...
  - **Hobgoblin:** The engine itself.
  - **HobgoblinTest:** Unit tests for the engine.
- - **SimplePlatformer:** A small showcase game which uses Hobgoblin.
  - **SpaceshipPhysics:** Some old horrible code which may or may not compile successfully. Not really related
-to any of the above.
+to anything.
+ - **Typhon:** A small showcase game which uses Hobgoblin. The name was chones arbitrarily.
 
 
 Most of the directories have their own Readme file which describes relevant contents in more detail.

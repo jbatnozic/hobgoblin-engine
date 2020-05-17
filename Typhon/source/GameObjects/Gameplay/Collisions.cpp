@@ -105,16 +105,16 @@ void Collideables::populateCollisionHandler(cpCollisionHandler* handler) {
         CP_ARBITER_GET_SHAPES(arbiter, shapeA, shapeB);
         TypeA* A = cpShapeGetUserData(shapeA).get<TypeA>();
         TypeB* B = cpShapeGetUserData(shapeB).get<TypeB>();
-        cpBool predicateA = A->collisionBegin(B, arbiter);
-        cpBool predicateB = B->collisionBegin(A, arbiter);
+        cpBool predicateA = static_cast<cpBool>(A->collisionBegin(B, arbiter));
+        cpBool predicateB = static_cast<cpBool>(B->collisionBegin(A, arbiter));
         return (predicateA && predicateB);
     };
     handler->preSolveFunc = [](cpArbiter* arbiter, cpSpace* space, cpDataPointer userData) -> cpBool {
         CP_ARBITER_GET_SHAPES(arbiter, shapeA, shapeB);
         TypeA* A = cpShapeGetUserData(shapeA).get<TypeA>();
         TypeB* B = cpShapeGetUserData(shapeB).get<TypeB>();
-        cpBool predicateA = A->collisionPreSolve(B, arbiter);
-        cpBool predicateB = B->collisionPreSolve(A, arbiter);
+        cpBool predicateA = static_cast<cpBool>(A->collisionPreSolve(B, arbiter));
+        cpBool predicateB = static_cast<cpBool>(B->collisionPreSolve(A, arbiter));
         return (predicateA && predicateB);
     };
     handler->postSolveFunc = [](cpArbiter* arbiter, cpSpace* space, cpDataPointer userData) -> void {

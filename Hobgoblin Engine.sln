@@ -9,7 +9,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Hobgoblin", "Hobgoblin\Hobg
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HobgoblinTest", "HobgoblinTest\Hobgoblin Test.vcxproj", "{DC1CA9B8-8B40-4A06-92E0-AADB1402B2D2}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimplePlatformer", "SimplePlatformer\SimplePlatformer.vcxproj", "{1F2E1F7E-2247-4EFC-8C02-9586E6E99F5C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Typhon", "Typhon\Typhon.vcxproj", "{1F2E1F7E-2247-4EFC-8C02-9586E6E99F5C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

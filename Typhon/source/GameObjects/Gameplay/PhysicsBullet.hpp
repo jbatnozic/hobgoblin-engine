@@ -50,10 +50,15 @@ private:
     hg::cpBodyUPtr _body;
     hg::cpShapeUPtr _shape;
     const Collideables::ICreature* _creator;
+    bool _hitSomething = false;
 
-    cpBool collisionBegin(Collideables::ICreature* other, cpArbiter* arbiter) override;
+    bool collisionBegin(Collideables::ICreature* other, cpArbiter* arbiter) override;
     void collisionPostSolve(Collideables::ICreature* other, cpArbiter* arbiter) override;
     void collisionSeparate(Collideables::ICreature* other, cpArbiter* arbiter) override;
+
+    void collisionPostSolve(Collideables::ITerrain* other, cpArbiter* arbiter) override;
+
+    void destroySelfInPostStep();
 
     GOF_GENERATE_CANNONICAL_SYNC_DECLARATIONS;
 };

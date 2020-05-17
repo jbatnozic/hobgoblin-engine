@@ -36,29 +36,33 @@ public:
     class ITerrain;
 
     class __IBase {
+    public:
+        static constexpr bool ACCEPT_COLLISION = true;
+        static constexpr bool REJECT_COLLISION = false;
+
     private:
-        virtual cpBool collisionBegin(ICreature*, cpArbiter*) { return cpTrue; }
-        virtual cpBool collisionPreSolve(ICreature*, cpArbiter*) { return cpTrue; }
+        virtual bool collisionBegin(ICreature*, cpArbiter*) { return ACCEPT_COLLISION; }
+        virtual bool collisionPreSolve(ICreature*, cpArbiter*) { return ACCEPT_COLLISION; }
         virtual void collisionPostSolve(ICreature*, cpArbiter*) {}
         virtual void collisionSeparate(ICreature*, cpArbiter*) {}
 
-        virtual cpBool collisionBegin(IInteractible*, cpArbiter*) { return cpTrue; }
-        virtual cpBool collisionPreSolve(IInteractible*, cpArbiter*) { return cpTrue; }
+        virtual bool collisionBegin(IInteractible*, cpArbiter*) { return ACCEPT_COLLISION; }
+        virtual bool collisionPreSolve(IInteractible*, cpArbiter*) { return ACCEPT_COLLISION; }
         virtual void collisionPostSolve(IInteractible*, cpArbiter*) {}
         virtual void collisionSeparate(IInteractible*, cpArbiter*) {}
 
-        virtual cpBool collisionBegin(IProjectile*, cpArbiter*) { return cpTrue; }
-        virtual cpBool collisionPreSolve(IProjectile*, cpArbiter*) { return cpTrue; }
+        virtual bool collisionBegin(IProjectile*, cpArbiter*) { return ACCEPT_COLLISION; }
+        virtual bool collisionPreSolve(IProjectile*, cpArbiter*) { return ACCEPT_COLLISION; }
         virtual void collisionPostSolve(IProjectile*, cpArbiter*) {}
         virtual void collisionSeparate(IProjectile*, cpArbiter*) {}
 
-        virtual cpBool collisionBegin(IStructure*, cpArbiter*) { return cpTrue; }
-        virtual cpBool collisionPreSolve(IStructure*, cpArbiter*) { return cpTrue; }
+        virtual bool collisionBegin(IStructure*, cpArbiter*) { return ACCEPT_COLLISION; }
+        virtual bool collisionPreSolve(IStructure*, cpArbiter*) { return ACCEPT_COLLISION; }
         virtual void collisionPostSolve(IStructure*, cpArbiter*) {}
         virtual void collisionSeparate(IStructure*, cpArbiter*) {}
 
-        virtual cpBool collisionBegin(ITerrain*, cpArbiter*) { return cpTrue; }
-        virtual cpBool collisionPreSolve(ITerrain*, cpArbiter*) { return cpTrue; }
+        virtual bool collisionBegin(ITerrain*, cpArbiter*) { return ACCEPT_COLLISION; }
+        virtual bool collisionPreSolve(ITerrain*, cpArbiter*) { return ACCEPT_COLLISION; }
         virtual void collisionPostSolve(ITerrain*, cpArbiter*) {}
         virtual void collisionSeparate(ITerrain*, cpArbiter*) {}
 
