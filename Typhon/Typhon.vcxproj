@@ -178,7 +178,22 @@
     <ClCompile Include="source\GameObjects\Gameplay\PhysicsPlayer.cpp" />
     <ClCompile Include="source\GameObjects\Managers\Controls_manager.cpp" />
     <ClCompile Include="source\GameContext\Game_context.cpp" />
-    <ClCompile Include="source\Experimental\Isometric_tester.cpp" />
+    <ClCompile Include="source\SPeMPE\Implementation\Game_context.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="source\SPeMPE\Implementation\Game_object_framework.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="source\SPeMPE\Implementation\Keyboard_input.cpp" />
+    <ClCompile Include="source\SPeMPE\Implementation\Networking_manager.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="source\SPeMPE\Implementation\Synchronized_object_registry.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="source\SPeMPE\Implementation\Window_manager.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="source\Terrain\Terrain.cpp" />
     <ClCompile Include="source\Utility\Keyboard_input.cpp" />
     <ClCompile Include="source\Experimental\Lighting.cpp" />
@@ -202,9 +217,17 @@
     <ClInclude Include="source\GameObjects\Gameplay\PhysicsPlayer.hpp" />
     <ClInclude Include="source\GameObjects\Managers\Controls_manager.hpp" />
     <ClInclude Include="source\GameContext\Game_context.hpp" />
-    <ClInclude Include="source\Experimental\Isometric_tester.hpp" />
     <ClInclude Include="source\Graphics\Sprites.hpp" />
+    <ClInclude Include="source\SPeMPE\Include\Game_context.hpp" />
+    <ClInclude Include="source\SPeMPE\Include\Game_object_framework.hpp" />
+    <ClInclude Include="source\SPeMPE\Include\Keyboard_input.hpp" />
+    <ClInclude Include="source\SPeMPE\Include\Mouse_input.hpp" />
+    <ClInclude Include="source\SPeMPE\Include\Networking_manager.hpp" />
+    <ClInclude Include="source\SPeMPE\Include\Synchronized_object_registry.hpp" />
+    <ClInclude Include="source\SPeMPE\Include\Window_manager.hpp" />
+    <ClInclude Include="source\SPeMPE\SPeMPE.hpp" />
     <ClInclude Include="source\Terrain\Terrain.hpp" />
+    <ClInclude Include="source\Typhon\Framework.hpp" />
     <ClInclude Include="source\Utility\Keyboard_input.hpp" />
     <ClInclude Include="source\Experimental\Lighting.hpp" />
     <ClInclude Include="source\GameObjects\UI\Main_menu.hpp" />

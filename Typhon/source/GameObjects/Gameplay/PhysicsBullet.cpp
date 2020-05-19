@@ -57,7 +57,8 @@ void PhysicsBullet::cannonicalSyncApplyUpdate(const VisibleState& state, int del
 void PhysicsBullet::eventUpdate() {
     if (ctx().isPrivileged()) {
         if (_hitSomething) {
-            QAO_PDestroy(this);
+            //QAO_PDestroy(this);
+            destroySelfInPostStep();
         }
     }
     else{
@@ -95,7 +96,7 @@ bool PhysicsBullet::collisionBegin(Collideables::ICreature* other, cpArbiter* ar
 
 void PhysicsBullet::collisionPostSolve(Collideables::ICreature* other, cpArbiter* arbiter) {
     //destroySelfInPostStep();
-    //_hitSomething = true;
+    _hitSomething = true;
 }
 
 void PhysicsBullet::collisionSeparate(Collideables::ICreature* other, cpArbiter* arbiter) {
@@ -106,7 +107,7 @@ void PhysicsBullet::collisionSeparate(Collideables::ICreature* other, cpArbiter*
 
 void PhysicsBullet::collisionPostSolve(Collideables::ITerrain* other, cpArbiter* arbiter) {
     //destroySelfInPostStep();
-    //_hitSomething = true;
+    _hitSomething = true;
 }
 
 void PhysicsBullet::destroySelfInPostStep() {

@@ -1,7 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="source\Experimental\Isometric_tester.cpp" />
     <ClCompile Include="source\Experimental\Lighting.cpp" />
     <ClCompile Include="source\GameObjects\Framework\Game_object_framework.cpp" />
     <ClCompile Include="source\GameContext\Game_context.cpp" />
@@ -21,9 +20,14 @@
     <ClCompile Include="source\GameObjects\Gameplay\PhysicsBullet.cpp" />
     <ClCompile Include="source\GameObjects\Framework\Synchronized_object_registry.cpp" />
     <ClCompile Include="source\GameObjects\Gameplay\Collisions.cpp" />
+    <ClCompile Include="source\SPeMPE\Implementation\Game_context.cpp" />
+    <ClCompile Include="source\SPeMPE\Implementation\Window_manager.cpp" />
+    <ClCompile Include="source\SPeMPE\Implementation\Networking_manager.cpp" />
+    <ClCompile Include="source\SPeMPE\Implementation\Game_object_framework.cpp" />
+    <ClCompile Include="source\SPeMPE\Implementation\Synchronized_object_registry.cpp" />
+    <ClCompile Include="source\SPeMPE\Implementation\Keyboard_input.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="source\Experimental\Isometric_tester.hpp" />
     <ClInclude Include="source\Experimental\Lighting.hpp" />
     <ClInclude Include="source\GameObjects\Framework\Game_object_framework.hpp" />
     <ClInclude Include="source\GameContext\Game_context.hpp" />
@@ -46,5 +50,14 @@
     <ClInclude Include="source\GameObjects\Framework\Common.hpp" />
     <ClInclude Include="source\GameObjects\Gameplay\Collisions.hpp" />
     <ClInclude Include="source\Utility\Periodic_counter.hpp" />
+    <ClInclude Include="source\SPeMPE\Include\Game_context.hpp" />
+    <ClInclude Include="source\SPeMPE\Include\Window_manager.hpp" />
+    <ClInclude Include="source\SPeMPE\Include\Networking_manager.hpp" />
+    <ClInclude Include="source\SPeMPE\SPeMPE.hpp" />
+    <ClInclude Include="source\SPeMPE\Include\Game_object_framework.hpp" />
+    <ClInclude Include="source\SPeMPE\Include\Synchronized_object_registry.hpp" />
+    <ClInclude Include="source\SPeMPE\Include\Keyboard_input.hpp" />
+    <ClInclude Include="source\SPeMPE\Include\Mouse_input.hpp" />
+    <ClInclude Include="source\Typhon\Framework.hpp" />
   </ItemGroup>
 </Project>
