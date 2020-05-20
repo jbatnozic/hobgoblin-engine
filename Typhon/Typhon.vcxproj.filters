@@ -1,55 +1,27 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="source\Experimental\Lighting.cpp" />
-    <ClCompile Include="source\GameObjects\Framework\Game_object_framework.cpp" />
-    <ClCompile Include="source\GameContext\Game_context.cpp" />
-    <ClCompile Include="source\Utility\Keyboard_input.cpp" />
-    <ClCompile Include="source\GameObjects\Managers\Networking_manager.cpp" />
-    <ClCompile Include="source\GameObjects\Managers\Window_manager.cpp" />
-    <ClCompile Include="source\GameObjects\Managers\Controls_manager.cpp" />
-    <ClCompile Include="source\GameObjects\Managers\Main_game_controller.cpp" />
-    <ClCompile Include="source\GameObjects\Gameplay\Player.cpp" />
-    <ClCompile Include="source\GameObjects\UI\Main_menu.cpp" />
-    <ClCompile Include="source\Main\Main_impl.cpp" />
-    <ClCompile Include="source\Main\Main.cpp" />
-    <ClCompile Include="source\GameObjects\Gameplay\PhysicsPlayer.cpp" />
-    <ClCompile Include="source\GameObjects\Framework\Execution_priorities.cpp" />
-    <ClCompile Include="source\Terrain\Terrain.cpp" />
-    <ClCompile Include="source\GameObjects\Managers\Environment_manager.cpp" />
-    <ClCompile Include="source\GameObjects\Gameplay\PhysicsBullet.cpp" />
-    <ClCompile Include="source\GameObjects\Framework\Synchronized_object_registry.cpp" />
-    <ClCompile Include="source\GameObjects\Gameplay\Collisions.cpp" />
     <ClCompile Include="source\SPeMPE\Implementation\Game_context.cpp" />
     <ClCompile Include="source\SPeMPE\Implementation\Window_manager.cpp" />
     <ClCompile Include="source\SPeMPE\Implementation\Networking_manager.cpp" />
     <ClCompile Include="source\SPeMPE\Implementation\Game_object_framework.cpp" />
     <ClCompile Include="source\SPeMPE\Implementation\Synchronized_object_registry.cpp" />
     <ClCompile Include="source\SPeMPE\Implementation\Keyboard_input.cpp" />
+    <ClCompile Include="source\Typhon\Main\Main.cpp" />
+    <ClCompile Include="source\Typhon\Main\Main_impl.cpp" />
+    <ClCompile Include="source\Typhon\Framework\Collisions.cpp" />
+    <ClCompile Include="source\Typhon\Framework\Execution_priorities.cpp" />
+    <ClCompile Include="source\Typhon\Terrain\Terrain.cpp" />
+    <ClCompile Include="source\__Experimental\Lighting.cpp" />
+    <ClCompile Include="source\Typhon\GameObjects\Gameplay\PhysicsBullet.cpp" />
+    <ClCompile Include="source\Typhon\GameObjects\Gameplay\PhysicsPlayer.cpp" />
+    <ClCompile Include="source\Typhon\GameObjects\UI\Main_menu.cpp" />
+    <ClCompile Include="source\Typhon\GameObjects\Control\Controls_manager.cpp" />
+    <ClCompile Include="source\Typhon\GameObjects\Control\Environment_manager.cpp" />
+    <ClCompile Include="source\Typhon\GameObjects\Control\Main_game_controller.cpp" />
+    <ClCompile Include="source\Typhon\Framework\Extensions.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="source\Experimental\Lighting.hpp" />
-    <ClInclude Include="source\GameObjects\Framework\Game_object_framework.hpp" />
-    <ClInclude Include="source\GameContext\Game_context.hpp" />
-    <ClInclude Include="source\Utility\Keyboard_input.hpp" />
-    <ClInclude Include="source\GameObjects\Managers\Window_manager.hpp" />
-    <ClInclude Include="source\GameObjects\Managers\Networking_manager.hpp" />
-    <ClInclude Include="source\GameObjects\Managers\Controls_manager.hpp" />
-    <ClInclude Include="source\GameObjects\Managers\Main_game_controller.hpp" />
-    <ClInclude Include="source\GameObjects\Gameplay\Player.hpp" />
-    <ClInclude Include="source\GameObjects\UI\Main_menu.hpp" />
-    <ClInclude Include="source\Main\Main_impl.hpp" />
-    <ClInclude Include="source\Graphics\Sprites.hpp" />
-    <ClInclude Include="source\Terrain\Terrain.hpp" />
-    <ClInclude Include="source\GameObjects\Gameplay\PhysicsPlayer.hpp" />
-    <ClInclude Include="source\GameObjects\Framework\Execution_priorities.hpp" />
-    <ClInclude Include="source\GameObjects\Managers\Environment_manager.hpp" />
-    <ClInclude Include="source\GameContext\Game_config.hpp" />
-    <ClInclude Include="source\GameObjects\Gameplay\PhysicsBullet.hpp" />
-    <ClInclude Include="source\GameObjects\Framework\Synchronized_object_registry.hpp" />
-    <ClInclude Include="source\GameObjects\Framework\Common.hpp" />
-    <ClInclude Include="source\GameObjects\Gameplay\Collisions.hpp" />
-    <ClInclude Include="source\Utility\Periodic_counter.hpp" />
     <ClInclude Include="source\SPeMPE\Include\Game_context.hpp" />
     <ClInclude Include="source\SPeMPE\Include\Window_manager.hpp" />
     <ClInclude Include="source\SPeMPE\Include\Networking_manager.hpp" />
@@ -59,5 +31,19 @@
     <ClInclude Include="source\SPeMPE\Include\Keyboard_input.hpp" />
     <ClInclude Include="source\SPeMPE\Include\Mouse_input.hpp" />
     <ClInclude Include="source\Typhon\Framework.hpp" />
+    <ClInclude Include="source\Typhon\Graphics\Sprites.hpp" />
+    <ClInclude Include="source\Typhon\Main\Main_impl.hpp" />
+    <ClInclude Include="source\Typhon\Framework\Collisions.hpp" />
+    <ClInclude Include="source\Typhon\Framework\Execution_priorities.hpp" />
+    <ClInclude Include="source\Typhon\Terrain\Terrain.hpp" />
+    <ClInclude Include="source\Typhon\Utility\Periodic_counter.hpp" />
+    <ClInclude Include="source\__Experimental\Lighting.hpp" />
+    <ClInclude Include="source\Typhon\GameObjects\Gameplay\PhysicsPlayer.hpp" />
+    <ClInclude Include="source\Typhon\GameObjects\Gameplay\PhysicsBullet.hpp" />
+    <ClInclude Include="source\Typhon\GameObjects\UI\Main_menu.hpp" />
+    <ClInclude Include="source\Typhon\Framework\Extensions.hpp" />
+    <ClInclude Include="source\Typhon\GameObjects\Control\Controls_manager.hpp" />
+    <ClInclude Include="source\Typhon\GameObjects\Control\Environment_manager.hpp" />
+    <ClInclude Include="source\Typhon\GameObjects\Control\Main_game_controller.hpp" />
   </ItemGroup>
 </Project>

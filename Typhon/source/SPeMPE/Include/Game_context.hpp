@@ -4,7 +4,6 @@
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Graphics.hpp>
 #include <Hobgoblin/QAO.hpp>
-#include <Hobgoblin/Utility/Any_ptr.hpp>
 
 #include <SPeMPE/Include/Networking_manager.hpp>
 #include <SPeMPE/Include/Synchronized_object_registry.hpp>
@@ -23,6 +22,12 @@ namespace spempe {
 constexpr int PLAYER_INDEX_UNKNOWN = -1;
 constexpr int PLAYER_INDEX_NONE    = -2;
 
+class GameContextExtensionData {
+public:
+    virtual ~GameContextExtensionData() = 0 {};
+    virtual const std::type_info& getTypeInfo() const = 0;
+};
+
 class GameContext {
 public:
     static constexpr int F_PRIVILEGED = 0x1;
@@ -30,7 +35,7 @@ public:
     static constexpr int F_HEADLESS   = 0x4;
 
     enum class Mode : int {
-        Initial = 0,
+        Initial    = 0,
         Server     = F_PRIVILEGED | F_NETWORKING | F_HEADLESS,
         Client     = F_NETWORKING,
         Solo       = F_PRIVILEGED,
@@ -42,22 +47,27 @@ public:
     };
 
     struct RuntimeConfig {
-
+        // targetFramerate
+        // deltaTime
     };
 
-    struct NetworkConfig {
-        std::string passphrase;
-        hg::PZInteger clientCount;
-        sf::IpAddress serverIp;
-        std::uint16_t serverPort;
-        std::uint16_t localPort;
-    };
+    //struct NetworkConfig {
+    //    std::string passphrase;
+    //    hg::PZInteger clientCount;
+    //    sf::IpAddress serverIp;
+    //    std::uint16_t serverPort;
+    //    std::uint16_t localPort;
+    //};
 
-    GameContext(const ResourceConfig& resourceConfig, const RuntimeConfig& runtimeConfig,
-                const NetworkConfig& networkConfig);
+    // TODO Temp.
+    int syncBufferLength = 2;
+    int calcDelay(std::chrono::microseconds ms) { return 1; }
+
+    GameContext(const ResourceConfig& resourceConfig, const RuntimeConfig& runtimeConfig);
 
     ~GameContext() {
         _qaoRuntime.eraseAllNonOwnedObjects();
+        _extensionData.reset();
     }
 
     void configure(Mode mode);
@@ -74,12 +84,16 @@ public:
         return _runtimeConfig;
     }
 
-    const NetworkConfig& getNetworkConfig() const {
-        return _networkConfig;
-    }
-
     int getLocalPlayerIndex() const {
         return 0; // TODO
+    }
+
+    void setExtensionData(std::unique_ptr<GameContextExtensionData> extData) {
+        _extensionData = std::move(extData);
+    }
+
+    GameContextExtensionData* getExtensionData() const {
+        return _extensionData.get();
     }
 
     hg::QAO_Runtime& getQaoRuntime() {
@@ -109,7 +123,6 @@ private:
     // Configuration:
     ResourceConfig _resourceConfig;
     RuntimeConfig _runtimeConfig;
-    NetworkConfig _networkConfig;
 
     //std::chrono::duration<double> _deltaTime;
     //hg::PZInteger _targetFps;
@@ -128,7 +141,7 @@ private:
     int _childContextReturnValue = 0;
 
     // State:
-    hg::util::AnyPtr _extensionData;
+    std::unique_ptr<GameContextExtensionData> _extensionData;
     int _localPlayerIndex = PLAYER_INDEX_UNKNOWN;
     Mode _mode = Mode::Initial;
     bool _quit = false;

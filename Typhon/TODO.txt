@@ -1,3 +1,4 @@
-Finish WindowManager (support for keyboard/mouse input, initialization)
+Make WindowManager and NetworkingManager better
 Directional lights
 Organize code so that every module has an interface and an implementation (and fix include paths)
+What to do with SPeMPE managers' execution priorities?

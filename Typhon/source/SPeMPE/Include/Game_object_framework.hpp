@@ -20,15 +20,8 @@ class WindowManager;
 class GameObjectBase : public hg::QAO_Base {
 public:
     using hg::QAO_Base::QAO_Base;
-
-    enum KeyboardInputTagEnum     { IKeyboard };
-    enum NetworkingManagerTagEnum { MNetworking };
-    enum WindowManagertagEnum     { MWindow };
     
-    GameContext&       ctx() const;
-    KbInputTracker&    ctx(KeyboardInputTagEnum) const;
-    NetworkingManager& ctx(NetworkingManagerTagEnum) const;
-    WindowManager&     ctx(WindowManagertagEnum) const;
+    GameContext& ctx() const;
 };
 
 // I:

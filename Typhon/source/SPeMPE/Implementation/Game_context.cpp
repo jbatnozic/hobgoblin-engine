@@ -31,8 +31,6 @@ int DoSingleQaoIteration(hg::QAO_Runtime& runtime, std::int32_t eventFlags) {
     return 0;
 }
 
-
-
 } // namespace
 
 void GameContext::configure(Mode mode) {
@@ -44,11 +42,11 @@ void GameContext::configure(Mode mode) {
         _localPlayerIndex = PLAYER_INDEX_NONE;
         _windowManager.create(); // TODO Temp.
         _networkingManager.initializeAsServer();
-        _networkingManager.getServer().start(_networkConfig.localPort, _networkConfig.passphrase);
-        _networkingManager.getServer().resize(_networkConfig.clientCount);
-        _networkingManager.getServer().setTimeoutLimit(std::chrono::seconds{5}); // TODO Magic number
+        //_networkingManager.getServer().start(_networkConfig.localPort, _networkConfig.passphrase);
+        //_networkingManager.getServer().resize(_networkConfig.clientCount);
+        //_networkingManager.getServer().setTimeoutLimit(std::chrono::seconds{5}); // TODO Magic number
         _syncObjReg.setNode(_networkingManager.getNode());
-        std::cout << "Server started on port " << _networkingManager.getServer().getLocalPort() << '\n';
+        //std::cout << "Server started on port " << _networkingManager.getServer().getLocalPort() << '\n';
 
         //{
         //    std::cout << "Generating terrain...\n";
@@ -62,9 +60,9 @@ void GameContext::configure(Mode mode) {
         _localPlayerIndex = PLAYER_INDEX_UNKNOWN;
         _windowManager.create();
         _networkingManager.initializeAsClient();
-        _networkingManager.getClient().connect(_networkConfig.localPort, _networkConfig.serverIp,
-                                               _networkConfig.serverPort, _networkConfig.passphrase);
-        _networkingManager.getClient().setTimeoutLimit(std::chrono::seconds{5});
+        //_networkingManager.getClient().connect(_networkConfig.localPort, _networkConfig.serverIp,
+        //                                       _networkConfig.serverPort, _networkConfig.passphrase);
+        //_networkingManager.getClient().setTimeoutLimit(std::chrono::seconds{5});
         _syncObjReg.setNode(_networkingManager.getNode());
         break;
 
@@ -77,11 +75,11 @@ void GameContext::configure(Mode mode) {
         _localPlayerIndex = 0;
         _windowManager.create();
         _networkingManager.initializeAsServer();
-        _networkingManager.getServer().start(_networkConfig.localPort, _networkConfig.passphrase);
-        _networkingManager.getServer().resize(_networkConfig.clientCount);
-        _networkingManager.getServer().setTimeoutLimit(std::chrono::seconds{5});
+        //_networkingManager.getServer().start(_networkConfig.localPort, _networkConfig.passphrase);
+        //_networkingManager.getServer().resize(_networkConfig.clientCount);
+        //_networkingManager.getServer().setTimeoutLimit(std::chrono::seconds{5});
         _syncObjReg.setNode(_networkingManager.getNode());
-        std::cout << "Server started on port " << _networkingManager.getServer().getLocalPort() << '\n';
+        //std::cout << "Server started on port " << _networkingManager.getServer().getLocalPort() << '\n';
         break;
 
     default:
@@ -89,11 +87,9 @@ void GameContext::configure(Mode mode) {
     }
 }
 
-GameContext::GameContext(const ResourceConfig& resourceConfig, const RuntimeConfig& runtimeConfig,
-                         const NetworkConfig& _networkConfig)
+GameContext::GameContext(const ResourceConfig& resourceConfig, const RuntimeConfig& runtimeConfig)
     : _resourceConfig{resourceConfig}
     , _runtimeConfig{runtimeConfig}
-    , _networkConfig{_networkConfig}
     , _qaoRuntime{this}
     , _windowManager{_qaoRuntime.nonOwning()}
     , _networkingManager{_qaoRuntime.nonOwning()}
@@ -186,7 +182,7 @@ void GameContext::runImpl(GameContext* context, int* retVal) {
     assert(context != nullptr);
     assert(retVal != nullptr);
 
-    const Duration deltaTime{0}; // context->getDeltaTime();
+    const Duration deltaTime{1000.0 / 60.0}; // context->getDeltaTime(); TODO
     Duration accumulatorTime = deltaTime;
     auto currentTime = steady_clock::now();
 

@@ -14,18 +14,6 @@ GameContext& GameObjectBase::ctx() const {
     return *(getRuntime()->getUserData<GameContext>());
 }
 
-KbInputTracker& GameObjectBase::ctx(KeyboardInputTagEnum) const {
-    return ctx(MWindow).getKeyboardInput();
-}
-
-NetworkingManager& GameObjectBase::ctx(NetworkingManagerTagEnum) const {
-    return ctx().getNetworkingManager();
-}
-
-WindowManager& GameObjectBase::ctx(WindowManagertagEnum) const {
-    return ctx().getWindowManager();
-}
-
 // ///////////////////////////////////////////////////////////////////////////////////////////// //
 
 SynchronizedObject::SynchronizedObject(hg::QAO_RuntimeRef runtimeRef, const std::type_info& typeInfo,
