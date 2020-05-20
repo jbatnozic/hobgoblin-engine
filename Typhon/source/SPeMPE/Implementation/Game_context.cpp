@@ -182,7 +182,7 @@ void GameContext::runImpl(GameContext* context, int* retVal) {
     assert(context != nullptr);
     assert(retVal != nullptr);
 
-    const Duration deltaTime{1000.0 / 60.0}; // context->getDeltaTime(); TODO
+    const Duration deltaTime{1'000'000.0 / 60.0}; // context->getDeltaTime(); TODO
     Duration accumulatorTime = deltaTime;
     auto currentTime = steady_clock::now();
 

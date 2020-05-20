@@ -51,14 +51,6 @@ public:
         // deltaTime
     };
 
-    //struct NetworkConfig {
-    //    std::string passphrase;
-    //    hg::PZInteger clientCount;
-    //    sf::IpAddress serverIp;
-    //    std::uint16_t serverPort;
-    //    std::uint16_t localPort;
-    //};
-
     // TODO Temp.
     int syncBufferLength = 2;
     int calcDelay(std::chrono::microseconds ms) { return 1; }
@@ -84,8 +76,12 @@ public:
         return _runtimeConfig;
     }
 
+    void setLocalPlayerIndex(int index) {
+        _localPlayerIndex = index;
+    }
+
     int getLocalPlayerIndex() const {
-        return 0; // TODO
+        return _localPlayerIndex;
     }
 
     void setExtensionData(std::unique_ptr<GameContextExtensionData> extData) {

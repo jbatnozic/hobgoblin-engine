@@ -1,6 +1,7 @@
 
 #include <Typhon/GameObjects/Control/Controls_manager.hpp>
 #include <Typhon/GameObjects/Control/Environment_manager.hpp>
+#include <Typhon/GameObjects/Control/Main_game_controller.hpp>
 
 #include <cassert>
 
@@ -15,10 +16,18 @@ const std::type_info& TyphonGameContextExtensionData::getTypeInfo() const {
 
 void ExtendGameContext(spempe::GameContext& ctx) {
     auto extData = std::make_unique<TyphonGameContextExtensionData>();
-    extData->controlsManager = QAO_UPCreate<ControlsManager>(ctx.getQaoRuntime().nonOwning(), 1, 2, 1); // TODO
+
+    extData->controlsManager = QAO_UPCreate<ControlsManager>(ctx.getQaoRuntime().nonOwning(), 10, 2, 1); // TODO
     extData->environmentManager = QAO_UPCreate<EnvironmentManager>(ctx.getQaoRuntime().nonOwning(),
-                                                                   ctx.getSyncObjReg(), SYNC_ID_NEW);
+                                                                   ctx.getSyncObjReg(), SYNC_ID_NEW); // TODO Environment manager shouldn't be a SynchronizedObject...
+    extData->mainGameController = QAO_UPCreate<MainGameController>(ctx.getQaoRuntime().nonOwning());
+
     extData->physicsSpace.reset(cpSpaceNew());
+    // TODO Temporarily here; should be in EnvironmentManager
+    cpSpaceSetUserData(extData->physicsSpace.get(), &ctx);
+    cpSpaceSetDamping(extData->physicsSpace.get(), 0.1);
+    Collideables::installCollisionHandlers(extData->physicsSpace.get());
+
     ctx.setExtensionData(std::move(extData));
 }
 
@@ -44,6 +53,16 @@ EnvironmentManager& GetEnvironmentManager(spempe::GameContext& ctx) {
 
 spempe::KbInputTracker& GetKeyboardInput(spempe::GameContext& ctx) {
     return ctx.getWindowManager().getKeyboardInput();
+}
+
+MainGameController& GetMainGameController(spempe::GameContext& ctx) {
+    auto* extData = ctx.getExtensionData();
+    assert(extData);
+    assert(extData->getTypeInfo() == typeid(TyphonGameContextExtensionData));
+
+    auto* p = static_cast<TyphonGameContextExtensionData*>(extData)->mainGameController.get();
+    assert(p != nullptr);
+    return *p;
 }
 
 spempe::NetworkingManager& GetNetworkingManager(spempe::GameContext& ctx) {

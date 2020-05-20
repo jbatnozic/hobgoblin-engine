@@ -54,6 +54,8 @@ private:
     hg::gr::CanvasAdapter _windowAdapter;
     hg::gr::MultiViewRenderTargetAdapter _mainRenderTextureAdapter;
     KbInputTracker _kbi;
+
+    hg::util::Stopwatch _stopwatch;
 };
 
 } // namespace spempe

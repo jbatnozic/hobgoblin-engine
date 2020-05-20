@@ -1,7 +1,9 @@
 
+#include <SPeMPE/Include/Game_context.hpp>
 #include <SPeMPE/Include/Window_manager.hpp>
 
 #include <algorithm>
+#include <iostream>
 
 namespace spempe {
 
@@ -107,6 +109,10 @@ void WindowManager::eventPostUpdate() {
 }
 
 void WindowManager::eventRender() {
+    if (ctx().isPrivileged()) {
+        std::cout << "Server displaying after " << _stopwatch.restart().count() << "ms.\n";
+    }
+
     _window.clear(sf::Color::Black);
     drawMainRenderTexture(DrawPosition::Fit);
     _window.display();

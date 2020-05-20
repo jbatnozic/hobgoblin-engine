@@ -2,6 +2,7 @@
 #include <cmath>
 
 #include "../Control/Controls_manager.hpp"
+#include "../Control/Environment_manager.hpp"
 #include "PhysicsBullet.hpp"
 #include "PhysicsPlayer.hpp"
 
@@ -36,7 +37,7 @@ PhysicsPlayer::PhysicsPlayer(QAO_RuntimeRef rtRef, SynchronizedObjectRegistry& s
     }
 
     //_lightHandle = ctx().envMgr.addLight(initialState.x, initialState.y, hg::gr::Color::MediumBioletRed, 8.f);
-    //_lightHandle = ctx().envMgr.addLight(initialState.x, initialState.y, hg::gr::Color::AntiqueWhite, 8.f);
+    _lightHandle = ctx(MEnvironment).addLight(initialState.x, initialState.y, hg::gr::Color::AntiqueWhite, 8.f);
 }
 
 PhysicsPlayer::~PhysicsPlayer() {

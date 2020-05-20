@@ -112,7 +112,7 @@ void NetworkingManager::handleEvents() {
                 }
                 else {
                     std::cout << "Connected to server\n";
-                    //ctx().playerIndex = getClient().getClientIndex() + 1; TODO
+                    ctx().setLocalPlayerIndex(getClient().getClientIndex() + 1);
                 }
             },
             [](const RN_Event::Disconnected& ev) {
