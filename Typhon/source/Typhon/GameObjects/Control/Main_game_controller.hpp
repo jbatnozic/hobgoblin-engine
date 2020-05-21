@@ -12,6 +12,7 @@ public:
 protected:
     void eventUpdate() override;
     void eventPostUpdate() override;
+    void eventDrawGUI() override;
 
 private:
     void onNetworkingEvent(const RN_Event& event) override;

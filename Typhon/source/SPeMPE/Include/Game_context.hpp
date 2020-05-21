@@ -47,8 +47,28 @@ public:
     };
 
     struct RuntimeConfig {
-        // targetFramerate
-        // deltaTime
+        RuntimeConfig(hg::PZInteger targetFramerate = 60, hg::PZInteger maxFramesBetweenDisplays = 2);
+
+        hg::PZInteger getTargetFramerate() const noexcept;
+        std::chrono::duration<double> getDeltaTime() const noexcept;
+        hg::PZInteger getMaxFramesBetweenDisplays() const noexcept;
+
+    private:
+        hg::PZInteger _targetFramerate;
+        std::chrono::duration<double> _deltaTime;
+        hg::PZInteger _maxFramesBetweenDisplays;
+    };
+
+    struct PerformanceInfo {
+        PerformanceInfo() = default;
+        PerformanceInfo(const PerformanceInfo&) = default;
+        PerformanceInfo& operator=(const PerformanceInfo&) = default;
+
+        std::chrono::microseconds frameToFrameTime{0};
+        std::chrono::microseconds updateAndDrawTime{0};
+        std::chrono::microseconds finalizeTime{0};
+        std::chrono::microseconds totalTime{0};
+        hg::PZInteger consecutiveUpdateLoops{0};
     };
 
     // TODO Temp.
@@ -74,6 +94,10 @@ public:
 
     const RuntimeConfig& getRuntimeConfig() const {
         return _runtimeConfig;
+    }
+
+    const PerformanceInfo& getPerformanceInfo() const {
+        return _performanceInfo;
     }
 
     void setLocalPlayerIndex(int index) {
@@ -112,6 +136,7 @@ public:
     void stop();
 
     bool hasChildContext();
+    GameContext* getChildContext() const;
     int stopChildContext();
     void runChildContext(std::unique_ptr<GameContext> childContext);
 
@@ -137,12 +162,13 @@ private:
     int _childContextReturnValue = 0;
 
     // State:
+    PerformanceInfo _performanceInfo;
     std::unique_ptr<GameContextExtensionData> _extensionData;
     int _localPlayerIndex = PLAYER_INDEX_UNKNOWN;
     Mode _mode = Mode::Initial;
     bool _quit = false;
 
-    static void runImpl(GameContext* context, int* retVal);
+    static void _runImpl(GameContext* context, int* retVal);
 };
 
 } // namespace spempe

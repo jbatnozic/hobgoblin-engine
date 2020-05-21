@@ -7,8 +7,6 @@
 #include <Typhon/Framework/Execution_priorities.hpp>
 #include <Typhon/Framework/Extensions.hpp>
 
-#include <memory>
-
 #define TYPEID_SELF SPEMPE_TYPEID_SELF
 
 // Everything in these namespaces is prefixed with QAO_ and RN_ anyway...
@@ -49,8 +47,6 @@ public:
     PASTE_CONTEXT_TAG_DEFINITIONS;
     PASTE_CTX_METHOD_OVERLOADS;
 };
-
-std::unique_ptr<spempe::GameContext> CreateGameContext();
 
 #undef PASTE_CONTEXT_TAG_DEFINITIONS
 #undef PASTE_CTX_METHOD_OVERLOADS

@@ -1,8 +1,11 @@
 
 #include <Hobgoblin/ChipmunkPhysics.hpp>
+#include <Hobgoblin/Graphics.hpp>
 #include <SFML/System.hpp>
 
 #include <Typhon/GameObjects/Gameplay/PhysicsPlayer.hpp>
+
+#include <sstream>
 
 #include "Main_game_controller.hpp"
 
@@ -38,6 +41,44 @@ void MainGameController::eventUpdate() {
 
 void MainGameController::eventPostUpdate() {
     cpSpaceStep(ctx(DPhysicsSpace), 1.0 / 60.0); // TODO Temp. - Magic number
+}
+
+void MainGameController::eventDrawGUI() {
+    //sf::RectangleShape rect({32, 32});
+    //rect.setFillColor(hg::gr::Color::Red);
+    //rect.setPosition({32.f, 32.f});
+    //ctx(MWindow).getCanvas().draw(rect);
+
+    sf::Text text;
+    text.setFont(hg::gr::BuiltInFonts::getFont(hg::gr::BuiltInFonts::TitilliumRegular));
+    text.setPosition({16.f, 16.f});
+    text.setFillColor(hg::gr::Color::White);
+    text.setOutlineColor(hg::gr::Color::Black);
+    text.setOutlineThickness(1.f);
+    text.setCharacterSize(16);
+    
+    auto& perfInfo = ctx().getPerformanceInfo();
+    std::stringstream sstream;
+    sstream 
+        << "Local context performance (microsec):\n"
+        << "    tUpdate: "   << perfInfo.updateAndDrawTime.count() << " (x" << perfInfo.consecutiveUpdateLoops << ")\n"
+        << "    tFinalize: " << perfInfo.finalizeTime.count() << '\n'
+        << "    tTotal: "    << perfInfo.totalTime.count() << '\n'
+        << "    tFTF: "      << perfInfo.frameToFrameTime.count() << "\n\n";
+
+    if (ctx().hasChildContext()) {
+        auto& perfInfo = ctx().getChildContext()->getPerformanceInfo();
+        sstream
+            << "Child context performance (microsec):\n"
+            << "    tUpdate: "   << perfInfo.updateAndDrawTime.count() << " (x" << perfInfo.consecutiveUpdateLoops << ")\n"
+            << "    tFinalize: " << perfInfo.finalizeTime.count() << '\n'
+            << "    tTotal: "    << perfInfo.totalTime.count() << '\n'
+            << "    tFTF: "      << perfInfo.frameToFrameTime.count();
+    }
+
+    text.setString(sstream.str());
+
+    ctx(MWindow).getCanvas().draw(text);
 }
 
 void MainGameController::onNetworkingEvent(const RN_Event& event_) {

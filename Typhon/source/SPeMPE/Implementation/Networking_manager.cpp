@@ -77,7 +77,7 @@ void NetworkingManager::eventPreUpdate() {
 void NetworkingManager::eventPostUpdate() {
     // Update all Synchronized objects
     if (RN_IsServer(getNode().getType())) {
-        ctx().getSyncObjReg().syncStateUpdates(); // TODO Maybe this shouldn't be a responsibility of this object?
+        ctx().getSyncObjReg().syncStateUpdates();
     }
 
     getNode().update(RN_UpdateMode::Send);

@@ -4,15 +4,12 @@ QAO needs a lot of file, method and variable renaming
 CD  Add support for skewed bounding boxes
 CD  Implement scan functions
 CD  Test scan functions
-RN  Sending very large packets
-QAO eventRender -> eventDisplay
 GR  Color blending functions
 UTL Randomization utilities (random, choose(...) etc.)
 ALL Refactor SlabIndexer
 ALL Fix warnings during build
 
 RIGELNET:
-	Use std::string as a "binary blob" container
 	~ Remove acks from data messages OR use them for latency counting w/ "weak" acks
 	Operations with disconnected clients should throw exceptions (except getStatus)
 	Remove test #include <iostream>s

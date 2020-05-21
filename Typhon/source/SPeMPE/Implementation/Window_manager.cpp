@@ -88,7 +88,7 @@ void WindowManager::drawMainRenderTexture(DrawPosition drawPosition) {
             }
             mrtSprite.setScale({scale, scale});
         }
-        // TODO SWITCH_FALLTHROUGH;
+        // SWITCH FALLTHROUGH
 
     case DrawPosition::Centre:
         mrtSprite.setOrigin({static_cast<float>(mrtSize.x) / 2.f,
@@ -105,16 +105,19 @@ void WindowManager::drawMainRenderTexture(DrawPosition drawPosition) {
 }
 
 void WindowManager::eventPostUpdate() {
-    _mainRenderTexture.clear(hg::gr::Color::Khaki);
+    _mainRenderTexture.clear(hg::gr::Color::DarkGray);
+}
+
+void WindowManager::eventDraw2() {
+    _window.clear(sf::Color::Black);
+    drawMainRenderTexture(DrawPosition::Fit);
 }
 
 void WindowManager::eventFinalizeFrame() {
-    if (ctx().isPrivileged()) {
-        std::cout << "Server displaying after " << _stopwatch.restart().count() << "ms.\n";
-    }
+    //if (ctx().isPrivileged()) {
+    //    std::cout << "Server displaying after " << _stopwatch.restart().count() << "ms.\n";
+    //}
 
-    _window.clear(sf::Color::Black);
-    drawMainRenderTexture(DrawPosition::Fit);
     _window.display();
 
     _kbi.prepForEvents();

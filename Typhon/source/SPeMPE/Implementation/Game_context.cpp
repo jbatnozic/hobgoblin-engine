@@ -1,6 +1,9 @@
 
 #include <SPeMPE/Include/Game_context.hpp>
 
+#include <algorithm>
+#include <cassert>
+
 namespace spempe {
 
 namespace {
@@ -33,6 +36,27 @@ int DoSingleQaoIteration(hg::QAO_Runtime& runtime, std::int32_t eventFlags) {
 
 } // namespace
 
+GameContext::RuntimeConfig::RuntimeConfig(hg::PZInteger targetFramerate, hg::PZInteger maxFramesBetweenDisplays)
+    : _targetFramerate{targetFramerate}
+    , _deltaTime{1.0 / static_cast<double>(targetFramerate)}
+    , _maxFramesBetweenDisplays{maxFramesBetweenDisplays}
+{
+    assert(targetFramerate > 0);
+    assert(maxFramesBetweenDisplays > 0);
+}
+
+hg::PZInteger GameContext::RuntimeConfig::getTargetFramerate() const noexcept {
+    return _targetFramerate;
+}
+
+std::chrono::duration<double> GameContext::RuntimeConfig::getDeltaTime() const noexcept {
+    return _deltaTime;
+}
+
+hg::PZInteger GameContext::RuntimeConfig::getMaxFramesBetweenDisplays() const noexcept {
+    return _maxFramesBetweenDisplays;
+}
+
 void GameContext::configure(Mode mode) {
     // TODO I never did like this method... (it does too much)
     _mode = mode;
@@ -40,29 +64,15 @@ void GameContext::configure(Mode mode) {
     switch (mode) {
     case Mode::Server:
         _localPlayerIndex = PLAYER_INDEX_NONE;
-        _windowManager.create(); // TODO Temp.
+        _windowManager.create();
         _networkingManager.initializeAsServer();
-        //_networkingManager.getServer().start(_networkConfig.localPort, _networkConfig.passphrase);
-        //_networkingManager.getServer().resize(_networkConfig.clientCount);
-        //_networkingManager.getServer().setTimeoutLimit(std::chrono::seconds{5}); // TODO Magic number
         _syncObjReg.setNode(_networkingManager.getNode());
-        //std::cout << "Server started on port " << _networkingManager.getServer().getLocalPort() << '\n';
-
-        //{
-        //    std::cout << "Generating terrain...\n";
-        //    hg::util::Stopwatch stopwatch;
-        //    envMgr.generate(100, 100, 32.f);
-        //    std::cout << "DONE! Terrain generated (took " << stopwatch.getElapsedTime().count() << "ms)\n";
-        //}
         break;
 
     case Mode::Client:
         _localPlayerIndex = PLAYER_INDEX_UNKNOWN;
         _windowManager.create();
         _networkingManager.initializeAsClient();
-        //_networkingManager.getClient().connect(_networkConfig.localPort, _networkConfig.serverIp,
-        //                                       _networkConfig.serverPort, _networkConfig.passphrase);
-        //_networkingManager.getClient().setTimeoutLimit(std::chrono::seconds{5});
         _syncObjReg.setNode(_networkingManager.getNode());
         break;
 
@@ -75,11 +85,7 @@ void GameContext::configure(Mode mode) {
         _localPlayerIndex = 0;
         _windowManager.create();
         _networkingManager.initializeAsServer();
-        //_networkingManager.getServer().start(_networkConfig.localPort, _networkConfig.passphrase);
-        //_networkingManager.getServer().resize(_networkConfig.clientCount);
-        //_networkingManager.getServer().setTimeoutLimit(std::chrono::seconds{5});
         _syncObjReg.setNode(_networkingManager.getNode());
-        //std::cout << "Server started on port " << _networkingManager.getServer().getLocalPort() << '\n';
         break;
 
     default:
@@ -114,7 +120,7 @@ bool GameContext::hasNetworking() const {
 
 int GameContext::run() {
     int rv;
-    runImpl(this, &rv);
+    _runImpl(this, &rv);
     return rv;
 }
 
@@ -129,6 +135,10 @@ void GameContext::stop() {
 
 bool GameContext::hasChildContext() {
     return (_childContext != nullptr);
+}
+
+GameContext* GameContext::getChildContext() const {
+    return _childContext.get();
 }
 
 int GameContext::stopChildContext() {
@@ -146,7 +156,7 @@ void GameContext::runChildContext(std::unique_ptr<GameContext> childContext) {
 
     _childContext = std::move(childContext);
     _childContext->_parentContext = this;
-    _childContextThread = std::thread{runImpl, _childContext.get(), &_childContextReturnValue};
+    _childContextThread = std::thread{_runImpl, _childContext.get(), &_childContextReturnValue};
 }
 
 namespace {
@@ -171,55 +181,72 @@ constexpr std::int32_t QAO_EVENT_MASK_ALL_EXCEPT_FINALIZE = QAO_ALL_EVENT_FLAGS 
 constexpr std::int32_t QAO_EVENT_MASK_ALL_EXCEPT_DRAW_AND_FINALIZE = QAO_EVENT_MASK_ALL_EXCEPT_DRAW
                                                                    & QAO_EVENT_MASK_ALL_EXCEPT_FINALIZE;
 
-using Duration = std::chrono::duration<double, std::micro>;
+using TimingDuration = std::chrono::duration<double, std::micro>;
 using std::chrono::milliseconds;
+using std::chrono::microseconds;
 using std::chrono::steady_clock;
 using std::chrono::duration_cast;
 
 } // namespace
 
-void GameContext::runImpl(GameContext* context, int* retVal) {
+void GameContext::_runImpl(GameContext* context, int* retVal) {
     assert(context != nullptr);
     assert(retVal != nullptr);
 
-    const Duration deltaTime{1'000'000.0 / 60.0}; // context->getDeltaTime(); TODO
-    Duration accumulatorTime = deltaTime;
+    const TimingDuration deltaTime = context->getRuntimeConfig().getDeltaTime();
+    TimingDuration accumulatorTime = deltaTime;
     auto currentTime = steady_clock::now();
 
+    PerformanceInfo perfInfo;
+    hg::util::Stopwatch frameToFrameStopwatch;
+
     while (!context->_quit) {
+        perfInfo.frameToFrameTime = frameToFrameStopwatch.restart<microseconds>();
+
         auto now = steady_clock::now();
-        accumulatorTime += duration_cast<Duration>(now - currentTime);
+        accumulatorTime += duration_cast<TimingDuration>(now - currentTime);
         currentTime = now;
 
-        for (int i = 0; i < /*FACTOR*/ 2; i += 1) { // TODO
+        for (int i = 0; i < context->getRuntimeConfig().getMaxFramesBetweenDisplays(); i += 1) {
             if (accumulatorTime < deltaTime) {
                 break;
             }
 
-            // All steps except Display:
-            if (context->isHeadless()) {
-                (*retVal) = DoSingleQaoIteration(context->_qaoRuntime, QAO_EVENT_MASK_ALL_EXCEPT_DRAW_AND_FINALIZE);
-            }
-            else {
-                (*retVal) = DoSingleQaoIteration(context->_qaoRuntime, QAO_EVENT_MASK_ALL_EXCEPT_FINALIZE);
-            }
-            if (*retVal != 0) {
-                return;
+            // Run all events except FinalizeFrame (and Draws if headless):
+            {
+                hg::util::Stopwatch stopwatch;
+                if (context->isHeadless()) {
+                    (*retVal) = DoSingleQaoIteration(context->_qaoRuntime, QAO_EVENT_MASK_ALL_EXCEPT_DRAW_AND_FINALIZE);
+                }
+                else {
+                    (*retVal) = DoSingleQaoIteration(context->_qaoRuntime, QAO_EVENT_MASK_ALL_EXCEPT_FINALIZE);
+                }
+                if ((*retVal) != 0) {
+                    return;
+                }
+                perfInfo.updateAndDrawTime = stopwatch.getElapsedTime<microseconds>();
             }
 
+            perfInfo.consecutiveUpdateLoops = i + 1;
             accumulatorTime -= deltaTime;
         } // End for
 
-        // TODO Refactor magic
-        if (accumulatorTime >= deltaTime / 2) {
-            accumulatorTime = deltaTime / 2;
+        // Prevent buildup in accumulator in case the program is not meeting time requirements
+        accumulatorTime = std::min(accumulatorTime, deltaTime * 0.5);
+
+        // FinalizeFrame event:
+        {
+            hg::util::Stopwatch stopwatch;
+            (*retVal) = DoSingleQaoIteration(context->_qaoRuntime, QAO_EVENT_MASK_FINALIZE);
+            if ((*retVal) != 0) {
+                return;
+            }
+            perfInfo.finalizeTime = stopwatch.getElapsedTime<microseconds>();
         }
 
-        // Display step:
-        (*retVal) = DoSingleQaoIteration(context->_qaoRuntime, QAO_EVENT_MASK_FINALIZE);
-        if (*retVal != 0) {
-            return;
-        }
+        // Record performance data:
+        perfInfo.totalTime = perfInfo.updateAndDrawTime + perfInfo.finalizeTime;
+        context->_performanceInfo = perfInfo;
     } // End while
 
     (*retVal) = 0;

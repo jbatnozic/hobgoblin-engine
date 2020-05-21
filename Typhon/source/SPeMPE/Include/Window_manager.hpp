@@ -30,8 +30,9 @@ public:
     hg::gr::Brush getBrush();
     hg::gr::Canvas& getCanvas();
 
-    void eventPostUpdate();
-    void eventFinalizeFrame();
+    void eventPostUpdate() override;
+    void eventDraw2() override;
+    void eventFinalizeFrame() override;
 
     void drawMainRenderTexture(DrawPosition drawPosition);
 
