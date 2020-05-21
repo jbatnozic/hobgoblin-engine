@@ -17,16 +17,18 @@ const std::type_info& TyphonGameContextExtensionData::getTypeInfo() const {
 void ExtendGameContext(spempe::GameContext& ctx) {
     auto extData = std::make_unique<TyphonGameContextExtensionData>();
 
-    extData->controlsManager = QAO_UPCreate<ControlsManager>(ctx.getQaoRuntime().nonOwning(), 10, 2, 1); // TODO
-    extData->environmentManager = QAO_UPCreate<EnvironmentManager>(ctx.getQaoRuntime().nonOwning(),
-                                                                   ctx.getSyncObjReg(), SYNC_ID_NEW); // TODO Environment manager shouldn't be a SynchronizedObject...
-    extData->mainGameController = QAO_UPCreate<MainGameController>(ctx.getQaoRuntime().nonOwning());
-
     extData->physicsSpace.reset(cpSpaceNew());
     // TODO Temporarily here; should be in EnvironmentManager
     cpSpaceSetUserData(extData->physicsSpace.get(), &ctx);
     cpSpaceSetDamping(extData->physicsSpace.get(), 0.1);
     Collideables::installCollisionHandlers(extData->physicsSpace.get());
+
+    extData->mainGameController = QAO_UPCreate<MainGameController>(ctx.getQaoRuntime().nonOwning());
+    
+    extData->environmentManager = QAO_UPCreate<EnvironmentManager>(ctx.getQaoRuntime().nonOwning(),
+                                                                   ctx.getSyncObjReg(), SYNC_ID_NEW); // TODO Environment manager shouldn't be a SynchronizedObject...
+    
+    extData->controlsManager = QAO_UPCreate<ControlsManager>(ctx.getQaoRuntime().nonOwning(), 10, 2, 1); // TODO
 
     ctx.setExtensionData(std::move(extData));
 }

@@ -13,10 +13,10 @@ class EnvironmentManager;
 class MainGameController;
 
 struct TyphonGameContextExtensionData : public spempe::GameContextExtensionData {
-    std::unique_ptr<ControlsManager> controlsManager;
-    std::unique_ptr<EnvironmentManager> environmentManager;
-    std::unique_ptr<MainGameController> mainGameController;
     hg::cpSpaceUPtr physicsSpace;
+    std::unique_ptr<MainGameController> mainGameController;
+    std::unique_ptr<EnvironmentManager> environmentManager;
+    std::unique_ptr<ControlsManager> controlsManager;
 
     ~TyphonGameContextExtensionData() override;
     const std::type_info& getTypeInfo() const override;
