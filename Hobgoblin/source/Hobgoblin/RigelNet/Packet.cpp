@@ -83,7 +83,7 @@ void* Packet::extractBytes(std::size_t byteCount) {
 }
 
 PacketBase& operator<<(PacketBase& dstPacket, const Packet& srcPacket) {
-    dstPacket << std::uint32_t{srcPacket.getDataSize()};
+    dstPacket << static_cast<std::uint32_t>(srcPacket.getDataSize());
     dstPacket.append(srcPacket.getData(), srcPacket.getDataSize());
 
     return dstPacket;

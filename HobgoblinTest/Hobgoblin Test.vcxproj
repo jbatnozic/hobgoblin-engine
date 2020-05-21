@@ -97,21 +97,21 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>X64;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SFML_STATIC; X64;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <AdditionalUsingDirectories>
       </AdditionalUsingDirectories>
-      <AdditionalIncludeDirectories>$(SolutionDir)Hobgoblin\include\;$(MSBuildThisFileDirectory)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\SFML-2.5.1-x64\include; $(SolutionDir)Hobgoblin\include\;$(MSBuildThisFileDirectory)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
-      <AdditionalLibraryDirectories>$(SolutionDir)Hobgoblin\lib; %(AdditionalLibraryDirectories);$(VcpkgRoot)debug\lib;$(VcpkgRoot)debug\lib\manual-link</AdditionalLibraryDirectories>
-      <AdditionalDependencies>hobgoblin64-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\SFML-2.5.1-x64\lib; $(SolutionDir)Hobgoblin\lib; %(AdditionalLibraryDirectories);$(VcpkgRoot)debug\lib;$(VcpkgRoot)debug\lib\manual-link</AdditionalLibraryDirectories>
+      <AdditionalDependencies>winmm.lib;sfml-system-s-d.lib;ws2_32.lib;sfml-network-s-d.lib;opengl32.lib;gdi32.lib;sfml-window-s-d.lib;freetype.lib;jpeg.lib;sfml-graphics-s-d.lib;hobgoblin64-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -140,13 +140,13 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <PreprocessorDefinitions>X64;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SFML_STATIC; X64;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <AdditionalUsingDirectories>
       </AdditionalUsingDirectories>
-      <AdditionalIncludeDirectories>$(SolutionDir)Hobgoblin\include\;$(MSBuildThisFileDirectory)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\SFML-2.5.1-x64\include;$(SolutionDir)Hobgoblin\include\;$(MSBuildThisFileDirectory)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -154,8 +154,8 @@
       <SubSystem>Console</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <AdditionalLibraryDirectories>$(SolutionDir)Hobgoblin\lib; %(AdditionalLibraryDirectories);$(VcpkgRoot)lib;$(VcpkgRoot)lib\manual-link</AdditionalLibraryDirectories>
-      <AdditionalDependencies>hobgoblin64.lib; %(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\SFML-2.5.1-x64\lib;$(SolutionDir)Hobgoblin\lib; %(AdditionalLibraryDirectories);$(VcpkgRoot)lib;$(VcpkgRoot)lib\manual-link</AdditionalLibraryDirectories>
+      <AdditionalDependencies>winmm.lib;sfml-system-s.lib;ws2_32.lib;sfml-network-s.lib;opengl32.lib;gdi32.lib;sfml-window-s.lib;freetype.lib;jpeg.lib;sfml-graphics-s.lib;hobgoblin64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

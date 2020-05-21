@@ -8,6 +8,8 @@ RN  Sending very large packets
 QAO eventRender -> eventDisplay
 GR  Color blending functions
 UTL Randomization utilities (random, choose(...) etc.)
+ALL Refactor SlabIndexer
+ALL Fix warnings during build
 
 RIGELNET:
 	Use std::string as a "binary blob" container

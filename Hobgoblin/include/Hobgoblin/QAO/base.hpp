@@ -43,14 +43,14 @@ public:
     friend util::PacketBase& operator<<(util::PacketBase& packet, const QAO_Base& self);
 
 protected:
-    virtual void eventFrameStart() { }
-    virtual void eventPreUpdate()  { }
-    virtual void eventUpdate()     { }
-    virtual void eventPostUpdate() { }
-    virtual void eventDraw1()      { }
-    virtual void eventDraw2()      { }
-    virtual void eventDrawGUI()    { }
-    virtual void eventRender()     { }
+    virtual void eventStartFrame()    {}
+    virtual void eventPreUpdate()     {}
+    virtual void eventUpdate()        {}
+    virtual void eventPostUpdate()    {}
+    virtual void eventDraw1()         {}
+    virtual void eventDraw2()         {}
+    virtual void eventDrawGUI()       {}
+    virtual void eventFinalizeFrame() {}
 
 private:
     struct Context {

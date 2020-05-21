@@ -108,7 +108,7 @@ void WindowManager::eventPostUpdate() {
     _mainRenderTexture.clear(hg::gr::Color::Khaki);
 }
 
-void WindowManager::eventRender() {
+void WindowManager::eventFinalizeFrame() {
     if (ctx().isPrivileged()) {
         std::cout << "Server displaying after " << _stopwatch.restart().count() << "ms.\n";
     }

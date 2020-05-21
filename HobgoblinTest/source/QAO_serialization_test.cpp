@@ -168,8 +168,8 @@ public:
 
     // Events
 
-    void eventFrameStart() {
-        _reportVector.push_back(QAO_Event::FrameStart);
+    void eventStartFrame() {
+        _reportVector.push_back(QAO_Event::StartFrame);
         _reportVector.push_back(getExecutionPriority());
     }
 
@@ -203,8 +203,8 @@ public:
         _reportVector.push_back(getExecutionPriority());
     }
 
-    void eventRender() {
-        _reportVector.push_back(QAO_Event::Render);
+    void eventFinalizeFrame() {
+        _reportVector.push_back(QAO_Event::FinalizeFrame);
         _reportVector.push_back(getExecutionPriority());
     }
 
@@ -286,7 +286,7 @@ TEST_F(QAO_SerializationTest, TestEventRestoration) {
 
     performStep();
 
-    for (int i = QAO_Event::FrameStart; i < QAO_Event::Count; i += 1) {
+    for (int i = QAO_Event::StartFrame; i < QAO_Event::Count; i += 1) {
         // 1 (priority 15)
         ASSERT_EQ(reportVector[i * 4 + 0], i);
         ASSERT_EQ(reportVector[i * 4 + 1], 15);

@@ -162,14 +162,14 @@ constexpr std::int32_t QAO_EVENT_MASK_ALL_DRAWS = ToEventMask(QAO_Event::Draw1)
                                                 | ToEventMask(QAO_Event::Draw2)
                                                 | ToEventMask(QAO_Event::DrawGUI);
 
-constexpr std::int32_t QAO_EVENT_MASK_DISPLAY = ToEventMask(QAO_Event::Render);
+constexpr std::int32_t QAO_EVENT_MASK_FINALIZE = ToEventMask(QAO_Event::FinalizeFrame);
 
 constexpr std::int32_t QAO_EVENT_MASK_ALL_EXCEPT_DRAW = QAO_ALL_EVENT_FLAGS & ~QAO_EVENT_MASK_ALL_DRAWS;
 
-constexpr std::int32_t QAO_EVENT_MASK_ALL_EXCEPT_DISPLAY = QAO_ALL_EVENT_FLAGS & ~QAO_EVENT_MASK_DISPLAY;
+constexpr std::int32_t QAO_EVENT_MASK_ALL_EXCEPT_FINALIZE = QAO_ALL_EVENT_FLAGS & ~QAO_EVENT_MASK_FINALIZE;
 
-constexpr std::int32_t QAO_EVENT_MASK_ALL_EXCEPT_DRAW_AND_DISPLAY = QAO_EVENT_MASK_ALL_EXCEPT_DRAW
-                                                                  & QAO_EVENT_MASK_ALL_EXCEPT_DISPLAY;
+constexpr std::int32_t QAO_EVENT_MASK_ALL_EXCEPT_DRAW_AND_FINALIZE = QAO_EVENT_MASK_ALL_EXCEPT_DRAW
+                                                                   & QAO_EVENT_MASK_ALL_EXCEPT_FINALIZE;
 
 using Duration = std::chrono::duration<double, std::micro>;
 using std::chrono::milliseconds;
@@ -198,10 +198,10 @@ void GameContext::runImpl(GameContext* context, int* retVal) {
 
             // All steps except Display:
             if (context->isHeadless()) {
-                (*retVal) = DoSingleQaoIteration(context->_qaoRuntime, QAO_EVENT_MASK_ALL_EXCEPT_DRAW_AND_DISPLAY);
+                (*retVal) = DoSingleQaoIteration(context->_qaoRuntime, QAO_EVENT_MASK_ALL_EXCEPT_DRAW_AND_FINALIZE);
             }
             else {
-                (*retVal) = DoSingleQaoIteration(context->_qaoRuntime, QAO_EVENT_MASK_ALL_EXCEPT_DISPLAY);
+                (*retVal) = DoSingleQaoIteration(context->_qaoRuntime, QAO_EVENT_MASK_ALL_EXCEPT_FINALIZE);
             }
             if (*retVal != 0) {
                 return;
@@ -216,7 +216,7 @@ void GameContext::runImpl(GameContext* context, int* retVal) {
         }
 
         // Display step:
-        (*retVal) = DoSingleQaoIteration(context->_qaoRuntime, QAO_EVENT_MASK_DISPLAY);
+        (*retVal) = DoSingleQaoIteration(context->_qaoRuntime, QAO_EVENT_MASK_FINALIZE);
         if (*retVal != 0) {
             return;
         }

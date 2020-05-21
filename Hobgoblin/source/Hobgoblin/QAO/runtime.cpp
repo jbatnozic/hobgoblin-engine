@@ -171,7 +171,7 @@ void QAO_Runtime::updateExecutionPriorityForObject(QAO_Base* object, int newPrio
 // Execution
 
 void QAO_Runtime::startStep() {
-    _current_event = QAO_Event::FrameStart;
+    _current_event = QAO_Event::StartFrame;
     _step_orderer_iterator = _orderer.begin();
 }
 

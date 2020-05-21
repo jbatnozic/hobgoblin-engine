@@ -31,7 +31,7 @@ public:
     hg::gr::Canvas& getCanvas();
 
     void eventPostUpdate();
-    void eventRender();
+    void eventFinalizeFrame();
 
     void drawMainRenderTexture(DrawPosition drawPosition);
 

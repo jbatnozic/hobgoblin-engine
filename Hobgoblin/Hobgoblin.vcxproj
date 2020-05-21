@@ -13,10 +13,6 @@
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Lib-Debug|Win32">
-      <Configuration>Lib-Debug</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Lib-Debug|x64">
       <Configuration>Lib-Debug</Configuration>
       <Platform>x64</Platform>
@@ -327,7 +323,7 @@
       <PreprocessorDefinitions>SFML_STATIC;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\SFML-2.5.1-x64\include;$(SolutionDir)$(ProjectName)\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\SFML-2.5.1-x64\include;$(SolutionDir)$(ProjectName)\include;$(SolutionDir)$(ProjectName)\include\Hobgoblin\Private</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -346,7 +342,7 @@
       <PreprocessorDefinitions>SFML_STATIC;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>C:\Z_Libraries\SFML-2.5.1-x64\include;$(SolutionDir)$(ProjectName)\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Z_Libraries\SFML-2.5.1-x64\include;$(SolutionDir)$(ProjectName)\include; $(SolutionDir)$(ProjectName)\include\Hobgoblin\Private</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
@@ -383,7 +379,7 @@
       <PreprocessorDefinitions>SFML_STATIC;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>C:\Z_Libraries\SFML-2.5.1-x64\include;$(SolutionDir)$(ProjectName)\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Z_Libraries\SFML-2.5.1-x64\include;$(SolutionDir)$(ProjectName)\include;$(SolutionDir)$(ProjectName)\include\Hobgoblin\Private</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -406,7 +402,7 @@
       <PreprocessorDefinitions>SFML_STATIC;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\SFML-2.5.1\include;$(SolutionDir)$(ProjectName)\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\SFML-2.5.1-x64\include;$(SolutionDir)$(ProjectName)\include;$(SolutionDir)$(ProjectName)\include\Hobgoblin\Private</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -426,6 +422,10 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">CompileAsCpp</CompileAs>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|Win32'">stdcpp17</LanguageStandard>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="source\Hobgoblin\ChipmunkPhysics\cpArbiter.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|Win32'">CompileAsCpp</CompileAs>
@@ -435,6 +435,10 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">CompileAsCpp</CompileAs>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|Win32'">stdcpp17</LanguageStandard>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="source\Hobgoblin\ChipmunkPhysics\cpArray.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|Win32'">CompileAsCpp</CompileAs>
@@ -444,6 +448,10 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">CompileAsCpp</CompileAs>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|Win32'">stdcpp17</LanguageStandard>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="source\Hobgoblin\ChipmunkPhysics\cpBBTree.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|Win32'">CompileAsCpp</CompileAs>
@@ -453,6 +461,10 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">CompileAsCpp</CompileAs>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|Win32'">stdcpp17</LanguageStandard>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="source\Hobgoblin\ChipmunkPhysics\cpBody.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|Win32'">CompileAsCpp</CompileAs>
@@ -462,6 +474,10 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">CompileAsCpp</CompileAs>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|Win32'">stdcpp17</LanguageStandard>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="source\Hobgoblin\ChipmunkPhysics\cpCollision.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|Win32'">CompileAsCpp</CompileAs>
@@ -471,6 +487,10 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">CompileAsCpp</CompileAs>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|Win32'">stdcpp17</LanguageStandard>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="source\Hobgoblin\ChipmunkPhysics\cpConstraint.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|Win32'">CompileAsCpp</CompileAs>
@@ -480,6 +500,10 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">CompileAsCpp</CompileAs>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|Win32'">stdcpp17</LanguageStandard>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="source\Hobgoblin\ChipmunkPhysics\cpDampedRotarySpring.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|Win32'">CompileAsCpp</CompileAs>
@@ -489,6 +513,10 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">CompileAsCpp</CompileAs>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|Win32'">stdcpp17</LanguageStandard>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="source\Hobgoblin\ChipmunkPhysics\cpDampedSpring.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|Win32'">CompileAsCpp</CompileAs>
@@ -498,6 +526,10 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">CompileAsCpp</CompileAs>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|Win32'">stdcpp17</LanguageStandard>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="source\Hobgoblin\ChipmunkPhysics\cpGearJoint.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|Win32'">CompileAsCpp</CompileAs>
@@ -507,6 +539,10 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">CompileAsCpp</CompileAs>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|Win32'">stdcpp17</LanguageStandard>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="source\Hobgoblin\ChipmunkPhysics\cpGrooveJoint.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|Win32'">CompileAsCpp</CompileAs>
@@ -516,6 +552,10 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">CompileAsCpp</CompileAs>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|Win32'">stdcpp17</LanguageStandard>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="source\Hobgoblin\ChipmunkPhysics\cpHashSet.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|Win32'">CompileAsCpp</CompileAs>
@@ -525,6 +565,10 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">CompileAsCpp</CompileAs>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|Win32'">stdcpp17</LanguageStandard>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="source\Hobgoblin\ChipmunkPhysics\cpHastySpace.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|Win32'">CompileAsCpp</CompileAs>
@@ -534,6 +578,10 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">CompileAsCpp</CompileAs>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|Win32'">stdcpp17</LanguageStandard>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="source\Hobgoblin\ChipmunkPhysics\cpMarch.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|Win32'">CompileAsCpp</CompileAs>
@@ -543,6 +591,10 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">CompileAsCpp</CompileAs>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|Win32'">stdcpp17</LanguageStandard>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="source\Hobgoblin\ChipmunkPhysics\cpPinJoint.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|Win32'">CompileAsCpp</CompileAs>
@@ -552,6 +604,10 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">CompileAsCpp</CompileAs>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|Win32'">stdcpp17</LanguageStandard>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="source\Hobgoblin\ChipmunkPhysics\cpPivotJoint.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|Win32'">CompileAsCpp</CompileAs>
@@ -561,6 +617,10 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">CompileAsCpp</CompileAs>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|Win32'">stdcpp17</LanguageStandard>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="source\Hobgoblin\ChipmunkPhysics\cpPolyline.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|Win32'">CompileAsCpp</CompileAs>
@@ -570,6 +630,10 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">CompileAsCpp</CompileAs>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|Win32'">stdcpp17</LanguageStandard>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="source\Hobgoblin\ChipmunkPhysics\cpPolyShape.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|Win32'">CompileAsCpp</CompileAs>
@@ -579,6 +643,10 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">CompileAsCpp</CompileAs>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|Win32'">stdcpp17</LanguageStandard>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="source\Hobgoblin\ChipmunkPhysics\cpRatchetJoint.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|Win32'">CompileAsCpp</CompileAs>
@@ -588,6 +656,10 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">CompileAsCpp</CompileAs>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|Win32'">stdcpp17</LanguageStandard>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="source\Hobgoblin\ChipmunkPhysics\cpRobust.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|Win32'">CompileAsCpp</CompileAs>
@@ -597,6 +669,10 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">CompileAsCpp</CompileAs>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|Win32'">stdcpp17</LanguageStandard>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="source\Hobgoblin\ChipmunkPhysics\cpRotaryLimitJoint.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|Win32'">CompileAsCpp</CompileAs>
@@ -606,6 +682,10 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">CompileAsCpp</CompileAs>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|Win32'">stdcpp17</LanguageStandard>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="source\Hobgoblin\ChipmunkPhysics\cpShape.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|Win32'">CompileAsCpp</CompileAs>
@@ -615,6 +695,10 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">CompileAsCpp</CompileAs>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|Win32'">stdcpp17</LanguageStandard>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="source\Hobgoblin\ChipmunkPhysics\cpSimpleMotor.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|Win32'">CompileAsCpp</CompileAs>
@@ -624,6 +708,10 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">CompileAsCpp</CompileAs>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|Win32'">stdcpp17</LanguageStandard>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="source\Hobgoblin\ChipmunkPhysics\cpSlideJoint.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|Win32'">CompileAsCpp</CompileAs>
@@ -633,6 +721,10 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">CompileAsCpp</CompileAs>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|Win32'">stdcpp17</LanguageStandard>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="source\Hobgoblin\ChipmunkPhysics\cpSpace.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|Win32'">CompileAsCpp</CompileAs>
@@ -642,6 +734,10 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">CompileAsCpp</CompileAs>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|Win32'">stdcpp17</LanguageStandard>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="source\Hobgoblin\ChipmunkPhysics\cpSpaceComponent.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|Win32'">CompileAsCpp</CompileAs>
@@ -651,6 +747,10 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">CompileAsCpp</CompileAs>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|Win32'">stdcpp17</LanguageStandard>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="source\Hobgoblin\ChipmunkPhysics\cpSpaceDebug.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|Win32'">CompileAsCpp</CompileAs>
@@ -660,6 +760,10 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">CompileAsCpp</CompileAs>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|Win32'">stdcpp17</LanguageStandard>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="source\Hobgoblin\ChipmunkPhysics\cpSpaceHash.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|Win32'">CompileAsCpp</CompileAs>
@@ -669,6 +773,10 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">CompileAsCpp</CompileAs>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|Win32'">stdcpp17</LanguageStandard>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="source\Hobgoblin\ChipmunkPhysics\cpSpaceQuery.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|Win32'">CompileAsCpp</CompileAs>
@@ -678,6 +786,10 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">CompileAsCpp</CompileAs>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|Win32'">stdcpp17</LanguageStandard>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="source\Hobgoblin\ChipmunkPhysics\cpSpaceStep.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|Win32'">CompileAsCpp</CompileAs>
@@ -687,6 +799,10 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">CompileAsCpp</CompileAs>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|Win32'">stdcpp17</LanguageStandard>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="source\Hobgoblin\ChipmunkPhysics\cpSpatialIndex.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|Win32'">CompileAsCpp</CompileAs>
@@ -696,6 +812,10 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">CompileAsCpp</CompileAs>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|Win32'">stdcpp17</LanguageStandard>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="source\Hobgoblin\ChipmunkPhysics\cpSweep1D.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|Win32'">CompileAsCpp</CompileAs>
@@ -705,6 +825,10 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">CompileAsCpp</CompileAs>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Lib-Debug|Win32'">stdcpp17</LanguageStandard>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="source\Hobgoblin\ColDetect\Qtree_collision_domain.cpp" />
     <ClCompile Include="source\Hobgoblin\Graphics\Brush.cpp" />

@@ -155,7 +155,7 @@ void MaxRectsBinPack::PlaceRect(const Rect &node)
 
 Rect MaxRectsBinPack::ScoreRect(int width, int height, bool rot, FreeRectChoiceHeuristic method, int &score1, int &score2) const
 {
-	Rect newNode;
+	Rect newNode{};
 	score1 = std::numeric_limits<int>::max();
 	score2 = std::numeric_limits<int>::max();
 	switch(method)
