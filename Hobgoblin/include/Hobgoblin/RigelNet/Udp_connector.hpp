@@ -8,7 +8,7 @@
 #include <Hobgoblin/RigelNet/Packet_wrapper.hpp>
 #include <Hobgoblin/RigelNet/Remote_info.hpp>
 
-#include <Hobgoblin/Utility/Stopwatch.hpp>
+#include <Hobgoblin/Utility/Time_utils.hpp>
 
 #include <SFML/System/Clock.hpp>
 #include <SFML/Network.hpp>

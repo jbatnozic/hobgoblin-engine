@@ -106,6 +106,11 @@ GameContext::GameContext(const ResourceConfig& resourceConfig, const RuntimeConf
     _networkingManager.getNode().setUserData(this);
 }
 
+GameContext::~GameContext() {
+    _qaoRuntime.eraseAllNonOwnedObjects();
+    _extensionData.reset();
+}
+
 bool GameContext::isPrivileged() const {
     return ((static_cast<int>(_mode) & F_PRIVILEGED) != 0);
 }
@@ -116,6 +121,50 @@ bool GameContext::isHeadless() const {
 
 bool GameContext::hasNetworking() const {
     return ((static_cast<int>(_mode) & F_NETWORKING) != 0);
+}
+
+const GameContext::ResourceConfig& GameContext::getResourceConfig() const {
+    return _resourceConfig;
+}
+
+const GameContext::RuntimeConfig& GameContext::getRuntimeConfig() const {
+    return _runtimeConfig;
+}
+
+const GameContext::PerformanceInfo& GameContext::getPerformanceInfo() const {
+    return _performanceInfo;
+}
+
+void GameContext::setLocalPlayerIndex(int index) {
+    _localPlayerIndex = index;
+}
+
+int GameContext::getLocalPlayerIndex() const {
+    return _localPlayerIndex;
+}
+
+void GameContext::setExtensionData(std::unique_ptr<GameContextExtensionData> extData) {
+    _extensionData = std::move(extData);
+}
+
+GameContextExtensionData* GameContext::getExtensionData() const {
+    return _extensionData.get();
+}
+
+hg::QAO_Runtime& GameContext::getQaoRuntime() {
+    return _qaoRuntime;
+}
+
+WindowManager& GameContext::getWindowManager() {
+    return _windowManager;
+}
+
+NetworkingManager& GameContext::getNetworkingManager() {
+    return _networkingManager;
+}
+
+SynchronizedObjectRegistry& GameContext::getSyncObjReg() {
+    return _syncObjReg;
 }
 
 int GameContext::run() {

@@ -1,7 +1,6 @@
 
 #define HOBGOBLIN_SHORT_NAMESPACE
-#include <Hobgoblin/Utility/Sleep.hpp>
-#include <Hobgoblin/Utility/Stopwatch.hpp>
+#include <Hobgoblin/Utility/Time_utils.hpp>
 
 #include <chrono>
 #include <iostream>

@@ -1,7 +1,7 @@
 #ifndef UHOBGOBLIN_RN_REMOTE_INFO_HPP
 #define UHOBGOBLIN_RN_REMOTE_INFO_HPP
 
-#include <Hobgoblin/Utility/Stopwatch.hpp>
+#include <Hobgoblin/Utility/Time_utils.hpp>
 
 #include <SFML/Network.hpp>
 

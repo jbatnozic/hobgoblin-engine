@@ -7,6 +7,7 @@
 #include <SPeMPE/Include/Synchronized_object_registry.hpp>
 
 #include <typeinfo>
+#include <type_traits>
 
 #define SPEMPE_TYPEID_SELF (typeid(decltype(*this)))
 
@@ -50,8 +51,6 @@ public:
 // game objects).
 class SynchronizedObject : public StateObject {
 public:
-    // TODO: Implement methods in .cpp file
-
     SynchronizedObject(hg::QAO_RuntimeRef runtimeRef, const std::type_info& typeInfo,
                        int executionPriority, std::string name,
                        SynchronizedObjectRegistry& syncObjReg, SyncId syncId = SYNC_ID_NEW);
@@ -154,9 +153,13 @@ void CannonicalUpdateImpl(hg::RN_Node& node, SyncId syncId, typename T::VisibleS
             auto& runtime = ctx.getQaoRuntime();
             auto& syncObjReg = ctx.getSyncObjReg();
             auto& object = *static_cast<T*>(syncObjReg.getMapping(syncId));
+          
+            const auto latency = client.getServer().getRemoteInfo().latency;
+            using TIME = std::remove_cv_t<decltype(latency)>;
+            const auto dt = std::chrono::duration_cast<TIME>(ctx.getRuntimeConfig().getDeltaTime());
+            const auto delaySteps = static_cast<int>(latency / dt) / 2;
 
-            const std::chrono::microseconds delay = client.getServer().getRemoteInfo().latency / 2LL;
-            object.cannonicalSyncApplyUpdate(state, ctx.calcDelay(delay));
+            object.cannonicalSyncApplyUpdate(state, delaySteps);
         },
         [](hg::RN_UdpServer& server) {
             // TODO ERROR

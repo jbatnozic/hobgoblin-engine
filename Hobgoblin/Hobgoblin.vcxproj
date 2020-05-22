@@ -847,7 +847,7 @@
     <ClCompile Include="source\Hobgoblin\RigelNet\Udp_client.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Udp_connector.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Udp_server.cpp" />
-    <ClCompile Include="source\Hobgoblin\Utility\Sleep.cpp" />
+    <ClCompile Include="source\Hobgoblin\Utility\Time_utils.cpp" />
     <ClCompile Include="source\Hobgoblin\TimingMain.cpp" />
     <ClCompile Include="source\Hobgoblin\Utility\Serialization.cpp" />
     <ClInclude Include="include\Hobgoblin\ChipmunkPhysics.hpp" />
@@ -906,6 +906,7 @@
     <ClInclude Include="include\Hobgoblin\RigelNet\Raw_data_view.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Grids.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Math.hpp" />
+    <ClInclude Include="include\Hobgoblin\Utility\No_copy_no_move.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Rectangle.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Semaphore.hpp" />
     <ClInclude Include="include\Hobgoblin\QAO\Priority_resolver2.hpp" />
@@ -961,11 +962,9 @@
     <ClInclude Include="include\Hobgoblin\Utility\Serialization.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Packet.hpp" />
     <ClInclude Include="include\Hobgoblin\Graphics\Texture_packing.hpp" />
-    <ClInclude Include="include\Hobgoblin\Utility\Sleep.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\State_scheduler.hpp" />
-    <ClInclude Include="include\Hobgoblin\Utility\Timeutil.hpp" />
+    <ClInclude Include="include\Hobgoblin\Utility\Time_utils.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\Visitor.hpp" />
-    <ClInclude Include="include\Hobgoblin\Utility\Stopwatch.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\template.hpp" />
     <ClInclude Include="include\Hobgoblin\Private\Max_rects_bin_pack.hpp" />
     <ClInclude Include="include\Hobgoblin\Utility\NoCopyNoMove.hpp" />

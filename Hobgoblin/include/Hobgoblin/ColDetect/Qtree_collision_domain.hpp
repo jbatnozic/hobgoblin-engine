@@ -3,7 +3,7 @@
 
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/ColDetect/Common.hpp>
-#include <Hobgoblin/Utility/NoCopyNoMove.hpp>
+#include <Hobgoblin/Utility/No_copy_no_move.hpp>
 #include <Hobgoblin/Utility/Rectangle.hpp>
 #include <Hobgoblin/Utility/Semaphore.hpp>
 

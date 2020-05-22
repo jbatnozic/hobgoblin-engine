@@ -102,9 +102,6 @@
     <ClCompile Include="source\Hobgoblin\TimingMain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="source\Hobgoblin\Utility\Sleep.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="source\Hobgoblin\ChipmunkPhysics\chipmunk.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -201,6 +198,9 @@
     <ClCompile Include="source\Hobgoblin\ChipmunkPhysics\cpSweep1D.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="source\Hobgoblin\Utility\Time_utils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Hobgoblin\QAO\base.hpp">
@@ -273,9 +273,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Hobgoblin\RigelNet\Macro_pass_compose_args.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Hobgoblin\Utility\Stopwatch.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Hobgoblin\Private\Pmacro_define.hpp">
@@ -419,12 +416,6 @@
     <ClInclude Include="include\Hobgoblin\Graphics\Color.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Hobgoblin\Utility\Sleep.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Hobgoblin\Utility\Timeutil.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\Hobgoblin\Utility\State_scheduler.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -534,6 +525,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Hobgoblin\RigelNet\Raw_data_view.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Hobgoblin\Utility\No_copy_no_move.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Hobgoblin\Utility\Time_utils.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

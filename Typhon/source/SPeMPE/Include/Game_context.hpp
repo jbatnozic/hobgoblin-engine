@@ -73,68 +73,40 @@ public:
 
     // TODO Temp.
     int syncBufferLength = 2;
-    int calcDelay(std::chrono::microseconds ms) { return 1; }
+    //int calcDelay(std::chrono::microseconds ms) { return 1; }
 
     GameContext(const ResourceConfig& resourceConfig, const RuntimeConfig& runtimeConfig);
+    ~GameContext();
 
-    ~GameContext() {
-        _qaoRuntime.eraseAllNonOwnedObjects();
-        _extensionData.reset();
-    }
-
+    // Configuration
     void configure(Mode mode);
 
     bool isPrivileged() const;
     bool isHeadless() const;
     bool hasNetworking() const;
 
-    const ResourceConfig& getResourceConfig() const {
-        return _resourceConfig;
-    }
+    const ResourceConfig& getResourceConfig() const;
+    const RuntimeConfig& getRuntimeConfig() const;
 
-    const RuntimeConfig& getRuntimeConfig() const {
-        return _runtimeConfig;
-    }
+    void setLocalPlayerIndex(int index);
+    int getLocalPlayerIndex() const;
 
-    const PerformanceInfo& getPerformanceInfo() const {
-        return _performanceInfo;
-    }
+    void setExtensionData(std::unique_ptr<GameContextExtensionData> extData);
+    GameContextExtensionData* getExtensionData() const;
 
-    void setLocalPlayerIndex(int index) {
-        _localPlayerIndex = index;
-    }
+    // Get Controllers & Managers:
+    hg::QAO_Runtime& getQaoRuntime();
+    WindowManager& getWindowManager();
+    NetworkingManager& getNetworkingManager();
+    SynchronizedObjectRegistry& getSyncObjReg();
 
-    int getLocalPlayerIndex() const {
-        return _localPlayerIndex;
-    }
-
-    void setExtensionData(std::unique_ptr<GameContextExtensionData> extData) {
-        _extensionData = std::move(extData);
-    }
-
-    GameContextExtensionData* getExtensionData() const {
-        return _extensionData.get();
-    }
-
-    hg::QAO_Runtime& getQaoRuntime() {
-        return _qaoRuntime;
-    }
-
-    WindowManager& getWindowManager() {
-        return _windowManager;
-    }
-
-    NetworkingManager& getNetworkingManager() {
-        return _networkingManager;
-    }
-
-    SynchronizedObjectRegistry& getSyncObjReg() {
-        return _syncObjReg;
-    }
-
+    // Execution:
     int run();
     void stop();
 
+    const PerformanceInfo& getPerformanceInfo() const;
+
+    // Child context stuff:
     bool hasChildContext();
     GameContext* getChildContext() const;
     int stopChildContext();
@@ -144,10 +116,6 @@ private:
     // Configuration:
     ResourceConfig _resourceConfig;
     RuntimeConfig _runtimeConfig;
-
-    //std::chrono::duration<double> _deltaTime;
-    //hg::PZInteger _targetFps;
-    //hg::PZInteger syncBufferLength = 2;
 
     // Game object management:
     hg::QAO_Runtime _qaoRuntime;

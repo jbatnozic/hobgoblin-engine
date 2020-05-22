@@ -2,7 +2,7 @@
 #define SPEMPE_SYNCHRONIZED_OBJECT_REGISTRY_HPP
 
 #include <Hobgoblin/RigelNet.hpp>
-#include <Hobgoblin/Utility/NoCopyNoMove.hpp>
+#include <Hobgoblin/Utility/No_copy_no_move.hpp>
 
 #include <cstdint>
 #include <unordered_map>

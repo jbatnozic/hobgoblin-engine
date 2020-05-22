@@ -5,7 +5,7 @@
 #include <Hobgoblin/RigelNet/Remote_info.hpp>
 #include <Hobgoblin/RigelNet/Server.hpp>
 #include <Hobgoblin/RigelNet/Udp_connector.hpp>
-#include <Hobgoblin/Utility/NoCopyNoMove.hpp>
+#include <Hobgoblin/Utility/No_copy_no_move.hpp>
 
 #include <SFML/Network.hpp>
 

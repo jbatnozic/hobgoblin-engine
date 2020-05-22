@@ -5,7 +5,7 @@
 #include <Hobgoblin/RigelNet/Handlermgmt.hpp>
 #include <Hobgoblin/RigelNet/Packet_wrapper.hpp>
 #include <Hobgoblin/Utility/Any_ptr.hpp>
-#include <Hobgoblin/Utility/NoCopyNoMove.hpp>
+#include <Hobgoblin/Utility/No_copy_no_move.hpp>
 
 #include <cassert>
 #include <cstdint>

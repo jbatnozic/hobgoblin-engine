@@ -2,7 +2,7 @@
 
 #include <Hobgoblin/Graphics.hpp>
 #include <Hobgoblin/Utility/Grids.hpp>
-#include <Hobgoblin/Utility/NoCopyNoMove.hpp>
+#include <Hobgoblin/Utility/No_copy_no_move.hpp>
 #include <Hobgoblin/Utility/Slab_indexer.hpp>
 
 #include <Typhon/Framework.hpp>

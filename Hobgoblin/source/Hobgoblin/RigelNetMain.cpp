@@ -7,7 +7,7 @@
 
 #include <Hobgoblin/RigelNet_Macros.hpp>
 
-#include <Hobgoblin/Utility/Stopwatch.hpp>
+#include <Hobgoblin/Utility/Time_utils.hpp>
 #include <Hobgoblin/Utility/Visitor.hpp>
 
 #include <cassert>

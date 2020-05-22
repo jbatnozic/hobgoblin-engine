@@ -7,7 +7,7 @@
 #include <Hobgoblin/QAO/orderer.hpp>
 #include <Hobgoblin/QAO/registry.hpp>
 #include <Hobgoblin/Utility/Any_ptr.hpp>
-#include <Hobgoblin/Utility/NoCopyNoMove.hpp>
+#include <Hobgoblin/Utility/No_copy_no_move.hpp>
 #include <Hobgoblin/Utility/Packet.hpp>
 
 #include <cstdint>
