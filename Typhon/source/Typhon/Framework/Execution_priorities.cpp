@@ -6,6 +6,7 @@
 int EXEPR_MAIN_GAME_CONTROLLER;
 int EXEPR_ENVIRON_MGR;
 int EXEPR_NETWORK_MGR;
+int EXEPR_WINDOW_MGR;
 int EXEPR_CREATURES;
 
 void ResolveExecutionPriorities() {
@@ -28,6 +29,13 @@ void ResolveExecutionPriorities() {
     // because MGC calculates their requested movement
     res.category(&EXEPR_CREATURES)
         .precedes(&EXEPR_MAIN_GAME_CONTROLLER);
+
+    // WindowManager always goes last:
+    res.category(&EXEPR_WINDOW_MGR)
+        .dependsOn(&EXEPR_MAIN_GAME_CONTROLLER)
+        .dependsOn(&EXEPR_ENVIRON_MGR)
+        .dependsOn(&EXEPR_NETWORK_MGR)
+        .dependsOn(&EXEPR_CREATURES);
 
     res.resolveAll();
 }

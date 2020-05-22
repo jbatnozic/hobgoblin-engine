@@ -76,21 +76,19 @@ RN_DEFINE_HANDLER(SetTerrainRow, RN_ARGS(std::int32_t, rowIndex, hg::util::Packe
     );
 }
 
-EnvironmentManager::EnvironmentManager(QAO_RuntimeRef rtRef, SynchronizedObjectRegistry& syncObjReg, SyncId syncId)
-    : SynchronizedObject{rtRef, TYPEID_SELF, EXEPR_ENVIRON_MGR, "TerrainManager", syncObjReg, syncId}
+EnvironmentManager::EnvironmentManager(QAO_RuntimeRef rtRef)
+    : StateObject{rtRef, TYPEID_SELF, EXEPR_ENVIRON_MGR, "TerrainManager"}
     , _lightingCtrl{0, 0, 32.f, hg::gr::Color{5, 5, 10}}
 {
+    ctx(MNetworking).addEventListener(this);
 }
 
 EnvironmentManager::~EnvironmentManager() {
-    if (isMasterObject()) {
-        syncDestroy();
-    }
+    ctx(MNetworking).removeEventListener(this);
 }
 
 void EnvironmentManager::generate(hg::PZInteger width, hg::PZInteger height, float cellResolution) {
     auto* space = ctx(DPhysicsSpace);
-    //cpSpaceUseSpatialHash(space, 24.f, 1'000);
 
     _resizeAllGrids(width, height);
 
@@ -137,13 +135,16 @@ void EnvironmentManager::setCellType(hg::PZInteger x, hg::PZInteger y, Terrain::
                                      vertices.data(),
                                      cpTransformIdentity,
                                      0.0);
-        _shapeGrid[y][x] = hg::cpShapeUPtr{cpSpaceAddShape(space, shape)};
+
+        auto& physicsData = _physicsGrid[y][x];
+
+        physicsData.shape.reset(cpSpaceAddShape(space, shape));
         cpShapeSetElasticity(shape, 0.5);
-        Collideables::initTerrain(shape, *this); // TODO Temp (this instead of individual objects)
+        Collideables::initTerrain(shape, physicsData);
         cpSpaceReindexShape(space, shape);
     }
     else {
-        _shapeGrid[y][x].reset();
+        _physicsGrid[y][x].shape.reset();
     }
     
     // Lighting:
@@ -168,20 +169,29 @@ LightingController::LightHandle EnvironmentManager::addLight(float x, float y,
     return _lightingCtrl.addLight(x, y, color, radius);
 }
 
-void EnvironmentManager::syncCreateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const {
-    Compose_ResizeTerrain(node, rec, getTerrainColumnCount(), getTerrainRowCount());
-    
-    for (hg::PZInteger y = 0; y < getTerrainRowCount(); y += 1) {
-        hg::util::Packet packet;
-        for (hg::PZInteger x = 0; x < getTerrainColumnCount(); x += 1) {
-            packet << static_cast<std::int16_t>(_typeIdGrid[y][x]);
-        }
-        Compose_SetTerrainRow(node, rec, y, packet);
+void EnvironmentManager::onNetworkingEvent(const RN_Event& ev) {
+    if (!ctx().isPrivileged()) {
+        return;
     }
-}
 
-void EnvironmentManager::syncUpdateImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const {}
-void EnvironmentManager::syncDestroyImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const {}
+    ev.visit(
+        [this](const RN_Event::Connected& ev) {
+            auto& node = ctx(MNetworking).getNode();
+            auto receiverIndex = *ev.clientIndex;
+
+            Compose_ResizeTerrain(node, receiverIndex, getTerrainColumnCount(), getTerrainRowCount());
+
+            for (hg::PZInteger y = 0; y < getTerrainRowCount(); y += 1) {
+                hg::util::Packet packet;
+                for (hg::PZInteger x = 0; x < getTerrainColumnCount(); x += 1) {
+                    packet << static_cast<std::int16_t>(_typeIdGrid[y][x]);
+                }
+                Compose_SetTerrainRow(node, receiverIndex, y, packet);
+            }
+        },
+        [](const auto&) {}
+    );
+}
 
 void EnvironmentManager::eventPostUpdate() {
     _lightingCtrl.render();
@@ -207,8 +217,15 @@ void EnvironmentManager::eventDraw1() {
 
 void EnvironmentManager::_resizeAllGrids(hg::PZInteger width, hg::PZInteger height) {
     _typeIdGrid.resize(width, height);
-    _shapeGrid.resize(width, height);
+    _physicsGrid.resize(width, height);
     _lightingCtrl.resize(width, height, _cellResolution);
+
+    for (hg::PZInteger y = 0; y < getTerrainRowCount(); y += 1) {
+        for (hg::PZInteger x = 0; x < getTerrainColumnCount(); x += 1) {
+            _physicsGrid[y][x].x = x;
+            _physicsGrid[y][x].y = y;
+        }
+    }
 }
 
 void EnvironmentManager::_drawCell(hg::PZInteger x, hg::PZInteger y) {

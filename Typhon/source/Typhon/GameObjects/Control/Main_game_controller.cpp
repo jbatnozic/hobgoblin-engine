@@ -44,11 +44,6 @@ void MainGameController::eventPostUpdate() {
 }
 
 void MainGameController::eventDrawGUI() {
-    //sf::RectangleShape rect({32, 32});
-    //rect.setFillColor(hg::gr::Color::Red);
-    //rect.setPosition({32.f, 32.f});
-    //ctx(MWindow).getCanvas().draw(rect);
-
     sf::Text text;
     text.setFont(hg::gr::BuiltInFonts::getFont(hg::gr::BuiltInFonts::TitilliumRegular));
     text.setPosition({16.f, 16.f});
@@ -94,8 +89,6 @@ void MainGameController::onNetworkingEvent(const RN_Event& event_) {
                 vs.x = 70.f;
                 vs.y = 70.f;
                 QAO_PCreate<PhysicsPlayer>(getRuntime(), ctx().getSyncObjReg(), SYNC_ID_NEW, vs);
-                //QAO_PCreate<Player>(getRuntime(), ctx().syncObjReg, SYNC_ID_CREATE_MASTER,
-                //                    200.f, 200.f, *ev.clientIndex + 1);
             }
         },
         [](const RN_Event::Disconnected& ev) {

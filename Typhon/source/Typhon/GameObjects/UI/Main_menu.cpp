@@ -1,5 +1,6 @@
 
 #include <Typhon/GameObjects/Control/Environment_manager.hpp>
+#include <Typhon/GameObjects/Gameplay/PhysicsPlayer.hpp>
 
 #include <iostream>
 #include <string>
@@ -68,12 +69,18 @@ void MainMenu::eventUpdate() {
 		ctx(MNetworking).getClient().connect(InputPrompt<std::uint16_t>("local port", 0),
 											 InputPrompt<std::string>("server IP", "127.0.0.1"),
 											 InputPrompt<std::uint16_t>("server port", 8888),
-											 "passphrase");
+											 "beetlejuice");
 		ctx(MNetworking).getClient().setTimeoutLimit(std::chrono::seconds{5});
 	}
 	else if (mode == SOLO) {
 		ctx().configure(GameContext::Mode::Solo);
 		generateTerrain(ctx());
+
+		PhysicsPlayer::VisibleState vs;
+		vs.playerIndex = 0;
+		vs.x = 70.f;
+		vs.y = 70.f;
+		QAO_PCreate<PhysicsPlayer>(getRuntime(), ctx().getSyncObjReg(), SYNC_ID_NEW, vs);
 	}
 	else if (mode == GAME_MASTER) {
 		ctx().configure(GameContext::Mode::GameMaster);

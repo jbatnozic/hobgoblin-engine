@@ -1,5 +1,6 @@
 Make WindowManager and NetworkingManager better
 Directional lights
-Organize code so that every module has an interface and an implementation (and fix include paths)
-What to do with SPeMPE managers' execution priorities?
 CreateGameContext method
+Multisprites are VERY large (almost half a kilobyte) - can they be used directly from the loader?
+Delayed actions pipeline (but be careful, they cannot be serialized)
+   -> Use them to sync destroys

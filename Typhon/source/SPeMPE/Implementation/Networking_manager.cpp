@@ -23,7 +23,7 @@ using namespace hg::rn;
 } // namespace
 
 NetworkingManager::NetworkingManager(QAO_RuntimeRef runtimeRef)
-    : NonstateObject{runtimeRef, SPEMPE_TYPEID_SELF, 50, "NetworkingManager"}
+    : NonstateObject{runtimeRef, SPEMPE_TYPEID_SELF, 0, "NetworkingManager"}
 {
 }
 

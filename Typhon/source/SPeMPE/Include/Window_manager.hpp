@@ -2,6 +2,7 @@
 #define SPEMPE_WINDOW_MANAGER
 
 #include <Hobgoblin/Graphics.hpp>
+#include <Hobgoblin/Utility/Time_utils.hpp>
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 
@@ -24,10 +25,10 @@ public:
                   sf::Vector2u mainRenderTargetSize);
 
     void create(); // TODO Temp.
+    void initAsHeadless();
 
     sf::RenderWindow& getWindow();
     sf::RenderTexture& getMainRenderTexture();
-    hg::gr::Brush getBrush();
     hg::gr::Canvas& getCanvas();
 
     void eventPostUpdate() override;
@@ -38,16 +39,16 @@ public:
 
     KbInputTracker& getKeyboardInput();
 
+    sf::Vector2f getMousePos(hg::PZInteger viewIndex = 0) const {
+        auto pixelPos = sf::Mouse::getPosition(_window);
+        return _window.mapPixelToCoords(pixelPos, getView(viewIndex));
+    }
+
     // Views:
     void setViewCount(hg::PZInteger viewCount);
     hg::PZInteger getViewCount() const noexcept;
     sf::View& getView(hg::PZInteger viewIndex = 0);
     const sf::View& getView(hg::PZInteger viewIndex = 0) const;
-
-    sf::Vector2f getMousePos(hg::PZInteger viewIndex = 0) const {
-        auto pixelPos = sf::Mouse::getPosition(_window);
-        return _window.mapPixelToCoords(pixelPos, getView(viewIndex));
-    }
 
 private:
     sf::RenderWindow _window;
@@ -55,8 +56,11 @@ private:
     hg::gr::CanvasAdapter _windowAdapter;
     hg::gr::MultiViewRenderTargetAdapter _mainRenderTextureAdapter;
     KbInputTracker _kbi;
+    hg::util::Stopwatch _frameDurationStopwatch;
+    bool _isHeadless = false;
 
-    hg::util::Stopwatch _stopwatch;
+    void _finalizeFrameByDisplayingWindow();
+    void _finalizeFrameBySleeping();
 };
 
 } // namespace spempe

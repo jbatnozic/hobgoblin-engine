@@ -15,6 +15,9 @@ const std::type_info& TyphonGameContextExtensionData::getTypeInfo() const {
 }
 
 void ExtendGameContext(spempe::GameContext& ctx) {
+    ctx.getNetworkingManager().setExecutionPriority(EXEPR_NETWORK_MGR);
+    ctx.getWindowManager().setExecutionPriority(EXEPR_WINDOW_MGR);
+
     auto extData = std::make_unique<TyphonGameContextExtensionData>();
 
     extData->physicsSpace.reset(cpSpaceNew());
@@ -23,11 +26,8 @@ void ExtendGameContext(spempe::GameContext& ctx) {
     cpSpaceSetDamping(extData->physicsSpace.get(), 0.1);
     Collideables::installCollisionHandlers(extData->physicsSpace.get());
 
-    extData->mainGameController = QAO_UPCreate<MainGameController>(ctx.getQaoRuntime().nonOwning());
-    
-    extData->environmentManager = QAO_UPCreate<EnvironmentManager>(ctx.getQaoRuntime().nonOwning(),
-                                                                   ctx.getSyncObjReg(), SYNC_ID_NEW); // TODO Environment manager shouldn't be a SynchronizedObject...
-    
+    extData->mainGameController = QAO_UPCreate<MainGameController>(ctx.getQaoRuntime().nonOwning());    
+    extData->environmentManager = QAO_UPCreate<EnvironmentManager>(ctx.getQaoRuntime().nonOwning());   
     extData->controlsManager = QAO_UPCreate<ControlsManager>(ctx.getQaoRuntime().nonOwning(), 10, 2, 1); // TODO
 
     ctx.setExtensionData(std::move(extData));

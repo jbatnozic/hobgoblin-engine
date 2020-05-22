@@ -8,7 +8,7 @@
 namespace spempe {
 
 WindowManager::WindowManager(hg::QAO_RuntimeRef runtimeRef)
-    : NonstateObject{runtimeRef, SPEMPE_TYPEID_SELF, -1000, "WindowManager"}
+    : NonstateObject{runtimeRef, SPEMPE_TYPEID_SELF, 0, "WindowManager"}
     , _windowAdapter{_window}
     , _mainRenderTextureAdapter{_mainRenderTexture}
 {
@@ -27,8 +27,8 @@ void WindowManager::create() {
     // vSync and Framerate limiter perform near identically as far as
     // time correctness is concerned, but the game is usually smoother
     // with vSync. TODO Make it a toggle in the settings.
-    //_window.setVerticalSyncEnabled(true);
-    _window.setFramerateLimit(60);
+    _window.setVerticalSyncEnabled(true);
+    //_window.setFramerateLimit(60);
 
     _mainRenderTexture.create(800, 800);
     _mainRenderTextureAdapter.setViewCount(1);
@@ -37,16 +37,16 @@ void WindowManager::create() {
     _mainRenderTextureAdapter.getView(0).setViewport({0, 0, 1, 1});
 }
 
+void WindowManager::initAsHeadless() {
+    _isHeadless = true;
+}
+
 sf::RenderWindow& WindowManager::getWindow() {
     return _window;
 }
 
 sf::RenderTexture& WindowManager::getMainRenderTexture() {
     return _mainRenderTexture;
-}
-
-hg::gr::Brush WindowManager::getBrush() {
-    return hg::gr::Brush{&getCanvas()};
 }
 
 hg::gr::Canvas& WindowManager::getCanvas() {
@@ -88,7 +88,7 @@ void WindowManager::drawMainRenderTexture(DrawPosition drawPosition) {
             }
             mrtSprite.setScale({scale, scale});
         }
-        // SWITCH FALLTHROUGH
+        // FALLTHROUGH
 
     case DrawPosition::Centre:
         mrtSprite.setOrigin({static_cast<float>(mrtSize.x) / 2.f,
@@ -114,14 +114,36 @@ void WindowManager::eventDraw2() {
 }
 
 void WindowManager::eventFinalizeFrame() {
-    //if (ctx().isPrivileged()) {
-    //    std::cout << "Server displaying after " << _stopwatch.restart().count() << "ms.\n";
-    //}
+    if (!_isHeadless) {
+        _finalizeFrameByDisplayingWindow();
+    }
+    else {
+        _finalizeFrameBySleeping();
+    }
+}
 
+// Views:
+
+void WindowManager::setViewCount(hg::PZInteger viewCount) {
+    _mainRenderTextureAdapter.setViewCount(viewCount);
+}
+
+hg::PZInteger WindowManager::getViewCount() const noexcept {
+    return _mainRenderTextureAdapter.getViewCount();
+}
+
+sf::View& WindowManager::getView(hg::PZInteger viewIndex) {
+    return _mainRenderTextureAdapter.getView(viewIndex);
+}
+
+const sf::View& WindowManager::getView(hg::PZInteger viewIndex) const {
+    return _mainRenderTextureAdapter.getView(viewIndex);
+}
+
+void WindowManager::_finalizeFrameByDisplayingWindow() {
     _window.display();
 
     _kbi.prepForEvents();
-
     sf::Event ev;
     while (_window.pollEvent(ev)) {
         switch (ev.type) {
@@ -150,22 +172,16 @@ void WindowManager::eventFinalizeFrame() {
     }
 }
 
-// Views:
+void WindowManager::_finalizeFrameBySleeping() {
+    using Time = std::chrono::microseconds;
+    const auto deltaTime = std::chrono::duration_cast<Time>(ctx().getRuntimeConfig().getDeltaTime());
+    const auto timePassed = _frameDurationStopwatch.getElapsedTime<Time>();
 
-void WindowManager::setViewCount(hg::PZInteger viewCount) {
-    _mainRenderTextureAdapter.setViewCount(viewCount);
-}
+    if (timePassed < deltaTime) {
+        hg::util::SuperPreciseSleep(deltaTime - timePassed);
+    }
 
-hg::PZInteger WindowManager::getViewCount() const noexcept {
-    return _mainRenderTextureAdapter.getViewCount();
-}
-
-sf::View& WindowManager::getView(hg::PZInteger viewIndex) {
-    return _mainRenderTextureAdapter.getView(viewIndex);
-}
-
-const sf::View& WindowManager::getView(hg::PZInteger viewIndex) const {
-    return _mainRenderTextureAdapter.getView(viewIndex);
+    _frameDurationStopwatch.restart();
 }
 
 } // namespace spempe

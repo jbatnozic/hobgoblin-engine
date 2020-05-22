@@ -19,8 +19,9 @@
 
 namespace spempe {
 
-constexpr int PLAYER_INDEX_UNKNOWN = -1;
-constexpr int PLAYER_INDEX_NONE    = -2;
+constexpr int PLAYER_INDEX_UNKNOWN = -2;
+constexpr int PLAYER_INDEX_NONE = -1;
+constexpr int PLAYER_INDEX_LOCAL_PLAYER = 0;
 
 class GameContextExtensionData {
 public:
@@ -73,7 +74,6 @@ public:
 
     // TODO Temp.
     int syncBufferLength = 2;
-    //int calcDelay(std::chrono::microseconds ms) { return 1; }
 
     GameContext(const ResourceConfig& resourceConfig, const RuntimeConfig& runtimeConfig);
     ~GameContext();
@@ -105,6 +105,7 @@ public:
     void stop();
 
     const PerformanceInfo& getPerformanceInfo() const;
+    int getCurrentStepOrdinal() const;
 
     // Child context stuff:
     bool hasChildContext();
@@ -132,6 +133,7 @@ private:
     // State:
     PerformanceInfo _performanceInfo;
     std::unique_ptr<GameContextExtensionData> _extensionData;
+    int _stepOrdinal = 0;
     int _localPlayerIndex = PLAYER_INDEX_UNKNOWN;
     Mode _mode = Mode::Initial;
     bool _quit = false;

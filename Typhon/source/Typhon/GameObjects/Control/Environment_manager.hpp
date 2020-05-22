@@ -14,11 +14,9 @@
 #include "__Experimental/Lighting.hpp"
 #include "Typhon/Terrain/Terrain.hpp"
 
-class EnvironmentManager : public SynchronizedObject, private Collideables::ITerrain {
+class EnvironmentManager : public StateObject, private NetworkingManager::EventListener {
 public:
-    EnvironmentManager(hg::QAO_RuntimeRef rtRef, spempe::SynchronizedObjectRegistry& syncObjReg,
-                       spempe::SyncId syncId);
-
+    EnvironmentManager(hg::QAO_RuntimeRef rtRef);
     ~EnvironmentManager();
 
     void generate(hg::PZInteger width, hg::PZInteger height, float cellResolution);
@@ -32,16 +30,20 @@ public:
     LightingController::LightHandle addLight(float x, float y, LightingController::Color color, float radius);
 
 protected:
-    void syncCreateImpl(hg::RN_Node& node, const std::vector<hg::PZInteger>& rec) const override;
-    void syncUpdateImpl(hg::RN_Node& node, const std::vector<hg::PZInteger>& rec) const override;
-    void syncDestroyImpl(hg::RN_Node& node, const std::vector<hg::PZInteger>& rec) const override;
+    void onNetworkingEvent(const RN_Event& ev);
 
     void eventPostUpdate() override;
     void eventDraw1() override;
 
 private:
+    struct CellPhycsisData : Collideables::ITerrain {
+        hg::cpShapeUPtr shape;
+        hg::PZInteger x;
+        hg::PZInteger y;
+    };
+
     hg::util::RowMajorGrid<Terrain::TypeId> _typeIdGrid;
-    hg::util::RowMajorGrid<hg::cpShapeUPtr> _shapeGrid;
+    hg::util::RowMajorGrid<CellPhycsisData> _physicsGrid;
     LightingController _lightingCtrl;
     float _cellResolution = 32.f; // TODO
 

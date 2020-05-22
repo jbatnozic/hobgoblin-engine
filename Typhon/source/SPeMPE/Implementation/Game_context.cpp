@@ -58,38 +58,39 @@ hg::PZInteger GameContext::RuntimeConfig::getMaxFramesBetweenDisplays() const no
 }
 
 void GameContext::configure(Mode mode) {
-    // TODO I never did like this method... (it does too much)
     _mode = mode;
 
-    switch (mode) {
-    case Mode::Server:
+    // Configure local player index:
+    if (_mode == Mode::Server || _mode == Mode::Initial) {
         _localPlayerIndex = PLAYER_INDEX_NONE;
-        _windowManager.create();
-        _networkingManager.initializeAsServer();
-        _syncObjReg.setNode(_networkingManager.getNode());
-        break;
-
-    case Mode::Client:
+    }
+    else if (_mode == Mode::Client) {
         _localPlayerIndex = PLAYER_INDEX_UNKNOWN;
-        _windowManager.create();
-        _networkingManager.initializeAsClient();
-        _syncObjReg.setNode(_networkingManager.getNode());
-        break;
+    }
+    else {
+        _localPlayerIndex = PLAYER_INDEX_LOCAL_PLAYER;
+    }
 
-    case Mode::Solo:
-        _localPlayerIndex = 0;
-        _windowManager.create();
-        break;
+    // Configure NetworkingManager:
+    if (hasNetworking()) {
+        if (isPrivileged()) {
+            _networkingManager.initializeAsServer();
+        }
+        else {
+            _networkingManager.initializeAsClient();
+        }
+    }
+    else {
+        // TODO _networkingManager.reset();
+    }
+    _syncObjReg.setNode(_networkingManager.getNode());
 
-    case Mode::GameMaster:
-        _localPlayerIndex = 0;
+    // Configure WindowManager:
+    if (isHeadless()) {
+        _windowManager.initAsHeadless();
+    }
+    else {
         _windowManager.create();
-        _networkingManager.initializeAsServer();
-        _syncObjReg.setNode(_networkingManager.getNode());
-        break;
-
-    default:
-        throw hg::util::TracedLogicError("Invalid configuration");
     }
 }
 
@@ -102,7 +103,6 @@ GameContext::GameContext(const ResourceConfig& resourceConfig, const RuntimeConf
     , _syncObjReg{_networkingManager.getNode()}
     , _extensionData{nullptr}
 {
-    // TODO _networkingManager.setUserData(this);
     _networkingManager.getNode().setUserData(this);
 }
 
@@ -133,6 +133,10 @@ const GameContext::RuntimeConfig& GameContext::getRuntimeConfig() const {
 
 const GameContext::PerformanceInfo& GameContext::getPerformanceInfo() const {
     return _performanceInfo;
+}
+
+int GameContext::getCurrentStepOrdinal() const {
+    return _stepOrdinal;
 }
 
 void GameContext::setLocalPlayerIndex(int index) {
@@ -251,6 +255,8 @@ void GameContext::_runImpl(GameContext* context, int* retVal) {
 
     while (!context->_quit) {
         perfInfo.frameToFrameTime = frameToFrameStopwatch.restart<microseconds>();
+
+        context->_stepOrdinal += 1;
 
         auto now = steady_clock::now();
         accumulatorTime += duration_cast<TimingDuration>(now - currentTime);

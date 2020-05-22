@@ -21,9 +21,13 @@ RN_DEFINE_HANDLER(SetClientControls, RN_ARGS(PlayerControls&, controls)) {
             auto& controlsMgr = GetControlsManager(ctx);
 
             const auto clientIndex = server.getSenderIndex();
-            const std::chrono::microseconds delay = server.getClient(clientIndex).getRemoteInfo().latency / 2LL;
 
-            controlsMgr.putNewControls(server.getSenderIndex() + 1, controls, delay);
+            const auto latency = server.getClient(clientIndex).getRemoteInfo().latency;
+            using TIME = std::remove_cv_t<decltype(latency)>;
+            const auto dt = std::chrono::duration_cast<TIME>(ctx.getRuntimeConfig().getDeltaTime());
+            const auto delaySteps = static_cast<int>(latency / dt) / 2;
+
+            controlsMgr.putNewControls(server.getSenderIndex() + 1, controls, delaySteps);
         }
     );
 }
@@ -49,11 +53,8 @@ PlayerControls ControlsManager::getCurrentControlsForPlayer(hg::PZInteger player
     return _schedulers[static_cast<std::size_t>(playerIndex)].getCurrentState();
 }
 
-void ControlsManager::putNewControls(hg::PZInteger playerIndex, const PlayerControls& controls,
-                                     std::chrono::microseconds delay) {
-    // TODO Temp. implementation
-    _schedulers[playerIndex].putNewState(controls, (delay / std::chrono::microseconds{16'666}));
-    //_schedulers[playerIndex].putNewState(controls, delay);
+void ControlsManager::putNewControls(hg::PZInteger playerIndex, const PlayerControls& controls, int delaySteps) {
+    _schedulers[playerIndex].putNewState(controls, delaySteps);
 }
 
 void ControlsManager::eventPreUpdate() {

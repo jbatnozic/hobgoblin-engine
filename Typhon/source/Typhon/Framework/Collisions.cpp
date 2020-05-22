@@ -11,8 +11,6 @@ cpShapeFilter CreateFilter(Collideables::CC selfCategory, Collideables::CC colli
                             static_cast<cpBitmask>(collidesWith));
 }
 
-
-
 } // namespace
 
 void Collideables::initCreature(cpShape* shape, ICreature& collideable) {

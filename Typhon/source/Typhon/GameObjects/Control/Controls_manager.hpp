@@ -32,7 +32,7 @@ public:
     void setInputDelay(hg::PZInteger inputDelayInSteps, hg::PZInteger historySize); // TODO Rename
     PlayerControls getCurrentControlsForPlayer(hg::PZInteger playerIndex);
 
-    void putNewControls(hg::PZInteger playerIndex, const PlayerControls& controls, std::chrono::microseconds delay);
+    void putNewControls(hg::PZInteger playerIndex, const PlayerControls& controls, int delaySteps);
 
 protected:
     void eventPreUpdate() override; // TODO To frameStart
