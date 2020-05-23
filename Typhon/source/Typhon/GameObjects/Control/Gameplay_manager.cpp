@@ -7,19 +7,19 @@
 
 #include <sstream>
 
-#include "Main_game_controller.hpp"
+#include "Gameplay_manager.hpp"
 
-MainGameController::MainGameController(QAO_RuntimeRef runtimeRef)
-    : NonstateObject{runtimeRef, TYPEID_SELF, EXEPR_MAIN_GAME_CONTROLLER, "MainGameController"}
+GameplayManager::GameplayManager(QAO_RuntimeRef runtimeRef)
+    : NonstateObject{runtimeRef, TYPEID_SELF, *PEXEPR_GAMEPLAY_MGR, "GameplayManager"}
 {
     ctx(MNetworking).addEventListener(this);
 }
 
-MainGameController::~MainGameController() {
+GameplayManager::~GameplayManager() {
     ctx(MNetworking).removeEventListener(this);
 }
 
-void MainGameController::eventUpdate() {
+void GameplayManager::eventUpdate() {
     if (ctx(DKeyboard).keyPressed(KbKey::Escape)) {
         ctx().stop();
     }
@@ -39,11 +39,11 @@ void MainGameController::eventUpdate() {
     view.move({moveSpeed * static_cast<float>(right - left), moveSpeed * static_cast<float>(down - up)});
 }
 
-void MainGameController::eventPostUpdate() {
+void GameplayManager::eventPostUpdate() {
     cpSpaceStep(ctx(DPhysicsSpace), 1.0 / 60.0); // TODO Temp. - Magic number
 }
 
-void MainGameController::eventDrawGUI() {
+void GameplayManager::eventDrawGUI() {
     sf::Text text;
     text.setFont(hg::gr::BuiltInFonts::getFont(hg::gr::BuiltInFonts::TitilliumRegular));
     text.setPosition({16.f, 16.f});
@@ -76,7 +76,7 @@ void MainGameController::eventDrawGUI() {
     ctx(MWindow).getCanvas().draw(text);
 }
 
-void MainGameController::onNetworkingEvent(const RN_Event& event_) {
+void GameplayManager::onNetworkingEvent(const RN_Event& event_) {
     event_.visit(
         [](const RN_Event::BadPassphrase& ev) {
         },

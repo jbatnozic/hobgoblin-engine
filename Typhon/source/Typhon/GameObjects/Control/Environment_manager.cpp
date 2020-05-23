@@ -77,7 +77,7 @@ RN_DEFINE_HANDLER(SetTerrainRow, RN_ARGS(std::int32_t, rowIndex, hg::util::Packe
 }
 
 EnvironmentManager::EnvironmentManager(QAO_RuntimeRef rtRef)
-    : StateObject{rtRef, TYPEID_SELF, EXEPR_ENVIRON_MGR, "TerrainManager"}
+    : StateObject{rtRef, TYPEID_SELF, *PEXEPR_ENVIRON_MGR, "TerrainManager"}
     , _lightingCtrl{0, 0, 32.f, hg::gr::Color{5, 5, 10}}
 {
     ctx(MNetworking).addEventListener(this);
@@ -106,6 +106,8 @@ void EnvironmentManager::generate(hg::PZInteger width, hg::PZInteger height, flo
 
     setCellType(1, 1, Terrain::TypeId::CaveFloor);
     // _cellResolution = cellResolution; TODO
+
+    _setEnvironmentPhysicsParameters();
 }
 
 void EnvironmentManager::destroy() {
@@ -213,6 +215,10 @@ void EnvironmentManager::eventDraw1() {
             _drawCell(x, y);
         }
     }
+}
+
+void EnvironmentManager::_setEnvironmentPhysicsParameters() const {
+    cpSpaceSetDamping(ctx(DPhysicsSpace), 0.1);
 }
 
 void EnvironmentManager::_resizeAllGrids(hg::PZInteger width, hg::PZInteger height) {

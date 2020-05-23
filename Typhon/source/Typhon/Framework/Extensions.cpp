@@ -1,7 +1,7 @@
 
 #include <Typhon/GameObjects/Control/Controls_manager.hpp>
 #include <Typhon/GameObjects/Control/Environment_manager.hpp>
-#include <Typhon/GameObjects/Control/Main_game_controller.hpp>
+#include <Typhon/GameObjects/Control/Gameplay_manager.hpp>
 
 #include <cassert>
 
@@ -15,18 +15,17 @@ const std::type_info& TyphonGameContextExtensionData::getTypeInfo() const {
 }
 
 void ExtendGameContext(spempe::GameContext& ctx) {
-    ctx.getNetworkingManager().setExecutionPriority(EXEPR_NETWORK_MGR);
-    ctx.getWindowManager().setExecutionPriority(EXEPR_WINDOW_MGR);
+    ctx.getNetworkingManager().setExecutionPriority(*PEXEPR_NETWORK_MGR);
+    ctx.getWindowManager().setExecutionPriority(*PEXEPR_WINDOW_MGR);
 
     auto extData = std::make_unique<TyphonGameContextExtensionData>();
 
-    extData->physicsSpace.reset(cpSpaceNew());
-    // TODO Temporarily here; should be in EnvironmentManager
-    cpSpaceSetUserData(extData->physicsSpace.get(), &ctx);
-    cpSpaceSetDamping(extData->physicsSpace.get(), 0.1);
-    Collideables::installCollisionHandlers(extData->physicsSpace.get());
-
-    extData->mainGameController = QAO_UPCreate<MainGameController>(ctx.getQaoRuntime().nonOwning());    
+    cpSpace* space = cpSpaceNew();
+    cpSpaceSetUserData(space, &ctx);
+    Collideables::installCollisionHandlers(space);
+    extData->physicsSpace.reset(space);
+    
+    extData->mainGameController = QAO_UPCreate<GameplayManager>(ctx.getQaoRuntime().nonOwning());    
     extData->environmentManager = QAO_UPCreate<EnvironmentManager>(ctx.getQaoRuntime().nonOwning());   
     extData->controlsManager = QAO_UPCreate<ControlsManager>(ctx.getQaoRuntime().nonOwning(), 10, 2, 1); // TODO
 
@@ -57,7 +56,7 @@ spempe::KbInputTracker& GetKeyboardInput(spempe::GameContext& ctx) {
     return ctx.getWindowManager().getKeyboardInput();
 }
 
-MainGameController& GetMainGameController(spempe::GameContext& ctx) {
+GameplayManager& GetGameplayManager(spempe::GameContext& ctx) {
     auto* extData = ctx.getExtensionData();
     assert(extData);
     assert(extData->getTypeInfo() == typeid(TyphonGameContextExtensionData));

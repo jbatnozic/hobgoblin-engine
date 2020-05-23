@@ -8,7 +8,7 @@
 namespace spempe {
 
 WindowManager::WindowManager(hg::QAO_RuntimeRef runtimeRef)
-    : NonstateObject{runtimeRef, SPEMPE_TYPEID_SELF, 0, "WindowManager"}
+    : NonstateObject{runtimeRef, SPEMPE_TYPEID_SELF, 0, "spempe::WindowManager"}
     , _windowAdapter{_window}
     , _mainRenderTextureAdapter{_mainRenderTexture}
 {

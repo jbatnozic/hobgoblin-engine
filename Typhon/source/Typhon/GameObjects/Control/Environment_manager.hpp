@@ -49,6 +49,7 @@ private:
 
     std::unordered_map<SpriteId, hg::gr::Multisprite> _spriteCache;
 
+    void _setEnvironmentPhysicsParameters() const;
     void _resizeAllGrids(hg::PZInteger width, hg::PZInteger height);
     void _drawCell(hg::PZInteger x, hg::PZInteger y);
 

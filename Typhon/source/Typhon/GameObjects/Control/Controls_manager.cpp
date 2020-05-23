@@ -34,7 +34,7 @@ RN_DEFINE_HANDLER(SetClientControls, RN_ARGS(PlayerControls&, controls)) {
 
 ControlsManager::ControlsManager(hg::QAO_RuntimeRef runtimeRef, hg::PZInteger playerCount, 
                                  hg::PZInteger inputDelayInSteps, hg::PZInteger historySize)
-    : NonstateObject{runtimeRef, TYPEID_SELF, 0, "ControlsManager"} // Run after NetMgr
+    : NonstateObject{runtimeRef, TYPEID_SELF, 0, "ControlsManager"} // TODO Priority for controls manager (Run after NetMgr?)
 {
     _schedulers.reserve(playerCount);
     for (hg::PZInteger i = 0; i < playerCount; i += 1) {

@@ -18,8 +18,8 @@
     <ClCompile Include="source\Typhon\GameObjects\UI\Main_menu.cpp" />
     <ClCompile Include="source\Typhon\GameObjects\Control\Controls_manager.cpp" />
     <ClCompile Include="source\Typhon\GameObjects\Control\Environment_manager.cpp" />
-    <ClCompile Include="source\Typhon\GameObjects\Control\Main_game_controller.cpp" />
     <ClCompile Include="source\Typhon\Framework\Extensions.cpp" />
+    <ClCompile Include="source\Typhon\GameObjects\Control\Gameplay_manager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\SPeMPE\Include\Game_context.hpp" />
@@ -44,6 +44,6 @@
     <ClInclude Include="source\Typhon\Framework\Extensions.hpp" />
     <ClInclude Include="source\Typhon\GameObjects\Control\Controls_manager.hpp" />
     <ClInclude Include="source\Typhon\GameObjects\Control\Environment_manager.hpp" />
-    <ClInclude Include="source\Typhon\GameObjects\Control\Main_game_controller.hpp" />
+    <ClInclude Include="source\Typhon\GameObjects\Control\Gameplay_manager.hpp" />
   </ItemGroup>
 </Project>

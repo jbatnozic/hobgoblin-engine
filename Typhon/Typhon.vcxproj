@@ -201,7 +201,7 @@
     </ClCompile>
     <ClCompile Include="source\Typhon\Terrain\Terrain.cpp" />
     <ClCompile Include="source\__Experimental\Lighting.cpp" />
-    <ClCompile Include="source\Typhon\GameObjects\Control\Main_game_controller.cpp" />
+    <ClCompile Include="source\Typhon\GameObjects\Control\Gameplay_manager.cpp" />
     <ClCompile Include="source\Typhon\GameObjects\UI\Main_menu.cpp" />
     <ClCompile Include="source\Typhon\GameObjects\Control\Environment_manager.cpp" />
     <ClCompile Include="source\Typhon\Main\Main.cpp" />
@@ -228,7 +228,7 @@
     <ClInclude Include="source\__Experimental\Lighting.hpp" />
     <ClInclude Include="source\Typhon\GameObjects\UI\Main_menu.hpp" />
     <ClInclude Include="source\Typhon\Main\Main_impl.hpp" />
-    <ClInclude Include="source\Typhon\GameObjects\Control\Main_game_controller.hpp" />
+    <ClInclude Include="source\Typhon\GameObjects\Control\Gameplay_manager.hpp" />
     <ClInclude Include="source\Typhon\GameObjects\Control\Environment_manager.hpp" />
     <ClInclude Include="source\Typhon\Utility\Periodic_counter.hpp" />
   </ItemGroup>

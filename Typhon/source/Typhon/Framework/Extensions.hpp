@@ -10,11 +10,11 @@
 
 class ControlsManager;
 class EnvironmentManager;
-class MainGameController;
+class GameplayManager;
 
 struct TyphonGameContextExtensionData : public spempe::GameContextExtensionData {
     hg::cpSpaceUPtr physicsSpace;
-    std::unique_ptr<MainGameController> mainGameController;
+    std::unique_ptr<GameplayManager> mainGameController;
     std::unique_ptr<EnvironmentManager> environmentManager;
     std::unique_ptr<ControlsManager> controlsManager;
 
@@ -27,7 +27,7 @@ void ExtendGameContext(spempe::GameContext& ctx);
 ControlsManager& GetControlsManager(spempe::GameContext& ctx);
 EnvironmentManager& GetEnvironmentManager(spempe::GameContext& ctx);
 spempe::KbInputTracker& GetKeyboardInput(spempe::GameContext& ctx);
-MainGameController& GetMainGameController(spempe::GameContext& ctx);
+GameplayManager& GetGameplayManager(spempe::GameContext& ctx);
 spempe::NetworkingManager& GetNetworkingManager(spempe::GameContext& ctx);
 cpSpace* GetPhysicsSpace(spempe::GameContext& ctx);
 template <class T>
@@ -51,7 +51,7 @@ spempe::WindowManager& GetWindowManager(spempe::GameContext& ctx);
     enum ContextTagControlsManager    { MControls }; \
     enum ContextTagEnvironmentManager { MEnvironment }; \
     enum ContextTagKeyboardInput      { DKeyboard }; \
-    enum ContextTagMainGameController { MMainGameCtrl }; \
+    enum ContextTagGameplayManager    { MGameplay }; \
     enum ContextTagNetworkingManager  { MNetworking }; \
     enum ContextTagPhysicsSpace       { DPhysicsSpace }; \
     enum ContextTagSprite             { DSprite }; \
@@ -61,7 +61,7 @@ spempe::WindowManager& GetWindowManager(spempe::GameContext& ctx);
     ControlsManager& ctx(ContextTagControlsManager) const { return GetControlsManager(ctx()); } \
     EnvironmentManager& ctx(ContextTagEnvironmentManager) const { return GetEnvironmentManager(ctx()); } \
     spempe::KbInputTracker& ctx(ContextTagKeyboardInput) const { return GetKeyboardInput(ctx()); } \
-    MainGameController& ctx(ContextTagMainGameController) const { return GetMainGameController(ctx()); } \
+    GameplayManager& ctx(ContextTagGameplayManager) const { return GetGameplayManager(ctx()); } \
     spempe::NetworkingManager& ctx(ContextTagNetworkingManager) const { return GetNetworkingManager(ctx()); } \
     cpSpace* ctx(ContextTagPhysicsSpace) const { return GetPhysicsSpace(ctx()); } \
     template <class T> \
