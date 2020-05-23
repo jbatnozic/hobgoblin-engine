@@ -242,11 +242,20 @@ void RN_UdpConnector::sendAcks() {
 void RN_UdpConnector::handleDataMessages(RN_Node& node) {
     assert(_status != RN_ConnectorStatus::Disconnected);
 
-    while (!_recvBuffer.empty() && _recvBuffer[0].tag == TaggedPacket::ReadyForUnpacking) {
-        // TODO Handle nonexistant handler and packet extraction errors (if the user's handler throws... oh, well...)
-        detail::HandleDataMessages(node, _recvBuffer[0].packetWrap); 
-        _recvBuffer.pop_front();
-        _recvBufferHeadIndex++;
+    try {
+        while (!_recvBuffer.empty() && _recvBuffer[0].tag == TaggedPacket::ReadyForUnpacking) {
+            detail::HandleDataMessages(node, _recvBuffer[0].packetWrap);
+            _recvBuffer.pop_front();
+            _recvBufferHeadIndex++;
+        }
+    }
+    catch (RN_PacketReadError& ex) {
+        _eventFactory.createDisconnected(RN_Event::Disconnected::Reason::Error, ex.whatString());
+        reset();
+    }
+    catch (RN_IllegalMessage& ex) {
+        _eventFactory.createDisconnected(RN_Event::Disconnected::Reason::Error, ex.whatString());
+        reset();
     }
 }
 
@@ -471,12 +480,12 @@ void RN_UdpConnector::processConnectPacket(RN_PacketWrapper& packetWrap) {
         if (receivedPassphrase == _passphrase) {
             // Client connected to server
             _clientIndex = receivedClientIndex;
-            initializeSession();
             _eventFactory.createConnected();
+            initializeSession();
         }
         else {
-            reset();
             _eventFactory.createBadPassphrase(std::move(receivedPassphrase));
+            reset();
         }
     }
     break;
@@ -519,9 +528,9 @@ void RN_UdpConnector::processDataPacket(RN_PacketWrapper& packetWrap) {
         throw FatalMessageTypeReceived{"Received DATA message (status: Connecting)"};
         break;
 
-    case RN_ConnectorStatus::Accepting:
-        initializeSession(); // New connection confirmed
+    case RN_ConnectorStatus::Accepting:       
         _eventFactory.createConnected();
+        initializeSession(); // New connection confirmed
         SWITCH_FALLTHROUGH;
 
     case RN_ConnectorStatus::Connected:

@@ -1,6 +1,8 @@
 #ifndef UHOBGOBLIN_RN_HANDLERMGMT_HPP
 #define UHOBGOBLIN_RN_HANDLERMGMT_HPP
 
+#include <Hobgoblin/Utility/Exceptions.hpp>
+
 #include <cstdint>
 #include <unordered_map>
 #include <vector>
@@ -66,6 +68,13 @@ private:
 };
 
 } // namespace detail
+
+///////////////////////////////////////////////////////////////////////////////
+
+class RN_IllegalMessage : public util::TracedRuntimeError {
+public:
+    using util::TracedRuntimeError::TracedRuntimeError;
+};
 
 } // namespace rn
 HOBGOBLIN_NAMESPACE_END

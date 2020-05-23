@@ -13,6 +13,7 @@ namespace util {
 
 class TracedException : public std::exception {
 public:
+    explicit TracedException();
     explicit TracedException(const char* message);
     explicit TracedException(const std::string& message);
 

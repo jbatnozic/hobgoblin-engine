@@ -1,4 +1,5 @@
 
+#include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/RigelNet/handlermgmt.hpp>
 
 #include <algorithm>
@@ -43,6 +44,10 @@ const char* RN_GlobalHandlerMapper::nameWithId(RN_HandlerId id) const {
 }
 
 RN_HandlerFunc RN_GlobalHandlerMapper::handlerWithId(RN_HandlerId id) const {
+    if (id < 0 || ToSz(id) >= _handlerPointers.size()) {
+        return nullptr;
+    }
+
     return _handlerPointers[id];
 }
 

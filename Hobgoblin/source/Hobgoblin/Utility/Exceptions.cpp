@@ -14,6 +14,12 @@ void GenerateStackTrace(std::vector<std::string>& target) {
 
 } // namespace
 
+TracedException::TracedException()
+    : _message{}
+{
+    GenerateStackTrace(_stackTrace);
+}
+
 TracedException::TracedException(const char* message)
     : _message{message}
 {

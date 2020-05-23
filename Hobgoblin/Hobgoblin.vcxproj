@@ -841,7 +841,6 @@
     <ClCompile Include="source\Hobgoblin\QAO\Priority_resolver2.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Event.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Handlermgmt.cpp" />
-    <ClCompile Include="source\Hobgoblin\RigelNet\Handlers.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Node.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Packet.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Udp_client.cpp" />
@@ -911,7 +910,6 @@
     <ClInclude Include="include\Hobgoblin\Utility\Semaphore.hpp" />
     <ClInclude Include="include\Hobgoblin\QAO\Priority_resolver2.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Event.hpp" />
-    <ClInclude Include="include\Hobgoblin\RigelNet\Handlers.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Node.hpp" />
     <ClCompile Include="source\Hobgoblin\QAO\base.cpp" />
     <ClCompile Include="source\Hobgoblin\QAO\orderer.cpp" />
@@ -946,7 +944,6 @@
     <ClInclude Include="include\Hobgoblin\RigelNet\Macro_normalize_args.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Macro_pass_args.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Macro_pass_compose_args.hpp" />
-    <ClInclude Include="include\Hobgoblin\RigelNet\Receiver_set.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Remote_info.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Packet_wrapper.hpp" />
     <ClInclude Include="include\Hobgoblin\RigelNet\Remote_object_mapper.hpp" />

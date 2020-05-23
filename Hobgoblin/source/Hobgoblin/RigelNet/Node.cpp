@@ -19,6 +19,9 @@ void HandleDataMessages(RN_Node& node, RN_PacketWrapper& packetWrap) {
     while (!packetWrap.packet.endOfPacket()) {
         const RN_HandlerId handlerId = packetWrap.extractOrThrow<RN_HandlerId>();
         RN_HandlerFunc handlerFunc = RN_GlobalHandlerMapper::getInstance().handlerWithId(handlerId);
+        if (handlerFunc == nullptr) {
+            throw RN_IllegalMessage("Requested handler does not exist");
+        }
         (*handlerFunc)(node);
     }
 

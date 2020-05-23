@@ -48,9 +48,6 @@
     <ClCompile Include="source\Hobgoblin\RigelNet\Handlermgmt.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="source\Hobgoblin\RigelNet\Handlers.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="source\Hobgoblin\Utility\Exceptions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -305,9 +302,6 @@
     <ClInclude Include="include\Hobgoblin\Utility\Visitor.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Hobgoblin\RigelNet\Handlers.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\Hobgoblin\Utility\Exceptions.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -318,9 +312,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Hobgoblin\RigelNet\Packet_wrapper.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Hobgoblin\RigelNet\Receiver_set.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Hobgoblin\Utility\Any_ptr.hpp">

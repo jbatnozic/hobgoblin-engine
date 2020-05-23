@@ -140,7 +140,7 @@ void CannonicalCreateImpl(hg::RN_Node& node, SyncId syncId, typename T::VisibleS
             hg::QAO_PCreate<T>(&runtime, syncObjReg, syncId, state);
         },
         [](hg::RN_UdpServer& server) {
-            // TODO ERROR
+            throw hg::RN_IllegalMessage("Server received a sync message");
         }
     );
 }
@@ -162,7 +162,7 @@ void CannonicalUpdateImpl(hg::RN_Node& node, SyncId syncId, typename T::VisibleS
             object.cannonicalSyncApplyUpdate(state, delaySteps);
         },
         [](hg::RN_UdpServer& server) {
-            // TODO ERROR
+            throw hg::RN_IllegalMessage("Server received a sync message");
         }
     );
 }
@@ -179,7 +179,7 @@ void CannonicalDestroyImpl(hg::RN_Node& node, SyncId syncId) {
             hg::QAO_PDestroy(object);
         },
         [](hg::RN_UdpServer& server) {
-            // TODO ERROR
+            throw hg::RN_IllegalMessage("Server received a sync message");
         }
     );
 }

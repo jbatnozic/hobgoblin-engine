@@ -14,7 +14,6 @@
 class PhysicsBullet : public SynchronizedObject, private Collideables::IProjectile {
 public:
     struct VisibleState { // Visible state object must be public
-        // hg::PZInteger playerIndex = -1; // TODO Magic number
         float x = 0.f;
         float y = 0.f;
         // bool hidden = true; // TODO This probably doesn't work right
