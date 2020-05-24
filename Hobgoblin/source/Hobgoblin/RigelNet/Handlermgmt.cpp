@@ -22,7 +22,7 @@ std::size_t RN_CStringHash::operator()(const char* key) const {
     std::uint32_t hash{0xC613FC15u};
     for (; *key; key += 1) {
         hash ^= *key;
-        hash *= 0x5BD1E995;
+        hash *= 0x5BD1E995u;
         hash ^= hash >> 15;
     }
     return static_cast<std::size_t>(hash);
