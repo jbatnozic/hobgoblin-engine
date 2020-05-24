@@ -305,9 +305,6 @@
     <ClInclude Include="include\Hobgoblin\Utility\Exceptions.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Hobgoblin\RigelNet\Remote_object_mapper.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\Hobgoblin\Utility\Packet.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>

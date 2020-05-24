@@ -45,6 +45,102 @@ constexpr typename std::enable_if_t<std::is_integral_v<T>, T> IntegralCeilDiv(T 
     return dividend / divisor - ((-(dividend % divisor)) >> (sizeof(T) * CHAR_BIT - 1));
 }
 
+// ///////////////////////////////////////////////////////////////////////////////////////////// //
+
+constexpr double PI = 3.14159265358979323846;
+
+// TODO Rename to Angle with factory methods fromRadians, fromDegrees
+// add getters getRadians, getDegrees
+struct Radians {
+    double rad;
+
+    constexpr Radians() : rad{} {}   
+    constexpr explicit Radians(double rad) noexcept : rad{rad} {}
+
+    constexpr Radians(const Radians& other) noexcept = default;
+    constexpr Radians& operator=(const Radians& other) noexcept = default;
+
+    // +, -, *, /, +=, -=, *=, /=
+    constexpr Radians operator+(Radians other) const noexcept {
+        return Radians{SELF.rad + other.rad};
+    }
+
+    constexpr Radians operator-(Radians other) const noexcept {
+        return Radians{SELF.rad - other.rad};
+    }
+
+    constexpr Radians operator*(double scalar) const noexcept {
+        return Radians{SELF.rad * scalar};
+    }
+
+    friend constexpr Radians operator*(double scalar, Radians angle) noexcept {
+        return angle * scalar;
+    }
+
+    constexpr Radians operator/(double scalar) const noexcept {
+        return Radians{SELF.rad / scalar};
+    }
+
+    constexpr Radians& operator+=(Radians other) noexcept {
+        rad += other.rad;
+        return SELF;
+    }
+
+    constexpr Radians& operator-=(Radians other) noexcept {
+        rad -= other.rad;
+        return SELF;
+    }
+
+    constexpr Radians& operator*=(double scalar) noexcept {
+        rad *= scalar;
+        return SELF;
+    }
+
+    constexpr Radians& operator/=(double scalar) noexcept {
+        rad /= scalar;
+        return SELF;
+    }
+
+    // <, <=, >, >=, ==, !=
+    constexpr bool operator<(Radians other) const noexcept {
+        return rad < other.rad;
+    }
+
+    constexpr bool operator<=(Radians other) const noexcept {
+        return rad <= other.rad;
+    }
+
+    constexpr bool operator>(Radians other) const noexcept {
+        return rad > other.rad;
+    }
+
+    constexpr bool operator>=(Radians other) const noexcept {
+        return rad >= other.rad;
+    }
+
+    constexpr bool operator==(Radians other) const noexcept {
+        return rad == other.rad;
+    }
+
+    constexpr bool operator!=(Radians other) const noexcept {
+        return rad != other.rad;
+    }
+
+    constexpr bool isEpsilonEqualTo(Radians other, double epsilon) noexcept {
+        return (std::abs(rad - other.rad) <= epsilon);
+    }
+
+    constexpr Radians shortestDistanceTo(Radians other) const noexcept {
+        // TODO
+    }
+};
+
+//struct Degrees {
+//    Real deg;
+//    Degrees() = default;
+//    constexpr explicit Degrees(Real deg) : deg(deg) {}
+//};
+
 } // namespace util
 HOBGOBLIN_NAMESPACE_END
 

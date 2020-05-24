@@ -1,4 +1,5 @@
 Make WindowManager and NetworkingManager better
+   In fact, all managers are terribly written XD
 Directional lights
 CreateGameContext method
 Multisprites are VERY large (almost half a kilobyte) - can they be used directly from the loader?

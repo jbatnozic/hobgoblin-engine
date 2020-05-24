@@ -94,7 +94,7 @@ void EnvironmentManager::generate(hg::PZInteger width, hg::PZInteger height, flo
 
     for (hg::PZInteger y = 0; y < getTerrainRowCount(); y += 1) {
         for (hg::PZInteger x = 0; x < getTerrainColumnCount(); x += 1) {
-            if ((std::rand() % 100) < 15 ||
+            if ((std::rand() % 100) < 5 ||
                 x == 0 || y == 0 || (x == (getTerrainColumnCount() - 1)) || (y == (getTerrainRowCount() - 1))) {
                 setCellType(x, y, Terrain::TypeId::CaveWall);
             }
