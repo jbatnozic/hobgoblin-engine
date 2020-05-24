@@ -384,7 +384,7 @@ QuadTreeCollisionDomain::QuadTreeCollisionDomain(double width, double height, PZ
     , _height{height}
     , _minWidth{width / _maxNodesPerRow}
     , _minHeight{height / _maxNodesPerRow}
-    , _nodeTable{_maxNodesPerRow, std::vector<detail::QuadTreeNode*>{static_cast<std::size_t>(_maxNodesPerRow)}}
+    , _nodeTable{ToSz(_maxNodesPerRow), std::vector<detail::QuadTreeNode*>{static_cast<std::size_t>(_maxNodesPerRow)}}
     , _rootNode{std::make_unique<detail::QuadTreeNode>(SELF, BoundingBox{0.0, 0.0, width, height},
                                                        maxDepth, maxEntitiesPerNode, nullptr)}
 {

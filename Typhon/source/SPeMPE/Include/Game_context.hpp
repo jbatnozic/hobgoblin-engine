@@ -25,7 +25,7 @@ constexpr int PLAYER_INDEX_LOCAL_PLAYER = 0;
 
 class GameContextExtensionData {
 public:
-    virtual ~GameContextExtensionData() = 0 {};
+    virtual ~GameContextExtensionData() = 0;
     virtual const std::type_info& getTypeInfo() const = 0;
 };
 

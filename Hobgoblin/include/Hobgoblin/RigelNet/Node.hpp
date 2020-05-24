@@ -64,7 +64,7 @@ constexpr RN_ComposeForAllType RN_COMPOSE_FOR_ALL{};
 class RN_Node : NO_COPY, NO_MOVE {
 public:
     RN_Node(RN_NodeType nodeType);
-    virtual ~RN_Node() = 0 {}
+    virtual ~RN_Node() = 0;
 
     bool pollEvent(RN_Event& ev);
 
@@ -118,7 +118,7 @@ private:
     template <class T>
     friend typename std::remove_reference<T>::type UHOBGOBLIN_RN_ExtractArg(RN_Node& node);
 
-    friend void detail::HandleDataMessages(RN_Node& node, RN_PacketWrapper& packetWrap);
+    friend void detail::HandleDataMessages(RN_Node& node, detail::RN_PacketWrapper& packetWrap);
 };
 
 template <class T>
@@ -177,7 +177,7 @@ void UHOBGOBLIN_RN_ComposeImpl(RN_Node& node, R&& receivers, detail::RN_HandlerI
 
 template <class T>
 typename std::remove_reference<T>::type UHOBGOBLIN_RN_ExtractArg(RN_Node& node) {
-    return node.extractArgument<std::remove_reference<T>::type>();
+    return node.extractArgument<typename std::remove_reference<T>::type>();
 }
 
 class RN_FakeNode : public RN_Node {

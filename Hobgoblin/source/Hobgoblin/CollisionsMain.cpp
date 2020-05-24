@@ -8,9 +8,9 @@
 #define HOBGOBLIN_SHORT_NAMESPACE
 #include <Hobgoblin/ColDetect.hpp>
 
-#include <SFML\System.hpp>
-#include <SFML\Window.hpp>
-#include <SFML\Graphics.hpp>
+#include <SFML/System.hpp>
+#include <SFML/Window.hpp>
+#include <SFML/Graphics.hpp>
 
 //#define DomainType hg::util:QuadTreeCollisionDomain
 using hg::cd::QuadTreeCollisionDomain;

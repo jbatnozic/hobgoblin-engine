@@ -24,7 +24,7 @@ public:
     static constexpr auto SERIALIZABLE_TAG = "PhysicsBullet";
 
     PhysicsBullet(QAO_RuntimeRef rtRef, SynchronizedObjectRegistry& syncObjReg, SyncId syncId,
-                  const VisibleState& initialState = VisibleState{});
+                  const VisibleState& initialState);
 
     ~PhysicsBullet();
 

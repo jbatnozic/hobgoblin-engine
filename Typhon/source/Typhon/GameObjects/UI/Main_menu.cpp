@@ -40,7 +40,7 @@ void MainMenu::eventUpdate() {
 #define SOLO 3
 #define GAME_MASTER 4
 
-	int mode = InputPrompt<int>("mode - 1 = host; 2 = client, 3 = solo, 4 = GM", 2);
+  int mode = 1; //InputPrompt<int>("mode - 1 = host; 2 = client, 3 = solo, 4 = GM", 2);
 	if (mode == HOST) {
 		// Start a local server in the background:
 		auto serverCtx = std::make_unique<GameContext>(ctx().getResourceConfig(), 
@@ -48,9 +48,9 @@ void MainMenu::eventUpdate() {
 		ExtendGameContext(*serverCtx);
 
 		serverCtx->configure(GameContext::Mode::Server);
-		serverCtx->getNetworkingManager().getServer().start(InputPrompt<std::uint16_t>("local port - 0 for any", 8888),
+    serverCtx->getNetworkingManager().getServer().start(8888/*InputPrompt<std::uint16_t>("local port - 0 for any", 8888)*/,
 															"beetlejuice");
-		serverCtx->getNetworkingManager().getServer().resize(InputPrompt<hg::PZInteger>("client count", 2));
+    serverCtx->getNetworkingManager().getServer().resize(2/*InputPrompt<hg::PZInteger>("client count", 2)*/);
 		serverCtx->getNetworkingManager().getServer().setTimeoutLimit(std::chrono::seconds{5});
 
 		const std::uint16_t serverPort = serverCtx->getNetworkingManager().getServer().getLocalPort();

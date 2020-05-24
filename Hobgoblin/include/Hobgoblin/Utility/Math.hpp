@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <climits>
 #include <type_traits>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
@@ -127,11 +128,12 @@ struct Radians {
     }
 
     constexpr bool isEpsilonEqualTo(Radians other, double epsilon) noexcept {
-        return (std::abs(rad - other.rad) <= epsilon);
+        return ((rad - other.rad) <= epsilon && (rad - other.rad) >= -epsilon);
     }
 
     constexpr Radians shortestDistanceTo(Radians other) const noexcept {
         // TODO
+        return Radians{};
     }
 };
 

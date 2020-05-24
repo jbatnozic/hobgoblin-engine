@@ -53,7 +53,7 @@ void Serialize(PacketBase& packet, const T& serializable) {
         packet << T::SERIALIZABLE_TAG;
     }
 
-    packet << std::size_t{intermediaryPacket.getDataSize()};
+    packet << static_cast<std::uint32_t>(intermediaryPacket.getDataSize());
     packet.append(intermediaryPacket.getData(), intermediaryPacket.getDataSize());
 }
 

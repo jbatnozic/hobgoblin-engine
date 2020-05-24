@@ -6,7 +6,7 @@
 #include "Environment_manager.hpp"
 
 // TODO Temp.
-
+#include <iostream>
 #include "Typhon/GameObjects/Gameplay/PhysicsPlayer.hpp"
 
 namespace {
@@ -45,12 +45,13 @@ using spempe::NetworkingManager;
 } // namespace
 
 RN_DEFINE_HANDLER(ResizeTerrain, RN_ARGS(std::int32_t, width, std::int32_t, height)) {
+    std::cout << "ResizeTerrain called\n";
     RN_NODE_IN_HANDLER().visit(
         [&](NetworkingManager::ClientType& client) {
             auto& ctx = *client.getUserData<GameContext>();
             auto& envMgr = GetEnvironmentManager(ctx);
 
-            envMgr._resizeAllGrids(width, height);
+            envMgr._resizeAllGrids(width, height);          
         },
         [](NetworkingManager::ServerType& server) {
             // ERROR
@@ -59,6 +60,7 @@ RN_DEFINE_HANDLER(ResizeTerrain, RN_ARGS(std::int32_t, width, std::int32_t, heig
 }
 
 RN_DEFINE_HANDLER(SetTerrainRow, RN_ARGS(std::int32_t, rowIndex, hg::util::Packet&, packet)) {
+    std::cout << "SetTerrainRow called\n";
     RN_NODE_IN_HANDLER().visit(
         [&](NetworkingManager::ClientType& client) {
             auto& ctx = *client.getUserData<GameContext>();
@@ -68,7 +70,7 @@ RN_DEFINE_HANDLER(SetTerrainRow, RN_ARGS(std::int32_t, rowIndex, hg::util::Packe
                 std::int16_t terrainTypeId;
                 packet >> terrainTypeId;
                 envMgr.setCellType(x, rowIndex, static_cast<Terrain::TypeId>(terrainTypeId));
-            }
+            }          
         },
         [](NetworkingManager::ServerType& server) {
             // ERROR
@@ -175,9 +177,10 @@ void EnvironmentManager::onNetworkingEvent(const RN_Event& ev) {
     if (!ctx().isPrivileged()) {
         return;
     }
-
+    
     ev.visit(
         [this](const RN_Event::Connected& ev) {
+            std::cout << "AAAAAAAAA " << *ev.clientIndex << '\n';
             auto& node = ctx(MNetworking).getNode();
             auto receiverIndex = *ev.clientIndex;
 

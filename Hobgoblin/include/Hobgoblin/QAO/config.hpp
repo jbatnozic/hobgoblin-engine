@@ -1,7 +1,7 @@
 #ifndef UHOBGOBLIN_QAO_CONFIG_HPP
 #define UHOBGOBLIN_QAO_CONFIG_HPP
 
-#include <Hobgoblin/common.hpp>
+#include <Hobgoblin/Common.hpp>
 
 #include <cstdint>
 #include <limits>

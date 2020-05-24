@@ -36,6 +36,9 @@ RN_Node::RN_Node(RN_NodeType nodeType)
 {
 }
 
+RN_Node::~RN_Node() {
+}
+
 bool RN_Node::pollEvent(RN_Event& ev) {
     if (_eventQueue.empty()) {
         return false;

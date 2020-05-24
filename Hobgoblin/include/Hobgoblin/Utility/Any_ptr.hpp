@@ -89,7 +89,7 @@ public:
 
 private:
     const void* _value;
-    const type_info* _valueType;
+    const std::type_info* _valueType;
     bool _valueIsConst;
 };
 

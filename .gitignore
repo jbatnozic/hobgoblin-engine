@@ -6,6 +6,9 @@
 # Custom
 Hobgoblin/build
 SpaceshipPhysics/build
+Typhon/build
+.vscode
+**/.DS_Store
 
 # User-specific files
 *.rsuser

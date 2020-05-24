@@ -14,7 +14,7 @@ namespace detail {
 
 QAO_Registry::QAO_Registry(PZInteger capacity)
     : _indexer{capacity}
-    , _elements{capacity}
+    , _elements{ToSz(capacity)}
     , _serial_counter{QAO_MIN_SERIAL}
 {
 }
@@ -25,9 +25,9 @@ QAO_SerialIndexPair QAO_Registry::insert(std::unique_ptr<QAO_Base> ptr) {
 
     adjustSize();
 
-    _elements[index].ptr = std::move(ptr);
-    _elements[index].serial = serial;
-    _elements[index].no_own = false;
+    _elements[ToSz(index)].ptr = std::move(ptr);
+    _elements[ToSz(index)].serial = serial;
+    _elements[ToSz(index)].no_own = false;
 
     return QAO_SerialIndexPair{serial, index};
 }

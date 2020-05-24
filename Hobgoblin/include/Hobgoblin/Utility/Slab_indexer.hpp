@@ -1,7 +1,7 @@
 #ifndef SLAB_INDEXER_HPP
 #define SLAB_INDEXER_HPP
 
-#include <Hobgoblin/common.hpp>
+#include <Hobgoblin/Common.hpp>
 
 #include <cassert>
 #include <vector>

@@ -39,7 +39,7 @@ void Deserialize(Packet& packet, AnyPtr context, int contextTag) {
     // Format: tag, dataSize, data
     while (!packet.endOfPacket()) {
         const std::string tag = packet.extractOrThrow<std::string>();
-        std::size_t dataSizeRemaining = packet.extractOrThrow<std::size_t>();
+        std::uint32_t dataSizeRemaining = packet.extractOrThrow<std::uint32_t>();
         Packet intermediaryPacket;
 
         // TODO - Replace horrible temporary solution for moving packet data used below

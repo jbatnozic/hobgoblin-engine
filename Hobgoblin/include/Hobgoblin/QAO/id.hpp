@@ -1,7 +1,7 @@
 #ifndef UHOBGOBLIN_QAO_ID_HPP
 #define UHOBGOBLIN_QAO_ID_HPP
 
-#include <Hobgoblin/common.hpp>
+#include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Utility/Packet.hpp>
 
 #include <cstdint>
@@ -69,16 +69,16 @@ public:
     QAO_Id(QAO_Id &&other) = default;
     QAO_Id& operator=(QAO_Id &&other) = default;
 
-    operator QAO_GenericId() {
-        return QAO_GenericId{_serial, _index};
-    }
+//    operator QAO_GenericId() {
+//        return QAO_GenericId{_serial, _index};
+//    }
 
     friend util::PacketBase& operator<<(util::PacketBase& packet, const QAO_Id& self) {
-        return (packet << static_cast<const QAO_GenericId&>(SELF));
+        return (packet << static_cast<const QAO_GenericId&>(self));
     }
 
     friend util::PacketBase& operator>>(util::PacketBase& packet, QAO_Id& self) {
-        return (packet >> static_cast<QAO_GenericId&>(SELF));
+        return (packet >> static_cast<QAO_GenericId&>(self));
     }
 
 protected:

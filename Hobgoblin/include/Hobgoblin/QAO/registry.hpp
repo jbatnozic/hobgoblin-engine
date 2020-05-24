@@ -1,7 +1,7 @@
 #ifndef UHOBGOBLIN_QAO_REGISTRY_HPP
 #define UHOBGOBLIN_QAO_REGISTRY_HPP
 
-#include <Hobgoblin/common.hpp>
+#include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/QAO/config.hpp>
 #include <Hobgoblin/Utility/Slab_indexer.hpp>
 

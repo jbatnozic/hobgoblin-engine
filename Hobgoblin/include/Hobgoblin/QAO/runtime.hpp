@@ -1,7 +1,7 @@
 #ifndef UHOBGOBLIN_QAO_RUNTIME_HPP
 #define UHOBGOBLIN_QAO_RUNTIME_HPP
 
-#include <Hobgoblin/common.hpp>
+#include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/QAO/config.hpp>
 #include <Hobgoblin/QAO/id.hpp>
 #include <Hobgoblin/QAO/orderer.hpp>

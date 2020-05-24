@@ -57,6 +57,9 @@ hg::PZInteger GameContext::RuntimeConfig::getMaxFramesBetweenDisplays() const no
     return _maxFramesBetweenDisplays;
 }
 
+GameContextExtensionData::~GameContextExtensionData() {
+}
+
 void GameContext::configure(Mode mode) {
     _mode = mode;
 

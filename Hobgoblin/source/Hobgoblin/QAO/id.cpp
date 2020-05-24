@@ -17,7 +17,7 @@ QAO_GenericId::QAO_GenericId()
 {
 }
 
-QAO_GenericId::QAO_GenericId(std::nullptr_t p)
+QAO_GenericId::QAO_GenericId(std::nullptr_t)
     : QAO_GenericId(QAO_NULL_SERIAL, QAO_NULL_INDEX)
 {
 }
