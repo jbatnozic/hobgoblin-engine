@@ -13,8 +13,8 @@ const auto RETRANSMIT_PREDICATE =
    std::chrono::microseconds timeSinceLastTransmit,
    std::chrono::microseconds currentLatency)
 {
-    //return (timeSinceLastTransmit >= 2 * currentLatency) || cyclesSinceLastTransmit >= 3;
-    return 1; // Maximize user experience (super bandwidth-unfriendly)
+    return (timeSinceLastTransmit >= 2 * currentLatency) || cyclesSinceLastTransmit >= 3;
+    //return 1; // Maximize user experience (super bandwidth-unfriendly)
 };
 
 using namespace hg::qao;

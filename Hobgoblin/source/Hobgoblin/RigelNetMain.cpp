@@ -73,6 +73,7 @@ int main() {
     Compose_Foo(server, 0);
     Compose_Bar(server, 0, 1);
     Compose_Baz(server, 0, 1, "asdf");
+
 #else 
     RN_IndexHandlers();
 

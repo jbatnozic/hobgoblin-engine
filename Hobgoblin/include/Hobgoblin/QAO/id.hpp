@@ -69,10 +69,6 @@ public:
     QAO_Id(QAO_Id &&other) = default;
     QAO_Id& operator=(QAO_Id &&other) = default;
 
-//    operator QAO_GenericId() {
-//        return QAO_GenericId{_serial, _index};
-//    }
-
     friend util::PacketBase& operator<<(util::PacketBase& packet, const QAO_Id& self) {
         return (packet << static_cast<const QAO_GenericId&>(self));
     }

@@ -1,0 +1,15 @@
+
+CROSS-PLATFORM CLIPBOARD UTILS 
+    https://github.com/dacap/clip
+
+PATHFINDING
+    https://github.com/BigZaphod/AStar
+
+TERMINAL ROUGELIKE STUFF 
+    https://github.com/libtcod/libtcod
+
+SPRITE NORMAL MAP GENERATOR
+    http://www.2deegameart.com/p/sprite-dlight.html
+
+ISOMETRIC SPRITE EDITOR
+    https://marmoset.co/hexels/

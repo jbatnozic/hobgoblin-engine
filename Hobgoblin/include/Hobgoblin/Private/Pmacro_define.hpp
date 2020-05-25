@@ -17,5 +17,5 @@
 #if defined(_MSC_VER)
 #define CURRENT_FUNCTION __FUNCSIG__
 #else
-#define CURRENT_FUNCTION "__FUNCSIG__ TODO"
+#define CURRENT_FUNCTION __PRETTY_FUNCTION__
 #endif

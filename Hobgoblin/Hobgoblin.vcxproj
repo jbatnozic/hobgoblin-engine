@@ -839,6 +839,7 @@
     <ClCompile Include="source\Hobgoblin\Graphics\Texture_packing.cpp" />
     <ClCompile Include="source\Hobgoblin\Graphics\Views.cpp" />
     <ClCompile Include="source\Hobgoblin\QAO\Priority_resolver2.cpp" />
+    <ClCompile Include="source\Hobgoblin\RigelNetMain.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Event.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Handlermgmt.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Node.cpp" />
@@ -847,7 +848,6 @@
     <ClCompile Include="source\Hobgoblin\RigelNet\Udp_connector.cpp" />
     <ClCompile Include="source\Hobgoblin\RigelNet\Udp_server.cpp" />
     <ClCompile Include="source\Hobgoblin\Utility\Time_utils.cpp" />
-    <ClCompile Include="source\Hobgoblin\TimingMain.cpp" />
     <ClCompile Include="source\Hobgoblin\Utility\Serialization.cpp" />
     <ClInclude Include="include\Hobgoblin\ChipmunkPhysics.hpp" />
     <ClInclude Include="include\Hobgoblin\ChipmunkPhysics\Chipmunk_config.hpp" />
@@ -975,6 +975,7 @@
     <Text Include="include\Hobgoblin\zTODO.txt" />
     <Text Include="On_qao_serialization.txt" />
     <Text Include="Pathfinding.txt" />
+    <Text Include="Useful_links.txt" />
     <Text Include="zTODO.txt" />
   </ItemGroup>
   <ItemGroup>

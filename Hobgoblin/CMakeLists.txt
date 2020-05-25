@@ -145,4 +145,4 @@ endif()
 
 target_include_directories(${HOBGOBLIN_TARGET_NAME} PUBLIC include)
 target_include_directories(${HOBGOBLIN_TARGET_NAME} PUBLIC include/Hobgoblin/private)
-target_link_libraries(${HOBGOBLIN_TARGET_NAME} PUBLIC ${CONAN_LIBS})
+target_link_libraries(${HOBGOBLIN_TARGET_NAME} PUBLIC legacy_stdio_definitions.lib ${CONAN_LIBS})
