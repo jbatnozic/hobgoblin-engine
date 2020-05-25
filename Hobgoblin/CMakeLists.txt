@@ -64,13 +64,13 @@ set(HOBGOBLIN_SOURCE_GRAPHICS
 )
 
 set(HOBGOBLIN_SOURCE_MAIN
-    # source/Hobgoblin/RigelNetMain.cpp
+     source/Hobgoblin/RigelNetMain.cpp
     # source/Hobgoblin/BrushMain.cpp
     # source/Hobgoblin/TimingMain.cpp
     # source/Hobgoblin/TextRect.cpp
     # source/Hobgoblin/SerializationMain.cpp
     # source/Hobgoblin/SpriteManagerMain.cpp
-    source/Hobgoblin/CollisionsMain.cpp 
+#    source/Hobgoblin/CollisionsMain.cpp
 )
 
 set(HOBGOBLIN_SOURCE_PRIVATE

@@ -40,18 +40,20 @@ void MainMenu::eventUpdate() {
 #define SOLO 3
 #define GAME_MASTER 4
 
-  int mode = InputPrompt<int>("mode - 1 = host; 2 = client, 3 = solo, 4 = GM", 2);
+  int mode = 1;//InputPrompt<int>("mode - 1 = host; 2 = client, 3 = solo, 4 = GM", 2);
     if (mode == HOST) {
         // Start a local server in the background:
         auto serverCtx = std::make_unique<GameContext>(ctx().getResourceConfig(), 
                                                        ctx().getRuntimeConfig());
         ExtendGameContext(*serverCtx);
 
+        const std::uint16_t localPort = 8888;//InputPrompt<std::uint16_t>("local port - 0 for any", 8888);
+        const hg::PZInteger clientCount = 4;//InputPrompt<hg::PZInteger>("client count", 2);
+
         serverCtx->configure(GameContext::Mode::Server);
-        serverCtx->getNetworkingManager().getServer().start(InputPrompt<std::uint16_t>("local port - 0 for any", 8888),
-                                                            "beetlejuice");
-        serverCtx->getNetworkingManager().getServer().resize(InputPrompt<hg::PZInteger>("client count", 2));
-        serverCtx->getNetworkingManager().getServer().setTimeoutLimit(std::chrono::seconds{5});
+        serverCtx->getNetworkingManager().getServer().start(localPort, "beetlejuice");
+        serverCtx->getNetworkingManager().getServer().resize(clientCount);
+        //serverCtx->getNetworkingManager().getServer().setTimeoutLimit(std::chrono::seconds{5});
 
         const std::uint16_t serverPort = serverCtx->getNetworkingManager().getServer().getLocalPort();
 
@@ -62,7 +64,7 @@ void MainMenu::eventUpdate() {
         // Connext to the server:
         ctx().configure(GameContext::Mode::Client);
         ctx(MNetworking).getClient().connect(0, "localhost", serverPort, "beetlejuice");
-        ctx(MNetworking).getClient().setTimeoutLimit(std::chrono::seconds{5});		
+        //ctx(MNetworking).getClient().setTimeoutLimit(std::chrono::seconds{5});
     }
     else if (mode == CLIENT) {
         ctx().configure(GameContext::Mode::Client);

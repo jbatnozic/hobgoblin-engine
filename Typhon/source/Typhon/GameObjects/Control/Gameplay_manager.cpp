@@ -59,7 +59,8 @@ void GameplayManager::eventDrawGUI() {
         << "    tUpdate: "   << perfInfo.updateAndDrawTime.count() << " (x" << perfInfo.consecutiveUpdateLoops << ")\n"
         << "    tFinalize: " << perfInfo.finalizeTime.count() << '\n'
         << "    tTotal: "    << perfInfo.totalTime.count() << '\n'
-        << "    tFTF: "      << perfInfo.frameToFrameTime.count() << "\n\n";
+        << "    tFTF: "      << perfInfo.frameToFrameTime.count() << '\n'
+        << "    recvBufSz: " << ctx(MNetworking).getClient().getServer().getRecvBufferSize() << "\n\n";
 
     if (ctx().hasChildContext()) {
         auto& perfInfo = ctx().getChildContext()->getPerformanceInfo();
@@ -68,7 +69,8 @@ void GameplayManager::eventDrawGUI() {
             << "    tUpdate: "   << perfInfo.updateAndDrawTime.count() << " (x" << perfInfo.consecutiveUpdateLoops << ")\n"
             << "    tFinalize: " << perfInfo.finalizeTime.count() << '\n'
             << "    tTotal: "    << perfInfo.totalTime.count() << '\n'
-            << "    tFTF: "      << perfInfo.frameToFrameTime.count();
+            << "    tFTF: "      << perfInfo.frameToFrameTime.count() << '\n'
+            << "    sendBufSz: " << ctx().getChildContext()->getNetworkingManager().getServer().getClient(0).getSendBufferSize() << "\n\n";
     }
 
     text.setString(sstream.str());

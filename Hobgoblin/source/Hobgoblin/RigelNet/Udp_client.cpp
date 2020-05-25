@@ -111,7 +111,7 @@ void RN_UdpClient::updateReceive() {
     while (_mySocket.receive(packetWrap.packet, senderIp, senderPort) == sf::Socket::Status::Done) {
         if (senderIp == _connector.getRemoteInfo().ipAddress
             && senderPort == _connector.getRemoteInfo().port) {
-            _connector.receivedPacket(packetWrap);
+            _connector.receivedPacket(packetWrap, true);
         }
         else {
             // handlePacketFromUnknownSender(senderIp, senderPort, packet); TODO

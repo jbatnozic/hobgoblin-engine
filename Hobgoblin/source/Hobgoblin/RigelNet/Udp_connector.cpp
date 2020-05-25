@@ -6,6 +6,8 @@
 #include <chrono>
 #include <stdexcept>
 
+#include <iostream>
+
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_START
@@ -165,7 +167,7 @@ void RN_UdpConnector::send(RN_Node& node) {
     break;
 
     case RN_ConnectorStatus::Connected:
-        uploadAllData();
+        uploadAllData(node.getType() == RN_NodeType::UdpServer);
         break;
 
     default:
@@ -174,7 +176,7 @@ void RN_UdpConnector::send(RN_Node& node) {
     }
 }
 
-void RN_UdpConnector::receivedPacket(RN_PacketWrapper& packetWrap) {
+void RN_UdpConnector::receivedPacket(RN_PacketWrapper& packetWrap, bool isClient) {
     assert(_status != RN_ConnectorStatus::Disconnected);
 
     try {
@@ -194,7 +196,7 @@ void RN_UdpConnector::receivedPacket(RN_PacketWrapper& packetWrap) {
             break;
 
         case UDP_PACKET_TYPE_DATA:
-            processDataPacket(packetWrap);
+            processDataPacket(packetWrap, isClient);
             break;
 
         case UDP_PACKET_TYPE_ACKS:
@@ -242,7 +244,18 @@ void RN_UdpConnector::sendAcks() {
 void RN_UdpConnector::handleDataMessages(RN_Node& node) {
     assert(_status != RN_ConnectorStatus::Disconnected);
 
+    bool nodeIsClient = node.getType() == RN_NodeType::UdpClient;
+
     try {
+        if (nodeIsClient) {
+            std::cout << "CLIENT: " << _recvBufferHeadIndex << " -> ";
+            for (int i = 0; i < _recvBuffer.size(); i += 1) {
+                std::cout << _recvBuffer[i].tag << ' ';
+                if (i == 10) break;
+            }
+            std::cout << std::endl;
+        }
+
         while (!_recvBuffer.empty() && _recvBuffer[0].tag == TaggedPacket::ReadyForUnpacking) {
             detail::HandleDataMessages(node, _recvBuffer[0].packetWrap);
             _recvBuffer.pop_front();
@@ -323,9 +336,11 @@ bool RN_UdpConnector::isConnectionTimedOut() const {
     return false;
 }
 
-void RN_UdpConnector::uploadAllData() {
+void RN_UdpConnector::uploadAllData(bool isServer) {
     PZInteger uploadCounter = 0;
+    int i = -1;
     for (auto& taggedPacket : _sendBuffer) {
+        i++;
         if (taggedPacket.tag == TaggedPacket::AcknowledgedWeakly ||
             taggedPacket.tag == TaggedPacket::AcknowledgedStrongly) {
             continue;
@@ -343,6 +358,11 @@ void RN_UdpConnector::uploadAllData() {
                 _remoteInfo.port) != UPLOAD_PACKET_SUCCESS) {
 
                 // TODO Handle error, log event
+                std::cout << "UPLOAD ERROR ind=" << (i + _sendBufferHeadIndex) << " size=" << taggedPacket.packetWrap.packet.getDataSize() << '\n';
+            }
+
+            if (isServer) {
+                std::cout << "Server sent packet " << uploadCounter + _recvBufferHeadIndex << '\n';
             }
 
             taggedPacket.stopwatch.restart();
@@ -408,6 +428,7 @@ void RN_UdpConnector::prepareNextOutgoingPacket() {
     packet << UDP_PACKET_TYPE_DATA;
     // Message ordinal:
     packet << static_cast<std::uint32_t>(_sendBuffer.size() + _sendBufferHeadIndex - 1u);
+    std::cout << "OGI=" << static_cast<std::uint32_t>(_sendBuffer.size() + _sendBufferHeadIndex - 1u) << '\n';
     // Strong Acknowledges (zero-terminated):
     for (std::uint32_t ackOrdinal : _ackOrdinals) {
         packet << ackOrdinal;
@@ -416,8 +437,12 @@ void RN_UdpConnector::prepareNextOutgoingPacket() {
     _ackOrdinals.clear();
 }
 
-void RN_UdpConnector::receiveDataMessage(RN_PacketWrapper& packetWrap) {
+void RN_UdpConnector::receiveDataMessage(RN_PacketWrapper& packetWrap, bool isClient) {
     const std::uint32_t messageOrdinal = packetWrap.extractOrThrow<std::uint32_t>();
+    if (isClient) {
+        std::cout << "RECEIVED messageOrdinal=" << messageOrdinal << '\n';
+        std::cout << "_recvBufferHeadIndex=" << _recvBufferHeadIndex << '\n';
+    }
 
     if (messageOrdinal < _recvBufferHeadIndex) {
         // Old data - acknowledge and ignore
@@ -443,6 +468,9 @@ void RN_UdpConnector::receiveDataMessage(RN_PacketWrapper& packetWrap) {
         receivedAck(ackOrdinal, true);
     }
 
+    if (isClient) {
+        std::cout << "RECEIVED indexInBuffer=" << indexInBuffer << '\n';
+    }
     _recvBuffer[indexInBuffer].packetWrap = std::move(packetWrap);
     _recvBuffer[indexInBuffer].tag = TaggedPacket::ReadyForUnpacking;
 
@@ -522,7 +550,7 @@ void RN_UdpConnector::processDisconnectPacket(RN_PacketWrapper& packetWrap) {
     }
 }
 
-void RN_UdpConnector::processDataPacket(RN_PacketWrapper& packetWrap) {
+void RN_UdpConnector::processDataPacket(RN_PacketWrapper& packetWrap, bool isClient) {
     switch (_status) {
     case RN_ConnectorStatus::Connecting:
         throw FatalMessageTypeReceived{"Received DATA message (status: Connecting)"};
@@ -534,7 +562,7 @@ void RN_UdpConnector::processDataPacket(RN_PacketWrapper& packetWrap) {
         SWITCH_FALLTHROUGH;
 
     case RN_ConnectorStatus::Connected:
-        receiveDataMessage(packetWrap);
+        receiveDataMessage(packetWrap, isClient);
         break;
 
     default:

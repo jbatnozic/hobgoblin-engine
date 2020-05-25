@@ -42,35 +42,10 @@ RN_DEFINE_HANDLER(Baz, RN_ARGS(int, a, std::string&, s)) {
 // TODO - Test retransmit & stuff...
 // TEST
 
-#define DISTRIBUTED_TEST
+//#define DISTRIBUTED_TEST
 
 int main() {
 #if !defined(DISTRIBUTED_TEST)
-    RN_Event event{RN_Event::ConnectionTimedOut{5}};
-
-    event.visit(
-        [](const RN_Event::BadPassphrase& ev) {
-            std::cout << "Bad passphrase\n";
-        },
-        [](const RN_Event::AttemptTimedOut& ev) {
-            std::cout << "Attempt timed out\n";
-        },
-        [](const RN_Event::Connected& ev) {
-            std::cout << "Connected\n";
-        },
-        [](const RN_Event::Disconnected& ev) {
-            std::cout << "Disconnected\n";
-        },
-        [](const RN_Event::ConnectionTimedOut& ev) {
-            std::cout << "Connection timed out\n";
-        },
-        [](const RN_Event::Kicked& ev) {
-            std::cout << "Kicked\n";
-        }
-    );
-
-    std::exit(0);
-
     hg::util::Stopwatch stopwatch;
     auto t1 = stopwatch.getElapsedTime();
     auto t2 = stopwatch.getElapsedTime();
@@ -83,17 +58,21 @@ int main() {
     RN_UdpClient client2{0, "localhost", server.getLocalPort(), "pass"};
 
     for (int i = 0; i < 10; i += 1) {
-        RN_Compose_Baz(client1, 0, i, "Beetlejuice!");
-        RN_Compose_Baz(client2, 0, i, "Beetlejuice!");
-        client1.update();
-        client2.update();
-        server.update();
+        Compose_Baz(client1, 0, i, "Beetlejuice!");
+        Compose_Baz(client2, 0, i, "Beetlejuice!");
+        client1.update(RN_UpdateMode::Receive);
+        client2.update(RN_UpdateMode::Receive);
+        server.update(RN_UpdateMode::Receive);
+
+        client1.update(RN_UpdateMode::Send);
+        client2.update(RN_UpdateMode::Send);
+        server.update(RN_UpdateMode::Send);
         std::this_thread::sleep_for(std::chrono::milliseconds(50));  
     }
 
-    RN_Compose_Foo(server, 0);
-    RN_Compose_Bar(server, 0, 1);
-    RN_Compose_Baz(server, 0, 1, "asdf");
+    Compose_Foo(server, 0);
+    Compose_Bar(server, 0, 1);
+    Compose_Baz(server, 0, 1, "asdf");
 #else 
     RN_IndexHandlers();
 
@@ -117,7 +96,7 @@ int main() {
 
             // step();
             if (server.getClient(0).getStatus() == RN_ConnectorStatus::Connected) {
-                RN_Compose_Foo(server, rec);
+                Compose_Foo(server, rec);
             }
 
             server.update(RN_UpdateMode::Send);
@@ -141,7 +120,7 @@ int main() {
 
             // step();
             if (client.getServer().getStatus() == RN_ConnectorStatus::Connected) {
-                RN_Compose_Foo(client, 0);
+                Compose_Foo(client, 0);
             }
 
             client.update(RN_UpdateMode::Send);

@@ -161,7 +161,7 @@ void RN_UdpServer::updateReceive() {
 
         if (senderConnectorIndex != -1) {
             _senderIndex = senderConnectorIndex;
-            _clients[senderConnectorIndex].receivedPacket(packetWrap);
+            _clients[senderConnectorIndex].receivedPacket(packetWrap, false);
         }
         else {
             handlePacketFromUnknownSender(senderIp, senderPort, packetWrap);

@@ -65,7 +65,7 @@ public:
 
     void checkForTimeout();
     void send(RN_Node& node);
-    void receivedPacket(RN_PacketWrapper& packetWrap);
+    void receivedPacket(RN_PacketWrapper& packetWrap, bool isClient);
     void handleDataMessages(RN_Node& node);
     void sendAcks();
     
@@ -79,6 +79,7 @@ public:
     void appendToNextOutgoingPacket(const void *data, std::size_t sizeInBytes);
 
     static constexpr PZInteger MAX_PACKET_SIZE = 65'000; // In bytes
+    //static constexpr PZInteger MAX_PACKET_SIZE = 8'000; // In bytes
 
 private:
     EventFactory _eventFactory;
@@ -100,17 +101,17 @@ private:
     void destroy();
     void reset();
     bool isConnectionTimedOut() const;
-    void uploadAllData();
+    void uploadAllData(bool isServer);
     void prepareAck(std::uint32_t ordinal);
     void receivedAck(std::uint32_t ordinal, bool strong);
     void initializeSession();
     void prepareNextOutgoingPacket();
-    void receiveDataMessage(RN_PacketWrapper& packetWrapper);
+    void receiveDataMessage(RN_PacketWrapper& packetWrapper, bool isClient);
     
     void processHelloPacket(RN_PacketWrapper& packpacketWrapperet);
     void processConnectPacket(RN_PacketWrapper& packetWrapper);
     void processDisconnectPacket(RN_PacketWrapper& packetWrapper);
-    void processDataPacket(RN_PacketWrapper& packetWrapper);
+    void processDataPacket(RN_PacketWrapper& packetWrapper, bool isClient);
     void processAcksPacket(RN_PacketWrapper& packetWrapper);
 };
 
