@@ -1,8 +1,6 @@
 
 cmake_minimum_required(VERSION 3.14)
 
-# NOTE: We specify language (C++) manually so even Chipmunk files
-# (which all have .c extension) are compiled as C++
 project(hobgoblin VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -124,11 +122,12 @@ endif()
 
 # Compilation configuration
 add_compile_definitions("SFML_STATIC")
+# Force Chipmunk to be compiled as C++
 set_source_files_properties(${HOBGOBLIN_SOURCE_CHIPMUNK} PROPERTIES LANGUAGE CXX)
 
 if(BUILD_DEBUG_EXECUTABLE)
     set(HOBGOBLIN_TARGET_NAME
-        ${PROJECT_NAME}-debug-executable.exe
+        ${PROJECT_NAME}-debug-executable
     )
     add_executable(${HOBGOBLIN_TARGET_NAME}
         ${HOBGOBLIN_SOURCE_ALL}
