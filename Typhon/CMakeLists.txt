@@ -69,7 +69,7 @@ set(TYPHON_TARGET_NAME
     ${PROJECT_NAME}.exe
 )
 
-link_directories("/Users/batnoic/Source/__MISC__/Hobgoblin-Engine/Hobgoblin/build/lib")
+link_directories(../Hobgoblin/build-cmake/Hobgoblin-x64-Debug-Lib/lib)
 
 add_executable(${TYPHON_TARGET_NAME}
     ${TYPHON_SOURCE_ALL}

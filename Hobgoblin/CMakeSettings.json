@@ -1,7 +1,7 @@
 ﻿{
   "configurations": [
     {
-      "name": "x64-Debug-Exe",
+      "name": "Hobgoblin-x64-Debug-Exe",
       "generator": "Ninja",
       "configurationType": "Debug",
       "inheritEnvironments": [ "msvc_x64_x64" ],
@@ -13,7 +13,7 @@
       "variables": []
     },
     {
-      "name": "x64-Debug-Lib",
+      "name": "Hobgoblin-x64-Debug-Lib",
       "generator": "Ninja",
       "configurationType": "Debug",
       "inheritEnvironments": [ "msvc_x64_x64" ],
@@ -25,7 +25,7 @@
       "variables": []
     },
     {
-      "name": "x64-Release-Exe",
+      "name": "Hobgoblin-x64-Release-Exe",
       "generator": "Ninja",
       "configurationType": "Release",
       "inheritEnvironments": [ "msvc_x64_x64" ],
@@ -37,7 +37,7 @@
       "variables": []
     },
     {
-      "name": "x64-Release-Lib",
+      "name": "Hobgoblin-x64-Release-Lib",
       "generator": "Ninja",
       "configurationType": "Release",
       "inheritEnvironments": [ "msvc_x64_x64" ],
