@@ -3,7 +3,6 @@
 
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Utility/Exceptions.hpp>
-#include <Hobgoblin/Utility/Math.hpp>
 
 #include <algorithm>
 #include <deque>

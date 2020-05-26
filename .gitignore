@@ -1,6 +1,6 @@
 # Build folders
 **/build/
-**/build-cmake/
+**/build.out/
 
 # IDE caches
 **/.vs
@@ -8,7 +8,3 @@
 
 # Other
 **/.DS_Store
-
-# TEMP Dependency folders
-# packages/
-# Dependencies/

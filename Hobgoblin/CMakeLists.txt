@@ -61,6 +61,10 @@ set(HOBGOBLIN_SOURCE_GRAPHICS
     source/Hobgoblin/Graphics/Brush.cpp    
 )
 
+#set(HOBGOBLIN_SOURCE_MATH
+#     source/Hobgoblin/
+#)
+
 set(HOBGOBLIN_SOURCE_MAIN
      source/Hobgoblin/RigelNetMain.cpp
     # source/Hobgoblin/BrushMain.cpp

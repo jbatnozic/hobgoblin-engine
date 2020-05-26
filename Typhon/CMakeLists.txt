@@ -69,7 +69,11 @@ set(TYPHON_TARGET_NAME
     ${PROJECT_NAME}.exe
 )
 
-link_directories(../Hobgoblin/build-cmake/Hobgoblin-x64-Debug-Lib/lib)
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    link_directories(../Hobgoblin/build/Hobgoblin-x64-Debug-Lib/lib)
+else()
+    link_directories(../Hobgoblin/build/Hobgoblin-x64-Release-Lib/lib)
+endif()
 
 add_executable(${TYPHON_TARGET_NAME}
     ${TYPHON_SOURCE_ALL}
@@ -81,6 +85,3 @@ target_link_libraries(${TYPHON_TARGET_NAME} PUBLIC
     ${CONAN_LIBS}
     "hobgoblin"
 )
-
-#link_directories(${CMAKE_SOURCE_DIR})
-#target_link_libraries(${TYPHON_TARGET_NAME} PUBLIC "/Users/batnoic/Source/__MISC__/Hobgoblin-Engine/Typhon/libhobgoblin.a")

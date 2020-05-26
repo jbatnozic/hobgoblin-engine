@@ -1,4 +1,6 @@
 
+#include <Hobgoblin/Math.hpp>
+
 #include <cmath>
 
 #include "../Control/Controls_manager.hpp"
@@ -80,7 +82,7 @@ void PhysicsPlayer::eventUpdate() {
         auto& self = _ssch.getCurrentState();
 
         if (self.playerIndex == ctx().getLocalPlayerIndex()) {
-            auto dist = hg::util::EuclideanDist<float>({self.x, self.y}, view.getCenter());
+            auto dist = hg::math::EuclideanDist<float>({self.x, self.y}, view.getCenter());
             if (dist < 4.f) {
                 view.setCenter({self.x, self.y});
             }

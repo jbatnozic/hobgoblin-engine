@@ -1,5 +1,5 @@
 
-#include <Hobgoblin/Utility/Math.hpp>
+#include <Hobgoblin/Math.hpp>
 
 #include <algorithm>
 #include <cmath>
@@ -9,8 +9,8 @@
 #include "Lighting.hpp"
 
 namespace {
-using hg::util::Clamp;
-using hg::util::Sqr;
+using hg::math::Clamp;
+using hg::math::Sqr;
 
 template <class T>
 T Dist_(T x1, T y1, T x2, T y2) {

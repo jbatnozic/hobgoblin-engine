@@ -5,9 +5,10 @@
 #include <Hobgoblin/Utility/Any_ptr.hpp>
 #include <Hobgoblin/Utility/Autopack.hpp>
 #include <Hobgoblin/Utility/Packet.hpp>
-#include <Hobgoblin/Utility/Math.hpp>
+#include <Hobgoblin/Math.hpp>
 
 using namespace hg::util;
+using namespace hg::math;
 
 TEST(AnyPtrTest, IntPtr) {
     AnyPtr p;
