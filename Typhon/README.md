@@ -1,3 +1,3 @@
-# Simple Platformer
+# Typhon
 
-A small game with big dreams. On its way to become not simple and also not a platformer.
+A small game with big dreams. Serves both as a showcase and as a testbed for Hobgoblin features.

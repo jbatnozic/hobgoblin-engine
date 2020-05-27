@@ -7,9 +7,12 @@ It is written in C++17 and uses [SFML](https://www.sfml-dev.org/) as the core fo
 ### Modules:
 Hobgoblin provides its features across several mutually independent (with two exceptions) modules:
 
+ - **ChipmunkPhysics:** [A C-based physics engine](https://chipmunk-physics.net/) not written by me but only embedded
+ within Hobgoblin, with some type-safety extensions included.
  - **ColDetect:** Facilities for efficient broad-phase and narrow-phase 2D collision detection. (NOTE: Narrow-phase not
  yet implemented)
  - **Graphics:** Various utilities for rendering stuff on-screen, loading sprites, packing them onto textures etc.
+ - **Math:** Math stuff - geometry, trigonometry etc.
  - **QAO:** Event-driven framework for managing [active game objects](https://en.wikipedia.org/wiki/Active_object). 
  However, the traditional threaded approach is greatly simplified  in that it's designed to be single-threaded - 
  objects can implement certain "event" methods and the single-threaded QAO runtime calls them periodically in a well 
@@ -29,6 +32,6 @@ Each module has its own Readme file along with its Header files (which means in 
 directory), describing it in more detail.
  
 ### Supported platforms:
-Hobgoblin does not use any platform-specific extensions so, in theory at least, it could support any platform supported
-by SFML, which means Windows, Linux, MacOS, iOS and Android. However, currently, it is organized only as a Visual 
-Studio project, which means that for now only Windows is supported.
+Hobgoblin does not use any platform-specific extensions and uses CMake as its build system so, in theory at least, it
+could support any platform supported by SFML, which means Windows, Linux, MacOS, iOS and Android. Currently it can be
+compiled on Windows and MacOS, though Linux would probably also work.
