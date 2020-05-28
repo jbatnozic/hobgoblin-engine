@@ -1,7 +1,7 @@
 
+// General:
 #undef HOBGOBLIN_NAMESPACE_START
 #undef HOBGOBLIN_NAMESPACE_END
-#undef CURRENT_FUNCTION
 #undef NO_COPY
 #undef NO_MOVE
 #undef PASSKEY
@@ -10,3 +10,7 @@
 #undef NO_OP
 #undef CRTP_METHOD
 #undef FRIEND_ACCESS
+#undef MSTRINGIFY
+#undef MDEFER
+#undef CURRENT_FUNCTION
+#undef CURRENT_FUNCTION_STR

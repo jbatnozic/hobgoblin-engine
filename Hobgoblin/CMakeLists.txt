@@ -3,6 +3,10 @@ cmake_minimum_required(VERSION 3.14)
 
 project(hobgoblin VERSION 0.1 LANGUAGES CXX)
 
+option(BUILD_DEBUG_EXECUTABLE 
+    "Build a runnable executable for debugging purposes instead of a static library"
+    OFF)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
@@ -148,4 +152,10 @@ endif()
 
 target_include_directories(${HOBGOBLIN_TARGET_NAME} PUBLIC include)
 target_include_directories(${HOBGOBLIN_TARGET_NAME} PUBLIC include/Hobgoblin/private)
-target_link_libraries(${HOBGOBLIN_TARGET_NAME} PUBLIC legacy_stdio_definitions.lib ${CONAN_LIBS})
+target_link_libraries(${HOBGOBLIN_TARGET_NAME} PUBLIC ${CONAN_LIBS})
+
+if(WIN32)
+    target_link_libraries(${HOBGOBLIN_TARGET_NAME} PRIVATE legacy_stdio_definitions.lib)
+endif()
+
+unset(BUILD_DEBUG_EXECUTABLE CACHE)

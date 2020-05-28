@@ -201,10 +201,9 @@ bool SlabIndexer::tryAcquireSpecific(PZInteger slot) {
 }
 
 inline
-void SlabIndexer::free(PZInteger slot) {
-        
+void SlabIndexer::free(PZInteger slot) {      
     if (isSlotEmpty(slot)) {
-        throw std::logic_error(CURRENT_FUNCTION ": Slot is already empty!");
+        throw std::logic_error(CURRENT_FUNCTION_STR + ": Slot is already empty!");
     }
 
     Elem* elem = &(_elements[slot]);

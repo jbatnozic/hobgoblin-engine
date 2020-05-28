@@ -12,6 +12,9 @@
 #define NO_OP() (void)0
 #define CRTP_METHOD(_type_param_, _name_, ...) { return static_cast<_type_param_*>(this)->_name_(__VA_ARGS__); }
 #define FRIEND_ACCESS
+#define MSTRINGIFY(_x_) #_x_
+#define MDEFER(_x_) _x_
+#define CURRENT_FUNCTION_STR std::string{CURRENT_FUNCTION}
 
 // Compiler-specific:
 #if defined(_MSC_VER)
