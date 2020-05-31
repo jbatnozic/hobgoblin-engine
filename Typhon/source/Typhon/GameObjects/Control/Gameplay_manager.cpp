@@ -3,11 +3,10 @@
 #include <Hobgoblin/Graphics.hpp>
 #include <SFML/System.hpp>
 
-#include <Typhon/GameObjects/Gameplay/PhysicsPlayer.hpp>
-
 #include <sstream>
 
 #include "Gameplay_manager.hpp"
+#include "../Gameplay/Physics_player.hpp"
 
 GameplayManager::GameplayManager(QAO_RuntimeRef runtimeRef)
     : NonstateObject{runtimeRef, TYPEID_SELF, *PEXEPR_GAMEPLAY_MGR, "GameplayManager"}

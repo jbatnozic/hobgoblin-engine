@@ -39,10 +39,10 @@ set(TYPHON_SOURCE_ALL
     source/Typhon/Framework/Extensions.hpp
     source/Typhon/GameObjects/UI/Main_menu.cpp
     source/Typhon/GameObjects/UI/Main_menu.hpp
-    source/Typhon/GameObjects/Gameplay/PhysicsPlayer.cpp
-    source/Typhon/GameObjects/Gameplay/PhysicsBullet.hpp
-    source/Typhon/GameObjects/Gameplay/PhysicsPlayer.hpp
-    source/Typhon/GameObjects/Gameplay/PhysicsBullet.cpp
+    source/Typhon/GameObjects/Gameplay/Physics_player.cpp
+    source/Typhon/GameObjects/Gameplay/Physics_bullet.hpp
+    source/Typhon/GameObjects/Gameplay/Physics_player.hpp
+    source/Typhon/GameObjects/Gameplay/Physics_bullet.cpp
     source/Typhon/GameObjects/Control/Gameplay_manager.hpp
     source/Typhon/GameObjects/Control/Controls_manager.hpp
     source/Typhon/GameObjects/Control/Environment_manager.hpp

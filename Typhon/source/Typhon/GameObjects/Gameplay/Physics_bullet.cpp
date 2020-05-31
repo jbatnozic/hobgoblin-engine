@@ -1,7 +1,7 @@
 
 #include <cmath>
 
-#include "PhysicsBullet.hpp"
+#include "Physics_bullet.hpp"
 
 SPEMPE_GENERATE_CANNONICAL_HANDLERS(PhysicsBullet);
 

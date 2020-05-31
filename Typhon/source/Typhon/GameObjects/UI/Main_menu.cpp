@@ -1,11 +1,10 @@
 
-#include <Typhon/GameObjects/Control/Environment_manager.hpp>
-#include <Typhon/GameObjects/Gameplay/PhysicsPlayer.hpp>
-
 #include <iostream>
 #include <string>
 
 #include "Main_menu.hpp"
+#include "../Control/Environment_manager.hpp"
+#include "../Gameplay/Physics_player.hpp"
 
 namespace {
 

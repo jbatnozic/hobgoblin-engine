@@ -6,7 +6,7 @@
 #include "Environment_manager.hpp"
 
 // TODO Temp.
-#include "Typhon/GameObjects/Gameplay/PhysicsPlayer.hpp"
+#include "../Gameplay/Physics_player.hpp"
 
 namespace {
 

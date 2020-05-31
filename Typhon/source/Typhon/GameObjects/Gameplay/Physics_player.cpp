@@ -5,8 +5,8 @@
 
 #include "../Control/Controls_manager.hpp"
 #include "../Control/Environment_manager.hpp"
-#include "PhysicsBullet.hpp"
-#include "PhysicsPlayer.hpp"
+#include "Physics_bullet.hpp"
+#include "Physics_player.hpp"
 
 static void customDampingVelocityFunc(cpBody* body, cpVect gravity, cpFloat damping, cpFloat dt) {
     cpBodySetAngularVelocity(body, cpBodyGetAngularVelocity(body) * 0.9);
