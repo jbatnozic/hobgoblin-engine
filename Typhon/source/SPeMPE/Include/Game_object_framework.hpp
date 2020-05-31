@@ -96,9 +96,10 @@ private:
 //   called when a new state description is received from the server
 // + Defines a method (with any access modifier) with the following signature:
 //   const VisibleState& getCurrentState() const;
+// + Defines a public method destroySelfIn(int steps) which destroys the dummy instance in that many steps.
 //
 // If a Synchronized object has the cannonical form, the following macros can be used to generate appropriate
-// network handlers for that type
+// network handlers for that type:
 
 #define SPEMPE_GENERATE_CANNONICAL_HANDLERS(_class_name_) \
     RN_DEFINE_HANDLER(Create##_class_name_, RN_ARGS(::spempe::SyncId, syncId, _class_name_::VisibleState&, state)) { \
@@ -176,7 +177,12 @@ void CannonicalDestroyImpl(hg::RN_Node& node, SyncId syncId) {
             auto& syncObjReg = ctx.getSyncObjReg();
             auto* object = static_cast<T*>(syncObjReg.getMapping(syncId));
 
-            hg::QAO_PDestroy(object);
+            const auto latency = client.getServer().getRemoteInfo().latency;
+            using TIME = std::remove_cv_t<decltype(latency)>;
+            const auto dt = std::chrono::duration_cast<TIME>(ctx.getRuntimeConfig().getDeltaTime());
+            const auto delaySteps = static_cast<int>(latency / dt) / 2;
+
+            object->destroySelfIn(static_cast<int>(ctx.syncBufferLength) - (delaySteps + 1));
         },
         [](hg::RN_UdpServer& server) {
             throw hg::RN_IllegalMessage("Server received a sync message");

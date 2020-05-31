@@ -36,6 +36,8 @@ public:
 
     void cannonicalSyncApplyUpdate(const VisibleState& state, int delay);
 
+    void destroySelfIn(int steps);
+
 protected:
     void eventUpdate() override;
     void eventPostUpdate() override;
@@ -47,15 +49,14 @@ private:
     hg::cpBodyUPtr _body;
     hg::cpShapeUPtr _shape;
     const Collideables::ICreature* _creator;
+    int _destroyCountdown = -1;
     bool _hitSomething = false;
 
-    bool collisionBegin(Collideables::ICreature* other, cpArbiter* arbiter) override;
+    bool collisionBegin(Collideables::ICreature* other, cpArbiter* arbiter) const override;
     void collisionPostSolve(Collideables::ICreature* other, cpArbiter* arbiter) override;
     void collisionSeparate(Collideables::ICreature* other, cpArbiter* arbiter) override;
 
     void collisionPostSolve(Collideables::ITerrain* other, cpArbiter* arbiter) override;
-
-    void destroySelfInPostStep();
 
     SPEMPE_GENERATE_CANNONICAL_SYNC_DECLARATIONS;
 };

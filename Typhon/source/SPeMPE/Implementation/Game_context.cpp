@@ -1,4 +1,6 @@
 
+#include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/Utility/Exceptions.hpp>
 #include <SPeMPE/Include/Game_context.hpp>
 
 #include <algorithm>
@@ -136,6 +138,20 @@ const GameContext::RuntimeConfig& GameContext::getRuntimeConfig() const {
 
 const GameContext::PerformanceInfo& GameContext::getPerformanceInfo() const {
     return _performanceInfo;
+}
+
+void GameContext::addPostStepAction(hg::PZInteger delay, std::function<void(GameContext&)> action) {
+    if (isPrivileged()) {
+        throw hg::util::TracedLogicError{"Cannot add a post step action on host context without the "
+                                         "ALLOW_ON_HOST switch."};
+    }
+
+    _insertPostStepAction(std::move(action), delay);
+}
+
+void GameContext::addPostStepAction(hg::PZInteger delay, GameContext_AllowOnHost_Type,
+                                    std::function<void(GameContext&)> action) {
+    _insertPostStepAction(std::move(action), delay);
 }
 
 int GameContext::getCurrentStepOrdinal() const {
@@ -302,12 +318,40 @@ void GameContext::_runImpl(GameContext* context, int* retVal) {
             perfInfo.finalizeTime = stopwatch.getElapsedTime<microseconds>();
         }
 
+        // Do post step actions:
+        context->_pollPostStepActions();
+
         // Record performance data:
         perfInfo.totalTime = perfInfo.updateAndDrawTime + perfInfo.finalizeTime;
         context->_performanceInfo = perfInfo;
     } // End while
 
     (*retVal) = 0;
+}
+
+void GameContext::_insertPostStepAction(std::function<void(GameContext&)> action, hg::PZInteger delay) {
+    const auto listIndex = hg::ToSz(delay);
+    if (listIndex >= _postStepActions.size()) {
+        _postStepActions.resize(listIndex + 1);
+    }
+
+    auto& list = _postStepActions[listIndex];
+
+    list.push_back(action);
+}
+
+void GameContext::_pollPostStepActions() {
+    if (_postStepActions.empty()) {
+        return;
+    }
+
+    auto& list = _postStepActions.front();
+
+    for (auto& action : list) {
+        action(*this);
+    }
+
+    _postStepActions.pop_front();
 }
 
 }

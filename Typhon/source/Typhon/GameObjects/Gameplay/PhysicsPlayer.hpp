@@ -19,9 +19,10 @@ public:
         hg::PZInteger playerIndex = -1; // TODO Magic number
         float x = 0.f;
         float y = 0.f;
+        float angle;
         bool hidden = true; // TODO This probably doesn't work right
 
-        HG_ENABLE_AUTOPACK(VisibleState, playerIndex, x, y);
+        HG_ENABLE_AUTOPACK(VisibleState, playerIndex, x, y, angle);
     };
 
     static constexpr auto SERIALIZABLE_TAG = "PhysicsPlayer";
@@ -41,6 +42,10 @@ public:
 
     void cannonicalSyncApplyUpdate(const VisibleState& state, int delay) {
         _ssch.putNewState(state, delay);
+    }
+
+    void destroySelfIn(int steps) {
+        QAO_PDestroy(this);
     }
 
 protected:

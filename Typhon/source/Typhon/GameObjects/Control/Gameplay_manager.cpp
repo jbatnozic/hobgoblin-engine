@@ -40,7 +40,7 @@ void GameplayManager::eventUpdate() {
 }
 
 void GameplayManager::eventPostUpdate() {
-    cpSpaceStep(ctx(DPhysicsSpace), 1.0 / 60.0); // TODO Temp. - Magic number
+    cpSpaceStep(ctx(DPhysicsSpace), ctx().getRuntimeConfig().getDeltaTime().count());
 }
 
 void GameplayManager::eventDrawGUI() {

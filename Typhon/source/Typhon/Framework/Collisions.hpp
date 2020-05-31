@@ -41,28 +41,28 @@ public:
         static constexpr bool REJECT_COLLISION = false;
 
     private:
-        virtual bool collisionBegin(ICreature*, cpArbiter*) { return ACCEPT_COLLISION; }
-        virtual bool collisionPreSolve(ICreature*, cpArbiter*) { return ACCEPT_COLLISION; }
+        virtual bool collisionBegin(ICreature*, cpArbiter*) const { return ACCEPT_COLLISION; }
+        virtual bool collisionPreSolve(ICreature*, cpArbiter*) const { return ACCEPT_COLLISION; }
         virtual void collisionPostSolve(ICreature*, cpArbiter*) {}
         virtual void collisionSeparate(ICreature*, cpArbiter*) {}
 
-        virtual bool collisionBegin(IInteractible*, cpArbiter*) { return ACCEPT_COLLISION; }
-        virtual bool collisionPreSolve(IInteractible*, cpArbiter*) { return ACCEPT_COLLISION; }
+        virtual bool collisionBegin(IInteractible*, cpArbiter*) const { return ACCEPT_COLLISION; }
+        virtual bool collisionPreSolve(IInteractible*, cpArbiter*) const { return ACCEPT_COLLISION; }
         virtual void collisionPostSolve(IInteractible*, cpArbiter*) {}
         virtual void collisionSeparate(IInteractible*, cpArbiter*) {}
 
-        virtual bool collisionBegin(IProjectile*, cpArbiter*) { return ACCEPT_COLLISION; }
-        virtual bool collisionPreSolve(IProjectile*, cpArbiter*) { return ACCEPT_COLLISION; }
+        virtual bool collisionBegin(IProjectile*, cpArbiter*) const { return ACCEPT_COLLISION; }
+        virtual bool collisionPreSolve(IProjectile*, cpArbiter*) const { return ACCEPT_COLLISION; }
         virtual void collisionPostSolve(IProjectile*, cpArbiter*) {}
         virtual void collisionSeparate(IProjectile*, cpArbiter*) {}
 
-        virtual bool collisionBegin(IStructure*, cpArbiter*) { return ACCEPT_COLLISION; }
-        virtual bool collisionPreSolve(IStructure*, cpArbiter*) { return ACCEPT_COLLISION; }
+        virtual bool collisionBegin(IStructure*, cpArbiter*) const { return ACCEPT_COLLISION; }
+        virtual bool collisionPreSolve(IStructure*, cpArbiter*) const { return ACCEPT_COLLISION; }
         virtual void collisionPostSolve(IStructure*, cpArbiter*) {}
         virtual void collisionSeparate(IStructure*, cpArbiter*) {}
 
-        virtual bool collisionBegin(ITerrain*, cpArbiter*) { return ACCEPT_COLLISION; }
-        virtual bool collisionPreSolve(ITerrain*, cpArbiter*) { return ACCEPT_COLLISION; }
+        virtual bool collisionBegin(ITerrain*, cpArbiter*) const { return ACCEPT_COLLISION; }
+        virtual bool collisionPreSolve(ITerrain*, cpArbiter*) const { return ACCEPT_COLLISION; }
         virtual void collisionPostSolve(ITerrain*, cpArbiter*) {}
         virtual void collisionSeparate(ITerrain*, cpArbiter*) {}
 

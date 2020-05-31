@@ -8,6 +8,7 @@ SPEMPE_GENERATE_CANNONICAL_HANDLERS(PhysicsBullet);
 SPEMPE_GENERATE_CANNONICAL_SYNC_IMPLEMENTATIONS(PhysicsBullet);
 
 static void customDampingVelocityFunc(cpBody* body, cpVect gravity, cpFloat damping, cpFloat dt) {
+    //cpBodySetAngularVelocity(body, cpBodyGetAngularVelocity(body) * 0.9);
     cpBodyUpdateVelocity(body, cpv(0.0, 0.0), 1.0, dt);
 }
 
@@ -48,6 +49,13 @@ void PhysicsBullet::initWithSpeed(const Collideables::ICreature* creator, double
     _creator = creator;
 }
 
+void PhysicsBullet::destroySelfIn(int steps) {
+    ctx().addPostStepAction(std::max(steps, 0),
+                            [this](GameContext&) {
+                                QAO_PDestroy(this);
+                            });
+}
+
 void PhysicsBullet::cannonicalSyncApplyUpdate(const VisibleState& state, int delay) {
     _ssch.putNewState(state, delay);
 }
@@ -55,12 +63,13 @@ void PhysicsBullet::cannonicalSyncApplyUpdate(const VisibleState& state, int del
 void PhysicsBullet::eventUpdate() {
     if (ctx().isPrivileged()) {
         if (_hitSomething) {
-            //QAO_PDestroy(this);
-            destroySelfInPostStep();
+            QAO_PDestroy(this);
+            //destroySelfInPostStep();
         }
     }
     else{
         _ssch.scheduleNewStates();
+        _ssch.advance();
         _ssch.advanceDownTo(ctx().syncBufferLength * 2);
     }
 }
@@ -85,15 +94,14 @@ void PhysicsBullet::eventDraw1() {
     canvas.draw(circ);
 }
 
-bool PhysicsBullet::collisionBegin(Collideables::ICreature* other, cpArbiter* arbiter) {
-    if (_creator == other) {
+bool PhysicsBullet::collisionBegin(Collideables::ICreature* other, cpArbiter* arbiter) const {
+    if (_hitSomething || _creator == other) {
         return REJECT_COLLISION;
     }
     return ACCEPT_COLLISION;
 }
 
 void PhysicsBullet::collisionPostSolve(Collideables::ICreature* other, cpArbiter* arbiter) {
-    //destroySelfInPostStep();
     _hitSomething = true;
 }
 
@@ -104,16 +112,5 @@ void PhysicsBullet::collisionSeparate(Collideables::ICreature* other, cpArbiter*
 }
 
 void PhysicsBullet::collisionPostSolve(Collideables::ITerrain* other, cpArbiter* arbiter) {
-    //destroySelfInPostStep();
     _hitSomething = true;
-}
-
-void PhysicsBullet::destroySelfInPostStep() {
-    using KeyType = QAO_Base;
-
-    auto callback = [](cpSpace* space, void* key, void* data) -> void {
-        QAO_PDestroy(static_cast<KeyType*>(key));
-    };
-
-    cpSpaceAddPostStepCallback(ctx(DPhysicsSpace), callback, static_cast<KeyType*>(this), nullptr);
 }

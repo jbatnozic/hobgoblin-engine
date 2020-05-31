@@ -66,7 +66,7 @@ add_compile_definitions("SFML_STATIC")
 add_compile_definitions("HOBGOBLIN_SHORT_NAMESPACE")
 
 set(TYPHON_TARGET_NAME
-    ${PROJECT_NAME}.exe
+    ${PROJECT_NAME}
 )
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")

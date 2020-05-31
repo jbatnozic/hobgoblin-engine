@@ -11,8 +11,11 @@
 
 #include <chrono>
 #include <cstdint>
+#include <deque>
 #include <fstream>
+#include <functional>
 #include <iostream>
+#include <list>
 #include <memory>
 #include <string>
 #include <thread>
@@ -22,6 +25,8 @@ namespace spempe {
 constexpr int PLAYER_INDEX_UNKNOWN = -2;
 constexpr int PLAYER_INDEX_NONE = -1;
 constexpr int PLAYER_INDEX_LOCAL_PLAYER = 0;
+
+constexpr class GameContext_AllowOnHost_Type {} ALLOW_ON_HOST;
 
 class GameContextExtensionData {
 public:
@@ -107,6 +112,10 @@ public:
     const PerformanceInfo& getPerformanceInfo() const;
     int getCurrentStepOrdinal() const;
 
+    void addPostStepAction(hg::PZInteger delay, std::function<void(GameContext&)> action);
+    void addPostStepAction(hg::PZInteger delay, GameContext_AllowOnHost_Type,
+                           std::function<void(GameContext&)> action);
+
     // Child context stuff:
     bool hasChildContext();
     GameContext* getChildContext() const;
@@ -131,6 +140,7 @@ private:
     int _childContextReturnValue = 0;
 
     // State:
+    std::deque<std::list<std::function<void(GameContext&)>>> _postStepActions;
     PerformanceInfo _performanceInfo;
     std::unique_ptr<GameContextExtensionData> _extensionData;
     int _stepOrdinal = 0;
@@ -139,6 +149,9 @@ private:
     bool _quit = false;
 
     static void _runImpl(GameContext* context, int* retVal);
+
+    void _insertPostStepAction(std::function<void(GameContext&)> action, hg::PZInteger delay);
+    void _pollPostStepActions();
 };
 
 } // namespace spempe

@@ -8,6 +8,11 @@
 #include "PhysicsBullet.hpp"
 #include "PhysicsPlayer.hpp"
 
+static void customDampingVelocityFunc(cpBody* body, cpVect gravity, cpFloat damping, cpFloat dt) {
+    cpBodySetAngularVelocity(body, cpBodyGetAngularVelocity(body) * 0.9);
+    cpBodyUpdateVelocity(body, cpv(0.0, 0.0), 1.0, dt);
+}
+
 SPEMPE_GENERATE_CANNONICAL_HANDLERS(PhysicsPlayer);
 
 SPEMPE_GENERATE_CANNONICAL_SYNC_IMPLEMENTATIONS(PhysicsPlayer);
@@ -35,6 +40,7 @@ PhysicsPlayer::PhysicsPlayer(QAO_RuntimeRef rtRef, SynchronizedObjectRegistry& s
         _shape = hg::cpShapeUPtr{cpSpaceAddShape(space, cpCircleShapeNew(_body.get(), radius, cpv(0.0, 0.0)))};
         cpBodySetPosition(_body.get(), cpv(initialState.x, initialState.y));
         cpShapeSetElasticity(_shape.get(), 0.5);
+        cpBodySetVelocityUpdateFunc(_body.get(), customDampingVelocityFunc);
         Collideables::initCreature(_shape.get(), *this);
     }
 
@@ -52,14 +58,84 @@ void PhysicsPlayer::eventUpdate() {
         auto& self = _ssch.getCurrentState();
         PlayerControls controls = ctx(MControls).getCurrentControlsForPlayer(self.playerIndex);
 
-        cpFloat left = controls.left;
-        cpFloat right = controls.right;
-        cpFloat up = controls.up;
-        cpFloat down = controls.down;
+        const cpFloat left = controls.left;
+        const cpFloat right = controls.right;
+        const cpFloat up = controls.up;
+        const cpFloat down = controls.down;
 
-        const cpVect pos = cpBodyGetPosition(_body.get());
-        const cpVect force = cpv((right - left) * 1000.0, (down - up) * 1000.0);
-        cpBodyApplyForceAtWorldPoint(_body.get(), force, pos);
+        // Propulsion
+        cpBody* const body = _body.get();
+
+        if (up) {
+            const cpVect pos = cpBodyGetPosition(body);
+            const cpVect force = cpBodyGetRotation(body) * 100; //cpv((right - left) * 1000.0, (down - up) * 1000.0);
+            cpBodyApplyForceAtWorldPoint(body, force, pos);
+        } 
+
+        // Rotation
+        {
+            // Manual turning:
+#if 0
+            if (left) {
+                const auto rotForce = cpv(0.0, -15.0);
+                cpBodyApplyForceAtLocalPoint(body, rotForce, cpv(12.0, 0.0));
+                cpBodyApplyForceAtLocalPoint(body, cpvneg(rotForce), cpvzero);
+            }
+            else if (right) {
+                const auto rotForce = cpv(0.0, +15.0);
+                cpBodyApplyForceAtLocalPoint(body, rotForce, cpv(12.0, 0.0));
+                cpBodyApplyForceAtLocalPoint(body, cpvneg(rotForce), cpvzero);
+            }
+#else
+            using hg::math::Angle;
+            using hg::math::PointDirection;
+            const Angle currentRotation = Angle::fromVector(cpBodyGetRotation(body).x,
+                                                            cpBodyGetRotation(body).y);
+
+            const auto selfPos  = cpBodyGetPosition(body);
+            const auto mousePos = cpv(controls.mouseX, controls.mouseY);
+
+            const Angle targetRotation = PointDirection(selfPos, mousePos);
+
+            const Angle diff = currentRotation.shortestDistanceTo(targetRotation);
+
+            cpVect rotForce;
+            if (diff.asRadians() < 0.0) {
+                rotForce = cpv(0.0, -75.0);
+            }
+            else {
+                rotForce = cpv(0.0, +75.0);
+            }
+
+            rotForce = rotForce * std::sin(0.5 * std::abs(diff.asRadians()));
+
+            cpBodyApplyForceAtLocalPoint(body, rotForce, cpv(12.0, 0.0));
+            cpBodyApplyForceAtLocalPoint(body, cpvneg(rotForce), cpvzero);
+
+            //cpVect turningN = cpv(1.0, 1.1);
+            ////if (right) {
+            ////    turningN = cpv(1.0, 1.0);
+            ////}
+            ////else {
+            ////    turningN = cpvzero;
+            ////}
+
+            //const cpFloat dot = cpvdot(turningN, cpvnormalize(cpBodyGetRotation(body)));
+            //const cpFloat cross = cpvcross(turningN, cpvnormalize(cpBodyGetRotation(body)));
+
+            //cpVect rotN;
+            //if (cross <= 0) {
+            //    rotN = cpvperp(cpvnormalize(cpBodyGetRotation(body)));
+            //}
+            //else {
+            //    rotN = cpvrperp(cpvnormalize(cpBodyGetRotation(body)));
+            //}
+
+            //cpVect rotF = cpvmult(rotN, 300 * (1 - dot));
+            //cpBodyApplyForceAtLocalPoint(body, rotF, cpv(1.0, 1.0));
+            //cpBodyApplyForceAtLocalPoint(body, cpvneg(rotF), cpvzero);
+#endif
+        }
 
         if (CountPeriodic(&_fireCounter, 12, controls.fire)) {
             auto selfPos = cpBodyGetPosition(_body.get());
@@ -70,10 +146,10 @@ void PhysicsPlayer::eventUpdate() {
             auto* bullet = QAO_PCreate<PhysicsBullet>(getRuntime(), ctx().getSyncObjReg(), SYNC_ID_NEW, vs);
             bullet->initWithSpeed(this, std::atan2(controls.mouseY - selfPos.y, controls.mouseX - selfPos.x), 50.0);
         }
-  
     }
     else {
         _ssch.scheduleNewStates();
+        _ssch.advance();
         _ssch.advanceDownTo(ctx().syncBufferLength * 2);
     }
 
@@ -119,4 +195,16 @@ void PhysicsPlayer::eventDraw1() {
     circ.setOutlineThickness(2.f);
     circ.setPosition({self.x, self.y});
     canvas.draw(circ);
+
+    if (isMasterObject()) {
+        sf::CircleShape circ{2.0};
+        circ.setOrigin(circ.getRadius(), circ.getRadius());
+        circ.setFillColor(hg::gr::Color::AliceBlue);
+
+        float xoff = std::cos(cpBodyGetAngle(_body.get())) * 12.0;
+        float yoff = std::sin(cpBodyGetAngle(_body.get())) * 12.0;
+
+        circ.setPosition({self.x + xoff, self.y + yoff});
+        canvas.draw(circ);
+    }
 }

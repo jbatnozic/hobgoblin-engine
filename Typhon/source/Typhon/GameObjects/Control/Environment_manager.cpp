@@ -93,7 +93,7 @@ void EnvironmentManager::generate(hg::PZInteger width, hg::PZInteger height, flo
 
     for (hg::PZInteger y = 0; y < getTerrainRowCount(); y += 1) {
         for (hg::PZInteger x = 0; x < getTerrainColumnCount(); x += 1) {
-            if ((std::rand() % 100) < 5 ||
+            if ((std::rand() % 100) < 3 ||
                 x == 0 || y == 0 || (x == (getTerrainColumnCount() - 1)) || (y == (getTerrainRowCount() - 1))) {
                 setCellType(x, y, Terrain::TypeId::CaveWall);
             }
@@ -195,7 +195,7 @@ void EnvironmentManager::onNetworkingEvent(const RN_Event& ev) {
 }
 
 void EnvironmentManager::eventPostUpdate() {
-    _lightingCtrl.render();
+    //_lightingCtrl.render();
     //_lightingCtrl.smooth();
 }
 
@@ -217,7 +217,7 @@ void EnvironmentManager::eventDraw1() {
 }
 
 void EnvironmentManager::_setEnvironmentPhysicsParameters() const {
-    cpSpaceSetDamping(ctx(DPhysicsSpace), 0.1);
+    //cpSpaceSetDamping(ctx(DPhysicsSpace), 0.1);
 }
 
 void EnvironmentManager::_resizeAllGrids(hg::PZInteger width, hg::PZInteger height) {
@@ -248,7 +248,8 @@ void EnvironmentManager::_drawCell(hg::PZInteger x, hg::PZInteger y) {
     auto& multisprite = (*iter).second;
     multisprite.setSubspriteIndex(0);
     multisprite.setPosition(x * _cellResolution, y * _cellResolution);
-    multisprite.setColor(_lightingCtrl.getColorAt(x, y));
+    //multisprite.setColor(_lightingCtrl.getColorAt(x, y));
+    multisprite.setColor(hg::gr::Color::White);
 
     ctx(MWindow).getCanvas().draw(multisprite);
 }

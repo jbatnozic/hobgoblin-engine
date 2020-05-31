@@ -40,7 +40,7 @@ void MainMenu::eventUpdate() {
 #define SOLO 3
 #define GAME_MASTER 4
 
-  int mode = 1;//InputPrompt<int>("mode - 1 = host; 2 = client, 3 = solo, 4 = GM", 2);
+  int mode = InputPrompt<int>("mode - 1 = host; 2 = client, 3 = solo, 4 = GM", 2);
     if (mode == HOST) {
         // Start a local server in the background:
         auto serverCtx = std::make_unique<GameContext>(ctx().getResourceConfig(), 
