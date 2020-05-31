@@ -93,17 +93,25 @@ void EnvironmentManager::generate(hg::PZInteger width, hg::PZInteger height, flo
 
     for (hg::PZInteger y = 0; y < getTerrainRowCount(); y += 1) {
         for (hg::PZInteger x = 0; x < getTerrainColumnCount(); x += 1) {
-            if ((std::rand() % 100) < 3 ||
-                x == 0 || y == 0 || (x == (getTerrainColumnCount() - 1)) || (y == (getTerrainRowCount() - 1))) {
-                setCellType(x, y, Terrain::TypeId::CaveWall);
+            const bool isBorder = (x <= 1 || y <= 1 ||
+                                   x >= getTerrainColumnCount() - 2 ||
+                                   y >= getTerrainRowCount() - 2);
+
+            const int padding = 8;
+
+            const int isInner = (x > padding && y > padding &&
+                                 x < getTerrainColumnCount() - padding &&
+                                 y < getTerrainRowCount() - padding);
+
+            if (isBorder || (isInner && (std::rand() % 100) < 3)) {
+                setCellType(x, y, Terrain::TypeId::EnergyShield);
             }
             else {
-                setCellType(x, y, Terrain::TypeId::CaveFloor);
+                setCellType(x, y, Terrain::TypeId::Space);
             }
         }
     }
 
-    setCellType(1, 1, Terrain::TypeId::CaveFloor);
     // _cellResolution = cellResolution; TODO
 
     _setEnvironmentPhysicsParameters();

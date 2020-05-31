@@ -105,7 +105,7 @@ void WindowManager::drawMainRenderTexture(DrawPosition drawPosition) {
 }
 
 void WindowManager::eventPostUpdate() {
-    _mainRenderTexture.clear(hg::gr::Color::DarkGray);
+    _mainRenderTexture.clear(hg::gr::Color::Black);
 }
 
 void WindowManager::eventDraw2() {

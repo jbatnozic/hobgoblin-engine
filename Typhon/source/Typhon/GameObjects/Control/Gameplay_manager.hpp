@@ -11,6 +11,8 @@ public:
 
     // TODO bool isGamePaused() const noexcept;
 
+    void restartGame();
+
 protected:
     void eventUpdate() override;
     void eventPostUpdate() override;
@@ -18,6 +20,8 @@ protected:
 
 private:
     void onNetworkingEvent(const RN_Event& event) override;
+
+    void _setPlayerPosition(hg::PZInteger playerIndex, float* x, float* y) const;
 };
 
 #endif // !TYPHON_GAME_OBJECTS_CONTROL_GAMEPLAY_MANAGER_HPP

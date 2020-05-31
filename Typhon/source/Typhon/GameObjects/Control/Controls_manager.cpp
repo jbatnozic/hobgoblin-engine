@@ -68,7 +68,8 @@ void ControlsManager::eventPreUpdate() {
         auto mousePos = ctx(MWindow).getMousePos();
         scheduler.putNewState(PlayerControls{mousePos.x,
                                              mousePos.y,
-                                             sf::Mouse::isButtonPressed(sf::Mouse::Left),
+                                             sf::Mouse::isButtonPressed(sf::Mouse::Left)
+                                                && ctx(MWindow).getWindow().hasFocus(),
                                              ctx(DKeyboard).keyPressed(KbKey::A),
                                              ctx(DKeyboard).keyPressed(KbKey::D),
                                              ctx(DKeyboard).keyPressed(KbKey::W),

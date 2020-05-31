@@ -38,6 +38,8 @@ public:
 
     void destroySelfIn(int steps);
 
+    cpBody* getPhysicsBody() const;
+
 protected:
     void eventUpdate() override;
     void eventPostUpdate() override;

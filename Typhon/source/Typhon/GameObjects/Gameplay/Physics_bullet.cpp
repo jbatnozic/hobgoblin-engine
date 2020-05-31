@@ -24,8 +24,8 @@ PhysicsBullet::PhysicsBullet(QAO_RuntimeRef rtRef, SynchronizedObjectRegistry& s
     if (isMasterObject()) {
         auto* space = ctx(DPhysicsSpace);
 
-        const cpFloat radius = 8.0;
-        const cpFloat mass = 0.1;
+        const cpFloat radius = 4.0;
+        const cpFloat mass = 0.05;
         const cpFloat moment = cpMomentForCircle(mass, 0.0, radius, cpv(0, 0));
 
         _body = hg::cpBodyUPtr{cpSpaceAddBody(space, cpBodyNew(mass, moment))};
@@ -60,6 +60,10 @@ void PhysicsBullet::cannonicalSyncApplyUpdate(const VisibleState& state, int del
     _ssch.putNewState(state, delay);
 }
 
+cpBody* PhysicsBullet::getPhysicsBody() const {
+    return _body.get();
+}
+
 void PhysicsBullet::eventUpdate() {
     if (ctx().isPrivileged()) {
         if (_hitSomething) {
@@ -87,9 +91,9 @@ void PhysicsBullet::eventDraw1() {
     auto& canvas = ctx(MWindow).getCanvas();
     auto& self = _ssch.getCurrentState();
 
-    sf::CircleShape circ{8.0};
+    sf::CircleShape circ{4.0};
     circ.setOrigin(circ.getRadius(), circ.getRadius());
-    circ.setFillColor(hg::gr::Color::Gold);
+    circ.setFillColor(hg::gr::Color::Aquamarine);
     circ.setPosition({self.x, self.y});
     canvas.draw(circ);
 }

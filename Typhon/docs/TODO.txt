@@ -5,3 +5,6 @@ CreateGameContext method
 Multisprites are VERY large (almost half a kilobyte) - can they be used directly from the loader?
 
 collisionBegin, collisionPreSolve -> const
+
+-Don't rotate if angle diff <= 1.0 degree
+-Energy

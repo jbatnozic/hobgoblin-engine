@@ -9,9 +9,15 @@ enum class SpriteId {
     // Terrain
     CaveFloor = 0,
     CaveWall,
+    EnergyShield,
+    Space,
 
     // Actors
-    Player
+    Player,
+    Ship,
+
+    // Other
+    WhiteGlow
 };
 
 inline
@@ -23,6 +29,10 @@ hg::gr::SpriteLoader LoadAllSprites() {
     loader
         .loadFromFile(texMain, INT(SpriteId::CaveFloor), 0, "res/CaveFloor.png")
         .loadFromFile(texMain, INT(SpriteId::CaveWall), 0, "res/CaveWall.png")
+        .loadFromFile(texMain, INT(SpriteId::Ship), 0, "res/Ship.png")
+        .loadFromFile(texMain, INT(SpriteId::EnergyShield), 0, "res/EnergyShield.png")
+        .loadFromFile(texMain, INT(SpriteId::Space), 0, "res/Space.png")
+        .loadFromFile(texMain, INT(SpriteId::WhiteGlow), 0, "res/WhiteGlow.png")
         .finalize(hg::gr::TexturePackingHeuristic::BestAreaFit);
 #undef INT
 

@@ -4,7 +4,7 @@
 
 #include "Main_menu.hpp"
 #include "../Control/Environment_manager.hpp"
-#include "../Gameplay/Physics_player.hpp"
+//#include "../Gameplay/Physics_player.hpp"
 
 namespace {
 
@@ -78,11 +78,11 @@ void MainMenu::eventUpdate() {
         ctx().configure(GameContext::Mode::Solo);
         generateTerrain(ctx());
 
-        PhysicsPlayer::VisibleState vs;
-        vs.playerIndex = 0;
-        vs.x = 70.f;
-        vs.y = 70.f;
-        QAO_PCreate<PhysicsPlayer>(getRuntime(), ctx().getSyncObjReg(), SYNC_ID_NEW, vs);
+        //PhysicsPlayer::VisibleState vs;
+        //vs.playerIndex = 0;
+        //vs.x = 70.f;
+        //vs.y = 70.f;
+        //QAO_PCreate<PhysicsPlayer>(getRuntime(), ctx().getSyncObjReg(), SYNC_ID_NEW, vs);
     }
     else if (mode == GAME_MASTER) {
         ctx().configure(GameContext::Mode::GameMaster);

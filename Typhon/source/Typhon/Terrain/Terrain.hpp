@@ -14,6 +14,8 @@ public:
         Blackness = 0,
         CaveFloor,
         CaveWall,
+        EnergyShield,
+        Space,
 
         Count // Keep last
     };
@@ -50,6 +52,17 @@ public:
         tp.spriteId = SpriteId::CaveWall;
         tp.collisionMask = 0x000F;
         typeProperties[static_cast<std::size_t>(TypeId::CaveWall)] = tp;
+
+        // Energy shield
+        tp.shape = CellShape::FullSquare;
+        tp.spriteId = SpriteId::EnergyShield;
+        tp.collisionMask = 0x000F;
+        typeProperties[static_cast<std::size_t>(TypeId::EnergyShield)] = tp;
+
+        // Space
+        tp.shape = CellShape::Empty;
+        tp.spriteId = SpriteId::Space;
+        typeProperties[static_cast<std::size_t>(TypeId::Space)] = tp;
     }
 
     static const TypeProperties& getTypeProperties(TypeId typeId);

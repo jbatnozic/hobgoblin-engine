@@ -15,21 +15,25 @@
 
 class PhysicsPlayer : public SynchronizedObject, private Collideables::ICreature {
 public:
+    static constexpr double MAX_HEALTH = 100.0;
+    static constexpr double MAX_SHIELD = 100.0;
+    static constexpr double SHIELD_REGEN_RATE = 10.0 / 60.0;
+
     struct VisibleState { // Visible state object must be public
         hg::PZInteger playerIndex = -1; // TODO Magic number
         float x = 0.f;
         float y = 0.f;
         float angle;
+        float health = static_cast<float>(MAX_HEALTH);
+        float shield = static_cast<float>(MAX_SHIELD);
         bool hidden = true; // TODO This probably doesn't work right
 
-        HG_ENABLE_AUTOPACK(VisibleState, playerIndex, x, y, angle);
+        HG_ENABLE_AUTOPACK(VisibleState, playerIndex, x, y, angle, health, shield);
     };
 
     static constexpr auto SERIALIZABLE_TAG = "PhysicsPlayer";
 
-    static constexpr float MAX_SPEED = 5.f;
-    static constexpr float GRAVITY = 1.f;
-    static constexpr float JUMP_POWER = 16.f;
+
 
     PhysicsPlayer(QAO_RuntimeRef rtRef, SynchronizedObjectRegistry& syncObjReg, SyncId syncId, 
                   const VisibleState& initialState);
@@ -52,18 +56,23 @@ protected:
     void eventUpdate() override;
     void eventPostUpdate() override;
     void eventDraw1() override;
+    void eventDrawGUI() override;
 
 private:
     hg::util::StateScheduler<VisibleState> _ssch;
 
+    double _health = MAX_HEALTH;
+    double _shield = MAX_SHIELD;
     hg::cpBodyUPtr _body;
     hg::cpShapeUPtr _shape;
     LightingController::LightHandle _lightHandle;
     int _fireCounter;
 
-    void collisionPostSolve(Collideables::IProjectile* proj, cpArbiter* arb) override {
-        std::cout << "hit POSTSOLVE\n";
-    }
+    void collisionPostSolve(Collideables::ICreature* terr, cpArbiter* arb) override;
+    void collisionPostSolve(Collideables::IProjectile* proj, cpArbiter* arb) override;
+    void collisionPostSolve(Collideables::ITerrain* terr, cpArbiter* arb) override;
+
+    void _takeDamage(double damage);
 
     SPEMPE_GENERATE_CANNONICAL_SYNC_DECLARATIONS;
 };
