@@ -51,7 +51,7 @@ private:
 
     void _setEnvironmentPhysicsParameters() const;
     void _resizeAllGrids(hg::PZInteger width, hg::PZInteger height);
-    void _drawCell(hg::PZInteger x, hg::PZInteger y);
+    void _drawCell(hg::PZInteger x, hg::PZInteger y, hg::PZInteger quadIndex, sf::VertexArray& vertices);
 
     friend RN_HANDLER_SIGNATURE(ResizeTerrain, RN_ARGS(std::int32_t, width, std::int32_t, height));
     friend RN_HANDLER_SIGNATURE(SetTerrainRow, RN_ARGS(std::int32_t, rowIndex, hg::util::Packet&, packet));

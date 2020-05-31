@@ -42,7 +42,6 @@ public:
 
     // Loading from directory:
     SpriteLoader& loadFromDirectory(TextureHandle textureHandle, PZInteger spriteIndex, const std::string& filePath);
-
     SpriteLoader& loadFromDirectory(TextureHandle textureHandle, std::string spriteName, const std::string& filePath);
 
     // Loading from memory:

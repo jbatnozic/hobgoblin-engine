@@ -170,6 +170,11 @@ void WindowManager::_finalizeFrameByDisplayingWindow() {
         default: (void)0;
         }
     }
+
+    // I don't know if this is a good idea, but with vSync on, it waits in random places, including
+    // in the draw events, which screws up timing measurements. So with this call, we force it to
+    // synchronize during the finalizeFrame event.
+    _finalizeFrameBySleeping();
 }
 
 void WindowManager::_finalizeFrameBySleeping() {

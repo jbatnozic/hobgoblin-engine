@@ -44,6 +44,10 @@ PZInteger Multisprite::getSubspriteCount() const {
     return _subspriteCount;
 }
 
+const sf::Sprite& Multisprite::getSubsprite(PZInteger subspriteIndex) const {
+    return *(addressOfFirstSprite() + subspriteIndex);
+}
+
 void Multisprite::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     if (_subspriteCount == 0) {
         return;

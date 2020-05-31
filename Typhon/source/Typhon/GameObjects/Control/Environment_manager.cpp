@@ -209,10 +209,20 @@ void EnvironmentManager::eventDraw1() {
     hg::PZInteger endY = std::min(getTerrainRowCount(),
                                   (int)std::ceil((view.getCenter().y + view.getSize().y / 2.f) / _cellResolution));
 
+    auto vertexCount = (endY - startY) * (endX - startX) * 4;
+    sf::VertexArray vertices{sf::PrimitiveType::Quads, hg::ToSz(vertexCount)};
+
     for (hg::PZInteger y = startY; y < endY; y += 1) {
         for (hg::PZInteger x = startX; x < endX; x += 1) {
-            _drawCell(x, y);
+            _drawCell(x, y, ((y - startY) * (endX - startX) + (x - startX)) * 4, vertices);
         }
+    }
+
+    if (vertexCount > 0) {
+        sf::RenderStates states;
+        states.texture = (*_spriteCache.begin()).second.getSubsprite(0).getTexture(); // TODO Fragile!
+
+        ctx(MWindow).getCanvas().draw(vertices, states);
     }
 }
 
@@ -233,7 +243,8 @@ void EnvironmentManager::_resizeAllGrids(hg::PZInteger width, hg::PZInteger heig
     }
 }
 
-void EnvironmentManager::_drawCell(hg::PZInteger x, hg::PZInteger y) {
+void EnvironmentManager::_drawCell(hg::PZInteger x, hg::PZInteger y, hg::PZInteger quadIndex, 
+                                   sf::VertexArray& vertices) {
     auto typeId = _typeIdGrid[y][x];
 
     auto& tprop = Terrain::getTypeProperties(typeId);
@@ -245,11 +256,32 @@ void EnvironmentManager::_drawCell(hg::PZInteger x, hg::PZInteger y) {
         iter = pair.first;
     }
 
-    auto& multisprite = (*iter).second;
-    multisprite.setSubspriteIndex(0);
-    multisprite.setPosition(x * _cellResolution, y * _cellResolution);
-    //multisprite.setColor(_lightingCtrl.getColorAt(x, y));
-    multisprite.setColor(hg::gr::Color::White);
+    const sf::Sprite& sprite = (*iter).second.getSubsprite(0);
+    sf::Vertex* quad = &(vertices[quadIndex]);
 
-    ctx(MWindow).getCanvas().draw(multisprite);
+    {
+        const auto xx = static_cast<float>(x * _cellResolution);
+        const auto yy = static_cast<float>(y * _cellResolution);
+        const auto ww = static_cast<float>(sprite.getLocalBounds().width);
+        const auto hh = static_cast<float>(sprite.getLocalBounds().height);
+
+        quad[0].position = {xx, yy};
+        quad[1].position = {xx, yy + hh};
+        quad[2].position = {xx + ww, yy + hh};
+        quad[3].position = {xx + ww, yy};
+    }
+
+    {
+        const auto xx = static_cast<float>(sprite.getTextureRect().left);
+        const auto yy = static_cast<float>(sprite.getTextureRect().top);
+        const auto ww = static_cast<float>(sprite.getTextureRect().width);
+        const auto hh = static_cast<float>(sprite.getTextureRect().height);
+
+        quad[0].texCoords = {xx, yy};
+        quad[1].texCoords = {xx, yy + hh};
+        quad[2].texCoords = {xx + ww, yy + hh};
+        quad[3].texCoords = {xx + ww, yy};
+    }
+
+    quad[0].color = quad[1].color = quad[1].color = quad[1].color = hg::gr::Color::White;
 }

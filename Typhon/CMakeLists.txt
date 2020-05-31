@@ -85,3 +85,9 @@ target_link_libraries(${TYPHON_TARGET_NAME} PUBLIC
     ${CONAN_LIBS}
     "hobgoblin"
 )
+
+if(WIN32)
+    target_link_libraries(${TYPHON_TARGET_NAME} PRIVATE legacy_stdio_definitions.lib)
+endif()
+
+# set_target_properties(${TYPHON_TARGET_NAME} PROPERTIES LINK_FLAGS "/PROFILE")

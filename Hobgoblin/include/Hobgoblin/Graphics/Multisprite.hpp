@@ -21,6 +21,7 @@ public:
 
     void addSubsprite(sf::Texture& texture, util::Rectangle<PZInteger>& textureRect);
     PZInteger getSubspriteCount() const;
+    const sf::Sprite& getSubsprite(PZInteger subspriteIndex) const;
 
 private:
     std::variant<sf::Sprite, std::vector<sf::Sprite>> _subsprites;
