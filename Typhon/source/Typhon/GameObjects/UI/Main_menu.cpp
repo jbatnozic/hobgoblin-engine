@@ -46,13 +46,13 @@ void MainMenu::eventUpdate() {
                                                        ctx().getRuntimeConfig());
         ExtendGameContext(*serverCtx);
 
-        const std::uint16_t localPort = 8888;//InputPrompt<std::uint16_t>("local port - 0 for any", 8888);
-        const hg::PZInteger clientCount = 4;//InputPrompt<hg::PZInteger>("client count", 2);
+        const std::uint16_t localPort = InputPrompt<std::uint16_t>("local port - 0 for any", 8888);
+        const hg::PZInteger clientCount = InputPrompt<hg::PZInteger>("client count", 2);
 
         serverCtx->configure(GameContext::Mode::Server);
         serverCtx->getNetworkingManager().getServer().start(localPort, "beetlejuice");
         serverCtx->getNetworkingManager().getServer().resize(clientCount);
-        //serverCtx->getNetworkingManager().getServer().setTimeoutLimit(std::chrono::seconds{5});
+        serverCtx->getNetworkingManager().getServer().setTimeoutLimit(std::chrono::seconds{5});
 
         const std::uint16_t serverPort = serverCtx->getNetworkingManager().getServer().getLocalPort();
 
@@ -63,14 +63,15 @@ void MainMenu::eventUpdate() {
         // Connext to the server:
         ctx().configure(GameContext::Mode::Client);
         ctx(MNetworking).getClient().connect(0, "localhost", serverPort, "beetlejuice");
-        //ctx(MNetworking).getClient().setTimeoutLimit(std::chrono::seconds{5});
+        ctx(MNetworking).getClient().setTimeoutLimit(std::chrono::seconds{5});
     }
     else if (mode == CLIENT) {
+        const std::uint16_t localPort  = InputPrompt<std::uint16_t>("local port", 0);
+        const std::string   serverIp   = InputPrompt<std::string>("server IP", "127.0.0.1");
+        const std::uint16_t serverPort = InputPrompt<std::uint16_t>("server port", 8888);
+
         ctx().configure(GameContext::Mode::Client);
-        ctx(MNetworking).getClient().connect(InputPrompt<std::uint16_t>("local port", 0),
-                                             InputPrompt<std::string>("server IP", "127.0.0.1"),
-                                             InputPrompt<std::uint16_t>("server port", 8888),
-                                             "beetlejuice");
+        ctx(MNetworking).getClient().connect(localPort, serverIp, serverPort, "beetlejuice");
         ctx(MNetworking).getClient().setTimeoutLimit(std::chrono::seconds{5});
     }
     else if (mode == SOLO) {
