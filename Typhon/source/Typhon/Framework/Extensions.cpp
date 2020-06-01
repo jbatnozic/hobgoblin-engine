@@ -27,7 +27,7 @@ void ExtendGameContext(spempe::GameContext& ctx) {
     
     extData->mainGameController = QAO_UPCreate<GameplayManager>(ctx.getQaoRuntime().nonOwning());    
     extData->environmentManager = QAO_UPCreate<EnvironmentManager>(ctx.getQaoRuntime().nonOwning());   
-    extData->controlsManager = QAO_UPCreate<ControlsManager>(ctx.getQaoRuntime().nonOwning(), 10, 2, 1); // TODO
+    extData->controlsManager = QAO_UPCreate<ControlsManager>(ctx.getQaoRuntime().nonOwning(), 20, 2, 1); // TODO Hardcoded values
 
     ctx.setExtensionData(std::move(extData));
 }

@@ -1,4 +1,7 @@
 
+#include <Hobgoblin/Graphics.hpp>
+#include <Typhon/Graphics/Sprites.hpp>
+
 #include <cmath>
 
 #include "Physics_bullet.hpp"
@@ -14,7 +17,7 @@ static void customDampingVelocityFunc(cpBody* body, cpVect gravity, cpFloat damp
 
 PhysicsBullet::PhysicsBullet(QAO_RuntimeRef rtRef, SynchronizedObjectRegistry& syncObjReg, SyncId syncId,
                              const VisibleState& initialState)
-    : SynchronizedObject{rtRef, SPEMPE_TYPEID_SELF, *PEXEPR_ENTITIES, "PhysicsPlayer", syncObjReg, syncId}
+    : SynchronizedObject{rtRef, SPEMPE_TYPEID_SELF, *PEXEPR_ENTITIES_BELOW, "PhysicsPlayer", syncObjReg, syncId}
     , _ssch{ctx().syncBufferLength}
 {
     for (auto& state : _ssch) {
@@ -25,7 +28,7 @@ PhysicsBullet::PhysicsBullet(QAO_RuntimeRef rtRef, SynchronizedObjectRegistry& s
         auto* space = ctx(DPhysicsSpace);
 
         const cpFloat radius = 4.0;
-        const cpFloat mass = 0.05;
+        const cpFloat mass = 0.03;
         const cpFloat moment = cpMomentForCircle(mass, 0.0, radius, cpv(0, 0));
 
         _body = hg::cpBodyUPtr{cpSpaceAddBody(space, cpBodyNew(mass, moment))};
@@ -68,7 +71,6 @@ void PhysicsBullet::eventUpdate() {
     if (ctx().isPrivileged()) {
         if (_hitSomething) {
             QAO_PDestroy(this);
-            //destroySelfInPostStep();
         }
     }
     else{
@@ -91,11 +93,14 @@ void PhysicsBullet::eventDraw1() {
     auto& canvas = ctx(MWindow).getCanvas();
     auto& self = _ssch.getCurrentState();
 
-    sf::CircleShape circ{4.0};
-    circ.setOrigin(circ.getRadius(), circ.getRadius());
-    circ.setFillColor(hg::gr::Color::Aquamarine);
-    circ.setPosition({self.x, self.y});
-    canvas.draw(circ);
+    auto sprite = ctx(DSprite, SpriteId::Plasma);
+    auto sprBounds = sprite.getSubsprite(0).getLocalBounds();
+
+    sprite.setPosition({self.x, self.y});
+    sprite.setColor(sf::Color{self.rgbaColor});
+    sprite.setOrigin(sprBounds.width / 2, sprBounds.height / 2);
+    sprite.setScale({1.5f, 1.5f});
+    canvas.draw(sprite);
 }
 
 bool PhysicsBullet::collisionBegin(Collideables::ICreature* other, cpArbiter* arbiter) const {

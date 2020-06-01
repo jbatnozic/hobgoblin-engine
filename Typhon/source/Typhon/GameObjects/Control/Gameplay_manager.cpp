@@ -3,6 +3,9 @@
 #include <Hobgoblin/Graphics.hpp>
 #include <SFML/System.hpp>
 
+#include <algorithm>
+#include <cstdlib> // TODO Temp. for std::rand
+#include <iostream>
 #include <sstream>
 
 #include "Environment_manager.hpp"
@@ -10,10 +13,12 @@
 #include "../Gameplay/Physics_bullet.hpp"
 #include "../Gameplay/Physics_player.hpp"
 
+namespace {
+
 RN_DEFINE_HANDLER(RequestGameRestart, RN_ARGS()) {
     RN_NODE_IN_HANDLER().visit(
         [](NetworkingManager::ClientType& client) {
-            throw RN_IllegalMessage{"error while restarting game"};
+            throw RN_IllegalMessage{"Client cannot receive game restart requests."};
         },
         [&](NetworkingManager::ServerType& server) {
             auto& ctx = *(server.getUserData<GameContext>());
@@ -22,6 +27,19 @@ RN_DEFINE_HANDLER(RequestGameRestart, RN_ARGS()) {
         }
     );
 }
+
+RN_DEFINE_HANDLER(GameStartAnnouncement, RN_ARGS()) {
+    RN_NODE_IN_HANDLER().visit(
+        [](NetworkingManager::ClientType& client) {
+            std::cout << "*** A new game has started. ***\n";
+        },
+        [&](NetworkingManager::ServerType& server) {
+            throw RN_IllegalMessage{"Host cannot receive game start announcements."};
+        }
+    );
+}
+
+} // namespace
 
 GameplayManager::GameplayManager(QAO_RuntimeRef runtimeRef)
     : NonstateObject{runtimeRef, TYPEID_SELF, *PEXEPR_GAMEPLAY_MGR, "GameplayManager"}
@@ -70,6 +88,12 @@ void GameplayManager::restartGame() {
             _setPlayerPosition(vs.playerIndex, &vs.x, &vs.y);
             QAO_PCreate<PhysicsPlayer>(getRuntime(), ctx().getSyncObjReg(), SYNC_ID_NEW, vs);
         }
+
+        // Announce:
+        Compose_GameStartAnnouncement(ctx(MNetworking).getNode(), RN_COMPOSE_FOR_ALL);
+        if (!ctx().isHeadless()) {
+            std::cout << "*** A new game has started. ***\n";
+        }
     }
     else {
         // Not privileged:
@@ -112,86 +136,110 @@ void GameplayManager::eventPostUpdate() {
 }
 
 void GameplayManager::eventDrawGUI() {
-    sf::Text text;
-    text.setFont(hg::gr::BuiltInFonts::getFont(hg::gr::BuiltInFonts::TitilliumRegular));
-    text.setPosition({16.f, 16.f});
-    text.setFillColor(hg::gr::Color::White);
-    text.setOutlineColor(hg::gr::Color::Black);
-    text.setOutlineThickness(1.f);
-    text.setCharacterSize(16);
-    
-    auto& perfInfo = ctx().getPerformanceInfo();
-    std::stringstream sstream;
-    sstream 
-        << "Local context performance (microsec):\n"
-        << "    tUpdate: "   << perfInfo.updateAndDrawTime.count() << " (x" << perfInfo.consecutiveUpdateLoops << ")\n"
-        << "    tFinalize: " << perfInfo.finalizeTime.count() << '\n'
-        << "    tTotal: "    << perfInfo.totalTime.count() << '\n'
-        << "    tFTF: "      << perfInfo.frameToFrameTime.count() << "\n\n";
+    // DRAW PERFORMANCE INFO:
+    {
+        sf::Text text;
+        text.setFont(hg::gr::BuiltInFonts::getFont(hg::gr::BuiltInFonts::TitilliumRegular));
+        text.setPosition({16.f, 16.f});
+        text.setFillColor(hg::gr::Color::White);
+        text.setOutlineColor(hg::gr::Color::Black);
+        text.setOutlineThickness(1.f);
+        text.setCharacterSize(16);
 
-    if (ctx().hasChildContext()) {
-        auto& perfInfo = ctx().getChildContext()->getPerformanceInfo();
+        auto& perfInfo = ctx().getPerformanceInfo();
+        std::stringstream sstream;
         sstream
-            << "Child context performance (microsec):\n"
-            << "    tUpdate: "   << perfInfo.updateAndDrawTime.count() << " (x" << perfInfo.consecutiveUpdateLoops << ")\n"
+            << "Local context performance (microsec):\n"
+            << "    tUpdate: " << perfInfo.updateAndDrawTime.count() << " (x" << perfInfo.consecutiveUpdateLoops << ")\n"
             << "    tFinalize: " << perfInfo.finalizeTime.count() << '\n'
-            << "    tTotal: "    << perfInfo.totalTime.count() << '\n'
-            << "    tFTF: "      << perfInfo.frameToFrameTime.count() << "\n\n";
+            << "    tTotal: " << perfInfo.totalTime.count() << '\n'
+            << "    tFTF: " << perfInfo.frameToFrameTime.count() << "\n\n";
+
+        if (ctx().hasChildContext()) {
+            auto& perfInfo = ctx().getChildContext()->getPerformanceInfo();
+            sstream
+                << "Child context performance (microsec):\n"
+                << "    tUpdate: " << perfInfo.updateAndDrawTime.count() << " (x" << perfInfo.consecutiveUpdateLoops << ")\n"
+                << "    tFinalize: " << perfInfo.finalizeTime.count() << '\n'
+                << "    tTotal: " << perfInfo.totalTime.count() << '\n'
+                << "    tFTF: " << perfInfo.frameToFrameTime.count() << "\n\n";
+        }
+
+        text.setString(sstream.str());
+
+        ctx(MWindow).getCanvas().draw(text);
     }
 
-    text.setString(sstream.str());
+    // DRAW PLAYERS LEFT:
+    {
+        const float guiWidth = static_cast<float>(ctx(MWindow).getWindow().getSize().x);
 
-    ctx(MWindow).getCanvas().draw(text);
+        sf::Text text;
+        text.setFont(hg::gr::BuiltInFonts::getFont(hg::gr::BuiltInFonts::TitilliumRegular));
+        text.setPosition({guiWidth - 200.f, 16.f});
+        text.setFillColor(hg::gr::Color::White);
+        text.setOutlineColor(hg::gr::Color::Black);
+        text.setOutlineThickness(4.f);
+        text.setCharacterSize(28);
+
+        const auto playerCount = std::count_if(std::begin(*getRuntime()), std::end(*getRuntime()),
+                                               [](QAO_Base* object) -> bool {
+                                                   return object->getTypeInfo() == typeid(PhysicsPlayer);
+                                               });
+
+        text.setString("Players left: " + std::to_string(playerCount));
+
+        ctx(MWindow).getCanvas().draw(text);
+    }
 }
 
 void GameplayManager::onNetworkingEvent(const RN_Event& event_) {
-    event_.visit(
-        [](const RN_Event::BadPassphrase& ev) {
-        },
-        [](const RN_Event::ConnectAttemptFailed& ev) {
-        },
-        [this](const RN_Event::Connected& ev) {
-            //if (ctx().isPrivileged()) {
-            //    PhysicsPlayer::VisibleState vs;
-            //    vs.playerIndex = *ev.clientIndex + 1;
-            //    vs.x = 70.f;
-            //    vs.y = 70.f;
-            //    QAO_PCreate<PhysicsPlayer>(getRuntime(), ctx().getSyncObjReg(), SYNC_ID_NEW, vs);
-            //}
-        },
-        [](const RN_Event::Disconnected& ev) {
-        }
-    );
+    //event_.visit(
+    //    [](const RN_Event::BadPassphrase& ev) {
+    //    },
+    //    [](const RN_Event::ConnectAttemptFailed& ev) {
+    //    },
+    //    [this](const RN_Event::Connected& ev) {
+    //    },
+    //    [](const RN_Event::Disconnected& ev) {
+    //    }
+    //);
 }
 
 void GameplayManager::_setPlayerPosition(hg::PZInteger playerIndex, float* x, float* y) const {
     const auto& environMgr = ctx(MEnvironment);
 
-    const float cellResolution = 32.f;
+    const float cellResolution = 32.f; // TODO TEMP
     const float minX = 4.f * cellResolution;
     const float minY = 4.f * cellResolution;
     const float maxX = environMgr.getTerrainColumnCount() * cellResolution - 4.f * cellResolution;
     const float maxY = environMgr.getTerrainRowCount() * cellResolution - 4.f * cellResolution;
 
-    switch (playerIndex % 4) {
-    case 0:
-        *x = minX;
-        *y = minY;
-        break;
+    //switch (playerIndex % 4) {
+    //case 0:
+    //    *x = minX;
+    //    *y = minY;
+    //    break;
 
-    case 1:
-        *x = maxX;
-        *y = maxY;
-        break;
+    //case 1:
+    //    *x = maxX;
+    //    *y = maxY;
+    //    break;
 
-    case 2:
-        *x = maxX;
-        *y = minY;
-        break;
+    //case 2:
+    //    *x = maxX;
+    //    *y = minY;
+    //    break;
 
-    case 3:
-        *x = minX;
-        *y = maxY;
-        break;
-    }
+    //case 3:
+    //    *x = minX;
+    //    *y = maxY;
+    //    break;
+    //}
+
+    const float noramalizedRandX = static_cast<float>(std::rand()) / RAND_MAX;
+    const float noramalizedRandY = static_cast<float>(std::rand()) / RAND_MAX;
+
+    *x = minX + (maxX - minX) * noramalizedRandX;
+    *y = minY + (maxY - minY) * noramalizedRandY;
 }

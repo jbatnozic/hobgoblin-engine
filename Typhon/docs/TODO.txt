@@ -3,8 +3,13 @@ Make WindowManager and NetworkingManager better
 Directional lights
 CreateGameContext method
 Multisprites are VERY large (almost half a kilobyte) - can they be used directly from the loader?
-
-collisionBegin, collisionPreSolve -> const
+What to do with Compose_ calls when the client/node is disconnected?
 
 -Don't rotate if angle diff <= 1.0 degree
 -Energy
+-Map shrink over time
+-Player names & stuff
+-Ship customization
+-Better resolution
+-K/D count
+-Toggle performance info

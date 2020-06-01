@@ -18,6 +18,8 @@ public:
     static constexpr double MAX_HEALTH = 100.0;
     static constexpr double MAX_SHIELD = 100.0;
     static constexpr double SHIELD_REGEN_RATE = 10.0 / 60.0;
+    static constexpr hg::PZInteger INVUL_STEPS_AFTER_SPAWN = 180; // 3 sec
+    static constexpr hg::PZInteger STUN_STEPS_AFTER_COLLISION = 120; // 2 sec
 
     struct VisibleState { // Visible state object must be public
         hg::PZInteger playerIndex = -1; // TODO Magic number
@@ -66,6 +68,8 @@ private:
     hg::cpBodyUPtr _body;
     hg::cpShapeUPtr _shape;
     LightingController::LightHandle _lightHandle;
+    hg::PZInteger _invulCounter = INVUL_STEPS_AFTER_SPAWN;
+    hg::PZInteger _stunCounter = 0;
     int _fireCounter;
 
     void collisionPostSolve(Collideables::ICreature* terr, cpArbiter* arb) override;

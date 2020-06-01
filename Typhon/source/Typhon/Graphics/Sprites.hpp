@@ -17,6 +17,7 @@ enum class SpriteId {
     Ship,
 
     // Other
+    Plasma,
     WhiteGlow
 };
 
@@ -32,6 +33,7 @@ hg::gr::SpriteLoader LoadAllSprites() {
         .loadFromFile(texMain, INT(SpriteId::Ship), 0, "res/Ship.png")
         .loadFromFile(texMain, INT(SpriteId::EnergyShield), 0, "res/EnergyShield.png")
         .loadFromFile(texMain, INT(SpriteId::Space), 0, "res/Space.png")
+        .loadFromFile(texMain, INT(SpriteId::Plasma), 0, "res/Plasma.png")
         .loadFromFile(texMain, INT(SpriteId::WhiteGlow), 0, "res/WhiteGlow.png")
         .finalize(hg::gr::TexturePackingHeuristic::BestAreaFit);
 #undef INT

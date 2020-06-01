@@ -3,6 +3,7 @@
 
 #include <SPeMPE/SPeMPE.hpp>
 
+#include <Typhon/Framework/Game_config.hpp>
 #include <Typhon/Framework/Collisions.hpp>
 #include <Typhon/Framework/Execution_priorities.hpp>
 #include <Typhon/Framework/Extensions.hpp>

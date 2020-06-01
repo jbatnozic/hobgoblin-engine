@@ -3,22 +3,53 @@
 #include <Hobgoblin/Math.hpp>
 
 #include <cmath>
+#include <cstdlib>
+#include <iostream>
 
 #include "../Control/Controls_manager.hpp"
 #include "../Control/Environment_manager.hpp"
 #include "Physics_bullet.hpp"
 #include "Physics_player.hpp"
 
-static void customDampingVelocityFunc(cpBody* body, cpVect gravity, cpFloat damping, cpFloat dt) {
+namespace {
+
+RN_DEFINE_HANDLER(PlayerDeathAnnouncement, RN_ARGS(hg::PZInteger, playerIndex)) {
+    RN_NODE_IN_HANDLER().visit(
+        [&](NetworkingManager::ServerType& server) {
+            throw RN_IllegalMessage{"Host cannot receive death announcements"};
+        },
+        [&](NetworkingManager::ClientType& client) {
+            std::cout << "Player " << playerIndex << " has died.\n";
+        }
+    );
+}
+
+void customDampingVelocityFunc(cpBody* body, cpVect gravity, cpFloat damping, cpFloat dt) {
     cpBodySetAngularVelocity(body, cpBodyGetAngularVelocity(body) * 0.9);
     cpBodyUpdateVelocity(body, cpv(0.0, 0.0), 1.0, dt);
 }
 
-static std::string MakeBarString(hg::PZInteger amount) {
+std::string MakeBarString(hg::PZInteger amount) {
     std::string rv;
     rv.resize(hg::ToSz(amount), '|');
     return rv;
 }
+
+const hg::gr::Color* PLAYER_COLORS[] = {
+    &hg::gr::Color::White,
+    &hg::gr::Color::Red,
+    &hg::gr::Color::Green,
+    &hg::gr::Color::Yellow,
+    &hg::gr::Color::Blue,
+    &hg::gr::Color::Orange,
+    &hg::gr::Color::Purple,
+    &hg::gr::Color::Fuchsia,
+    &hg::gr::Color::Brown,
+    &hg::gr::Color::Teal,
+    &hg::gr::Color::Khaki
+};
+
+} // namespace
 
 SPEMPE_GENERATE_CANNONICAL_HANDLERS(PhysicsPlayer);
 
@@ -26,7 +57,7 @@ SPEMPE_GENERATE_CANNONICAL_SYNC_IMPLEMENTATIONS(PhysicsPlayer);
 
 PhysicsPlayer::PhysicsPlayer(QAO_RuntimeRef rtRef, SynchronizedObjectRegistry& syncObjReg, SyncId syncId,
                              const VisibleState& initialState)
-    : SynchronizedObject{rtRef, SPEMPE_TYPEID_SELF, *PEXEPR_ENTITIES, "PhysicsPlayer", syncObjReg, syncId}
+    : SynchronizedObject{rtRef, SPEMPE_TYPEID_SELF, *PEXEPR_ENTITIES_ABOVE, "PhysicsPlayer", syncObjReg, syncId}
     , _ssch{ctx().syncBufferLength}
 {
     for (auto& state : _ssch) {
@@ -39,13 +70,10 @@ PhysicsPlayer::PhysicsPlayer(QAO_RuntimeRef rtRef, SynchronizedObjectRegistry& s
     if (ctx().isPrivileged()) {
         auto* space = ctx(DPhysicsSpace);
 
-        cpFloat radius = 8.0;
-        cpFloat mass = 0.3;
-        //cpFloat moment = cpMomentForCircle(mass, 0.0, radius, cpv(0, 0));
+        cpFloat mass = 1.0;
         cpFloat moment = cpMomentForBox(mass, 58.0, 38.0);
 
         _body.reset(cpSpaceAddBody(space, cpBodyNew(mass, moment)));
-        //_shape.reset(cpSpaceAddShape(space, cpCircleShapeNew(_body.get(), radius, cpv(0.0, 0.0))));
         _shape.reset(cpSpaceAddShape(space, cpBoxShapeNew(_body.get(), 58.0, 38.0, 1.0)));
         cpBodySetPosition(_body.get(), cpv(initialState.x, initialState.y));
         cpShapeSetElasticity(_shape.get(), 0.5);
@@ -60,9 +88,6 @@ PhysicsPlayer::~PhysicsPlayer() {
     if (isMasterObject()) {
         syncDestroy();
     }
-
-    auto& self = _ssch.getCurrentState();
-    std::cout << "Player " << self.playerIndex << " died.\n";
 }
 
 void PhysicsPlayer::eventUpdate() {
@@ -70,7 +95,20 @@ void PhysicsPlayer::eventUpdate() {
     using hg::math::PointDirection;
 
     if (ctx().isPrivileged()) {
+        if (_invulCounter > 0) {
+            _invulCounter -= 1;
+        }
+
+        if (_stunCounter > 0) {
+            _stunCounter -= 1;
+        }
+
         if (_health <= 0.0) {
+            Compose_PlayerDeathAnnouncement(ctx(MNetworking).getNode(), RN_COMPOSE_FOR_ALL,
+                                            _ssch.getCurrentState().playerIndex);
+            if (!ctx().isHeadless()) {
+                std::cout << "Player " << _ssch.getCurrentState().playerIndex << " has died.\n";
+            }
             QAO_PDestroy(this);
             return;
         }
@@ -88,7 +126,7 @@ void PhysicsPlayer::eventUpdate() {
         // Propulsion
         cpBody* const body = _body.get();
         const cpVect pos = cpBodyGetPosition(body);
-        const cpFloat propulsionStrength = 100.0;
+        const cpFloat propulsionStrength = 400.0;
 
         if (up) {
             const cpVect force = cpvmult(cpBodyGetRotation(body), propulsionStrength);
@@ -111,7 +149,7 @@ void PhysicsPlayer::eventUpdate() {
         }
 
         // Rotation
-        {
+        if (_stunCounter == 0) {
             // Manual turning:
 #if 0
             if (left) {
@@ -135,12 +173,14 @@ void PhysicsPlayer::eventUpdate() {
 
             const Angle diff = currentRotation.shortestDistanceTo(targetRotation);
 
+            const cpFloat rcsStrength = 1000.0;
+
             cpVect rotForce;
             if (diff.asRadians() < 0.0) {
-                rotForce = cpv(0.0, -200.0);
+                rotForce = cpv(0.0, -rcsStrength);
             }
             else {
-                rotForce = cpv(0.0, +200.0);
+                rotForce = cpv(0.0, +rcsStrength);
             }
 
             rotForce = rotForce * std::sin(0.5 * std::abs(diff.asRadians()));
@@ -173,21 +213,23 @@ void PhysicsPlayer::eventUpdate() {
 #endif
         }
 
+        // FIRING PLASMA:
         if (CountPeriodic(&_fireCounter, 7, controls.fire)) {
             auto selfVel = cpBodyGetVelocity(_body.get());
             auto selfPos = cpBodyGetPosition(_body.get());
             auto selfRot = cpBodyGetRotation(_body.get());
 
             PhysicsBullet::VisibleState vs;
-            vs.x = selfPos.x;
-            vs.y = selfPos.y;
+            vs.x = selfPos.x + (static_cast<float>(std::rand()) / RAND_MAX) * 24.0 - 12.0;
+            vs.y = selfPos.y + (static_cast<float>(std::rand()) / RAND_MAX) * 24.0 - 12.0;
+            vs.rgbaColor = PLAYER_COLORS[self.playerIndex]->toInteger();
             auto* bullet = QAO_PCreate<PhysicsBullet>(getRuntime(), ctx().getSyncObjReg(), SYNC_ID_NEW, vs);
             //bullet->initWithSpeed(this, std::atan2(controls.mouseY - selfPos.y, controls.mouseX - selfPos.x), 50.0);
             bullet->initWithSpeed(this, 0.0, 0.0);
 
             cpBody* bulletBody = bullet->getPhysicsBody();
             cpFloat bulletMass = cpBodyGetMass(bulletBody);
-            cpFloat bulletSpeed = 100.0;
+            const cpFloat bulletSpeed = 36.0;
 
             // Match ship's speed:
             cpBodyApplyImpulseAtLocalPoint(bulletBody, cpvmult(selfVel, bulletMass), cpvzero);
@@ -210,12 +252,10 @@ void PhysicsPlayer::eventUpdate() {
             const auto actualLaunchAngleCp = cpv(actualLaunchAngle.asNormalizedVector().x, 
                                                  actualLaunchAngle.asNormalizedVector().y);
 
-            //cpBodyApplyImpulseAtLocalPoint(bulletBody, cpvmult(cpvnormalize(selfRot), bulletSpeed), cpvzero);
             cpBodyApplyImpulseAtLocalPoint(bulletBody, cpvmult(cpvnormalize(actualLaunchAngleCp), bulletSpeed), 
                                            cpvzero);
 
             // Action and reaction baby
-            //cpBodyApplyImpulseAtWorldPoint(_body.get(), cpvmult(cpvnormalize(selfRot), -5.0), selfPos);
             cpBodyApplyImpulseAtWorldPoint(_body.get(), cpvmult(cpvnormalize(actualLaunchAngleCp), -3.0), selfPos);
         }
     }
@@ -225,6 +265,7 @@ void PhysicsPlayer::eventUpdate() {
         _ssch.advanceDownTo(ctx().syncBufferLength * 2);
     }
 
+    // MOVE CAMERA:
     {
         auto& view = ctx(MWindow).getView();
         auto& self = _ssch.getCurrentState();
@@ -260,16 +301,14 @@ void PhysicsPlayer::eventPostUpdate() {
 }
 
 void PhysicsPlayer::eventDraw1() {
-    static const sf::Color COLORS[] = {sf::Color::White, sf::Color::Red, sf::Color::Green,
-        sf::Color::Yellow, sf::Color::Blue};
-
     auto& canvas = ctx(MWindow).getCanvas();
     auto& self = _ssch.getCurrentState();
 
     auto glow = ctx(DSprite, SpriteId::WhiteGlow).getSubsprite(0);
     glow.setOrigin(glow.getLocalBounds().width / 2, glow.getLocalBounds().height / 2);
     glow.setPosition(self.x, self.y);
-    glow.setColor(COLORS[self.playerIndex]);
+    glow.setColor(*PLAYER_COLORS[self.playerIndex]);
+    glow.setScale({1.25f, 1.25f});
     ctx(MWindow).getCanvas().draw(glow);
 
     auto sprite = ctx(DSprite, SpriteId::Ship).getSubsprite(0);
@@ -316,22 +355,35 @@ void PhysicsPlayer::eventDrawGUI() {
     }
 }
 
+namespace {
+constexpr double DAMAGE_MULTIPLIER = 1.0 / 8000.0;
+} // namespace
+
 void PhysicsPlayer::collisionPostSolve(Collideables::ICreature* terr, cpArbiter* arb) {
-    //std::cout << "hit POSTSOLVE; damage = " << std::round(cpArbiterTotalKE(arb) / 1000.0) << '\n';
-    _takeDamage(cpArbiterTotalKE(arb) / 2500.0);
+    const double damage = cpArbiterTotalKE(arb) * DAMAGE_MULTIPLIER;
+    if (damage >= 10.0) {
+        _stunCounter = STUN_STEPS_AFTER_COLLISION * damage / 100.0;
+    }
+    _takeDamage(cpArbiterTotalKE(arb) * DAMAGE_MULTIPLIER);
 }
 
 void PhysicsPlayer::collisionPostSolve(Collideables::IProjectile* proj, cpArbiter* arb) {
-    //std::cout << "hit POSTSOLVE; damage = " << std::round(cpArbiterTotalKE(arb) / 1000.0) << '\n';
     _takeDamage(25.0);
 }
 
 void PhysicsPlayer::collisionPostSolve(Collideables::ITerrain* terr, cpArbiter* arb) {
-    //std::cout << "hit POSTSOLVE; damage = " << std::round(cpArbiterTotalKE(arb) / 1000.0) << '\n';
-    _takeDamage(cpArbiterTotalKE(arb) / 2500.0);
+    const double damage = cpArbiterTotalKE(arb) * DAMAGE_MULTIPLIER;
+    if (damage >= 10.0) {
+        _stunCounter = STUN_STEPS_AFTER_COLLISION * damage / 100.0;
+    }
+    _takeDamage(cpArbiterTotalKE(arb) * DAMAGE_MULTIPLIER);
 }
 
 void PhysicsPlayer::_takeDamage(double damage) {
+    if (_invulCounter > 0) {
+        return;
+    }
+
     if (damage <= _shield) {
         _shield -= damage;
         return;

@@ -10,7 +10,7 @@ namespace spempe {
 
 namespace {
 
-//#define CATCH_EXCEPTIONS_TOP_LEVEL
+#define CATCH_EXCEPTIONS_TOP_LEVEL
 
 int DoSingleQaoIteration(hg::QAO_Runtime& runtime, std::int32_t eventFlags) {
     runtime.startStep();
@@ -62,6 +62,26 @@ hg::PZInteger GameContext::RuntimeConfig::getMaxFramesBetweenDisplays() const no
 GameContextExtensionData::~GameContextExtensionData() {
 }
 
+// ///////////////////////////////////////////////////////////////////////////////////////////// //
+
+GameContext::GameContext(const ResourceConfig& resourceConfig, const RuntimeConfig& runtimeConfig)
+    : _resourceConfig{resourceConfig}
+    , _runtimeConfig{runtimeConfig}
+    , _qaoRuntime{this}
+    , _windowManager{_qaoRuntime.nonOwning()}
+    , _networkingManager{_qaoRuntime.nonOwning()}
+    , _syncObjReg{_networkingManager.getNode()}
+    , _extensionData{nullptr}
+{
+    _networkingManager.getNode().setUserData(this);
+}
+
+GameContext::~GameContext() {
+    _qaoRuntime.eraseAllNonOwnedObjects();
+    _extensionData.reset();
+    _postStepActions.clear();
+}
+
 void GameContext::configure(Mode mode) {
     _mode = mode;
 
@@ -97,23 +117,6 @@ void GameContext::configure(Mode mode) {
     else {
         _windowManager.create();
     }
-}
-
-GameContext::GameContext(const ResourceConfig& resourceConfig, const RuntimeConfig& runtimeConfig)
-    : _resourceConfig{resourceConfig}
-    , _runtimeConfig{runtimeConfig}
-    , _qaoRuntime{this}
-    , _windowManager{_qaoRuntime.nonOwning()}
-    , _networkingManager{_qaoRuntime.nonOwning()}
-    , _syncObjReg{_networkingManager.getNode()}
-    , _extensionData{nullptr}
-{
-    _networkingManager.getNode().setUserData(this);
-}
-
-GameContext::~GameContext() {
-    _qaoRuntime.eraseAllNonOwnedObjects();
-    _extensionData.reset();
 }
 
 bool GameContext::isPrivileged() const {

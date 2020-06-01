@@ -10,7 +10,8 @@ extern ExecutionPriorityPtr PEXEPR_NETWORK_MGR;
 extern ExecutionPriorityPtr PEXEPR_WINDOW_MGR;
 
 // Other:
-extern ExecutionPriorityPtr PEXEPR_ENTITIES;
+extern ExecutionPriorityPtr PEXEPR_ENTITIES_ABOVE;
+extern ExecutionPriorityPtr PEXEPR_ENTITIES_BELOW;
 
 extern void ResolveExecutionPriorities();
 

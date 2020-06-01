@@ -9,6 +9,8 @@
 
 #include <Typhon/Framework.hpp>
 
+#include <cstdint>
+
 #include "__Experimental/Lighting.hpp"
 
 class PhysicsBullet : public SynchronizedObject, private Collideables::IProjectile {
@@ -16,9 +18,10 @@ public:
     struct VisibleState { // Visible state object must be public
         float x = 0.f;
         float y = 0.f;
+        std::uint32_t rgbaColor = 0;
         // bool hidden = true; // TODO This probably doesn't work right
 
-        HG_ENABLE_AUTOPACK(VisibleState, x, y);
+        HG_ENABLE_AUTOPACK(VisibleState, x, y, rgbaColor);
     };
 
     static constexpr auto SERIALIZABLE_TAG = "PhysicsBullet";

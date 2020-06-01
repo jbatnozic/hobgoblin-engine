@@ -97,13 +97,13 @@ void EnvironmentManager::generate(hg::PZInteger width, hg::PZInteger height, flo
                                    x >= getTerrainColumnCount() - 2 ||
                                    y >= getTerrainRowCount() - 2);
 
-            const int padding = 8;
+            const int padding = 12;
 
             const int isInner = (x > padding && y > padding &&
                                  x < getTerrainColumnCount() - padding &&
                                  y < getTerrainRowCount() - padding);
 
-            if (isBorder || (isInner && (std::rand() % 100) < 3)) {
+            if (isBorder || (isInner && (std::rand() % 1000) < 20)) {
                 setCellType(x, y, Terrain::TypeId::EnergyShield);
             }
             else {

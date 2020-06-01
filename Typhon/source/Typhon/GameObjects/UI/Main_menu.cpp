@@ -50,7 +50,7 @@ void MainMenu::eventUpdate() {
         const hg::PZInteger clientCount = InputPrompt<hg::PZInteger>("client count", 2);
 
         serverCtx->configure(GameContext::Mode::Server);
-        serverCtx->getNetworkingManager().getServer().start(localPort, "beetlejuice");
+        serverCtx->getNetworkingManager().getServer().start(localPort, GameConfig::NETWORKING_PASSPHRASE);
         serverCtx->getNetworkingManager().getServer().resize(clientCount);
         serverCtx->getNetworkingManager().getServer().setTimeoutLimit(std::chrono::seconds{5});
 
@@ -62,7 +62,7 @@ void MainMenu::eventUpdate() {
 
         // Connext to the server:
         ctx().configure(GameContext::Mode::Client);
-        ctx(MNetworking).getClient().connect(0, "localhost", serverPort, "beetlejuice");
+        ctx(MNetworking).getClient().connect(0, "localhost", serverPort, GameConfig::NETWORKING_PASSPHRASE);
         ctx(MNetworking).getClient().setTimeoutLimit(std::chrono::seconds{5});
     }
     else if (mode == CLIENT) {
@@ -71,7 +71,7 @@ void MainMenu::eventUpdate() {
         const std::uint16_t serverPort = InputPrompt<std::uint16_t>("server port", 8888);
 
         ctx().configure(GameContext::Mode::Client);
-        ctx(MNetworking).getClient().connect(localPort, serverIp, serverPort, "beetlejuice");
+        ctx(MNetworking).getClient().connect(localPort, serverIp, serverPort, GameConfig::NETWORKING_PASSPHRASE);
         ctx(MNetworking).getClient().setTimeoutLimit(std::chrono::seconds{5});
     }
     else if (mode == SOLO) {
@@ -87,7 +87,7 @@ void MainMenu::eventUpdate() {
     else if (mode == GAME_MASTER) {
         ctx().configure(GameContext::Mode::GameMaster);
         ctx(MNetworking).getServer().start(InputPrompt<std::uint16_t>("local port - 0 for any", 8888),
-                                                                      "beetlejuice");
+                                                                      GameConfig::NETWORKING_PASSPHRASE);
         ctx(MNetworking).getServer().resize(InputPrompt<hg::PZInteger>("client count", 2));
         ctx(MNetworking).getServer().setTimeoutLimit(std::chrono::seconds{5});
 

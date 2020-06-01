@@ -37,6 +37,7 @@ set(TYPHON_SOURCE_ALL
     source/Typhon/Framework/Collisions.cpp
     source/Typhon/Framework/Execution_priorities.cpp
     source/Typhon/Framework/Extensions.hpp
+    source/Typhon/Framework/Game_config.hpp
     source/Typhon/GameObjects/UI/Main_menu.cpp
     source/Typhon/GameObjects/UI/Main_menu.hpp
     source/Typhon/GameObjects/Gameplay/Physics_player.cpp
