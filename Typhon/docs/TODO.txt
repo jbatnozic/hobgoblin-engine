@@ -13,3 +13,7 @@ What to do with Compose_ calls when the client/node is disconnected?
 -Better resolution
 -K/D count
 -Toggle performance info
+-Player registry/lobby
+-Event log
+-Better random engine
+-Sync Terrain updates
