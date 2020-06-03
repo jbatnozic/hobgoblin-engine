@@ -279,7 +279,7 @@ void PhysicsPlayer::eventUpdate() {
                 auto direction = atan2(self.y - view.getCenter().y, self.x - view.getCenter().x);
                 view.move({std::cosf(direction) * dist / 2.f, std::sinf(direction) * dist / 2.f});
             }
-            view.setCenter(std::roundf(view.getCenter().x), std::roundf(view.getCenter().y));
+            view.setCenter(/*std::roundf*/(view.getCenter().x), /*std::roundf*/(view.getCenter().y));
         }
     }
 }

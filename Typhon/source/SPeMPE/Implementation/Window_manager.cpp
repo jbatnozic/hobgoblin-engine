@@ -23,17 +23,18 @@ WindowManager::WindowManager(hg::QAO_RuntimeRef runtimeRef, sf::Vector2u windowS
 }
 
 void WindowManager::create() {
-    _window.create(sf::VideoMode(800, 800), "Window");
+    _window.create(sf::VideoMode(1280, 720), "Window");
     // vSync and Framerate limiter perform near identically as far as
     // time correctness is concerned, but the game is usually smoother
     // with vSync. TODO Make it a toggle in the settings.
     _window.setVerticalSyncEnabled(true);
     //_window.setFramerateLimit(60);
 
-    _mainRenderTexture.create(800, 800);
+    _mainRenderTexture.create(1920, 1080);
+    _mainRenderTexture.setSmooth(true);
     _mainRenderTextureAdapter.setViewCount(1);
-    _mainRenderTextureAdapter.getView(0).setSize({800, 800});
-    _mainRenderTextureAdapter.getView(0).setCenter({400, 400});
+    _mainRenderTextureAdapter.getView(0).setSize({1920, 1080});
+    _mainRenderTextureAdapter.getView(0).setCenter({1920 / 2, 1080 / 2});
     _mainRenderTextureAdapter.getView(0).setViewport({0, 0, 1, 1});
 }
 
