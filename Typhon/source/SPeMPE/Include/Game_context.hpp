@@ -148,7 +148,7 @@ private:
     Mode _mode = Mode::Initial;
     bool _quit = false;
 
-    static void _runImpl(GameContext* context, int* retVal);
+    static void _runImpl(hg::not_null<GameContext*> context, hg::not_null<int*> retVal);
 
     void _insertPostStepAction(std::function<void(GameContext&)> action, hg::PZInteger delay);
     void _pollPostStepActions();

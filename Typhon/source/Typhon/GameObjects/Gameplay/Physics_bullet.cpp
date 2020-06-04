@@ -17,7 +17,7 @@ static void customDampingVelocityFunc(cpBody* body, cpVect gravity, cpFloat damp
 
 PhysicsBullet::PhysicsBullet(QAO_RuntimeRef rtRef, SynchronizedObjectRegistry& syncObjReg, SyncId syncId,
                              const VisibleState& initialState)
-    : SynchronizedObject{rtRef, SPEMPE_TYPEID_SELF, *PEXEPR_ENTITIES_BELOW, "PhysicsPlayer", syncObjReg, syncId}
+    : SynchronizedObject{rtRef, SPEMPE_TYPEID_SELF, *PEXEPR_ENTITIES_BELOW, "PhysicsBullet", syncObjReg, syncId}
     , _ssch{ctx().syncBufferLength}
 {
     for (auto& state : _ssch) {

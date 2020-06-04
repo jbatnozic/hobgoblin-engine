@@ -264,10 +264,7 @@ using std::chrono::duration_cast;
 
 } // namespace
 
-void GameContext::_runImpl(GameContext* context, int* retVal) {
-    assert(context != nullptr);
-    assert(retVal != nullptr);
-
+void GameContext::_runImpl(hg::not_null<GameContext*> context, hg::not_null<int*> retVal) {
     const TimingDuration deltaTime = context->getRuntimeConfig().getDeltaTime();
     TimingDuration accumulatorTime = deltaTime;
     auto currentTime = steady_clock::now();

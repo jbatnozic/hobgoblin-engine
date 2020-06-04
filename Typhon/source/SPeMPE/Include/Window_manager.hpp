@@ -21,34 +21,51 @@ public:
     };
 
     WindowManager(hg::QAO_RuntimeRef runtimeRef);
-    WindowManager(hg::QAO_RuntimeRef runtimeRef, sf::Vector2u windowSize, const sf::String& windowTitle,
-                  sf::Vector2u mainRenderTargetSize);
 
-    void create(); // TODO Temp.
+    void init(sf::VideoMode windowVideoMode, 
+              const sf::String& windowTitle, 
+              sf::Vector2u mainRenderTextureSize,
+              sf::Uint32 windowStyle = sf::Style::Default,
+              const sf::ContextSettings& windowContextSettings = sf::ContextSettings{},
+              const sf::ContextSettings& mainRenderTextureContextSettings = sf::ContextSettings{}
+              );
+
     void initAsHeadless();
 
-    sf::RenderWindow& getWindow();
+    void create(); // TODO Temp.
+    
+    sf::RenderWindow& getWindow(); // TODO Temp.
     sf::RenderTexture& getMainRenderTexture();
     hg::gr::Canvas& getCanvas();
 
-    void eventPostUpdate() override;
-    void eventDraw2() override;
-    void eventFinalizeFrame() override;
+    void drawMainRenderTexture(DrawPosition drawPosition); // TODO Temp. - To private
 
-    void drawMainRenderTexture(DrawPosition drawPosition);
-
+    // Input:
     KbInputTracker& getKeyboardInput();
 
-    sf::Vector2f getMousePos(hg::PZInteger viewIndex = 0) const {
+    // TODO MouseInputTracker& getMouseInput();
+
+    sf::Vector2f getMousePos(hg::PZInteger viewIndex = 0) const { // TODO - To .cpp file
         auto pixelPos = sf::Mouse::getPosition(_window);
         return _window.mapPixelToCoords(pixelPos, getView(viewIndex));
     }
+
+    // GUI:
+    void setGuiScale();
+    void getGuiScale() const;
+    void getGuiWidth() const;
+    void getGuiHeight() const;
 
     // Views:
     void setViewCount(hg::PZInteger viewCount);
     hg::PZInteger getViewCount() const noexcept;
     sf::View& getView(hg::PZInteger viewIndex = 0);
     const sf::View& getView(hg::PZInteger viewIndex = 0) const;
+
+protected:
+    void eventPostUpdate() override;
+    void eventDraw2() override;
+    void eventFinalizeFrame() override;
 
 private:
     sf::RenderWindow _window;

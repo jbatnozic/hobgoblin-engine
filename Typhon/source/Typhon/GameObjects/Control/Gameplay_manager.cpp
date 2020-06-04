@@ -60,7 +60,7 @@ void GameplayManager::restartGame() {
             iter = std::next(iter);
 
             auto& typeInfo = obj->getTypeInfo();
-            if (typeInfo == typeid(PhysicsPlayer) || typeInfo == typeid(PhysicsPlayer)) {
+            if (typeInfo == typeid(PhysicsBullet) || typeInfo == typeid(PhysicsPlayer)) {
                 QAO_PDestroy(obj);
             }
         }

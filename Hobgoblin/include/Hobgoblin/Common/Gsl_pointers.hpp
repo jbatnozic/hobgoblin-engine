@@ -90,13 +90,13 @@ public:
     template <typename U, typename = std::enable_if_t<std::is_convertible<U, T>::value>>
     constexpr not_null(U&& u) : ptr_(std::forward<U>(u))
     {
-        detail::RequireNotNull(ptr_);
+        ::jbatnozic::hobgoblin::detail::RequireNotNull(ptr_);
     }
 
     template <typename = std::enable_if_t<!std::is_same<std::nullptr_t, T>::value>>
     constexpr not_null(T u) : ptr_(u)
     {
-        detail::RequireNotNull(ptr_);
+        ::jbatnozic::hobgoblin::detail::RequireNotNull(ptr_);
     }
 
     template <typename U, typename = std::enable_if_t<std::is_convertible<U, T>::value>>
@@ -109,7 +109,7 @@ public:
 
     constexpr T get() const
     {
-        detail::RequireNotNull(ptr_);
+        ::jbatnozic::hobgoblin::detail::RequireNotNull(ptr_);
         return ptr_;
     }
 

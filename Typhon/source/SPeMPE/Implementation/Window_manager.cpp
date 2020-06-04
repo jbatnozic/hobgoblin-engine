@@ -14,14 +14,6 @@ WindowManager::WindowManager(hg::QAO_RuntimeRef runtimeRef)
 {
 }
 
-WindowManager::WindowManager(hg::QAO_RuntimeRef runtimeRef, sf::Vector2u windowSize, 
-                             const sf::String& windowTitle, sf::Vector2u mainRenderTargetSize)
-    : WindowManager{runtimeRef}
-{
-    _window.create(sf::VideoMode{windowSize.x, windowSize.y}, windowTitle);
-    _mainRenderTexture.create(mainRenderTargetSize.x, mainRenderTargetSize.y);
-}
-
 void WindowManager::create() {
     _window.create(sf::VideoMode(1280, 720), "Window");
     // vSync and Framerate limiter perform near identically as far as
@@ -36,6 +28,26 @@ void WindowManager::create() {
     _mainRenderTextureAdapter.getView(0).setSize({1920, 1080});
     _mainRenderTextureAdapter.getView(0).setCenter({1920 / 2, 1080 / 2});
     _mainRenderTextureAdapter.getView(0).setViewport({0, 0, 1, 1});
+}
+
+void WindowManager::init(sf::VideoMode windowVideoMode,
+                         const sf::String& windowTitle,
+                         sf::Vector2u mainRenderTextureSize,
+                         sf::Uint32 windowStyle,
+                         const sf::ContextSettings& windowContextSettings,
+                         const sf::ContextSettings& mainRenderTextureContextSettings) {
+    // Create window:
+    _window.create(windowVideoMode, windowTitle, windowStyle, windowContextSettings);
+
+    // Create main render texture:
+    _mainRenderTexture.create(mainRenderTextureSize.x, mainRenderTextureSize.y, mainRenderTextureContextSettings);
+
+    // Create default view:
+    _mainRenderTextureAdapter.setViewCount(1);
+    _mainRenderTextureAdapter.getView(0).setSize(static_cast<float>(mainRenderTextureSize.x),
+                                                 static_cast<float>(mainRenderTextureSize.y));
+    _mainRenderTextureAdapter.getView(0).setViewport({0.f, 0.f, 1.f, 1.f});
+
 }
 
 void WindowManager::initAsHeadless() {
