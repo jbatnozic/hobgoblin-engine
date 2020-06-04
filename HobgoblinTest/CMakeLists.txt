@@ -13,6 +13,7 @@ conan_basic_setup()
 # Collect all sources
 set(HOBGOBLIN_TEST_SOURCE_ALL
     source/ColDetect_test.cpp
+    source/Gsl_pointers_test.cpp
 	source/gtest_main.cpp
 	source/QAO_serialization_test.cpp
 	source/Qao_test.cpp
@@ -28,7 +29,11 @@ set(HOBGOBLIN_TEST_TARGET_NAME
     ${PROJECT_NAME}.exe
 )
 
-link_directories(../Hobgoblin/build/Hobgoblin-x64-Debug-Lib/lib)
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    link_directories(../Hobgoblin/build/Hobgoblin-x64-Debug-Lib/lib)
+else()
+    link_directories(../Hobgoblin/build/Hobgoblin-x64-Release-Lib/lib)
+endif()
 
 add_executable(${HOBGOBLIN_TEST_TARGET_NAME}
     ${HOBGOBLIN_TEST_SOURCE_ALL}

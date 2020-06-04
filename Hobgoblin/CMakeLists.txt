@@ -51,6 +51,10 @@ set(HOBGOBLIN_SOURCE_CHIPMUNK
     source/Hobgoblin/ChipmunkPhysics/cpHastySpace.c
 )
 
+set(HOBGOBLIN_SOURCE_COMMON
+    source/Hobgoblin/Common/Gsl_pointers.cpp
+)
+
 set(HOBGOBLIN_SOURCE_COLDETECT
     source/Hobgoblin/ColDetect/Qtree_collision_domain.cpp  
 )
@@ -113,6 +117,7 @@ set(HOBGOBLIN_SOURCE_UTILITY
 set(HOBGOBLIN_SOURCE_ALL
     ${HOBGOBLIN_SOURCE_CHIPMUNK}
     source/Hobgoblin/ChipmunkPhysics/prime.h
+    ${HOBGOBLIN_SOURCE_COMMON}
     ${HOBGOBLIN_SOURCE_COLDETECT}
     ${HOBGOBLIN_SOURCE_GRAPHICS}
     ${HOBGOBLIN_SOURCE_PRIVATE}
