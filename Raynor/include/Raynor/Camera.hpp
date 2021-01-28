@@ -1,8 +1,11 @@
 
+#ifndef URAYNOR_CAMERA_HPP
+#define URAYNOR_CAMERA_HPP
+
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Math.hpp>
 
-#include "Vector.hpp"
+#include <Raynor/Vector.hpp>
 
 //#include <iostream> // TEMP
 #include <vector>
@@ -15,23 +18,25 @@ using hg::PZInteger;
 #define TERN(_cond_, _then_, _else_) ((_cond_)?(_then_):(_else_))
 
 template <class taReal>
-std::vector<Vec3<taReal>> ConstructCameraAtOrigin(PZInteger aWidth, PZInteger aHeight, hg::math::Angle aFieldOfView) {
+std::vector<Vec3<taReal>> ConstructDefaultCamera(PZInteger aWidth,
+                                                 PZInteger aHeight, 
+                                                 hg::math::Angle<taReal> aFieldOfView) {
     using Real = taReal;
-    constexpr Real ONE  = Real{1.0};
-    constexpr Real ZERO = Real{0.0};
+    constexpr Real ONE  = Real{1};
+    constexpr Real ZERO = Real{0};
 
     const Real aspectRatio = static_cast<Real>(aWidth) / aHeight;
     // startX and startZ don't account for the 0.5 pixel shift (to make the rays go through the
     // centre of each pixel)
-    const Real startX = (-ONE * TERN(aspectRatio > ONE, aspectRatio, ONE)) * std::tan(aFieldOfView.asRadians() * 0.5);
-    const Real startZ = (+ONE / TERN(aspectRatio < ONE, aspectRatio, ONE)) * std::tan(aFieldOfView.asRadians() * 0.5);
+    const Real startX = (-ONE * TERN(aspectRatio > ONE, aspectRatio, ONE)) * std::tan(aFieldOfView.asRadians() * 0.5f);
+    const Real startZ = (+ONE / TERN(aspectRatio < ONE, aspectRatio, ONE)) * std::tan(aFieldOfView.asRadians() * 0.5f);
     // TODO ^ std::tan doesn't account for the actual type of Real (nor does the Angle class itself)
-    const Real deltaX = (Real{-2.0} * startX) / aWidth;
-    const Real deltaZ = (Real{-2.0} * startZ) / aHeight;
-    const Real adjustedStartX = startX + deltaX / Real{2.0};
-    const Real adjustedStartZ = startZ + deltaZ / Real{2.0};
+    const Real deltaX = (Real{-2} * startX) / aWidth;
+    const Real deltaZ = (Real{-2} * startZ) / aHeight;
+    const Real adjustedStartX = startX + deltaX / Real{2};
+    const Real adjustedStartZ = startZ + deltaZ / Real{2};
 
-    constexpr auto ORIGIN = Vec3<Real>{ZERO, ZERO, ZERO};
+    constexpr auto ORIGIN = Vec3<Real>{ZERO};
 
     Real x = adjustedStartX;
     Real y = -ONE;
@@ -55,3 +60,5 @@ std::vector<Vec3<taReal>> ConstructCameraAtOrigin(PZInteger aWidth, PZInteger aH
 
 } // namespace raynor
 } // namespace jbatnozic
+
+#endif // !URAYNOR_CAMERA_HPP

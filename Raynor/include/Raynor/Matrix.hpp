@@ -74,5 +74,16 @@ Matrix<taReal, taHeight1, taWidth2> Multiply(const Matrix<taReal, taHeight1, taW
     return result;
 }
 
+// TODO To transformations.hpp
+template <class taReal>
+Matrix33<taReal> MakeZAxisRotationMatrix33(hg::math::Angle<taReal> aAngle) {
+    auto result = Matrix33<taReal>::makeIdentity();
+    result[0][0] = +std::cos(aAngle.asRadians());
+    result[0][1] = -std::sin(aAngle.asRadians());
+    result[1][0] = +std::sin(aAngle.asRadians());
+    result[1][1] = +std::cos(aAngle.asRadians());
+    return result;
+}
+
 } // namespace raynor
 } // namespace jbatnozic

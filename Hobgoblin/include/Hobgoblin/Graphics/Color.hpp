@@ -26,7 +26,7 @@ public:
 #undef  XMACRO
 };
 
-// TODO Thes functions aren't exactly correct
+// TODO These functions aren't exactly correct
 Color AddColors(Color c1, Color c2);
 Color MultiplyColors(Color c1, Color c2);
 

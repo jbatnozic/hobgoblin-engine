@@ -12,7 +12,6 @@ conan_basic_setup()
 
 # Collect all sources
 set(RAYNOR_SOURCE_ALL
-    source/Vector.hpp
     source/Main.cpp
 )
 
@@ -35,7 +34,7 @@ add_executable(${RAYNOR_TARGET_NAME}
 )
 
 target_include_directories(${RAYNOR_TARGET_NAME} PUBLIC ../Hobgoblin/include)
-target_include_directories(${RAYNOR_TARGET_NAME} PUBLIC source)
+target_include_directories(${RAYNOR_TARGET_NAME} PUBLIC include)
 target_link_libraries(${RAYNOR_TARGET_NAME} PUBLIC 
     ${CONAN_LIBS}
     "hobgoblin"
@@ -44,5 +43,3 @@ target_link_libraries(${RAYNOR_TARGET_NAME} PUBLIC
 if(WIN32)
     target_link_libraries(${RAYNOR_TARGET_NAME} PRIVATE legacy_stdio_definitions.lib)
 endif()
-
-# set_target_properties(${RAYNOR_TARGET_NAME} PROPERTIES LINK_FLAGS "/PROFILE")

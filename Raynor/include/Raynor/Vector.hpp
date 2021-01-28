@@ -89,11 +89,10 @@ template <class taReal>
     return aVec1.x * aVec2.x + aVec1.y * aVec2.y + aVec1.z * aVec2.z;
 }
 
-// TODO Angle is always represented with a double - do something about it?
 template <class taReal>
-[[nodiscard]] constexpr hg::math::Angle AngleBetween(const Vec3<taReal>& aVec1, const Vec3<taReal>& aVec2) {
+[[nodiscard]] constexpr hg::math::Angle<taReal> AngleBetween(const Vec3<taReal>& aVec1, const Vec3<taReal>& aVec2) {
     auto dotOfNormalized = Dot(Normalize(aVec1), Normalize(aVec2));
-    return hg::math::Angle::fromRadians(std::acos(dotOfNormalized));
+    return hg::math::Angle<taReal>::fromRadians(std::acos(dotOfNormalized));
 }
 
 template <class taReal>

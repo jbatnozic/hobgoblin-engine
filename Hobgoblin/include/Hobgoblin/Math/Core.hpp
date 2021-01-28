@@ -37,13 +37,43 @@ T Sqr(T value) {
 }
 
 template <class T>
-float EuclideanDist(const Vector2<T>& p1, const Vector2<T>& p2) {
+T EuclideanDist(const Vector2<T>& p1, const Vector2<T>& p2) {
     return std::sqrt(Sqr(p2.x - p1.x) + Sqr(p2.y - p1.y));
 }
 
 template <class T>
 constexpr typename std::enable_if_t<std::is_integral_v<T>, T> IntegralCeilDiv(T dividend, T divisor) {
     return dividend / divisor - ((-(dividend % divisor)) >> (sizeof(T) * CHAR_BIT - 1));
+}
+
+// Solves a quadratic equation
+// aX0 will contain the lower solution, aX1 will contain the larger solution (if any)
+// Returns false if can't be solved in real numbers
+template <class taReal>
+bool SolveQuadratic(taReal aA, taReal aB, taReal aC, taReal& aX0, taReal& aX1)
+{
+    using Real = taReal;
+
+    const Real discriminant = (aB * aB) - (Real{4} * aA * aC);
+    if (discriminant < Real{0}) {
+        return false;
+    }
+
+    if (discriminant == Real{0}) {
+        aX0 = aX1 = Real{-0.5} * aB / aA;
+    }
+    else {
+        const Real q = (aB > Real{0}) ? -0.5 * (aB + std::sqrt(discriminant))
+                                      : -0.5 * (aB - std::sqrt(discriminant));
+        aX0 = q / aA;
+        aX1 = aC / q;
+    }
+
+    if (aX0 > aX1) {
+        std::swap(aX0, aX1);
+    }
+
+    return true;
 }
 
 } // namespace math
