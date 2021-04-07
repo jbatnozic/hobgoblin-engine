@@ -91,7 +91,7 @@ PhysicsPlayer::~PhysicsPlayer() {
 }
 
 void PhysicsPlayer::eventUpdate() {
-    using hg::math::Angle;
+    using hg::math::AngleD;
     using hg::math::PointDirection;
 
     if (ctx().isPrivileged()) {
@@ -163,15 +163,15 @@ void PhysicsPlayer::eventUpdate() {
                 cpBodyApplyForceAtLocalPoint(body, cpvneg(rotForce), cpvzero);
             }
 #else
-            const Angle currentRotation = Angle::fromVector(cpBodyGetRotation(body).x,
-                                                            cpBodyGetRotation(body).y);
+            const AngleD currentRotation = AngleD::fromVector(cpBodyGetRotation(body).x,
+                                                              cpBodyGetRotation(body).y);
 
             const auto selfPos  = cpBodyGetPosition(body);
             const auto mousePos = cpv(controls.mouseX, controls.mouseY);
 
-            const Angle targetRotation = PointDirection(selfPos, mousePos);
+            const AngleD targetRotation = PointDirection<double>(selfPos, mousePos);
 
-            const Angle diff = currentRotation.shortestDistanceTo(targetRotation);
+            const AngleD diff = currentRotation.shortestDistanceTo(targetRotation);
 
             const cpFloat rcsStrength = 1000.0;
 
@@ -237,17 +237,17 @@ void PhysicsPlayer::eventUpdate() {
             // Launch projectile:
             constexpr double aimingAngle = hg::math::DegToRad(20.0);
 
-            const Angle selfAngle = Angle::fromVector(selfRot.x, selfRot.y);
+            const AngleD selfAngle = AngleD::fromVector(selfRot.x, selfRot.y);
 
-            const Angle desiredLaunchAngle = PointDirection(selfPos, cpv(controls.mouseX, controls.mouseY));
+            const AngleD desiredLaunchAngle = PointDirection<double>(selfPos, cpv(controls.mouseX, controls.mouseY));
 
-            const Angle desiredAngleOffset = selfAngle.shortestDistanceTo(desiredLaunchAngle);
+            const AngleD desiredAngleOffset = selfAngle.shortestDistanceTo(desiredLaunchAngle);
 
-            const Angle actualAngleOffset = Angle::fromRadians(
+            const AngleD actualAngleOffset = AngleD::fromRadians(
                 hg::math::Clamp(desiredAngleOffset.asRadians(), -aimingAngle, +aimingAngle)
             );
 
-            const Angle actualLaunchAngle = selfAngle + actualAngleOffset;
+            const AngleD actualLaunchAngle = selfAngle + actualAngleOffset;
 
             const auto actualLaunchAngleCp = cpv(actualLaunchAngle.asNormalizedVector().x, 
                                                  actualLaunchAngle.asNormalizedVector().y);
@@ -294,7 +294,7 @@ void PhysicsPlayer::eventPostUpdate() {
         self.shield = static_cast<float>(_shield);
 
         auto physicsRot = cpBodyGetRotation(_body.get());
-        self.angle = static_cast<float>(hg::math::Angle::fromVector(physicsRot.x, physicsRot.y).asRadians());
+        self.angle = static_cast<float>(hg::math::AngleD::fromVector(physicsRot.x, physicsRot.y).asRadians());
     }
 
     _lightHandle.setPosition(self.x, self.y);

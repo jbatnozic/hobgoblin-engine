@@ -1,6 +1,8 @@
 # Build folders
 **/build/
 **/build.out/
+**/Build/
+**/Build.out/
 
 # IDE caches
 **/.vs

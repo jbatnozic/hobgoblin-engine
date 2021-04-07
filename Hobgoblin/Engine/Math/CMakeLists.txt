@@ -1,6 +1,6 @@
 # ===== COMPONENT SETUP =====
 
-set(COMPONENT_NAME "Hobgoblin.Private")
+set(COMPONENT_NAME "Hobgoblin.Math")
 
 # ===== GATHER SOURCES ======
 

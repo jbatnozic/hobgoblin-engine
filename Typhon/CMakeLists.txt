@@ -71,20 +71,34 @@ set(TYPHON_TARGET_NAME
 )
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    link_directories(../Hobgoblin/build/Hobgoblin-x64-Debug-Lib/lib)
+    link_directories(../Hobgoblin/Build/Hobgoblin-x64-Debug-Lib/lib)
 else()
-    link_directories(../Hobgoblin/build/Hobgoblin-x64-Release-Lib/lib)
+    link_directories(../Hobgoblin/Build/Hobgoblin-x64-Release-Lib/lib)
 endif()
 
 add_executable(${TYPHON_TARGET_NAME}
     ${TYPHON_SOURCE_ALL}
 )
 
-target_include_directories(${TYPHON_TARGET_NAME} PUBLIC ../Hobgoblin/include)
+target_include_directories(${TYPHON_TARGET_NAME} PUBLIC ../Hobgoblin/Engine/ChipmunkPhysics/Include)
+target_include_directories(${TYPHON_TARGET_NAME} PUBLIC ../Hobgoblin/Engine/Common/Include)
+target_include_directories(${TYPHON_TARGET_NAME} PUBLIC ../Hobgoblin/Engine/Graphics/Include)
+target_include_directories(${TYPHON_TARGET_NAME} PUBLIC ../Hobgoblin/Engine/Math/Include)
+target_include_directories(${TYPHON_TARGET_NAME} PUBLIC ../Hobgoblin/Engine/Preprocessor/Include)
+target_include_directories(${TYPHON_TARGET_NAME} PUBLIC ../Hobgoblin/Engine/Private/Include)
+target_include_directories(${TYPHON_TARGET_NAME} PUBLIC ../Hobgoblin/Engine/QAO/Include)
+target_include_directories(${TYPHON_TARGET_NAME} PUBLIC ../Hobgoblin/Engine/RigelNet/Include)
+target_include_directories(${TYPHON_TARGET_NAME} PUBLIC ../Hobgoblin/Engine/Utility/Include)
 target_include_directories(${TYPHON_TARGET_NAME} PUBLIC source)
 target_link_libraries(${TYPHON_TARGET_NAME} PUBLIC 
     ${CONAN_LIBS}
-    "hobgoblin"
+    "Hobgoblin.Private"
+    "Hobgoblin.Common"
+    "Hobgoblin.Utility"
+    "Hobgoblin.ChipmunkPhysics"
+    "Hobgoblin.Graphics"
+    "Hobgoblin.QAO"
+    "Hobgoblin.RigelNet"
 )
 
 if(WIN32)

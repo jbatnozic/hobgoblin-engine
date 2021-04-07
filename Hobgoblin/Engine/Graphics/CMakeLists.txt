@@ -1,17 +1,20 @@
 # ===== COMPONENT SETUP =====
 
-set(COMPONENT_NAME "Hobgoblin.QAO")
+set(COMPONENT_NAME "Hobgoblin.Graphics")
 
 # ===== GATHER SOURCES ======
 
 set(COMPONENT_SOURCES
-  "Source/base.cpp"
-  "Source/id.cpp"
-  "Source/orderer.cpp"
-  "Source/Priority_resolver.cpp"
-  "Source/Priority_resolver2.cpp"
-  "Source/registry.cpp"
-  "Source/runtime.cpp"
+  "Source/Private/Max_rects_bin_pack.cpp"
+  "Source/Private/Rbp_rect.cpp"
+
+  "Source/Brush.cpp"
+  "Source/Builtin_fonts.cpp"
+  "Source/Color.cpp"
+  "Source/Multisprite.cpp"
+  "Source/Sprite_loader.cpp"
+  "Source/Texture_packing.cpp"
+  "Source/Views.cpp"
 )
 
 # ===== TARGET SETUP =====
@@ -24,4 +27,5 @@ PUBLIC
   "Hobgoblin.Private"
   "Hobgoblin.Common"
   "Hobgoblin.Utility"
+  "CONAN_PKG::sfml"
 )
