@@ -20,9 +20,17 @@ conan_basic_setup(TARGETS)
 # ===== ADD MODULES =====
 
 add_subdirectory("Engine")
+add_subdirectory("Test")
 
 
-if(False) # old build sysyem
+
+
+
+
+
+
+# old build sysyem
+if(False)
   set(HOBGOBLIN_SOURCE_ALL
       ${HOBGOBLIN_SOURCE_CHIPMUNK}
       source/Hobgoblin/ChipmunkPhysics/prime.h

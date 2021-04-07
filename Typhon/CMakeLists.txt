@@ -92,7 +92,6 @@ target_include_directories(${TYPHON_TARGET_NAME} PUBLIC ../Hobgoblin/Engine/Util
 target_include_directories(${TYPHON_TARGET_NAME} PUBLIC source)
 target_link_libraries(${TYPHON_TARGET_NAME} PUBLIC 
     ${CONAN_LIBS}
-    "Hobgoblin.Private"
     "Hobgoblin.Common"
     "Hobgoblin.Utility"
     "Hobgoblin.ChipmunkPhysics"

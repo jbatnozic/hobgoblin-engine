@@ -1,4 +1,5 @@
 [requires]
+gtest/1.10.0
 sfml/2.5.1@bincrafters/stable
 
 [options]
