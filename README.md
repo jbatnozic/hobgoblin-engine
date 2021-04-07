@@ -5,10 +5,10 @@ basis for small ~~and simple~~ games", unit tests for the engine and some exampl
 
 
 ### Directories:
- - **Hobgoblin:** The engine itself.
- - **HobgoblinTest:** Unit tests for the engine.
- - **SpaceshipPhysics:** Some old code in the process of being deprecated and deleted.
- - **Typhon:** A small showcase game which utilizes Hobgoblin. The name was chosen arbitrarily.
+ - **Engine:** The engine itself.
+ - **ProofOfConceptProjects:** Projects which are used either to develop future Hobgoblin features, or depend on
+Hobgoblin and serve as showcases and examples of its usage. They also test whether the API is user-friendly, so
+they are placed in the same repository for faster development in case something needs to be changed.
 
 
 Most of the directories have their own Readme file which describes relevant contents in more detail.
