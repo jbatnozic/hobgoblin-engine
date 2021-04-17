@@ -1,5 +1,6 @@
 
 #include <Hobgoblin/RigelNet/Packet_wrapper.hpp>
+#include <SFML/Network.hpp>
 
 #include <cstring>
 #include <cstdint>
@@ -74,6 +75,8 @@ void* SfmlPacketAccess_ExtractBytes(sf::Packet& packet, std::size_t byteCount) {
 }
 
 } // namespace
+
+// TODO WTF is up with this file?????
 
 HOBGOBLIN_NAMESPACE_START
 namespace util {

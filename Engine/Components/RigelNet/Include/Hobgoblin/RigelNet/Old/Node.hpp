@@ -1,11 +1,12 @@
 #ifndef UHOBGOBLIN_RN_NODE_HPP
 #define UHOBGOBLIN_RN_NODE_HPP
 
-#include <Hobgoblin/RigelNet/Event.hpp>
+#include <Hobgoblin/RigelNet/Events.hpp>
 #include <Hobgoblin/RigelNet/Handlermgmt.hpp>
-#include <Hobgoblin/RigelNet/Packet_wrapper.hpp>
 #include <Hobgoblin/Utility/Any_ptr.hpp>
 #include <Hobgoblin/Utility/No_copy_no_move.hpp>
+
+#include "Packet_wrapper.hpp"
 
 #include <cassert>
 #include <cstdint>
@@ -157,7 +158,7 @@ T* RN_Node::getUserDataOrThrow() const {
 }
 
 template <class R,  class ...Args>
-void UHOBGOBLIN_RN_ComposeImpl(RN_Node& node, R&& receivers, detail::RN_HandlerId handlerId, Args... args) {
+void UHOBGOBLIN_RN_ComposeImpl(RN_Node& node, R&& recepients, detail::RN_HandlerId handlerId, Args... args) {
     detail::RN_PacketWrapper packetWrap;
     packetWrap.insert(handlerId);
     detail::PackArgs(packetWrap, std::forward<Args>(args)...);
@@ -166,10 +167,10 @@ void UHOBGOBLIN_RN_ComposeImpl(RN_Node& node, R&& receivers, detail::RN_HandlerI
         node.compose(RN_ComposeForAllType{}, packetWrap.packet.getData(), packetWrap.packet.getDataSize());
     }
     else if constexpr (std::is_convertible_v<R, PZInteger>) {    
-        node.compose(std::forward<R>(receivers), packetWrap.packet.getData(), packetWrap.packet.getDataSize());
+        node.compose(std::forward<R>(recepients), packetWrap.packet.getData(), packetWrap.packet.getDataSize());
     } 
     else {
-        for (PZInteger i : std::forward<R>(receivers)) {
+        for (PZInteger i : std::forward<R>(recepients)) {
             node.compose(i, packetWrap.packet.getData(), packetWrap.packet.getDataSize());
         }
     }

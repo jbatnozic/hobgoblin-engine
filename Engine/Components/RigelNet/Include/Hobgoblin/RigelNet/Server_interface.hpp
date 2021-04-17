@@ -3,6 +3,7 @@
 
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/RigelNet/Connector_interface.hpp>
+#include <Hobgoblin/RigelNet/Node_interface.hpp>
 
 #include <chrono>
 #include <cstdint>
@@ -13,19 +14,15 @@
 HOBGOBLIN_NAMESPACE_START
 namespace rn {
 
-class RN_ServerInterface {
+class RN_ServerInterface : public RN_NodeInterface {
 public:
     ///////////////////////////////////////////////////////////////////////////
     // SERVER CONTROL                                                        //
     ///////////////////////////////////////////////////////////////////////////
 
-    virtual void start(std::uint16_t localPort, std::string passphrase) = 0;
+    virtual void start(std::uint16_t localPort) = 0;
 
     virtual void stop() = 0;
-
-    virtual bool isRunning() const = 0;
-
-    virtual void update(RN_UpdateMode mode) = 0;
 
     virtual void resize(PZInteger newSize) = 0;
 
@@ -44,6 +41,8 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     // STATE INSPECTION                                                      //
     ///////////////////////////////////////////////////////////////////////////
+
+    virtual bool isRunning() const = 0;
 
     virtual PZInteger getSize() const = 0;
 

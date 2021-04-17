@@ -8,11 +8,12 @@
 HOBGOBLIN_NAMESPACE_START
 namespace rn {
 
+//! Utility class to enable sending and receiving raw byte data with RigelNet
 class RN_RawDataView {
 public:
     RN_RawDataView(const void* data, std::size_t dataByteCount)
         : _data{data}
-        , _dataByteCount{dataByteCount}
+        , _dataByteCount{static_cast<decltype(_dataByteCount)>(dataByteCount)}
     {
     }
 
@@ -31,7 +32,7 @@ public:
 
     friend util::PacketBase& operator<<(util::PacketBase& packet, const RN_RawDataView& self) {
         if (self._data != nullptr && self._dataByteCount > 0) {
-            packet << self.getDataSize;
+            packet << self._dataByteCount;
             packet.append(self._data, self._dataByteCount);
         }
     }

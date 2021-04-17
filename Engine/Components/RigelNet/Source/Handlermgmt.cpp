@@ -1,6 +1,6 @@
 
 #include <Hobgoblin/Common.hpp>
-#include <Hobgoblin/RigelNet/handlermgmt.hpp>
+#include <Hobgoblin/RigelNet/Handlermgmt.hpp>
 
 #include <algorithm>
 #include <cassert>

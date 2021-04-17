@@ -5,13 +5,15 @@ set(COMPONENT_NAME "Hobgoblin.RigelNet")
 # ===== GATHER SOURCES ======
 
 set(COMPONENT_SOURCES
-  "Source/Event.cpp"
+  "Source/Events.cpp"
+  "Source/Factories.cpp"
   "Source/Handlermgmt.cpp"
-  "Source/Node.cpp"
+  "Source/Node_interface.cpp"
   "Source/Packet.cpp"
-  "Source/Udp_client.cpp"
-  "Source/Udp_connector.cpp"
-  "Source/Udp_server.cpp"
+  "Source/Socket_adapter.cpp"
+  "Source/Udp_client_impl.cpp"
+  "Source/Udp_connector_impl.cpp"
+  "Source/Udp_server_impl.cpp"
 )
 
 # ===== TARGET SETUP =====

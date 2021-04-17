@@ -1,21 +1,26 @@
 #ifndef UHOBGOBLIN_RN_NODE_INTERFACE_HPP
 #define UHOBGOBLIN_RN_NODE_INTERFACE_HPP
 
+#include <Hobgoblin/RigelNet/Configuration.hpp>
+#include <Hobgoblin/RigelNet/Events.hpp>
+#include <Hobgoblin/RigelNet/Handlermgmt.hpp>
+#include <Hobgoblin/RigelNet/Packet_wrapper.hpp>
+
+#include <cassert>
+#include <functional>
+
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_START
 namespace rn {
 
-enum class RN_Protocol {
-    None, //! No protocol implemented (only on dummy nodes).
-    TCP,  //! Transmission control protocol (NOT YET IMPLEMENTED).
-    UDP   //! User datagram protocol.
-};
-
 enum class RN_UpdateMode {
     Receive,
     Send
 };
+
+class RN_ClientInterface;
+class RN_ServerInterface;
 
 class RN_NodeInterface {
 public:
@@ -25,8 +30,63 @@ public:
 
     virtual RN_Protocol getProtocol() const noexcept = 0;
 
+    virtual RN_NetworkingStack getNetworkingStack() const noexcept = 0;
+
     virtual void update(RN_UpdateMode updateMode) = 0;
+
+    //! Call the provided function if this node is a Client.
+    void callIfClient(std::function<void(RN_ClientInterface& client)> func);
+
+    //! Call the provided funtion if this node is a Server.
+    void callIfServer(std::function<void(RN_ServerInterface& client)> func);
+
+private:
+    virtual void _compose(RN_ComposeForAllType receiver, const void* data, std::size_t sizeInBytes) = 0;
+    virtual void _compose(PZInteger receiver, const void* data, std::size_t sizeInBytes) = 0;
+    virtual detail::RN_PacketWrapper* _getCurrentPacketWrapper() = 0;
+
+    template <class taRecepients, class ...taArgs>
+    friend void UHOBGOBLIN_RN_ComposeImpl(RN_NodeInterface& node, 
+                                          taRecepients&& recepients, 
+                                          detail::RN_HandlerId handlerId, 
+                                          taArgs... args);
+
+    template <class T>
+    friend typename std::remove_reference<T>::type UHOBGOBLIN_RN_ExtractArg(RN_NodeInterface& node);
 };
+
+//! Function for internal use.
+template <class taRecepients,  class ...taArgs>
+void UHOBGOBLIN_RN_ComposeImpl(RN_NodeInterface& node,
+                               taRecepients&& recepients,
+                               detail::RN_HandlerId handlerId,
+                               taArgs... args) {
+    detail::RN_PacketWrapper packetWrap;
+    packetWrap.insert(handlerId);
+    detail::PackArgs(packetWrap, std::forward<taArgs>(args)...);
+
+    if constexpr (std::is_same_v<std::remove_cv_t<std::remove_reference_t<taRecepients>>, RN_ComposeForAllType>) {
+        node._compose(RN_ComposeForAllType{}, packetWrap.packet.getData(), packetWrap.packet.getDataSize());
+    }
+    else if constexpr (std::is_convertible_v<taRecepients, PZInteger>) {    
+        node._compose(std::forward<taRecepients>(recepients),
+                      packetWrap.packet.getData(), 
+                      packetWrap.packet.getDataSize());
+    } 
+    else {
+        for (PZInteger i : std::forward<taRecepients>(recepients)) {
+            node._compose(i, packetWrap.packet.getData(), packetWrap.packet.getDataSize());
+        }
+    }
+}
+
+//! Function for internal use.
+template <class taArgType>
+typename std::remove_reference<taArgType>::type UHOBGOBLIN_RN_ExtractArg(RN_NodeInterface& node) {
+    auto* packw = node._getCurrentPacketWrapper();
+    assert(packw);
+    return packw->extractOrThrow<taArgType>();
+}
 
 } // namespace rn
 HOBGOBLIN_NAMESPACE_END

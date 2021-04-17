@@ -1,6 +1,11 @@
 
-#include <Hobgoblin/RigelNet/Node.hpp>
-#include <Hobgoblin/RigelNet/Udp_connector.hpp>
+#include "Udp_connector_impl.hpp"
+
+#define HOBGOBLIN_RN_ZEROTIER_SUPPORT // TODO Temp.
+#ifdef  HOBGOBLIN_RN_ZEROTIER_SUPPORT
+#include <Ztcpp.hpp>
+namespace zt = jbatnozic::ztcpp;
+#endif
 
 #include <cassert>
 #include <chrono>
@@ -10,72 +15,54 @@
 
 HOBGOBLIN_NAMESPACE_START
 namespace rn {
-namespace detail {
 
 namespace {
 
-constexpr std::uint32_t UDP_PACKET_TYPE_HELLO = 0x3BF0E110;
-constexpr std::uint32_t UDP_PACKET_TYPE_CONNECT = 0x83C96CA4;
+constexpr std::uint32_t UDP_PACKET_TYPE_HELLO      = 0x3BF0E110;
+constexpr std::uint32_t UDP_PACKET_TYPE_CONNECT    = 0x83C96CA4;
 constexpr std::uint32_t UDP_PACKET_TYPE_DISCONNECT = 0xD0F235AB;
-constexpr std::uint32_t UDP_PACKET_TYPE_DATA = 0xA765B8F6;
-constexpr std::uint32_t UDP_PACKET_TYPE_ACKS = 0x71AC2519;
-
-constexpr bool UPLOAD_PACKET_SUCCESS = true;
-constexpr bool UPLOAD_PACKET_FAILURE = false;
-
-bool UploadPacket(zt::Socket& socket, util::Packet& packet, sf::IpAddress ip, std::uint16_t port) {                 
-    if (packet.getDataSize() == 0u) return UPLOAD_PACKET_SUCCESS;
-
-  #if 0
-RETRY:
-    switch (socket.send(packet, ip, port)) {
-    case sf::Socket::Done:
-        return UPLOAD_PACKET_SUCCESS;
-
-    case sf::Socket::Partial:
-        goto RETRY;
-
-    case sf::Socket::NotReady:
-        //std::cout << "up - NotReady\n";
-        //assert(0);
-        return UPLOAD_PACKET_SUCCESS; // TODO ?????
-
-    case sf::Socket::Error:
-    case sf::Socket::Disconnected:
-        return UPLOAD_PACKET_FAILURE;
-    }
-
-    assert(0 && "Unreachable");
-    return UPLOAD_PACKET_FAILURE;
-  #endif
-    const auto res = socket.sendTo(packet.getData(), packet.getDataSize(),
-                                   zt::IpAddress::ipv4FromString(ip.toString()), port);
-    if (res.hasError()) {
-      return UPLOAD_PACKET_FAILURE;
-    }
-    return UPLOAD_PACKET_SUCCESS;
-}
+constexpr std::uint32_t UDP_PACKET_TYPE_DATA       = 0xA765B8F6;
+constexpr std::uint32_t UDP_PACKET_TYPE_ACKS       = 0x71AC2519;
 
 class FatalMessageTypeReceived : public std::runtime_error {
 public:
     using std::runtime_error::runtime_error;
 };
 
+void HandleDataMessages(detail::RN_PacketWrapper& receivedPacket,
+                        RN_NodeInterface& node, 
+                        detail::RN_PacketWrapper*& pointerToCurrentPacket) {
+    pointerToCurrentPacket = &receivedPacket;
+
+    while (!receivedPacket.packet.endOfPacket()) {
+        const auto handlerId = receivedPacket.extractOrThrow<detail::RN_HandlerId>();
+        auto handlerFunc = detail::RN_GlobalHandlerMapper::getInstance().handlerWithId(handlerId);
+        if (handlerFunc == nullptr) {
+            throw RN_IllegalMessage("Requested handler does not exist");
+        }
+        (*handlerFunc)(node);
+    }
+
+    pointerToCurrentPacket = nullptr;
+}
+
 } // namespace
 
-RN_UdpConnector::RN_UdpConnector(zt::Socket& socket, const std::chrono::microseconds& timeoutLimit, 
-                                 const std::string& passphrase, 
-                                 const RetransmitPredicate& retransmitPredicate, EventFactory eventFactory)
-    : _eventFactory{eventFactory}
-    , _socket{socket}
+RN_UdpConnectorImpl::RN_UdpConnectorImpl(RN_SocketAdapter& socket, 
+                                         const std::chrono::microseconds& timeoutLimit, 
+                                         const std::string& passphrase, 
+                                         const RetransmitPredicate& retransmitPredicate,
+                                         detail::EventFactory eventFactory)
+    : _socket{socket}
     , _timeoutLimit{timeoutLimit}
-    , _retransmitPredicate{retransmitPredicate}
     , _passphrase{passphrase}
+    , _retransmitPredicate{retransmitPredicate}
+    , _eventFactory{eventFactory}
     , _status{RN_ConnectorStatus::Disconnected}
 {
 }
 
-bool RN_UdpConnector::tryAccept(sf::IpAddress addr, std::uint16_t port, RN_PacketWrapper& packetWrap) {
+bool RN_UdpConnectorImpl::tryAccept(sf::IpAddress addr, std::uint16_t port, detail::RN_PacketWrapper& packetWrap) {
     assert(_status == RN_ConnectorStatus::Disconnected);
 
     const std::uint32_t msgType = packetWrap.extract<std::uint32_t>();
@@ -104,7 +91,7 @@ bool RN_UdpConnector::tryAccept(sf::IpAddress addr, std::uint16_t port, RN_Packe
     return true;
 }
 
-void RN_UdpConnector::connect(sf::IpAddress addr, std::uint16_t port) {
+void RN_UdpConnectorImpl::connect(sf::IpAddress addr, std::uint16_t port) {
     assert(_status == RN_ConnectorStatus::Disconnected);
 
     _remoteInfo = RN_RemoteInfo{addr, port};
@@ -116,20 +103,20 @@ void RN_UdpConnector::connect(sf::IpAddress addr, std::uint16_t port) {
     prepareNextOutgoingPacket();
 }
 
-void RN_UdpConnector::disconnect(bool notfiyRemote) {
+void RN_UdpConnectorImpl::disconnect(bool notfiyRemote) {
     assert(_status != RN_ConnectorStatus::Disconnected);
 
     if (notfiyRemote && _status == RN_ConnectorStatus::Connected) {
         util::Packet packet;
         packet << UDP_PACKET_TYPE_DISCONNECT;
-        if (UploadPacket(_socket, packet, _remoteInfo.ipAddress, _remoteInfo.port) != UPLOAD_PACKET_SUCCESS) {
+        if (!_socket.send(packet, _remoteInfo.ipAddress, _remoteInfo.port)) {
             // Do nothing - The connector is getting disconnected anyway...
         }
     }
     reset();
 }
 
-void RN_UdpConnector::checkForTimeout() {
+void RN_UdpConnectorImpl::checkForTimeout() {
     assert(_status != RN_ConnectorStatus::Disconnected);
 
     if (isConnectionTimedOut()) {
@@ -146,7 +133,7 @@ void RN_UdpConnector::checkForTimeout() {
     }
 }
 
-void RN_UdpConnector::send(RN_Node& node) {
+void RN_UdpConnectorImpl::send() {
     assert(_status != RN_ConnectorStatus::Disconnected);
 
     switch (_status) {
@@ -154,7 +141,7 @@ void RN_UdpConnector::send(RN_Node& node) {
     {
         util::Packet packet;
         packet << UDP_PACKET_TYPE_CONNECT << _passphrase << _clientIndex.value();
-        if (UploadPacket(_socket, packet, _remoteInfo.ipAddress, _remoteInfo.port) != UPLOAD_PACKET_SUCCESS) {
+        if (!_socket.send(packet, _remoteInfo.ipAddress, _remoteInfo.port)) {
             reset();
             _eventFactory.createConnectAttemptFailed(RN_Event::ConnectAttemptFailed::Reason::Error);
         }
@@ -165,7 +152,7 @@ void RN_UdpConnector::send(RN_Node& node) {
     {
         util::Packet packet;
         packet << UDP_PACKET_TYPE_HELLO << _passphrase;
-        if (UploadPacket(_socket, packet, _remoteInfo.ipAddress, _remoteInfo.port) != UPLOAD_PACKET_SUCCESS) {
+        if (!_socket.send(packet, _remoteInfo.ipAddress, _remoteInfo.port)) {
             reset();
             _eventFactory.createConnectAttemptFailed(RN_Event::ConnectAttemptFailed::Reason::Error);
         }
@@ -182,7 +169,7 @@ void RN_UdpConnector::send(RN_Node& node) {
     }
 }
 
-void RN_UdpConnector::receivedPacket(RN_PacketWrapper& packetWrap) {
+void RN_UdpConnectorImpl::receivedPacket(detail::RN_PacketWrapper& packetWrap) {
     assert(_status != RN_ConnectorStatus::Disconnected);
 
     try {
@@ -228,7 +215,7 @@ void RN_UdpConnector::receivedPacket(RN_PacketWrapper& packetWrap) {
     //}
 }
 
-void RN_UdpConnector::sendAcks() {
+void RN_UdpConnectorImpl::sendAcks() {
     assert(_status == RN_ConnectorStatus::Connected);
 
     if (_ackOrdinals.empty()) {
@@ -241,18 +228,19 @@ void RN_UdpConnector::sendAcks() {
         packet << ackOrdinal;
     }
 
-    if (UploadPacket(_socket, packet, _remoteInfo.ipAddress, _remoteInfo.port) != UPLOAD_PACKET_SUCCESS) {
+    if (!_socket.send(packet, _remoteInfo.ipAddress, _remoteInfo.port)) {
         reset();
         _eventFactory.createConnectAttemptFailed(RN_Event::ConnectAttemptFailed::Reason::Error);
     }
 }
 
-void RN_UdpConnector::handleDataMessages(RN_Node& node) {
+void RN_UdpConnectorImpl::handleDataMessages(RN_NodeInterface& node, 
+                                             detail::RN_PacketWrapper*& pointerToCurrentPacket) {
     assert(_status != RN_ConnectorStatus::Disconnected);
 
     try {
         while (!_recvBuffer.empty() && _recvBuffer[0].tag == TaggedPacket::ReadyForUnpacking) {
-            detail::HandleDataMessages(node, _recvBuffer[0].packetWrap);
+            HandleDataMessages(_recvBuffer[0].packetWrap, node, pointerToCurrentPacket);
             _recvBuffer.pop_front();
             _recvBufferHeadIndex++;
         }
@@ -267,31 +255,31 @@ void RN_UdpConnector::handleDataMessages(RN_Node& node) {
     }
 }
 
-void RN_UdpConnector::setClientIndex(std::optional<PZInteger> clientIndex) {
+void RN_UdpConnectorImpl::setClientIndex(std::optional<PZInteger> clientIndex) {
     _clientIndex = clientIndex;
 }
 
-std::optional<PZInteger> RN_UdpConnector::getClientIndex() const {
+std::optional<PZInteger> RN_UdpConnectorImpl::getClientIndex() const {
     return _clientIndex;
 }
 
-const RN_RemoteInfo& RN_UdpConnector::getRemoteInfo() const noexcept {
+const RN_RemoteInfo& RN_UdpConnectorImpl::getRemoteInfo() const noexcept {
     return _remoteInfo;
 }
 
-RN_ConnectorStatus RN_UdpConnector::getStatus() const noexcept {
+RN_ConnectorStatus RN_UdpConnectorImpl::getStatus() const noexcept {
     return _status;
 }
 
-PZInteger RN_UdpConnector::getSendBufferSize() const {
+PZInteger RN_UdpConnectorImpl::getSendBufferSize() const {
     return static_cast<PZInteger>(_sendBuffer.size());
 }
 
-PZInteger RN_UdpConnector::getRecvBufferSize() const {
+PZInteger RN_UdpConnectorImpl::getRecvBufferSize() const {
     return static_cast<PZInteger>(_recvBuffer.size());
 }
 
-void RN_UdpConnector::appendToNextOutgoingPacket(const void *data, std::size_t sizeInBytes) {
+void RN_UdpConnectorImpl::appendToNextOutgoingPacket(const void *data, std::size_t sizeInBytes) {
     if (sizeInBytes > MAX_PACKET_SIZE) {
         throw util::TracedLogicError("Cannot send packets larger than " 
                                      + std::to_string(MAX_PACKET_SIZE) + " bytes.");
@@ -308,20 +296,20 @@ void RN_UdpConnector::appendToNextOutgoingPacket(const void *data, std::size_t s
 
 // Private
 
-void RN_UdpConnector::destroy() {
+void RN_UdpConnectorImpl::destroy() {
     _sendBuffer.clear();
     _recvBuffer.clear();
     _ackOrdinals.clear();
 }
 
-void RN_UdpConnector::reset() {
+void RN_UdpConnectorImpl::reset() {
     destroy();
     _remoteInfo = RN_RemoteInfo{};
     _status = RN_ConnectorStatus::Disconnected;
     _clientIndex.reset();
 }
 
-bool RN_UdpConnector::isConnectionTimedOut() const {
+bool RN_UdpConnectorImpl::isConnectionTimedOut() const {
     if (_timeoutLimit <= std::chrono::microseconds{0}) {
         return false;
     }
@@ -331,7 +319,7 @@ bool RN_UdpConnector::isConnectionTimedOut() const {
     return false;
 }
 
-void RN_UdpConnector::uploadAllData() {
+void RN_UdpConnectorImpl::uploadAllData() {
     PZInteger uploadCounter = 0;
     for (auto& taggedPacket : _sendBuffer) {
         if (taggedPacket.tag == TaggedPacket::AcknowledgedWeakly ||
@@ -344,12 +332,7 @@ void RN_UdpConnector::uploadAllData() {
             || _retransmitPredicate(taggedPacket.cyclesSinceLastTransmit, taggedPacket.stopwatch.getElapsedTime(),
                                     _remoteInfo.latency)) {
 
-            if (UploadPacket(
-                _socket,
-                taggedPacket.packetWrap.packet,
-                _remoteInfo.ipAddress,
-                _remoteInfo.port) != UPLOAD_PACKET_SUCCESS) {
-
+            if (!_socket.send(taggedPacket.packetWrap.packet, _remoteInfo.ipAddress, _remoteInfo.port)) {
                 // TODO Handle error, log event
                 //std::cout << "UPLOAD ERROR size=" << taggedPacket.packetWrap.packet.getDataSize() << '\n';
             }
@@ -367,11 +350,11 @@ void RN_UdpConnector::uploadAllData() {
     prepareNextOutgoingPacket();
 }
 
-void RN_UdpConnector::prepareAck(std::uint32_t ordinal) {
+void RN_UdpConnectorImpl::prepareAck(std::uint32_t ordinal) {
     _ackOrdinals.push_back(ordinal);
 }
 
-void RN_UdpConnector::receivedAck(std::uint32_t ordinal, bool strong) {
+void RN_UdpConnectorImpl::receivedAck(std::uint32_t ordinal, bool strong) {
     if (ordinal < _sendBufferHeadIndex) {
         return; // Already acknowledged before
     }
@@ -403,12 +386,12 @@ void RN_UdpConnector::receivedAck(std::uint32_t ordinal, bool strong) {
     }
 }
 
-void RN_UdpConnector::initializeSession() {
+void RN_UdpConnectorImpl::initializeSession() {
     _status = RN_ConnectorStatus::Connected;
     _remoteInfo.timeoutStopwatch.restart();
 }
 
-void RN_UdpConnector::prepareNextOutgoingPacket() {
+void RN_UdpConnectorImpl::prepareNextOutgoingPacket() {
     _sendBuffer.emplace_back();
     _sendBuffer.back().tag = TaggedPacket::ReadyForSending;
 
@@ -425,7 +408,7 @@ void RN_UdpConnector::prepareNextOutgoingPacket() {
     _ackOrdinals.clear();
 }
 
-void RN_UdpConnector::receiveDataMessage(RN_PacketWrapper& packetWrap) {
+void RN_UdpConnectorImpl::receiveDataMessage(detail::RN_PacketWrapper& packetWrap) {
     const std::uint32_t messageOrdinal = packetWrap.extractOrThrow<std::uint32_t>();
 
     if (messageOrdinal < _recvBufferHeadIndex) {
@@ -459,7 +442,7 @@ void RN_UdpConnector::receiveDataMessage(RN_PacketWrapper& packetWrap) {
 }
 
 
-void RN_UdpConnector::processHelloPacket(RN_PacketWrapper& packetWrap) {
+void RN_UdpConnectorImpl::processHelloPacket(detail::RN_PacketWrapper& packetWrap) {
     switch (_status) {
     case RN_ConnectorStatus::Connecting:
         throw FatalMessageTypeReceived{"Received HELLO message (status: Connecting)"};
@@ -480,7 +463,7 @@ void RN_UdpConnector::processHelloPacket(RN_PacketWrapper& packetWrap) {
     }
 }
 
-void RN_UdpConnector::processConnectPacket(RN_PacketWrapper& packetWrap) {
+void RN_UdpConnectorImpl::processConnectPacket(detail::RN_PacketWrapper& packetWrap) {
     switch (_status) {
     case RN_ConnectorStatus::Connecting:
     {
@@ -514,7 +497,7 @@ void RN_UdpConnector::processConnectPacket(RN_PacketWrapper& packetWrap) {
     }
 }
 
-void RN_UdpConnector::processDisconnectPacket(RN_PacketWrapper& packetWrap) {
+void RN_UdpConnectorImpl::processDisconnectPacket(detail::RN_PacketWrapper& packetWrap) {
     switch (_status) {
     case RN_ConnectorStatus::Connecting:
     case RN_ConnectorStatus::Accepting:
@@ -531,7 +514,7 @@ void RN_UdpConnector::processDisconnectPacket(RN_PacketWrapper& packetWrap) {
     }
 }
 
-void RN_UdpConnector::processDataPacket(RN_PacketWrapper& packetWrap) {
+void RN_UdpConnectorImpl::processDataPacket(detail::RN_PacketWrapper& packetWrap) {
     switch (_status) {
     case RN_ConnectorStatus::Connecting:
         throw FatalMessageTypeReceived{"Received DATA message (status: Connecting)"};
@@ -552,7 +535,7 @@ void RN_UdpConnector::processDataPacket(RN_PacketWrapper& packetWrap) {
     }
 }
 
-void RN_UdpConnector::processAcksPacket(RN_PacketWrapper& packetWrap) {
+void RN_UdpConnectorImpl::processAcksPacket(detail::RN_PacketWrapper& packetWrap) {
     switch (_status) {
     case RN_ConnectorStatus::Connecting:
         throw FatalMessageTypeReceived{"Received ACKS message (status: Connecting)"};
@@ -575,7 +558,6 @@ void RN_UdpConnector::processAcksPacket(RN_PacketWrapper& packetWrap) {
     }
 }
 
-} // namespace detail
 } // namespace rn
 HOBGOBLIN_NAMESPACE_END
 

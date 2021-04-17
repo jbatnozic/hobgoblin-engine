@@ -66,7 +66,6 @@ void PackArgs(RN_PacketWrapper& packetWrap, ArgsHead argsHead, ArgsRest&&... arg
 }
 
 } // namespace detail
-
 } // namespace rn
 HOBGOBLIN_NAMESPACE_END
 

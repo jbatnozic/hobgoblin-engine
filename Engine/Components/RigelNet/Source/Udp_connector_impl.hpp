@@ -1,23 +1,20 @@
-#ifndef UHOBGOBLIN_RN_UDP_CONNECTOR_HPP
-#define UHOBGOBLIN_RN_UDP_CONNECTOR_HPP
+#ifndef UHOBGOBLIN_RN_UDP_CONNECTOR_IMPL_HPP
+#define UHOBGOBLIN_RN_UDP_CONNECTOR_IMPL_HPP
 
 #include <Hobgoblin/Common.hpp>
-#include <Hobgoblin/RigelNet/Connector.hpp>
-#include <Hobgoblin/RigelNet/Event.hpp>
-#include <Hobgoblin/RigelNet/Node.hpp>
+#include <Hobgoblin/RigelNet/Configuration.hpp>
+#include <Hobgoblin/RigelNet/Connector_interface.hpp>
+#include <Hobgoblin/RigelNet/Events.hpp>
+#include <Hobgoblin/RigelNet/Node_interface.hpp>
 #include <Hobgoblin/RigelNet/Packet_wrapper.hpp>
 #include <Hobgoblin/RigelNet/Remote_info.hpp>
-
 #include <Hobgoblin/Utility/Time_utils.hpp>
 
-#include <SFML/System/Clock.hpp>
-#include <SFML/Network.hpp>
-
-#include <Ztcpp.hpp>
-namespace zt = jbatnozic::ztcpp;
+#include "Socket_adapter.hpp"
 
 #include <chrono>
 #include <cstdint>
+#include <deque>
 #include <functional>
 #include <optional>
 
@@ -29,12 +26,11 @@ namespace rn {
 using RetransmitPredicate = std::function<bool(PZInteger, std::chrono::microseconds, std::chrono::microseconds)>;
 
 inline
-bool DefaultRetransmitPredicate(PZInteger cyclesSinceLastTransmit, std::chrono::microseconds timeSinceLastSend,
+bool DefaultRetransmitPredicate(PZInteger cyclesSinceLastTransmit, 
+                                std::chrono::microseconds timeSinceLastSend,
                                 std::chrono::microseconds currentLatency) {
     return timeSinceLastSend > 2 * currentLatency;
 }
-
-namespace detail {
 
 struct TaggedPacket {
     enum Tag {
@@ -50,34 +46,37 @@ struct TaggedPacket {
         Unpacked,
     };
 
-    RN_PacketWrapper packetWrap;
+    detail::RN_PacketWrapper packetWrap;
     util::Stopwatch stopwatch;
     PZInteger cyclesSinceLastTransmit = 0;
     Tag tag = DefaultTag;
 };
 
-class RN_UdpConnector : public RN_Connector<RN_UdpConnector> {
+class RN_UdpConnectorImpl : public RN_ConnectorInterface {
 public:
-    RN_UdpConnector(zt::Socket& socket, const std::chrono::microseconds& timeoutLimit, 
-                    const std::string& passphrase, const RetransmitPredicate& retransmitPredicate,
-                    EventFactory eventFactory);
+    RN_UdpConnectorImpl(RN_SocketAdapter& socket,
+                        const std::chrono::microseconds& timeoutLimit, 
+                        const std::string& passphrase, 
+                        const RetransmitPredicate& retransmitPredicate,
+                        detail::EventFactory eventFactory);
 
-    bool tryAccept(sf::IpAddress addr, std::uint16_t port, RN_PacketWrapper& packetWrap);
+    bool tryAccept(sf::IpAddress addr, std::uint16_t port, detail::RN_PacketWrapper& packetWrap);
     void connect(sf::IpAddress addr, std::uint16_t port);
     void disconnect(bool notfiyRemote);
 
     void checkForTimeout();
-    void send(RN_Node& node);
-    void receivedPacket(RN_PacketWrapper& packetWrap);
-    void handleDataMessages(RN_Node& node);
+    void send();
+    void receivedPacket(detail::RN_PacketWrapper& packetWrap);
+    void handleDataMessages(RN_NodeInterface& node, detail::RN_PacketWrapper*& pointerToCurrentPacket);
     void sendAcks();
     
     void setClientIndex(std::optional<PZInteger> clientIndex);
     std::optional<PZInteger> getClientIndex() const;
-    const RN_RemoteInfo& getRemoteInfo() const noexcept;
-    RN_ConnectorStatus getStatus() const noexcept;
-    PZInteger getSendBufferSize() const;
-    PZInteger getRecvBufferSize() const;
+
+    const RN_RemoteInfo& getRemoteInfo() const noexcept override;
+    RN_ConnectorStatus getStatus() const noexcept override;
+    PZInteger getSendBufferSize() const override;
+    PZInteger getRecvBufferSize() const override;
 
     void appendToNextOutgoingPacket(const void *data, std::size_t sizeInBytes);
 
@@ -86,17 +85,19 @@ public:
     //static constexpr PZInteger MAX_PACKET_SIZE = 8'000; // In bytes
 
 private:
-    EventFactory _eventFactory;
-    RN_RemoteInfo _remoteInfo;
-    zt::Socket& _socket;
-    const std::string& _passphrase;
+    RN_SocketAdapter& _socket;
+
     const std::chrono::microseconds& _timeoutLimit;
+    const std::string& _passphrase;
     const RetransmitPredicate& _retransmitPredicate;
+    detail::EventFactory _eventFactory;
+
+    RN_RemoteInfo _remoteInfo;
     RN_ConnectorStatus _status;
     std::optional<PZInteger> _clientIndex;
 
-    std::deque<detail::TaggedPacket> _sendBuffer;
-    std::deque<detail::TaggedPacket> _recvBuffer;
+    std::deque<TaggedPacket> _sendBuffer;
+    std::deque<TaggedPacket> _recvBuffer;
     std::uint32_t _sendBufferHeadIndex = 0;
     std::uint32_t _recvBufferHeadIndex = 0;
 
@@ -110,20 +111,18 @@ private:
     void receivedAck(std::uint32_t ordinal, bool strong);
     void initializeSession();
     void prepareNextOutgoingPacket();
-    void receiveDataMessage(RN_PacketWrapper& packetWrapper);
+    void receiveDataMessage(detail::RN_PacketWrapper& packetWrapper);
     
-    void processHelloPacket(RN_PacketWrapper& packpacketWrapperet);
-    void processConnectPacket(RN_PacketWrapper& packetWrapper);
-    void processDisconnectPacket(RN_PacketWrapper& packetWrapper);
-    void processDataPacket(RN_PacketWrapper& packetWrapper);
-    void processAcksPacket(RN_PacketWrapper& packetWrapper);
+    void processHelloPacket(detail::RN_PacketWrapper& packpacketWrapperet);
+    void processConnectPacket(detail::RN_PacketWrapper& packetWrapper);
+    void processDisconnectPacket(detail::RN_PacketWrapper& packetWrapper);
+    void processDataPacket(detail::RN_PacketWrapper& packetWrapper);
+    void processAcksPacket(detail::RN_PacketWrapper& packetWrapper);
 };
 
-} // namespace detail
 } // namespace rn
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
-#include <Hobgoblin/Private/Short_namespace.hpp>
 
-#endif // !UHOBGOBLIN_RN_UDP_CONNECTOR_HPP
+#endif // !UHOBGOBLIN_RN_UDP_CONNECTOR_IMPL_HPP

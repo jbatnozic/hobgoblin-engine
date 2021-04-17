@@ -1,6 +1,5 @@
 
-#include <Hobgoblin/RigelNet/Event.hpp>
-#include <Hobgoblin/RigelNet/Node.hpp>
+#include <Hobgoblin/RigelNet/Events.hpp>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
@@ -8,19 +7,19 @@ HOBGOBLIN_NAMESPACE_START
 namespace rn {
 namespace detail {
 
-EventFactory::EventFactory(RN_Node& node)
-    : _node{node}
+EventFactory::EventFactory(std::deque<RN_Event>& eventQueue)
+    : _eventQueue{eventQueue}
     , _clientIndex{}
 {
 }
 
-EventFactory::EventFactory(RN_Node& node, PZInteger clientIndex)
-    : _node{node}
+EventFactory::EventFactory(std::deque<RN_Event>& eventQueue, PZInteger clientIndex)
+    : _eventQueue{eventQueue}
     , _clientIndex{clientIndex}
 {
 }
 
-#define ENQUEUE_EVENT(...) _node._eventQueue.emplace_back(__VA_ARGS__)
+#define ENQUEUE_EVENT(...) _eventQueue.emplace_back(__VA_ARGS__)
 
 void EventFactory::createBadPassphrase(std::string incorrectPassphrase) const {
     ENQUEUE_EVENT(RN_Event::BadPassphrase{_clientIndex, std::move(incorrectPassphrase)});

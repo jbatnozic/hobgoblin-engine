@@ -1,9 +1,10 @@
-#ifndef UHOBGOBLIN_RN_EVENT_HPP
-#define UHOBGOBLIN_RN_EVENT_HPP
+#ifndef UHOBGOBLIN_RN_EVENTS_HPP
+#define UHOBGOBLIN_RN_EVENTS_HPP
 
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Utility/Visitor.hpp>
 
+#include <deque>
 #include <optional>
 #include <string>
 #include <utility>
@@ -68,14 +69,12 @@ struct RN_Event {
     }
 };
 
-class RN_Node;
-
 namespace detail {
     
 class EventFactory {
 public:
-    explicit EventFactory(RN_Node& node);
-    explicit EventFactory(RN_Node& node, PZInteger clientIndex);
+    explicit EventFactory(std::deque<RN_Event>& eventQueue);
+    explicit EventFactory(std::deque<RN_Event>& eventQueue, PZInteger clientIndex);
 
     void createBadPassphrase(std::string incorrectPassphrase) const;
     void createConnectAttemptFailed(RN_Event::ConnectAttemptFailed::Reason reason) const;
@@ -83,7 +82,7 @@ public:
     void createDisconnected(RN_Event::Disconnected::Reason reason, std::string message) const;
 
 private:
-    RN_Node& _node;
+    std::deque<RN_Event>& _eventQueue;
     std::optional<PZInteger> _clientIndex;
 };
 
@@ -95,4 +94,4 @@ HOBGOBLIN_NAMESPACE_END
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
-#endif // !UHOBGOBLIN_RN_EVENT_HPP
+#endif // !UHOBGOBLIN_RN_EVENTS_HPP

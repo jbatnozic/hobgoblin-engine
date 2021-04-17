@@ -1,0 +1,27 @@
+
+#include <Hobgoblin/RigelNet/Node_interface.hpp>
+
+#include <Hobgoblin/RigelNet/Client_interface.hpp>
+#include <Hobgoblin/RigelNet/Server_interface.hpp>
+
+#include <Hobgoblin/Private/Pmacro_define.hpp>
+
+HOBGOBLIN_NAMESPACE_START
+namespace rn {
+
+void RN_NodeInterface::callIfClient(std::function<void(RN_ClientInterface& client)> func) {
+    if (!isServer()) {
+        func(static_cast<RN_ClientInterface&>(SELF));
+    }
+}
+
+void RN_NodeInterface::callIfServer(std::function<void(RN_ServerInterface& client)> func) {
+    if (isServer()) {
+        func(static_cast<RN_ServerInterface&>(SELF));
+    }
+}
+
+} // namespace rn
+HOBGOBLIN_NAMESPACE_END
+
+#include <Hobgoblin/Private/Pmacro_undef.hpp>

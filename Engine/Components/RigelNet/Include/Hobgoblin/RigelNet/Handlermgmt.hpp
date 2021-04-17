@@ -14,11 +14,11 @@ namespace rn {
 
 extern void RN_IndexHandlers();
 
-class RN_Node;
+class RN_NodeInterface;
 
 namespace detail {
 
-using RN_HandlerFunc = void(*)(RN_Node&);
+using RN_HandlerFunc = void(*)(RN_NodeInterface&);
 using RN_HandlerId = std::int16_t;
 
 struct RN_CStringHash {

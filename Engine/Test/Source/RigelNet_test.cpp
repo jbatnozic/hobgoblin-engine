@@ -8,6 +8,7 @@ using namespace hg::rn;
 
 #include <chrono>
 #include <iostream>
+#include <memory>
 #include <thread>
 
 namespace {
@@ -20,21 +21,40 @@ struct EventCount {
     hg::PZInteger connected = 0;
     hg::PZInteger disconnected = 0;
 };
+} // namespace
+
+// Check that the handler compiles:
+RN_DEFINE_HANDLER(TestHandler, RN_ARGS(int, a, std::string, s)) {
+    RN_NODE_IN_HANDLER().callIfServer(
+        [](RN_ServerInterface& /*server*/) {
+
+        });
+
+    RN_NODE_IN_HANDLER().callIfClient(
+        [](RN_ClientInterface& /*client*/) {
+
+        });
+}
+
+// Check that the compose function for TestHandler is generated:
+void DummyFuncCallsComposeForTestHandler() {
+    auto node = reinterpret_cast<RN_NodeInterface*>(0x12345678);
+    Compose_TestHandler(*node, RN_COMPOSE_FOR_ALL, 1337, "tubular");
 }
 
 class RigelNetTest : public ::testing::Test {
 public:
     RigelNetTest()
-        : _server{CLIENT_COUNT}
-        , _client{}
+        : _server{RN_ServerFactory::createServer(RN_Protocol::UDP, PASS, CLIENT_COUNT)}
+        , _client{RN_ClientFactory::createClient(RN_Protocol::UDP, PASS)}
     {
     }
 
 protected:
-    RN_UdpServer _server;
-    RN_UdpClient _client;
+    std::unique_ptr<RN_ServerInterface> _server;
+    std::unique_ptr<RN_ClientInterface> _client;
 
-    EventCount pollAndCountEvents(RN_Node& node) {
+    EventCount pollAndCountEvents(RN_NodeInterface& node) {
         EventCount cnt;
 
         RN_Event ev;
@@ -61,56 +81,56 @@ protected:
 };
 
 TEST_F(RigelNetTest, ClientConnectsAndDisconnects) {
-    _server.start(0, PASS);
-    _client.connect(0, "localhost", _server.getLocalPort(), PASS);
+    _server->start(0);
+    _client->connect(0, sf::IpAddress::LocalHost, _server->getLocalPort());
 
     for (int i = 0; i < 20; i += 1) {
-        _server.update(RN_UpdateMode::Receive);
-        _client.update(RN_UpdateMode::Receive);
+        _server->update(RN_UpdateMode::Receive);
+        _client->update(RN_UpdateMode::Receive);
 
         std::this_thread::sleep_for(std::chrono::milliseconds{25});
 
-        _server.update(RN_UpdateMode::Send);
-        _client.update(RN_UpdateMode::Send);
+        _server->update(RN_UpdateMode::Send);
+        _client->update(RN_UpdateMode::Send);
 
-        if (_server.getClient(0).getStatus() == RN_ConnectorStatus::Connected &&
-            _client.getServer().getStatus() == RN_ConnectorStatus::Connected) {
+        if (_server->getClientConnector(0).getStatus() == RN_ConnectorStatus::Connected &&
+            _client->getServerConnector().getStatus() == RN_ConnectorStatus::Connected) {
             break;
         }
     }
 
-    ASSERT_TRUE(_server.getClient(0).getStatus() == RN_ConnectorStatus::Connected &&
-                _client.getServer().getStatus() == RN_ConnectorStatus::Connected);
+    ASSERT_TRUE(_server->getClientConnector(0).getStatus() == RN_ConnectorStatus::Connected &&
+                _client->getServerConnector().getStatus() == RN_ConnectorStatus::Connected);
 
     {
-        auto cnt = pollAndCountEvents(_server);
+        auto cnt = pollAndCountEvents(*_server);
         ASSERT_EQ(cnt.connected, 1);
     }
 
     {
-        auto cnt = pollAndCountEvents(_client);
+        auto cnt = pollAndCountEvents(*_client);
         ASSERT_EQ(cnt.connected, 1);
     }
 
-    _client.disconnect(true);
+    _client->disconnect(true);
 
     for (int i = 0; i < 20; i += 1) {
-        _server.update(RN_UpdateMode::Receive);
+        _server->update(RN_UpdateMode::Receive);
 
         std::this_thread::sleep_for(std::chrono::milliseconds{25});
 
-        _server.update(RN_UpdateMode::Send);
+        _server->update(RN_UpdateMode::Send);
 
-        if (_server.getClient(0).getStatus() == RN_ConnectorStatus::Disconnected) {
+        if (_server->getClientConnector(0).getStatus() == RN_ConnectorStatus::Disconnected) {
             break;
         }
     }
 
-    ASSERT_EQ(_server.getClient(0).getStatus(), RN_ConnectorStatus::Disconnected);
-    ASSERT_TRUE(_server.getClient(0).getStatus() == RN_ConnectorStatus::Disconnected);
+    ASSERT_EQ(_server->getClientConnector(0).getStatus(), RN_ConnectorStatus::Disconnected);
+    ASSERT_TRUE(_server->getClientConnector(0).getStatus() == RN_ConnectorStatus::Disconnected);
 
     {
-        auto cnt = pollAndCountEvents(_server);
+        auto cnt = pollAndCountEvents(*_server);
         ASSERT_EQ(cnt.disconnected, 1);
     }
 }
