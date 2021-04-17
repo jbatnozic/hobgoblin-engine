@@ -16,27 +16,29 @@
 namespace {
 
 RN_DEFINE_HANDLER(RequestGameRestart, RN_ARGS()) {
-    RN_NODE_IN_HANDLER().visit(
+    RN_NODE_IN_HANDLER().callIfClient(
         [](NetworkingManager::ClientType& client) {
             throw RN_IllegalMessage{"Client cannot receive game restart requests."};
-        },
+        });
+
+    RN_NODE_IN_HANDLER().callIfServer(
         [&](NetworkingManager::ServerType& server) {
             auto& ctx = *(server.getUserData<GameContext>());
             auto& gameplayMgr = GetGameplayManager(ctx);
             gameplayMgr.restartGame();
-        }
-    );
+        });
 }
 
 RN_DEFINE_HANDLER(GameStartAnnouncement, RN_ARGS()) {
-    RN_NODE_IN_HANDLER().visit(
+    RN_NODE_IN_HANDLER().callIfClient(
         [](NetworkingManager::ClientType& client) {
             std::cout << "*** A new game has started. ***\n";
-        },
+        });
+
+    RN_NODE_IN_HANDLER().callIfServer(
         [&](NetworkingManager::ServerType& server) {
             throw RN_IllegalMessage{"Host cannot receive game start announcements."};
-        }
-    );
+        });
 }
 
 } // namespace
@@ -70,7 +72,7 @@ void GameplayManager::restartGame() {
             auto& server = ctx(MNetworking).getServer();
 
             for (hg::PZInteger i = 0; i < server.getSize(); i += 1) {
-                const auto& clientStatus = server.getClient(i).getStatus();
+                const auto& clientStatus = server.getClientConnector(i).getStatus();
                 if (clientStatus == RN_ConnectorStatus::Connected) {
                     // TODO Temp -- give an init() method to PhysicsPlayer
                     PhysicsPlayer::VisibleState vs;

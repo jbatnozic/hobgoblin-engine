@@ -103,7 +103,7 @@ int MainImpl::run(int argc, char* argv[])
 try
 #endif // MAIN_SHOULD_CATCH_EXCEPTIONS
 {
-  {
+  if (false /* Init ZT */) {
       std::string identityPath = "ZTNodeData";
       uint64_t nwid = strtoull("a09acf0233ceff5c", NULL, 16);
       int ztServicePort = 9994;

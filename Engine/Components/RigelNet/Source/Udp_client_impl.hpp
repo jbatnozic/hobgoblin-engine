@@ -36,6 +36,8 @@ public:
 
     void setTimeoutLimit(std::chrono::microseconds limit) override;
 
+    void setRetransmitPredicate(RN_RetransmitPredicate pred) override;
+
     // From RN_NodeInterface:
 
     void update(RN_UpdateMode mode) override;
@@ -64,13 +66,7 @@ public:
 
     RN_Protocol getProtocol() const noexcept override;
 
-    RN_NetworkingStack getNetworkingStack() const noexcept override;
-      
-
-
-
-
-    void setRetransmitPredicate(RetransmitPredicate pred);
+    RN_NetworkingStack getNetworkingStack() const noexcept override;    
 
 private:
     RN_SocketAdapter _socket;
@@ -79,7 +75,7 @@ private:
 
     std::string _passphrase;
     std::chrono::microseconds _timeoutLimit = std::chrono::microseconds{0};
-    RetransmitPredicate _retransmitPredicate;
+    RN_RetransmitPredicate _retransmitPredicate;
     bool _running = false;
 
     detail::RN_PacketWrapper* _currentPacket = nullptr;
@@ -90,6 +86,8 @@ private:
     void _compose(int receiver, const void* data, std::size_t sizeInBytes) override;
     void _compose(RN_ComposeForAllType receiver, const void* data, std::size_t sizeInBytes) override;
     detail::RN_PacketWrapper* _getCurrentPacketWrapper() override;
+    void _setUserData(util::AnyPtr userData) override;
+    util::AnyPtr _getUserData() const override;
 };
 
 } // namespace rn

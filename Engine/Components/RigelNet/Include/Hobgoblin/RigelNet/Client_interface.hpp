@@ -27,6 +27,8 @@ public:
 
     virtual void setTimeoutLimit(std::chrono::microseconds limit) = 0;
 
+    virtual void setRetransmitPredicate(RN_RetransmitPredicate pred) = 0;
+
     ///////////////////////////////////////////////////////////////////////////
     // STATE INSPECTION                                                      //
     ///////////////////////////////////////////////////////////////////////////

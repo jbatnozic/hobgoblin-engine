@@ -14,14 +14,15 @@
 namespace {
 
 RN_DEFINE_HANDLER(PlayerDeathAnnouncement, RN_ARGS(hg::PZInteger, playerIndex)) {
-    RN_NODE_IN_HANDLER().visit(
+    RN_NODE_IN_HANDLER().callIfServer(
         [&](NetworkingManager::ServerType& server) {
             throw RN_IllegalMessage{"Host cannot receive death announcements"};
-        },
+        });
+
+    RN_NODE_IN_HANDLER().callIfClient(
         [&](NetworkingManager::ClientType& client) {
             std::cout << "Player " << playerIndex << " has died.\n";
-        }
-    );
+        });
 }
 
 void customDampingVelocityFunc(cpBody* body, cpVect gravity, cpFloat damping, cpFloat dt) {

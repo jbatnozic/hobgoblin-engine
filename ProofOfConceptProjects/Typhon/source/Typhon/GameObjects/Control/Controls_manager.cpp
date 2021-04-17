@@ -12,24 +12,25 @@ using spempe::NetworkingManager;
 } // namespace
 
 RN_DEFINE_HANDLER(SetClientControls, RN_ARGS(PlayerControls&, controls)) {
-    RN_NODE_IN_HANDLER().visit(
+    RN_NODE_IN_HANDLER().callIfClient(
         [](NetworkingManager::ClientType& client) {
             // ERROR
-        },
+        });
+
+    RN_NODE_IN_HANDLER().callIfServer(
         [&](NetworkingManager::ServerType& server) {
             auto& ctx = *(server.getUserData<GameContext>());
             auto& controlsMgr = GetControlsManager(ctx);
 
             const auto clientIndex = server.getSenderIndex();
 
-            const auto latency = server.getClient(clientIndex).getRemoteInfo().latency;
+            const auto latency = server.getClientConnector(clientIndex).getRemoteInfo().latency;
             using TIME = std::remove_cv_t<decltype(latency)>;
             const auto dt = std::chrono::duration_cast<TIME>(ctx.getRuntimeConfig().getDeltaTime());
             const auto delaySteps = static_cast<int>(latency / dt) / 2;
 
             controlsMgr.putNewControls(server.getSenderIndex() + 1, controls, delaySteps);
-        }
-    );
+        });
 }
 
 ControlsManager::ControlsManager(hg::QAO_RuntimeRef runtimeRef, hg::PZInteger playerCount, 
@@ -84,7 +85,7 @@ void ControlsManager::eventPreUpdate() {
 
 void ControlsManager::eventUpdate() {
     if (ctx().getLocalPlayerIndex() > 0 && 
-        ctx(MNetworking).getClient().getServer().getStatus() == hg::RN_ConnectorStatus::Connected) {
+        ctx(MNetworking).getClient().getServerConnector().getStatus() == hg::RN_ConnectorStatus::Connected) {
         auto& scheduler = _schedulers[ctx().getLocalPlayerIndex()];
         Compose_SetClientControls(ctx(MNetworking).getClient(), 0, scheduler.getLatestState());
     }

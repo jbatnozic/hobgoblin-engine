@@ -5,6 +5,7 @@
 #include <Hobgoblin/RigelNet/Events.hpp>
 #include <Hobgoblin/RigelNet/Handlermgmt.hpp>
 #include <Hobgoblin/RigelNet/Packet_wrapper.hpp>
+#include <Hobgoblin/Utility/Any_ptr.hpp>
 
 #include <cassert>
 #include <functional>
@@ -24,6 +25,8 @@ class RN_ServerInterface;
 
 class RN_NodeInterface {
 public:
+    virtual ~RN_NodeInterface();
+
     virtual bool pollEvent(RN_Event& ev) = 0;
 
     virtual bool isServer() const noexcept = 0;
@@ -40,10 +43,23 @@ public:
     //! Call the provided funtion if this node is a Server.
     void callIfServer(std::function<void(RN_ServerInterface& client)> func);
 
+    void setUserData(std::nullptr_t);
+
+    template <class T>
+    void setUserData(T* value);
+
+    template <class T>
+    T* getUserData() const;
+
+    template <class T>
+    T* getUserDataOrThrow() const;
+
 private:
     virtual void _compose(RN_ComposeForAllType receiver, const void* data, std::size_t sizeInBytes) = 0;
     virtual void _compose(PZInteger receiver, const void* data, std::size_t sizeInBytes) = 0;
     virtual detail::RN_PacketWrapper* _getCurrentPacketWrapper() = 0;
+    virtual void _setUserData(util::AnyPtr userData) = 0;
+    virtual util::AnyPtr _getUserData() const = 0;
 
     template <class taRecepients, class ...taArgs>
     friend void UHOBGOBLIN_RN_ComposeImpl(RN_NodeInterface& node, 
@@ -54,6 +70,23 @@ private:
     template <class T>
     friend typename std::remove_reference<T>::type UHOBGOBLIN_RN_ExtractArg(RN_NodeInterface& node);
 };
+
+template <class T>
+void RN_NodeInterface::setUserData(T* value) {
+    _setUserData(value);
+}
+
+template <class T>
+T* RN_NodeInterface::getUserData() const {
+    util::AnyPtr p = _getUserData();
+    return p.get<T>();
+}
+
+template <class T>
+T* RN_NodeInterface::getUserDataOrThrow() const {
+    util::AnyPtr p = _getUserData();
+    return p.getOrThrow<T>();
+}
 
 //! Function for internal use.
 template <class taRecepients,  class ...taArgs>
@@ -85,7 +118,7 @@ template <class taArgType>
 typename std::remove_reference<taArgType>::type UHOBGOBLIN_RN_ExtractArg(RN_NodeInterface& node) {
     auto* packw = node._getCurrentPacketWrapper();
     assert(packw);
-    return packw->extractOrThrow<taArgType>();
+    return packw->extractOrThrow<std::remove_reference<taArgType>::type>();
 }
 
 } // namespace rn

@@ -6,14 +6,14 @@
 #include <SPeMPE/Include/Game_object_framework.hpp>
 
 #include <list>
-#include <variant>
+#include <memory>
 
 namespace spempe {
 
 class NetworkingManager : public NonstateObject {
 public:
-    using ServerType = hg::RN_UdpServer;
-    using ClientType = hg::RN_UdpClient;
+    using ServerType = hg::RN_ServerInterface;
+    using ClientType = hg::RN_ClientInterface;
 
     NetworkingManager(hg::QAO_RuntimeRef runtimeRef);
 
@@ -23,7 +23,7 @@ public:
     bool isServer() const noexcept;
     bool isClient() const noexcept;
 
-    hg::RN_Node& getNode();
+    hg::RN_NodeInterface& getNode();
     ServerType& getServer();
     ClientType& getClient();
 
@@ -46,7 +46,7 @@ private:
         Client
     };
 
-    std::variant<hg::RN_FakeNode, ServerType, ClientType> _node;
+    std::unique_ptr<hg::RN_NodeInterface> _node;
     State _state = State::NotInitialized;
 
     std::list<EventListener*> _eventListeners;

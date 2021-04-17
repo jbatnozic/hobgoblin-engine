@@ -23,9 +23,7 @@
 HOBGOBLIN_NAMESPACE_START
 namespace rn {
 
-using RetransmitPredicate = std::function<bool(PZInteger, std::chrono::microseconds, std::chrono::microseconds)>;
-
-inline
+inline // TODO make this not-inline
 bool DefaultRetransmitPredicate(PZInteger cyclesSinceLastTransmit, 
                                 std::chrono::microseconds timeSinceLastSend,
                                 std::chrono::microseconds currentLatency) {
@@ -57,7 +55,7 @@ public:
     RN_UdpConnectorImpl(RN_SocketAdapter& socket,
                         const std::chrono::microseconds& timeoutLimit, 
                         const std::string& passphrase, 
-                        const RetransmitPredicate& retransmitPredicate,
+                        const RN_RetransmitPredicate& retransmitPredicate,
                         detail::EventFactory eventFactory);
 
     bool tryAccept(sf::IpAddress addr, std::uint16_t port, detail::RN_PacketWrapper& packetWrap);
@@ -89,7 +87,7 @@ private:
 
     const std::chrono::microseconds& _timeoutLimit;
     const std::string& _passphrase;
-    const RetransmitPredicate& _retransmitPredicate;
+    const RN_RetransmitPredicate& _retransmitPredicate;
     detail::EventFactory _eventFactory;
 
     RN_RemoteInfo _remoteInfo;

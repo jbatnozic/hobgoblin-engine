@@ -44,6 +44,10 @@ void RN_UdpClientImpl::setTimeoutLimit(std::chrono::microseconds limit) {
     _timeoutLimit = limit;
 }
 
+void RN_UdpClientImpl::setRetransmitPredicate(RN_RetransmitPredicate pred) {
+    _retransmitPredicate = pred;
+}
+
 void RN_UdpClientImpl::update(RN_UpdateMode mode) {
     if (!_running) {
         return;
@@ -118,16 +122,6 @@ RN_NetworkingStack RN_UdpClientImpl::getNetworkingStack() const noexcept {
     return _socket.getNetworkingStack();
 }
 
-
-
-
-
-
-
-void RN_UdpClientImpl::setRetransmitPredicate(RetransmitPredicate pred) {
-    _retransmitPredicate = pred;
-}
-
 ///////////////////////////////////////////////////////////////////////////
 // PRIVATE IMPLEMENTATION                                                //
 ///////////////////////////////////////////////////////////////////////////
@@ -173,6 +167,14 @@ void RN_UdpClientImpl::_compose(RN_ComposeForAllType receiver, const void* data,
 
 detail::RN_PacketWrapper* RN_UdpClientImpl::_getCurrentPacketWrapper() {
     return _currentPacket;
+}
+
+void RN_UdpClientImpl::_setUserData(util::AnyPtr userData) {
+    _userData = userData;
+}
+
+util::AnyPtr RN_UdpClientImpl::_getUserData() const {
+    return _userData;
 }
 
 } // namespace rn

@@ -1,6 +1,11 @@
 #ifndef UHOBGOBLIN_RN_CONFIGURATION_HPP
 #define UHOBGOBLIN_RN_CONFIGURATION_HPP
 
+#include <Hobgoblin/Common.hpp>
+
+#include <chrono>
+#include <functional>
+
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_START
@@ -19,6 +24,11 @@ enum class RN_NetworkingStack {
 
 struct RN_ComposeForAllType {};
 constexpr RN_ComposeForAllType RN_COMPOSE_FOR_ALL{};
+
+using RN_RetransmitPredicate = std::function<bool(PZInteger, // Cycles since last transmit
+                                                  std::chrono::microseconds, // Time since last send
+                                                  std::chrono::microseconds  // Current latency
+                                                  )>;
 
 } // namespace rn
 HOBGOBLIN_NAMESPACE_END

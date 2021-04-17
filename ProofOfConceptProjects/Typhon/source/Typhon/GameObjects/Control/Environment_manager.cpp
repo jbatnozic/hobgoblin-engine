@@ -44,21 +44,22 @@ using spempe::NetworkingManager;
 } // namespace
 
 RN_DEFINE_HANDLER(ResizeTerrain, RN_ARGS(std::int32_t, width, std::int32_t, height)) {
-    RN_NODE_IN_HANDLER().visit(
+    RN_NODE_IN_HANDLER().callIfClient(
         [&](NetworkingManager::ClientType& client) {
             auto& ctx = *client.getUserData<GameContext>();
             auto& envMgr = GetEnvironmentManager(ctx);
 
             envMgr._resizeAllGrids(width, height);          
-        },
+        });
+
+    RN_NODE_IN_HANDLER().callIfServer(
         [](NetworkingManager::ServerType& server) {
             // ERROR
-        }
-    );
+        });
 }
 
 RN_DEFINE_HANDLER(SetTerrainRow, RN_ARGS(std::int32_t, rowIndex, hg::util::Packet&, packet)) {
-    RN_NODE_IN_HANDLER().visit(
+    RN_NODE_IN_HANDLER().callIfClient(
         [&](NetworkingManager::ClientType& client) {
             auto& ctx = *client.getUserData<GameContext>();
             auto& envMgr = GetEnvironmentManager(ctx);
@@ -68,11 +69,12 @@ RN_DEFINE_HANDLER(SetTerrainRow, RN_ARGS(std::int32_t, rowIndex, hg::util::Packe
                 packet >> terrainTypeId;
                 envMgr.setCellType(x, rowIndex, static_cast<Terrain::TypeId>(terrainTypeId));
             }          
-        },
+        });
+
+    RN_NODE_IN_HANDLER().callIfServer(
         [](NetworkingManager::ServerType& server) {
             // ERROR
-        }
-    );
+        });
 }
 
 EnvironmentManager::EnvironmentManager(QAO_RuntimeRef rtRef)

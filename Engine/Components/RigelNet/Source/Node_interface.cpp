@@ -9,6 +9,12 @@
 HOBGOBLIN_NAMESPACE_START
 namespace rn {
 
+RN_NodeInterface::~RN_NodeInterface() = default;
+
+void RN_NodeInterface::setUserData(std::nullptr_t) {
+    _setUserData(nullptr);
+}
+
 void RN_NodeInterface::callIfClient(std::function<void(RN_ClientInterface& client)> func) {
     if (!isServer()) {
         func(static_cast<RN_ClientInterface&>(SELF));

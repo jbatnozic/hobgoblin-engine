@@ -51,7 +51,7 @@ void HandleDataMessages(detail::RN_PacketWrapper& receivedPacket,
 RN_UdpConnectorImpl::RN_UdpConnectorImpl(RN_SocketAdapter& socket, 
                                          const std::chrono::microseconds& timeoutLimit, 
                                          const std::string& passphrase, 
-                                         const RetransmitPredicate& retransmitPredicate,
+                                         const RN_RetransmitPredicate& retransmitPredicate,
                                          detail::EventFactory eventFactory)
     : _socket{socket}
     , _timeoutLimit{timeoutLimit}

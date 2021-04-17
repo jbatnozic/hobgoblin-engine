@@ -18,9 +18,9 @@ class SynchronizedObject;
 class SynchronizedObjectRegistry : public hg::util::NonCopyable, public hg::util::NonMoveable {
     // TODO Cover edge case when an object is created and then immediately destroyed (in the same step)
 public:
-    SynchronizedObjectRegistry(hg::RN_Node& node);
+    SynchronizedObjectRegistry(hg::RN_NodeInterface& node);
 
-    void setNode(hg::RN_Node& node);
+    void setNode(hg::RN_NodeInterface& node);
 
     SyncId registerMasterObject(SynchronizedObject* object);
     void registerDummyObject(SynchronizedObject* object, SyncId masterSyncId);
@@ -42,7 +42,7 @@ private:
     std::unordered_set<const SynchronizedObject*> _alreadyDestroyedObjects;
     std::vector<hg::PZInteger> _recepientVec;
     SyncId _syncIdCounter = 2;
-    hg::RN_Node* _node;
+    hg::RN_NodeInterface* _node;
 };
 
 } // namespace spempe

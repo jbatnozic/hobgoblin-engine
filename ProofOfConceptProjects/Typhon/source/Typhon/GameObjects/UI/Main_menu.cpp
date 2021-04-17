@@ -67,7 +67,7 @@ void MainMenu::eventUpdate() {
         const hg::PZInteger clientCount = InputPrompt<hg::PZInteger>("client count", 2);
 
         serverCtx->configure(GameContext::Mode::Server);
-        serverCtx->getNetworkingManager().getServer().start(localPort, GameConfig::NETWORKING_PASSPHRASE);
+        serverCtx->getNetworkingManager().getServer().start(localPort);
         serverCtx->getNetworkingManager().getServer().resize(clientCount);
         serverCtx->getNetworkingManager().getServer().setTimeoutLimit(std::chrono::seconds{5});
 
@@ -79,9 +79,8 @@ void MainMenu::eventUpdate() {
 
         // Connect to the server:
         ctx().configure(GameContext::Mode::Client);
-        std::cout << "Connecting to self (IP = " << localNode.ip4 << ")\n";
-        ctx(MNetworking).getClient().connect(0, sf::IpAddress(localNode.ip4.toString()), serverPort,
-                                             GameConfig::NETWORKING_PASSPHRASE);
+        std::cout << "Connecting to self (IP = " << sf::IpAddress::LocalHost << ")\n";
+        ctx(MNetworking).getClient().connect(0, sf::IpAddress::LocalHost, serverPort);
         ctx(MNetworking).getClient().setTimeoutLimit(std::chrono::seconds{5});
     }
     else if (mode == CLIENT) {
@@ -90,7 +89,7 @@ void MainMenu::eventUpdate() {
         const std::uint16_t serverPort = InputPrompt<std::uint16_t>("server port", 8888);
 
         ctx().configure(GameContext::Mode::Client);
-        ctx(MNetworking).getClient().connect(localPort, serverIp, serverPort, GameConfig::NETWORKING_PASSPHRASE);
+        ctx(MNetworking).getClient().connect(localPort, serverIp, serverPort);
         ctx(MNetworking).getClient().setTimeoutLimit(std::chrono::seconds{5});
     }
     else if (mode == SOLO) {
@@ -105,8 +104,7 @@ void MainMenu::eventUpdate() {
     }
     else if (mode == GAME_MASTER) {
         ctx().configure(GameContext::Mode::GameMaster);
-        ctx(MNetworking).getServer().start(InputPrompt<std::uint16_t>("local port - 0 for any", 8888),
-                                                                      GameConfig::NETWORKING_PASSPHRASE);
+        ctx(MNetworking).getServer().start(InputPrompt<std::uint16_t>("local port - 0 for any", 8888));
         ctx(MNetworking).getServer().resize(InputPrompt<hg::PZInteger>("client count", 2));
         ctx(MNetworking).getServer().setTimeoutLimit(std::chrono::seconds{5});
 

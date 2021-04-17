@@ -70,9 +70,9 @@ private:
     SynchronizedObjectRegistry& _syncObjReg;
     const SyncId _syncId;
 
-    virtual void syncCreateImpl(hg::RN_Node& node, const std::vector<hg::PZInteger>& rec) const = 0;
-    virtual void syncUpdateImpl(hg::RN_Node& node, const std::vector<hg::PZInteger>& rec) const = 0;
-    virtual void syncDestroyImpl(hg::RN_Node& node, const std::vector<hg::PZInteger>& rec) const = 0;
+    virtual void syncCreateImpl(hg::RN_NodeInterface& node, const std::vector<hg::PZInteger>& rec) const = 0;
+    virtual void syncUpdateImpl(hg::RN_NodeInterface& node, const std::vector<hg::PZInteger>& rec) const = 0;
+    virtual void syncDestroyImpl(hg::RN_NodeInterface& node, const std::vector<hg::PZInteger>& rec) const = 0;
 
     friend class SynchronizedObjectRegistry;
 };
@@ -113,81 +113,84 @@ private:
     }
 
 #define SPEMPE_GENERATE_CANNONICAL_SYNC_DECLARATIONS \
-    void syncCreateImpl(::hg::RN_Node& node, const std::vector<hg::PZInteger>& rec) const override; \
-    void syncUpdateImpl(::hg::RN_Node& node, const std::vector<hg::PZInteger>& rec) const override; \
-    void syncDestroyImpl(::hg::RN_Node& node, const std::vector<hg::PZInteger>& rec) const override;
+    void syncCreateImpl(::hg::RN_NodeInterface& node, const std::vector<hg::PZInteger>& rec) const override; \
+    void syncUpdateImpl(::hg::RN_NodeInterface& node, const std::vector<hg::PZInteger>& rec) const override; \
+    void syncDestroyImpl(::hg::RN_NodeInterface& node, const std::vector<hg::PZInteger>& rec) const override;
 
 #define SPEMPE_GENERATE_CANNONICAL_SYNC_IMPLEMENTATIONS(_class_name_) \
-    void _class_name_::syncCreateImpl(::hg::RN_Node& node, const std::vector<::hg::PZInteger>& rec) const { \
+    void _class_name_::syncCreateImpl(::hg::RN_NodeInterface& node, const std::vector<::hg::PZInteger>& rec) const { \
         Compose_Create##_class_name_(node, rec, getSyncId(), getCurrentState()); \
     } \
-    void _class_name_::syncUpdateImpl(::hg::RN_Node& node, const std::vector<::hg::PZInteger>& rec) const { \
+    void _class_name_::syncUpdateImpl(::hg::RN_NodeInterface& node, const std::vector<::hg::PZInteger>& rec) const { \
         Compose_Update##_class_name_(node, rec, getSyncId(), getCurrentState()); \
     } \
-    void _class_name_::syncDestroyImpl(::hg::RN_Node& node, const std::vector<::hg::PZInteger>& rec) const { \
+    void _class_name_::syncDestroyImpl(::hg::RN_NodeInterface& node, const std::vector<::hg::PZInteger>& rec) const { \
         Compose_Destroy##_class_name_(node, rec, getSyncId()); \
     }
 
 // TODO Use NetworkingManager::Server/ClientType in cannonical handlers
 
 template <class T, class TCtx>
-void CannonicalCreateImpl(hg::RN_Node& node, SyncId syncId, typename T::VisibleState& state) {
-    node.visit(
-        [&](hg::RN_UdpClient& client) {
+void CannonicalCreateImpl(hg::RN_NodeInterface& node, SyncId syncId, typename T::VisibleState& state) {
+    node.callIfClient(
+        [&](hg::RN_ClientInterface& client) {
             auto& ctx = *client.getUserData<TCtx>();
             auto& runtime = ctx.getQaoRuntime();
             auto& syncObjReg = ctx.getSyncObjReg();
 
             hg::QAO_PCreate<T>(&runtime, syncObjReg, syncId, state);
-        },
-        [](hg::RN_UdpServer& server) {
+        });
+
+    node.callIfServer(
+        [](hg::RN_ServerInterface& server) {
             throw hg::RN_IllegalMessage("Server received a sync message");
-        }
-    );
+        });
 }
 
 template <class T, class TCtx>
-void CannonicalUpdateImpl(hg::RN_Node& node, SyncId syncId, typename T::VisibleState& state) {
-    node.visit(
-        [&](hg::RN_UdpClient& client) {
+void CannonicalUpdateImpl(hg::RN_NodeInterface& node, SyncId syncId, typename T::VisibleState& state) {
+    node.callIfClient(
+        [&](hg::RN_ClientInterface& client) {
             auto& ctx = *client.getUserData<TCtx>();
             auto& runtime = ctx.getQaoRuntime();
             auto& syncObjReg = ctx.getSyncObjReg();
             auto& object = *static_cast<T*>(syncObjReg.getMapping(syncId));
           
-            const auto latency = client.getServer().getRemoteInfo().latency;
+            const auto latency = client.getServerConnector().getRemoteInfo().latency;
             using TIME = std::remove_cv_t<decltype(latency)>;
             const auto dt = std::chrono::duration_cast<TIME>(ctx.getRuntimeConfig().getDeltaTime());
             const auto delaySteps = static_cast<int>(latency / dt) / 2;
 
             object.cannonicalSyncApplyUpdate(state, delaySteps);
-        },
-        [](hg::RN_UdpServer& server) {
+        });
+
+    node.callIfServer(
+        [](hg::RN_ServerInterface& server) {
             throw hg::RN_IllegalMessage("Server received a sync message");
-        }
-    );
+        });
 }
 
 template <class T, class TCtx>
-void CannonicalDestroyImpl(hg::RN_Node& node, SyncId syncId) {
-    node.visit(
-        [&](hg::RN_UdpClient& client) {
+void CannonicalDestroyImpl(hg::RN_NodeInterface& node, SyncId syncId) {
+    node.callIfClient(
+        [&](hg::RN_ClientInterface& client) {
             auto& ctx = *client.getUserData<TCtx>();
             auto& runtime = ctx.getQaoRuntime();
             auto& syncObjReg = ctx.getSyncObjReg();
             auto* object = static_cast<T*>(syncObjReg.getMapping(syncId));
 
-            const auto latency = client.getServer().getRemoteInfo().latency;
+            const auto latency = client.getServerConnector().getRemoteInfo().latency;
             using TIME = std::remove_cv_t<decltype(latency)>;
             const auto dt = std::chrono::duration_cast<TIME>(ctx.getRuntimeConfig().getDeltaTime());
             const auto delaySteps = static_cast<int>(latency / dt) / 2;
 
             object->destroySelfIn(static_cast<int>(ctx.syncBufferLength) - (delaySteps + 1));
-        },
-        [](hg::RN_UdpServer& server) {
+        });
+
+    node.callIfServer(
+        [](hg::RN_ServerInterface& server) {
             throw hg::RN_IllegalMessage("Server received a sync message");
-        }
-    );
+        });
 }
 
 } // namespace spempe 

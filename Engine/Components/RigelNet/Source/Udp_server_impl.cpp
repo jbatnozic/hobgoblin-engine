@@ -69,11 +69,16 @@ void RN_UdpServerImpl::resize(PZInteger newSize) {
             detail::EventFactory{_eventQueue, i});
 
         _clients.push_back(std::move(connector));
+        i += 1;
     }
 }
 
 void RN_UdpServerImpl::setTimeoutLimit(std::chrono::microseconds limit) {
     _timeoutLimit = limit;
+}
+
+void RN_UdpServerImpl::setRetransmitPredicate(RN_RetransmitPredicate pred) {
+    _retransmitPredicate = pred;
 }
 
 void RN_UdpServerImpl::update(RN_UpdateMode mode) {
@@ -163,11 +168,6 @@ RN_NetworkingStack RN_UdpServerImpl::getNetworkingStack() const noexcept {
 int RN_UdpServerImpl::getSenderIndex() const {
     return _senderIndex;
 }
-
-void RN_UdpServerImpl::setRetransmitPredicate(RetransmitPredicate pred) {
-    _retransmitPredicate = pred;
-}
-
 
 ///////////////////////////////////////////////////////////////////////////
 // PRIVATE IMPLEMENTATION                                                //
@@ -259,6 +259,14 @@ void RN_UdpServerImpl::_compose(PZInteger receiver, const void* data, std::size_
 
 detail::RN_PacketWrapper* RN_UdpServerImpl::_getCurrentPacketWrapper() {
     return _currentPacket;
+}
+
+void RN_UdpServerImpl::_setUserData(util::AnyPtr userData) {
+    _userData = userData;
+}
+
+util::AnyPtr RN_UdpServerImpl::_getUserData() const {
+    return _userData;
 }
 
 } // namespace rn

@@ -6,33 +6,27 @@ namespace spempe {
 
 namespace {
 
-void GetIndicesForComposingToEveryone(const hg::RN_Node& node, std::vector<hg::PZInteger>& vec) {
+void GetIndicesForComposingToEveryone(const hg::RN_NodeInterface& node, std::vector<hg::PZInteger>& vec) {
     vec.clear();
-    if (!hg::RN_IsServer(node.getType())) {
-        // Do nothing
-    }
-    else if (node.getType() == hg::RN_NodeType::UdpServer) {
-        auto& server = static_cast<const hg::RN_UdpServer&>(node);
+    if (node.isServer()) {
+        auto& server = static_cast<const hg::RN_ServerInterface&>(node);
         for (hg::PZInteger i = 0; i < server.getSize(); i += 1) {
-            auto& client = server.getClient(i);
+            auto& client = server.getClientConnector(i);
             if (client.getStatus() == hg::RN_ConnectorStatus::Connected) {
                 vec.push_back(i);
             }
         }
     }
-    /*else if (node.getType() == RN_NodeType::TcpServer) {
-        // ...
-    }*/
 }
 
 } // namespace
 
-SynchronizedObjectRegistry::SynchronizedObjectRegistry(hg::RN_Node& node)
+SynchronizedObjectRegistry::SynchronizedObjectRegistry(hg::RN_NodeInterface& node)
     : _node{&node}
 {
 }
 
-void SynchronizedObjectRegistry::setNode(hg::RN_Node& node) {
+void SynchronizedObjectRegistry::setNode(hg::RN_NodeInterface& node) {
     _node = &node;
 }
 

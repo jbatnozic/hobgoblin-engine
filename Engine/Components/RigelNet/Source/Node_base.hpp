@@ -2,6 +2,7 @@
 #define UHOBGOBLIN_RN_NODE_BASE_HPP
 
 #include <Hobgoblin/RigelNet/Events.hpp>
+#include <Hobgoblin/Utility/Any_ptr.hpp>
 
 #include <deque>
 
@@ -11,10 +12,9 @@ HOBGOBLIN_NAMESPACE_START
 namespace rn {
 
 class RN_NodeBase {
-public:
-
 protected:
     std::deque<RN_Event> _eventQueue;
+    util::AnyPtr _userData;
 };
 
 } // namespace rn

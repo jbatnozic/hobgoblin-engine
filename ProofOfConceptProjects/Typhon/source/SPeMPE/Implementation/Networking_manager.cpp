@@ -1,7 +1,9 @@
 
-#include <SPeMPE/Include/Game_context.hpp>
 #include <SPeMPE/Include/Networking_manager.hpp>
+#include <SPeMPE/Include/Game_context.hpp>
 
+#include <cassert>
+#include <chrono>
 #include <iostream>
 
 namespace spempe {
@@ -25,17 +27,18 @@ using namespace hg::rn;
 NetworkingManager::NetworkingManager(QAO_RuntimeRef runtimeRef)
     : NonstateObject{runtimeRef, SPEMPE_TYPEID_SELF, 0, "spempe::NetworkingManager"}
 {
+    _node = hg::RN_ServerFactory::createDummyServer();
 }
 
 void NetworkingManager::initializeAsServer() {
-    _node.emplace<ServerType>();
+    _node = hg::RN_ServerFactory::createServer(RN_Protocol::UDP, "pass123", 1);
     getServer().setRetransmitPredicate(RETRANSMIT_PREDICATE);
     getServer().setUserData(&ctx());
     _state = State::Server;
 }
 
 void NetworkingManager::initializeAsClient() {
-    _node.emplace<ClientType>();
+    _node = hg::RN_ClientFactory::createClient(hg::RN_Protocol::UDP, "pass123");
     getClient().setRetransmitPredicate(RETRANSMIT_PREDICATE);
     getClient().setUserData(&ctx());
     _state = State::Client;
@@ -49,24 +52,19 @@ bool NetworkingManager::isClient() const noexcept {
     return _state == State::Client;
 }
 
-RN_Node& NetworkingManager::getNode() {
-    if (isServer()) {
-        return getServer();
-    }
-    else if (isClient()) {
-        return getClient();
-    }
-    else {
-        return std::get<RN_FakeNode>(_node);
-    }
+RN_NodeInterface& NetworkingManager::getNode() {
+    assert(_node);
+    return *_node;
 }
 
 NetworkingManager::ServerType& NetworkingManager::getServer() {
-    return std::get<ServerType>(_node);
+    assert(_node && _node->isServer());
+    return static_cast<ServerType&>(*_node);
 }
 
 NetworkingManager::ClientType& NetworkingManager::getClient() {
-    return std::get<ClientType>(_node);
+    assert(_node && !_node->isServer());
+    return static_cast<ClientType&>(*_node);
 }
 
 void NetworkingManager::eventPreUpdate() {
@@ -76,7 +74,7 @@ void NetworkingManager::eventPreUpdate() {
 
 void NetworkingManager::eventPostUpdate() {
     // Update all Synchronized objects
-    if (RN_IsServer(getNode().getType())) {
+    if (_node->isServer()) {
         ctx().getSyncObjReg().syncStateUpdates();
     }
 
@@ -106,7 +104,7 @@ void NetworkingManager::handleEvents() {
                 std::cout << "Connection attempt failed\n";
             },
             [this](const RN_Event::Connected& ev) {
-                if (RN_IsServer(getNode().getType())) {
+                if (_node->isServer()) {
                     std::cout << "New client connected\n";
                     ctx().getSyncObjReg().syncCompleteState(*ev.clientIndex);
                 }
