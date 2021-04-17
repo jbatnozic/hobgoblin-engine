@@ -14,10 +14,16 @@ RN_UdpClient::RN_UdpClient()
     , _connector{_mySocket, _timeoutLimit, _passphrase, _retransmitPredicate, detail::EventFactory{SELF}}
     , _retransmitPredicate{DefaultRetransmitPredicate}
 {
-    _mySocket.setBlocking(false);
+    // _mySocket.setBlocking(false);
+    const auto res = _mySocket.init(zt::SocketDomain::InternetProtocol_IPv4,
+                                    zt::SocketType::Datagram);
+    ZTCPP_THROW_ON_ERROR(res, util::TracedException);
+
+    _recvBuffer.resize(65566u);
 }
 
-RN_UdpClient::RN_UdpClient(std::uint16_t localPort, sf::IpAddress serverIp, std::uint16_t serverPort, std::string passphrase)
+RN_UdpClient::RN_UdpClient(std::uint16_t localPort, sf::IpAddress serverIp, 
+                           std::uint16_t serverPort, std::string passphrase)
     : RN_UdpClient()
 {
     connect(localPort, serverIp, serverPort, std::move(passphrase));
@@ -30,8 +36,13 @@ RN_UdpClient::~RN_UdpClient() {
 void RN_UdpClient::connect(std::uint16_t localPort, sf::IpAddress serverIp, std::uint16_t serverPort, std::string passphrase) {
     assert(!_running || _connector.getStatus() == RN_ConnectorStatus::Disconnected);
     
+  #if 0
     auto status = _mySocket.bind(localPort);
     assert(status == sf::Socket::Done); // TODO - Throw exception on failure
+  #endif
+    const auto res = _mySocket.bind(zt::IpAddress::ipv4Unspecified(), localPort);
+    ZTCPP_THROW_ON_ERROR(res, util::TracedException);
+
     _passphrase = std::move(passphrase);
     _connector.connect(serverIp, serverPort);
     _running = true;
@@ -105,9 +116,10 @@ void RN_UdpClient::compose(RN_ComposeForAllType receiver, const void* data, std:
 
 void RN_UdpClient::updateReceive() {
     detail::RN_PacketWrapper packetWrap;
-    sf::IpAddress senderIp;
+    zt::IpAddress senderIp;
     std::uint16_t senderPort;
 
+  #if 0
     while (_mySocket.receive(packetWrap.packet, senderIp, senderPort) == sf::Socket::Status::Done) {
         if (senderIp == _connector.getRemoteInfo().ipAddress
             && senderPort == _connector.getRemoteInfo().port) {
@@ -116,6 +128,32 @@ void RN_UdpClient::updateReceive() {
         else {
             // handlePacketFromUnknownSender(senderIp, senderPort, packet); TODO
         }
+        packetWrap.packet.clear();
+    }
+  #endif
+
+    while (true) {
+        const auto pollres = _mySocket.pollEvents(zt::PollEventBitmask::ReadyToReceiveAny);
+        ZTCPP_THROW_ON_ERROR(pollres, util::TracedException);
+        if ((*pollres & zt::PollEventBitmask::ReadyToReceiveAny) == 0) {
+            break;
+        }
+
+        const auto res = _mySocket.receiveFrom(_recvBuffer.data(), _recvBuffer.size(),
+                                               senderIp, senderPort);
+        ZTCPP_THROW_ON_ERROR(res, util::TracedException);
+        packetWrap.packet.clear();
+        packetWrap.packet.append(_recvBuffer.data(), *res);
+
+        sf::IpAddress sfIp = sf::IpAddress(senderIp.toString());
+        if (sfIp == _connector.getRemoteInfo().ipAddress
+            && senderPort == _connector.getRemoteInfo().port) {
+            _connector.receivedPacket(packetWrap);
+        }
+        else {
+            // handlePacketFromUnknownSender(senderIp, senderPort, packet); TODO
+        }
+
         packetWrap.packet.clear();
     }
 

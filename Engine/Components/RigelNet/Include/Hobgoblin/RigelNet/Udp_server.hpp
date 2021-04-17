@@ -8,6 +8,8 @@
 #include <Hobgoblin/Utility/No_copy_no_move.hpp>
 
 #include <SFML/Network.hpp>
+#include <Ztcpp.hpp>
+namespace zt = jbatnozic::ztcpp;
 
 #include <chrono>
 #include <vector>
@@ -55,8 +57,9 @@ protected:
     void compose(RN_ComposeForAllType receiver, const void* data, std::size_t sizeInBytes) override;
 
 private:
+    std::vector<std::uint8_t> _recvBuffer;
     std::vector<detail::RN_UdpConnector> _clients;
-    sf::UdpSocket _mySocket;
+    zt::Socket _mySocket;
     std::string _passphrase;
     std::chrono::microseconds _timeoutLimit = std::chrono::microseconds{0};
     RetransmitPredicate _retransmitPredicate;

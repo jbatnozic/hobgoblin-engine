@@ -13,6 +13,9 @@
 #include <SFML/System/Clock.hpp>
 #include <SFML/Network.hpp>
 
+#include <Ztcpp.hpp>
+namespace zt = jbatnozic::ztcpp;
+
 #include <chrono>
 #include <cstdint>
 #include <functional>
@@ -55,7 +58,7 @@ struct TaggedPacket {
 
 class RN_UdpConnector : public RN_Connector<RN_UdpConnector> {
 public:
-    RN_UdpConnector(sf::UdpSocket& socket, const std::chrono::microseconds& timeoutLimit, 
+    RN_UdpConnector(zt::Socket& socket, const std::chrono::microseconds& timeoutLimit, 
                     const std::string& passphrase, const RetransmitPredicate& retransmitPredicate,
                     EventFactory eventFactory);
 
@@ -85,7 +88,7 @@ public:
 private:
     EventFactory _eventFactory;
     RN_RemoteInfo _remoteInfo;
-    sf::UdpSocket& _socket;
+    zt::Socket& _socket;
     const std::string& _passphrase;
     const std::chrono::microseconds& _timeoutLimit;
     const RetransmitPredicate& _retransmitPredicate;

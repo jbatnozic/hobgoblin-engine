@@ -22,7 +22,12 @@ RN_UdpServer::RN_UdpServer(PZInteger size)
                               detail::EventFactory{SELF, i});
     }
 
-    _mySocket.setBlocking(false);
+    // _mySocket.setBlocking(false);
+    const auto res = _mySocket.init(zt::SocketDomain::InternetProtocol_IPv4,
+                                    zt::SocketType::Datagram);
+    ZTCPP_THROW_ON_ERROR(res, util::TracedException);
+
+    _recvBuffer.resize(65566u);
 }
 
 RN_UdpServer::RN_UdpServer()
@@ -43,9 +48,15 @@ RN_UdpServer::~RN_UdpServer() {
 void RN_UdpServer::start(std::uint16_t localPort, std::string passphrase) {
     assert(_running == false);
 
+    const auto res = _mySocket.bind(zt::IpAddress::ipv4Unspecified(),
+                                    localPort);
+    ZTCPP_THROW_ON_ERROR(res, util::TracedException);
+
+  #if 0
     if (_mySocket.bind(localPort) != sf::Socket::Done) {
         throw util::TracedRuntimeError("Could not bind UDP socket");
     }
+  #endif
 
     _passphrase = std::move(passphrase);
     _running = true;
@@ -153,9 +164,10 @@ void RN_UdpServer::compose(RN_ComposeForAllType receiver, const void* data, std:
 
 void RN_UdpServer::updateReceive() {
     detail::RN_PacketWrapper packetWrap;
-    sf::IpAddress senderIp;
+    zt::IpAddress senderIp;
     std::uint16_t senderPort;
 
+  #if 0
     while (_mySocket.receive(packetWrap.packet, senderIp, senderPort) == sf::Socket::Status::Done) {
         const int senderConnectorIndex = findConnector(senderIp, senderPort);
 
@@ -168,6 +180,32 @@ void RN_UdpServer::updateReceive() {
         }
 
         packetWrap.packet.clear();
+    }
+  #endif
+    while (true) {
+      const auto pollres = _mySocket.pollEvents(zt::PollEventBitmask::ReadyToReceiveAny);
+      ZTCPP_THROW_ON_ERROR(pollres, util::TracedException);
+      if ((*pollres & zt::PollEventBitmask::ReadyToReceiveAny) == 0) {
+        break;
+      }
+
+      const auto res = _mySocket.receiveFrom(_recvBuffer.data(), _recvBuffer.size(),
+                                             senderIp, senderPort);
+      ZTCPP_THROW_ON_ERROR(res, util::TracedException);
+      packetWrap.packet.clear();
+      packetWrap.packet.append(_recvBuffer.data(), *res);
+
+      sf::IpAddress sfIp = sf::IpAddress(senderIp.toString());
+      const int senderConnectorIndex = findConnector(sfIp, senderPort);
+      if (senderConnectorIndex != -1) {
+          _senderIndex = senderConnectorIndex;
+          _clients[senderConnectorIndex].receivedPacket(packetWrap);
+      }
+      else {
+          handlePacketFromUnknownSender(sfIp, senderPort, packetWrap);
+      }
+
+      packetWrap.packet.clear();
     }
 
     for (PZInteger i = 0; i < getSize(); i += 1) {

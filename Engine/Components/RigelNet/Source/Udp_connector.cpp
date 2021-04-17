@@ -23,9 +23,10 @@ constexpr std::uint32_t UDP_PACKET_TYPE_ACKS = 0x71AC2519;
 constexpr bool UPLOAD_PACKET_SUCCESS = true;
 constexpr bool UPLOAD_PACKET_FAILURE = false;
 
-bool UploadPacket(sf::UdpSocket& socket, util::Packet& packet, sf::IpAddress ip, std::uint16_t port) {                 
+bool UploadPacket(zt::Socket& socket, util::Packet& packet, sf::IpAddress ip, std::uint16_t port) {                 
     if (packet.getDataSize() == 0u) return UPLOAD_PACKET_SUCCESS;
 
+  #if 0
 RETRY:
     switch (socket.send(packet, ip, port)) {
     case sf::Socket::Done:
@@ -46,6 +47,13 @@ RETRY:
 
     assert(0 && "Unreachable");
     return UPLOAD_PACKET_FAILURE;
+  #endif
+    const auto res = socket.sendTo(packet.getData(), packet.getDataSize(),
+                                   zt::IpAddress::ipv4FromString(ip.toString()), port);
+    if (res.hasError()) {
+      return UPLOAD_PACKET_FAILURE;
+    }
+    return UPLOAD_PACKET_SUCCESS;
 }
 
 class FatalMessageTypeReceived : public std::runtime_error {
@@ -55,7 +63,7 @@ public:
 
 } // namespace
 
-RN_UdpConnector::RN_UdpConnector(sf::UdpSocket& socket, const std::chrono::microseconds& timeoutLimit, 
+RN_UdpConnector::RN_UdpConnector(zt::Socket& socket, const std::chrono::microseconds& timeoutLimit, 
                                  const std::string& passphrase, 
                                  const RetransmitPredicate& retransmitPredicate, EventFactory eventFactory)
     : _eventFactory{eventFactory}

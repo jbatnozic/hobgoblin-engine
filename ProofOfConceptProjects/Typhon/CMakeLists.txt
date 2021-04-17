@@ -90,6 +90,10 @@ target_include_directories(${TYPHON_TARGET_NAME} PUBLIC ../../Engine/Components/
 target_include_directories(${TYPHON_TARGET_NAME} PUBLIC ../../Engine/Components/RigelNet/Include)
 target_include_directories(${TYPHON_TARGET_NAME} PUBLIC ../../Engine/Components/Utility/Include)
 target_include_directories(${TYPHON_TARGET_NAME} PUBLIC source)
+
+target_include_directories(${TYPHON_TARGET_NAME} PUBLIC "ZTCpp/Include")
+target_link_directories(${TYPHON_TARGET_NAME} PUBLIC "ZTCpp/Lib")
+
 target_link_libraries(${TYPHON_TARGET_NAME} PUBLIC 
     ${CONAN_LIBS}
     "Hobgoblin.Common"
@@ -98,6 +102,7 @@ target_link_libraries(${TYPHON_TARGET_NAME} PUBLIC
     "Hobgoblin.Graphics"
     "Hobgoblin.QAO"
     "Hobgoblin.RigelNet"
+    "ztcpp"
 )
 
 if(WIN32)

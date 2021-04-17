@@ -6,6 +6,23 @@
 #include "../Control/Environment_manager.hpp"
 //#include "../Gameplay/Physics_player.hpp"
 
+#include <Ztcpp.hpp>
+
+namespace zt = jbatnozic::ztcpp;
+
+class NodeInfo {
+public:
+  NodeInfo() = default;
+
+  bool online = false;
+  int networksJoinedCount = 0;
+  uint64_t id = 0;
+  zt::IpAddress ip4 = zt::IpAddress::ipv4Unspecified();
+  zt::IpAddress ip6 = zt::IpAddress::ipv6Unspecified();
+};
+
+extern NodeInfo localNode;
+
 namespace {
 
 template <class T>
@@ -60,9 +77,11 @@ void MainMenu::eventUpdate() {
 
         ctx().runChildContext(std::move(serverCtx));
 
-        // Connext to the server:
+        // Connect to the server:
         ctx().configure(GameContext::Mode::Client);
-        ctx(MNetworking).getClient().connect(0, "localhost", serverPort, GameConfig::NETWORKING_PASSPHRASE);
+        std::cout << "Connecting to self (IP = " << localNode.ip4 << ")\n";
+        ctx(MNetworking).getClient().connect(0, sf::IpAddress(localNode.ip4.toString()), serverPort,
+                                             GameConfig::NETWORKING_PASSPHRASE);
         ctx(MNetworking).getClient().setTimeoutLimit(std::chrono::seconds{5});
     }
     else if (mode == CLIENT) {
