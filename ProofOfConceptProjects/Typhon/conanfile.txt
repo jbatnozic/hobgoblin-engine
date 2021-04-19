@@ -1,5 +1,6 @@
 [requires]
 sfml/2.5.1@bincrafters/stable
+ztcpp/1.1.1@jbatnozic/stable
 
 [options]
 sfml:audio=True
@@ -7,5 +8,11 @@ sfml:graphics=True
 sfml:network=True
 sfml:window=True
 
+ztcpp:shared=True
+
 [generators]
 cmake
+
+[imports]
+bin, *.dll -> ./bin
+lib, *.dylib* -> ./bin

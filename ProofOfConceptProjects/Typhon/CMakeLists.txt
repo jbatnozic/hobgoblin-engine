@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Conan setup
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup()
+conan_basic_setup(TARGETS)
 
 # Collect all sources
 set(TYPHON_SOURCE_ALL
@@ -63,7 +63,6 @@ set(TYPHON_SOURCE_ALL
 )
 
 # Compilation configuration
-add_compile_definitions("SFML_STATIC")
 add_compile_definitions("HOBGOBLIN_SHORT_NAMESPACE")
 
 set(TYPHON_TARGET_NAME
@@ -91,18 +90,15 @@ target_include_directories(${TYPHON_TARGET_NAME} PUBLIC ../../Engine/Components/
 target_include_directories(${TYPHON_TARGET_NAME} PUBLIC ../../Engine/Components/Utility/Include)
 target_include_directories(${TYPHON_TARGET_NAME} PUBLIC source)
 
-target_include_directories(${TYPHON_TARGET_NAME} PUBLIC "ZTCpp/Include")
-target_link_directories(${TYPHON_TARGET_NAME} PUBLIC "ZTCpp/Lib")
-
-target_link_libraries(${TYPHON_TARGET_NAME} PUBLIC 
-    ${CONAN_LIBS}
+target_link_libraries(${TYPHON_TARGET_NAME} PUBLIC
     "Hobgoblin.Common"
     "Hobgoblin.Utility"
     "Hobgoblin.ChipmunkPhysics"
     "Hobgoblin.Graphics"
     "Hobgoblin.QAO"
     "Hobgoblin.RigelNet"
-    "ztcpp"
+    "CONAN_PKG::sfml"
+    "CONAN_PKG::ztcpp"
 )
 
 if(WIN32)

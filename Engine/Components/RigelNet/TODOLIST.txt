@@ -1,0 +1,10 @@
+
+- Fix the following things:
+  - Error handling is horrible (return codes, exceptions, everything's a mess...)
+
+- Add local (in-process) connections
+- Add Doc comments
+- A million little TODOs
+- Settle on a terminology and use it
+- And documment the protocol used
+- Max packet receive size...

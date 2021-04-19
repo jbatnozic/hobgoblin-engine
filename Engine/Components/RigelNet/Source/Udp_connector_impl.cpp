@@ -1,12 +1,6 @@
 
 #include "Udp_connector_impl.hpp"
 
-#define HOBGOBLIN_RN_ZEROTIER_SUPPORT // TODO Temp.
-#ifdef  HOBGOBLIN_RN_ZEROTIER_SUPPORT
-#include <Ztcpp.hpp>
-namespace zt = jbatnozic::ztcpp;
-#endif
-
 #include <cassert>
 #include <chrono>
 #include <stdexcept>
@@ -109,9 +103,9 @@ void RN_UdpConnectorImpl::disconnect(bool notfiyRemote) {
     if (notfiyRemote && _status == RN_ConnectorStatus::Connected) {
         util::Packet packet;
         packet << UDP_PACKET_TYPE_DISCONNECT;
-        if (!_socket.send(packet, _remoteInfo.ipAddress, _remoteInfo.port)) {
-            // Do nothing - The connector is getting disconnected anyway...
-        }
+
+        // Ignore all recoverable errors - The connector is getting disconnected anyway...
+        _socket.send(packet, _remoteInfo.ipAddress, _remoteInfo.port);
     }
     reset();
 }
@@ -141,10 +135,10 @@ void RN_UdpConnectorImpl::send() {
     {
         util::Packet packet;
         packet << UDP_PACKET_TYPE_CONNECT << _passphrase << _clientIndex.value();
-        if (!_socket.send(packet, _remoteInfo.ipAddress, _remoteInfo.port)) {
-            reset();
-            _eventFactory.createConnectAttemptFailed(RN_Event::ConnectAttemptFailed::Reason::Error);
-        }
+
+        // Safe to ignore recoverable errors here - Disconnected doesn't happen with UDP and
+        // NotReady is irrelevant because CONNECTs keep getting resent until acknowledged anyway
+        _socket.send(packet, _remoteInfo.ipAddress, _remoteInfo.port);
     }
     break;
 
@@ -152,10 +146,10 @@ void RN_UdpConnectorImpl::send() {
     {
         util::Packet packet;
         packet << UDP_PACKET_TYPE_HELLO << _passphrase;
-        if (!_socket.send(packet, _remoteInfo.ipAddress, _remoteInfo.port)) {
-            reset();
-            _eventFactory.createConnectAttemptFailed(RN_Event::ConnectAttemptFailed::Reason::Error);
-        }
+
+        // Safe to ignore recoverable errors here - Disconnected doesn't happen with UDP and
+        // NotReady is irrelevant because HELLOs keep getting resent until acknowledged anyway
+        _socket.send(packet, _remoteInfo.ipAddress, _remoteInfo.port);
     }
     break;
 
@@ -228,10 +222,9 @@ void RN_UdpConnectorImpl::sendAcks() {
         packet << ackOrdinal;
     }
 
-    if (!_socket.send(packet, _remoteInfo.ipAddress, _remoteInfo.port)) {
-        reset();
-        _eventFactory.createConnectAttemptFailed(RN_Event::ConnectAttemptFailed::Reason::Error);
-    }
+    // Safe to ignore recoverable errors here - Disconnected doesn't happen with UDP and
+    // NotReady is irrelevant because Acks keep getting resent until acknowledged back anyway
+    _socket.send(packet, _remoteInfo.ipAddress, _remoteInfo.port);
 }
 
 void RN_UdpConnectorImpl::handleDataMessages(RN_NodeInterface& node, 
@@ -327,20 +320,33 @@ void RN_UdpConnectorImpl::uploadAllData() {
             continue;
         }
 
-        // TODO Send, restart clock etc.
+        bool socketCannotSendMore = false;
         if ((taggedPacket.tag == TaggedPacket::ReadyForSending)
             || _retransmitPredicate(taggedPacket.cyclesSinceLastTransmit, taggedPacket.stopwatch.getElapsedTime(),
                                     _remoteInfo.latency)) {
 
-            if (!_socket.send(taggedPacket.packetWrap.packet, _remoteInfo.ipAddress, _remoteInfo.port)) {
-                // TODO Handle error, log event
-                //std::cout << "UPLOAD ERROR size=" << taggedPacket.packetWrap.packet.getDataSize() << '\n';
+            switch (_socket.send(taggedPacket.packetWrap.packet, _remoteInfo.ipAddress, _remoteInfo.port)) {
+            case RN_SocketAdapter::Status::OK:
+                // All good, carry on
+                break;
+
+            case RN_SocketAdapter::Status::NotReady:
+                socketCannotSendMore = true;
+                break;
+
+            case RN_SocketAdapter::Status::Disconnected: // Doesn't happen with UDP
+            default: 
+                assert(false && "Unreachable");
             }
 
             taggedPacket.stopwatch.restart();
             taggedPacket.cyclesSinceLastTransmit = 0;
             uploadCounter += 1;
-            // TODO Break if uploadCounter too large [configurable]
+
+            // TODO Configurable uploadCounter max
+            if (socketCannotSendMore || uploadCounter == 1000) {
+                break;
+            }
         }
             
         taggedPacket.cyclesSinceLastTransmit += 1;

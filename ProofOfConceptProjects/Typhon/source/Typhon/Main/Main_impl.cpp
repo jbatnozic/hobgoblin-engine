@@ -7,7 +7,7 @@
 #include <Typhon/Graphics/Sprites.hpp>
 #include <Typhon/Terrain/Terrain.hpp>
 
-#include <Ztcpp.hpp>
+#include <ZTCpp.hpp>
 
 #include <cstdlib> // TODO Temp. for srand
 #include <stdexcept>
@@ -103,19 +103,18 @@ int MainImpl::run(int argc, char* argv[])
 try
 #endif // MAIN_SHOULD_CATCH_EXCEPTIONS
 {
-  if (false /* Init ZT */) {
+  if (false /* Use ZT */) {
       std::string identityPath = "ZTNodeData";
       uint64_t nwid = strtoull("a09acf0233ceff5c", NULL, 16);
       int ztServicePort = 9994;
-      int err;
       zt::SetEventHandler(&eventHandler);
 
       printf("This node's identity is stored in %s\n", identityPath.c_str());
 
       printf("Starting ZeroTier service...\n");
-      if ((err = zt::StartZeroTierService(identityPath, ztServicePort)) != ZTS_ERR_OK) {
-        printf("Unable to start service, error = %d. Exiting.\n", err);
-        exit(1);
+      {
+        const auto res = zt::StartService(identityPath, ztServicePort);
+        ZTCPP_THROW_ON_ERROR(res, hg::util::TracedRuntimeError);
       }
 
       printf("Waiting for node to come online...\n");
@@ -162,9 +161,9 @@ try
 	// Teardown:
 	_gameContext.reset();
 
-  {
+  if (false /* Use ZT */) {
       printf("Shutting down service\n");
-      zt::StopZeroTierService();
+      zt::StopService();
       std::this_thread::sleep_for(std::chrono::milliseconds{1000});
       zt::SetEventHandler(nullptr);
   }

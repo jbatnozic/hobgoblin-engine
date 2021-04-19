@@ -3,12 +3,16 @@
 
 #include <Hobgoblin/Utility/Exceptions.hpp>
 
+#include <cassert>
+
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_START
 namespace rn {
 
 namespace {
+constexpr PZInteger MAX_SEND_TRY_COUNT = 100;
+
 inline
 bool UseSfSocket(RN_Protocol protocol, RN_NetworkingStack networkingStack) {
     return (networkingStack == RN_NetworkingStack::Default);
@@ -29,13 +33,16 @@ RN_SocketAdapter::RN_SocketAdapter(RN_Protocol aProtocol, RN_NetworkingStack aNe
 {
     if (UseSfSocket(_protocol, _networkingStack)) {
         _socket.emplace<sf::UdpSocket>();
-
     }
 #ifdef HOBGOBLIN_RN_ZEROTIER_SUPPORT
     else if (UseZtSocket(_protocol, _networkingStack)) {
         _socket.emplace<zt::Socket>();
     }
 #endif
+    else {
+        throw util::TracedLogicError("Unsupported networking stack requested. "
+                                     "(Did you compile RigelNet with the correct configuration?)");
+    }
 }
 
 void RN_SocketAdapter::init(PZInteger aRecvBufferSize) {
@@ -48,7 +55,9 @@ void RN_SocketAdapter::init(PZInteger aRecvBufferSize) {
         auto& socket = std::get<zt::Socket>(_socket);
         const auto res = socket.init(zt::SocketDomain::InternetProtocol_IPv4,
                                      zt::SocketType::Datagram);
-        ZTCPP_THROW_ON_ERROR(res, util::TracedException);
+        // This will only throw if the ZeroTier service wasn't initialized, 
+        // or if some strange unrecoverable error happens to the socket.
+        ZTCPP_THROW_ON_ERROR(res, util::TracedRuntimeError);
 
         _recvBuffer.resize(pztos(aRecvBufferSize));
     }
@@ -66,82 +75,125 @@ void RN_SocketAdapter::bind(sf::IpAddress aIpAddress, std::uint16_t aLocalPort) 
     else if (UseZtSocket(_protocol, _networkingStack)) {
         auto& socket = std::get<zt::Socket>(_socket);
         const auto res = socket.bind(zt::IpAddress::ipv4FromString(aIpAddress.toString()), aLocalPort);
-        ZTCPP_THROW_ON_ERROR(res, util::TracedException);
+        ZTCPP_THROW_ON_ERROR(res, util::TracedRuntimeError);
     }
 #endif
 }
 
-bool RN_SocketAdapter::send(util::Packet& aPacket,
-                            const sf::IpAddress& aTargetAddress,
-                            std::uint16_t aTargetPort) {
-    if (aPacket.getDataSize() == 0u) return true;
+RN_SocketAdapter::Status RN_SocketAdapter::send(util::Packet& aPacket,
+                                                const sf::IpAddress& aTargetAddress,
+                                                std::uint16_t aTargetPort) {
+    if (aPacket.getDataSize() == 0u) return Status::OK;
 
     if (UseSfSocket(_protocol, _networkingStack)) {
         auto& socket = std::get<sf::UdpSocket>(_socket);
-    RETRY:
-        switch (socket.send(aPacket, aTargetAddress, aTargetPort)) {
-        case sf::Socket::Done:
-            return true;
+    
+        for (PZInteger tryCount = 0; tryCount < MAX_SEND_TRY_COUNT; tryCount += 1) {
+            switch (socket.send(aPacket, aTargetAddress, aTargetPort)) {
+            case sf::Socket::Done:
+                return Status::OK;
 
-        case sf::Socket::Partial:
-            goto RETRY;
+            case sf::Socket::NotReady:
+                return Status::NotReady;
 
-        case sf::Socket::NotReady:
-            return true; // TODO ?????
+            case sf::Socket::Partial:
+                continue; // Retry
 
-        case sf::Socket::Error:
-        case sf::Socket::Disconnected:
-            return false;
+            case sf::Socket::Disconnected:
+                return Status::Disconnected;
+
+            case sf::Socket::Error:
+                throw util::TracedRuntimeError("Socket reached an unrecoverable error state");
+            }
         }
 
-        assert(false && "Unreachable");
-        return false;
+        // Maximum retry count reached
+        throw util::TracedRuntimeError("Socket not able to send data anymore");
     }
 #ifdef HOBGOBLIN_RN_ZEROTIER_SUPPORT
     else if (UseZtSocket(_protocol, _networkingStack)) {
+        // TODO: Socket disconnected is not handled properly (throws exception instead
+        // of returning Status::Disconnected. Not a huge concern as RigelNet only
+        // supports UDP for now anyway.
+
         auto& socket = std::get<zt::Socket>(_socket);
+
+        const auto pollres = socket.pollEvents(zt::PollEventBitmask::ReadyToSend);
+        ZTCPP_THROW_ON_ERROR(pollres, util::TracedRuntimeError);
+        if ((pollres & zt::PollEventBitmask::ReadyToSend) == 0) {
+            return Status::NotReady;
+        }
+
         const auto res = socket.sendTo(aPacket.getData(), aPacket.getDataSize(),
                                        zt::IpAddress::ipv4FromString(aTargetAddress.toString()), aTargetPort);
-        ZTCPP_THROW_ON_ERROR(res, util::TracedException);
-        return true;
+        ZTCPP_THROW_ON_ERROR(res, util::TracedRuntimeError);
+
+        return Status::OK;
     }
 #endif
+    else {
+        throw util::TracedLogicError("Unsupported networking stack requested. "
+                                     "(Did you compile RigelNet with the correct configuration?)");
+    }
 }
 
-bool RN_SocketAdapter::recv(util::Packet& aPacket, 
-                            sf::IpAddress& aRemoteAddress, 
-                            std::uint16_t& aRemotePort) {
+RN_SocketAdapter::Status RN_SocketAdapter::recv(util::Packet& aPacket, 
+                                                sf::IpAddress& aRemoteAddress, 
+                                                std::uint16_t& aRemotePort) {
     if (UseSfSocket(_protocol, _networkingStack)) {
         auto& socket = std::get<sf::UdpSocket>(_socket);
-        const auto res = socket.receive(aPacket, aRemoteAddress, aRemotePort);
-        return (res == sf::Socket::Done);
+        switch (socket.receive(aPacket, aRemoteAddress, aRemotePort)) {
+        case sf::Socket::Done:
+            return Status::OK;
+
+        case sf::Socket::NotReady:
+            return Status::NotReady;
+
+        case sf::Socket::Disconnected:
+            return Status::Disconnected;
+
+        case sf::Socket::Partial: // Partial should happen only when sending
+        case sf::Socket::Error:
+            throw util::TracedRuntimeError("Socket reached an unrecoverable error state");
+        }
     }
 #ifdef HOBGOBLIN_RN_ZEROTIER_SUPPORT
     else if (UseZtSocket(_protocol, _networkingStack)) {
         auto& socket = std::get<zt::Socket>(_socket);
 
         const auto pollres = socket.pollEvents(zt::PollEventBitmask::ReadyToReceiveAny);
-        ZTCPP_THROW_ON_ERROR(pollres, util::TracedException);
+        ZTCPP_THROW_ON_ERROR(pollres, util::TracedRuntimeError);
         if ((*pollres & zt::PollEventBitmask::ReadyToReceiveAny) == 0) {
             // Not ready to receive
-            return false;
+            return Status::NotReady;
         }
 
         zt::IpAddress senderIp;
         const auto res = socket.receiveFrom(_recvBuffer.data(), _recvBuffer.size(),
                                             senderIp, aRemotePort);
         ZTCPP_THROW_ON_ERROR(res, util::TracedException);
+        if (*res == 0) {
+            // Nothing received (not expected to ever happen but let's be safe)
+            return Status::NotReady;
+        }
+
         aPacket.clear();
         aPacket.append(_recvBuffer.data(), *res);
 
         aRemoteAddress = sf::IpAddress(senderIp.toString());
-        return true;
+
+        return Status::OK;
     }
 #endif
-    return false;
+    else {
+        throw util::TracedLogicError("Unsupported networking stack requested. "
+                                     "(Did you compile RigelNet with the correct configuration?)");
+    }
 }
 
 void RN_SocketAdapter::close() {
+    // Note: This method swallows all errors as we don't expect to use the socket afterwards
+
     if (UseSfSocket(_protocol, _networkingStack)) {
         auto& socket = std::get<sf::UdpSocket>(_socket);
         socket.unbind();
@@ -149,10 +201,13 @@ void RN_SocketAdapter::close() {
 #ifdef HOBGOBLIN_RN_ZEROTIER_SUPPORT
     else if (UseZtSocket(_protocol, _networkingStack)) {
         auto& socket = std::get<zt::Socket>(_socket);
-        const auto res = socket.close();
-        ZTCPP_THROW_ON_ERROR(res, util::TracedException);
+        socket.close();
     }
 #endif
+    else {
+        throw util::TracedLogicError("Unsupported networking stack requested. "
+                                     "(Did you compile RigelNet with the correct configuration?)");
+    }
 }
 
 std::uint16_t RN_SocketAdapter::getLocalPort() const {
@@ -166,7 +221,10 @@ std::uint16_t RN_SocketAdapter::getLocalPort() const {
         return socket.getLocalPort();
     }
 #endif
-    return 0;
+    else {
+        throw util::TracedLogicError("Unsupported networking stack requested. "
+                                     "(Did you compile RigelNet with the correct configuration?)");
+    }
 }
 
 RN_Protocol RN_SocketAdapter::getProtocol() const noexcept {

@@ -1,6 +1,7 @@
 [requires]
 gtest/1.10.0
 sfml/2.5.1@bincrafters/stable
+ztcpp/1.1.1@jbatnozic/stable
 
 [options]
 sfml:shared=False
@@ -9,5 +10,11 @@ sfml:graphics=True
 sfml:network=True
 sfml:window=True
 
+ztcpp:shared=True
+
 [generators]
 cmake
+
+[imports]
+bin, *.dll -> ./bin
+lib, *.dylib* -> ./bin

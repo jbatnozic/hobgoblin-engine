@@ -20,7 +20,7 @@ RN_UdpClientImpl::RN_UdpClientImpl(std::string aPassphrase,
 }
 
 RN_UdpClientImpl::~RN_UdpClientImpl() {
-    // TODO
+    disconnect(false);
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -36,8 +36,13 @@ void RN_UdpClientImpl::connect(std::uint16_t localPort, sf::IpAddress serverIp, 
 }
 
 void RN_UdpClientImpl::disconnect(bool notifyRemote) {
-    _connector.disconnect(notifyRemote);
+    if (_connector.getStatus() != RN_ConnectorStatus::Disconnected) {
+        _connector.disconnect(notifyRemote);
+    }
     _running = false;
+
+    // Safe to call multiple times
+    _socket.close();
 }
 
 void RN_UdpClientImpl::setTimeoutLimit(std::chrono::microseconds limit) {
@@ -131,15 +136,30 @@ void RN_UdpClientImpl::_updateReceive() {
     sf::IpAddress senderIp;
     std::uint16_t senderPort;
 
-    while (_socket.recv(packetWrap.packet, senderIp, senderPort)) {
-        if (senderIp == _connector.getRemoteInfo().ipAddress
-            && senderPort == _connector.getRemoteInfo().port) {
-            _connector.receivedPacket(packetWrap);
+    bool keepReceiving = true;
+    while (keepReceiving) {
+        switch (_socket.recv(packetWrap.packet, senderIp, senderPort)) {
+        case decltype(_socket)::Status::OK:
+            if (senderIp == _connector.getRemoteInfo().ipAddress
+                && senderPort == _connector.getRemoteInfo().port) {
+                _connector.receivedPacket(packetWrap);
+            }
+            else {
+                // handlePacketFromUnknownSender(senderIp, senderPort, packet); TODO
+            }
+            packetWrap.packet.clear();
+            break;
+
+        case decltype(_socket)::Status::NotReady:
+            // Nothing left to receive for now
+            keepReceiving = false;
+            break;
+
+        case decltype(_socket)::Status::Disconnected:
+        default:
+            // Realistically these won't ever happen
+            assert(false && "Unreachable");
         }
-        else {
-            // handlePacketFromUnknownSender(senderIp, senderPort, packet); TODO
-        }
-        packetWrap.packet.clear();
     }
 
     if (_connector.getStatus() == RN_ConnectorStatus::Connected) {

@@ -1,2 +1,11 @@
-conan install . -if build/Typhon-x64-Debug/ -s build_type=Debug --build=outdated
-conan install . -if build/Typhon-x64-Release/  -s build_type=Release --build=outdated
+conan install . -if build/Typhon-x64-Debug/ ^
+    --profile=default ^
+    --build=outdated ^
+    -s build_type=Debug ^
+    -s ztcpp:compiler.cppstd=17
+    
+conan install . -if build/Typhon-x64-Release/ ^
+    --profile=default ^
+    --build=outdated ^
+    -s build_type=Release ^
+    -s ztcpp:compiler.cppstd=17

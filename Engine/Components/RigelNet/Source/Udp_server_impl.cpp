@@ -18,7 +18,7 @@ RN_UdpServerImpl::RN_UdpServerImpl(std::string passphrase,
     , _passphrase{std::move(passphrase)}
     , _retransmitPredicate{DefaultRetransmitPredicate}
 {
-    _socket.init(65536);
+    _socket.init(65536); // TODO Magic number
 
     _clients.reserve(static_cast<std::size_t>(size));
     for (PZInteger i = 0; i < size; i += 1) {
@@ -34,7 +34,7 @@ RN_UdpServerImpl::RN_UdpServerImpl(std::string passphrase,
 }
 
 RN_UdpServerImpl::~RN_UdpServerImpl() {
-    // TODO
+    stop();
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -50,7 +50,15 @@ void RN_UdpServerImpl::start(std::uint16_t localPort) {
 }
 
 void RN_UdpServerImpl::stop() {
-    // TODO
+    // TODO disconnect all connectors
+    for (auto& client : _clients) {
+        if (client->getStatus() != RN_ConnectorStatus::Disconnected) {
+            client->disconnect(false); // TODO make configurable
+        }
+    }
+
+    // Safe to call multiple times
+    _socket.close();
 }
 
 void RN_UdpServerImpl::resize(PZInteger newSize) {
@@ -178,18 +186,35 @@ void RN_UdpServerImpl::_updateReceive() {
     sf::IpAddress senderIp;
     std::uint16_t senderPort;
 
-    while (_socket.recv(packetWrap.packet, senderIp, senderPort)) {
-        const int senderConnectorIndex = _findConnector(senderIp, senderPort);
+    bool keepReceiving = true;
+    while (keepReceiving) {
+        switch (_socket.recv(packetWrap.packet, senderIp, senderPort)) {
+        case decltype(_socket)::Status::OK:
+            {
+                const int senderConnectorIndex = _findConnector(senderIp, senderPort);
 
-        if (senderConnectorIndex != -1) {
-            _senderIndex = senderConnectorIndex;
-            _clients[senderConnectorIndex]->receivedPacket(packetWrap);
-        }
-        else {
-            _handlePacketFromUnknownSender(senderIp, senderPort, packetWrap);
-        }
+                if (senderConnectorIndex != -1) {
+                    _senderIndex = senderConnectorIndex;
+                    _clients[senderConnectorIndex]->receivedPacket(packetWrap);
+                }
+                else {
+                    _handlePacketFromUnknownSender(senderIp, senderPort, packetWrap);
+                }
 
-        packetWrap.packet.clear();
+                packetWrap.packet.clear();
+            }
+            break;
+
+        case decltype(_socket)::Status::NotReady:
+            // Nothing left to receive for now
+            keepReceiving = false;
+            break;
+
+        case decltype(_socket)::Status::Disconnected:
+        default:
+            // Realistically these won't ever happen
+            assert(false && "Unreachable");
+        }
     }
 
     for (PZInteger i = 0; i < getSize(); i += 1) {
