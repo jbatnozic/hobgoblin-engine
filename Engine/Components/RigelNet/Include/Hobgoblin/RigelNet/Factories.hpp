@@ -13,14 +13,17 @@
 HOBGOBLIN_NAMESPACE_START
 namespace rn {
 
+#define DEFAULT_MAX_PACKET_SIZE 512
 #define DEFAULT_STACK RN_NetworkingStack::Default
 
 class RN_ServerFactory {
 public:
-    static std::unique_ptr<RN_ServerInterface> createServer(RN_Protocol aProtocol,
-                                                            std::string aPassphrase,
-                                                            PZInteger aServerSize = 1,
-                                                            RN_NetworkingStack aNetworkingStack = DEFAULT_STACK);
+    static std::unique_ptr<RN_ServerInterface> createServer(
+        RN_Protocol aProtocol,
+        std::string aPassphrase,
+        PZInteger aServerSize = 1,
+        PZInteger aMaxPacketSize = DEFAULT_MAX_PACKET_SIZE,
+        RN_NetworkingStack aNetworkingStack = DEFAULT_STACK);
 
     //! Returns an object that fulfills the interface but doesn't do anything.
     static std::unique_ptr<RN_ServerInterface> createDummyServer();
@@ -28,9 +31,11 @@ public:
 
 class RN_ClientFactory {
 public:
-    static std::unique_ptr<RN_ClientInterface> createClient(RN_Protocol aProtocol,
-                                                            std::string aPassphrase,
-                                                            RN_NetworkingStack aNetworkingStack = DEFAULT_STACK);
+    static std::unique_ptr<RN_ClientInterface> createClient(
+        RN_Protocol aProtocol,
+        std::string aPassphrase,
+        PZInteger aMaxPacketSize = DEFAULT_MAX_PACKET_SIZE,
+        RN_NetworkingStack aNetworkingStack = DEFAULT_STACK);
 
     //! Returns an object that fulfills the interface but doesn't do anything.
     static std::unique_ptr<RN_ClientInterface> createDummyClient();

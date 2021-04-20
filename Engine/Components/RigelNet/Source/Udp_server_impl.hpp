@@ -25,7 +25,8 @@ public:
     //! Create the server with the specified size but don't start it.
     RN_UdpServerImpl(std::string passphrase,
                      PZInteger size,
-                     RN_NetworkingStack networkingStack);
+                     RN_NetworkingStack networkingStack,
+                     PZInteger aMaxPacketSize);
 
     ~RN_UdpServerImpl();
 
@@ -85,6 +86,7 @@ public:
 
 private:
     RN_SocketAdapter _socket;
+    PZInteger _maxPacketSize;
 
     std::vector<std::unique_ptr<RN_UdpConnectorImpl>> _clients;
 

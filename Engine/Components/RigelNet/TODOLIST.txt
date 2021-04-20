@@ -7,4 +7,6 @@
 - A million little TODOs
 - Settle on a terminology and use it
 - And documment the protocol used
-- Max packet receive size...
+- Server ability to notify remote on connection shutdown. 
+  ^ Implement this for both servers and clients
+- Untracked messages

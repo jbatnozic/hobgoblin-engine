@@ -112,6 +112,7 @@ private:
 std::unique_ptr<RN_ServerInterface> RN_ServerFactory::createServer(RN_Protocol aProtocol,
                                                                    std::string aPassphrase,
                                                                    PZInteger aServerSize,
+                                                                   PZInteger aMaxPacketSize,
                                                                    RN_NetworkingStack aNetworkingStack) {
     switch (aProtocol) {
     case RN_Protocol::TCP:
@@ -119,7 +120,7 @@ std::unique_ptr<RN_ServerInterface> RN_ServerFactory::createServer(RN_Protocol a
         break;
 
     case RN_Protocol::UDP:
-        return std::make_unique<RN_UdpServerImpl>(aPassphrase, aServerSize, aNetworkingStack);
+        return std::make_unique<RN_UdpServerImpl>(aPassphrase, aServerSize, aNetworkingStack, aMaxPacketSize);
         break;
 
     default:
@@ -142,6 +143,7 @@ class RN_DummyClient : public RN_ClientInterface {
 
 std::unique_ptr<RN_ClientInterface> RN_ClientFactory::createClient(RN_Protocol aProtocol,
                                                                    std::string aPassphrase,
+                                                                   PZInteger aMaxPacketSize,
                                                                    RN_NetworkingStack aNetworkingStack) {
     switch (aProtocol) {
     case RN_Protocol::TCP:
@@ -149,7 +151,7 @@ std::unique_ptr<RN_ClientInterface> RN_ClientFactory::createClient(RN_Protocol a
         break;
 
     case RN_Protocol::UDP:
-        return std::make_unique<RN_UdpClientImpl>(aPassphrase, aNetworkingStack);
+        return std::make_unique<RN_UdpClientImpl>(aPassphrase, aNetworkingStack, aMaxPacketSize);
         break;
 
     default:

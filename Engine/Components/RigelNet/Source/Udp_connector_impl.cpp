@@ -46,12 +46,14 @@ RN_UdpConnectorImpl::RN_UdpConnectorImpl(RN_SocketAdapter& socket,
                                          const std::chrono::microseconds& timeoutLimit, 
                                          const std::string& passphrase, 
                                          const RN_RetransmitPredicate& retransmitPredicate,
-                                         detail::EventFactory eventFactory)
+                                         detail::EventFactory eventFactory,
+                                         PZInteger aMaxPacketSize)
     : _socket{socket}
     , _timeoutLimit{timeoutLimit}
     , _passphrase{passphrase}
     , _retransmitPredicate{retransmitPredicate}
     , _eventFactory{eventFactory}
+    , _maxPacketSize{aMaxPacketSize}
     , _status{RN_ConnectorStatus::Disconnected}
 {
 }
@@ -273,13 +275,13 @@ PZInteger RN_UdpConnectorImpl::getRecvBufferSize() const {
 }
 
 void RN_UdpConnectorImpl::appendToNextOutgoingPacket(const void *data, std::size_t sizeInBytes) {
-    if (sizeInBytes > MAX_PACKET_SIZE) {
+    if (sizeInBytes > _maxPacketSize) {
         throw util::TracedLogicError("Cannot send packets larger than " 
-                                     + std::to_string(MAX_PACKET_SIZE) + " bytes.");
+                                     + std::to_string(_maxPacketSize) + " bytes.");
     }
     
     TaggedPacket* latestTaggedPacket = &_sendBuffer.back();
-    if (latestTaggedPacket->packetWrap.packet.getDataSize() + sizeInBytes > MAX_PACKET_SIZE) {
+    if (latestTaggedPacket->packetWrap.packet.getDataSize() + sizeInBytes > _maxPacketSize) {
         prepareNextOutgoingPacket();
         latestTaggedPacket = &_sendBuffer.back();
     }

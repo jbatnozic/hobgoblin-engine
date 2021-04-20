@@ -10,13 +10,21 @@ HOBGOBLIN_NAMESPACE_START
 namespace rn {
 
 RN_UdpClientImpl::RN_UdpClientImpl(std::string aPassphrase,
-                                   RN_NetworkingStack aNetworkingStack)
+                                   RN_NetworkingStack aNetworkingStack,
+                                   PZInteger aMaxPacketSize)
     : _socket{RN_Protocol::UDP, aNetworkingStack}
-    , _connector{_socket, _timeoutLimit, _passphrase, _retransmitPredicate, detail::EventFactory{_eventQueue}}
+    , _maxPacketSize{aMaxPacketSize}
+    , _connector{ _socket
+                , _timeoutLimit
+                , _passphrase
+                , _retransmitPredicate
+                , detail::EventFactory{_eventQueue}
+                , _maxPacketSize 
+                }
     , _passphrase{std::move(aPassphrase)}
     , _retransmitPredicate{DefaultRetransmitPredicate}
 {
-    _socket.init(65536);
+    _socket.init(_maxPacketSize);
 }
 
 RN_UdpClientImpl::~RN_UdpClientImpl() {
@@ -113,7 +121,6 @@ PZInteger RN_UdpClientImpl::getClientIndex() const {
     assert(_running && _connector.getStatus() == RN_ConnectorStatus::Connected);
     return *_connector.getClientIndex();
 }
-
 
 bool RN_UdpClientImpl::isServer() const noexcept {
     return false;

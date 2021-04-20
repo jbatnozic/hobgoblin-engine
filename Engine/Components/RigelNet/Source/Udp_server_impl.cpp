@@ -13,12 +13,14 @@ namespace rn {
 
 RN_UdpServerImpl::RN_UdpServerImpl(std::string passphrase,
                                    PZInteger size,
-                                   RN_NetworkingStack networkingStack)
+                                   RN_NetworkingStack networkingStack,
+                                   PZInteger aMaxPacketSize)
     : _socket{RN_Protocol::UDP, networkingStack}
+    , _maxPacketSize{aMaxPacketSize}
     , _passphrase{std::move(passphrase)}
     , _retransmitPredicate{DefaultRetransmitPredicate}
 {
-    _socket.init(65536); // TODO Magic number
+    _socket.init(_maxPacketSize);
 
     _clients.reserve(static_cast<std::size_t>(size));
     for (PZInteger i = 0; i < size; i += 1) {
@@ -27,7 +29,8 @@ RN_UdpServerImpl::RN_UdpServerImpl(std::string passphrase,
             _timeoutLimit,
             _passphrase,
             _retransmitPredicate,
-            detail::EventFactory{_eventQueue, i});
+            detail::EventFactory{_eventQueue, i},
+            _maxPacketSize);
 
         _clients.push_back(std::move(connector));
     }
@@ -74,7 +77,8 @@ void RN_UdpServerImpl::resize(PZInteger newSize) {
             _timeoutLimit,
             _passphrase,
             _retransmitPredicate,
-            detail::EventFactory{_eventQueue, i});
+            detail::EventFactory{_eventQueue, i},
+            _maxPacketSize);
 
         _clients.push_back(std::move(connector));
         i += 1;
@@ -158,6 +162,10 @@ std::uint16_t RN_UdpServerImpl::getLocalPort() const {
     return _socket.getLocalPort();
 }
 
+int RN_UdpServerImpl::getSenderIndex() const {
+    return _senderIndex;
+}
+
 bool RN_UdpServerImpl::isServer() const noexcept {
     return true;
 }
@@ -168,13 +176,6 @@ RN_Protocol RN_UdpServerImpl::getProtocol() const noexcept {
 
 RN_NetworkingStack RN_UdpServerImpl::getNetworkingStack() const noexcept {
     return _socket.getNetworkingStack();
-}
-
-
-
-
-int RN_UdpServerImpl::getSenderIndex() const {
-    return _senderIndex;
 }
 
 ///////////////////////////////////////////////////////////////////////////

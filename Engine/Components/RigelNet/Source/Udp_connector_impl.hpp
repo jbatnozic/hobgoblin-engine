@@ -56,7 +56,8 @@ public:
                         const std::chrono::microseconds& timeoutLimit, 
                         const std::string& passphrase, 
                         const RN_RetransmitPredicate& retransmitPredicate,
-                        detail::EventFactory eventFactory);
+                        detail::EventFactory eventFactory,
+                        PZInteger aMaxPacketSize);
 
     bool tryAccept(sf::IpAddress addr, std::uint16_t port, detail::RN_PacketWrapper& packetWrap);
     void connect(sf::IpAddress addr, std::uint16_t port);
@@ -78,10 +79,6 @@ public:
 
     void appendToNextOutgoingPacket(const void *data, std::size_t sizeInBytes);
 
-    // TODO Make runtime confiurable
-    static constexpr PZInteger MAX_PACKET_SIZE = 65'000; // In bytes
-    //static constexpr PZInteger MAX_PACKET_SIZE = 8'000; // In bytes
-
 private:
     RN_SocketAdapter& _socket;
 
@@ -89,6 +86,8 @@ private:
     const std::string& _passphrase;
     const RN_RetransmitPredicate& _retransmitPredicate;
     detail::EventFactory _eventFactory;
+
+    PZInteger _maxPacketSize;
 
     RN_RemoteInfo _remoteInfo;
     RN_ConnectorStatus _status;

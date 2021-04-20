@@ -20,7 +20,8 @@ namespace rn {
 class RN_UdpClientImpl : public RN_NodeBase, public RN_ClientInterface {
 public:
     RN_UdpClientImpl(std::string aPassphrase,
-                     RN_NetworkingStack aNetworkingStack);
+                     RN_NetworkingStack aNetworkingStack,
+                     PZInteger aMaxPacketSize);
 
     ~RN_UdpClientImpl();
 
@@ -70,6 +71,7 @@ public:
 
 private:
     RN_SocketAdapter _socket;
+    PZInteger _maxPacketSize;
 
     RN_UdpConnectorImpl _connector;
 
