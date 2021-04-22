@@ -163,6 +163,11 @@ void RN_UdpClientImpl::_updateReceive() {
             break;
 
         case decltype(_socket)::Status::Disconnected:
+            // Normally we wouldn't expect to get this status from UDP sockets. However,
+            // in case it does somehow occur, it should be safe to ignore.
+            NO_OP();
+            break;
+
         default:
             // Realistically these won't ever happen
             assert(false && "Unreachable");

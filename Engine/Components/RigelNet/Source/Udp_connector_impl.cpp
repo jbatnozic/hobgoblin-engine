@@ -336,7 +336,15 @@ void RN_UdpConnectorImpl::uploadAllData() {
                 socketCannotSendMore = true;
                 break;
 
-            case RN_SocketAdapter::Status::Disconnected: // Doesn't happen with UDP
+            case RN_SocketAdapter::Status::Disconnected:
+                // Normally we wouldn't expect to get this status from UDP sockets. However,
+                // it case it does somehow happen, treat it as the remote gracefully terminating
+                // the connection.
+                _eventFactory.createDisconnected(RN_Event::Disconnected::Reason::Graceful,
+                                                 "Remote terminated the connection");
+                reset();
+                break;
+
             default: 
                 assert(false && "Unreachable");
             }

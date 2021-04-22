@@ -31,6 +31,7 @@ public:
         OK,          //! Operation completed successfully
         NotReady,    //! Operation could not be completed (it would block, try again later)
         Disconnected //! Operation could not be completed because the remote closed the connection (TCP only)
+                     //! Note: SFML sockets seem to sometimes return "Disconnected" even for UDP sockets
     };
 
     //! Throws TracedLogicError, only if an unsupported RN_NetworkingStack is requested.
