@@ -36,10 +36,16 @@ RN_UdpClientImpl::~RN_UdpClientImpl() {
 ///////////////////////////////////////////////////////////////////////////
 
 void RN_UdpClientImpl::connect(std::uint16_t localPort, sf::IpAddress serverIp, std::uint16_t serverPort) {
-    assert(!_running || _connector.getStatus() == RN_ConnectorStatus::Disconnected);
+    assert(!_running || _connector.getStatus() == RN_ConnectorStatus::Disconnected); // TODO replace with exception
     
     _socket.bind(sf::IpAddress::Any, localPort);
     _connector.connect(serverIp, serverPort);
+    _running = true;
+}
+
+void RN_UdpClientImpl::connectLocal(RN_ServerInterface& server) {
+    assert(!_running || _connector.getStatus() == RN_ConnectorStatus::Disconnected); // TODO replace with exception
+    _connector.connectLocal(server);
     _running = true;
 }
 
@@ -143,7 +149,10 @@ void RN_UdpClientImpl::_updateReceive() {
     sf::IpAddress senderIp;
     std::uint16_t senderPort;
 
-    bool keepReceiving = true;
+    // When we connect the client locally, we don't initialize its 
+    // socket so we must not try to use it
+    bool keepReceiving = !_connector.isConnectedLocally();
+
     while (keepReceiving) {
         switch (_socket.recv(packetWrap.packet, senderIp, senderPort)) {
         case decltype(_socket)::Status::OK:

@@ -21,6 +21,9 @@ public:
     //! Current status of the connector.
     virtual RN_ConnectorStatus getStatus() const noexcept = 0;
 
+    //! Returns true is the connector is connected to another within the same process.
+    virtual bool isConnectedLocally() const noexcept = 0;
+
     //! Info about the remote corresponding to this connector.
     //! Returns undefined data if the connector is in Disconnected state.
     //! Latency of the remote info is valid only when the connector is in the Connected state.

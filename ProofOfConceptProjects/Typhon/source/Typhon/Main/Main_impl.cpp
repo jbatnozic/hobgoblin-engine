@@ -96,14 +96,16 @@ private:
 NodeInfo localNode;
 ZeroTierEventHandler eventHandler{localNode};
 
-#define MAIN_SHOULD_CATCH_EXCEPTIONS
+#define USE_ZT false
+
+// #define MAIN_SHOULD_CATCH_EXCEPTIONS
 
 int MainImpl::run(int argc, char* argv[]) 
 #ifdef MAIN_SHOULD_CATCH_EXCEPTIONS
 try
 #endif // MAIN_SHOULD_CATCH_EXCEPTIONS
 {
-  if (false /* Use ZT */) {
+  if (USE_ZT) {
       std::string identityPath = "ZTNodeData";
       uint64_t nwid = strtoull("a09acf0233ceff5c", NULL, 16);
       int ztServicePort = 9994;
@@ -122,18 +124,18 @@ try
         std::this_thread::sleep_for(std::chrono::milliseconds{50});
       }
   
-      //printf("Joining network %llx\n", nwid);
-      //printf("Don't forget to authorize this device in my.zerotier.com or the web API!\n");
-      //if ((err = zt::JoinNetwork(nwid)) != ZTS_ERR_OK) {
-      //  printf("Unable to join network, error = %d. Exiting.\n", err);
-      //  exit(1);
-      //}
+      /*printf("Joining network %llx\n", nwid);
+      printf("Don't forget to authorize this device in my.zerotier.com or the web API!\n");
+      if ((err = zt::JoinNetwork(nwid)) != ZTS_ERR_OK) {
+        printf("Unable to join network, error = %d. Exiting.\n", err);
+        exit(1);
+      }
   
-      //while (localNode.networksJoinedCount <= 0) {
-      //  printf("Waiting to join network (networksJoinedCount = %d)...\n", localNode.networksJoinedCount);
-      //  std::this_thread::sleep_for(std::chrono::milliseconds{1000});
-      //}
-      std::this_thread::sleep_for(std::chrono::milliseconds{5000});
+      while (localNode.networksJoinedCount <= 0) {
+        printf("Waiting to join network (networksJoinedCount = %d)...\n", localNode.networksJoinedCount);
+        std::this_thread::sleep_for(std::chrono::milliseconds{1000});
+      }*/
+      //std::this_thread::sleep_for(std::chrono::milliseconds{5000});
   }
 
 	std::cout << GameConfig::GAME_NAME << ' ' << GameConfig::GAME_VERSION << '\n';
@@ -161,7 +163,7 @@ try
 	// Teardown:
 	_gameContext.reset();
 
-  if (false /* Use ZT */) {
+  if (USE_ZT) {
       printf("Shutting down service\n");
       zt::StopService();
       std::this_thread::sleep_for(std::chrono::milliseconds{1000});

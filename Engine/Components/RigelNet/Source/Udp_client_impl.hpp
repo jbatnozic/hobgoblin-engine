@@ -33,6 +33,8 @@ public:
                  sf::IpAddress serverIp,
                  std::uint16_t serverPort) override;
 
+    void connectLocal(RN_ServerInterface& server) override;
+
     void disconnect(bool notifyRemote) override;
 
     void setTimeoutLimit(std::chrono::microseconds limit) override;

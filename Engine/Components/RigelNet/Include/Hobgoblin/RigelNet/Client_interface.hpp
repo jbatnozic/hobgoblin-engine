@@ -13,6 +13,8 @@
 HOBGOBLIN_NAMESPACE_START
 namespace rn {
 
+class RN_ServerInterface;
+
 class RN_ClientInterface : public RN_NodeInterface {
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -22,6 +24,8 @@ public:
     virtual void connect(std::uint16_t localPort,
                          sf::IpAddress serverIp,
                          std::uint16_t serverPort) = 0;
+
+    virtual void connectLocal(RN_ServerInterface& server) = 0;
 
     virtual void disconnect(bool notifyRemote) = 0;
 

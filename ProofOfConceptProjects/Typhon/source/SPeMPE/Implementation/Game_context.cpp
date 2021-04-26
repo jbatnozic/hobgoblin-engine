@@ -10,7 +10,7 @@ namespace spempe {
 
 namespace {
 
-#define CATCH_EXCEPTIONS_TOP_LEVEL
+// #define CATCH_EXCEPTIONS_TOP_LEVEL
 
 int DoSingleQaoIteration(hg::QAO_Runtime& runtime, std::int32_t eventFlags) {
     runtime.startStep();

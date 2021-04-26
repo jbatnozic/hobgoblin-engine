@@ -190,6 +190,13 @@ void EnvironmentManager::onNetworkingEvent(const RN_Event& ev) {
             auto& node = ctx(MNetworking).getNode();
             auto receiverIndex = *ev.clientIndex;
 
+            if (ctx(MNetworking).getServer().getClientConnector(receiverIndex).getStatus() !=
+                RN_ConnectorStatus::Connected) {
+                // If we have both Connected and Disconnected queued up, it means this
+                // client is actually no longer connected..
+                return;
+            }
+
             Compose_ResizeTerrain(node, receiverIndex, getTerrainColumnCount(), getTerrainRowCount());
 
             for (hg::PZInteger y = 0; y < getTerrainRowCount(); y += 1) {

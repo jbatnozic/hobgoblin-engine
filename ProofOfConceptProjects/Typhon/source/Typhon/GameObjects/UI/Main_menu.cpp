@@ -71,17 +71,21 @@ void MainMenu::eventUpdate() {
         serverCtx->getNetworkingManager().getServer().resize(clientCount);
         serverCtx->getNetworkingManager().getServer().setTimeoutLimit(std::chrono::seconds{5});
 
-        const std::uint16_t serverPort = serverCtx->getNetworkingManager().getServer().getLocalPort();
+        //const std::uint16_t serverPort = serverCtx->getNetworkingManager().getServer().getLocalPort();
+        auto& server = serverCtx->getNetworkingManager().getServer();
 
         generateTerrain(*serverCtx);
-
-        ctx().runChildContext(std::move(serverCtx));
 
         // Connect to the server:
         ctx().configure(GameContext::Mode::Client);
         std::cout << "Connecting to self (IP = " << sf::IpAddress::LocalHost << ")\n";
-        ctx(MNetworking).getClient().connect(0, sf::IpAddress::LocalHost, serverPort);
+        // ctx(MNetworking).getClient().connect(0, sf::IpAddress::LocalHost, serverPort);
+        ctx(MNetworking).getClient().connectLocal(server);
         ctx(MNetworking).getClient().setTimeoutLimit(std::chrono::seconds{5});
+
+
+
+        ctx().runChildContext(std::move(serverCtx));
     }
     else if (mode == CLIENT) {
         const std::uint16_t localPort  = InputPrompt<std::uint16_t>("local port", 0);

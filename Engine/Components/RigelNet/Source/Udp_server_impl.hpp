@@ -84,6 +84,13 @@ public:
 
     RN_NetworkingStack getNetworkingStack() const noexcept override;    
 
+    ///////////////////////////////////////////////////////////////////////////
+    // NOT INHERITED                                                         //
+    ///////////////////////////////////////////////////////////////////////////
+
+    //! Returns client index (or -1 on failure)
+    int acceptLocalConnection(RN_UdpConnectorImpl& localPeer, const std::string& passphrase);
+
 private:
     RN_SocketAdapter _socket;
     PZInteger _maxPacketSize;
@@ -101,7 +108,8 @@ private:
     void _updateReceive();
     void _updateSend();
     int  _findConnector(sf::IpAddress addr, std::uint16_t port) const;
-    void _handlePacketFromUnknownSender(sf::IpAddress senderIp, std::uint16_t senderPort, detail::RN_PacketWrapper& packetWrap);
+    void _handlePacketFromUnknownSender(sf::IpAddress senderIp, std::uint16_t senderPort,
+                                        detail::RN_PacketWrapper& packetWrap);
 
     void _compose(RN_ComposeForAllType receiver, const void* data, std::size_t sizeInBytes) override;
     void _compose(PZInteger receiver, const void* data, std::size_t sizeInBytes) override;

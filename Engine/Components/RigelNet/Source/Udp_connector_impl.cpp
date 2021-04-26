@@ -1,14 +1,91 @@
 
 #include "Udp_connector_impl.hpp"
 
+#include "Udp_server_impl.hpp"
+
 #include <cassert>
 #include <chrono>
+#include <mutex>
 #include <stdexcept>
+#include <utility>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_START
 namespace rn {
+
+class RN_UdpConnectorImpl::LocalConnectionSharedState {
+public:
+
+#define LCSS_STATUS_ACTIVE         0
+#define LCSS_STATUS_ENDED_GRACEFUL 1
+#define LCSS_STATUS_ENDED_ERROR    2
+
+    LocalConnectionSharedState(RN_UdpConnectorImpl& aConnector1,
+                               RN_UdpConnectorImpl& aConnector2)
+        : _connector1{aConnector1}
+        , _connector2{aConnector2}
+    {
+    }
+
+    void putData(RN_UdpConnectorImpl& aSelf,
+                 std::deque<TaggedPacket>&& aData) {
+        std::lock_guard<decltype(_mutex)> lock{_mutex};
+        auto& targetDeque = (&aSelf == &_connector1) ? _packetsForConnector2 
+                                                     : _packetsForConnector1;
+        if (targetDeque.empty()) {
+            targetDeque = std::move(aData);
+        }
+        else {
+            for (auto& curr : aData) {
+                targetDeque.emplace_back();
+                targetDeque.back().packetWrap = std::move(curr.packetWrap);
+            }
+        }
+        aData.clear();
+    }
+
+    //! Returns true if any data was received
+    bool getData(RN_UdpConnectorImpl& aSelf,
+                 std::deque<TaggedPacket>& aData) {
+        std::lock_guard<decltype(_mutex)> lock{_mutex};
+
+        auto& sourceDeque = (&aSelf == &_connector1) ? _packetsForConnector1 
+                                                     : _packetsForConnector2;
+        if (sourceDeque.empty()) {
+            return false;
+        }
+
+        for (auto& curr : sourceDeque) {
+            aSelf.receivedPacket(curr.packetWrap);
+        }
+
+        sourceDeque.clear();
+        return true;
+    }
+
+    int getStatus() const {
+        std::lock_guard<decltype(_mutex)> lock{_mutex};
+        return _status;
+    }
+
+    void setStatus(int aNewStatus) {
+        std::lock_guard<decltype(_mutex)> lock{_mutex};
+        // Status values rise in order of severity, so keep the highest value
+        // (worst one):
+        if (aNewStatus > _status) {
+            _status = aNewStatus;
+        }
+    }
+
+private:
+    RN_UdpConnectorImpl& _connector1;
+    RN_UdpConnectorImpl& _connector2;
+    std::deque<TaggedPacket> _packetsForConnector1;
+    std::deque<TaggedPacket> _packetsForConnector2;
+    mutable std::mutex _mutex;
+    int _status = LCSS_STATUS_ACTIVE;
+};
 
 namespace {
 
@@ -87,6 +164,30 @@ bool RN_UdpConnectorImpl::tryAccept(sf::IpAddress addr, std::uint16_t port, deta
     return true;
 }
 
+bool RN_UdpConnectorImpl::tryAcceptLocal(RN_UdpConnectorImpl& localPeer, const std::string& passphrase) {
+    assert(_status == RN_ConnectorStatus::Disconnected);
+
+    if (passphrase == _passphrase) {
+        _localSharedState = std::make_shared<LocalConnectionSharedState>(SELF, localPeer);
+        localPeer._localSharedState = _localSharedState;
+
+        _remoteInfo = RN_RemoteInfo{sf::IpAddress::LocalHost, 0};
+        _status = RN_ConnectorStatus::Connected;
+        destroy();
+        _sendBufferHeadIndex = 1u;
+        _recvBufferHeadIndex = 1u;
+        prepareNextOutgoingPacket();
+        
+        _eventFactory.createConnected();
+        initializeSession();
+
+        return true;
+    }
+
+    // TODO - Notify of erroneous message from unknown sender...
+    return false;
+}
+
 void RN_UdpConnectorImpl::connect(sf::IpAddress addr, std::uint16_t port) {
     assert(_status == RN_ConnectorStatus::Disconnected);
 
@@ -99,16 +200,48 @@ void RN_UdpConnectorImpl::connect(sf::IpAddress addr, std::uint16_t port) {
     prepareNextOutgoingPacket();
 }
 
+void RN_UdpConnectorImpl::connectLocal(RN_ServerInterface& server) {
+    assert(_status == RN_ConnectorStatus::Disconnected);
+
+    auto* udpServer = dynamic_cast<RN_UdpServerImpl*>(&server);
+    if (!udpServer) {
+        throw util::TracedLogicError("Incompatible node types for local connection");
+        return;
+    }
+
+    const int clientIndex = udpServer->acceptLocalConnection(SELF, _passphrase);
+    if (clientIndex < 0) {
+        throw util::TracedRuntimeError("Local connection refused");
+        return;
+    }
+
+    assert(_localSharedState != nullptr);
+
+    _remoteInfo = RN_RemoteInfo{sf::IpAddress::LocalHost, 0};
+    _status = RN_ConnectorStatus::Connected;
+
+    destroy();
+    _sendBufferHeadIndex = 1u;
+    _recvBufferHeadIndex = 1u;
+    prepareNextOutgoingPacket();
+
+    _clientIndex = clientIndex;
+    _eventFactory.createConnected();
+}
+
 void RN_UdpConnectorImpl::disconnect(bool notfiyRemote) {
     assert(_status != RN_ConnectorStatus::Disconnected);
 
     if (notfiyRemote && _status == RN_ConnectorStatus::Connected) {
-        util::Packet packet;
-        packet << UDP_PACKET_TYPE_DISCONNECT;
+        if (!_isConnectedLocally()) {
+            util::Packet packet;
+            packet << UDP_PACKET_TYPE_DISCONNECT;
 
-        // Ignore all recoverable errors - The connector is getting disconnected anyway...
-        _socket.send(packet, _remoteInfo.ipAddress, _remoteInfo.port);
+            // Ignore all recoverable errors - The connector is getting disconnected anyway...
+            _socket.send(packet, _remoteInfo.ipAddress, _remoteInfo.port);
+        }
     }
+
     reset();
 }
 
@@ -156,7 +289,12 @@ void RN_UdpConnectorImpl::send() {
     break;
 
     case RN_ConnectorStatus::Connected:
-        uploadAllData();
+        if (!_isConnectedLocally()) {
+            uploadAllData();
+        }
+        else {
+            transferAllDataToLocalPeer();
+        }
         break;
 
     default:
@@ -201,6 +339,9 @@ void RN_UdpConnectorImpl::receivedPacket(detail::RN_PacketWrapper& packetWrap) {
         reset();
         if (_status == RN_ConnectorStatus::Connected) {
             _eventFactory.createDisconnected(RN_Event::Disconnected::Reason::Error, ex.what());
+            if (_isConnectedLocally()) {
+                _localSharedState->setStatus(LCSS_STATUS_ENDED_ERROR);
+            }
         }
         else {
             _eventFactory.createConnectAttemptFailed(RN_Event::ConnectAttemptFailed::Reason::Error);
@@ -233,6 +374,12 @@ void RN_UdpConnectorImpl::handleDataMessages(RN_NodeInterface& node,
                                              detail::RN_PacketWrapper*& pointerToCurrentPacket) {
     assert(_status != RN_ConnectorStatus::Disconnected);
 
+    if (_isConnectedLocally()) {
+        if (_localSharedState->getData(SELF, _recvBuffer)) {
+            _remoteInfo.timeoutStopwatch.restart();
+        }
+    }
+
     try {
         while (!_recvBuffer.empty() && _recvBuffer[0].tag == TaggedPacket::ReadyForUnpacking) {
             HandleDataMessages(_recvBuffer[0].packetWrap, node, pointerToCurrentPacket);
@@ -242,11 +389,38 @@ void RN_UdpConnectorImpl::handleDataMessages(RN_NodeInterface& node,
     }
     catch (RN_PacketReadError& ex) {
         _eventFactory.createDisconnected(RN_Event::Disconnected::Reason::Error, ex.whatString());
+        if (_isConnectedLocally()) {
+            _localSharedState->setStatus(LCSS_STATUS_ENDED_ERROR);
+        }
         reset();
     }
     catch (RN_IllegalMessage& ex) {
         _eventFactory.createDisconnected(RN_Event::Disconnected::Reason::Error, ex.whatString());
         reset();
+    }
+
+    if (_isConnectedLocally()) {
+        switch (_localSharedState->getStatus()) {
+        case LCSS_STATUS_ACTIVE:
+            // All good, carry on
+            break;
+
+        case LCSS_STATUS_ENDED_GRACEFUL:
+            _eventFactory.createDisconnected(RN_Event::Disconnected::Reason::Graceful, 
+                                             "Remote terminated the connection.");
+            reset();
+            break;
+
+        case LCSS_STATUS_ENDED_ERROR:
+            _eventFactory.createDisconnected(RN_Event::Disconnected::Reason::Error, 
+                                             "Connection closed due to an error.");
+            reset();
+            break;
+
+        default:
+            assert(false && "Unreachable!");
+            NO_OP();
+        }
     }
 }
 
@@ -264,6 +438,10 @@ const RN_RemoteInfo& RN_UdpConnectorImpl::getRemoteInfo() const noexcept {
 
 RN_ConnectorStatus RN_UdpConnectorImpl::getStatus() const noexcept {
     return _status;
+}
+
+bool RN_UdpConnectorImpl::isConnectedLocally() const noexcept {
+    return _isConnectedLocally();
 }
 
 PZInteger RN_UdpConnectorImpl::getSendBufferSize() const {
@@ -291,6 +469,10 @@ void RN_UdpConnectorImpl::appendToNextOutgoingPacket(const void *data, std::size
 
 // Private
 
+bool RN_UdpConnectorImpl::_isConnectedLocally() const noexcept {
+    return (_localSharedState != nullptr);
+}
+
 void RN_UdpConnectorImpl::destroy() {
     _sendBuffer.clear();
     _recvBuffer.clear();
@@ -302,13 +484,19 @@ void RN_UdpConnectorImpl::reset() {
     _remoteInfo = RN_RemoteInfo{};
     _status = RN_ConnectorStatus::Disconnected;
     _clientIndex.reset();
+
+    if (_isConnectedLocally()) {
+        _localSharedState->setStatus(LCSS_STATUS_ENDED_GRACEFUL);
+        _localSharedState.reset();
+    }
 }
 
 bool RN_UdpConnectorImpl::isConnectionTimedOut() const {
     if (_timeoutLimit <= std::chrono::microseconds{0}) {
         return false;
     }
-    if (_remoteInfo.timeoutStopwatch.getElapsedTime() >= _timeoutLimit) {
+    if ((_remoteInfo.timeoutStopwatch.getElapsedTime() >= _timeoutLimit) &&
+        !_isConnectedLocally()) {
         return true;
     }
     return false;
@@ -366,8 +554,21 @@ void RN_UdpConnectorImpl::uploadAllData() {
     prepareNextOutgoingPacket();
 }
 
+void RN_UdpConnectorImpl::transferAllDataToLocalPeer() {
+    assert(_isConnectedLocally());
+
+    _sendBufferHeadIndex += _sendBuffer.size();
+    _localSharedState->putData(SELF, std::move(_sendBuffer));  
+    _sendBuffer.clear();
+    prepareNextOutgoingPacket();
+}
+
 void RN_UdpConnectorImpl::prepareAck(std::uint32_t ordinal) {
-    _ackOrdinals.push_back(ordinal);
+    if (_isConnectedLocally()) {
+        // No acks needed in local connections.
+        return;
+    }
+    _ackOrdinals.push_back(ordinal);    
 }
 
 void RN_UdpConnectorImpl::receivedAck(std::uint32_t ordinal, bool strong) {

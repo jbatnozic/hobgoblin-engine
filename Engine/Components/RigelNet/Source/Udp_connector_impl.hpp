@@ -8,6 +8,7 @@
 #include <Hobgoblin/RigelNet/Node_interface.hpp>
 #include <Hobgoblin/RigelNet/Packet_wrapper.hpp>
 #include <Hobgoblin/RigelNet/Remote_info.hpp>
+#include <Hobgoblin/Utility/No_copy_no_move.hpp>
 #include <Hobgoblin/Utility/Time_utils.hpp>
 
 #include "Socket_adapter.hpp"
@@ -16,12 +17,15 @@
 #include <cstdint>
 #include <deque>
 #include <functional>
+#include <memory>
 #include <optional>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_START
 namespace rn {
+
+class RN_ServerInterface;
 
 inline // TODO make this not-inline
 bool DefaultRetransmitPredicate(PZInteger cyclesSinceLastTransmit, 
@@ -50,7 +54,7 @@ struct TaggedPacket {
     Tag tag = DefaultTag;
 };
 
-class RN_UdpConnectorImpl : public RN_ConnectorInterface {
+class RN_UdpConnectorImpl : public RN_ConnectorInterface, NO_COPY, NO_MOVE {
 public:
     RN_UdpConnectorImpl(RN_SocketAdapter& socket,
                         const std::chrono::microseconds& timeoutLimit, 
@@ -60,7 +64,9 @@ public:
                         PZInteger aMaxPacketSize);
 
     bool tryAccept(sf::IpAddress addr, std::uint16_t port, detail::RN_PacketWrapper& packetWrap);
+    bool tryAcceptLocal(RN_UdpConnectorImpl& localPeer, const std::string& passphrase);
     void connect(sf::IpAddress addr, std::uint16_t port);
+    void connectLocal(RN_ServerInterface& server);
     void disconnect(bool notfiyRemote);
 
     void checkForTimeout();
@@ -74,6 +80,7 @@ public:
 
     const RN_RemoteInfo& getRemoteInfo() const noexcept override;
     RN_ConnectorStatus getStatus() const noexcept override;
+    bool isConnectedLocally() const noexcept override;
     PZInteger getSendBufferSize() const override;
     PZInteger getRecvBufferSize() const override;
 
@@ -100,10 +107,15 @@ private:
 
     std::vector<std::uint32_t> _ackOrdinals;
 
+    class LocalConnectionSharedState;
+    std::shared_ptr<LocalConnectionSharedState> _localSharedState = nullptr;
+
+    bool _isConnectedLocally() const noexcept;
     void destroy();
     void reset();
     bool isConnectionTimedOut() const;
     void uploadAllData();
+    void transferAllDataToLocalPeer();
     void prepareAck(std::uint32_t ordinal);
     void receivedAck(std::uint32_t ordinal, bool strong);
     void initializeSession();

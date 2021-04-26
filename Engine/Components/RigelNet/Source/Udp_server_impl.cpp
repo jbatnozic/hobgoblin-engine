@@ -179,6 +179,23 @@ RN_NetworkingStack RN_UdpServerImpl::getNetworkingStack() const noexcept {
 }
 
 ///////////////////////////////////////////////////////////////////////////
+// NOT INHERITED                                                         //
+///////////////////////////////////////////////////////////////////////////
+
+int RN_UdpServerImpl::acceptLocalConnection(RN_UdpConnectorImpl& localPeer, 
+                                                             const std::string& passphrase) {
+    for (std::size_t i = 0; i < _clients.size(); i += 1) {
+        if (_clients[i]->getStatus() == RN_ConnectorStatus::Disconnected) {
+            if (_clients[i]->tryAcceptLocal(localPeer, passphrase)) {
+                return static_cast<int>(i);
+            }
+        }
+    }
+
+    return -1;
+}
+
+///////////////////////////////////////////////////////////////////////////
 // PRIVATE IMPLEMENTATION                                                //
 ///////////////////////////////////////////////////////////////////////////
 
