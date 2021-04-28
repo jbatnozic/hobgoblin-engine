@@ -3,7 +3,8 @@
 
 	This work is released to Public Domain, do whatever you want with it.
 */
-#include <Hobgoblin/Private/Rbp_rect.hpp>
+
+#include "Rbp_rect.hpp"
 
 #include <utility>
 

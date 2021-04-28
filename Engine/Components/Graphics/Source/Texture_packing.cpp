@@ -1,6 +1,7 @@
 
 #include <Hobgoblin/Graphics/Texture_packing.hpp>
-#include <Hobgoblin/Private/Max_rects_bin_pack.hpp>
+
+#include "MaxRectsBinPack/Max_rects_bin_pack.hpp"
 
 #include <cassert>
 

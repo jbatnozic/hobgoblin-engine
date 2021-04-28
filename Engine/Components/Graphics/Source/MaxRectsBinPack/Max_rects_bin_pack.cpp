@@ -6,7 +6,8 @@
 	This work is released to Public Domain, do whatever you want with it.
 */
 
-#include <Hobgoblin/Private/Max_rects_bin_pack.hpp>
+#include "Max_rects_bin_pack.hpp"
+
 #include <Hobgoblin/Utility/Exceptions.hpp>
 
 #include <algorithm>

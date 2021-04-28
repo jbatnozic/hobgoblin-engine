@@ -9,7 +9,7 @@
 #ifndef UHOBGOBLIN_PRIV_MAX_RECTS_BIN_PACK_HPP
 #define UHOBGOBLIN_PRIV_MAX_RECTS_BIN_PACK_HPP
 
-#include <Hobgoblin/Private/Rbp_rect.hpp>
+#include "Rbp_rect.hpp"
 
 #include <vector>
 

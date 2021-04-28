@@ -11,7 +11,7 @@ namespace gr {
 const Color Color::Transparent{0x00000000};
 
 #define XMACRO(_name_, _hexcode_) const Color Color:: _name_ {_hexcode_};
-#include <Hobgoblin/Private/Xmacro_html_colors.hpp>
+#include <Hobgoblin/Graphics/Private/Xmacro_html_colors.hpp>
 #undef  XMACRO
 
 

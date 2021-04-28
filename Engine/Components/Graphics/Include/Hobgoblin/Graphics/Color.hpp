@@ -22,7 +22,7 @@ public:
     static const Color Transparent;
 
 #define XMACRO(_name_, _hexcode_) static const Color _name_ ;
-#include <Hobgoblin/Private/Xmacro_html_colors.hpp>
+#include <Hobgoblin/Graphics/Private/Xmacro_html_colors.hpp>
 #undef  XMACRO
 };
 

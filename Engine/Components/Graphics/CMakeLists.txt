@@ -5,8 +5,8 @@ set(COMPONENT_NAME "Hobgoblin.Graphics")
 # ===== GATHER SOURCES ======
 
 set(COMPONENT_SOURCES
-  "Source/Private/Max_rects_bin_pack.cpp"
-  "Source/Private/Rbp_rect.cpp"
+  "Source/MaxRectsBinPack/Max_rects_bin_pack.cpp"
+  "Source/MaxRectsBinPack/Rbp_rect.cpp"
 
   "Source/Brush.cpp"
   "Source/Builtin_fonts.cpp"
