@@ -1,7 +1,8 @@
 
 #include "Udp_client_impl.hpp"
 
-#include <cassert>
+#include <Hobgoblin/Utility/Exceptions.hpp>
+
 #include <utility>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
@@ -36,7 +37,7 @@ RN_UdpClientImpl::~RN_UdpClientImpl() {
 ///////////////////////////////////////////////////////////////////////////
 
 void RN_UdpClientImpl::connect(std::uint16_t localPort, sf::IpAddress serverIp, std::uint16_t serverPort) {
-    assert(!_running || _connector.getStatus() == RN_ConnectorStatus::Disconnected); // TODO replace with exception
+    HARD_ASSERT(!_running || _connector.getStatus() == RN_ConnectorStatus::Disconnected);
     
     _socket.bind(sf::IpAddress::Any, localPort);
     _connector.connect(serverIp, serverPort);
@@ -44,7 +45,7 @@ void RN_UdpClientImpl::connect(std::uint16_t localPort, sf::IpAddress serverIp, 
 }
 
 void RN_UdpClientImpl::connectLocal(RN_ServerInterface& server) {
-    assert(!_running || _connector.getStatus() == RN_ConnectorStatus::Disconnected); // TODO replace with exception
+    HARD_ASSERT(!_running || _connector.getStatus() == RN_ConnectorStatus::Disconnected);
     _connector.connectLocal(server);
     _running = true;
 }
@@ -86,7 +87,7 @@ void RN_UdpClientImpl::update(RN_UpdateMode mode) {
         break;
 
     default:
-        assert(0 && "Unreachable");
+        HARD_ASSERT(false && "Unreachable");
         break;
     }
 }
@@ -124,7 +125,7 @@ const RN_ConnectorInterface& RN_UdpClientImpl::getServerConnector() const {
     return _connector;
 }
 PZInteger RN_UdpClientImpl::getClientIndex() const {
-    assert(_running && _connector.getStatus() == RN_ConnectorStatus::Connected);
+    HARD_ASSERT(_running && _connector.getStatus() == RN_ConnectorStatus::Connected);
     return *_connector.getClientIndex();
 }
 
@@ -179,7 +180,7 @@ void RN_UdpClientImpl::_updateReceive() {
 
         default:
             // Realistically these won't ever happen
-            assert(false && "Unreachable");
+            HARD_ASSERT(false && "Unreachable");
         }
     }
 

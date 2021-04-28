@@ -3,7 +3,6 @@
 
 #include <Hobgoblin/Utility/Exceptions.hpp>
 
-#include <cassert>
 #include <utility>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
@@ -45,7 +44,7 @@ RN_UdpServerImpl::~RN_UdpServerImpl() {
 ///////////////////////////////////////////////////////////////////////////
 
 void RN_UdpServerImpl::start(std::uint16_t localPort) {
-    assert(_running == false);
+    HARD_ASSERT(_running == false);
 
     _socket.bind(sf::IpAddress::Any, localPort);
 
@@ -108,7 +107,7 @@ void RN_UdpServerImpl::update(RN_UpdateMode mode) {
         break;
 
     default:
-        assert(0 && "Unreachable");
+        HARD_ASSERT(false && "Unreachable");
         break;
     }
 }
@@ -236,7 +235,7 @@ void RN_UdpServerImpl::_updateReceive() {
 
         default:
             // Realistically these won't ever happen
-            assert(false && "Unreachable");
+            HARD_ASSERT(false && "Unreachable");
         }
     }
 

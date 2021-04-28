@@ -1,7 +1,8 @@
 
 #include "Udp_connector_impl.hpp"
-
 #include "Udp_server_impl.hpp"
+
+#include <Hobgoblin/Utility/Exceptions.hpp>
 
 #include <cassert>
 #include <chrono>
@@ -298,7 +299,7 @@ void RN_UdpConnectorImpl::send() {
         break;
 
     default:
-        assert(0 && "Unreachable");
+        HARD_ASSERT(false && "Unreachable");
         break;
     }
 }
@@ -418,7 +419,7 @@ void RN_UdpConnectorImpl::handleDataMessages(RN_NodeInterface& node,
             break;
 
         default:
-            assert(false && "Unreachable!");
+            HARD_ASSERT(false && "Unreachable");
             NO_OP();
         }
     }
@@ -681,7 +682,7 @@ void RN_UdpConnectorImpl::_processHelloPacket(detail::RN_PacketWrapper& packetWr
         break;
 
     default:
-        assert(0 && "Unreachable");
+        HARD_ASSERT(0 && "Unreachable");
         break;
     }
 }
@@ -715,7 +716,7 @@ void RN_UdpConnectorImpl::_processConnectPacket(detail::RN_PacketWrapper& packet
         break;
 
     default:
-        assert(0 && "Unreachable");
+        HARD_ASSERT(false && "Unreachable");
         break;
     }
 }
@@ -732,7 +733,7 @@ void RN_UdpConnectorImpl::_processDisconnectPacket(detail::RN_PacketWrapper& pac
         break;
 
     default:
-        assert(0 && "Unreachable");
+        HARD_ASSERT(false && "Unreachable");
         break;
     }
 }
@@ -753,7 +754,7 @@ void RN_UdpConnectorImpl::_processDataPacket(detail::RN_PacketWrapper& packetWra
         break;
 
     default:
-        assert(0 && "Unreachable");
+        HARD_ASSERT(false && "Unreachable");
         break;
     }
 }
@@ -776,7 +777,7 @@ void RN_UdpConnectorImpl::_processAcksPacket(detail::RN_PacketWrapper& packetWra
         break;
 
     default:
-        assert(0 && "Unreachable");
+        HARD_ASSERT(false && "Unreachable");
         break;
     }
 }
