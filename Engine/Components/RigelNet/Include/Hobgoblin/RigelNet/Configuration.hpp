@@ -25,10 +25,18 @@ enum class RN_NetworkingStack {
 struct RN_ComposeForAllType {};
 constexpr RN_ComposeForAllType RN_COMPOSE_FOR_ALL{};
 
+//! Function that tells a RigelNet connector whether to retransmit an unacknowledged packet or
+//! wait some more (true = retransmit, false = wait and check again next cycle).
 using RN_RetransmitPredicate = std::function<bool(PZInteger, // Cycles since last transmit
                                                   std::chrono::microseconds, // Time since last send
                                                   std::chrono::microseconds  // Current latency
                                                   )>;
+
+//! Retransmit predicate useb by default by RigelNet.
+//! Maintainer note: Implemented in Udp_connector_impl.cpp
+bool RN_DefaultRetransmitPredicate(PZInteger aCyclesSinceLastTransmit, 
+                                   std::chrono::microseconds aTimeSinceLastSend,
+                                   std::chrono::microseconds aCurrentLatency);
 
 } // namespace rn
 HOBGOBLIN_NAMESPACE_END

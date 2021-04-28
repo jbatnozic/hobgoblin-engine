@@ -22,7 +22,7 @@ RN_UdpClientImpl::RN_UdpClientImpl(std::string aPassphrase,
                 , _maxPacketSize 
                 }
     , _passphrase{std::move(aPassphrase)}
-    , _retransmitPredicate{DefaultRetransmitPredicate}
+    , _retransmitPredicate{RN_DefaultRetransmitPredicate}
 {
     _socket.init(_maxPacketSize);
 }

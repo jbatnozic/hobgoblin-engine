@@ -2,7 +2,7 @@
 For creating handlers:
 The RN_ARGS types can be either pure types, or be single reference types to prevent copying in some places.
 
-> Message types [4B]:
+> Packet types [4B]:
 	Hello     
 	Connect   
 	Disconnect
@@ -13,16 +13,22 @@ The RN_ARGS types can be either pure types, or be single reference types to prev
 	[Type][Passphrase]
 
 > Connect:
-	[Connect][Passphrase][ClientID]
+	[Type][Connect][Passphrase][ClientID]
 
 > Disconnect:
-	[Disconnect][Reason]
+	[Type][Disconnect][Reason]
 
 > Data:
-	[Data][MessageOrdinal][Ack1][Ack2][...][0][DataMessage1][DataMessage2][...]
+	[Type][Data][MessageOrdinal][Ack1][Ack2][...][0][DataMessage1][DataMessage2][...]
 
 	> DataMessage:
 		[HandlerID][Arg1][Arg2][...]
 
+// As soon as a set of Data packet is received, we fire an untracked Ack packet, and this packet tells
+// the remote host which packets were received and don't need to be held around in their memory anymore.
+// We call these "weak" acknowledges. So called "strong" acknowledges are sent as part of a Data packet,
+// and these are used to measure latency and information round trip time (because RigelNet nodes send
+// and receive data at a consistent pace and not whenever it's available). Strong acknowledges are also
+// a more sure confirmation that the connection is alive and functional.
 > Acks:
 	[]

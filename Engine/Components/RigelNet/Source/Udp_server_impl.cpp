@@ -18,7 +18,7 @@ RN_UdpServerImpl::RN_UdpServerImpl(std::string passphrase,
     : _socket{RN_Protocol::UDP, networkingStack}
     , _maxPacketSize{aMaxPacketSize}
     , _passphrase{std::move(passphrase)}
-    , _retransmitPredicate{DefaultRetransmitPredicate}
+    , _retransmitPredicate{RN_DefaultRetransmitPredicate}
 {
     _socket.init(_maxPacketSize);
 

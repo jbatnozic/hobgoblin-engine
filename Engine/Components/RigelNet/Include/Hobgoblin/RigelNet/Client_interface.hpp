@@ -21,14 +21,22 @@ public:
     // CLIENT CONTROL                                                        //
     ///////////////////////////////////////////////////////////////////////////
 
+    //! Start attempting to establish a connection with a remote host.
+    //! The local socket will be bound to port 'localPort' (use 0 to let
+    //! the OS assign any free port to the application).
     virtual void connect(std::uint16_t localPort,
                          sf::IpAddress serverIp,
                          std::uint16_t serverPort) = 0;
 
+    //! Attempt to connect to a server running on the same machine as in the same 
+    //! process as this client.
     virtual void connectLocal(RN_ServerInterface& server) = 0;
 
     virtual void disconnect(bool notifyRemote) = 0;
 
+    //! Set a time limit after which the connection will be dropped (closed)
+    //! if the remote host stops respoding. A value of 0, or negative, will be
+    //! treated as infinity (connection never times out).
     virtual void setTimeoutLimit(std::chrono::microseconds limit) = 0;
 
     virtual void setRetransmitPredicate(RN_RetransmitPredicate pred) = 0;
@@ -37,6 +45,8 @@ public:
     // STATE INSPECTION                                                      //
     ///////////////////////////////////////////////////////////////////////////
 
+    //! Returns true if the client is connected to a server or currently trying
+    //! to establish a connection, and false otherwise.
     virtual bool isRunning() const = 0;
 
     virtual const std::string& getPassphrase() const = 0;

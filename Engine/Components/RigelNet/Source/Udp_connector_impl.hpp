@@ -27,13 +27,6 @@ namespace rn {
 
 class RN_ServerInterface;
 
-inline // TODO make this not-inline
-bool DefaultRetransmitPredicate(PZInteger cyclesSinceLastTransmit, 
-                                std::chrono::microseconds timeSinceLastSend,
-                                std::chrono::microseconds currentLatency) {
-    return timeSinceLastSend > 2 * currentLatency;
-}
-
 struct TaggedPacket {
     enum Tag {
         DefaultTag,
@@ -110,23 +103,65 @@ private:
     class LocalConnectionSharedState;
     std::shared_ptr<LocalConnectionSharedState> _localSharedState = nullptr;
 
+    ///////////////////////////////////////////////////////////////////////////
+    // PRIVATE METHODS                                                       //
+    ///////////////////////////////////////////////////////////////////////////
+
+    //! Returns true if the connector is configured for a local connection (even
+    //! if the connection was terminated).
     bool _isConnectedLocally() const noexcept;
-    void destroy();
-    void reset();
-    bool isConnectionTimedOut() const;
-    void uploadAllData();
-    void transferAllDataToLocalPeer();
-    void prepareAck(std::uint32_t ordinal);
-    void receivedAck(std::uint32_t ordinal, bool strong);
-    void initializeSession();
-    void prepareNextOutgoingPacket();
-    void receiveDataMessage(detail::RN_PacketWrapper& packetWrapper);
+
+    //! Clears the send/receive buffers, sets the head indices back to 1, and
+    //! also clears the ack buffer.
+    void _resetBuffers();
+
+    //! Clears all used data and reverts the connector into its original
+    //! (unconnected) state.
+    void _resetAll();
+
+    //! Return true if the remote host hasn't reported back for longer than
+    //! the maximum timeout period.
+    bool _isConnectionTimedOut() const;
+
+    //! Sends all prepared data to the remote host (that is actually remote).
+    void _uploadAllData();
+
+    //! Same as "_uploadAllData" but for a local connection.
+    void _transferAllDataToLocalPeer();
+
+    //! Saves the ack for the given packet ordinal into the ack buffer.
+    void _prepareAck(std::uint32_t ordinal);
+
+    //! Call when an ack is received to do the required book-keeping.
+    //! Call with strong=true if it was received from a Data packet (false otherwise).
+    void _receivedAck(std::uint32_t ordinal, bool strong);
+
+    //! Sets the connector into the Connected state and resets the timeout timer.
+    void _startSession();
+
+    //! Appends a fresh packet to the send buffer and fills in its 
+    //! header (packet type, ordinal, acks).
+    void _prepareNextOutgoingPacket();
+
+    //! Saves a received Data packet (without its headers and acks) into the
+    //! receive buffer, unless it was received previously (Acks are sent in 
+    //! either case).
+    void _saveDataPacket(detail::RN_PacketWrapper& packetWrapper);
     
-    void processHelloPacket(detail::RN_PacketWrapper& packpacketWrapperet);
-    void processConnectPacket(detail::RN_PacketWrapper& packetWrapper);
-    void processDisconnectPacket(detail::RN_PacketWrapper& packetWrapper);
-    void processDataPacket(detail::RN_PacketWrapper& packetWrapper);
-    void processAcksPacket(detail::RN_PacketWrapper& packetWrapper);
+    //! Process a "Hello" packet.
+    void _processHelloPacket(detail::RN_PacketWrapper& packpacketWrapperet);
+
+    //! Process a "Connect" packet.
+    void _processConnectPacket(detail::RN_PacketWrapper& packetWrapper);
+
+    //! Process a "Disconnect" packet.
+    void _processDisconnectPacket(detail::RN_PacketWrapper& packetWrapper);
+
+    //! Process a "Data" packet.
+    void _processDataPacket(detail::RN_PacketWrapper& packetWrapper);
+
+    //! Process an "Acks" packet.
+    void _processAcksPacket(detail::RN_PacketWrapper& packetWrapper);
 };
 
 } // namespace rn
