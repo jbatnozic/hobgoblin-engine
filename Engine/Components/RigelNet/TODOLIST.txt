@@ -8,3 +8,4 @@
 - Server ability to notify remote on connection shutdown. 
   ^ Implement this for both servers and clients
 - Untracked messages
+- Closing connectors

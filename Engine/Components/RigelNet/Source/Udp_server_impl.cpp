@@ -247,7 +247,7 @@ void RN_UdpServerImpl::_updateReceive() {
         }
         if (client->getStatus() != RN_ConnectorStatus::Disconnected) {
             _senderIndex = i;
-            client->handleDataMessages(SELF, _currentPacket);
+            client->handleDataMessages(SELF, /* reference to pointer -> */ _currentPacket);
         }
         if (client->getStatus() != RN_ConnectorStatus::Disconnected) {
             client->checkForTimeout();

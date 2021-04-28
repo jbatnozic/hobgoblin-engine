@@ -188,7 +188,7 @@ void RN_UdpClientImpl::_updateReceive() {
         _connector.sendAcks();
     }
     if (_connector.getStatus() != RN_ConnectorStatus::Disconnected) {
-        _connector.handleDataMessages(SELF, _currentPacket);
+        _connector.handleDataMessages(SELF, /* reference to pointer -> */ _currentPacket);
     }
     if (_connector.getStatus() != RN_ConnectorStatus::Disconnected) {
         _connector.checkForTimeout();
