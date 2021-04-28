@@ -8,7 +8,7 @@
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
-HOBGOBLIN_NAMESPACE_START
+HOBGOBLIN_NAMESPACE_BEGIN
 namespace math {
 
 constexpr double PI = 3.14159265358979323846;

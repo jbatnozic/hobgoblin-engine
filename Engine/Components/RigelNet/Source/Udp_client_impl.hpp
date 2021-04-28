@@ -14,7 +14,7 @@
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
-HOBGOBLIN_NAMESPACE_START
+HOBGOBLIN_NAMESPACE_BEGIN
 namespace rn {
 
 class RN_UdpClientImpl : public RN_NodeBase, public RN_ClientInterface {

@@ -5,7 +5,7 @@
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
-HOBGOBLIN_NAMESPACE_START
+HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
 const Color Color::Transparent{0x00000000};

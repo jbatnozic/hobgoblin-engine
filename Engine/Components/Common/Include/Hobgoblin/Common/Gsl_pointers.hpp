@@ -35,7 +35,7 @@
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
-HOBGOBLIN_NAMESPACE_START
+HOBGOBLIN_NAMESPACE_BEGIN
 
 //
 // GSL.owner: ownership pointers
@@ -206,7 +206,7 @@ struct hash<::jbatnozic::hobgoblin::not_null<T>>
 
 } // namespace std
 
-HOBGOBLIN_NAMESPACE_START
+HOBGOBLIN_NAMESPACE_BEGIN
 
 //
 // strict_not_null

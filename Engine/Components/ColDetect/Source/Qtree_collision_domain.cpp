@@ -10,7 +10,7 @@
 
 #define BITAND(x, y) ((x) & (y))
 
-HOBGOBLIN_NAMESPACE_START
+HOBGOBLIN_NAMESPACE_BEGIN
 namespace cd {
 
 namespace detail {

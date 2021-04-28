@@ -17,7 +17,7 @@
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
-HOBGOBLIN_NAMESPACE_START
+HOBGOBLIN_NAMESPACE_BEGIN
 namespace qao {
 
 constexpr std::int32_t QAO_ALL_EVENT_FLAGS = 0xFFFFFFFF;

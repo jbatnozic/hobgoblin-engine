@@ -13,7 +13,7 @@ namespace {
 #include <Hobgoblin/Private/Font_titillium_webregular.hpp>
 } // namespace
 
-HOBGOBLIN_NAMESPACE_START
+HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
 const sf::Font& BuiltInFonts::getFont(FontChoice fontChoice) {

@@ -78,7 +78,7 @@ void* SfmlPacketAccess_ExtractBytes(sf::Packet& packet, std::size_t byteCount) {
 
 // TODO WTF is up with this file?????
 
-HOBGOBLIN_NAMESPACE_START
+HOBGOBLIN_NAMESPACE_BEGIN
 namespace util {
 
 void* Packet::extractBytes(std::size_t byteCount) {
