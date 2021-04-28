@@ -30,7 +30,7 @@ public:
         , _maxDepth{maxDepth}
         , _maxEntities{maxEntitiesPerNode}
     {
-        FRIEND_ACCESS _domain.updateNodeTable(SELF);
+        _domain.updateNodeTable(SELF);
     }
 
     ~QuadTreeNode() {
@@ -82,7 +82,7 @@ public:
             }
         }
 
-        FRIEND_ACCESS _domain.updateNodeTable(SELF);
+        _domain.updateNodeTable(SELF);
     }
 
     void setEntityBbox(EntityList::iterator entityIter, const BoundingBox& bbox) {

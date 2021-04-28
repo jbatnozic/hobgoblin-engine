@@ -86,7 +86,7 @@ template <class T>
 QAO_PriorityResolver::CategoryDefinition& QAO_PriorityResolver::category(T&& categoryId) {
     const int idAsInt = static_cast<int>(std::forward<T>(categoryId));
     for (auto& definition : _definitions) {
-        if (FRIEND_ACCESS definition._categoryId == idAsInt) {
+        if (definition._categoryId == idAsInt) {
             assert(false && "Definition with the same category ID already exists");
         }
     }

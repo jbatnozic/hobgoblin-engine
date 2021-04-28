@@ -82,7 +82,7 @@ std::enable_if_t<sizeof...(NoArgs) == 0, void> QAO_PriorityResolver2::Dependency
 template <class ...ArgsRest>
 QAO_PriorityResolver2::DependencyInserter& 
 QAO_PriorityResolver2::DependencyInserter::dependsOn(int* argsHead, ArgsRest&&... argsRest) {
-    FRIEND_ACCESS _resolver.categoryDependsOn(_category, argsHead);
+    _resolver.categoryDependsOn(_category, argsHead);
     dependsOn(std::forward<ArgsRest>(argsRest)...);
     return SELF;
 }
@@ -95,7 +95,7 @@ std::enable_if_t<sizeof...(NoArgs) == 0, void> QAO_PriorityResolver2::Dependency
 template <class ...ArgsRest>
 QAO_PriorityResolver2::DependencyInserter&
 QAO_PriorityResolver2::DependencyInserter::precedes(int* argsHead, ArgsRest&&... argsRest) {
-    FRIEND_ACCESS _resolver.categoryPrecedes(_category, argsHead);
+    _resolver.categoryPrecedes(_category, argsHead);
     precedes(std::forward<ArgsRest>(argsRest)...);
     return SELF;
 }

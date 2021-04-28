@@ -37,7 +37,7 @@ QAO_Runtime::~QAO_Runtime() {
 
 QAO_RuntimeRef QAO_Runtime::nonOwning() {
     QAO_RuntimeRef rv{this};
-    FRIEND_ACCESS rv._isOwning = false;
+    rv._isOwning = false;
     return rv;
 }
 
@@ -48,7 +48,7 @@ void QAO_Runtime::addObject(std::unique_ptr<QAO_Base> object) {
     auto ordPair = _orderer.insert(objRaw); // first = iterator, second = added_new
     assert(ordPair.second);
 
-    FRIEND_ACCESS objRaw->_context = QAO_Base::Context{
+    objRaw->_context = QAO_Base::Context{
         MIN_STEP_ORDINAL,
         QAO_GenericId{reg_pair.serial, reg_pair.index},
         ordPair.first,
@@ -62,7 +62,7 @@ void QAO_Runtime::addObjectNoOwn(QAO_Base& object) {
     auto ordPair = _orderer.insert(&object); // first = iterator, second = added_new
     assert(ordPair.second);
 
-    FRIEND_ACCESS object._context = QAO_Base::Context{
+    object._context = QAO_Base::Context{
         MIN_STEP_ORDINAL,
         QAO_GenericId{reg_pair.serial, reg_pair.index},
         ordPair.first,
@@ -77,9 +77,9 @@ void QAO_Runtime::addObject(std::unique_ptr<QAO_Base> object, QAO_GenericId spec
     auto ordPair = _orderer.insert(objRaw); // first = iterator, second = added_new
     assert(ordPair.second);
 
-    FRIEND_ACCESS objRaw->_context = QAO_Base::Context{
+    objRaw->_context = QAO_Base::Context{
         MIN_STEP_ORDINAL,
-        FRIEND_ACCESS objRaw->_context.id,
+        objRaw->_context.id,
         ordPair.first,
         this
     };
@@ -91,9 +91,9 @@ void QAO_Runtime::addObjectNoOwn(QAO_Base& object, QAO_GenericId specififcId) {
     auto ordPair = _orderer.insert(&object); // first = iterator, second = added_new
     assert(ordPair.second);
 
-    FRIEND_ACCESS object._context = QAO_Base::Context{
+    object._context = QAO_Base::Context{
         MIN_STEP_ORDINAL,
-        FRIEND_ACCESS object._context.id,
+        object._context.id,
         ordPair.first,
         this
     };
@@ -114,7 +114,7 @@ std::unique_ptr<QAO_Base> QAO_Runtime::releaseObject(QAO_Base* object) {
     }
     _orderer.erase(object);
 
-    FRIEND_ACCESS object->_context = QAO_Base::Context{};
+    object->_context = QAO_Base::Context{};
 
     return rv;
 }
@@ -162,10 +162,10 @@ void QAO_Runtime::updateExecutionPriorityForObject(QAO_Base* object, int newPrio
     assert(find(object->getId()) == object);
 
     _orderer.erase(object);
-    FRIEND_ACCESS object->_execution_priority = newPriority;
+    object->_execution_priority = newPriority;
 
     const auto ord_pair = _orderer.insert(object); // first = iterator, second = added_new
-    FRIEND_ACCESS object->_context.ordererIterator = ord_pair.first;
+    object->_context.ordererIterator = ord_pair.first;
 }
 
 // Execution
@@ -194,9 +194,9 @@ void QAO_Runtime::advanceStep(bool& done, std::int32_t eventFlags) {
             char currBeforeEvent[sizeof(curr)];
             std::memcpy(currBeforeEvent, &curr, sizeof(curr));
 
-            if (FRIEND_ACCESS instance->_context.stepOrdinal < _step_counter) {
-                FRIEND_ACCESS instance->_context.stepOrdinal = _step_counter;
-                FRIEND_ACCESS instance->_callEvent(ev);
+            if (instance->_context.stepOrdinal < _step_counter) {
+                instance->_context.stepOrdinal = _step_counter;
+                instance->_callEvent(ev);
                 // After calling _callEvent, the instance variable must no longer be used until reassigned,
                 // because an instance is allowed to delete itself inside of an event implementation
             }

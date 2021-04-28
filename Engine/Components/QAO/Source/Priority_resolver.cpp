@@ -40,14 +40,14 @@ void QAO_PriorityResolver::resolveAll() {
 
     // Reset all definitions:
     for (auto& definition : _definitions) {
-        FRIEND_ACCESS definition.reset();
+        definition.reset();
     }
 
     // For all definitions, list them as dependees in their dependencies:
     for (auto definitionIter = _definitions.begin(); definitionIter != _definitions.end(); definitionIter++) {
-        for (auto& dependencyId : FRIEND_ACCESS (*definitionIter)._dependencies) {
+        for (auto& dependencyId : (*definitionIter)._dependencies) {
             auto dependencyIter = findDefinition(dependencyId);
-            FRIEND_ACCESS (*dependencyIter)._dependees.push_back(definitionIter);
+            (*dependencyIter)._dependees.push_back(definitionIter);
         }
     }
 
@@ -56,8 +56,8 @@ void QAO_PriorityResolver::resolveAll() {
         // Find definition with all dependencies satisfied:
         std::vector<CategoryDefinition>::iterator curr;
         for (curr = _definitions.begin(); curr != _definitions.end(); curr = std::next(curr)) {
-            if (FRIEND_ACCESS (*curr).priorityAssigned() == false &&
-                FRIEND_ACCESS (*curr).dependenciesSatisfied()) {
+            if ((*curr).priorityAssigned() == false &&
+                (*curr).dependenciesSatisfied()) {
                 break;
             }
         }
@@ -65,11 +65,11 @@ void QAO_PriorityResolver::resolveAll() {
             break;
         }
 
-        for (auto& dependeeIter : FRIEND_ACCESS (*curr)._dependees) {
+        for (auto& dependeeIter : (*curr)._dependees) {
             (*dependeeIter)._dependencyFulfilledCounter += 1;
         }
 
-        FRIEND_ACCESS (*curr)._priority = _priorityCounter;
+        (*curr)._priority = _priorityCounter;
         _priorityCounter -= _priorityStep;
     }
 
@@ -79,8 +79,8 @@ void QAO_PriorityResolver::resolveAll() {
         if (!definition.priorityAssigned()) {
             throw util::TracedLogicError("Cannot resolve priorities - impossible situation requested");
         }
-        _priorityMapping[FRIEND_ACCESS definition._categoryId] = FRIEND_ACCESS *definition._priority;
-        FRIEND_ACCESS definition.reset();
+        _priorityMapping[definition._categoryId] = *definition._priority;
+        definition.reset();
     }
 }
 
