@@ -1,6 +1,6 @@
 
 #include <Hobgoblin/RigelNet/Factories.hpp>
-#include <Hobgoblin/Utility/Exceptions.hpp>
+#include <Hobgoblin/Common.hpp>
 
 #include "Udp_client_impl.hpp"
 #include "Udp_server_impl.hpp"
@@ -42,7 +42,7 @@ public:
     ///////////////////////////////////////////////////////////////////////////
 
     const RN_ConnectorInterface& getClientConnector(PZInteger clientIndex) const override {
-        throw util::TracedLogicError("Dummy Server doesn't have any client connectors");
+        throw TracedLogicError("Dummy Server doesn't have any client connectors");
         return *reinterpret_cast<RN_ConnectorInterface*>(0x12345678);
     }
 
@@ -116,7 +116,7 @@ std::unique_ptr<RN_ServerInterface> RN_ServerFactory::createServer(RN_Protocol a
                                                                    RN_NetworkingStack aNetworkingStack) {
     switch (aProtocol) {
     case RN_Protocol::TCP:
-        throw util::TracedException("TCP not implemented!");
+        throw TracedException("TCP not implemented!");
         break;
 
     case RN_Protocol::UDP:
@@ -147,7 +147,7 @@ std::unique_ptr<RN_ClientInterface> RN_ClientFactory::createClient(RN_Protocol a
                                                                    RN_NetworkingStack aNetworkingStack) {
     switch (aProtocol) {
     case RN_Protocol::TCP:
-        throw util::TracedException("TCP not implemented!");
+        throw TracedException("TCP not implemented!");
         break;
 
     case RN_Protocol::UDP:

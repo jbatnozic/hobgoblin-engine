@@ -1,5 +1,5 @@
 
-#include <Hobgoblin/Utility/Exceptions.hpp>
+#include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/QAO/Priority_resolver.hpp>
 
 #include <cassert>
@@ -77,7 +77,7 @@ void QAO_PriorityResolver::resolveAll() {
     _priorityMapping.clear();
     for (auto& definition : _definitions) {
         if (!definition.priorityAssigned()) {
-            throw util::TracedLogicError("Cannot resolve priorities - impossible situation requested");
+            throw TracedLogicError("Cannot resolve priorities - impossible situation requested");
         }
         _priorityMapping[definition._categoryId] = *definition._priority;
         definition.reset();
@@ -90,7 +90,7 @@ std::vector<QAO_PriorityResolver::CategoryDefinition>::iterator QAO_PriorityReso
             return curr;
         }
     }
-    throw util::TracedLogicError("Definition with ID " + std::to_string(categoryId) + " not found");
+    throw TracedLogicError("Definition with ID " + std::to_string(categoryId) + " not found");
 }
 
 } // namespace qao

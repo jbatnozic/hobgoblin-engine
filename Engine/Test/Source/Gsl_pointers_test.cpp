@@ -26,7 +26,6 @@
 
 #include <gtest/gtest.h>
 #include <Hobgoblin/Common.hpp>
-#include <Hobgoblin/Utility/Exceptions.hpp>
 
 #include <algorithm> // for addressof
 #include <memory>    // for shared_ptr, make_shared, operator<, opera...
@@ -198,7 +197,7 @@ TEST(notnull_tests, TestNotNullConstructors)
             std::make_shared<int>(10)); // shared_ptr<int> is nullptr assignable
 
         int* pi = nullptr;
-        EXPECT_THROW((not_null<decltype(pi)>(pi)), util::TracedLogicError);
+        EXPECT_THROW((not_null<decltype(pi)>(pi)), TracedLogicError);
     }
 
     {
@@ -254,8 +253,8 @@ TEST(notnull_tests, TestNotNullConstructors)
 
     {
         // from returned pointer
-        EXPECT_THROW(helper(return_pointer()), util::TracedLogicError);
-        EXPECT_THROW(helper_const(return_pointer()), util::TracedLogicError);
+        EXPECT_THROW(helper(return_pointer()), TracedLogicError);
+        EXPECT_THROW(helper_const(return_pointer()), TracedLogicError);
     }
 }
 
@@ -320,7 +319,7 @@ TEST(notnull_tests, TestNotNullAssignment)
     EXPECT_TRUE(helper(p));
 
     int* q = nullptr;
-    EXPECT_THROW(p = not_null<int*>(q), util::TracedLogicError);
+    EXPECT_THROW(p = not_null<int*>(q), TracedLogicError);
 }
 
 TEST(notnull_tests, TestNotNullRawPointerComparison)
@@ -536,7 +535,7 @@ TEST(notnull_tests, TestMakeNotNull)
             const auto x = make_not_null(p1);
             EXPECT_TRUE(*x == 42);
         };
-        EXPECT_THROW(workaround_macro(), util::TracedLogicError);
+        EXPECT_THROW(workaround_macro(), TracedLogicError);
     }
 
     {
@@ -545,14 +544,14 @@ TEST(notnull_tests, TestMakeNotNull)
             const auto x = make_not_null(p1);
             EXPECT_TRUE(*x == 42);
         };
-        EXPECT_THROW(workaround_macro(), util::TracedLogicError);
+        EXPECT_THROW(workaround_macro(), TracedLogicError);
     }
 
     {
         int* p = nullptr;
 
-        EXPECT_THROW(helper(make_not_null(p)), util::TracedLogicError);
-        EXPECT_THROW(helper_const(make_not_null(p)), util::TracedLogicError);
+        EXPECT_THROW(helper(make_not_null(p)), TracedLogicError);
+        EXPECT_THROW(helper_const(make_not_null(p)), TracedLogicError);
     }
 
 #ifdef CONFIRM_COMPILATION_ERRORS

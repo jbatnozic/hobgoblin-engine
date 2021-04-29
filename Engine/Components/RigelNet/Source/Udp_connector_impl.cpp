@@ -2,7 +2,7 @@
 #include "Udp_connector_impl.hpp"
 #include "Udp_server_impl.hpp"
 
-#include <Hobgoblin/Utility/Exceptions.hpp>
+#include <Hobgoblin/Common.hpp>
 
 #include <cassert>
 #include <chrono>
@@ -208,13 +208,13 @@ void RN_UdpConnectorImpl::connectLocal(RN_ServerInterface& server) {
 
     auto* udpServer = dynamic_cast<RN_UdpServerImpl*>(&server);
     if (!udpServer) {
-        throw util::TracedLogicError("Incompatible node types for local connection");
+        throw TracedLogicError("Incompatible node types for local connection");
         return;
     }
 
     const int clientIndex = udpServer->acceptLocalConnection(SELF, _passphrase);
     if (clientIndex < 0) {
-        throw util::TracedRuntimeError("Local connection refused");
+        throw TracedRuntimeError("Local connection refused");
         return;
     }
 
@@ -455,8 +455,8 @@ PZInteger RN_UdpConnectorImpl::getRecvBufferSize() const {
 
 void RN_UdpConnectorImpl::appendToNextOutgoingPacket(const void *data, std::size_t sizeInBytes) {
     if (sizeInBytes > _maxPacketSize) {
-        throw util::TracedLogicError("Cannot send packets larger than " 
-                                     + std::to_string(_maxPacketSize) + " bytes.");
+        throw TracedLogicError("Cannot send packets larger than " +
+                               std::to_string(_maxPacketSize) + " bytes.");
     }
     
     TaggedPacket* latestTaggedPacket = &_sendBuffer.back();

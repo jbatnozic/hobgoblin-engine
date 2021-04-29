@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 
 #define HOBGOBLIN_SHORT_NAMESPACE
+#include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Utility/Any_ptr.hpp>
 #include <Hobgoblin/Utility/Autopack.hpp>
 #include <Hobgoblin/Utility/Packet.hpp>
@@ -44,7 +45,7 @@ TEST(AnyPtrTest, TypeMismatchThrows) {
 
     p.reset(&dummy);
 
-    EXPECT_THROW(p.getOrThrow<double>(), TracedLogicError);
+    EXPECT_THROW(p.getOrThrow<double>(), hg::TracedLogicError);
 }
 
 TEST(AnyPtrTest, ConstPtr) {
@@ -62,7 +63,7 @@ TEST(AnyPtrTest, ConstPtrTypeMismatchThrows) {
 
     p.reset(&constDummy);
 
-    ASSERT_THROW(p.getOrThrow<int>(), TracedLogicError);
+    ASSERT_THROW(p.getOrThrow<int>(), hg::TracedLogicError);
 }
 
 struct AutopackPublicTest {

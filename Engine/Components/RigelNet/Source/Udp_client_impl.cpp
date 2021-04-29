@@ -1,7 +1,7 @@
 
 #include "Udp_client_impl.hpp"
 
-#include <Hobgoblin/Utility/Exceptions.hpp>
+#include <Hobgoblin/Common.hpp>
 
 #include <utility>
 

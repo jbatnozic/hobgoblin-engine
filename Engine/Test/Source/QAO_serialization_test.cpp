@@ -1,9 +1,9 @@
 
 #define HOBGOBLIN_SHORT_NAMESPACE
+#include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/QAO.hpp>
 #include <Hobgoblin/Utility/Any_ptr.hpp>
 #include <Hobgoblin/Utility/Autopack.hpp>
-#include <Hobgoblin/Utility/Exceptions.hpp>
 #include <Hobgoblin/Utility/Serialization.hpp>
 #include <Hobgoblin/Preprocessor.hpp>
 

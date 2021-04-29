@@ -5,7 +5,6 @@ set(COMPONENT_NAME "Hobgoblin.Utility")
 # ===== GATHER SOURCES ======
 
 set(COMPONENT_SOURCES
-  "Source/Exceptions.cpp"
   "Source/Serialization.cpp"
   "Source/Time_utils.cpp"
 )

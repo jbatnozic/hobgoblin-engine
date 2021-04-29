@@ -1,6 +1,6 @@
 
 #include <Hobgoblin/Common/Gsl_pointers.hpp>
-// #include <Hobgoblin/Utility/Exceptions.hpp>
+#include <Hobgoblin/Common.hpp>
 
 #include <stdexcept>
 
@@ -10,9 +10,7 @@ HOBGOBLIN_NAMESPACE_BEGIN
 namespace detail {
 
 void ThrowBecauseNotNullNotSatisfied() {
-    // TODO Resolve dependency to TracedException
-    // throw util::TracedLogicError{"RequireNotNull condition not fulfilled"};
-    throw std::runtime_error{"RequireNotNull condition not fulfilled"};
+    throw TracedLogicError{"RequireNotNull condition not fulfilled"};
 }
 
 } // namespace detail

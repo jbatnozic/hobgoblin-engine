@@ -1,11 +1,9 @@
 
-#include <Hobgoblin/Utility/Exceptions.hpp>
+#include <Hobgoblin/Common/Traced_exceptions.hpp>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_BEGIN
-namespace util {
-
 namespace {
 
 void GenerateStackTrace(std::vector<std::string>& target) {
@@ -50,7 +48,6 @@ void TracedException::printStackTrace(std::ostream& os) const {
     }
 }
 
-} // namespace util
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>

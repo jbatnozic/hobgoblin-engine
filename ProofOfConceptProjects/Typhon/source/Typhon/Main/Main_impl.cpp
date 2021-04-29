@@ -1,6 +1,6 @@
 
 #include <Hobgoblin/RigelNet.hpp>
-#include <Hobgoblin/Utility/Exceptions.hpp>
+#include <Hobgoblin/Common.hpp>
 
 #include <Typhon/Framework.hpp>
 #include <Typhon/GameObjects/UI/Main_menu.hpp>
@@ -116,7 +116,7 @@ try
       printf("Starting ZeroTier service...\n");
       {
         const auto res = zt::StartService(identityPath, ztServicePort);
-        ZTCPP_THROW_ON_ERROR(res, hg::util::TracedRuntimeError);
+        ZTCPP_THROW_ON_ERROR(res, hg::TracedRuntimeError);
       }
 
       printf("Waiting for node to come online...\n");
@@ -174,7 +174,7 @@ try
 	return retVal;
 }
 #ifdef MAIN_SHOULD_CATCH_EXCEPTIONS
-catch (hg::util::TracedException& ex) {
+catch (hg::TracedException& ex) {
 	std::cerr << "Unrecoverable traced exception caught in main: " << ex.what();
 	ex.printStackTrace(std::cerr);
 	return EXIT_FAILURE;

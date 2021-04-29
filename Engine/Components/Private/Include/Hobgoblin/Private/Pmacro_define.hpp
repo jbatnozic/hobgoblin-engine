@@ -30,7 +30,7 @@
 #define CURRENT_FUNCTION_STR std::string{CURRENT_FUNCTION}
 #define HARD_ASSERT(_expression_) \
     do { if (!(_expression_)) { \
-        throw ::jbatnozic::hobgoblin::util::TracedException( \
+        throw ::jbatnozic::hobgoblin::TracedException( \
             "HOBGOBLIN HARD ASSERTION FAILURE: " MSTRINGIFY(_expression_)); \
     } } while (false)
 

@@ -2,7 +2,6 @@
 #define UHOBGOBLIN_UTIL_PACKET_HPP
 
 #include <Hobgoblin/Common.hpp>
-#include <Hobgoblin/Utility/Exceptions.hpp>
 #include <SFML/Network/Packet.hpp>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>

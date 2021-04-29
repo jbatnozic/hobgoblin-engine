@@ -1,7 +1,7 @@
 #ifndef UHOBGOBLIN_RN_PACKET_WRAPPER_HPP
 #define UHOBGOBLIN_RN_PACKET_WRAPPER_HPP
 
-#include <Hobgoblin/Utility/Exceptions.hpp>
+#include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Utility/Packet.hpp>
 
 #include <stdexcept>
@@ -12,9 +12,9 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace rn {
 
-class RN_PacketReadError : public util::TracedException {
+class RN_PacketReadError : public TracedException {
 public:
-    using util::TracedException::TracedException;
+    using TracedException::TracedException;
 };
 
 namespace detail {

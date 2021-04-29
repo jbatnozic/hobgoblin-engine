@@ -2,7 +2,6 @@
 #define UHOBGOBLIN_UTIL_STATE_SCHEDULER_HPP
 
 #include <Hobgoblin/Common.hpp>
-#include <Hobgoblin/Utility/Exceptions.hpp>
 
 #include <algorithm>
 #include <deque>

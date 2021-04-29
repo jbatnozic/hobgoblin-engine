@@ -1,7 +1,7 @@
 
 #include <Hobgoblin/Graphics/Sprite_loader.hpp>
 #include <Hobgoblin/Graphics/Texture_packing.hpp>
-#include <Hobgoblin/Utility/Exceptions.hpp>
+#include <Hobgoblin/Common.hpp>
 
 #include <cassert>
 #include <filesystem>
@@ -16,7 +16,7 @@ TextureHandle SpriteLoader::addTexture(PZInteger width, PZInteger height) {
 
     _textures.emplace_back();
     if (!_textures.back().create(static_cast<unsigned>(width), static_cast<unsigned>(height))) {
-        throw util::TracedRuntimeError("Could not create texture.");
+        throw TracedRuntimeError("Could not create texture.");
     }
     return static_cast<TextureHandle>(_textures.size() - 1);
 }
@@ -51,7 +51,7 @@ SpriteLoader& SpriteLoader::loadFromFile(TextureHandle textureHandle, PZInteger 
     assert(packRequest.unused == true);
     
     if (!packRequest.image.loadFromFile(filePath)) {
-        throw util::TracedRuntimeError("Could not load image: " + filePath);
+        throw TracedRuntimeError("Could not load image: " + filePath);
     }
 
     packRequest.textureHandle = textureHandle;
@@ -81,7 +81,7 @@ SpriteLoader& SpriteLoader::loadFromFile(TextureHandle textureHandle, PZInteger 
     assert(packRequest.unused == true);
 
     if (!packRequest.image.loadFromFile(filePath)) {
-        throw util::TracedRuntimeError("Could not load image: " + filePath);
+        throw TracedRuntimeError("Could not load image: " + filePath);
     }
 
     packRequest.textureHandle = textureHandle;
@@ -138,7 +138,7 @@ const Multisprite& SpriteLoader::getSprite(PZInteger spriteIndex) const {
 const Multisprite& SpriteLoader::getSprite(const std::string& spriteName) const {
     auto iter = _mappedSprites.find(spriteName);
     if (iter == _mappedSprites.end()) {
-        throw util::TracedLogicError("Sprite with name " + spriteName + " was not loaded.");
+        throw TracedLogicError("Sprite with name " + spriteName + " was not loaded.");
     }
     return (*iter).second.multisprite;
 }
@@ -212,7 +212,7 @@ void SpriteLoader::clear() {
 
 void SpriteLoader::assertNotFinalized() const {
     if (_isFinalized) {
-        throw util::TracedLogicError("Sprite loader was already finalized.");
+        throw TracedLogicError("Sprite loader was already finalized.");
     }
 }
 

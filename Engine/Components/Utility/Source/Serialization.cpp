@@ -1,5 +1,5 @@
 
-#include <Hobgoblin/Utility/Exceptions.hpp>
+#include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Utility/Serialization.hpp>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>

@@ -56,7 +56,7 @@ void SynchronizedObjectRegistry::unregisterObject(SynchronizedObject* object) {
 
         auto iter = _alreadyDestroyedObjects.find(object);
         if (iter == _alreadyDestroyedObjects.end()) {
-            throw hg::util::TracedLogicError("Unregistering object which did not sync its destruction");
+            throw hg::TracedLogicError("Unregistering object which did not sync its destruction");
         }
         else {
             _alreadyDestroyedObjects.erase(iter);

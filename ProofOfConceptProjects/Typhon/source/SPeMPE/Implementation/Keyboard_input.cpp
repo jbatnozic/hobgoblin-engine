@@ -1,5 +1,5 @@
 
-#include <Hobgoblin/Utility/Exceptions.hpp>
+#include <Hobgoblin/Common.hpp>
 #include <SPeMPE/Include/Keyboard_input.hpp>
 
 #include <cassert>
@@ -39,7 +39,7 @@ void KbInputTracker::onKeyEvent(sf::Event ev) {
         cb.cleared = false;
     }
     else {
-        throw hg::util::TracedLogicError("Invalid event passed");
+        throw hg::TracedLogicError("Invalid event passed");
     }
 }
 
@@ -59,7 +59,7 @@ void KbInputTracker::onTextEvent(sf::Event ev) {
         }
     }
     else {
-        throw hg::util::TracedLogicError("Invalid event passed");
+        throw hg::TracedLogicError("Invalid event passed");
     }
 }
 

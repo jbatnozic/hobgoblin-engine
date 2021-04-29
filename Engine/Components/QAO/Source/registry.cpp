@@ -2,7 +2,7 @@
 #include <Hobgoblin/QAO/config.hpp>
 #include <Hobgoblin/QAO/base.hpp>
 #include <Hobgoblin/QAO/registry.hpp>
-#include <Hobgoblin/Utility/Exceptions.hpp>
+#include <Hobgoblin/Common.hpp>
 
 #include <stdexcept>
 
@@ -47,11 +47,11 @@ QAO_SerialIndexPair QAO_Registry::insertNoOwn(QAO_Base* ptr) {
 
 void QAO_Registry::insert(std::unique_ptr<QAO_Base> ptr, QAO_SerialIndexPair serialIndexPair) {
     if (!_indexer.tryAcquireSpecific(serialIndexPair.index)) {
-        throw util::TracedLogicError("Cannot register object; Index already in use");
+        throw TracedLogicError("Cannot register object; Index already in use");
     }
 
     if (objectWithSerial(serialIndexPair.serial) != nullptr) {
-        throw util::TracedLogicError("Cannot register object; Serial already in use");
+        throw TracedLogicError("Cannot register object; Serial already in use");
     }
 
     adjustSize();
@@ -63,11 +63,11 @@ void QAO_Registry::insert(std::unique_ptr<QAO_Base> ptr, QAO_SerialIndexPair ser
 
 void QAO_Registry::insertNoOwn(QAO_Base* ptr, QAO_SerialIndexPair serialIndexPair) {
     if (!_indexer.tryAcquireSpecific(serialIndexPair.index)) {
-        throw util::TracedLogicError("Cannot register object; Index already in use");
+        throw TracedLogicError("Cannot register object; Index already in use");
     }
 
     if (objectWithSerial(serialIndexPair.serial) != nullptr) {
-        throw util::TracedLogicError("Cannot register object; Serial already in use");
+        throw TracedLogicError("Cannot register object; Serial already in use");
     }
 
     adjustSize();

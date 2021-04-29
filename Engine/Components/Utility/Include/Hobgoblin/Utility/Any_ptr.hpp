@@ -1,7 +1,7 @@
 #ifndef UHOBGOBLIN_UTIL_ANY_PTR_HPP
 #define UHOBGOBLIN_UTIL_ANY_PTR_HPP
 
-#include <Hobgoblin/Utility/Exceptions.hpp>
+#include <Hobgoblin/Common.hpp>
 
 #include <cassert>
 #include <type_traits>

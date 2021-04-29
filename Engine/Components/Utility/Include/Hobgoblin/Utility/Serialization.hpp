@@ -1,8 +1,8 @@
 #ifndef UHOBGOBLIN_UTIL_SERIALIZATION_HPP
 #define UHOBGOBLIN_UTIL_SERIALIZATION_HPP
 
+#include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Utility/Any_ptr.hpp>
-#include <Hobgoblin/Utility/Exceptions.hpp>
 #include <Hobgoblin/Utility/Packet.hpp>
 
 #include <string>

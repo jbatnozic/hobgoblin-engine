@@ -6,6 +6,7 @@ set(COMPONENT_NAME "Hobgoblin.Common")
 
 set(COMPONENT_SOURCES
   "Source/Gsl_pointers.cpp"
+  "Source/Traced_exceptions.cpp"
 )
 
 # ===== TARGET SETUP =====

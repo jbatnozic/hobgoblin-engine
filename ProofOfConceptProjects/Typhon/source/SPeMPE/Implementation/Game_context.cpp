@@ -1,6 +1,5 @@
 
 #include <Hobgoblin/Common.hpp>
-#include <Hobgoblin/Utility/Exceptions.hpp>
 #include <SPeMPE/Include/Game_context.hpp>
 
 #include <algorithm>
@@ -145,7 +144,7 @@ const GameContext::PerformanceInfo& GameContext::getPerformanceInfo() const {
 
 void GameContext::addPostStepAction(hg::PZInteger delay, std::function<void(GameContext&)> action) {
     if (isPrivileged()) {
-        throw hg::util::TracedLogicError{"Cannot add a post step action on host context without the "
+        throw hg::TracedLogicError{"Cannot add a post step action on host context without the "
                                          "ALLOW_ON_HOST switch."};
     }
 

@@ -40,21 +40,21 @@ bool SynchronizedObject::isMasterObject() const noexcept {
 
 void SynchronizedObject::syncCreate() const {
     if (!isMasterObject()) {
-        throw hg::util::TracedLogicError("Dummy objects cannot request synchronization!");
+        throw hg::TracedLogicError("Dummy objects cannot request synchronization!");
     }
     _syncObjReg.syncObjectCreate(this);
 }
 
 void SynchronizedObject::syncUpdate() const {
     if (!isMasterObject()) {
-        throw hg::util::TracedLogicError("Dummy objects cannot request synchronization!");
+        throw hg::TracedLogicError("Dummy objects cannot request synchronization!");
     }
     _syncObjReg.syncObjectUpdate(this);
 }
 
 void SynchronizedObject::syncDestroy() const {
     if (!isMasterObject()) {
-        throw hg::util::TracedLogicError("Dummy objects cannot request synchronization!");
+        throw hg::TracedLogicError("Dummy objects cannot request synchronization!");
     }
     _syncObjReg.syncObjectDestroy(this);
 }

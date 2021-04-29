@@ -1,5 +1,5 @@
-#ifndef UHOBGOBLIN_UTIL_EXCEPTIONS_HPP
-#define UHOBGOBLIN_UTIL_EXCEPTIONS_HPP
+#ifndef UHOBGOBLIN_COMMON_TRACED_EXCEPTIONS_HPP
+#define UHOBGOBLIN_COMMON_TRACED_EXCEPTIONS_HPP
 
 #include <ostream>
 #include <stdexcept>
@@ -9,7 +9,6 @@
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_BEGIN
-namespace util {
 
 class TracedException : public std::exception {
 public:
@@ -38,10 +37,9 @@ public:
     using TracedException::TracedException;
 };
 
-} // namespace util
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
-#endif // !UHOBGOBLIN_UTIL_EXCEPTIONS_HPP
+#endif // !UHOBGOBLIN_COMMON_TRACED_EXCEPTIONS_HPP

@@ -1,7 +1,7 @@
 
 #include "Udp_server_impl.hpp"
 
-#include <Hobgoblin/Utility/Exceptions.hpp>
+#include <Hobgoblin/Common.hpp>
 
 #include <utility>
 
@@ -299,7 +299,7 @@ void RN_UdpServerImpl::_compose(RN_ComposeForAllType receiver, const void* data,
 
 void RN_UdpServerImpl::_compose(PZInteger receiver, const void* data, std::size_t sizeInBytes) {
     if (_clients[receiver]->getStatus() != RN_ConnectorStatus::Connected) {
-        throw util::TracedLogicError("Client is not connected; cannot compose messages");
+        throw TracedLogicError("Client is not connected; cannot compose messages");
     }
     _clients[receiver]->appendToNextOutgoingPacket(data, sizeInBytes);
 }

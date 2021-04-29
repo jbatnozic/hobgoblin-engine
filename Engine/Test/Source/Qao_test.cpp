@@ -1,7 +1,7 @@
 
 #define HOBGOBLIN_SHORT_NAMESPACE
+#include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/QAO.hpp>
-#include <Hobgoblin/Utility/Exceptions.hpp>
 
 #include <gtest/gtest.h>
 #include <vector>
@@ -126,11 +126,11 @@ TEST_F(QAO_Test, PCreatePDestroy) {
 }
 
 TEST_F(QAO_Test, PCreateFailsBecauseOfNull) {
-    EXPECT_THROW(QAO_PCreate<SimpleActiveObject>(nullptr, _numbers, 0), hg::util::TracedLogicError);
+    EXPECT_THROW(QAO_PCreate<SimpleActiveObject>(nullptr, _numbers, 0), hg::TracedLogicError);
 }
 
 TEST_F(QAO_Test, PCreateFailsBecauseOfNonOwningRef) {
-    EXPECT_THROW(QAO_PCreate<SimpleActiveObject>(_runtime.nonOwning(), _numbers, 0), hg::util::TracedLogicError);
+    EXPECT_THROW(QAO_PCreate<SimpleActiveObject>(_runtime.nonOwning(), _numbers, 0), hg::TracedLogicError);
 }
 
 TEST_F(QAO_Test, UPCreate) {
@@ -156,7 +156,7 @@ TEST_F(QAO_Test, UPCreateWithNonOwningInsert) {
 }
 
 TEST_F(QAO_Test, UPCreateFails) {
-    EXPECT_THROW(QAO_UPCreate<SimpleActiveObject>(&_runtime, _numbers, 0), hg::util::TracedLogicError);
+    EXPECT_THROW(QAO_UPCreate<SimpleActiveObject>(&_runtime, _numbers, 0), hg::TracedLogicError);
 }
 
 TEST_F(QAO_Test, ICreate) {
@@ -172,11 +172,11 @@ TEST_F(QAO_Test, ICreate) {
 }
 
 TEST_F(QAO_Test, ICreateFailsBecauseOfNull) {
-    EXPECT_THROW(QAO_ICreate<SimpleActiveObject>(nullptr, _numbers, 0), hg::util::TracedLogicError);
+    EXPECT_THROW(QAO_ICreate<SimpleActiveObject>(nullptr, _numbers, 0), hg::TracedLogicError);
 }
 
 TEST_F(QAO_Test, ICreateFailsBecauseOfNonOwningRef) {
-    EXPECT_THROW(QAO_ICreate<SimpleActiveObject>(_runtime.nonOwning(), _numbers, 0), hg::util::TracedLogicError);
+    EXPECT_THROW(QAO_ICreate<SimpleActiveObject>(_runtime.nonOwning(), _numbers, 0), hg::TracedLogicError);
 }
 
 TEST_F(QAO_Test, ReleaseObject) {
@@ -301,7 +301,7 @@ TEST_F(QAO_Test, PriorityResolverImpossibleCycle) {
     resolver.category(B).dependsOn(A);
     resolver.category(C).dependsOn(B);
 
-    ASSERT_THROW(resolver.resolveAll(), hg::util::TracedLogicError);
+    ASSERT_THROW(resolver.resolveAll(), hg::TracedLogicError);
 }
 
 TEST_F(QAO_Test, PriorityResolverMissingDefinition) {
@@ -312,7 +312,7 @@ TEST_F(QAO_Test, PriorityResolverMissingDefinition) {
     QAO_PriorityResolver resolver;
     resolver.category(A).dependsOn(B);
 
-    ASSERT_THROW(resolver.resolveAll(), hg::util::TracedLogicError);
+    ASSERT_THROW(resolver.resolveAll(), hg::TracedLogicError);
 }
 
 TEST_F(QAO_Test, PriorityResolverComplexResolve) {
@@ -385,7 +385,7 @@ TEST_F(QAO_Test, PriorityResolver2ImpossibleCycle) {
     resolver.category(&B).dependsOn(&A);
     resolver.category(&C).dependsOn(&B);
 
-    ASSERT_THROW(resolver.resolveAll(), hg::util::TracedLogicError);
+    ASSERT_THROW(resolver.resolveAll(), hg::TracedLogicError);
 }
 
 TEST_F(QAO_Test, PriorityResolver2MissingDefinition) {
