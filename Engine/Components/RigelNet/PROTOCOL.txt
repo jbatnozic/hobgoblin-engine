@@ -6,20 +6,22 @@ The RN_ARGS types can be either pure types, or be single reference types to prev
 	Hello     
 	Connect   
 	Disconnect
-	Data      
+	Data,
+	DataMore,
+	DataTail
 	Acks
 
 > Hello:
 	[Type][Passphrase]
 
 > Connect:
-	[Type][Connect][Passphrase][ClientID]
+	[Type][Passphrase][ClientID]
 
 > Disconnect:
-	[Type][Disconnect][Reason]
+	[Type][Reason]
 
-> Data:
-	[Type][Data][MessageOrdinal][Ack1][Ack2][...][0][DataMessage1][DataMessage2][...]
+> Data, DataMore, DataTail:
+	[Type][MessageOrdinal][Ack1][Ack2][...][0][DataMessage1][DataMessage2][...]
 
 	> DataMessage:
 		[HandlerID][Arg1][Arg2][...]

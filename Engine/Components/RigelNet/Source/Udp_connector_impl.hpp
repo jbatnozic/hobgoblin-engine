@@ -37,6 +37,8 @@ struct TaggedPacket {
         AcknowledgedStrongly,
     // RECV:
         WaitingForData = DefaultTag,
+        WaitingForMore,
+        WaitingForMore_Tail,
         ReadyForUnpacking,
         Unpacked,
     };
@@ -139,14 +141,18 @@ private:
     //! Sets the connector into the Connected state and resets the timeout timer.
     void _startSession();
 
-    //! Appends a fresh packet to the send buffer and fills in its 
+    //! Appends a fresh data packet to the send buffer and fills in its 
     //! header (packet type, ordinal, acks).
-    void _prepareNextOutgoingPacket();
+    void _prepareNextOutgoingDataPacket(std::uint32_t packetType);
+
+    //!
+    void _tryToAssembleFragmentedPacketAtHead();
 
     //! Saves a received Data packet (without its headers and acks) into the
-    //! receive buffer, unless it was received previously (Acks are sent in 
+    //! receive buffer, unless it was received previously (Acks are prepared in 
     //! either case).
-    void _saveDataPacket(detail::RN_PacketWrapper& packetWrapper);
+    void _saveDataPacket(detail::RN_PacketWrapper& packetWrapper,
+                         std::uint32_t packetType);
     
     //! Process a "Hello" packet.
     void _processHelloPacket(detail::RN_PacketWrapper& packpacketWrapperet);
@@ -159,6 +165,12 @@ private:
 
     //! Process a "Data" packet.
     void _processDataPacket(detail::RN_PacketWrapper& packetWrapper);
+
+    //! Process a "DataMore" packet.
+    void _processDataMorePacket(detail::RN_PacketWrapper& packetWrapper);
+
+    //! Process a "DataTail" packet.
+    void _processDataTailPacket(detail::RN_PacketWrapper& packetWrapper);
 
     //! Process an "Acks" packet.
     void _processAcksPacket(detail::RN_PacketWrapper& packetWrapper);

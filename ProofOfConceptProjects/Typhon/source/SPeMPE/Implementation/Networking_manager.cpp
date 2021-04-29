@@ -31,14 +31,14 @@ NetworkingManager::NetworkingManager(QAO_RuntimeRef runtimeRef)
 }
 
 void NetworkingManager::initializeAsServer() {
-    _node = hg::RN_ServerFactory::createServer(RN_Protocol::UDP, "pass123", 1, 9000, RN_NetworkingStack::Default);
+    _node = hg::RN_ServerFactory::createServer(RN_Protocol::UDP, "pass123", 1, 200, RN_NetworkingStack::Default);
     getServer().setRetransmitPredicate(RETRANSMIT_PREDICATE);
     getServer().setUserData(&ctx());
     _state = State::Server;
 }
 
 void NetworkingManager::initializeAsClient() {
-    _node = hg::RN_ClientFactory::createClient(hg::RN_Protocol::UDP, "pass123", 9000, RN_NetworkingStack::Default);
+    _node = hg::RN_ClientFactory::createClient(hg::RN_Protocol::UDP, "pass123", 200, RN_NetworkingStack::Default);
     getClient().setRetransmitPredicate(RETRANSMIT_PREDICATE);
     getClient().setUserData(&ctx());
     _state = State::Client;

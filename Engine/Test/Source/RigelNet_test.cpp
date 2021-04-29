@@ -7,9 +7,12 @@
 using namespace hg::rn;
 
 #include <chrono>
+#include <cstdint>
+#include <cstring>
 #include <iostream>
 #include <memory>
 #include <thread>
+#include <vector>
 
 namespace {
 constexpr hg::PZInteger CLIENT_COUNT = 1;
@@ -45,9 +48,10 @@ void DummyFuncCallsComposeForTestHandler() {
 class RigelNetTest : public ::testing::Test {
 public:
     RigelNetTest()
-        : _server{RN_ServerFactory::createServer(RN_Protocol::UDP, PASS, CLIENT_COUNT)}
-        , _client{RN_ClientFactory::createClient(RN_Protocol::UDP, PASS)}
+        : _server{RN_ServerFactory::createServer(RN_Protocol::UDP, PASS, CLIENT_COUNT, 50)}
+        , _client{RN_ClientFactory::createClient(RN_Protocol::UDP, PASS, 50)}
     {
+        RN_IndexHandlers();
     }
 
 protected:
@@ -132,5 +136,46 @@ TEST_F(RigelNetTest, ClientConnectsAndDisconnects) {
     {
         auto cnt = pollAndCountEvents(*_server);
         ASSERT_EQ(cnt.disconnected, 1);
+    }
+}
+
+RN_DEFINE_HANDLER_P(SendBinaryBuffer, PREF_, RN_ARGS(RN_RawDataView, bytes)) {
+    RN_NODE_IN_HANDLER().callIfServer(
+        [](RN_ServerInterface& /*server*/) {
+            std::abort();
+        });
+
+    RN_NODE_IN_HANDLER().callIfClient(
+        [&](RN_ClientInterface& client) {
+            auto& vec = *client.getUserDataOrThrow<std::vector<std::int32_t>>();
+            vec.resize((bytes.getDataSize() + 3) / 4);
+            std::memcpy(vec.data(), bytes.getData(), bytes.getDataSize());
+        });
+}
+
+TEST_F(RigelNetTest, FragmentedPacketReceived) {
+    std::vector<std::int32_t> serverVector;
+    for (int i = 0; i < 16; i += 1) { // 16 ints is 64 bytes, our nodes can send only 50 at a time
+        serverVector.push_back(i);
+    }
+
+    std::vector<std::int32_t> clientVector;
+    _client->setUserData(&clientVector);
+
+    _server->start(0);
+    _client->connectLocal(*_server);
+
+    ASSERT_EQ(_client->getServerConnector().getStatus(),  RN_ConnectorStatus::Connected);
+    ASSERT_EQ(_server->getClientConnector(0).getStatus(), RN_ConnectorStatus::Connected);
+
+    PREF_Compose_SendBinaryBuffer(*_server, RN_COMPOSE_FOR_ALL,
+                                  RN_RawDataView(serverVector.data(), serverVector.size() * sizeof(std::int32_t)));
+
+    _server->update(RN_UpdateMode::Send);
+    _client->update(RN_UpdateMode::Receive);
+
+    ASSERT_EQ(serverVector.size(), clientVector.size());
+    for (std::size_t i = 0; i < serverVector.size(); i += 1) {
+        ASSERT_EQ(serverVector[i], clientVector[i]);
     }
 }

@@ -44,7 +44,7 @@ template <class T>
 T RN_PacketWrapper::extractOrThrow() {
     T value;
     if (!(packet >> value)) {
-        throw RN_PacketReadError{"Bad read from hg::util::Packet"};
+        throw RN_PacketReadError{"Bad read from hg::rn::RN_PacketWrapper"};
     }
     return value;
 }

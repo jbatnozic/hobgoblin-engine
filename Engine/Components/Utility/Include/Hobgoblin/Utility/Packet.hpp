@@ -13,6 +13,11 @@ using PacketBase = sf::Packet;
 
 class Packet : public PacketBase {
 public:
+    // Note: Data in the packet is stored in network order (big-endian)
+    void* getMutableData();
+
+    std::size_t getReadPos() const;
+
     template <class T>
     T extractOrThrow();
 

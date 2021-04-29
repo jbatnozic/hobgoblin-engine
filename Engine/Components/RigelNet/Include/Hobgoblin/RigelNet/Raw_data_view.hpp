@@ -35,6 +35,7 @@ public:
             packet << self._dataByteCount;
             packet.append(self._data, self._dataByteCount);
         }
+        return packet;
     }
 
     friend util::PacketBase& operator>>(util::PacketBase& packet, RN_RawDataView& self) {
@@ -42,6 +43,8 @@ public:
         util::Packet& extendedPacket = reinterpret_cast<util::Packet&>(packet);
         extendedPacket >> self._dataByteCount;
         self._data = extendedPacket.extractBytes(self._dataByteCount);
+
+        return packet;
     }
 
 private:

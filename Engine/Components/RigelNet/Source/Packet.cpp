@@ -81,6 +81,14 @@ void* SfmlPacketAccess_ExtractBytes(sf::Packet& packet, std::size_t byteCount) {
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace util {
 
+void* Packet::getMutableData() {
+    return SfmlPacketAccess_GetDataVector(SELF).data();
+}
+
+std::size_t Packet::getReadPos() const {
+    return SfmlPacketAccess_GetReadPosition(SELF);
+}
+
 void* Packet::extractBytes(std::size_t byteCount) {
     return SfmlPacketAccess_ExtractBytes(SELF, byteCount);
 }

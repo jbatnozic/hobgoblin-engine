@@ -102,6 +102,8 @@ constexpr std::uint32_t UDP_PACKET_TYPE_HELLO      = 0x3BF0E110;
 constexpr std::uint32_t UDP_PACKET_TYPE_CONNECT    = 0x83C96CA4;
 constexpr std::uint32_t UDP_PACKET_TYPE_DISCONNECT = 0xD0F235AB;
 constexpr std::uint32_t UDP_PACKET_TYPE_DATA       = 0xA765B8F6;
+constexpr std::uint32_t UDP_PACKET_TYPE_DATA_MORE  = 0x782A2A78;
+constexpr std::uint32_t UDP_PACKET_TYPE_DATA_TAIL  = 0x00DA7A11;
 constexpr std::uint32_t UDP_PACKET_TYPE_ACKS       = 0x71AC2519;
 
 class FatalPacketTypeReceived : public std::runtime_error {
@@ -124,6 +126,21 @@ void HandleDataMessages(detail::RN_PacketWrapper& receivedPacket,
     }
 
     pointerToCurrentPacket = nullptr;
+}
+
+//! Endianess-agnostic implementation of ntoh for 32bit integers
+std::int32_t ntoh32(std::int32_t net) {
+    uint8_t buf[4];
+    std::memcpy(&buf, &net, sizeof(buf));
+
+    return ((std::uint32_t) buf[3] <<  0)
+         | ((std::uint32_t) buf[2] <<  8)
+         | ((std::uint32_t) buf[1] << 16)
+         | ((std::uint32_t) buf[0] << 24);
+}
+
+std::int32_t hton32(std::int32_t host) {
+    return ntoh32(host); // These functions actually perform the same operation :)
 }
 
 } // namespace
@@ -161,7 +178,7 @@ bool RN_UdpConnectorImpl::tryAccept(sf::IpAddress addr, std::uint16_t port, deta
         _status = RN_ConnectorStatus::Accepting;
 
         _resetBuffers();
-        _prepareNextOutgoingPacket();
+        _prepareNextOutgoingDataPacket(UDP_PACKET_TYPE_DATA);
     }
     else {
         // TODO - Notify of erroneous message from unknown sender...
@@ -181,7 +198,7 @@ bool RN_UdpConnectorImpl::tryAcceptLocal(RN_UdpConnectorImpl& localPeer, const s
         _remoteInfo = RN_RemoteInfo{sf::IpAddress::LocalHost, 0};
         _status = RN_ConnectorStatus::Connected;
         _resetBuffers();
-        _prepareNextOutgoingPacket();
+        _prepareNextOutgoingDataPacket(UDP_PACKET_TYPE_DATA);
         
         _eventFactory.createConnected();
         _startSession();
@@ -200,7 +217,7 @@ void RN_UdpConnectorImpl::connect(sf::IpAddress addr, std::uint16_t port) {
     _status = RN_ConnectorStatus::Connecting;
 
     _resetBuffers();
-    _prepareNextOutgoingPacket();
+    _prepareNextOutgoingDataPacket(UDP_PACKET_TYPE_DATA);
 }
 
 void RN_UdpConnectorImpl::connectLocal(RN_ServerInterface& server) {
@@ -224,7 +241,7 @@ void RN_UdpConnectorImpl::connectLocal(RN_ServerInterface& server) {
     _status = RN_ConnectorStatus::Connected;
 
     _resetBuffers();
-    _prepareNextOutgoingPacket();
+    _prepareNextOutgoingDataPacket(UDP_PACKET_TYPE_DATA);
 
     _clientIndex = clientIndex;
     _eventFactory.createConnected();
@@ -327,6 +344,14 @@ void RN_UdpConnectorImpl::receivedPacket(detail::RN_PacketWrapper& packetWrap) {
             _processDataPacket(packetWrap);
             break;
 
+        case UDP_PACKET_TYPE_DATA_MORE:
+            _processDataMorePacket(packetWrap);
+            break;
+
+        case UDP_PACKET_TYPE_DATA_TAIL:
+            _processDataTailPacket(packetWrap);
+            break;
+
         case UDP_PACKET_TYPE_ACKS:
             _processAcksPacket(packetWrap);
             break;
@@ -382,10 +407,20 @@ void RN_UdpConnectorImpl::handleDataMessages(RN_NodeInterface& node,
     }
 
     try {
-        while (!_recvBuffer.empty() && _recvBuffer[0].tag == TaggedPacket::ReadyForUnpacking) {
-            HandleDataMessages(_recvBuffer[0].packetWrap, node, pointerToCurrentPacket);
-            _recvBuffer.pop_front();
-            _recvBufferHeadIndex++;
+        while (!_recvBuffer.empty()) {
+            _tryToAssembleFragmentedPacketAtHead();
+            if (_recvBuffer[0].tag == TaggedPacket::ReadyForUnpacking) {
+                HandleDataMessages(_recvBuffer[0].packetWrap, node, pointerToCurrentPacket);
+                _recvBuffer.pop_front();
+                _recvBufferHeadIndex++;
+            }
+            else if (_recvBuffer[0].tag == TaggedPacket::Unpacked) {
+                _recvBuffer.pop_front();
+                _recvBufferHeadIndex++;
+            }
+            else {
+                break;
+            }
         }
     }
     catch (RN_PacketReadError& ex) {
@@ -454,18 +489,75 @@ PZInteger RN_UdpConnectorImpl::getRecvBufferSize() const {
 }
 
 void RN_UdpConnectorImpl::appendToNextOutgoingPacket(const void *data, std::size_t sizeInBytes) {
-    if (sizeInBytes > _maxPacketSize) {
-        throw TracedLogicError("Cannot send packets larger than " +
-                               std::to_string(_maxPacketSize) + " bytes.");
-    }
-    
-    TaggedPacket* latestTaggedPacket = &_sendBuffer.back();
-    if (latestTaggedPacket->packetWrap.packet.getDataSize() + sizeInBytes > _maxPacketSize) {
-        _prepareNextOutgoingPacket();
-        latestTaggedPacket = &_sendBuffer.back();
-    }
+    assert(data != nullptr && sizeInBytes > 0);
 
-    latestTaggedPacket->packetWrap.packet.append(data, sizeInBytes);
+    // We want to send independent DATA packets whenever possible, 
+    // and fragmented only when necessary.
+    if (sizeInBytes < _maxPacketSize) {
+        TaggedPacket* sendBufTail = &_sendBuffer.back();
+        if (sendBufTail->packetWrap.packet.getDataSize() + sizeInBytes > _maxPacketSize) {
+            _prepareNextOutgoingDataPacket(UDP_PACKET_TYPE_DATA);
+            sendBufTail = &_sendBuffer.back();
+        }
+        sendBufTail->packetWrap.packet.append(data, sizeInBytes);
+    }
+    else {
+        // Prepare the current latest outgoing packet (finalize it if it's full enough, and
+        // set its type to DATA_MORE otherwise):
+        {
+            TaggedPacket& sendBufTail = _sendBuffer.back();
+            // Note: Data in the packet is stored in network order (big-endian)
+            auto* sendBufTailPacketType = 
+                static_cast<std::uint32_t*>(sendBufTail.packetWrap.packet.getMutableData());
+
+            // This is kind of an arbitrarily chosen limit, but if the latest outgoing packet is at
+            // least 50% full, we'll send it independently so avoid dependencies between packets.
+            if (sendBufTail.packetWrap.packet.getDataSize() >= _maxPacketSize / 2) {
+                _prepareNextOutgoingDataPacket(UDP_PACKET_TYPE_DATA_MORE);
+            }
+            else {
+                // Otherwise we must edit the type of the packet onto which we're going to start 
+                // appending the data to DATA_MORE, so that the recepient knows not to do anything
+                // with it until the remaining fragments are also received and assembled.
+                *sendBufTailPacketType = hton32(UDP_PACKET_TYPE_DATA_MORE);
+            }
+        }
+
+        // Pack the data into multiple consecutive packets:
+        std::size_t bytesPacked = 0;
+        while (true) {
+            TaggedPacket& sendBufTail = _sendBuffer.back();
+            assert(pztos(_maxPacketSize) >= sendBufTail.packetWrap.packet.getDataSize());
+            const std::size_t remainingCapacity =
+                pztos(_maxPacketSize) - sendBufTail.packetWrap.packet.getDataSize();
+            
+            const std::size_t bytesToPackNow = std::min(remainingCapacity, 
+                                                        sizeInBytes - bytesPacked);
+
+            sendBufTail.packetWrap.packet.append(static_cast<const char*>(data) + bytesPacked,
+                                                 bytesToPackNow);
+            bytesPacked += bytesToPackNow;
+
+            if (bytesPacked < sizeInBytes) {
+                _prepareNextOutgoingDataPacket(UDP_PACKET_TYPE_DATA_MORE);
+            }
+            else {
+                break;
+            }
+        }
+
+        // Mark the last outgoing packet as DATA_TAIL:
+        {
+            TaggedPacket& sendBufTail = _sendBuffer.back();
+            auto* sendBufTailpacketType = 
+                static_cast<std::uint32_t*>(sendBufTail.packetWrap.packet.getMutableData());
+            *sendBufTailpacketType = hton32(UDP_PACKET_TYPE_DATA_TAIL);
+        }
+
+        // We don't want chaining of multiple fragmented packets, so finalize the tail and
+        // start the next regular packet:
+        _prepareNextOutgoingDataPacket(UDP_PACKET_TYPE_DATA);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -558,7 +650,7 @@ void RN_UdpConnectorImpl::_uploadAllData() {
         taggedPacket.tag = TaggedPacket::NotAcknowledged;
     }
 
-    _prepareNextOutgoingPacket();
+    _prepareNextOutgoingDataPacket(UDP_PACKET_TYPE_DATA);
 }
 
 void RN_UdpConnectorImpl::_transferAllDataToLocalPeer() {
@@ -567,7 +659,7 @@ void RN_UdpConnectorImpl::_transferAllDataToLocalPeer() {
     _sendBufferHeadIndex += _sendBuffer.size();
     _localSharedState->putData(SELF, std::move(_sendBuffer));  
     _sendBuffer.clear();
-    _prepareNextOutgoingPacket();
+    _prepareNextOutgoingDataPacket(UDP_PACKET_TYPE_DATA);
 }
 
 void RN_UdpConnectorImpl::_prepareAck(std::uint32_t ordinal) {
@@ -615,13 +707,13 @@ void RN_UdpConnectorImpl::_startSession() {
     _remoteInfo.timeoutStopwatch.restart();
 }
 
-void RN_UdpConnectorImpl::_prepareNextOutgoingPacket() {
+void RN_UdpConnectorImpl::_prepareNextOutgoingDataPacket(std::uint32_t packetType) {
     _sendBuffer.emplace_back();
     _sendBuffer.back().tag = TaggedPacket::ReadyForSending;
 
     util::Packet& packet = _sendBuffer.back().packetWrap.packet;
     // Message type:
-    packet << UDP_PACKET_TYPE_DATA;
+    packet << packetType;
     // Message ordinal:
     packet << static_cast<std::uint32_t>(_sendBuffer.size() + _sendBufferHeadIndex - 1u);
     // Strong Acknowledges (zero-terminated):
@@ -632,7 +724,65 @@ void RN_UdpConnectorImpl::_prepareNextOutgoingPacket() {
     _ackOrdinals.clear();
 }
 
-void RN_UdpConnectorImpl::_saveDataPacket(detail::RN_PacketWrapper& packetWrap) {
+void RN_UdpConnectorImpl::_tryToAssembleFragmentedPacketAtHead() {
+    if (_recvBuffer.front().tag != TaggedPacket::WaitingForMore) {
+        return;
+    }
+
+    bool allFragmentsPresent = false;
+    for (const auto& taggedPacket : _recvBuffer) {
+        switch (taggedPacket.tag) {
+        case TaggedPacket::WaitingForData:
+            // Still waiting to receive fragments, we can quit right away
+            return;
+
+        case TaggedPacket::WaitingForMore:
+            // All good, keep going
+            break;
+
+        case TaggedPacket::WaitingForMore_Tail:
+            // All fragments present!
+            allFragmentsPresent = true;
+            goto BREAK_FOR;
+            break;
+
+        default:
+            // This isn't supposed to happen
+            throw RN_IllegalMessage("Impossible to assemble fragmented packet");
+            break;
+        }
+    }
+BREAK_FOR:
+
+    if (!allFragmentsPresent) {
+        return;
+    }
+
+    // Append all data to head packet, tag it ReadyForUnpacking, and other fragments as Unpacked:
+    for (std::size_t i = 1; ; i += 1) {
+        TaggedPacket& curr = _recvBuffer[i];
+
+        _recvBuffer[0].packetWrap.packet.append(
+            static_cast<const char*>(curr.packetWrap.packet.getData()) +
+              curr.packetWrap.packet.getReadPos(),
+            curr.packetWrap.packet.getDataSize() - 
+            curr.packetWrap.packet.getReadPos());
+
+        curr.packetWrap.packet.clear();
+
+        if (curr.tag != TaggedPacket::WaitingForMore_Tail) {
+            curr.tag = TaggedPacket::Unpacked;
+        }
+        else {
+            curr.tag = TaggedPacket::Unpacked;
+            break;
+        }
+    }
+    _recvBuffer[0].tag = TaggedPacket::ReadyForUnpacking;
+}
+
+void RN_UdpConnectorImpl::_saveDataPacket(detail::RN_PacketWrapper& packetWrap,
+                                          std::uint32_t packetType) {
     const std::uint32_t packetOrdinal = packetWrap.extractOrThrow<std::uint32_t>();
 
     if (packetOrdinal < _recvBufferHeadIndex) {
@@ -641,7 +791,7 @@ void RN_UdpConnectorImpl::_saveDataPacket(detail::RN_PacketWrapper& packetWrap) 
         return;
     }
 
-    const std::uint32_t indexInBuffer = (packetOrdinal - _recvBufferHeadIndex);
+    const std::size_t indexInBuffer = (packetOrdinal - _recvBufferHeadIndex);
     if (indexInBuffer >= _recvBuffer.size()) {
         _recvBuffer.resize(indexInBuffer + 1u);
     }
@@ -660,7 +810,19 @@ void RN_UdpConnectorImpl::_saveDataPacket(detail::RN_PacketWrapper& packetWrap) 
     }
 
     _recvBuffer[indexInBuffer].packetWrap = std::move(packetWrap);
-    _recvBuffer[indexInBuffer].tag = TaggedPacket::ReadyForUnpacking;
+    
+    if (packetType == UDP_PACKET_TYPE_DATA) {
+        _recvBuffer[indexInBuffer].tag = TaggedPacket::ReadyForUnpacking;
+    }
+    else if (packetType == UDP_PACKET_TYPE_DATA_MORE) {
+        _recvBuffer[indexInBuffer].tag = TaggedPacket::WaitingForMore;
+    }
+    else if (packetType == UDP_PACKET_TYPE_DATA_TAIL) {
+        _recvBuffer[indexInBuffer].tag = TaggedPacket::WaitingForMore_Tail;
+    }
+    else {
+        HARD_ASSERT(false && "_saveDataPacket called with invalid packet type");
+    }
 
     _prepareAck(packetOrdinal);
 }
@@ -750,7 +912,49 @@ void RN_UdpConnectorImpl::_processDataPacket(detail::RN_PacketWrapper& packetWra
         SWITCH_FALLTHROUGH;
 
     case RN_ConnectorStatus::Connected:
-        _saveDataPacket(packetWrap);
+        _saveDataPacket(packetWrap, UDP_PACKET_TYPE_DATA);
+        break;
+
+    default:
+        HARD_ASSERT(false && "Unreachable");
+        break;
+    }
+}
+
+void RN_UdpConnectorImpl::_processDataMorePacket(detail::RN_PacketWrapper& packetWrap) {
+    switch (_status) {
+    case RN_ConnectorStatus::Connecting:
+        throw FatalPacketTypeReceived{"Received DATA_MORE packet (status: Connecting)"};
+        break;
+
+    case RN_ConnectorStatus::Accepting:       
+        _eventFactory.createConnected();
+        _startSession(); // New connection confirmed
+        SWITCH_FALLTHROUGH;
+
+    case RN_ConnectorStatus::Connected:
+        _saveDataPacket(packetWrap, UDP_PACKET_TYPE_DATA_MORE);
+        break;
+
+    default:
+        HARD_ASSERT(false && "Unreachable");
+        break;
+    }
+}
+
+void RN_UdpConnectorImpl::_processDataTailPacket(detail::RN_PacketWrapper& packetWrap) {
+    switch (_status) {
+    case RN_ConnectorStatus::Connecting:
+        throw FatalPacketTypeReceived{"Received DATA_TAIL packet (status: Connecting)"};
+        break;
+
+    case RN_ConnectorStatus::Accepting:       
+        _eventFactory.createConnected();
+        _startSession(); // New connection confirmed
+        SWITCH_FALLTHROUGH;
+
+    case RN_ConnectorStatus::Connected:
+        _saveDataPacket(packetWrap, UDP_PACKET_TYPE_DATA_TAIL);
         break;
 
     default:
