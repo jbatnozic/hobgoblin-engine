@@ -27,8 +27,8 @@ struct EventCount {
 };
 } // namespace
 
-// Check that the handler compiles:
-RN_DEFINE_HANDLER(TestHandler, RN_ARGS(int, a, std::string, s)) {
+// Check that the whole RPC machinery compiles:
+RN_DEFINE_RPC(TestHandler, RN_ARGS(int, a, std::string, s)) {
     RN_NODE_IN_HANDLER().callIfServer(
         [](RN_ServerInterface& /*server*/) {
 
@@ -47,9 +47,9 @@ void DummyFuncCallsComposeForTestHandler() {
 }
 
 // Check that a handler with up to 10 arguments can be compiled
-RN_DEFINE_HANDLER(HandlerWithTenArguments,
-                  RN_ARGS(int, i0, int, i1, int, i2, int, i3, int, i4,
-                          int, i5, int, i6, int, i7, int, i8, int, i9)) {
+RN_DEFINE_RPC(HandlerWithTenArguments,
+              RN_ARGS(int, i0, int, i1, int, i2, int, i3, int, i4,
+                      int, i5, int, i6, int, i7, int, i8, int, i9)) {
     i0 = i1 = i2 = i3 = i4 = i5 = i6 = i7 = i8 = i9 = 666;
 }
 
@@ -177,7 +177,7 @@ TEST_F(RigelNetTest, LocalConnectToUnstartedServerFails) {
     EXPECT_THROW(_client->connectLocal(*_server), hg::TracedException);
 }
 
-RN_DEFINE_HANDLER_P(SendBinaryBuffer, PREF_, RN_ARGS(RN_RawDataView, bytes)) {
+RN_DEFINE_RPC_P(SendBinaryBuffer, PREF_, RN_ARGS(RN_RawDataView, bytes)) {
     RN_NODE_IN_HANDLER().callIfServer(
         [](RN_ServerInterface& /*server*/) {
             std::abort();
@@ -216,4 +216,37 @@ TEST_F(RigelNetTest, FragmentedPacketReceived) {
     for (std::size_t i = 0; i < serverVector.size(); i += 1) {
         ASSERT_EQ(serverVector[i], clientVector[i]);
     }
+}
+
+RN_DEFINE_HANDLER(PiecemealHandler, RN_ARGS()) {
+    RN_NODE_IN_HANDLER().callIfServer(
+        [](RN_ServerInterface& /*server*/) {
+            std::abort();
+        });
+
+    RN_NODE_IN_HANDLER().callIfClient(
+        [](RN_ClientInterface& client) {
+            auto& flag = *client.getUserDataOrThrow<bool>();
+            flag = true;
+        });
+}
+RN_DEFINE_COMPOSEFUNC(PiecemealHandler, RN_ARGS());
+RN_REGISTER_HANDLER_BEFORE_MAIN(PiecemealHandler);
+
+TEST_F(RigelNetTest, PiecemealHandlerWorks) {
+    bool flag = false;
+    _client->setUserData(&flag);
+
+    _server->start(0);
+    _client->connectLocal(*_server);
+
+    ASSERT_EQ(_client->getServerConnector().getStatus(),  RN_ConnectorStatus::Connected);
+    ASSERT_EQ(_server->getClientConnector(0).getStatus(), RN_ConnectorStatus::Connected);
+
+    Compose_PiecemealHandler(*_server, 0);
+
+    _server->update(RN_UpdateMode::Send);
+    _client->update(RN_UpdateMode::Receive);
+
+    ASSERT_EQ(flag, true);
 }

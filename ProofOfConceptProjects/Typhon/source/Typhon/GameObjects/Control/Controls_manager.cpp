@@ -11,7 +11,7 @@ using spempe::KbKey;
 using spempe::NetworkingManager;
 } // namespace
 
-RN_DEFINE_HANDLER(SetClientControls, RN_ARGS(PlayerControls&, controls)) {
+RN_DEFINE_RPC(SetClientControls, RN_ARGS(PlayerControls&, controls)) {
     RN_NODE_IN_HANDLER().callIfClient(
         [](NetworkingManager::ClientType& client) {
             // ERROR

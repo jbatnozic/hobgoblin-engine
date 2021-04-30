@@ -116,9 +116,9 @@ void UHOBGOBLIN_RN_ComposeImpl(RN_NodeInterface& node,
 //! Function for internal use.
 template <class taArgType>
 typename std::remove_reference<taArgType>::type UHOBGOBLIN_RN_ExtractArg(RN_NodeInterface& node) {
-    auto* packw = node._getCurrentPacket();
-    assert(packw);
-    return packw->extractOrThrow<std::remove_reference<taArgType>::type>();
+    auto* pack = node._getCurrentPacket();
+    assert(pack);
+    return pack->extractOrThrow<std::remove_reference<taArgType>::type>();
 }
 
 } // namespace rn

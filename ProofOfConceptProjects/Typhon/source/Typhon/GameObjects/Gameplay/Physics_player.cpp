@@ -13,7 +13,7 @@
 
 namespace {
 
-RN_DEFINE_HANDLER(PlayerDeathAnnouncement, RN_ARGS(hg::PZInteger, playerIndex)) {
+RN_DEFINE_RPC(PlayerDeathAnnouncement, RN_ARGS(hg::PZInteger, playerIndex)) {
     RN_NODE_IN_HANDLER().callIfServer(
         [&](NetworkingManager::ServerType& server) {
             throw RN_IllegalMessage{"Host cannot receive death announcements"};

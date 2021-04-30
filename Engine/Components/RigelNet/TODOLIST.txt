@@ -4,9 +4,11 @@
 
 - Add Doc comments
 - Settle on a terminology and use it
-- And documment the protocol used
+    - And documment the protocol used
+    - Data message -> RPC (message)
 - Server ability to notify remote on connection shutdown. 
   ^ Implement this for both servers and clients
 - Untracked messages
-- Closing connectors
-- Data message -> RPC (message)
+- Closing connectors, kicking clients, resizing the server
+- Better handler management
+- Fix many small TODOs

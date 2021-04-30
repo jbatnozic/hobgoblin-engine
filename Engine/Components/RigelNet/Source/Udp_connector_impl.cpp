@@ -410,7 +410,8 @@ void RN_UdpConnectorImpl::handleDataMessages(RN_NodeInterface& node,
         while (!_recvBuffer.empty()) {
             _tryToAssembleFragmentedPacketAtHead();
             if (_recvBuffer[0].tag == TaggedPacket::ReadyForUnpacking) {
-                HandleDataMessages(_recvBuffer[0].packet, node, pointerToCurrentPacket);
+                HandleDataMessages(_recvBuffer[0].packet, node, 
+                                   /* reference to pointer -> */ pointerToCurrentPacket);
                 _recvBuffer.pop_front();
                 _recvBufferHeadIndex++;
             }

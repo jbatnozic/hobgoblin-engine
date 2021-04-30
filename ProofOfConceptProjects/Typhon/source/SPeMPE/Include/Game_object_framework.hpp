@@ -102,13 +102,13 @@ private:
 // network handlers for that type:
 
 #define SPEMPE_GENERATE_CANNONICAL_HANDLERS(_class_name_) \
-    RN_DEFINE_HANDLER(Create##_class_name_, RN_ARGS(::spempe::SyncId, syncId, _class_name_::VisibleState&, state)) { \
+    RN_DEFINE_RPC(Create##_class_name_, RN_ARGS(::spempe::SyncId, syncId, _class_name_::VisibleState&, state)) { \
         ::spempe::CannonicalCreateImpl<_class_name_, ::spempe::GameContext>(RN_NODE_IN_HANDLER(), syncId, state); \
     } \
-    RN_DEFINE_HANDLER(Update##_class_name_, RN_ARGS(::spempe::SyncId, syncId, _class_name_::VisibleState&, state)) { \
+    RN_DEFINE_RPC(Update##_class_name_, RN_ARGS(::spempe::SyncId, syncId, _class_name_::VisibleState&, state)) { \
         ::spempe::CannonicalUpdateImpl<_class_name_, ::spempe::GameContext>(RN_NODE_IN_HANDLER(), syncId, state); \
     } \
-    RN_DEFINE_HANDLER(Destroy##_class_name_, RN_ARGS(::spempe::SyncId, syncId)) { \
+    RN_DEFINE_RPC(Destroy##_class_name_, RN_ARGS(::spempe::SyncId, syncId)) { \
         ::spempe::CannonicalDestroyImpl<_class_name_, ::spempe::GameContext>(RN_NODE_IN_HANDLER(), syncId); \
     }
 

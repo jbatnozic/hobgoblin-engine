@@ -15,7 +15,7 @@
 
 namespace {
 
-RN_DEFINE_HANDLER(RequestGameRestart, RN_ARGS()) {
+RN_DEFINE_RPC(RequestGameRestart, RN_ARGS()) {
     RN_NODE_IN_HANDLER().callIfClient(
         [](NetworkingManager::ClientType& client) {
             throw RN_IllegalMessage{"Client cannot receive game restart requests."};
@@ -29,7 +29,7 @@ RN_DEFINE_HANDLER(RequestGameRestart, RN_ARGS()) {
         });
 }
 
-RN_DEFINE_HANDLER(GameStartAnnouncement, RN_ARGS()) {
+RN_DEFINE_RPC(GameStartAnnouncement, RN_ARGS()) {
     RN_NODE_IN_HANDLER().callIfClient(
         [](NetworkingManager::ClientType& client) {
             std::cout << "*** A new game has started. ***\n";

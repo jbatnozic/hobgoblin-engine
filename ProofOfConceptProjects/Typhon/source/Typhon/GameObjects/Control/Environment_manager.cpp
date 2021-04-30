@@ -43,7 +43,7 @@ using spempe::NetworkingManager;
 
 } // namespace
 
-RN_DEFINE_HANDLER(ResizeTerrain, RN_ARGS(std::int32_t, width, std::int32_t, height)) {
+RN_DEFINE_RPC(ResizeTerrain, RN_ARGS(std::int32_t, width, std::int32_t, height)) {
     RN_NODE_IN_HANDLER().callIfClient(
         [&](NetworkingManager::ClientType& client) {
             auto& ctx = *client.getUserData<GameContext>();
@@ -58,7 +58,7 @@ RN_DEFINE_HANDLER(ResizeTerrain, RN_ARGS(std::int32_t, width, std::int32_t, heig
         });
 }
 
-RN_DEFINE_HANDLER(SetTerrainRow, RN_ARGS(std::int32_t, rowIndex, hg::util::Packet&, packet)) {
+RN_DEFINE_RPC(SetTerrainRow, RN_ARGS(std::int32_t, rowIndex, hg::util::Packet&, packet)) {
     RN_NODE_IN_HANDLER().callIfClient(
         [&](NetworkingManager::ClientType& client) {
             auto& ctx = *client.getUserData<GameContext>();

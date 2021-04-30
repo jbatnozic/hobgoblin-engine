@@ -10,7 +10,8 @@
 
 #define UHOBGOBLIN_RN_DECLARE_HANDLER(_name_, ...) \
     void UHOBGOBLIN_RN_Handler_##_name_( \
-        ::jbatnozic::hobgoblin::rn::RN_NodeInterface& RN_NODE_IN_HANDLER()  UHOBGOBLIN_RN_NORMALIZE_ARGS(/*nonconst*/, __VA_ARGS__) \
+        ::jbatnozic::hobgoblin::rn::RN_NodeInterface& RN_NODE_IN_HANDLER() /* , */ \
+         UHOBGOBLIN_RN_NORMALIZE_ARGS(/*nonconst*/, __VA_ARGS__) \
     )
 
 #define UHOBGOBLIN_RN_GENERATE_HANDLER_PROXY(_name_, ...) \
@@ -25,40 +26,25 @@
 
 #define UHOBGOBLIN_RN_GENERATE_COMPOSE_FUNCTION(_name_, _prefix_, ...) \
     void _prefix_##Compose_##_name_(::jbatnozic::hobgoblin::rn::RN_NodeInterface& node, \
-                                    std::initializer_list<::jbatnozic::hobgoblin::PZInteger> receivers UHOBGOBLIN_RN_NORMALIZE_ARGS(const, __VA_ARGS__)) { \
-        static ::jbatnozic::hobgoblin::rn::detail::RN_HandlerNameToIdCacher hntic{#_name_};  \
-        ::jbatnozic::hobgoblin::rn::UHOBGOBLIN_RN_ComposeImpl(node, receivers, \
-                                                              hntic.getHandlerId()  UHOBGOBLIN_RN_PASS_COMPOSE_ARGS(__VA_ARGS__)); \
+                                    std::initializer_list<::jbatnozic::hobgoblin::PZInteger> recepients /* , */ \
+                                    UHOBGOBLIN_RN_NORMALIZE_ARGS(const, __VA_ARGS__)) { \
+        static ::jbatnozic::hobgoblin::rn::detail::RN_HandlerNameToIdCacher hntic{#_name_}; \
+        ::jbatnozic::hobgoblin::rn::UHOBGOBLIN_RN_ComposeImpl(node, recepients, \
+                                                              hntic.getHandlerId() /* , */ \
+                                                              UHOBGOBLIN_RN_PASS_COMPOSE_ARGS(__VA_ARGS__)); \
     } \
-    template <class R> \
-    void _prefix_##Compose_##_name_(::jbatnozic::hobgoblin::rn::RN_NodeInterface& node, R&& receivers UHOBGOBLIN_RN_NORMALIZE_ARGS(const, __VA_ARGS__)) { \
-        static ::jbatnozic::hobgoblin::rn::detail::RN_HandlerNameToIdCacher hntic{#_name_};  \
-        ::jbatnozic::hobgoblin::rn::UHOBGOBLIN_RN_ComposeImpl(node, std::forward<R>(receivers), \
-                                                              hntic.getHandlerId()  UHOBGOBLIN_RN_PASS_COMPOSE_ARGS(__VA_ARGS__)); \
+    template <class taRec> \
+    void _prefix_##Compose_##_name_(::jbatnozic::hobgoblin::rn::RN_NodeInterface& node, \
+                                    taRec&& recepients /* , */ \
+                                    UHOBGOBLIN_RN_NORMALIZE_ARGS(const, __VA_ARGS__)) { \
+        static ::jbatnozic::hobgoblin::rn::detail::RN_HandlerNameToIdCacher hntic{#_name_}; \
+        ::jbatnozic::hobgoblin::rn::UHOBGOBLIN_RN_ComposeImpl(node, std::forward<taRec>(recepients), \
+                                                              hntic.getHandlerId() /* , */ \
+                                                              UHOBGOBLIN_RN_PASS_COMPOSE_ARGS(__VA_ARGS__)); \
     }
 
 ///////////////////////////////////////
 
-#define RN_DEFINE_HANDLER(_name_, _args_) \
-    UHOBGOBLIN_RN_DECLARE_HANDLER(_name_, _args_); \
-    UHOBGOBLIN_RN_GENERATE_HANDLER_PROXY(_name_, _args_) \
-    UHOBGOBLIN_RN_INSTALL_HANDLER_PROXY(_name_); \
-    UHOBGOBLIN_RN_GENERATE_COMPOSE_FUNCTION(_name_, , _args_) \
-    UHOBGOBLIN_RN_DECLARE_HANDLER(_name_, _args_)
 
-#define RN_DEFINE_HANDLER_P(_name_, _compose_prefix_, _args_) \
-    UHOBGOBLIN_RN_DECLARE_HANDLER(_name_, _args_); \
-    UHOBGOBLIN_RN_GENERATE_HANDLER_PROXY(_name_, _args_) \
-    UHOBGOBLIN_RN_INSTALL_HANDLER_PROXY(_name_); \
-    UHOBGOBLIN_RN_GENERATE_COMPOSE_FUNCTION(_name_, _compose_prefix_, _args_) \
-    UHOBGOBLIN_RN_DECLARE_HANDLER(_name_, _args_)
-
-#define RN_DECLARE_HANDLER(_name_, _args_) \
-    UHOBGOBLIN_RN_GENERATE_COMPOSE_FUNCTION(_name_, _args)
-
-#define RN_HANDLER_SIGNATURE(_name_, _args_) \
-    UHOBGOBLIN_RN_DECLARE_HANDLER(_name_, _args_)
-
-#define RN_ARGS(...) __VA_ARGS__
 
 #endif // !UHOBGOBLIN_RN_HANDLER_MACROS_DEFINE_DECLARE_HANDLERS_HPP
