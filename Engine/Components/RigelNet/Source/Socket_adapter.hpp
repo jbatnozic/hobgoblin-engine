@@ -3,7 +3,7 @@
 
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/RigelNet/Configuration.hpp>
-#include <Hobgoblin/RigelNet/Packet_wrapper.hpp>
+#include <Hobgoblin/Utility/Packet.hpp>
 #include <SFML/Network.hpp>
 
 #ifdef HOBGOBLIN_RN_ZEROTIER_SUPPORT

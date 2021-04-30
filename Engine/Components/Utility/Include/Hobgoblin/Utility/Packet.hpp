@@ -37,6 +37,9 @@ public:
     //! Number of bytes remaining to be read.
     std::size_t getRemainingDataSize() const;
 
+    template <class T>
+    T extract();
+
     //! 
     template <class T>
     T extractOrThrow();
@@ -56,13 +59,25 @@ public:
 
     //! Opposite of above
     friend PacketBase& operator>>(PacketBase& dstPacket, Packet& srcPacket);
+
+    class ReadError : public TracedException {
+    public:
+        using TracedException::TracedException;
+    };
 };
+
+template <class T>
+T Packet::extract() {
+    T value;
+    SELF >> value;
+    return value;
+}
 
 template <class T>
 T Packet::extractOrThrow() {
     T value;
     if (!(SELF >> value)) {
-        throw TracedRuntimeError{"Bad read from Packet"};
+        throw ReadError{"Bad read from Packet"};
     }
     return value;
 }
@@ -70,6 +85,17 @@ T Packet::extractOrThrow() {
 template <class T>
 void Packet::insert(T&& value) {
     SELF << std::forward<T>(value);
+}
+
+template <class ...NoArgs>
+typename std::enable_if_t<sizeof...(NoArgs) == 0, void> PackArgs(util::Packet& packet) {
+    // Do nothing
+}
+
+template <class ArgsHead, class ...ArgsRest>
+void PackArgs(util::Packet& packet, ArgsHead argsHead, ArgsRest&&... argsRest) {
+    packet.insert(argsHead);
+    PackArgs<ArgsRest...>(packet, std::forward<ArgsRest>(argsRest)...);
 }
 
 } // namespace util

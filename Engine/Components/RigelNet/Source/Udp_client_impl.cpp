@@ -146,7 +146,7 @@ RN_NetworkingStack RN_UdpClientImpl::getNetworkingStack() const noexcept {
 ///////////////////////////////////////////////////////////////////////////
 
 void RN_UdpClientImpl::_updateReceive() {
-    detail::RN_PacketWrapper packetWrap;
+    util::Packet packet;
     sf::IpAddress senderIp;
     std::uint16_t senderPort;
 
@@ -155,16 +155,16 @@ void RN_UdpClientImpl::_updateReceive() {
     bool keepReceiving = !_connector.isConnectedLocally();
 
     while (keepReceiving) {
-        switch (_socket.recv(packetWrap.packet, senderIp, senderPort)) {
+        switch (_socket.recv(packet, senderIp, senderPort)) {
         case decltype(_socket)::Status::OK:
             if (senderIp == _connector.getRemoteInfo().ipAddress
                 && senderPort == _connector.getRemoteInfo().port) {
-                _connector.receivedPacket(packetWrap);
+                _connector.receivedPacket(packet);
             }
             else {
                 // handlePacketFromUnknownSender(senderIp, senderPort, packet); TODO
             }
-            packetWrap.packet.clear();
+            packet.clear();
             break;
 
         case decltype(_socket)::Status::NotReady:
@@ -207,7 +207,7 @@ void RN_UdpClientImpl::_compose(RN_ComposeForAllType receiver, const void* data,
     _connector.appendToNextOutgoingPacket(data, sizeInBytes);
 }
 
-detail::RN_PacketWrapper* RN_UdpClientImpl::_getCurrentPacketWrapper() {
+util::Packet* RN_UdpClientImpl::_getCurrentPacket() {
     return _currentPacket;
 }
 

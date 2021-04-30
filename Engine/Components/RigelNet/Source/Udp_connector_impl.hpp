@@ -6,7 +6,6 @@
 #include <Hobgoblin/RigelNet/Connector_interface.hpp>
 #include <Hobgoblin/RigelNet/Events.hpp>
 #include <Hobgoblin/RigelNet/Node_interface.hpp>
-#include <Hobgoblin/RigelNet/Packet_wrapper.hpp>
 #include <Hobgoblin/RigelNet/Remote_info.hpp>
 #include <Hobgoblin/Utility/No_copy_no_move.hpp>
 #include <Hobgoblin/Utility/Time_utils.hpp>
@@ -29,21 +28,21 @@ class RN_ServerInterface;
 
 struct TaggedPacket {
     enum Tag {
-        DefaultTag,
+        DefaultTag = 0,
     // SEND:
-        ReadyForSending = DefaultTag,
-        NotAcknowledged,
-        AcknowledgedWeakly,
-        AcknowledgedStrongly,
+        ReadyForSending      = DefaultTag,
+        NotAcknowledged      = 1,
+        AcknowledgedWeakly   = 2,
+        AcknowledgedStrongly = 3,
     // RECV:
-        WaitingForData = DefaultTag,
-        WaitingForMore,
-        WaitingForMore_Tail,
-        ReadyForUnpacking,
-        Unpacked,
+        WaitingForData      = DefaultTag,
+        WaitingForMore      = 4,
+        WaitingForMore_Tail = 5,
+        ReadyForUnpacking   = 6,
+        Unpacked            = 7,
     };
 
-    detail::RN_PacketWrapper packetWrap;
+    util::Packet packet;
     util::Stopwatch stopwatch;
     PZInteger cyclesSinceLastTransmit = 0;
     Tag tag = DefaultTag;
@@ -58,7 +57,7 @@ public:
                         detail::EventFactory eventFactory,
                         PZInteger aMaxPacketSize);
 
-    bool tryAccept(sf::IpAddress addr, std::uint16_t port, detail::RN_PacketWrapper& packetWrap);
+    bool tryAccept(sf::IpAddress addr, std::uint16_t port, util::Packet& packet);
     bool tryAcceptLocal(RN_UdpConnectorImpl& localPeer, const std::string& passphrase);
     void connect(sf::IpAddress addr, std::uint16_t port);
     void connectLocal(RN_ServerInterface& server);
@@ -66,8 +65,8 @@ public:
 
     void checkForTimeout();
     void send();
-    void receivedPacket(detail::RN_PacketWrapper& packetWrap);
-    void handleDataMessages(RN_NodeInterface& node, detail::RN_PacketWrapper*& pointerToCurrentPacket);
+    void receivedPacket(util::Packet& packet);
+    void handleDataMessages(RN_NodeInterface& node, util::Packet*& pointerToCurrentPacket);
     void sendAcks();
     
     void setClientIndex(std::optional<PZInteger> clientIndex);
@@ -151,29 +150,29 @@ private:
     //! Saves a received Data packet (without its headers and acks) into the
     //! receive buffer, unless it was received previously (Acks are prepared in 
     //! either case).
-    void _saveDataPacket(detail::RN_PacketWrapper& packetWrapper,
+    void _saveDataPacket(util::Packet& packet,
                          std::uint32_t packetType);
     
     //! Process a "Hello" packet.
-    void _processHelloPacket(detail::RN_PacketWrapper& packpacketWrapperet);
+    void _processHelloPacket(util::Packet& packet);
 
     //! Process a "Connect" packet.
-    void _processConnectPacket(detail::RN_PacketWrapper& packetWrapper);
+    void _processConnectPacket(util::Packet& packet);
 
     //! Process a "Disconnect" packet.
-    void _processDisconnectPacket(detail::RN_PacketWrapper& packetWrapper);
+    void _processDisconnectPacket(util::Packet& packet);
 
     //! Process a "Data" packet.
-    void _processDataPacket(detail::RN_PacketWrapper& packetWrapper);
+    void _processDataPacket(util::Packet& packet);
 
     //! Process a "DataMore" packet.
-    void _processDataMorePacket(detail::RN_PacketWrapper& packetWrapper);
+    void _processDataMorePacket(util::Packet& packet);
 
     //! Process a "DataTail" packet.
-    void _processDataTailPacket(detail::RN_PacketWrapper& packetWrapper);
+    void _processDataTailPacket(util::Packet& packet);
 
     //! Process an "Acks" packet.
-    void _processAcksPacket(detail::RN_PacketWrapper& packetWrapper);
+    void _processAcksPacket(util::Packet& packet);
 };
 
 } // namespace rn

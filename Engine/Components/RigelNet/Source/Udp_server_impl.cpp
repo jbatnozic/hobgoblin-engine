@@ -182,7 +182,9 @@ RN_NetworkingStack RN_UdpServerImpl::getNetworkingStack() const noexcept {
 ///////////////////////////////////////////////////////////////////////////
 
 int RN_UdpServerImpl::acceptLocalConnection(RN_UdpConnectorImpl& localPeer, 
-                                                             const std::string& passphrase) {
+                                            const std::string& passphrase) {
+    HARD_ASSERT(isRunning());
+
     for (std::size_t i = 0; i < _clients.size(); i += 1) {
         if (_clients[i]->getStatus() == RN_ConnectorStatus::Disconnected) {
             if (_clients[i]->tryAcceptLocal(localPeer, passphrase)) {
@@ -199,26 +201,26 @@ int RN_UdpServerImpl::acceptLocalConnection(RN_UdpConnectorImpl& localPeer,
 ///////////////////////////////////////////////////////////////////////////
 
 void RN_UdpServerImpl::_updateReceive() {
-    detail::RN_PacketWrapper packetWrap;
+    util::Packet packet;
     sf::IpAddress senderIp;
     std::uint16_t senderPort;
 
     bool keepReceiving = true;
     while (keepReceiving) {
-        switch (_socket.recv(packetWrap.packet, senderIp, senderPort)) {
+        switch (_socket.recv(packet, senderIp, senderPort)) {
         case decltype(_socket)::Status::OK:
             {
                 const int senderConnectorIndex = _findConnector(senderIp, senderPort);
 
                 if (senderConnectorIndex != -1) {
                     _senderIndex = senderConnectorIndex;
-                    _clients[senderConnectorIndex]->receivedPacket(packetWrap);
+                    _clients[senderConnectorIndex]->receivedPacket(packet);
                 }
                 else {
-                    _handlePacketFromUnknownSender(senderIp, senderPort, packetWrap);
+                    _handlePacketFromUnknownSender(senderIp, senderPort, packet);
                 }
 
-                packetWrap.packet.clear();
+                packet.clear();
             }
             break;
 
@@ -275,12 +277,14 @@ int RN_UdpServerImpl::_findConnector(sf::IpAddress addr, std::uint16_t port) con
     return -1;
 }
 
-void RN_UdpServerImpl::_handlePacketFromUnknownSender(sf::IpAddress senderIp, std::uint16_t senderPort, detail::RN_PacketWrapper& packetWrap) {
+void RN_UdpServerImpl::_handlePacketFromUnknownSender(sf::IpAddress senderIp, 
+                                                      std::uint16_t senderPort, 
+                                                      util::Packet& packet) {
     for (PZInteger i = 0; i < getSize(); i += 1) {
         auto& connector = _clients[i];
         if (connector->getStatus() == RN_ConnectorStatus::Disconnected) {
             connector->setClientIndex(i);
-            if (!connector->tryAccept(senderIp, senderPort, packetWrap)) {
+            if (!connector->tryAccept(senderIp, senderPort, packet)) {
                 // TODO Notify of error
             }
             return;
@@ -304,7 +308,7 @@ void RN_UdpServerImpl::_compose(PZInteger receiver, const void* data, std::size_
     _clients[receiver]->appendToNextOutgoingPacket(data, sizeInBytes);
 }
 
-detail::RN_PacketWrapper* RN_UdpServerImpl::_getCurrentPacketWrapper() {
+util::Packet* RN_UdpServerImpl::_getCurrentPacket() {
     return _currentPacket;
 }
 

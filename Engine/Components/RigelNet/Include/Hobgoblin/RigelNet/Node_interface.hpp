@@ -4,8 +4,8 @@
 #include <Hobgoblin/RigelNet/Configuration.hpp>
 #include <Hobgoblin/RigelNet/Events.hpp>
 #include <Hobgoblin/RigelNet/Handlermgmt.hpp>
-#include <Hobgoblin/RigelNet/Packet_wrapper.hpp>
 #include <Hobgoblin/Utility/Any_ptr.hpp>
+#include <Hobgoblin/Utility/Packet.hpp>
 
 #include <cassert>
 #include <functional>
@@ -57,7 +57,7 @@ public:
 private:
     virtual void _compose(RN_ComposeForAllType receiver, const void* data, std::size_t sizeInBytes) = 0;
     virtual void _compose(PZInteger receiver, const void* data, std::size_t sizeInBytes) = 0;
-    virtual detail::RN_PacketWrapper* _getCurrentPacketWrapper() = 0;
+    virtual util::Packet* _getCurrentPacket() = 0;
     virtual void _setUserData(util::AnyPtr userData) = 0;
     virtual util::AnyPtr _getUserData() const = 0;
 
@@ -94,21 +94,21 @@ void UHOBGOBLIN_RN_ComposeImpl(RN_NodeInterface& node,
                                taRecepients&& recepients,
                                detail::RN_HandlerId handlerId,
                                taArgs... args) {
-    detail::RN_PacketWrapper packetWrap;
-    packetWrap.insert(handlerId);
-    detail::PackArgs(packetWrap, std::forward<taArgs>(args)...);
+    util::Packet packet;
+    packet.insert(handlerId);
+    util::PackArgs(packet, std::forward<taArgs>(args)...);
 
     if constexpr (std::is_same_v<std::remove_cv_t<std::remove_reference_t<taRecepients>>, RN_ComposeForAllType>) {
-        node._compose(RN_ComposeForAllType{}, packetWrap.packet.getData(), packetWrap.packet.getDataSize());
+        node._compose(RN_ComposeForAllType{}, packet.getData(), packet.getDataSize());
     }
     else if constexpr (std::is_convertible_v<taRecepients, PZInteger>) {    
         node._compose(std::forward<taRecepients>(recepients),
-                      packetWrap.packet.getData(), 
-                      packetWrap.packet.getDataSize());
+                      packet.getData(), 
+                      packet.getDataSize());
     } 
     else {
         for (PZInteger i : std::forward<taRecepients>(recepients)) {
-            node._compose(i, packetWrap.packet.getData(), packetWrap.packet.getDataSize());
+            node._compose(i, packet.getData(), packet.getDataSize());
         }
     }
 }
@@ -116,7 +116,7 @@ void UHOBGOBLIN_RN_ComposeImpl(RN_NodeInterface& node,
 //! Function for internal use.
 template <class taArgType>
 typename std::remove_reference<taArgType>::type UHOBGOBLIN_RN_ExtractArg(RN_NodeInterface& node) {
-    auto* packw = node._getCurrentPacketWrapper();
+    auto* packw = node._getCurrentPacket();
     assert(packw);
     return packw->extractOrThrow<std::remove_reference<taArgType>::type>();
 }

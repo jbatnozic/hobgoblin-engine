@@ -99,7 +99,7 @@ private:
 
     void _compose(PZInteger receiver, const void* data, std::size_t sizeInBytes) override {}
 
-    detail::RN_PacketWrapper* _getCurrentPacketWrapper() override { return nullptr; }
+    util::Packet* _getCurrentPacket() override { return nullptr; }
 
     void _setUserData(util::AnyPtr userData) override {}
 

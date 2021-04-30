@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 
 #define HOBGOBLIN_SHORT_NAMESPACE
+#include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/RigelNet.hpp>
 #include <Hobgoblin/RigelNet_Macros.hpp>
 using namespace hg::rn;
@@ -9,14 +10,14 @@ using namespace hg::rn;
 #include <chrono>
 #include <cstdint>
 #include <cstring>
-#include <iostream>
 #include <memory>
 #include <thread>
 #include <vector>
 
 namespace {
-constexpr hg::PZInteger CLIENT_COUNT = 1;
 const std::string PASS = "beetlejuice";
+constexpr hg::PZInteger CLIENT_COUNT = 1;
+constexpr hg::PZInteger MAX_PACKET_SIZE = 200;
 
 struct EventCount {
     hg::PZInteger badPassphrase = 0;
@@ -45,11 +46,18 @@ void DummyFuncCallsComposeForTestHandler() {
     Compose_TestHandler(*node, RN_COMPOSE_FOR_ALL, 1337, "tubular");
 }
 
+// Check that a handler with up to 10 arguments can be compiled
+RN_DEFINE_HANDLER(HandlerWithTenArguments,
+                  RN_ARGS(int, i0, int, i1, int, i2, int, i3, int, i4,
+                          int, i5, int, i6, int, i7, int, i8, int, i9)) {
+    i0 = i1 = i2 = i3 = i4 = i5 = i6 = i7 = i8 = i9 = 666;
+}
+
 class RigelNetTest : public ::testing::Test {
 public:
     RigelNetTest()
-        : _server{RN_ServerFactory::createServer(RN_Protocol::UDP, PASS, CLIENT_COUNT, 50)}
-        , _client{RN_ClientFactory::createClient(RN_Protocol::UDP, PASS, 50)}
+        : _server{RN_ServerFactory::createServer(RN_Protocol::UDP, PASS, CLIENT_COUNT, MAX_PACKET_SIZE)}
+        , _client{RN_ClientFactory::createClient(RN_Protocol::UDP, PASS, MAX_PACKET_SIZE)}
     {
         RN_IndexHandlers();
     }
@@ -71,7 +79,6 @@ protected:
                     cnt.connectAttemptFailed += 1;
                 },
                 [&](const RN_Event::Connected& ev) {
-                    std::cout << "connect\n";
                     cnt.connected += 1;
                 },
                 [&](const RN_Event::Disconnected& ev) {
@@ -139,6 +146,37 @@ TEST_F(RigelNetTest, ClientConnectsAndDisconnects) {
     }
 }
 
+TEST_F(RigelNetTest, CanStopANodeMultipleTimesSafely) {
+    // When not even started:
+    _server->stop();
+    _server->stop();
+    _client->disconnect(false);
+    _client->disconnect(false);
+
+    // After being started:
+    _server->start(0);
+    _client->connectLocal(*_server);
+
+    _server->stop();
+    _server->stop();
+    _client->disconnect(false);
+    _client->disconnect(false);
+}
+
+TEST_F(RigelNetTest, ConsecutiveStartsFail) {
+    _server->start(0);
+    EXPECT_THROW(_server->start(0), hg::TracedException);
+}
+
+TEST_F(RigelNetTest, ConsecutiveConnectsFail) {
+    _client->connect(0, sf::IpAddress::LocalHost, 2048);
+    EXPECT_THROW(_client->connect(0, sf::IpAddress::LocalHost, 2048), hg::TracedException);
+}
+
+TEST_F(RigelNetTest, LocalConnectToUnstartedServerFails) {
+    EXPECT_THROW(_client->connectLocal(*_server), hg::TracedException);
+}
+
 RN_DEFINE_HANDLER_P(SendBinaryBuffer, PREF_, RN_ARGS(RN_RawDataView, bytes)) {
     RN_NODE_IN_HANDLER().callIfServer(
         [](RN_ServerInterface& /*server*/) {
@@ -155,7 +193,7 @@ RN_DEFINE_HANDLER_P(SendBinaryBuffer, PREF_, RN_ARGS(RN_RawDataView, bytes)) {
 
 TEST_F(RigelNetTest, FragmentedPacketReceived) {
     std::vector<std::int32_t> serverVector;
-    for (int i = 0; i < 16; i += 1) { // 16 ints is 64 bytes, our nodes can send only 50 at a time
+    for (int i = 0; i < 64; i += 1) { // 64 ints is 256 bytes, our test nodes can send only 200 at a time
         serverVector.push_back(i);
     }
 

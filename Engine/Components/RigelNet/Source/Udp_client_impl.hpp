@@ -82,14 +82,14 @@ private:
     RN_RetransmitPredicate _retransmitPredicate;
     bool _running = false;
 
-    detail::RN_PacketWrapper* _currentPacket = nullptr;
+    util::Packet* _currentPacket = nullptr;
 
     void _updateReceive();
     void _updateSend();
 
     void _compose(int receiver, const void* data, std::size_t sizeInBytes) override;
     void _compose(RN_ComposeForAllType receiver, const void* data, std::size_t sizeInBytes) override;
-    detail::RN_PacketWrapper* _getCurrentPacketWrapper() override;
+    util::Packet* _getCurrentPacket() override;
     void _setUserData(util::AnyPtr userData) override;
     util::AnyPtr _getUserData() const override;
 };

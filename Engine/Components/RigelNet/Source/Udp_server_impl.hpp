@@ -2,7 +2,6 @@
 #define UHOBGOBLIN_RN_UDP_SERVER_HPP
 
 #include <Hobgoblin/RigelNet/Server_interface.hpp>
-#include <Hobgoblin/RigelNet/Packet_wrapper.hpp>
 #include <Hobgoblin/RigelNet/Remote_info.hpp>
 #include <Hobgoblin/Utility/No_copy_no_move.hpp>
 
@@ -103,17 +102,17 @@ private:
     int _senderIndex = -1;
     bool _running = false;
 
-    detail::RN_PacketWrapper* _currentPacket = nullptr;
+    util::Packet* _currentPacket = nullptr;
 
     void _updateReceive();
     void _updateSend();
     int  _findConnector(sf::IpAddress addr, std::uint16_t port) const;
     void _handlePacketFromUnknownSender(sf::IpAddress senderIp, std::uint16_t senderPort,
-                                        detail::RN_PacketWrapper& packetWrap);
+                                        util::Packet& packet);
 
     void _compose(RN_ComposeForAllType receiver, const void* data, std::size_t sizeInBytes) override;
     void _compose(PZInteger receiver, const void* data, std::size_t sizeInBytes) override;
-    detail::RN_PacketWrapper* _getCurrentPacketWrapper() override;
+    util::Packet* _getCurrentPacket() override;
     void _setUserData(util::AnyPtr userData) override;
     util::AnyPtr _getUserData() const override;
 };

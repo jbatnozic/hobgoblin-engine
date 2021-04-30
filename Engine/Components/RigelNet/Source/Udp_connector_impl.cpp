@@ -48,7 +48,7 @@ public:
         else {
             for (auto& curr : aData) {
                 targetDeque.emplace_back();
-                targetDeque.back().packetWrap = std::move(curr.packetWrap);
+                targetDeque.back().packet = std::move(curr.packet);
             }
         }
         aData.clear();
@@ -66,7 +66,7 @@ public:
         }
 
         for (auto& curr : sourceDeque) {
-            aSelf.receivedPacket(curr.packetWrap);
+            aSelf.receivedPacket(curr.packet);
         }
 
         sourceDeque.clear();
@@ -111,12 +111,12 @@ public:
     using std::runtime_error::runtime_error;
 };
 
-void HandleDataMessages(detail::RN_PacketWrapper& receivedPacket,
+void HandleDataMessages(util::Packet& receivedPacket,
                         RN_NodeInterface& node, 
-                        detail::RN_PacketWrapper*& pointerToCurrentPacket) {
+                        util::Packet*& pointerToCurrentPacket) {
     pointerToCurrentPacket = &receivedPacket;
 
-    while (!receivedPacket.packet.endOfPacket()) {
+    while (!receivedPacket.endOfPacket()) {
         const auto handlerId = receivedPacket.extractOrThrow<detail::RN_HandlerId>();
         auto handlerFunc = detail::RN_GlobalHandlerMapper::getInstance().handlerWithId(handlerId);
         if (handlerFunc == nullptr) {
@@ -161,12 +161,12 @@ RN_UdpConnectorImpl::RN_UdpConnectorImpl(RN_SocketAdapter& socket,
 {
 }
 
-bool RN_UdpConnectorImpl::tryAccept(sf::IpAddress addr, std::uint16_t port, detail::RN_PacketWrapper& packetWrap) {
+bool RN_UdpConnectorImpl::tryAccept(sf::IpAddress addr, std::uint16_t port, util::Packet& packet) {
     assert(_status == RN_ConnectorStatus::Disconnected);
 
-    const std::uint32_t msgType = packetWrap.extract<std::uint32_t>();
-    const std::string receivedPassphrase = packetWrap.extract<std::string>();
-    if (!packetWrap.packet) {
+    const std::uint32_t msgType = packet.extract<std::uint32_t>();
+    const std::string receivedPassphrase = packet.extract<std::string>();
+    if (!packet) {
         // TODO Notify of error
         return false;
     }
@@ -321,39 +321,39 @@ void RN_UdpConnectorImpl::send() {
     }
 }
 
-void RN_UdpConnectorImpl::receivedPacket(detail::RN_PacketWrapper& packetWrap) {
+void RN_UdpConnectorImpl::receivedPacket(util::Packet& packet) {
     assert(_status != RN_ConnectorStatus::Disconnected);
 
     try {
-        const auto packetType = packetWrap.extractOrThrow<std::uint32_t>();
+        const auto packetType = packet.extractOrThrow<std::uint32_t>();
 
         switch (packetType) {
         case UDP_PACKET_TYPE_HELLO:
-            _processHelloPacket(packetWrap);
+            _processHelloPacket(packet);
             break;
 
         case UDP_PACKET_TYPE_CONNECT:
-            _processConnectPacket(packetWrap);
+            _processConnectPacket(packet);
             break;
 
         case UDP_PACKET_TYPE_DISCONNECT:
-            _processDisconnectPacket(packetWrap);
+            _processDisconnectPacket(packet);
             break;
 
         case UDP_PACKET_TYPE_DATA:
-            _processDataPacket(packetWrap);
+            _processDataPacket(packet);
             break;
 
         case UDP_PACKET_TYPE_DATA_MORE:
-            _processDataMorePacket(packetWrap);
+            _processDataMorePacket(packet);
             break;
 
         case UDP_PACKET_TYPE_DATA_TAIL:
-            _processDataTailPacket(packetWrap);
+            _processDataTailPacket(packet);
             break;
 
         case UDP_PACKET_TYPE_ACKS:
-            _processAcksPacket(packetWrap);
+            _processAcksPacket(packet);
             break;
 
         default:
@@ -397,7 +397,7 @@ void RN_UdpConnectorImpl::sendAcks() {
 }
 
 void RN_UdpConnectorImpl::handleDataMessages(RN_NodeInterface& node, 
-                                             detail::RN_PacketWrapper*& pointerToCurrentPacket) {
+                                             util::Packet*& pointerToCurrentPacket) {
     assert(_status != RN_ConnectorStatus::Disconnected);
 
     if (_isConnectedLocally()) {
@@ -410,7 +410,7 @@ void RN_UdpConnectorImpl::handleDataMessages(RN_NodeInterface& node,
         while (!_recvBuffer.empty()) {
             _tryToAssembleFragmentedPacketAtHead();
             if (_recvBuffer[0].tag == TaggedPacket::ReadyForUnpacking) {
-                HandleDataMessages(_recvBuffer[0].packetWrap, node, pointerToCurrentPacket);
+                HandleDataMessages(_recvBuffer[0].packet, node, pointerToCurrentPacket);
                 _recvBuffer.pop_front();
                 _recvBufferHeadIndex++;
             }
@@ -423,7 +423,7 @@ void RN_UdpConnectorImpl::handleDataMessages(RN_NodeInterface& node,
             }
         }
     }
-    catch (RN_PacketReadError& ex) {
+    catch (util::Packet::ReadError& ex) {
         _eventFactory.createDisconnected(RN_Event::Disconnected::Reason::Error, ex.whatString());
         if (_isConnectedLocally()) {
             _localSharedState->setStatus(LCSS_STATUS_ENDED_ERROR);
@@ -495,11 +495,11 @@ void RN_UdpConnectorImpl::appendToNextOutgoingPacket(const void *data, std::size
     // and fragmented only when necessary.
     if (sizeInBytes < _maxPacketSize) {
         TaggedPacket* sendBufTail = &_sendBuffer.back();
-        if (sendBufTail->packetWrap.packet.getDataSize() + sizeInBytes > _maxPacketSize) {
+        if (sendBufTail->packet.getDataSize() + sizeInBytes > _maxPacketSize) {
             _prepareNextOutgoingDataPacket(UDP_PACKET_TYPE_DATA);
             sendBufTail = &_sendBuffer.back();
         }
-        sendBufTail->packetWrap.packet.append(data, sizeInBytes);
+        sendBufTail->packet.append(data, sizeInBytes);
     }
     else {
         // Prepare the current latest outgoing packet (finalize it if it's full enough, and
@@ -508,11 +508,11 @@ void RN_UdpConnectorImpl::appendToNextOutgoingPacket(const void *data, std::size
             TaggedPacket& sendBufTail = _sendBuffer.back();
             // Note: Data in the packet is stored in network order (big-endian)
             auto* sendBufTailPacketType = 
-                static_cast<std::uint32_t*>(sendBufTail.packetWrap.packet.getMutableData());
+                static_cast<std::uint32_t*>(sendBufTail.packet.getMutableData());
 
             // This is kind of an arbitrarily chosen limit, but if the latest outgoing packet is at
             // least 50% full, we'll send it independently so avoid dependencies between packets.
-            if (sendBufTail.packetWrap.packet.getDataSize() >= _maxPacketSize / 2) {
+            if (sendBufTail.packet.getDataSize() >= _maxPacketSize / 2) {
                 _prepareNextOutgoingDataPacket(UDP_PACKET_TYPE_DATA_MORE);
             }
             else {
@@ -527,15 +527,15 @@ void RN_UdpConnectorImpl::appendToNextOutgoingPacket(const void *data, std::size
         std::size_t bytesPacked = 0;
         while (true) {
             TaggedPacket& sendBufTail = _sendBuffer.back();
-            assert(pztos(_maxPacketSize) >= sendBufTail.packetWrap.packet.getDataSize());
+            assert(pztos(_maxPacketSize) >= sendBufTail.packet.getDataSize());
             const std::size_t remainingCapacity =
-                pztos(_maxPacketSize) - sendBufTail.packetWrap.packet.getDataSize();
+                pztos(_maxPacketSize) - sendBufTail.packet.getDataSize();
             
             const std::size_t bytesToPackNow = std::min(remainingCapacity, 
                                                         sizeInBytes - bytesPacked);
 
-            sendBufTail.packetWrap.packet.append(static_cast<const char*>(data) + bytesPacked,
-                                                 bytesToPackNow);
+            sendBufTail.packet.append(static_cast<const char*>(data) + bytesPacked,
+                                          bytesToPackNow);
             bytesPacked += bytesToPackNow;
 
             if (bytesPacked < sizeInBytes) {
@@ -550,7 +550,7 @@ void RN_UdpConnectorImpl::appendToNextOutgoingPacket(const void *data, std::size
         {
             TaggedPacket& sendBufTail = _sendBuffer.back();
             auto* sendBufTailpacketType = 
-                static_cast<std::uint32_t*>(sendBufTail.packetWrap.packet.getMutableData());
+                static_cast<std::uint32_t*>(sendBufTail.packet.getMutableData());
             *sendBufTailpacketType = hton32(UDP_PACKET_TYPE_DATA_TAIL);
         }
 
@@ -614,7 +614,7 @@ void RN_UdpConnectorImpl::_uploadAllData() {
             || _retransmitPredicate(taggedPacket.cyclesSinceLastTransmit, taggedPacket.stopwatch.getElapsedTime(),
                                     _remoteInfo.latency)) {
 
-            switch (_socket.send(taggedPacket.packetWrap.packet, _remoteInfo.ipAddress, _remoteInfo.port)) {
+            switch (_socket.send(taggedPacket.packet, _remoteInfo.ipAddress, _remoteInfo.port)) {
             case RN_SocketAdapter::Status::OK:
                 // All good, carry on
                 break;
@@ -682,7 +682,7 @@ void RN_UdpConnectorImpl::_receivedAck(std::uint32_t ordinal, bool strong) {
 
     if (!strong) {
         _sendBuffer[ind].tag = TaggedPacket::AcknowledgedWeakly;
-        _sendBuffer[ind].packetWrap.packet.clear();
+        _sendBuffer[ind].packet.clear();
     } 
     else {
         // TODO Temp - Time between send & ack = latency
@@ -691,7 +691,7 @@ void RN_UdpConnectorImpl::_receivedAck(std::uint32_t ordinal, bool strong) {
         _remoteInfo.timeoutStopwatch.restart();
 
         _sendBuffer[ind].tag = TaggedPacket::AcknowledgedStrongly;
-        _sendBuffer[ind].packetWrap.packet.clear();
+        _sendBuffer[ind].packet.clear();
 
         if (ind == 0) {
             while (!_sendBuffer.empty() && _sendBuffer[0].tag == TaggedPacket::AcknowledgedStrongly) {
@@ -711,7 +711,7 @@ void RN_UdpConnectorImpl::_prepareNextOutgoingDataPacket(std::uint32_t packetTyp
     _sendBuffer.emplace_back();
     _sendBuffer.back().tag = TaggedPacket::ReadyForSending;
 
-    util::Packet& packet = _sendBuffer.back().packetWrap.packet;
+    util::Packet& packet = _sendBuffer.back().packet;
     // Message type:
     packet << packetType;
     // Message ordinal:
@@ -762,11 +762,11 @@ BREAK_FOR:
     for (std::size_t i = 1; ; i += 1) {
         TaggedPacket& curr = _recvBuffer[i];
 
-        const auto currDataSize = curr.packetWrap.packet.getRemainingDataSize();
-        _recvBuffer[0].packetWrap.packet.append(curr.packetWrap.packet.extractBytes(currDataSize),
-                                                currDataSize);
+        const auto currDataSize = curr.packet.getRemainingDataSize();
+        _recvBuffer[0].packet.append(curr.packet.extractBytes(currDataSize),
+                                         currDataSize);
 
-        curr.packetWrap.packet.clear();
+        curr.packet.clear();
 
         if (curr.tag != TaggedPacket::WaitingForMore_Tail) {
             curr.tag = TaggedPacket::Unpacked;
@@ -779,9 +779,9 @@ BREAK_FOR:
     _recvBuffer[0].tag = TaggedPacket::ReadyForUnpacking;
 }
 
-void RN_UdpConnectorImpl::_saveDataPacket(detail::RN_PacketWrapper& packetWrap,
+void RN_UdpConnectorImpl::_saveDataPacket(util::Packet& packet,
                                           std::uint32_t packetType) {
-    const std::uint32_t packetOrdinal = packetWrap.extractOrThrow<std::uint32_t>();
+    const std::uint32_t packetOrdinal = packet.extractOrThrow<std::uint32_t>();
 
     if (packetOrdinal < _recvBufferHeadIndex) {
         // Old data - acknowledge and ignore
@@ -800,14 +800,14 @@ void RN_UdpConnectorImpl::_saveDataPacket(detail::RN_PacketWrapper& packetWrap,
     }
 
     while (true) {
-        const std::uint32_t ackOrdinal = packetWrap.extractOrThrow<std::uint32_t>();
+        const std::uint32_t ackOrdinal = packet.extractOrThrow<std::uint32_t>();
         if (ackOrdinal == 0u) {
             break;
         }
         _receivedAck(ackOrdinal, true);
     }
 
-    _recvBuffer[indexInBuffer].packetWrap = std::move(packetWrap);
+    _recvBuffer[indexInBuffer].packet = std::move(packet);
     
     if (packetType == UDP_PACKET_TYPE_DATA) {
         _recvBuffer[indexInBuffer].tag = TaggedPacket::ReadyForUnpacking;
@@ -826,7 +826,7 @@ void RN_UdpConnectorImpl::_saveDataPacket(detail::RN_PacketWrapper& packetWrap,
 }
 
 
-void RN_UdpConnectorImpl::_processHelloPacket(detail::RN_PacketWrapper& packetWrap) {
+void RN_UdpConnectorImpl::_processHelloPacket(util::Packet& packet) {
     switch (_status) {
     case RN_ConnectorStatus::Connecting:
         throw FatalPacketTypeReceived{"Received HELLO packet (status: Connecting)"};
@@ -847,12 +847,12 @@ void RN_UdpConnectorImpl::_processHelloPacket(detail::RN_PacketWrapper& packetWr
     }
 }
 
-void RN_UdpConnectorImpl::_processConnectPacket(detail::RN_PacketWrapper& packetWrap) {
+void RN_UdpConnectorImpl::_processConnectPacket(util::Packet& packet) {
     switch (_status) {
     case RN_ConnectorStatus::Connecting:
     {
-        std::string receivedPassphrase = packetWrap.extractOrThrow<std::string>();
-        const PZInteger receivedClientIndex = packetWrap.extractOrThrow<PZInteger>();
+        std::string receivedPassphrase = packet.extractOrThrow<std::string>();
+        const PZInteger receivedClientIndex = packet.extractOrThrow<PZInteger>();
         if (receivedPassphrase == _passphrase) {
             // Client connected to server
             _clientIndex = receivedClientIndex;
@@ -881,7 +881,7 @@ void RN_UdpConnectorImpl::_processConnectPacket(detail::RN_PacketWrapper& packet
     }
 }
 
-void RN_UdpConnectorImpl::_processDisconnectPacket(detail::RN_PacketWrapper& packetWrap) {
+void RN_UdpConnectorImpl::_processDisconnectPacket(util::Packet& packet) {
     switch (_status) {
     case RN_ConnectorStatus::Connecting:
     case RN_ConnectorStatus::Accepting:
@@ -898,7 +898,7 @@ void RN_UdpConnectorImpl::_processDisconnectPacket(detail::RN_PacketWrapper& pac
     }
 }
 
-void RN_UdpConnectorImpl::_processDataPacket(detail::RN_PacketWrapper& packetWrap) {
+void RN_UdpConnectorImpl::_processDataPacket(util::Packet& packet) {
     switch (_status) {
     case RN_ConnectorStatus::Connecting:
         throw FatalPacketTypeReceived{"Received DATA packet (status: Connecting)"};
@@ -910,7 +910,7 @@ void RN_UdpConnectorImpl::_processDataPacket(detail::RN_PacketWrapper& packetWra
         SWITCH_FALLTHROUGH;
 
     case RN_ConnectorStatus::Connected:
-        _saveDataPacket(packetWrap, UDP_PACKET_TYPE_DATA);
+        _saveDataPacket(packet, UDP_PACKET_TYPE_DATA);
         break;
 
     default:
@@ -919,7 +919,7 @@ void RN_UdpConnectorImpl::_processDataPacket(detail::RN_PacketWrapper& packetWra
     }
 }
 
-void RN_UdpConnectorImpl::_processDataMorePacket(detail::RN_PacketWrapper& packetWrap) {
+void RN_UdpConnectorImpl::_processDataMorePacket(util::Packet& packet) {
     switch (_status) {
     case RN_ConnectorStatus::Connecting:
         throw FatalPacketTypeReceived{"Received DATA_MORE packet (status: Connecting)"};
@@ -931,7 +931,7 @@ void RN_UdpConnectorImpl::_processDataMorePacket(detail::RN_PacketWrapper& packe
         SWITCH_FALLTHROUGH;
 
     case RN_ConnectorStatus::Connected:
-        _saveDataPacket(packetWrap, UDP_PACKET_TYPE_DATA_MORE);
+        _saveDataPacket(packet, UDP_PACKET_TYPE_DATA_MORE);
         break;
 
     default:
@@ -940,7 +940,7 @@ void RN_UdpConnectorImpl::_processDataMorePacket(detail::RN_PacketWrapper& packe
     }
 }
 
-void RN_UdpConnectorImpl::_processDataTailPacket(detail::RN_PacketWrapper& packetWrap) {
+void RN_UdpConnectorImpl::_processDataTailPacket(util::Packet& packet) {
     switch (_status) {
     case RN_ConnectorStatus::Connecting:
         throw FatalPacketTypeReceived{"Received DATA_TAIL packet (status: Connecting)"};
@@ -952,7 +952,7 @@ void RN_UdpConnectorImpl::_processDataTailPacket(detail::RN_PacketWrapper& packe
         SWITCH_FALLTHROUGH;
 
     case RN_ConnectorStatus::Connected:
-        _saveDataPacket(packetWrap, UDP_PACKET_TYPE_DATA_TAIL);
+        _saveDataPacket(packet, UDP_PACKET_TYPE_DATA_TAIL);
         break;
 
     default:
@@ -961,7 +961,7 @@ void RN_UdpConnectorImpl::_processDataTailPacket(detail::RN_PacketWrapper& packe
     }
 }
 
-void RN_UdpConnectorImpl::_processAcksPacket(detail::RN_PacketWrapper& packetWrap) {
+void RN_UdpConnectorImpl::_processAcksPacket(util::Packet& packet) {
     switch (_status) {
     case RN_ConnectorStatus::Connecting:
         throw FatalPacketTypeReceived{"Received ACKS packet (status: Connecting)"};
@@ -972,8 +972,8 @@ void RN_UdpConnectorImpl::_processAcksPacket(detail::RN_PacketWrapper& packetWra
         break;
 
     case RN_ConnectorStatus::Connected:
-        while (!packetWrap.packet.endOfPacket()) {
-            const std::uint32_t ackOrd = packetWrap.extractOrThrow<std::uint32_t>();
+        while (!packet.endOfPacket()) {
+            const std::uint32_t ackOrd = packet.extractOrThrow<std::uint32_t>();
             _receivedAck(ackOrd, false);
         }
         break;
