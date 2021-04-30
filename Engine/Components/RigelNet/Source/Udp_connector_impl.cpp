@@ -762,11 +762,9 @@ BREAK_FOR:
     for (std::size_t i = 1; ; i += 1) {
         TaggedPacket& curr = _recvBuffer[i];
 
-        _recvBuffer[0].packetWrap.packet.append(
-            static_cast<const char*>(curr.packetWrap.packet.getData()) +
-              curr.packetWrap.packet.getReadPos(),
-            curr.packetWrap.packet.getDataSize() - 
-            curr.packetWrap.packet.getReadPos());
+        const auto currDataSize = curr.packetWrap.packet.getRemainingDataSize();
+        _recvBuffer[0].packetWrap.packet.append(curr.packetWrap.packet.extractBytes(currDataSize),
+                                                currDataSize);
 
         curr.packetWrap.packet.clear();
 

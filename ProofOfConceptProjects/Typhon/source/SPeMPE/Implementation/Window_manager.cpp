@@ -47,7 +47,6 @@ void WindowManager::init(sf::VideoMode windowVideoMode,
     _mainRenderTextureAdapter.getView(0).setSize(static_cast<float>(mainRenderTextureSize.x),
                                                  static_cast<float>(mainRenderTextureSize.y));
     _mainRenderTextureAdapter.getView(0).setViewport({0.f, 0.f, 1.f, 1.f});
-
 }
 
 void WindowManager::initAsHeadless() {

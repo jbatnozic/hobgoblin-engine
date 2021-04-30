@@ -1,6 +1,8 @@
 
-#include <Hobgoblin/RigelNet/Packet_wrapper.hpp>
-#include <SFML/Network.hpp>
+#include <Hobgoblin/Utility/Packet.hpp>
+
+#include <Hobgoblin/Common.hpp>
+#include <SFML/Network/Packet.hpp>
 
 #include <cstring>
 #include <cstdint>
@@ -8,8 +10,13 @@
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
+HOBGOBLIN_NAMESPACE_BEGIN
+namespace util {
+
 namespace {
 
+//! This class mirrors the structure of sf::Packet exactly, so we can
+//! reinterpret_cast it to this class and read its private data.
 struct SfmlPacketClone {
     std::vector<char> data;    ///< Data stored in the packet
     std::size_t       readPos; ///< Current reading position in the packet
@@ -76,10 +83,13 @@ void* SfmlPacketAccess_ExtractBytes(sf::Packet& packet, std::size_t byteCount) {
 
 } // namespace
 
-// TODO WTF is up with this file?????
+///////////////////////////////////////////////////////////////////////////
+// HG::PACKET METHODS                                                    //
+///////////////////////////////////////////////////////////////////////////
 
-HOBGOBLIN_NAMESPACE_BEGIN
-namespace util {
+Packet::Packet() = default;
+
+Packet::~Packet() = default;
 
 void* Packet::getMutableData() {
     return SfmlPacketAccess_GetDataVector(SELF).data();
@@ -87,6 +97,10 @@ void* Packet::getMutableData() {
 
 std::size_t Packet::getReadPos() const {
     return SfmlPacketAccess_GetReadPosition(SELF);
+}
+
+std::size_t Packet::getRemainingDataSize() const {
+    return (getDataSize() - getReadPos());
 }
 
 void* Packet::extractBytes(std::size_t byteCount) {
