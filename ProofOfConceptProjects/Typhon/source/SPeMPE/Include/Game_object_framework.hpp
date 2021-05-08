@@ -128,8 +128,6 @@ private:
         Compose_Destroy##_class_name_(node, rec, getSyncId()); \
     }
 
-// TODO Use NetworkingManager::Server/ClientType in cannonical handlers
-
 template <class T, class TCtx>
 void CannonicalCreateImpl(hg::RN_NodeInterface& node, SyncId syncId, typename T::VisibleState& state) {
     node.callIfClient(
