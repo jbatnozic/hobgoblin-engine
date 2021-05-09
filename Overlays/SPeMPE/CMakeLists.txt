@@ -20,6 +20,7 @@ set(OVERLAY_SOURCES
   "Source/Context_components.cpp"
   "Source/Game_object_bases.cpp"
   "Source/Game_context.cpp"
+  "Source/Networking_manager_one.cpp"
   "Source/Synchronized_object_registry.cpp"
 
   "Source/Temp_demo.cpp"
@@ -52,6 +53,7 @@ target_link_libraries(${OVERLAY_NAME}
 PUBLIC
   "Hobgoblin.Common"
   "Hobgoblin.QAO"
+  "Hobgoblin.RigelNet"
   "Hobgoblin.Utility"
   "CONAN_PKG::sfml"
 )
@@ -70,4 +72,15 @@ target_link_libraries(${OVERLAY_TEST_NAME}
 PUBLIC
   "${OVERLAY_NAME}"
   "CONAN_PKG::gtest"
+)
+
+# ===== BUILD EXAMPLES =====
+
+add_executable("minimal-multiplayer"
+  "Examples/Minimal_multiplayer.cpp"
+)
+
+target_link_libraries("minimal-multiplayer"
+PUBLIC
+  "${OVERLAY_NAME}"
 )

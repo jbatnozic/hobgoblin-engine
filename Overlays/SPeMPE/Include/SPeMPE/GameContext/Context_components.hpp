@@ -14,6 +14,8 @@ namespace spempe {
 class ContextComponent {
 public:
     using TagHash = std::size_t;
+
+    virtual ~ContextComponent();
 };
 
 namespace detail {
@@ -62,7 +64,7 @@ void ComponentTable::attachComponent(taComponent& aComponent) {
 template <class taComponent>
 taComponent& ComponentTable::getComponent() const {
     //! Ugly hack that relies on the fact that __spempeimpl_getComponentTagHash
-    //! doesn't actually at any point dereference this.
+    //! doesn't actually at any point dereference 'this'.
     const auto tagHash = 
         reinterpret_cast<taComponent*>(0x12345678)->__spempeimpl_getComponentTagHash();
     return static_cast<taComponent&>(_getComponent(tagHash));

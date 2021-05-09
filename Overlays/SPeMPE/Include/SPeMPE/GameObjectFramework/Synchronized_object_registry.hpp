@@ -19,8 +19,9 @@ constexpr SyncId SYNC_ID_NEW = 0;
 
 class SynchronizedObjectBase;
 
+// TODO Cover edge case when an object is created and then immediately destroyed (in the same step)
+// TODO Control state buffering from here
 class SynchronizedObjectRegistry : public hg::util::NonCopyable, public hg::util::NonMoveable {
-    // TODO Cover edge case when an object is created and then immediately destroyed (in the same step)
 public:
     SynchronizedObjectRegistry(hg::RN_NodeInterface& node);
 

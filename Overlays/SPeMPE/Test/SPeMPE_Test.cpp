@@ -4,6 +4,7 @@
 #include <gtest/gtest.h>
 
 #include <cstdint>
+#include <memory>
 #include <utility>
 
 namespace jbatnozic {
@@ -48,8 +49,14 @@ TEST_F(SPeMPE_Test, ContextComponentTest) {
     {
         SCOPED_TRACE("Context owns component");
 
-        // TODO
-        ASSERT_TRUE(false);
+        auto dummy = std::make_unique<DummyComponent>();
+        dummy->data = 0x12345678;
+
+        _gameCtx.attachAndOwnComponent(std::move(dummy));
+        ASSERT_EQ(_gameCtx.getComponent<DummyInterface>().getData(), 0x12345678);
+
+        _gameCtx.detachComponent(_gameCtx.getComponent<DummyInterface>());
+        ASSERT_THROW(_gameCtx.getComponent<DummyInterface>(), hg::TracedLogicError);
     }
 }
 
@@ -84,6 +91,10 @@ TEST_F(SPeMPE_Test, ChildContextTest) {
         hg::TracedLogicError
     );
 }
+
+///////////////////////////////////////////////////////////////////////////
+// SYNCHRONIZATION TEST                                                  //
+///////////////////////////////////////////////////////////////////////////
 
 TEST_F(SPeMPE_Test, SynchronizationTest) {
     ASSERT_TRUE(1);

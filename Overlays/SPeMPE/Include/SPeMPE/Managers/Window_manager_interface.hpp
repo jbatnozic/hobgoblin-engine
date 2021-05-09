@@ -4,6 +4,17 @@
 namespace jbatnozic {
 namespace spempe {
 
+/*
+TODO:
+    Windows manipulation
+    Keyboard input
+    Mouse input
+    Graphics
+    Views
+    GUI
+    Timing
+*/
+
 } // namespace spempe
 } // namespace jbatnozic
 

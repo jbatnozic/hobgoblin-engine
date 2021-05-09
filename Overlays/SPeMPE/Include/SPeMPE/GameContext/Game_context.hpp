@@ -12,15 +12,12 @@
 #include <memory>
 #include <string>
 #include <thread>
+#include <vector>
 
 namespace jbatnozic {
 namespace spempe {
 
 namespace hg = ::jbatnozic::hobgoblin;
-
-//constexpr int PLAYER_INDEX_UNKNOWN      = -2;
-//constexpr int PLAYER_INDEX_NONE         = -1;
-//constexpr int PLAYER_INDEX_LOCAL_PLAYER =  0;
 
 namespace detail {
 constexpr int GCMF_NONE = 0x0;
@@ -35,6 +32,7 @@ constexpr int GCM_SOLO = GCMF_PRIV;
 constexpr int GCM_GMAS = GCMF_PRIV | GCMF_NETW;
 } // namespace detail
 
+//! TODO: Components included by default: WindowManager, LoggingManager, (NetworkingManager?)
 class GameContext {
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -88,7 +86,12 @@ public:
     template <class taComponent>
     void attachComponent(taComponent& aComponent);
 
+    //! Throws hg::TracedLogicError in case of tagHash clash.
+    template <class taComponent>
+    void attachAndOwnComponent(std::unique_ptr<taComponent> aComponent);
+
     //! No-op if component isn't present.
+    //! If the component was owned by the context, it is destroyed.
     void detachComponent(ContextComponent& aComponent);
 
     //! Throws hg::TracedLogicError if the component isn't present.
@@ -174,6 +177,7 @@ private:
 
     // Context components:
     detail::ComponentTable _components;
+    std::vector<std::unique_ptr<ContextComponent>> _ownedComponents;
 
     // Execution:
     PerformanceInfo _performanceInfo;
@@ -196,7 +200,15 @@ void GameContext::attachComponent(taComponent& aComponent) {
     _components.attachComponent(aComponent);
 }
 
-//! Throws hg::TracedLogicError if the component isn't present.
+template <class taComponent>
+void GameContext::attachAndOwnComponent(std::unique_ptr<taComponent> aComponent) {
+    if (!aComponent) {
+        throw hg::TracedLogicError{"Cannot attach null component"};
+    }
+    _components.attachComponent(*aComponent);
+    _ownedComponents.push_back(std::move(aComponent));
+}
+
 template <class taComponent>
 taComponent& GameContext::getComponent() const {
     return _components.getComponent<taComponent>();

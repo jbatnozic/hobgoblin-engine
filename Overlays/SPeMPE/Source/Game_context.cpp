@@ -44,6 +44,10 @@ bool GameContext::hasNetworking() const {
     return ((static_cast<int>(_mode) & detail::GCMF_NETW) != 0);
 }
 
+const GameContext::RuntimeConfig& GameContext::getRuntimeConfig() const {
+    return _runtimeConfig;
+}
+
 ///////////////////////////////////////////////////////////////////////////
 // GAME OBJECT MANAGEMENT                                                //
 ///////////////////////////////////////////////////////////////////////////
@@ -58,6 +62,12 @@ hg::QAO_Runtime& GameContext::getQAORuntime() {
 
 void GameContext::detachComponent(ContextComponent& aComponent) {
     _components.detachComponent(aComponent);
+
+    _ownedComponents.erase(
+        std::remove_if(_ownedComponents.begin(), _ownedComponents.end(),
+                       [&aComponent](std::unique_ptr<ContextComponent>& aCurr) {
+                           return aCurr.get() == &aComponent;
+                       }), _ownedComponents.end());
 }
 
 std::string GameContext::getComponentTableString(char aSeparator) const {

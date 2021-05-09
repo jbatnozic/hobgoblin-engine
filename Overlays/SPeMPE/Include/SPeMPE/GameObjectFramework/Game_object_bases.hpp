@@ -2,10 +2,13 @@
 #define SPEMPE_GAME_OBJECT_FRAMEWORK_GAME_OBJECT_BASES_HPP
 
 #include <Hobgoblin/QAO.hpp>
+#include <Hobgoblin/RigelNet.hpp>
+#include <Hobgoblin/RigelNet_Macros.hpp>
 #include <Hobgoblin/Utility/State_scheduler.hpp>
 #include <SPeMPE/GameContext/Game_context.hpp>
 #include <SPeMPE/GameObjectFramework/Synchronized_object_registry.hpp>
 
+#include <algorithm>
 #include <cstdint>
 #include <typeinfo>
 #include <utility>
@@ -83,6 +86,9 @@ public:
     SyncId getSyncId() const noexcept;
     bool isMasterObject() const noexcept;
 
+    //! Internal implementation, do not call manually!
+    void __spempeimpl_destroySelfIn(hg::PZInteger aStepCount);
+
 protected:
     // Call the following to sync this object's creation/update/destruction right away.
 
@@ -134,15 +140,15 @@ private:
 
     //! Called when it's needed to sync this object's creation to one or more recepeints.
     virtual void _syncCreateImpl( hg::RN_NodeInterface& aNode,
-                                  const std::vector<hg::PZInteger>& aRecepients) const = 0;
+                                  std::vector<hg::PZInteger>& aRecepients) const = 0;
 
     //! Called when it's needed to sync this object's update to one or more recepeints.
     virtual void _syncUpdateImpl( hg::RN_NodeInterface& aNode,
-                                  const std::vector<hg::PZInteger>& aRecepients) const = 0;
+                                  std::vector<hg::PZInteger>& aRecepients) const = 0;
 
     //! Called when it's needed to sync this object's destruction to one or more recepeints.
     virtual void _syncDestroyImpl(hg::RN_NodeInterface& aNode,
-                                  const std::vector<hg::PZInteger>& aRecepients) const = 0;
+                                  std::vector<hg::PZInteger>& aRecepients) const = 0;
 
     virtual void _scheduleAndAdvanceStatesForDummy(hg::PZInteger aMaxStateSchedulerSize) = 0;
 };
@@ -154,10 +160,16 @@ private:
 template <class taVisibleState>
 class SynchronizedObject : public SynchronizedObjectBase {
 public:
-    using SyncObjSuper = SynchronizedObject;
     using VisibleState = taVisibleState;
 
+    //! Internal implementation, do not call manually!
+    void __spempeimpl_applyUpdate(const VisibleState& aNewState, hg::PZInteger aDelaySteps) {
+        _ssch.putNewState(aNewState, aDelaySteps);
+    }
+
 protected:
+    using SyncObjSuper = SynchronizedObject;
+
     SynchronizedObject(hg::QAO_RuntimeRef aRuntimeRef,
                        const std::type_info& aTypeInfo,
                        int aExecutionPriority,
@@ -191,6 +203,134 @@ private:
         _ssch.advanceDownTo(aMaxStateSchedulerSize);
     }
 };
+
+///////////////////////////////////////////////////////////////////////////
+// SYNCHRONIZATION HELPER MACROS                                         //
+///////////////////////////////////////////////////////////////////////////
+
+template <class taSyncObj, class taContext, class taNetwMgr>
+void DefaultSyncCreateHandler(hg::RN_NodeInterface& node, 
+                              SyncId syncId) {
+    node.callIfClient(
+        [&](hg::RN_ClientInterface& client) {
+            auto& ctx        = *client.getUserData<taContext>();
+            auto& runtime    = ctx.getQAORuntime();
+            auto& syncObjReg = ctx.getComponent<taNetwMgr>().getSyncObjReg();
+
+            hg::QAO_PCreate<taSyncObj>(&runtime, syncObjReg, syncId);
+        });
+
+    node.callIfServer(
+        [](hg::RN_ServerInterface& server) {
+            throw hg::RN_IllegalMessage("Server received a sync message");
+        });
+}
+
+template <class taSyncObj, class taContext, class taNetwMgr>
+void DefaultSyncUpdateHandler(hg::RN_NodeInterface& node,
+                              SyncId syncId, 
+                              typename taSyncObj::VisibleState& state) {
+    node.callIfClient(
+        [&](hg::RN_ClientInterface& client) {
+            auto& ctx        = *client.getUserData<taContext>();
+            auto& runtime    = ctx.getQAORuntime();
+            auto& syncObjReg = ctx.getComponent<taNetwMgr>().getSyncObjReg();
+            auto& object     = *static_cast<taSyncObj*>(syncObjReg.getMapping(syncId));
+
+            const auto latency = client.getServerConnector().getRemoteInfo().latency;
+            using Time = std::remove_cv_t<decltype(latency)>;
+            const auto dt = std::chrono::duration_cast<Time>(ctx.getRuntimeConfig().deltaTime);
+            const auto delaySteps = static_cast<hg::PZInteger>(latency / dt) / 2;
+
+            object.__spempeimpl_applyUpdate(state, delaySteps);
+        });
+
+    node.callIfServer(
+        [](hg::RN_ServerInterface& server) {
+            throw hg::RN_IllegalMessage("Server received a sync message");
+        });
+}
+
+template <class taSyncObj, class taContext, class taNetwMgr>
+void DefaultSyncDestroyHandler(hg::RN_NodeInterface& node, 
+                               SyncId syncId) {
+    node.callIfClient(
+        [&](hg::RN_ClientInterface& client) {
+            auto& ctx        = *client.getUserData<taContext>();
+            auto& runtime    = ctx.getQAORuntime();
+            auto& syncObjReg = ctx.getComponent<taNetwMgr>().getSyncObjReg();
+            auto* object     = static_cast<taSyncObj*>(syncObjReg.getMapping(syncId));
+
+            const auto latency = client.getServerConnector().getRemoteInfo().latency;
+            using Time = std::remove_cv_t<decltype(latency)>;
+            const auto dt = std::chrono::duration_cast<Time>(ctx.getRuntimeConfig().deltaTime);
+            const auto delaySteps = static_cast<hg::PZInteger>(latency / dt) / 2;
+
+            // object->destroySelfIn(static_cast<int>(ctx.syncBufferLength) - (delaySteps + 1)); TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        });
+
+    node.callIfServer(
+        [](hg::RN_ServerInterface& server) {
+            throw hg::RN_IllegalMessage("Server received a sync message");
+        });
+}
+
+#define SPEMPEIMPL_MACRO_CONCAT_WITHARG(_x_, _y_, _arg_) _x_##_y_(_arg_)
+#define SPEMPEIMPL_MACRO_EXPAND(_x_) _x_
+#define SPEMPEIMPL_MACRO_EXPAND_VA(...) __VA_ARGS__
+
+#define SPEMPEIMPL_GENERATE_DEFAULT_SYNC_HANDLER_EMPTY(_class_name_) /* Empty */
+
+#define SPEMPEIMPL_GENERATE_DEFAULT_SYNC_HANDLER_CREATE(_class_name_) \
+    RN_DEFINE_RPC(SPEMPEIMPL_Create##_class_name_, \
+                  RN_ARGS(::jbatnozic::spempe::SyncId, syncId)) { \
+        ::jbatnozic::spempe::DefaultSyncCreateHandler<_class_name_, \
+                                                      ::jbatnozic::spempe::GameContext, \
+                                                      ::jbatnozic::spempe::NetworkingManagerInterface>( \
+            RN_NODE_IN_HANDLER(), syncId); \
+    }
+
+#define SPEMPEIMPL_GENERATE_DEFAULT_SYNC_HANDLER_UPDATE(_class_name_) \
+    RN_DEFINE_RPC(SPEMPEIMPL_Update##_class_name_, \
+                  RN_ARGS(::jbatnozic::spempe::SyncId, syncId, _class_name_::VisibleState&, state)) { \
+        ::jbatnozic::spempe::DefaultSyncUpdateHandler<_class_name_, \
+                                                      ::jbatnozic::spempe::GameContext, \
+                                                      ::jbatnozic::spempe::NetworkingManagerInterface>( \
+            RN_NODE_IN_HANDLER(), syncId, state); \
+    }
+
+#define SPEMPEIMPL_GENERATE_DEFAULT_SYNC_HANDLER_DESTROY(_class_name_) \
+    RN_DEFINE_RPC(SPEMPEIMPL_Destroy##_class_name_, \
+                  RN_ARGS(::jbatnozic::spempe::SyncId, syncId)) { \
+        ::jbatnozic::spempe::DefaultSyncDestroyHandler<_class_name_, \
+                                                       ::jbatnozic::spempe::GameContext, \
+                                                       ::jbatnozic::spempe::NetworkingManagerInterface>( \
+            RN_NODE_IN_HANDLER(), syncId); \
+    }
+
+#define SPEMPEIMPL_GENERATE_MULTIPLE_DEFAULT_SYNC_HANDLERS(_class_name_, _tag_1_, _tag_2_, _tag_3_, ...) \
+    SPEMPEIMPL_GENERATE_DEFAULT_SYNC_HANDLER_##_tag_1_ (_class_name_) \
+    SPEMPEIMPL_GENERATE_DEFAULT_SYNC_HANDLER_##_tag_2_ (_class_name_) \
+    SPEMPEIMPL_GENERATE_DEFAULT_SYNC_HANDLER_##_tag_3_ (_class_name_)
+
+#define SPEMPEIMPL_GENERATE_DEFAULT_SYNC_HANDLERS(_class_name_, ...) \
+    SPEMPEIMPL_MACRO_EXPAND( \
+        SPEMPEIMPL_GENERATE_MULTIPLE_DEFAULT_SYNC_HANDLERS(_class_name_, __VA_ARGS__, EMPTY, EMPTY) \
+    )
+
+#define SPEMPE_GENERATE_DEFAULT_SYNC_HANDLERS(_class_name_, _for_events_) \
+    SPEMPEIMPL_MACRO_EXPAND( \
+        SPEMPEIMPL_GENERATE_DEFAULT_SYNC_HANDLERS(_class_name_, SPEMPEIMPL_MACRO_EXPAND_VA _for_events_) \
+    )
+
+#define SPEMPE_SYNC_CREATE_DEFAULT_IMPL(_class_name_, _node_, _recepients_) \
+    Compose_SPEMPEIMPL_Create##_class_name_(_node_, _recepients_, getSyncId())
+
+#define SPEMPE_SYNC_UPDATE_DEFAULT_IMPL(_class_name_, _node_, _recepients_) \
+    Compose_SPEMPEIMPL_Update##_class_name_(_node_, _recepients_, getSyncId(), _getCurrentState())
+
+#define SPEMPE_SYNC_DESTROY_DEFAULT_IMPL(_class_name_, _node_, _recepients_) \
+    Compose_SPEMPEIMPL_Destroy##_class_name_(_node_, _recepients_, getSyncId())
 
 } // namespace spempe
 } // namespace jbatnozic

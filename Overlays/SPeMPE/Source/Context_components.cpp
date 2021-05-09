@@ -9,6 +9,9 @@
 
 namespace jbatnozic {
 namespace spempe {
+
+ContextComponent::~ContextComponent() = default;
+
 namespace detail {
 
 ComponentTable::ComponentTable(std::size_t aTableSize) {
