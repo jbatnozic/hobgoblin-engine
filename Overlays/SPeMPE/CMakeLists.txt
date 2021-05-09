@@ -18,6 +18,7 @@ set(OVERLAY_NAME "spempe")
 
 set(OVERLAY_SOURCES
   "Source/Context_components.cpp"
+  "Source/Game_object_bases.cpp"
   "Source/Game_context.cpp"
   "Source/Synchronized_object_registry.cpp"
 
@@ -49,9 +50,24 @@ endif()
 
 target_link_libraries(${OVERLAY_NAME}
 PUBLIC
-  "Hobgoblin.Private"
   "Hobgoblin.Common"
-  "Hobgoblin.Preprocessor"
+  "Hobgoblin.QAO"
   "Hobgoblin.Utility"
   "CONAN_PKG::sfml"
+)
+
+# ===== BUILD TESTS =====
+
+set(OVERLAY_TEST_NAME "spempe-test")
+
+set(OVERLAY_TEST_SOURCES
+  "Test/SPeMPE_Test.cpp"
+)
+
+add_executable(${OVERLAY_TEST_NAME} ${OVERLAY_TEST_SOURCES})
+
+target_link_libraries(${OVERLAY_TEST_NAME}
+PUBLIC
+  "${OVERLAY_NAME}"
+  "CONAN_PKG::gtest"
 )

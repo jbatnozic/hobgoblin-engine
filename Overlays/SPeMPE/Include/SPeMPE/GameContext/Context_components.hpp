@@ -61,8 +61,11 @@ void ComponentTable::attachComponent(taComponent& aComponent) {
 
 template <class taComponent>
 taComponent& ComponentTable::getComponent() const {
-    const auto tagHash = aComponent.__spempeimpl_getComponentTagHash();
-    return _getComponent(tagHash);
+    //! Ugly hack that relies on the fact that __spempeimpl_getComponentTagHash
+    //! doesn't actually at any point dereference this.
+    const auto tagHash = 
+        reinterpret_cast<taComponent*>(0x12345678)->__spempeimpl_getComponentTagHash();
+    return static_cast<taComponent&>(_getComponent(tagHash));
 }
 
 } // namespace detail

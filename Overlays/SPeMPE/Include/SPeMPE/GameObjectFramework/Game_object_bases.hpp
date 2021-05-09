@@ -6,7 +6,9 @@
 #include <SPeMPE/GameContext/Game_context.hpp>
 #include <SPeMPE/GameObjectFramework/Synchronized_object_registry.hpp>
 
+#include <cstdint>
 #include <typeinfo>
+#include <utility>
 
 #define SPEMPE_TYPEID_SELF (typeid(decltype(*this)))
 
@@ -15,6 +17,7 @@ namespace spempe {
 
 namespace hg = ::jbatnozic::hobgoblin;
 
+//! Not to be inherited from directly. Use one of the classes below.
 class GameObjectBase : public hg::QAO_Base {
 public:
     using hg::QAO_Base::QAO_Base;
@@ -30,6 +33,10 @@ public:
     }
 };
 
+///////////////////////////////////////////////////////////////////////////
+// NONSTATE OBJECTS                                                      //
+///////////////////////////////////////////////////////////////////////////
+
 //! I:
 //! Objects which are not essential to the game's state and thus not saved (when
 //! writing game state) nor synchronized with clients (in multiplayer sessions).
@@ -42,6 +49,10 @@ public:
     using GameObjectBase::GameObjectBase;
 };
 
+///////////////////////////////////////////////////////////////////////////
+// STATE OBJECTS                                                         //
+///////////////////////////////////////////////////////////////////////////
+
 //! Objects which are essential for the game's state, but will not be synchronized
 //! with clients. For use with singleplayer games, or for server-side controller
 //! objects in multiplayer games.
@@ -50,11 +61,23 @@ public:
     using GameObjectBase::GameObjectBase;
 };
 
+///////////////////////////////////////////////////////////////////////////
+// SYNCHRONIZED OBJECTS                                                  //
+///////////////////////////////////////////////////////////////////////////
+
 struct IfMaster {};
 struct IfDummy  {};
 
 class SynchronizedObjectBase : public StateObject {
 public:
+    //! Big scary constructor with way too many arguments.
+    SynchronizedObjectBase(hg::QAO_RuntimeRef aRuntimeRef,
+                           const std::type_info& aTypeInfo,
+                           int aExecutionPriority,
+                           std::string aName,
+                           SynchronizedObjectRegistry& aSyncObjReg,
+                           SyncId aSyncId);
+
     virtual ~SynchronizedObjectBase();
 
     SyncId getSyncId() const noexcept;
@@ -128,37 +151,6 @@ private:
 //! writing game state, and synchronized with clients in multiplayer sessions.
 //! For example, units, terrain, interactible items (and, basically, most other 
 //! game objects).
-class SynchronizedObjectOld : public StateObject {
-public:
-    SynchronizedObjectOld(hg::QAO_RuntimeRef runtimeRef, 
-                          const std::type_info& typeInfo,
-                          int executionPriority, 
-                          std::string name,
-                          SynchronizedObjectRegistry& syncObjReg, 
-                          SyncId syncId);
-
-    // virtual ~SynchronizedObjectOld();
-
-    SyncId getSyncId() const noexcept;
-
-    bool isMasterObject() const noexcept;
-
-protected:
-    void syncCreate() const;
-    void syncUpdate() const;
-    void syncDestroy() const;
-
-private:
-    SynchronizedObjectRegistry& _syncObjReg;
-    const SyncId _syncId;
-
-    virtual void _onSyncCreateNeeded( hg::RN_NodeInterface& node, const std::vector<hg::PZInteger>& rec) const = 0;
-    virtual void _onSyncUpdateNeeded( hg::RN_NodeInterface& node, const std::vector<hg::PZInteger>& rec) const = 0;
-    virtual void _onSyncDestroyNeeded(hg::RN_NodeInterface& node, const std::vector<hg::PZInteger>& rec) const = 0;
-
-    friend class SynchronizedObjectRegistry;
-};
-
 template <class taVisibleState>
 class SynchronizedObject : public SynchronizedObjectBase {
 public:
