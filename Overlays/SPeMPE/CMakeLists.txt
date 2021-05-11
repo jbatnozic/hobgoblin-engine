@@ -23,7 +23,7 @@ set(OVERLAY_SOURCES
   "Source/Networking_manager_one.cpp"
   "Source/Synchronized_object_registry.cpp"
 
-  "Source/Temp_demo.cpp"
+  # "Source/Temp_demo.cpp"
 )
 
 # ===== TARGET SETUP =====
@@ -56,6 +56,7 @@ PUBLIC
   "Hobgoblin.RigelNet"
   "Hobgoblin.Utility"
   "CONAN_PKG::sfml"
+  "CONAN_PKG::ztcpp"
 )
 
 # ===== BUILD TESTS =====
@@ -63,7 +64,7 @@ PUBLIC
 set(OVERLAY_TEST_NAME "spempe-test")
 
 set(OVERLAY_TEST_SOURCES
-  "Test/SPeMPE_Test.cpp"
+  "Test/SPeMPE_test.cpp"
 )
 
 add_executable(${OVERLAY_TEST_NAME} ${OVERLAY_TEST_SOURCES})

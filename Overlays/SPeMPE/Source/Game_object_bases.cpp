@@ -39,6 +39,10 @@ bool SynchronizedObjectBase::isMasterObject() const noexcept {
     return ((_syncId & SYNC_ID_1) != 0);
 }
 
+void SynchronizedObjectBase::__spempeimpl_destroySelfIn(int aStepCount) {
+    _deathCounter = (aStepCount > 0) ? aStepCount : 0;
+}
+
 void SynchronizedObjectBase::doSyncCreate() const {
     if (!isMasterObject()) {
         throw hg::TracedLogicError("Dummy objects cannot request synchronization!");
@@ -58,6 +62,21 @@ void SynchronizedObjectBase::doSyncDestroy() const {
         throw hg::TracedLogicError("Dummy objects cannot request synchronization!");
     }
     _syncObjReg.syncObjectDestroy(this);
+}
+
+void SynchronizedObjectBase::eventUpdate(IfDummy) {
+    _scheduleAndAdvanceStatesForDummy((_syncObjReg.getDefaultDelay() + 1) * 2);
+
+    if (_deathCounter > 0) {
+        _deathCounter -= 1;
+    }
+    else if (_deathCounter == 0) {
+        hg::QAO_PDestroy(this);
+    }
+}
+
+bool SynchronizedObjectBase::_willDieAfterUpdate() const {
+    return (_deathCounter == 0);
 }
 
 void SynchronizedObjectBase::eventStartFrame() {

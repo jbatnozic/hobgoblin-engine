@@ -52,11 +52,9 @@ void SynchronizedObjectRegistry::registerDummyObject(SynchronizedObjectBase* obj
 void SynchronizedObjectRegistry::unregisterObject(SynchronizedObjectBase* object) {
     assert(object);
     if (object->isMasterObject()) {
-        // TODO If object is in _newlyCreatedObjects, erase it from there,
-        // sync create, then continue
-
         auto iter = _alreadyDestroyedObjects.find(object);
         if (iter == _alreadyDestroyedObjects.end()) {
+            assert(false && "Unregistering object which did not sync its destruction");
             throw hg::TracedLogicError("Unregistering object which did not sync its destruction");
         }
         else {
@@ -85,12 +83,15 @@ void SynchronizedObjectRegistry::syncStateUpdates() {
 
         auto iter = _alreadyUpdatedObjects.find(object);
         if (iter != _alreadyUpdatedObjects.end()) {
-            _alreadyUpdatedObjects.erase(iter);
+            // Not needed to remove elements one by one; we'll 
+            // just clear the whole container at the end.
+            // _alreadyUpdatedObjects.erase(iter);
         }
         else {
             object->_syncUpdateImpl(*_node, _recepientVec);
         }
     }
+    _alreadyUpdatedObjects.clear();
 
     // Sync destroys - not needed (dealt with in destructors)
 }
@@ -117,6 +118,17 @@ void SynchronizedObjectRegistry::syncObjectCreate(const SynchronizedObjectBase* 
 void SynchronizedObjectRegistry::syncObjectUpdate(const SynchronizedObjectBase* object) {
     assert(object);
     GetIndicesForComposingToEveryone(*_node, _recepientVec);
+
+    // Synchronized object sync Update called manualy, before the registry got to
+    // sync its Create. We need to fix this because the order of these is important!
+    {
+        auto iter = _newlyCreatedObjects.find(object);
+        if (iter != _newlyCreatedObjects.end()) {
+            object->_syncCreateImpl(*_node, _recepientVec);
+            _newlyCreatedObjects.erase(iter);
+        }
+    }
+
     object->_syncUpdateImpl(*_node, _recepientVec);
 
     _alreadyUpdatedObjects.insert(object);
@@ -125,6 +137,32 @@ void SynchronizedObjectRegistry::syncObjectUpdate(const SynchronizedObjectBase* 
 void SynchronizedObjectRegistry::syncObjectDestroy(const SynchronizedObjectBase* object) {
     assert(object);
     GetIndicesForComposingToEveryone(*_node, _recepientVec);
+
+    // It could happen that a Synchronized object is destroyed before
+    // its Update event - or even its Create event - were synced.
+    {
+        {
+            auto iter = _newlyCreatedObjects.find(object);
+            if (iter != _newlyCreatedObjects.end()) {
+                object->_syncCreateImpl(*_node, _recepientVec);
+                _newlyCreatedObjects.erase(iter);
+            }
+        }
+        {
+            auto iter = _alreadyUpdatedObjects.find(object);
+            if (iter == _alreadyUpdatedObjects.end()) {
+                object->_syncUpdateImpl(*_node, _recepientVec);
+            #ifndef NDEBUG
+                // This isn't really needed as we don't expect to sync an object's
+                // destruction from anywhere other than its destructor, where it will
+                // get unregistered so this won't matter anyway. It's left here in
+                // Debug mode for optimistic correctness reasons.
+                _alreadyUpdatedObjects.insert(object);
+            #endif
+            }
+        }
+    }
+
     object->_syncDestroyImpl(*_node, _recepientVec);
 
     _alreadyDestroyedObjects.insert(object);

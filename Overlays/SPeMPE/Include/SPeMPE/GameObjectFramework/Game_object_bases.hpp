@@ -81,13 +81,13 @@ public:
                            SynchronizedObjectRegistry& aSyncObjReg,
                            SyncId aSyncId);
 
-    virtual ~SynchronizedObjectBase();
+    virtual ~SynchronizedObjectBase() override;
 
     SyncId getSyncId() const noexcept;
     bool isMasterObject() const noexcept;
 
     //! Internal implementation, do not call manually!
-    void __spempeimpl_destroySelfIn(hg::PZInteger aStepCount);
+    void __spempeimpl_destroySelfIn(int aStepCount);
 
 protected:
     // Call the following to sync this object's creation/update/destruction right away.
@@ -113,12 +113,15 @@ protected:
 
     virtual void eventStartFrame(IfDummy)    {}
     virtual void eventPreUpdate(IfDummy)     {}
-    virtual void eventUpdate(IfDummy)        {}
+    virtual void eventUpdate(IfDummy)         ; // This one is special!
     virtual void eventPostUpdate(IfDummy)    {}
     virtual void eventDraw1(IfDummy)         {}
     virtual void eventDraw2(IfDummy)         {}
     virtual void eventDrawGUI(IfDummy)       {}
     virtual void eventFinalizeFrame(IfDummy) {}
+
+    // Misc.
+    bool _willDieAfterUpdate() const;
 
     // If you override any of the below, the overloads above will not be used.
     // The same code will be executed on both ends.
@@ -138,6 +141,8 @@ private:
     SynchronizedObjectRegistry& _syncObjReg;
     const SyncId _syncId;
 
+    int _deathCounter = -1;
+
     //! Called when it's needed to sync this object's creation to one or more recepeints.
     virtual void _syncCreateImpl( hg::RN_NodeInterface& aNode,
                                   std::vector<hg::PZInteger>& aRecepients) const = 0;
@@ -152,6 +157,28 @@ private:
 
     virtual void _scheduleAndAdvanceStatesForDummy(hg::PZInteger aMaxStateSchedulerSize) = 0;
 };
+
+/*
+Note:
+    If an object drived from SynchronizedObject (below), and transitively from
+    SynchronizedObjectBase overries either eventUpdate() or eventUpdate(IfDummy),
+    note that the dummy object won't behave properly unless you call the following
+    code at the start of its eventUpdate:
+    if (!isMasterObject()) {
+        const bool endOfLifetime = _willDieAfterUpdate();
+        SynchronizedObjectBase::eventUpdate(IfDummy);
+        if (endOfLifetime) return;
+    }
+
+    This can be expressed with the macro SPEMPE_SYNCOBJ_BEGIN_EVENT_UPDATE_OVERRIDE().
+*/
+
+#define SPEMPE_SYNCOBJ_BEGIN_EVENT_UPDATE_OVERRIDE() \
+    do { if (!SynchronizedObjectBase::isMasterObject()) { \
+        const bool endOfLifetime_ = SynchronizedObjectBase::_willDieAfterUpdate(); \
+        SynchronizedObjectBase::eventUpdate(::jbatnozic::spempe::IfDummy{}); \
+        if (endOfLifetime_) { return; } \
+    } } while (false)
 
 //! Objects which are essential to the game's state, so they are both saved when
 //! writing game state, and synchronized with clients in multiplayer sessions.
@@ -179,10 +206,11 @@ protected:
         : SynchronizedObjectBase{ aRuntimeRef
                                 , aTypeInfo
                                 , aExecutionPriority
-                                , aName
+                                , std::move(aName)
                                 , aSyncObjReg
                                 , aSyncId
                                 }
+        , _ssch{aSyncObjReg.getDefaultDelay()}
     {
     }
 
@@ -213,7 +241,7 @@ void DefaultSyncCreateHandler(hg::RN_NodeInterface& node,
                               SyncId syncId) {
     node.callIfClient(
         [&](hg::RN_ClientInterface& client) {
-            auto& ctx        = *client.getUserData<taContext>();
+            auto& ctx        = *client.getUserDataOrThrow<taContext>();
             auto& runtime    = ctx.getQAORuntime();
             auto& syncObjReg = ctx.getComponent<taNetwMgr>().getSyncObjReg();
 
@@ -232,7 +260,7 @@ void DefaultSyncUpdateHandler(hg::RN_NodeInterface& node,
                               typename taSyncObj::VisibleState& state) {
     node.callIfClient(
         [&](hg::RN_ClientInterface& client) {
-            auto& ctx        = *client.getUserData<taContext>();
+            auto& ctx        = *client.getUserDataOrThrow<taContext>();
             auto& runtime    = ctx.getQAORuntime();
             auto& syncObjReg = ctx.getComponent<taNetwMgr>().getSyncObjReg();
             auto& object     = *static_cast<taSyncObj*>(syncObjReg.getMapping(syncId));
@@ -256,7 +284,7 @@ void DefaultSyncDestroyHandler(hg::RN_NodeInterface& node,
                                SyncId syncId) {
     node.callIfClient(
         [&](hg::RN_ClientInterface& client) {
-            auto& ctx        = *client.getUserData<taContext>();
+            auto& ctx        = *client.getUserDataOrThrow<taContext>();
             auto& runtime    = ctx.getQAORuntime();
             auto& syncObjReg = ctx.getComponent<taNetwMgr>().getSyncObjReg();
             auto* object     = static_cast<taSyncObj*>(syncObjReg.getMapping(syncId));
@@ -266,7 +294,7 @@ void DefaultSyncDestroyHandler(hg::RN_NodeInterface& node,
             const auto dt = std::chrono::duration_cast<Time>(ctx.getRuntimeConfig().deltaTime);
             const auto delaySteps = static_cast<hg::PZInteger>(latency / dt) / 2;
 
-            // object->destroySelfIn(static_cast<int>(ctx.syncBufferLength) - (delaySteps + 1)); TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            object->__spempeimpl_destroySelfIn(static_cast<int>(syncObjReg.getDefaultDelay()) - (delaySteps + 1));
         });
 
     node.callIfServer(

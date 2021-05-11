@@ -31,14 +31,20 @@ void NetworkingManagerOne::setToMode(Mode aMode) {
     switch (_mode) {
     case Mode::Uninitialized:
         _localPlayerIndex = PLAYER_INDEX_NONE;
+        _node = hg::RN_ServerFactory::createDummyServer();
+        _syncObjReg.setNode(*_node);
         break;
 
     case Mode::Server:
         _localPlayerIndex = PLAYER_INDEX_LOCAL_PLAYER;
+        _node = hg::RN_ServerFactory::createServer(hg::RN_Protocol::UDP, "pass"); // TODO Parametrize !!!!!!!!!!!
+        _syncObjReg.setNode(*_node);
         break;
 
     case Mode::Client:
         _localPlayerIndex = PLAYER_INDEX_UNKNOWN;
+        _node = hg::RN_ClientFactory::createClient(hg::RN_Protocol::UDP, "pass");
+        _syncObjReg.setNode(*_node);
         break;
 
     default: {}
