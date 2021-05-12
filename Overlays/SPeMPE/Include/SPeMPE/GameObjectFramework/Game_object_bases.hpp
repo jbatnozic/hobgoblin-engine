@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <typeinfo>
 #include <utility>
+#include <vector>
 
 #define SPEMPE_TYPEID_SELF (typeid(decltype(*this)))
 
@@ -78,7 +79,7 @@ public:
                            const std::type_info& aTypeInfo,
                            int aExecutionPriority,
                            std::string aName,
-                           SynchronizedObjectRegistry& aSyncObjReg,
+                           RegistryId aRegId,
                            SyncId aSyncId);
 
     virtual ~SynchronizedObjectBase() override;
@@ -136,26 +137,25 @@ protected:
     void eventFinalizeFrame() override;
 
 private:
-    friend class SynchronizedObjectRegistry;
+    friend class detail::SynchronizedObjectRegistry;
 
-    SynchronizedObjectRegistry& _syncObjReg;
+    detail::SynchronizedObjectRegistry& _syncObjReg;
     const SyncId _syncId;
 
     int _deathCounter = -1;
 
     //! Called when it's needed to sync this object's creation to one or more recepeints.
-    virtual void _syncCreateImpl( hg::RN_NodeInterface& aNode,
-                                  std::vector<hg::PZInteger>& aRecepients) const = 0;
+    virtual void _syncCreateImpl(SyncDetails& aSyncDetails) const = 0;
 
     //! Called when it's needed to sync this object's update to one or more recepeints.
-    virtual void _syncUpdateImpl( hg::RN_NodeInterface& aNode,
-                                  std::vector<hg::PZInteger>& aRecepients) const = 0;
+    virtual void _syncUpdateImpl(SyncDetails& aSyncDetails) const = 0;
 
     //! Called when it's needed to sync this object's destruction to one or more recepeints.
-    virtual void _syncDestroyImpl(hg::RN_NodeInterface& aNode,
-                                  std::vector<hg::PZInteger>& aRecepients) const = 0;
+    virtual void _syncDestroyImpl(SyncDetails& aSyncDetails) const = 0;
 
     virtual void _scheduleAndAdvanceStatesForDummy(hg::PZInteger aMaxStateSchedulerSize) = 0;
+
+    virtual void _setStateSchedulerDefaultDelay(hg::PZInteger aNewDefaultDelaySteps) = 0;
 };
 
 /*
@@ -201,16 +201,18 @@ protected:
                        const std::type_info& aTypeInfo,
                        int aExecutionPriority,
                        std::string aName,
-                       SynchronizedObjectRegistry& aSyncObjReg,
+                       RegistryId aRegId,
                        SyncId aSyncId = SYNC_ID_NEW)
         : SynchronizedObjectBase{ aRuntimeRef
                                 , aTypeInfo
                                 , aExecutionPriority
                                 , std::move(aName)
-                                , aSyncObjReg
+                                , aRegId
                                 , aSyncId
                                 }
-        , _ssch{aSyncObjReg.getDefaultDelay()}
+        , _ssch{ 
+            reinterpret_cast<detail::SynchronizedObjectRegistry*>(aRegId.address)->getDefaultDelay()
+        }
     {
     }
 
@@ -230,6 +232,10 @@ private:
         _ssch.advance();
         _ssch.advanceDownTo(aMaxStateSchedulerSize);
     }
+
+    void _setStateSchedulerDefaultDelay(hg::PZInteger aNewDefaultDelaySteps) override final {
+        _ssch.setDefaultDelay(aNewDefaultDelaySteps);
+    }
 };
 
 ///////////////////////////////////////////////////////////////////////////
@@ -241,11 +247,11 @@ void DefaultSyncCreateHandler(hg::RN_NodeInterface& node,
                               SyncId syncId) {
     node.callIfClient(
         [&](hg::RN_ClientInterface& client) {
-            auto& ctx        = *client.getUserDataOrThrow<taContext>();
-            auto& runtime    = ctx.getQAORuntime();
-            auto& syncObjReg = ctx.getComponent<taNetwMgr>().getSyncObjReg();
+            auto& ctx     = *client.getUserDataOrThrow<taContext>();
+            auto& runtime = ctx.getQAORuntime();
+            auto  regId   = ctx.getComponent<taNetwMgr>().getRegistryId();
 
-            hg::QAO_PCreate<taSyncObj>(&runtime, syncObjReg, syncId);
+            hg::QAO_PCreate<taSyncObj>(&runtime, regId, syncId);
         });
 
     node.callIfServer(
@@ -262,7 +268,8 @@ void DefaultSyncUpdateHandler(hg::RN_NodeInterface& node,
         [&](hg::RN_ClientInterface& client) {
             auto& ctx        = *client.getUserDataOrThrow<taContext>();
             auto& runtime    = ctx.getQAORuntime();
-            auto& syncObjReg = ctx.getComponent<taNetwMgr>().getSyncObjReg();
+            auto  regId      = ctx.getComponent<taNetwMgr>().getRegistryId();
+            auto& syncObjReg = *reinterpret_cast<detail::SynchronizedObjectRegistry*>(regId.address);
             auto& object     = *static_cast<taSyncObj*>(syncObjReg.getMapping(syncId));
 
             const auto latency = client.getServerConnector().getRemoteInfo().latency;
@@ -286,7 +293,8 @@ void DefaultSyncDestroyHandler(hg::RN_NodeInterface& node,
         [&](hg::RN_ClientInterface& client) {
             auto& ctx        = *client.getUserDataOrThrow<taContext>();
             auto& runtime    = ctx.getQAORuntime();
-            auto& syncObjReg = ctx.getComponent<taNetwMgr>().getSyncObjReg();
+            auto  regId      = ctx.getComponent<taNetwMgr>().getRegistryId();
+            auto& syncObjReg = *reinterpret_cast<detail::SynchronizedObjectRegistry*>(regId.address);
             auto* object     = static_cast<taSyncObj*>(syncObjReg.getMapping(syncId));
 
             const auto latency = client.getServerConnector().getRemoteInfo().latency;
@@ -351,14 +359,18 @@ void DefaultSyncDestroyHandler(hg::RN_NodeInterface& node,
         SPEMPEIMPL_GENERATE_DEFAULT_SYNC_HANDLERS(_class_name_, SPEMPEIMPL_MACRO_EXPAND_VA _for_events_) \
     )
 
-#define SPEMPE_SYNC_CREATE_DEFAULT_IMPL(_class_name_, _node_, _recepients_) \
-    Compose_SPEMPEIMPL_Create##_class_name_(_node_, _recepients_, getSyncId())
+#define SPEMPE_SYNC_CREATE_DEFAULT_IMPL(_class_name_, _sync_details_) \
+    Compose_SPEMPEIMPL_Create##_class_name_(_sync_details_.getNode(), \
+                                            _sync_details_.getRecepients(), getSyncId())
 
-#define SPEMPE_SYNC_UPDATE_DEFAULT_IMPL(_class_name_, _node_, _recepients_) \
-    Compose_SPEMPEIMPL_Update##_class_name_(_node_, _recepients_, getSyncId(), _getCurrentState())
+#define SPEMPE_SYNC_UPDATE_DEFAULT_IMPL(_class_name_, _sync_details_) \
+    Compose_SPEMPEIMPL_Update##_class_name_(_sync_details_.getNode(), \
+                                            _sync_details_.getRecepients(), getSyncId(), \
+                                            _getCurrentState())
 
-#define SPEMPE_SYNC_DESTROY_DEFAULT_IMPL(_class_name_, _node_, _recepients_) \
-    Compose_SPEMPEIMPL_Destroy##_class_name_(_node_, _recepients_, getSyncId())
+#define SPEMPE_SYNC_DESTROY_DEFAULT_IMPL(_class_name_, _sync_details_) \
+    Compose_SPEMPEIMPL_Destroy##_class_name_(_sync_details_.getNode(), \
+                                            _sync_details_.getRecepients(), getSyncId())
 
 } // namespace spempe
 } // namespace jbatnozic

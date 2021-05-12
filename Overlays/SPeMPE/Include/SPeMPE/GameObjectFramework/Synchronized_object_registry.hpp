@@ -17,12 +17,42 @@ namespace hg = ::jbatnozic::hobgoblin;
 using SyncId = std::uint64_t;
 constexpr SyncId SYNC_ID_NEW = 0;
 
+struct RegistryId {
+    std::intptr_t address;
+};
+
+namespace detail {
+class SynchronizedObjectRegistry;
+} // namespace detail
+
+struct SyncDetails {
+    //! The node through which the sync messages need to be sent.
+    hg::RN_NodeInterface& getNode() const {
+        return *_node;
+    }
+
+    //! Vector of client indices of (recepients) to which sync messages
+    //! need to be sent.
+    const std::vector<hg::PZInteger> getRecepients() {
+        return _recepients;
+    }
+
+private:
+    hg::RN_NodeInterface* _node = nullptr;
+    std::vector<hg::PZInteger> _recepients;
+
+    friend class detail::SynchronizedObjectRegistry;
+};
+
 class SynchronizedObjectBase;
 
-// TODO Control state buffering from here
-class SynchronizedObjectRegistry : public hg::util::NonCopyable, public hg::util::NonMoveable {
+namespace detail {
+
+class SynchronizedObjectRegistry 
+    : public hg::util::NonCopyable
+    , public hg::util::NonMoveable {
 public:
-    SynchronizedObjectRegistry(hg::RN_NodeInterface& node);
+    SynchronizedObjectRegistry(hg::RN_NodeInterface& node, hg::PZInteger defaultDelay);
 
     void setNode(hg::RN_NodeInterface& node);
 
@@ -39,19 +69,24 @@ public:
     void syncStateUpdates();
     void syncCompleteState(hg::PZInteger clientIndex);
 
-    hg::PZInteger getDefaultDelay() const {
-        return 0; // TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!
-    }
+    hg::PZInteger getDefaultDelay() const;
+
+    //! 
+    void setDefaultDelay(hg::PZInteger aNewDefaultDelaySteps);
 
 private:
     std::unordered_map<SyncId, SynchronizedObjectBase*> _mappings;
     std::unordered_set<const SynchronizedObjectBase*> _newlyCreatedObjects;
     std::unordered_set<const SynchronizedObjectBase*> _alreadyUpdatedObjects;
     std::unordered_set<const SynchronizedObjectBase*> _alreadyDestroyedObjects;
-    std::vector<hg::PZInteger> _recepientVec;
+
+    SyncDetails _syncDetails;
+
     SyncId _syncIdCounter = 2;
-    hg::RN_NodeInterface* _node = nullptr;
+    hg::PZInteger _defaultDelay;
 };
+
+} // namespace detail
 
 } // namespace spempe
 } // namespace jbatnozic

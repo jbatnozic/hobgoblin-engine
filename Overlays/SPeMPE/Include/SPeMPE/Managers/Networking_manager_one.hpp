@@ -17,7 +17,8 @@ class NetworkingManagerOne
     , public NonstateObject {
 public:
     NetworkingManagerOne(hg::QAO_RuntimeRef aRuntimeRef,
-                         int aExecutionPriority);
+                         int aExecutionPriority,
+                         hg::PZInteger aStateBufferingLength);
 
     ///////////////////////////////////////////////////////////////////////////
     // CONFIGURATION                                                         //
@@ -53,7 +54,11 @@ public:
     // SYNCHRONIZATION                                                       //
     ///////////////////////////////////////////////////////////////////////////
 
-    SynchronizedObjectRegistry& getSyncObjReg() override;
+    RegistryId getRegistryId() override;
+
+    hg::PZInteger getStateBufferingLength() const override;
+
+    void setStateBufferingLength(hg::PZInteger aNewStateBufferingLength) override;
 
     ///////////////////////////////////////////////////////////////////////////
     // MISC.                                                                 //
@@ -70,7 +75,7 @@ private:
     int _localPlayerIndex = PLAYER_INDEX_NONE;
 
     std::unique_ptr<NodeType> _node;
-    SynchronizedObjectRegistry _syncObjReg;
+    detail::SynchronizedObjectRegistry _syncObjReg;
 
     std::vector<NetworkingEventListener*> _eventListeners;
 

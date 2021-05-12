@@ -65,7 +65,18 @@ public:
     // SYNCHRONIZATION                                                       //
     ///////////////////////////////////////////////////////////////////////////
 
-    virtual SynchronizedObjectRegistry& getSyncObjReg() = 0;
+    virtual RegistryId getRegistryId() = 0;
+
+    virtual hg::PZInteger getStateBufferingLength() const = 0;
+
+    //! buffering = 0: no delay, everything displayed immediately
+    //! buffering > 0: everything delayed by a number of steps to give time to
+    //!                account for and amortize latency, reduce jittering etc.
+    //! WARNING: This only sets the value locally! If you want to have the same 
+    //! buffering lengths for all players, you need to solve that problem manually
+    //! (there are no hard blockers to everyone having different buffering
+    //! lengths, everything will still work).
+    virtual void setStateBufferingLength(hg::PZInteger aNewStateBufferingLength) = 0;
 
     ///////////////////////////////////////////////////////////////////////////
     // MISC.                                                                 //

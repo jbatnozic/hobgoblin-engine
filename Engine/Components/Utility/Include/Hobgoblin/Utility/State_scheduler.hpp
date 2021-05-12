@@ -35,6 +35,8 @@ public:
 
     PZInteger getDefaultDelay() const noexcept;
 
+    void setDefaultDelay(PZInteger newDefaultDelay);
+
     // Access stored states:
 
     TState& getCurrentState();
@@ -190,6 +192,24 @@ void StateScheduler<TState>::advanceDownTo(PZInteger maxSize) {
 template <class TState>
 PZInteger StateScheduler<TState>::getDefaultDelay() const noexcept {
     return _stateBufferMinSize - 1;
+}
+
+template <class TState>
+void StateScheduler<TState>::setDefaultDelay(PZInteger newDefaultDelay) {
+    const auto currentDefaultDelay = _stateBufferMinSize - 1;
+    if (newDefaultDelay > currentDefaultDelay) {
+        for (int i = 0; i < (newDefaultDelay - currentDefaultDelay); i += 1) {
+            _stateBuffer.push_front(_stateBuffer.front());
+            if (_blueTailPos >= 0) {
+                _blueTailPos += 1;
+            }
+        }
+        _stateBufferMinSize = newDefaultDelay + 1;
+    }
+    else if (newDefaultDelay < currentDefaultDelay) {
+        _stateBufferMinSize = newDefaultDelay + 1;
+        advanceDownTo(_stateBufferMinSize);
+    }
 }
 
 // Access states:

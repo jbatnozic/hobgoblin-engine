@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <type_traits>
 
 #include <iostream> 
 
@@ -10,10 +11,11 @@ namespace jbatnozic {
 namespace spempe {
 
 NetworkingManagerOne::NetworkingManagerOne(hg::QAO_RuntimeRef aRuntimeRef,
-                                           int aExecutionPriority)
+                                           int aExecutionPriority,
+                                           hg::PZInteger aStateBufferingLength)
     : NonstateObject{aRuntimeRef, SPEMPE_TYPEID_SELF, aExecutionPriority, "spempe::NetworkingManagerOne"}
     , _node{hg::RN_ServerFactory::createDummyServer()}
-    , _syncObjReg{getNode()}
+    , _syncObjReg{getNode(), aStateBufferingLength}
 {
 }
 
@@ -112,8 +114,18 @@ void NetworkingManagerOne::removeEventListener(NetworkingEventListener& aListene
 // SYNCHRONIZATION                                                       //
 ///////////////////////////////////////////////////////////////////////////
 
-SynchronizedObjectRegistry& NetworkingManagerOne::getSyncObjReg() {
-    return _syncObjReg;
+RegistryId NetworkingManagerOne::getRegistryId() {
+    return {
+        reinterpret_cast< decltype(std::declval<RegistryId>().address) >(&_syncObjReg)
+    };
+}
+
+hg::PZInteger NetworkingManagerOne::getStateBufferingLength() const {
+    return _syncObjReg.getDefaultDelay();
+}
+
+void NetworkingManagerOne::setStateBufferingLength(hg::PZInteger aNewStateBufferingLength) {
+    _syncObjReg.setDefaultDelay(aNewStateBufferingLength);
 }
 
 ///////////////////////////////////////////////////////////////////////////

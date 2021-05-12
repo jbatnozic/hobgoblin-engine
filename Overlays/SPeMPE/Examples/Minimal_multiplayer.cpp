@@ -49,9 +49,9 @@ struct PlayerAvatar_VisibleState {
 class PlayerAvatar : public spe::SynchronizedObject<PlayerAvatar_VisibleState> {
 public:
     PlayerAvatar(QAO_RuntimeRef aRuntimeRef,
-                 spe::SynchronizedObjectRegistry& aSyncObjReg,
+                 spe::RegistryId aRegId,
                  spe::SyncId aSyncId)
-        : SyncObjSuper{aRuntimeRef, SPEMPE_TYPEID_SELF, 0 /* exepr */, "PlayerAvatar", aSyncObjReg, aSyncId}
+        : SyncObjSuper{aRuntimeRef, SPEMPE_TYPEID_SELF, 0 /* exepr */, "PlayerAvatar", aRegId, aSyncId}
     {
     }
 

@@ -22,13 +22,17 @@ void GetIndicesForComposingToEveryone(const hg::RN_NodeInterface& node, std::vec
 }
 } // namespace
 
-SynchronizedObjectRegistry::SynchronizedObjectRegistry(hg::RN_NodeInterface& node)
-    : _node{&node}
+namespace detail {
+
+SynchronizedObjectRegistry::SynchronizedObjectRegistry(hg::RN_NodeInterface& node,
+                                                       hg::PZInteger defaultDelay)
+    : _defaultDelay{defaultDelay}
 {
+    _syncDetails._node = &node;
 }
 
 void SynchronizedObjectRegistry::setNode(hg::RN_NodeInterface& node) {
-    _node = &node;
+    _syncDetails._node = &node;
 }
 
 SyncId SynchronizedObjectRegistry::registerMasterObject(SynchronizedObjectBase* object) {
@@ -69,11 +73,11 @@ SynchronizedObjectBase* SynchronizedObjectRegistry::getMapping(SyncId syncId) co
 }
 
 void SynchronizedObjectRegistry::syncStateUpdates() {
-    GetIndicesForComposingToEveryone(*_node, _recepientVec);
+    GetIndicesForComposingToEveryone(*_syncDetails._node, _syncDetails._recepients);
 
     // Sync creations:
     for (auto* object : _newlyCreatedObjects) {
-        object->_syncCreateImpl(*_node, _recepientVec);
+        object->_syncCreateImpl(_syncDetails);
     }
     _newlyCreatedObjects.clear();
 
@@ -88,7 +92,7 @@ void SynchronizedObjectRegistry::syncStateUpdates() {
             // _alreadyUpdatedObjects.erase(iter);
         }
         else {
-            object->_syncUpdateImpl(*_node, _recepientVec);
+            object->_syncUpdateImpl(_syncDetails);
         }
     }
     _alreadyUpdatedObjects.clear();
@@ -97,46 +101,58 @@ void SynchronizedObjectRegistry::syncStateUpdates() {
 }
 
 void SynchronizedObjectRegistry::syncCompleteState(hg::PZInteger clientIndex) {
-    _recepientVec.resize(1);
-    _recepientVec[0] = clientIndex;
+    _syncDetails._recepients.resize(1);
+    _syncDetails._recepients[0] = clientIndex;
 
     for (auto& mapping : _mappings) {
         auto* object = mapping.second;
-        object->_syncCreateImpl(*_node, _recepientVec);
-        object->_syncUpdateImpl(*_node, _recepientVec);
+        object->_syncCreateImpl(_syncDetails);
+        object->_syncUpdateImpl(_syncDetails);
+    }
+}
+
+hg::PZInteger SynchronizedObjectRegistry::getDefaultDelay() const {
+    return _defaultDelay;
+}
+
+void SynchronizedObjectRegistry::setDefaultDelay(hg::PZInteger aNewDefaultDelaySteps) {
+    _defaultDelay = aNewDefaultDelaySteps;
+    for (auto& mapping : _mappings) {
+        auto* object = mapping.second;
+        object->_setStateSchedulerDefaultDelay(aNewDefaultDelaySteps);
     }
 }
 
 void SynchronizedObjectRegistry::syncObjectCreate(const SynchronizedObjectBase* object) {
     assert(object);
-    GetIndicesForComposingToEveryone(*_node, _recepientVec);
-    object->_syncCreateImpl(*_node, _recepientVec);
+    GetIndicesForComposingToEveryone(*_syncDetails._node, _syncDetails._recepients);
+    object->_syncCreateImpl(_syncDetails);
 
     _newlyCreatedObjects.erase(object);
 }
 
 void SynchronizedObjectRegistry::syncObjectUpdate(const SynchronizedObjectBase* object) {
     assert(object);
-    GetIndicesForComposingToEveryone(*_node, _recepientVec);
+    GetIndicesForComposingToEveryone(*_syncDetails._node, _syncDetails._recepients);
 
     // Synchronized object sync Update called manualy, before the registry got to
     // sync its Create. We need to fix this because the order of these is important!
     {
         auto iter = _newlyCreatedObjects.find(object);
         if (iter != _newlyCreatedObjects.end()) {
-            object->_syncCreateImpl(*_node, _recepientVec);
+            object->_syncCreateImpl(_syncDetails);
             _newlyCreatedObjects.erase(iter);
         }
     }
 
-    object->_syncUpdateImpl(*_node, _recepientVec);
+    object->_syncUpdateImpl(_syncDetails);
 
     _alreadyUpdatedObjects.insert(object);
 }
 
 void SynchronizedObjectRegistry::syncObjectDestroy(const SynchronizedObjectBase* object) {
     assert(object);
-    GetIndicesForComposingToEveryone(*_node, _recepientVec);
+    GetIndicesForComposingToEveryone(*_syncDetails._node, _syncDetails._recepients);
 
     // It could happen that a Synchronized object is destroyed before
     // its Update event - or even its Create event - were synced.
@@ -144,14 +160,14 @@ void SynchronizedObjectRegistry::syncObjectDestroy(const SynchronizedObjectBase*
         {
             auto iter = _newlyCreatedObjects.find(object);
             if (iter != _newlyCreatedObjects.end()) {
-                object->_syncCreateImpl(*_node, _recepientVec);
+                object->_syncCreateImpl(_syncDetails);
                 _newlyCreatedObjects.erase(iter);
             }
         }
         {
             auto iter = _alreadyUpdatedObjects.find(object);
             if (iter == _alreadyUpdatedObjects.end()) {
-                object->_syncUpdateImpl(*_node, _recepientVec);
+                object->_syncUpdateImpl(_syncDetails);
             #ifndef NDEBUG
                 // This isn't really needed as we don't expect to sync an object's
                 // destruction from anywhere other than its destructor, where it will
@@ -163,10 +179,12 @@ void SynchronizedObjectRegistry::syncObjectDestroy(const SynchronizedObjectBase*
         }
     }
 
-    object->_syncDestroyImpl(*_node, _recepientVec);
+    object->_syncDestroyImpl(_syncDetails);
 
     _alreadyDestroyedObjects.insert(object);
 }
+
+} // namespace detail
 
 } // namespace spempe
 } // namespace jbatnozic

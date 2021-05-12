@@ -14,10 +14,10 @@ SynchronizedObjectBase::SynchronizedObjectBase(hg::QAO_RuntimeRef aRuntimeRef,
                                                const std::type_info& aTypeInfo,
                                                int aExecutionPriority,
                                                std::string aName,
-                                               SynchronizedObjectRegistry& aSyncObjReg,
+                                               RegistryId aRegId,
                                                SyncId aSyncId)
     : StateObject{aRuntimeRef, aTypeInfo, aExecutionPriority, std::move(aName)}
-    , _syncObjReg{aSyncObjReg}
+    , _syncObjReg{*reinterpret_cast<detail::SynchronizedObjectRegistry*>(aRegId.address)}
     , _syncId{(aSyncId == SYNC_ID_NEW) ? _syncObjReg.registerMasterObject(this) : aSyncId}
 {
     if (!isMasterObject()) {

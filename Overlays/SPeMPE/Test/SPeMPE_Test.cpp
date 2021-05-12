@@ -13,16 +13,18 @@
 namespace jbatnozic {
 namespace spempe {
 
+namespace {
+
 class SPeMPE_Test : public ::testing::Test {
 protected:
     void SetUp() override {
         hg::RN_IndexHandlers();
     }
 
+    // Held in an optional<> so we can destroy on demand.
     std::optional<GameContext> _gameCtx{GameContext::RuntimeConfig{}};
 };
 
-namespace {
 class DummyInterface : public ContextComponent {
 public:
     virtual std::int64_t getData() const = 0;
@@ -105,6 +107,18 @@ TEST_F(SPeMPE_Test, ChildContextTest) {
 
 namespace {
 
+class SPeMPE_SynchronizedTest : public ::testing::Test {
+protected:
+    void SetUp() override {
+        hg::RN_IndexHandlers();
+    }
+
+    std::optional<GameContext> _serverCtx{GameContext::RuntimeConfig{}};
+    std::optional<GameContext> _clientCtx{GameContext::RuntimeConfig{}};
+};
+
+
+
 //! "Dropped" when an Avatar object dies.
 class AvatarDrop : public NonstateObject {
 public:
@@ -126,9 +140,9 @@ struct Avatar_VisibleState {
 class Avatar : public SynchronizedObject<Avatar_VisibleState> {
 public:
     Avatar(hg::QAO_RuntimeRef aRuntimeRef,
-           SynchronizedObjectRegistry& aSyncObjReg,
+           RegistryId aRegId,
            SyncId aSyncId)
-        : SyncObjSuper{aRuntimeRef, SPEMPE_TYPEID_SELF, 0, "Avatar", aSyncObjReg, aSyncId}
+        : SyncObjSuper{aRuntimeRef, SPEMPE_TYPEID_SELF, 0, "Avatar", aRegId, aSyncId}
     {
     }
 
@@ -163,155 +177,149 @@ protected:
     }
 
 private:
-    void _syncCreateImpl(hg::RN_NodeInterface& aNode,
-                         std::vector<hg::PZInteger>& aRecepients) const override;
-
-    void _syncUpdateImpl(hg::RN_NodeInterface& aNode,
-                         std::vector<hg::PZInteger>& aRecepients) const override;
-
-    void _syncDestroyImpl(hg::RN_NodeInterface& aNode,
-                          std::vector<hg::PZInteger>& aRecepients) const override;
+    void _syncCreateImpl(SyncDetails& aSyncDetails) const override;
+    void _syncUpdateImpl(SyncDetails& aSyncDetails) const override;
+    void _syncDestroyImpl(SyncDetails& aSyncDetails) const override;
 };
 
 SPEMPE_GENERATE_DEFAULT_SYNC_HANDLERS(Avatar, (CREATE, UPDATE, DESTROY));
 
-void Avatar::_syncCreateImpl(hg::RN_NodeInterface& aNode,
-                             std::vector<hg::PZInteger>& aRecepients) const {
-    SPEMPE_SYNC_CREATE_DEFAULT_IMPL(Avatar, aNode, aRecepients);
+void Avatar::_syncCreateImpl(SyncDetails& aSyncDetails) const {
+    SPEMPE_SYNC_CREATE_DEFAULT_IMPL(Avatar, aSyncDetails);
 }
 
-void Avatar::_syncUpdateImpl(hg::RN_NodeInterface& aNode,
-                             std::vector<hg::PZInteger>& aRecepients) const {
-    SPEMPE_SYNC_UPDATE_DEFAULT_IMPL(Avatar, aNode, aRecepients);
+void Avatar::_syncUpdateImpl(SyncDetails& aSyncDetails) const {
+    SPEMPE_SYNC_UPDATE_DEFAULT_IMPL(Avatar, aSyncDetails);
 }
 
-void Avatar::_syncDestroyImpl(hg::RN_NodeInterface& aNode,
-                              std::vector<hg::PZInteger>& aRecepients) const {
-    SPEMPE_SYNC_DESTROY_DEFAULT_IMPL(Avatar, aNode, aRecepients);
+void Avatar::_syncDestroyImpl(SyncDetails& aSyncDetails) const {
+    SPEMPE_SYNC_DESTROY_DEFAULT_IMPL(Avatar, aSyncDetails);
 }
 
 using MNetworking = NetworkingManagerInterface;
 
 } // namespace
 
-TEST_F(SPeMPE_Test, SynchronizationTest) {
-    std::optional<GameContext> clientCtx{GameContext::RuntimeConfig{}};
-
+TEST_F(SPeMPE_SynchronizedTest, BasicTest) {
     {
         SCOPED_TRACE("Configure contexts");
 
-        // Server context:
-        _gameCtx->setToMode(GameContext::Mode::Server);
+        constexpr static int BUFFERING_LENGTH = 0;
 
-        auto netwMgr1 = std::make_unique<NetworkingManagerOne>(_gameCtx->getQAORuntime().nonOwning(), 0);
+        // Server context:
+        _serverCtx->setToMode(GameContext::Mode::Server);
+
+        auto netwMgr1 = std::make_unique<NetworkingManagerOne>(_serverCtx->getQAORuntime().nonOwning(), 
+                                                               0, BUFFERING_LENGTH);
         netwMgr1->setToMode(MNetworking::Mode::Server);
-        _gameCtx->attachAndOwnComponent(std::move(netwMgr1));
+        _serverCtx->attachAndOwnComponent(std::move(netwMgr1));
 
         // Client context:
-        clientCtx->setToMode(GameContext::Mode::Client);
+        _clientCtx->setToMode(GameContext::Mode::Client);
 
-        auto netwMgr2 = std::make_unique<NetworkingManagerOne>(clientCtx->getQAORuntime().nonOwning(), 0);
+        auto netwMgr2 = std::make_unique<NetworkingManagerOne>(_clientCtx->getQAORuntime().nonOwning(), 
+                                                               0, BUFFERING_LENGTH);
         netwMgr2->setToMode(MNetworking::Mode::Client);
-        clientCtx->attachAndOwnComponent(std::move(netwMgr2));
+        _clientCtx->attachAndOwnComponent(std::move(netwMgr2));
     }
     {
         SCOPED_TRACE("Establish conection between contexts");
 
-        ASSERT_TRUE(_gameCtx->getComponent<MNetworking>().isServer());
-        ASSERT_TRUE(clientCtx->getComponent<MNetworking>().isClient());
+        ASSERT_TRUE(_serverCtx->getComponent<MNetworking>().isServer());
+        ASSERT_TRUE(_clientCtx->getComponent<MNetworking>().isClient());
 
-        auto& server = _gameCtx->getComponent<MNetworking>().getServer();
-        auto& client = clientCtx->getComponent<MNetworking>().getClient();
+        auto& server = _serverCtx->getComponent<MNetworking>().getServer();
+        auto& client = _clientCtx->getComponent<MNetworking>().getClient();
         
-        server.setUserData(static_cast<GameContext*>(&*_gameCtx));
+        server.setUserData(static_cast<GameContext*>(&*_serverCtx));
         server.start(0);
 
-        client.setUserData(static_cast<GameContext*>(&*clientCtx));
+        client.setUserData(static_cast<GameContext*>(&*_clientCtx));
         client.connectLocal(server);
 
-        _gameCtx->runFor(1);
-        clientCtx->runFor(1);
+        _serverCtx->runFor(1);
+        _clientCtx->runFor(1);
     }
     {
         SCOPED_TRACE("Add a synchronized Avatar instance to server");
 
-        hg::QAO_PCreate<Avatar>(&_gameCtx->getQAORuntime(), 
-                                _gameCtx->getComponent<MNetworking>().getSyncObjReg(),
+        hg::QAO_PCreate<Avatar>(&_serverCtx->getQAORuntime(), 
+                                _serverCtx->getComponent<MNetworking>().getRegistryId(),
                                 SYNC_ID_NEW);
 
-        _gameCtx->runFor(1);
-        clientCtx->runFor(1);
+        _serverCtx->runFor(1);
+        _clientCtx->runFor(1);
 
-        auto* dummy = dynamic_cast<Avatar*>(clientCtx->getQAORuntime().find("Avatar"));
+        auto* dummy = dynamic_cast<Avatar*>(_clientCtx->getQAORuntime().find("Avatar"));
         ASSERT_NE(dummy, nullptr);
         EXPECT_EQ(dummy->getCustomData(), Avatar::VisibleState::CD_INITIAL);
     }
     {
         SCOPED_TRACE("Check state updates");
 
-        auto* master = dynamic_cast<Avatar*>(_gameCtx->getQAORuntime().find("Avatar"));
+        auto* master = dynamic_cast<Avatar*>(_serverCtx->getQAORuntime().find("Avatar"));
         ASSERT_NE(master, nullptr);
         master->setCustomData(Avatar::VisibleState::CD_INITIAL + 5);
 
-        _gameCtx->runFor(1);
-        clientCtx->runFor(1);
+        _serverCtx->runFor(1);
+        _clientCtx->runFor(1);
 
-        auto* dummy = dynamic_cast<Avatar*>(clientCtx->getQAORuntime().find("Avatar"));
+        auto* dummy = dynamic_cast<Avatar*>(_clientCtx->getQAORuntime().find("Avatar"));
         ASSERT_NE(dummy, nullptr);
         EXPECT_EQ(dummy->getCustomData(), Avatar::VisibleState::CD_INITIAL + 5);
     }
     {
         SCOPED_TRACE("Check destruction");
 
-        auto* master = dynamic_cast<Avatar*>(_gameCtx->getQAORuntime().find("Avatar"));
+        auto* master = dynamic_cast<Avatar*>(_serverCtx->getQAORuntime().find("Avatar"));
         ASSERT_NE(master, nullptr);
         hg::QAO_PDestroy(master);
 
-        _gameCtx->runFor(1);
-        clientCtx->runFor(1);
+        _serverCtx->runFor(1);
+        _clientCtx->runFor(1);
 
-        auto* dummy = dynamic_cast<Avatar*>(clientCtx->getQAORuntime().find("Avatar"));
+        auto* dummy = dynamic_cast<Avatar*>(_clientCtx->getQAORuntime().find("Avatar"));
         ASSERT_EQ(dummy, nullptr);
 
         // Clean up drops:
-        while (auto* drop = _gameCtx->getQAORuntime().find("AvatarDrop")) {
+        while (auto* drop = _serverCtx->getQAORuntime().find("AvatarDrop")) {
             hg::QAO_PDestroy(drop);
         }
-        while (auto* drop = clientCtx->getQAORuntime().find("AvatarDrop")) {
+        while (auto* drop = _clientCtx->getQAORuntime().find("AvatarDrop")) {
             hg::QAO_PDestroy(drop);
         }
     }
     {
         SCOPED_TRACE("Check instant sync. obj. destruction after creation");
 
-        auto* obj = hg::QAO_PCreate<Avatar>(&_gameCtx->getQAORuntime(), 
-                                            _gameCtx->getComponent<MNetworking>().getSyncObjReg(),
+        auto* obj = hg::QAO_PCreate<Avatar>(&_serverCtx->getQAORuntime(), 
+                                            _serverCtx->getComponent<MNetworking>().getRegistryId(),
                                             SYNC_ID_NEW);
         obj->setCustomData(Avatar::VisibleState::CD_INITIAL + 12);
         hg::QAO_PDestroy(obj);
 
-        _gameCtx->runFor(1);
-        clientCtx->runFor(1);
+        _serverCtx->runFor(1);
+        _clientCtx->runFor(1);
 
-        auto* clDrop = dynamic_cast<AvatarDrop*>(clientCtx->getQAORuntime().find("AvatarDrop"));
+        auto* clDrop = dynamic_cast<AvatarDrop*>(_clientCtx->getQAORuntime().find("AvatarDrop"));
         ASSERT_NE(clDrop, nullptr);
         EXPECT_EQ(clDrop->customData, Avatar::VisibleState::CD_INITIAL + 12);
 
         // Clean up drops:
-        while (auto* drop = _gameCtx->getQAORuntime().find("AvatarDrop")) {
+        while (auto* drop = _serverCtx->getQAORuntime().find("AvatarDrop")) {
             hg::QAO_PDestroy(drop);
         }
-        while (auto* drop = clientCtx->getQAORuntime().find("AvatarDrop")) {
+        while (auto* drop = _clientCtx->getQAORuntime().find("AvatarDrop")) {
             hg::QAO_PDestroy(drop);
         }
     }
     {
         SCOPED_TRACE("Clean up client context");
-        clientCtx.reset();
+        _clientCtx.reset();
     }
     {
         SCOPED_TRACE("Clean up server context");
-        _gameCtx.reset();
+        _serverCtx.reset();
     }
 }
 
