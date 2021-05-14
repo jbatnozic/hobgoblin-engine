@@ -94,9 +94,9 @@ private:
 
     // Keyboard & mouse input:
 
-    void eventPostUpdate() override;
-    void eventDraw2() override;
-    void eventFinalizeFrame() override;
+    void _eventPostUpdate() override;
+    void _eventDraw2() override;
+    void _eventFinalizeFrame() override;
 
     void _drawMainRenderTexture();
     void _finalizeFrameByDisplayingWindow();

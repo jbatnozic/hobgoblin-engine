@@ -32,8 +32,8 @@ public:
 protected:
     void onNetworkingEvent(const RN_Event& ev);
 
-    void eventPostUpdate() override;
-    void eventDraw1() override;
+    void _eventPostUpdate() override;
+    void _eventDraw1() override;
 
 private:
     struct CellPhycsisData : Collideables::ITerrain {

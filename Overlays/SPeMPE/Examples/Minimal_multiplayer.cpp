@@ -75,7 +75,8 @@ public:
         self.hidden = false;
     }
 
-    void eventUpdate(spe::IfMaster) override {
+private:
+    void _eventUpdate(spe::IfMaster) override {
         auto& self = _getCurrentState();
         assert(self.owningPlayerIndex >= 0);
 
@@ -84,7 +85,7 @@ public:
         self.y += (5.f * ((float)controls.down  - (float)controls.up));
     }
 
-    void eventDraw1() override {
+    void _eventDraw1() override {
         const auto& self = _getCurrentState();
         if (self.hidden || self.owningPlayerIndex < 0) {
             return;
@@ -96,7 +97,6 @@ public:
         ccomp<MWindow>().getCanvas().draw(circle);
     }
 
-private:
     void _syncCreateImpl(spe::SyncDetails& aSyncDetails) const override;
     void _syncUpdateImpl(spe::SyncDetails& aSyncDetails) const override;
     void _syncDestroyImpl(spe::SyncDetails& aSyncDetails) const override;
@@ -151,7 +151,7 @@ public:
 private:
     std::vector<hg::util::StateScheduler<PlayerControls>> _schedulers;
 
-    void eventPreUpdate() {
+    void _eventPreUpdate() {
         if (ctx().isPrivileged()) {
             for (auto& scheduler : _schedulers) {
                 scheduler.scheduleNewStates();
@@ -160,9 +160,9 @@ private:
         }
     }
 
-    void eventUpdate() override;
+    void _eventUpdate() override;
 
-    void eventPostUpdate() {
+    void _eventPostUpdate() {
         if (ctx().isPrivileged()) {
             for (auto& scheduler : _schedulers) {
                 scheduler.advance();
@@ -208,7 +208,7 @@ RN_DEFINE_RPC(PushPlayerControls, RN_ARGS(PlayerControls&, aControls)) {
         });
 }
 
-void GameplayManager::eventUpdate() {
+void GameplayManager::_eventUpdate() {
     if (!ctx().isPrivileged() &&
         ccomp<MNetworking>().getLocalPlayerIndex() >= 0 &&
         ccomp<MNetworking>().getClient().getServerConnector().getStatus() == hg::RN_ConnectorStatus::Connected) {

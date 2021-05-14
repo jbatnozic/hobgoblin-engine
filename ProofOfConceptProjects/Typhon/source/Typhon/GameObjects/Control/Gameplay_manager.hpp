@@ -14,9 +14,9 @@ public:
     void restartGame();
 
 protected:
-    void eventUpdate() override;
-    void eventPostUpdate() override;
-    void eventDrawGUI() override;
+    void _eventUpdate() override;
+    void _eventPostUpdate() override;
+    void _eventDrawGUI() override;
 
 private:
     void onNetworkingEvent(const RN_Event& event) override;

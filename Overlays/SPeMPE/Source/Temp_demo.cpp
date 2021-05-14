@@ -59,7 +59,7 @@ protected:
         // ...
     }
 
-    void eventDraw1() override {
+    void _eventDraw1() override {
         // ...
     }
 

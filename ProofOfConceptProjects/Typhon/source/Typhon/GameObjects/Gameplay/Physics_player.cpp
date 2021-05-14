@@ -91,7 +91,7 @@ PhysicsPlayer::~PhysicsPlayer() {
     }
 }
 
-void PhysicsPlayer::eventUpdate() {
+void PhysicsPlayer::_eventUpdate() {
     using hg::math::AngleD;
     using hg::math::PointDirection;
 
@@ -285,7 +285,7 @@ void PhysicsPlayer::eventUpdate() {
     }
 }
 
-void PhysicsPlayer::eventPostUpdate() {
+void PhysicsPlayer::_eventPostUpdate() {
     auto& self = _ssch.getCurrentState();
     if (ctx().isPrivileged()) {
         auto physicsPos = cpBodyGetPosition(_body.get());
@@ -301,7 +301,7 @@ void PhysicsPlayer::eventPostUpdate() {
     _lightHandle.setPosition(self.x, self.y);
 }
 
-void PhysicsPlayer::eventDraw1() {
+void PhysicsPlayer::_eventDraw1() {
     auto& canvas = ctx(MWindow).getCanvas();
     auto& self = _ssch.getCurrentState();
 
@@ -320,7 +320,7 @@ void PhysicsPlayer::eventDraw1() {
     ctx(MWindow).getCanvas().draw(sprite);
 }
 
-void PhysicsPlayer::eventDrawGUI() {
+void PhysicsPlayer::_eventDrawGUI() {
     auto& self = _ssch.getCurrentState();
 
     if (self.playerIndex == ctx().getLocalPlayerIndex()) {

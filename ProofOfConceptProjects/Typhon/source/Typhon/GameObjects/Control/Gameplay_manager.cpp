@@ -102,7 +102,7 @@ void GameplayManager::restartGame() {
     }
 }
 
-void GameplayManager::eventUpdate() {
+void GameplayManager::_eventUpdate() {
     // Exit:
     if (ctx(DKeyboard).keyPressed(KbKey::Escape)) {
         ctx().stop();
@@ -133,11 +133,11 @@ void GameplayManager::eventUpdate() {
     view.move({moveSpeed * static_cast<float>(right - left), moveSpeed * static_cast<float>(down - up)});
 }
 
-void GameplayManager::eventPostUpdate() {
+void GameplayManager::_eventPostUpdate() {
     cpSpaceStep(ctx(DPhysicsSpace), ctx().getRuntimeConfig().getDeltaTime().count());
 }
 
-void GameplayManager::eventDrawGUI() {
+void GameplayManager::_eventDrawGUI() {
     // DRAW PERFORMANCE INFO:
     {
         sf::Text text;

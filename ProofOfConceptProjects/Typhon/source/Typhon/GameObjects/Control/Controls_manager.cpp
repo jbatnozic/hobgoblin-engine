@@ -58,7 +58,7 @@ void ControlsManager::putNewControls(hg::PZInteger playerIndex, const PlayerCont
     _schedulers[playerIndex].putNewState(controls, delaySteps);
 }
 
-void ControlsManager::eventPreUpdate() {
+void ControlsManager::_eventPreUpdate() {
     if (ctx().getLocalPlayerIndex() == spempe::PLAYER_INDEX_UNKNOWN) {
         return;
     }
@@ -83,7 +83,7 @@ void ControlsManager::eventPreUpdate() {
     }
 }
 
-void ControlsManager::eventUpdate() {
+void ControlsManager::_eventUpdate() {
     if (ctx().getLocalPlayerIndex() > 0 && 
         ctx(MNetworking).getClient().getServerConnector().getStatus() == hg::RN_ConnectorStatus::Connected) {
         auto& scheduler = _schedulers[ctx().getLocalPlayerIndex()];
@@ -91,7 +91,7 @@ void ControlsManager::eventUpdate() {
     }
 }
 
-void ControlsManager::eventPostUpdate() {
+void ControlsManager::_eventPostUpdate() {
     for (auto& scheduler : _schedulers) {
         scheduler.advance();
     }

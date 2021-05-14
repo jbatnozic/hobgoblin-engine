@@ -143,12 +143,12 @@ int NetworkingManagerOne::getLocalPlayerIndex() {
 // PROTECTED & PRIVATE METHODS                                           //
 ///////////////////////////////////////////////////////////////////////////
 
-void NetworkingManagerOne::eventPreUpdate() {
+void NetworkingManagerOne::_eventPreUpdate() {
     _node->update(hg::RN_UpdateMode::Receive);
     _handleEvents();
 }
 
-void NetworkingManagerOne::eventPostUpdate() {
+void NetworkingManagerOne::_eventPostUpdate() {
     // Update all Synchronized objects
     if (_node->isServer()) {
         _syncObjReg.syncStateUpdates();

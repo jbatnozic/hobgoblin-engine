@@ -55,10 +55,10 @@ public:
     }
 
 protected:
-    void eventUpdate() override;
-    void eventPostUpdate() override;
-    void eventDraw1() override;
-    void eventDrawGUI() override;
+    void _eventUpdate() override;
+    void _eventPostUpdate() override;
+    void _eventDraw1() override;
+    void _eventDrawGUI() override;
 
 private:
     hg::util::StateScheduler<VisibleState> _ssch;

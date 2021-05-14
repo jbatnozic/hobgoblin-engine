@@ -42,16 +42,6 @@ public:
 
     friend util::PacketBase& operator<<(util::PacketBase& packet, const QAO_Base& self);
 
-protected:
-    virtual void eventStartFrame()    {}
-    virtual void eventPreUpdate()     {}
-    virtual void eventUpdate()        {}
-    virtual void eventPostUpdate()    {}
-    virtual void eventDraw1()         {}
-    virtual void eventDraw2()         {}
-    virtual void eventDrawGUI()       {}
-    virtual void eventFinalizeFrame() {}
-
 private:
     struct Context {
         std::int64_t stepOrdinal = 0;
@@ -75,6 +65,15 @@ private:
     Context _context;
     const std::type_info& _typeInfo;
     int _execution_priority;
+
+    virtual void _eventStartFrame()    {}
+    virtual void _eventPreUpdate()     {}
+    virtual void _eventUpdate()        {}
+    virtual void _eventPostUpdate()    {}
+    virtual void _eventDraw1()         {}
+    virtual void _eventDraw2()         {}
+    virtual void _eventDrawGUI()       {}
+    virtual void _eventFinalizeFrame() {}
 
     void _callEvent(QAO_Event::Enum ev);
 

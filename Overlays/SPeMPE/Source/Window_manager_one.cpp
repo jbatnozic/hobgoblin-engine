@@ -131,20 +131,20 @@ const sf::View& WindowManagerOne::getView(hg::PZInteger aViewIndex) const {
 // PRIVATE METHODS                                                       //
 ///////////////////////////////////////////////////////////////////////////
 
-void WindowManagerOne::eventPostUpdate() {
+void WindowManagerOne::_eventPostUpdate() {
     if (!_headless) {
         _mainRenderTexture->clear(hg::gr::Color::Black); // TODO Parametrize colour
     }
 }
 
-void WindowManagerOne::eventDraw2() {
+void WindowManagerOne::_eventDraw2() {
     if (!_headless) {
         _window->clear(sf::Color::Black); // TODO Parametrize colour
         _drawMainRenderTexture();
     }
 }
 
-void WindowManagerOne::eventFinalizeFrame() {
+void WindowManagerOne::_eventFinalizeFrame() {
     if (!_headless) {
         _finalizeFrameByDisplayingWindow();
     }

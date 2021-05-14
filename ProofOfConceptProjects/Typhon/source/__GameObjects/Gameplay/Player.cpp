@@ -96,13 +96,13 @@ Player::~Player() {
     }
 }
 
-void Player::eventPreUpdate() {
+void Player::_eventPreUpdate() {
     if (!ctx().isPrivileged()) {
         _ssch.advance();
     }
 }
 
-void Player::eventUpdate() {
+void Player::_eventUpdate() {
     if (ctx().isPrivileged()) {
         move(_ssch.getCurrentState());
     }
@@ -136,7 +136,7 @@ void Player::eventUpdate() {
     }
 }
 
-void Player::eventDraw1() {
+void Player::_eventDraw1() {
     static const sf::Color COLORS[] = {sf::Color::Blue, sf::Color::Red, sf::Color::Green, sf::Color::Yellow};
 
     if (ctx().isPrivileged()) {

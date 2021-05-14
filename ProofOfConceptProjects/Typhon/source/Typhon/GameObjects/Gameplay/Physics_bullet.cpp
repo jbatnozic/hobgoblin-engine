@@ -67,7 +67,7 @@ cpBody* PhysicsBullet::getPhysicsBody() const {
     return _body.get();
 }
 
-void PhysicsBullet::eventUpdate() {
+void PhysicsBullet::_eventUpdate() {
     if (ctx().isPrivileged()) {
         if (_hitSomething) {
             QAO_PDestroy(this);
@@ -80,7 +80,7 @@ void PhysicsBullet::eventUpdate() {
     }
 }
 
-void PhysicsBullet::eventPostUpdate() {   
+void PhysicsBullet::_eventPostUpdate() {   
     if (ctx().isPrivileged()) {
         auto& self = _ssch.getCurrentState();
         auto physicsPos = cpBodyGetPosition(_body.get());
@@ -89,7 +89,7 @@ void PhysicsBullet::eventPostUpdate() {
     }
 }
 
-void PhysicsBullet::eventDraw1() {
+void PhysicsBullet::_eventDraw1() {
     auto& canvas = ctx(MWindow).getCanvas();
     auto& self = _ssch.getCurrentState();
 

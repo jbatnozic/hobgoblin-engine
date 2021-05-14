@@ -67,8 +67,8 @@ public:
     int getLocalPlayerIndex() override;
 
 protected:
-    void eventPreUpdate() override;
-    void eventPostUpdate() override;
+    void _eventPreUpdate() override;
+    void _eventPostUpdate() override;
 
 private:
     Mode _mode = Mode::Uninitialized;

@@ -100,14 +100,14 @@ void QAO_Base::setName(std::string newName) {
 void QAO_Base::_callEvent(QAO_Event::Enum ev) {
     using EventHandlerPointer = void(QAO_Base::*)();
     const EventHandlerPointer handlers[QAO_Event::Count] = {
-        &QAO_Base::eventStartFrame,
-        &QAO_Base::eventPreUpdate,
-        &QAO_Base::eventUpdate,
-        &QAO_Base::eventPostUpdate,
-        &QAO_Base::eventDraw1,
-        &QAO_Base::eventDraw2,
-        &QAO_Base::eventDrawGUI,
-        &QAO_Base::eventFinalizeFrame
+        &QAO_Base::_eventStartFrame,
+        &QAO_Base::_eventPreUpdate,
+        &QAO_Base::_eventUpdate,
+        &QAO_Base::_eventPostUpdate,
+        &QAO_Base::_eventDraw1,
+        &QAO_Base::_eventDraw2,
+        &QAO_Base::_eventDrawGUI,
+        &QAO_Base::_eventFinalizeFrame
     };
     assert(ev >= 0 && ev < QAO_Event::Count);
     (this->*handlers[ev])();

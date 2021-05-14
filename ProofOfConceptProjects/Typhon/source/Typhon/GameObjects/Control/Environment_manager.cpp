@@ -211,12 +211,12 @@ void EnvironmentManager::onNetworkingEvent(const RN_Event& ev) {
     );
 }
 
-void EnvironmentManager::eventPostUpdate() {
+void EnvironmentManager::_eventPostUpdate() {
     //_lightingCtrl.render();
     //_lightingCtrl.smooth();
 }
 
-void EnvironmentManager::eventDraw1() {
+void EnvironmentManager::_eventDraw1() {
     auto& view = ctx(MWindow).getView();
     hg::PZInteger startX = std::max(0, (int)std::floor((view.getCenter().x - view.getSize().x / 2.f) / _cellResolution));
     hg::PZInteger startY = std::max(0, (int)std::floor((view.getCenter().y - view.getSize().y / 2.f) / _cellResolution));

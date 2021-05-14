@@ -5,7 +5,7 @@
 #include "Experimental/Isometric_tester.hpp"
 #include "GameContext/Game_context.hpp"
 
-void IsometricTester::eventDraw1() {
+void IsometricTester::_eventDraw1() {
     auto& renderTarget = ctx().windowMgr.getMainRenderTexture();
 
     for (const auto& block : _blocks) {
@@ -32,7 +32,7 @@ void IsometricTester::eventDraw1() {
     }
 }
 
-void IsometricTester::eventDraw2() {
+void IsometricTester::_eventDraw2() {
     std::sort(_drawBuffer.begin(), _drawBuffer.end(),
               [](const bdfp_t& bdfp1, const bdfp_t& bdfp2) {
                   const Block& block1 = *bdfp1.first;

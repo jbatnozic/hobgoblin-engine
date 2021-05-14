@@ -34,9 +34,9 @@ public:
         buildingSprite.setOrigin({7.f, 209.f});
     }
 
-    void eventDraw1() override;
+    void _eventDraw1() override;
 
-    void eventDraw2() override;
+    void _eventDraw2() override;
 
 private:
     struct Block {

@@ -64,7 +64,7 @@ void SynchronizedObjectBase::doSyncDestroy() const {
     _syncObjReg.syncObjectDestroy(this);
 }
 
-void SynchronizedObjectBase::eventUpdate(IfDummy) {
+void SynchronizedObjectBase::_eventUpdate(IfDummy) {
     _scheduleAndAdvanceStatesForDummy((_syncObjReg.getDefaultDelay() + 1) * 2);
 
     if (_deathCounter > 0) {
@@ -79,75 +79,75 @@ bool SynchronizedObjectBase::_willDieAfterUpdate() const {
     return (_deathCounter == 0);
 }
 
-void SynchronizedObjectBase::eventStartFrame() {
+void SynchronizedObjectBase::_eventStartFrame() {
     if (isMasterObject()) {
-        eventStartFrame(IfMaster{});
+        _eventStartFrame(IfMaster{});
     }
     else {
-        eventStartFrame(IfDummy{});
+        _eventStartFrame(IfDummy{});
     }
 }
 
-void SynchronizedObjectBase::eventPreUpdate() {
+void SynchronizedObjectBase::_eventPreUpdate() {
     if (isMasterObject()) {
-        eventPreUpdate(IfMaster{});
+        _eventPreUpdate(IfMaster{});
     }
     else {
-        eventPreUpdate(IfDummy{});
+        _eventPreUpdate(IfDummy{});
     }
 }
 
-void SynchronizedObjectBase::eventUpdate() {
+void SynchronizedObjectBase::_eventUpdate() {
     if (isMasterObject()) {
-        eventUpdate(IfMaster{});
+        _eventUpdate(IfMaster{});
     }
     else {
-        eventUpdate(IfDummy{});
+        _eventUpdate(IfDummy{});
     }
 }
 
-void SynchronizedObjectBase::eventPostUpdate() {
+void SynchronizedObjectBase::_eventPostUpdate() {
     if (isMasterObject()) {
-        eventPostUpdate(IfMaster{});
+        _eventPostUpdate(IfMaster{});
     }
     else {
-        eventPostUpdate(IfDummy{});
+        _eventPostUpdate(IfDummy{});
     }
 }
 
-void SynchronizedObjectBase::eventDraw1() {
+void SynchronizedObjectBase::_eventDraw1() {
     if (isMasterObject()) {
-        eventDraw1(IfMaster{});
+        _eventDraw1(IfMaster{});
     }
     else {
-        eventDraw1(IfDummy{});
+        _eventDraw1(IfDummy{});
     }
 }
 
-void SynchronizedObjectBase::eventDraw2() {
+void SynchronizedObjectBase::_eventDraw2() {
     if (isMasterObject()) {
-        eventDraw2(IfMaster{});
+        _eventDraw2(IfMaster{});
     }
     else {
-        eventDraw2(IfDummy{});
+        _eventDraw2(IfDummy{});
     }
 }
 
-void SynchronizedObjectBase::eventDrawGUI() {
+void SynchronizedObjectBase::_eventDrawGUI() {
     if (isMasterObject()) {
-        eventDrawGUI(IfMaster{});
+        _eventDrawGUI(IfMaster{});
     }
     else {
-        eventDrawGUI(IfDummy{});
+        _eventDrawGUI(IfDummy{});
     }
 }
 
-void SynchronizedObjectBase::eventFinalizeFrame() {
+void SynchronizedObjectBase::_eventFinalizeFrame() {
     if (isMasterObject()) {
-        eventFinalizeFrame(IfMaster{});
+        _eventFinalizeFrame(IfMaster{});
     }
     else {
-        eventFinalizeFrame(IfDummy{});
+        _eventFinalizeFrame(IfDummy{});
     }
 }
 

@@ -103,26 +103,26 @@ protected:
     // These overloads will be called if the object is a Master object 
     // (that is, executing in a Privileged context).
 
-    virtual void eventStartFrame(IfMaster)    {}
-    virtual void eventPreUpdate(IfMaster)     {}
-    virtual void eventUpdate(IfMaster)        {}
-    virtual void eventPostUpdate(IfMaster)    {}
-    virtual void eventDraw1(IfMaster)         {}
-    virtual void eventDraw2(IfMaster)         {}
-    virtual void eventDrawGUI(IfMaster)       {}
-    virtual void eventFinalizeFrame(IfMaster) {}
+    virtual void _eventStartFrame(IfMaster)    {}
+    virtual void _eventPreUpdate(IfMaster)     {}
+    virtual void _eventUpdate(IfMaster)        {}
+    virtual void _eventPostUpdate(IfMaster)    {}
+    virtual void _eventDraw1(IfMaster)         {}
+    virtual void _eventDraw2(IfMaster)         {}
+    virtual void _eventDrawGUI(IfMaster)       {}
+    virtual void _eventFinalizeFrame(IfMaster) {}
 
     // These overloads will be called if the object is a Dummy object 
     // (that is, executing in a non-Privileged context).
 
-    virtual void eventStartFrame(IfDummy)    {}
-    virtual void eventPreUpdate(IfDummy)     {}
-    virtual void eventUpdate(IfDummy)         ; // This one is special!
-    virtual void eventPostUpdate(IfDummy)    {}
-    virtual void eventDraw1(IfDummy)         {}
-    virtual void eventDraw2(IfDummy)         {}
-    virtual void eventDrawGUI(IfDummy)       {}
-    virtual void eventFinalizeFrame(IfDummy) {}
+    virtual void _eventStartFrame(IfDummy)    {}
+    virtual void _eventPreUpdate(IfDummy)     {}
+    virtual void _eventUpdate(IfDummy)         ; // This one is special!
+    virtual void _eventPostUpdate(IfDummy)    {}
+    virtual void _eventDraw1(IfDummy)         {}
+    virtual void _eventDraw2(IfDummy)         {}
+    virtual void _eventDrawGUI(IfDummy)       {}
+    virtual void _eventFinalizeFrame(IfDummy) {}
 
     // Misc.
     bool _willDieAfterUpdate() const;
@@ -130,14 +130,14 @@ protected:
     // If you override any of the below, the overloads above will not be used.
     // The same code will be executed on both ends.
 
-    void eventStartFrame() override;
-    void eventPreUpdate() override;
-    void eventUpdate() override;
-    void eventPostUpdate() override;
-    void eventDraw1() override;
-    void eventDraw2() override;
-    void eventDrawGUI() override;
-    void eventFinalizeFrame() override;
+    void _eventStartFrame() override;
+    void _eventPreUpdate() override;
+    void _eventUpdate() override;
+    void _eventPostUpdate() override;
+    void _eventDraw1() override;
+    void _eventDraw2() override;
+    void _eventDrawGUI() override;
+    void _eventFinalizeFrame() override;
 
 private:
     friend class detail::SynchronizedObjectRegistry;
@@ -164,7 +164,7 @@ private:
 /*
 Note:
     If an object drived from SynchronizedObject (below), and transitively from
-    SynchronizedObjectBase overries either eventUpdate() or eventUpdate(IfDummy),
+    SynchronizedObjectBase overries either _eventUpdate() or eventUpdate(IfDummy),
     note that the dummy object won't behave properly unless you call the following
     code at the start of its eventUpdate:
     if (!isMasterObject()) {
@@ -179,7 +179,7 @@ Note:
 #define SPEMPE_SYNCOBJ_BEGIN_EVENT_UPDATE_OVERRIDE() \
     do { if (!SynchronizedObjectBase::isMasterObject()) { \
         const bool endOfLifetime_ = SynchronizedObjectBase::_willDieAfterUpdate(); \
-        SynchronizedObjectBase::eventUpdate(::jbatnozic::spempe::IfDummy{}); \
+        SynchronizedObjectBase::_eventUpdate(::jbatnozic::spempe::IfDummy{}); \
         if (endOfLifetime_) { return; } \
     } } while (false)
 

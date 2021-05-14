@@ -35,9 +35,9 @@ public:
     void putNewControls(hg::PZInteger playerIndex, const PlayerControls& controls, int delaySteps);
 
 protected:
-    void eventPreUpdate() override; // TODO To frameStart
-    void eventUpdate() override;
-    void eventPostUpdate() override;
+    void _eventPreUpdate() override; // TODO To frameStart
+    void _eventUpdate() override;
+    void _eventPostUpdate() override;
 
 private:
     std::vector<ControlsScheduler> _schedulers;

@@ -116,16 +116,16 @@ void WindowManager::drawMainRenderTexture(DrawPosition drawPosition) {
     _window.draw(mrtSprite);
 }
 
-void WindowManager::eventPostUpdate() {
+void WindowManager::_eventPostUpdate() {
     _mainRenderTexture.clear(hg::gr::Color::Black);
 }
 
-void WindowManager::eventDraw2() {
+void WindowManager::_eventDraw2() {
     _window.clear(sf::Color::Black);
     drawMainRenderTexture(DrawPosition::Fit);
 }
 
-void WindowManager::eventFinalizeFrame() {
+void WindowManager::_eventFinalizeFrame() {
     if (!_isHeadless) {
         _finalizeFrameByDisplayingWindow();
     }

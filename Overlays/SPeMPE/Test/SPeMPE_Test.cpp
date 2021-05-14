@@ -117,8 +117,6 @@ protected:
     std::optional<GameContext> _clientCtx{GameContext::RuntimeConfig{}};
 };
 
-
-
 //! "Dropped" when an Avatar object dies.
 class AvatarDrop : public NonstateObject {
 public:
@@ -163,11 +161,11 @@ public:
         _getCurrentState().customData = aCustomData;
     }
 
-protected:
-    // Make sure that state scheduling and company work properly even when eventUpdate()
+private:
+    // Make sure that state scheduling and company work properly even when _eventUpdate()
     // is overriden, as long as SPEMPE_SYNCOBJ_BEGIN_EVENT_UPDATE_OVERRIDE() is called 
     // at the start:
-    void eventUpdate() override {
+    void _eventUpdate() override {
         SPEMPE_SYNCOBJ_BEGIN_EVENT_UPDATE_OVERRIDE();
 
         // Make sure nothing is executed after destruction:
@@ -176,7 +174,6 @@ protected:
         setName(getName());
     }
 
-private:
     void _syncCreateImpl(SyncDetails& aSyncDetails) const override;
     void _syncUpdateImpl(SyncDetails& aSyncDetails) const override;
     void _syncDestroyImpl(SyncDetails& aSyncDetails) const override;

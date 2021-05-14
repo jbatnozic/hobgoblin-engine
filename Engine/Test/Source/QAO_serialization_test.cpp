@@ -168,42 +168,42 @@ public:
 
     // Events
 
-    void eventStartFrame() {
+    void _eventStartFrame() {
         _reportVector.push_back(QAO_Event::StartFrame);
         _reportVector.push_back(getExecutionPriority());
     }
 
-    void eventPreUpdate() { 
+    void _eventPreUpdate() { 
         _reportVector.push_back(QAO_Event::PreUpdate);
         _reportVector.push_back(getExecutionPriority());
     }
 
-    void eventUpdate() {
+    void _eventUpdate() {
         _reportVector.push_back(QAO_Event::Update);
         _reportVector.push_back(getExecutionPriority());
     }
 
-    void eventPostUpdate() {
+    void _eventPostUpdate() {
         _reportVector.push_back(QAO_Event::PostUpdate);
         _reportVector.push_back(getExecutionPriority());
     }
 
-    void eventDraw1() {
+    void _eventDraw1() {
         _reportVector.push_back(QAO_Event::Draw1);
         _reportVector.push_back(getExecutionPriority());
     }
 
-    void eventDraw2() {
+    void _eventDraw2() {
         _reportVector.push_back(QAO_Event::Draw2);
         _reportVector.push_back(getExecutionPriority());
     }
 
-    void eventDrawGUI() {
+    void _eventDrawGUI() {
         _reportVector.push_back(QAO_Event::DrawGUI);
         _reportVector.push_back(getExecutionPriority());
     }
 
-    void eventFinalizeFrame() {
+    void _eventFinalizeFrame() {
         _reportVector.push_back(QAO_Event::FinalizeFrame);
         _reportVector.push_back(getExecutionPriority());
     }
@@ -220,7 +220,7 @@ public:
     {
     }
 
-    void eventDraw1() override {
+    void _eventDraw1() override {
         _packet << *getRuntime();
 
         for (auto object : *getRuntime()) {
@@ -248,7 +248,7 @@ public:
     {
     }
 
-    void eventDraw1() override {
+    void _eventDraw1() override {
         _packet >> *getRuntime();
         hg::util::Deserialize(_packet, &_deserCtx);
     }

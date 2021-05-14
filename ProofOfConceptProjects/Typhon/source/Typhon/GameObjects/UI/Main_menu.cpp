@@ -49,7 +49,7 @@ MainMenu::MainMenu(QAO_RuntimeRef runtimeRef)
 {
 }
 
-void MainMenu::eventUpdate() {
+void MainMenu::_eventUpdate() {
     // TODO - Horrible magic method... Refactor this shit...
 #define HOST 1
 #define CLIENT 2

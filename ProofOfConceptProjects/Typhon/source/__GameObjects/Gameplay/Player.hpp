@@ -33,9 +33,9 @@ public:
     virtual void syncDestroyImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const override;
 
 protected:
-    void eventPreUpdate() override;
-    void eventUpdate() override;
-    void eventDraw1() override;
+    void _eventPreUpdate() override;
+    void _eventUpdate() override;
+    void _eventDraw1() override;
 
 public: // State object must be public
     struct State {
