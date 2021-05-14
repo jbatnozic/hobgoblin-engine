@@ -135,7 +135,7 @@ private:
 
 ```
 
-### Creating instances of a game object class + interactions with a runtime
+### Creating instances of a game object class & interactions with a runtime
 
 ```cpp
 QAO_Runtime rt;
@@ -178,3 +178,44 @@ QAO_Destroy(obj1);            // equivalent to `delete obj;`
 QAO_Destroy(obj2);            // equivalent to `delete runtime.find(obj2);`
 QAO_Destroy(std::move(obj3)); // equivalent to `obj3.reset();`
 ```
+
+### Working with IDs
+**(TODO)**
+
+### Running the runtime
+```cpp
+QAO_Runtime rt;
+
+AddSomeObjectsToRuntime(rt); // You implement this part yourself
+
+// Run a single frame
+rt.startStep();
+bool done = false;
+rt.advanceStep(done); // Done will be true if the step finished successfully, and false
+                      // if advanceStep() was exited due to an exception. If you catch and
+                      // handle exceptions, you can keep calling advanceStep(), and it will
+                      // continue where it left off (retrying the same event on the object
+                      // that threw an exception, if it still exists, or the first one after
+                      // it), until done becomes true.
+
+// Run 10 frames and continue on exception
+for (int i = 0; i < 10; i += 1) {
+    runtime.startStep();
+    bool done = false;
+    do {
+        try {
+            runtime.advanceStep(done, eventFlags);
+        }
+        catch (...) {
+            // swallow all exceptions (not a good idea!)
+        }
+    } while (!done);
+}
+
+// Event flags
+// TODO
+
+```
+
+### Inspecting objects within a runtime
+**(TODO)**

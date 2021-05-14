@@ -167,7 +167,7 @@ TEST_F(QAO_Test, ICreate) {
     ASSERT_NE(obj, nullptr);
     ASSERT_EQ(obj->getRuntime(), &_runtime);
 
-    QAO_IDestroy(_runtime, id);
+    QAO_IDestroy(id, _runtime);
     ASSERT_EQ(_runtime.getObjectCount(), 0);
 }
 
