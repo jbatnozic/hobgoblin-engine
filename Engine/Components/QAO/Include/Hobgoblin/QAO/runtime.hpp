@@ -84,7 +84,7 @@ public:
     QAO_Base* find(const std::string& name) const;
     QAO_Base* find(QAO_GenericId id) const;
 
-    template<class T>
+    template <class T>
     T* find(QAO_Id<T> id) const;
 
     void updateExecutionPriorityForObject(QAO_Base* object, int new_priority);
