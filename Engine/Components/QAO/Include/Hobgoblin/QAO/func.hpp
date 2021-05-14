@@ -67,7 +67,7 @@ inline void QAO_PDestroy(QAO_Base* object) {
     delete object;
 }
 
-inline void QAO_IDestroy(QAO_Runtime& runtime, QAO_GenericId id) {
+inline void QAO_IDestroy(QAO_GenericId id, QAO_Runtime& runtime) {
     QAO_Base* const object = runtime.find(id);
     if (object == nullptr || !runtime.ownsObject(object)) {
         throw TracedLogicError("Cannot delete object which is not owned by this runtime!");

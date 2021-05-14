@@ -76,14 +76,38 @@ fit (or leave it empty if it's not needed).
 ## Usage
 Various examples with real usable code.
 
-###Instantiating a runtime
+### Instantiating a runtime
 ```cpp
 ...
 QAO_Runtime runtime; // It's that simple ;)
 ...
 ```
 
-###Creating a simple game object class
+### Getting a QAO_RuntimeRef
+`QAO_RuntimeRef` is a small object that identifies (refers to) a `QAO_Runtime` object. We need one in order to
+instantiate `QAO_Base` (and anything derived from it).
+```cpp
+// Given a runtime 'rt'...
+QAO_Runtime rt;
+
+// We can construct a runtime ref in the following ways:
+QAO_RuntimeRef ref1{rt};  // (passing a reference to a runtime)
+
+QAO_RuntimeRef ref2{&rt}; // We can also pass a pointer (which can be null, and makes
+                          // a valid QAO_RuntimeRef that simply refers to no runtime).
+
+QAO_RuntimeRef ref3{nullptr}; // (See above.) When a null runtime ref is passed to a QAO_Base,
+                              // it doesn't get attached to a runtime.
+
+QAO_RuntimeRef ref4{rt.nonOwning()}; // This one is diferent from the other examples above, because
+                                     // it makes a NON-OWNING runtime ref, meaning that when it is
+                                     // passed to a QAO_Base constructor, it will get attached to a
+                                     // runtime, but that runtime will know that it doesn't own the
+                                     // registered instance, and so won't try to delete it if it is
+                                     // deleted itself.
+```
+
+### Creating a simple game object class
 
 ```cpp
 class MyGameObject : public QAO_Base {
@@ -109,4 +133,48 @@ private:
     ...
 };
 
+```
+
+### Creating instances of a game object class + interactions with a runtime
+
+```cpp
+QAO_Runtime rt;
+
+// Creates an instance of MyGameObject (all arguments passed to QAO_PCreate are passed directly to
+// MyGameObject constructor, same as std::make_unique) and attaches it to the runtime. Returns a
+// non-owning pointer to the created instance. 
+MyGameObject* obj1 = QAO_PCreate<MyGameObject>(&rt);
+
+// TODO(description pending)
+QAO_Id<MyGameObject> obj2 = QAO_ICreate<MyGameObject(&rt);
+
+// Creates an instance of MyGameObject and attaches it to the runtime. The runtime will not own
+// the instance, so the function returns an owning (unique) pointer to the created instance. 
+std::unique_ptr<MyGameObject> obj3 = QAO_PCreate<MyGameObject>(rt.nonOwning());
+
+// This will throw an exception (we pass a non-owning ref, but QAO_PCreate returns a non-owning
+// pointer - so who owns the object?).
+MyGameObject* obj4 = QAO_PCreate<MyGameObject>(rt.nonOwning());
+
+// (same as above) 
+QAO_Id<MyGameObject> obj5 = QAO_ICreate<MyGameObject(rt.nonOwning());
+
+// This will throw an exception (we pass an owning ref, but QAO_UPCreate returns an owning
+// pointer - but there can be only one owner).
+std::unique_ptr<MyGameObject> obj6 = QAO_PCreate<MyGameObject>(rt);
+
+// We can also instantiate the object manually (yes, even on the stack). Unless the object was
+// allocated on the heap using 'new' (which you shouldn't do), we must pass a non-owning
+// reference - otherwise the runtime will try to call 'delete' on the object if it gets
+// destroyed, and you will have a bad time.
+// Note that QAO_Base is not copyable nor moveable, so the practicality of this is moot. But it
+// is definitely possible.
+MyGameObject myGameObject{rt.nonOwning()};
+
+// Objects that were created using `QAO_*Create` functions can be destroyed with `QAO_Destroy()`.
+// We pass whatever was returned by `QAO_*Create` (in case of `QAO_ICreate` we must also pass
+// a runtime where the object currently is).
+QAO_Destroy(obj1);            // equivalent to `delete obj;`
+QAO_Destroy(obj2);            // equivalent to `delete runtime.find(obj2);`
+QAO_Destroy(std::move(obj3)); // equivalent to `obj3.reset();`
 ```
