@@ -22,6 +22,7 @@ set(OVERLAY_SOURCES
   "Source/Game_context.cpp"
   "Source/Networking_manager_one.cpp"
   "Source/Synchronized_object_registry.cpp"
+  "Source/Window_manager_one.cpp"
 
   # "Source/Temp_demo.cpp"
 )
@@ -52,6 +53,7 @@ endif()
 target_link_libraries(${OVERLAY_NAME}
 PUBLIC
   "Hobgoblin.Common"
+  "Hobgoblin.Graphics"
   "Hobgoblin.QAO"
   "Hobgoblin.RigelNet"
   "Hobgoblin.Utility"

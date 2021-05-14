@@ -34,18 +34,21 @@ void NetworkingManagerOne::setToMode(Mode aMode) {
     case Mode::Uninitialized:
         _localPlayerIndex = PLAYER_INDEX_NONE;
         _node = hg::RN_ServerFactory::createDummyServer();
+        _node->setUserData(&ctx());
         _syncObjReg.setNode(*_node);
         break;
 
     case Mode::Server:
         _localPlayerIndex = PLAYER_INDEX_LOCAL_PLAYER;
         _node = hg::RN_ServerFactory::createServer(hg::RN_Protocol::UDP, "pass"); // TODO Parametrize !!!!!!!!!!!
+        _node->setUserData(&ctx());
         _syncObjReg.setNode(*_node);
         break;
 
     case Mode::Client:
         _localPlayerIndex = PLAYER_INDEX_UNKNOWN;
         _node = hg::RN_ClientFactory::createClient(hg::RN_Protocol::UDP, "pass");
+        _node->setUserData(&ctx());
         _syncObjReg.setNode(*_node);
         break;
 
@@ -181,7 +184,7 @@ void NetworkingManagerOne::_handleEvents() {
             [](const RN_Event::Disconnected& ev) {
                 std::cout << "Disconnected (message: " << ev.message << ")\n";
             }
-            );
+        );
 
         for (auto& listener : _eventListeners) {
             listener->onNetworkingEvent(event);

@@ -3,6 +3,7 @@
 
 #include <Hobgoblin/RigelNet.hpp>
 
+#include <SPeMPE/GameContext/Context_components.hpp>
 #include <SPeMPE/GameObjectFramework/Synchronized_object_registry.hpp>
 
 namespace jbatnozic {
@@ -85,7 +86,7 @@ public:
     virtual int getLocalPlayerIndex() = 0;
 
 private:
-    SPEMPE_CTXCOMP_TAG("spempe::NetworkingManagerInterface");
+    SPEMPE_CTXCOMP_TAG("jbatnozic::spempe::NetworkingManagerInterface");
 };
 
 } // namespace spempe

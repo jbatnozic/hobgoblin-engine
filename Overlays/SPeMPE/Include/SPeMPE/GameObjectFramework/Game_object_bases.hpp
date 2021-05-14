@@ -27,7 +27,10 @@ public:
     using hg::QAO_Base::QAO_Base;
 
     //! Shorthand to get the GameContext in which this object lives.
-    GameContext& ctx() const;
+    GameContext& ctx() const {
+        // TODO Temporary implementation
+        return *(getRuntime()->getUserData<GameContext>());
+    }
 
     //! Shorthand to get one of the context components of the context 
     //! in which this object lives.
