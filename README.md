@@ -27,3 +27,14 @@ they are placed in the same repository for faster development in case something 
 Most of the directories have their own Readme file which describes relevant contents in more detail.
 
 ## Build instructions
+If you don't already have it, you will need to install the package manager [Conan](https://conan.io/) in order to be
+able to fetch all of Hobgoblin's dependencies and build it successfully.
+Other than that, you will need [CMake](https://cmake.org/) and a C++ compiler that supports C++17.
+
+```
+1. Set up Conan Remotes
+2. Get dependencies
+3. Build the core
+4. Build an overlay
+(Instructions are Work-in-progress)
+```
