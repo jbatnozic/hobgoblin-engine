@@ -1,5 +1,5 @@
 # EngineCore 
-(See [Concepts](https://github.com/jbatnozic/Hobgoblin#concept))
+(See [Concept](https://github.com/jbatnozic/Hobgoblin#concept))
 
 ## Directories
 Here you will find:

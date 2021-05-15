@@ -10,10 +10,10 @@ dependencies work (Linux and MacOS at least).
 
 ## Concept
 The idea is that when you're using Hobgoblin, you use it in two parts: The 
-[Core](https://github.com/jbatnozic/Hobgoblin/tree/master/EngineCore) and an 
-[Engine Overlay](https://github.com/jbatnozic/Hobgoblin/tree/master/Overlays). The core provides a collection of
-generic and modular tools for various things needed in game development, and then an Overlay is put on top to
-tie them together into a cohesive whole and something that looks more like what you'd expect from a game engine.
+[Core](https://github.com/jbatnozic/Hobgoblin/tree/master/EngineCore#enginecore) and an 
+[Engine Overlay](https://github.com/jbatnozic/Hobgoblin/tree/master/Overlays#engine-overlays). The core provides a
+collection of generic and modular tools for various things needed in game development, and then an Overlay is put on
+top to tie them together into a cohesive whole and something that looks more like what you'd expect from a game engine.
 
 ## Directories
 Here you will find:
