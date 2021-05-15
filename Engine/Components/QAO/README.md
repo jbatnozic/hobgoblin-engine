@@ -248,8 +248,9 @@ you will get an alias to `hg`. So there are a few ways to go about this:
   jbatnozic::hobgoblin::QAO_Runtime rt1;
   jbatnozic::hobgoblin::qao::QAO_Runtime rt2;
 }
-
 ```
+
+```cpp
 #define HOBGOBLIN_SHORT_NAMESPACE
 #include <Hobgoblin/QAO.hpp>
 ...
@@ -257,9 +258,8 @@ you will get an alias to `hg`. So there are a few ways to go about this:
   hg::QAO_Runtime rt1;
   hg::qao::QAO_Runtime rt2;
 }
-```cpp
-
 ```
+
 
 ```cpp
 #define HOBGOBLIN_SHORT_NAMESPACE
