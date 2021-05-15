@@ -10,9 +10,9 @@ The concept of an Engine Overlay is then split in two parts:
 Overlay is then combined with the engine core (basically, it goes "on top" of it) to provide something more akin to
 what you would expect from a fully-fledged game engine.
 
-For example, SPeMPE assumes that you want to make a peer-ro-peer multiplayer game with graphics displayed in a
+For example, SPeMPE assumes that you want to make a peer-to-peer multiplayer game with graphics displayed in a
 single window, so it provides a convenient framework which alleviates much of the pain in writing such games.
 
 ## Directories
 Here you will find:
-- **SPeMPE:** An Overlay for peer-ro-peer multiplayer games with graphics displayed in a single window.
+- **SPeMPE:** An Overlay for peer-to-peer multiplayer games with graphics displayed in a single window.
