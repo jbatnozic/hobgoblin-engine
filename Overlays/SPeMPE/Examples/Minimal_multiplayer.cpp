@@ -155,7 +155,7 @@ private:
         if (ctx().isPrivileged()) {
             for (auto& scheduler : _schedulers) {
                 scheduler.scheduleNewStates();
-                scheduler.advanceDownTo(10); // TODO Temp.
+                scheduler.advanceDownTo(4); // TODO Temp.
             }
         }
     }
@@ -231,7 +231,7 @@ void GameplayManager::_eventUpdate() {
 #define WINDOW_WIDTH           800
 #define WINDOW_HEIGHT          800
 #define FRAMERATE               60
-#define STATE_BUFFERING_LENGTH   1
+#define STATE_BUFFERING_LENGTH   2
 
 enum class GameMode {
     Server, Client
@@ -260,7 +260,12 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
                 "SPeMPE Minimal Multiplayer"
             },
             spe::WindowManagerInterface::MainRenderTextureConfig{{WINDOW_HEIGHT, WINDOW_HEIGHT}},
-            spe::WindowManagerInterface::TimingConfig{FRAMERATE}
+            spe::WindowManagerInterface::TimingConfig{
+                FRAMERATE,
+                false,                                          /* Framerate limiter */
+                (aGameMode == GameMode::Server) ? false : true, /* V-Sync */
+                (aGameMode == GameMode::Server) ? true : false  /* Previce timing*/
+            }
         );
     }
 
@@ -346,3 +351,41 @@ int main(int argc, char* argv[]) {
     const int status = context->runFor(-1);
     return status;
 }
+
+#if 0
+int main() {
+    float x = 400.f, y = 400.f;
+
+    sf::RenderWindow window(sf::VideoMode(800, 800), "SFML works!");
+    //window.setFramerateLimit(60);
+    window.setVerticalSyncEnabled(true);
+
+    sf::CircleShape shape(30.f);
+    shape.setFillColor(sf::Color::Green);
+
+    while (window.isOpen())
+    {
+        sf::Event event;
+        while (window.pollEvent(event))
+        {
+            if (event.type == sf::Event::Closed)
+                window.close();
+        }
+
+        window.clear();
+
+        x += (5.f) * ((int)sf::Keyboard::isKeyPressed(sf::Keyboard::D) - 
+                      (int)sf::Keyboard::isKeyPressed(sf::Keyboard::A));
+
+        y += (5.f) * ((int)sf::Keyboard::isKeyPressed(sf::Keyboard::S) - 
+                      (int)sf::Keyboard::isKeyPressed(sf::Keyboard::W));
+
+        shape.setPosition(x, y);
+        window.draw(shape);
+
+        window.display();
+    }
+
+    return 0;
+}
+#endif

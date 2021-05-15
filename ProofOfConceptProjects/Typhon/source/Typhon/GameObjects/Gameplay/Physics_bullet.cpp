@@ -2,6 +2,7 @@
 #include <Hobgoblin/Graphics.hpp>
 #include <Typhon/Graphics/Sprites.hpp>
 
+#include <algorithm>
 #include <cmath>
 
 #include "Physics_bullet.hpp"
@@ -76,7 +77,7 @@ void PhysicsBullet::_eventUpdate() {
     else{
         _ssch.scheduleNewStates();
         _ssch.advance();
-        _ssch.advanceDownTo(ctx().syncBufferLength * 2);
+        _ssch.advanceDownTo(std::max(1, ctx().syncBufferLength * 2));
     }
 }
 

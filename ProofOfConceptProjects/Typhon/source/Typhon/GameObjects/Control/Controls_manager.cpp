@@ -1,6 +1,7 @@
 
 #include <SFML/System.hpp>
 
+#include <algorithm>
 #include <iostream>
 
 #include "Controls_manager.hpp"
@@ -79,7 +80,7 @@ void ControlsManager::_eventPreUpdate() {
 
     for (auto& scheduler : _schedulers) {
         scheduler.scheduleNewStates();
-        scheduler.advanceDownTo(ctx().syncBufferLength * 2);
+        scheduler.advanceDownTo(std::max(1, ctx().syncBufferLength * 2));
     }
 }
 

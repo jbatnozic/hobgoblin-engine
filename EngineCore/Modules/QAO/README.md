@@ -45,7 +45,7 @@ Like in `PreUpdate`, interactions between objects should be minimal.
 - **Draw1:** The game world is drawn. You can have each object resposible for drawing its own state, or have one
 object that draws everything,
 - **Draw2:** Same as `Draw1` basically. But, because things drawn later appear on top of those drawn before, it can
-sometimes be useful to have 2 separate Draw events to it's easier to order everything properly.'
+sometimes be useful to have 2 separate Draw events to it's easier to order everything properly.
 - **DrawGUI:** A GUI always goes on top of everything else, so it's natural to draw it last. (Also, it's worth noting
 that a GUI is usually drawn relative to the 'window' coordinate system and not the 'game world' coordinate system.)
 - **FinalizeFrame:** Code that absolutely must run after everything else. Usually you'll only have 2 actions here: 

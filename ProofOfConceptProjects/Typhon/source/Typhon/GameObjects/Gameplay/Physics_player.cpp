@@ -2,6 +2,7 @@
 #include <Hobgoblin/Graphics.hpp>
 #include <Hobgoblin/Math.hpp>
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
@@ -216,6 +217,7 @@ void PhysicsPlayer::_eventUpdate() {
 
         // FIRING PLASMA:
         if (CountPeriodic(&_fireCounter, 7, controls.fire)) {
+        //if (controls.fire) {
             auto selfVel = cpBodyGetVelocity(_body.get());
             auto selfPos = cpBodyGetPosition(_body.get());
             auto selfRot = cpBodyGetRotation(_body.get());
@@ -263,7 +265,7 @@ void PhysicsPlayer::_eventUpdate() {
     else {
         _ssch.scheduleNewStates();
         _ssch.advance();
-        _ssch.advanceDownTo(ctx().syncBufferLength * 2);
+        _ssch.advanceDownTo(std::max(1, ctx().syncBufferLength * 2));
     }
 
     // MOVE CAMERA:
