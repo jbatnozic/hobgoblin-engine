@@ -1,8 +1,9 @@
 [requires]
-sfml/2.5.1@bincrafters/stable
-ztcpp/1.1.1@jbatnozic/stable
+sfml/2.5.1@jbatnozic/stable
+ztcpp/1.2.0@jbatnozic/stable
 
 [options]
+sfml:shared=False
 sfml:audio=True
 sfml:graphics=True
 sfml:network=True

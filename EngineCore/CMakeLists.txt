@@ -14,7 +14,7 @@ conan_basic_setup(TARGETS)
 
 # ===== ADD MODULES =====
 
-add_subdirectory("Components")
+add_subdirectory("Modules")
 add_subdirectory("Test")
 add_subdirectory("DebugExe")
 

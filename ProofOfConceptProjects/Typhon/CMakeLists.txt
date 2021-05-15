@@ -70,24 +70,24 @@ set(TYPHON_TARGET_NAME
 )
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    link_directories(../../Engine/Build/Hobgoblin-x64-Debug/lib)
+    link_directories(../../EngineCore/Build/Hobgoblin-x64-Debug/lib)
 else()
-    link_directories(../../Engine/Build/Hobgoblin-x64-Release/lib)
+    link_directories(../../EngineCore/Build/Hobgoblin-x64-Release/lib)
 endif()
 
 add_executable(${TYPHON_TARGET_NAME}
     ${TYPHON_SOURCE_ALL}
 )
 
-target_include_directories(${TYPHON_TARGET_NAME} PUBLIC ../../Engine/Components/ChipmunkPhysics/Include)
-target_include_directories(${TYPHON_TARGET_NAME} PUBLIC ../../Engine/Components/Common/Include)
-target_include_directories(${TYPHON_TARGET_NAME} PUBLIC ../../Engine/Components/Graphics/Include)
-target_include_directories(${TYPHON_TARGET_NAME} PUBLIC ../../Engine/Components/Math/Include)
-target_include_directories(${TYPHON_TARGET_NAME} PUBLIC ../../Engine/Components/Preprocessor/Include)
-target_include_directories(${TYPHON_TARGET_NAME} PUBLIC ../../Engine/Components/Private/Include)
-target_include_directories(${TYPHON_TARGET_NAME} PUBLIC ../../Engine/Components/QAO/Include)
-target_include_directories(${TYPHON_TARGET_NAME} PUBLIC ../../Engine/Components/RigelNet/Include)
-target_include_directories(${TYPHON_TARGET_NAME} PUBLIC ../../Engine/Components/Utility/Include)
+target_include_directories(${TYPHON_TARGET_NAME} PUBLIC ../../EngineCore/Modules/ChipmunkPhysics/Include)
+target_include_directories(${TYPHON_TARGET_NAME} PUBLIC ../../EngineCore/Modules/Common/Include)
+target_include_directories(${TYPHON_TARGET_NAME} PUBLIC ../../EngineCore/Modules/Graphics/Include)
+target_include_directories(${TYPHON_TARGET_NAME} PUBLIC ../../EngineCore/Modules/Math/Include)
+target_include_directories(${TYPHON_TARGET_NAME} PUBLIC ../../EngineCore/Modules/Preprocessor/Include)
+target_include_directories(${TYPHON_TARGET_NAME} PUBLIC ../../EngineCore/Modules/Private/Include)
+target_include_directories(${TYPHON_TARGET_NAME} PUBLIC ../../EngineCore/Modules/QAO/Include)
+target_include_directories(${TYPHON_TARGET_NAME} PUBLIC ../../EngineCore/Modules/RigelNet/Include)
+target_include_directories(${TYPHON_TARGET_NAME} PUBLIC ../../EngineCore/Modules/Utility/Include)
 target_include_directories(${TYPHON_TARGET_NAME} PUBLIC source)
 
 target_link_libraries(${TYPHON_TARGET_NAME} PUBLIC

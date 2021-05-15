@@ -33,21 +33,21 @@ add_library(${OVERLAY_NAME} STATIC ${OVERLAY_SOURCES})
 target_include_directories(${OVERLAY_NAME} PUBLIC "Include/")
 
 # Hobgoblin includes
-target_include_directories(${OVERLAY_NAME} PUBLIC "../../Engine/Components/ChipmunkPhysics/Include")
-target_include_directories(${OVERLAY_NAME} PUBLIC "../../Engine/Components/Common/Include")
-target_include_directories(${OVERLAY_NAME} PUBLIC "../../Engine/Components/Graphics/Include")
-target_include_directories(${OVERLAY_NAME} PUBLIC "../../Engine/Components/Math/Include")
-target_include_directories(${OVERLAY_NAME} PUBLIC "../../Engine/Components/Preprocessor/Include")
-target_include_directories(${OVERLAY_NAME} PUBLIC "../../Engine/Components/Private/Include")
-target_include_directories(${OVERLAY_NAME} PUBLIC "../../Engine/Components/QAO/Include")
-target_include_directories(${OVERLAY_NAME} PUBLIC "../../Engine/Components/RigelNet/Include")
-target_include_directories(${OVERLAY_NAME} PUBLIC "../../Engine/Components/Utility/Include")
+target_include_directories(${OVERLAY_NAME} PUBLIC "../../EngineCore/Modules/ChipmunkPhysics/Include")
+target_include_directories(${OVERLAY_NAME} PUBLIC "../../EngineCore/Modules/Common/Include")
+target_include_directories(${OVERLAY_NAME} PUBLIC "../../EngineCore/Modules/Graphics/Include")
+target_include_directories(${OVERLAY_NAME} PUBLIC "../../EngineCore/Modules/Math/Include")
+target_include_directories(${OVERLAY_NAME} PUBLIC "../../EngineCore/Modules/Preprocessor/Include")
+target_include_directories(${OVERLAY_NAME} PUBLIC "../../EngineCore/Modules/Private/Include")
+target_include_directories(${OVERLAY_NAME} PUBLIC "../../EngineCore/Modules/QAO/Include")
+target_include_directories(${OVERLAY_NAME} PUBLIC "../../EngineCore/Modules/RigelNet/Include")
+target_include_directories(${OVERLAY_NAME} PUBLIC "../../EngineCore/Modules/Utility/Include")
 
 # Hobgoblin libs
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    target_link_directories(${OVERLAY_NAME} PUBLIC "../../Engine/Build/Hobgoblin-x64-Debug/lib")
+    target_link_directories(${OVERLAY_NAME} PUBLIC "../../EngineCore/Build/Hobgoblin-x64-Debug/lib")
 else()
-    target_link_directories(${OVERLAY_NAME} PUBLIC "../../Engine/Build/Hobgoblin-x64-Release/lib")
+    target_link_directories(${OVERLAY_NAME} PUBLIC "../../EngineCore/Build/Hobgoblin-x64-Release/lib")
 endif()
 
 target_link_libraries(${OVERLAY_NAME}
