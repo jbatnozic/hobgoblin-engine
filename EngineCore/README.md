@@ -1,4 +1,4 @@
-# EngineCore 
+# Engine Core 
 (See [Concept](https://github.com/jbatnozic/Hobgoblin#concept))
 
 ## Directories

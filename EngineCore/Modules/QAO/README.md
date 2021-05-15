@@ -223,7 +223,8 @@ for (int i = 0; i < 10; i += 1) {
 Most commonly, you'll be running the `startStep()`/`advanceStep()` combo in an infinite loop, and break only when
 some external condition is met (user clicked X, pressed Escape, etc). However, QAO itself doesn't keep track of time
 at all. If you want a consistent framerate (for example, if your game doesn't use delta time), it is up to you to 
-implement vSync or some other timing mechanism. SPeMPE's `WindowManager` (link missing) can also help with this.
+implement vSync or some other timing mechanism. [SPeMPE](https://github.com/jbatnozic/Hobgoblin#hobgoblin)'s
+`WindowManager` can also help with this.
 
 ### Inspecting objects within a runtime
 **(TODO)**
