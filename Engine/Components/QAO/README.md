@@ -29,6 +29,9 @@ There are a number of predefined events in QAO (in order in which they run):
 | 7 | DrawGUI       | `_eventDrawGUI()`       |
 | 8 | FinalizeFrame | `_eventFinalizeFrame()` |
 
+**Note:** All of these methods are private. But don't worry, in C++ it is possible to override private methods
+(furthermore, it's a good practice).
+
 While you can write any code for any given event, each has a specific intended purpose, and you should stick to 
 these guidelines for best results:
 - **StartFrame:** For code that absolutely must execute before anything else. This is the least used event.
@@ -47,7 +50,7 @@ sometimes be useful to have 2 separate Draw events to it's easier to order every
 that a GUI is usually drawn relative to the 'window' coordinate system and not the 'game world' coordinate system.)
 - **FinalizeFrame:** Code that absolutely must run after everything else. Usually you'll only have 2 actions here: 
 display everything that was drawn onto the screen, and then wait some time so the next frame doesn't start too quickly
-(because we want a constant framerate).
+(if we want a constant framerate).
 
 Typically, over the course of a single frame, all the events are run, in their order of appearance above. So, first
 `_eventStartFrame()` will be called for all objects in the runtime, then `_eventPreUpdate()` will be called for all
@@ -171,12 +174,12 @@ std::unique_ptr<MyGameObject> obj6 = QAO_PCreate<MyGameObject>(rt);
 // is definitely possible.
 MyGameObject myGameObject{rt.nonOwning()};
 
-// Objects that were created using `QAO_*Create` functions can be destroyed with `QAO_Destroy()`.
-// We pass whatever was returned by `QAO_*Create` (in case of `QAO_ICreate` we must also pass
+// Objects that were created using 'QAO_*Create' functions can be destroyed with 'QAO_Destroy()'.
+// We pass whatever was returned by 'QAO_*Create' (in case of `QAO_ICreate` we must also pass
 // a runtime where the object currently is).
-QAO_Destroy(obj1);            // equivalent to `delete obj;`
-QAO_Destroy(obj2);            // equivalent to `delete runtime.find(obj2);`
-QAO_Destroy(std::move(obj3)); // equivalent to `obj3.reset();`
+QAO_Destroy(obj1);            // equivalent to 'delete obj';
+QAO_Destroy(obj2);            // equivalent to 'delete runtime.find(obj2)';
+QAO_Destroy(std::move(obj3)); // equivalent to 'obj3.reset()';
 ```
 
 ### Working with IDs
@@ -204,10 +207,10 @@ for (int i = 0; i < 10; i += 1) {
     bool done = false;
     do {
         try {
-            runtime.advanceStep(done, eventFlags);
+            rt.advanceStep(done);
         }
         catch (...) {
-            // swallow all exceptions (not a good idea!)
+            // swallow all exceptions (in general, a very bad idea!)
         }
     } while (!done);
 }
@@ -217,5 +220,54 @@ for (int i = 0; i < 10; i += 1) {
 
 ```
 
+Most commonly, you'll be running the `startStep()`/`advanceStep()` combo in an infinite loop, and break only when
+some external condition is met (user clicked X, pressed Escape, etc). However, QAO itself doesn't keep track of time
+at all. If you want a consistent framerate (for example, if your game doesn't use delta time), it is up to you to 
+implement vSync or some other timing mechanism. SPeMPE's `WindowManager` (link missing) can also help with this.
+
 ### Inspecting objects within a runtime
 **(TODO)**
+
+### Priority resolvers
+Since it can be very important to set up execution priorities for all objects inside of a runtime correctly, QAO
+includes two classes that can help with that: `QAO_PriorityResolver` and (very imaginatively) `QAO_PriorityResolver2`.
+
+**(TODO)**
+
+## Miscellaneous information
+
+### Namespaces
+By default, all QAO symbols are present in both `::jbatnozic::hobgoblin` and `::jbatnozic::hobgoblin::qao`
+namespaces. Like all Hobgoblin modules, if `HOBGOBLIN_SHORT_NAMESPACE` is defined before including the headers,
+you will get an alias to `hg`. So there are a few ways to go about this:
+
+```cpp
+#include <Hobgoblin/QAO.hpp>
+...
+{
+  jbatnozic::hobgoblin::QAO_Runtime rt1;
+  jbatnozic::hobgoblin::qao::QAO_Runtime rt2;
+}
+
+```
+#define HOBGOBLIN_SHORT_NAMESPACE
+#include <Hobgoblin/QAO.hpp>
+...
+{
+  hg::QAO_Runtime rt1;
+  hg::qao::QAO_Runtime rt2;
+}
+```cpp
+
+```
+
+```cpp
+#define HOBGOBLIN_SHORT_NAMESPACE
+#include <Hobgoblin/QAO.hpp>
+// All the names are prefixed with QAO_ so this isn't so bad
+using namespace hg::qao; 
+...
+{
+  QAO_Runtime rt;
+}
+```
