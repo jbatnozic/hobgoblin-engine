@@ -23,6 +23,9 @@ EXIT /b 1
 
 ECHO "All required tools found!"
 
+MKDIR Build.Temp
+CD Build.Temp
+
 ECHO "Getting SFML..."
 git clone https://github.com/bincrafters/conan-sfml.git
 CD conan-sfml
@@ -45,3 +48,8 @@ conan export . %ZTCPP_VERSION%@jbatnozic/stable
 CD ..
 
 ECHO "All required Conan recipes exported!"
+
+REM Clean up
+CD ..
+DEL /f /s /q Build.Temp 1>NUL
+RMDIR /s /q Build.Temp
