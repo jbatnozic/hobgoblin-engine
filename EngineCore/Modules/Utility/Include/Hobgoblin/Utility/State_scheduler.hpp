@@ -126,7 +126,7 @@ void StateScheduler<TState>::scheduleNewStates() {
     int pos = _stateBufferMinSize - _newStatesDelay - ToPz(_newStates.size());
 
     if (pos >= 0) {
-        for (auto& state : _newStates) {
+        for (const auto& state : _newStates) {
             setAt(state, pos);
             pos += 1;
         }
@@ -146,7 +146,7 @@ void StateScheduler<TState>::scheduleNewStates() {
     else {
         pos = 0;
 
-        for (auto& state : _newStates) {
+        for (const auto& state : _newStates) {
             setAt(state, pos);
             pos += 1;
         }
