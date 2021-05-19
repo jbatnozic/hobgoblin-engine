@@ -25,7 +25,6 @@ bool RN_DefaultRetransmitPredicate(PZInteger /*aCyclesSinceLastTransmit*/,
 //! in a thread-safe way.
 class RN_UdpConnectorImpl::LocalConnectionSharedState {
 public:
-
 #define LCSS_STATUS_ACTIVE         0
 #define LCSS_STATUS_ENDED_GRACEFUL 1
 #define LCSS_STATUS_ENDED_ERROR    2
@@ -39,37 +38,42 @@ public:
 
     void putData(RN_UdpConnectorImpl& aSelf,
                  std::deque<TaggedPacket>&& aData) {
-        std::lock_guard<decltype(_mutex)> lock{_mutex};
-        auto& targetDeque = (&aSelf == &_connector1) ? _packetsForConnector2 
-                                                     : _packetsForConnector1;
-        if (targetDeque.empty()) {
-            targetDeque = std::move(aData);
-        }
-        else {
-            for (auto& curr : aData) {
-                targetDeque.emplace_back();
-                targetDeque.back().packet = std::move(curr.packet);
+        {
+            std::lock_guard<decltype(_mutex)> lock{_mutex};
+            auto& targetDeque = (&aSelf == &_connector1) ? _packetsForConnector2 
+                                                         : _packetsForConnector1;
+            if (targetDeque.empty()) {
+                targetDeque = std::move(aData);
+            }
+            else {
+                for (auto& curr : aData) {
+                    targetDeque.emplace_back();
+                    targetDeque.back().packet = std::move(curr.packet);
+                }
             }
         }
         aData.clear();
     }
 
     //! Returns true if any data was received
-    bool getData(RN_UdpConnectorImpl& aSelf,
-                 std::deque<TaggedPacket>& aData) {
-        std::lock_guard<decltype(_mutex)> lock{_mutex};
+    bool getData(RN_UdpConnectorImpl& aSelf) {
+        std::deque<TaggedPacket> temp;
+        {
+            std::lock_guard<decltype(_mutex)> lock{_mutex};
 
-        auto& sourceDeque = (&aSelf == &_connector1) ? _packetsForConnector1 
-                                                     : _packetsForConnector2;
-        if (sourceDeque.empty()) {
+            auto& sourceDeque = (&aSelf == &_connector1) ? _packetsForConnector1 
+                                                         : _packetsForConnector2;
+            std::swap(sourceDeque, temp);
+        }
+
+        if (temp.empty()) {
             return false;
         }
 
-        for (auto& curr : sourceDeque) {
+        for (auto& curr : temp) {
             aSelf.receivedPacket(curr.packet);
         }
 
-        sourceDeque.clear();
         return true;
     }
 
@@ -321,6 +325,11 @@ void RN_UdpConnectorImpl::send() {
     }
 }
 
+void RN_UdpConnectorImpl::prepToReceive() {
+    _newLatency = decltype(_newLatency){0};
+    _newLatencySampleSize = 0;
+}
+
 void RN_UdpConnectorImpl::receivedPacket(util::Packet& packet) {
     assert(_status != RN_ConnectorStatus::Disconnected);
 
@@ -378,6 +387,12 @@ void RN_UdpConnectorImpl::receivedPacket(util::Packet& packet) {
     //}
 }
 
+void RN_UdpConnectorImpl::receivingFinished() {
+    if (_newLatencySampleSize > 0) {
+        _remoteInfo.latency = (_newLatency / _newLatencySampleSize);
+    }
+}
+
 void RN_UdpConnectorImpl::sendAcks() {
     assert(_status == RN_ConnectorStatus::Connected);
 
@@ -401,7 +416,7 @@ void RN_UdpConnectorImpl::handleDataMessages(RN_NodeInterface& node,
     assert(_status != RN_ConnectorStatus::Disconnected);
 
     if (_isConnectedLocally()) {
-        if (_localSharedState->getData(SELF, _recvBuffer)) {
+        if (_localSharedState->getData(SELF)) {
             _remoteInfo.timeoutStopwatch.restart();
         }
     }
@@ -456,7 +471,6 @@ void RN_UdpConnectorImpl::handleDataMessages(RN_NodeInterface& node,
 
         default:
             HARD_ASSERT(false && "Unreachable");
-            NO_OP();
         }
     }
 }
@@ -688,7 +702,8 @@ void RN_UdpConnectorImpl::_receivedAck(std::uint32_t ordinal, bool strong) {
     else {
         // TODO Temp - Time between send & ack = latency
         // (Temp because it should average out all the values or something)
-        _remoteInfo.latency = _sendBuffer[ind].stopwatch.getElapsedTime<std::chrono::microseconds>();
+        _newLatency += _sendBuffer[ind].stopwatch.getElapsedTime<std::chrono::microseconds>();
+        _newLatencySampleSize += 1;
         _remoteInfo.timeoutStopwatch.restart();
 
         _sendBuffer[ind].tag = TaggedPacket::AcknowledgedStrongly;
@@ -765,7 +780,7 @@ BREAK_FOR:
 
         const auto currDataSize = curr.packet.getRemainingDataSize();
         _recvBuffer[0].packet.append(curr.packet.extractBytes(currDataSize),
-                                         currDataSize);
+                                     currDataSize);
 
         curr.packet.clear();
 

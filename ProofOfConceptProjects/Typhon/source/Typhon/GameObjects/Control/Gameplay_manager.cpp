@@ -8,6 +8,8 @@
 #include <iostream>
 #include <sstream>
 
+#include <chrono>
+
 #include "Environment_manager.hpp"
 #include "Gameplay_manager.hpp"
 #include "../Gameplay/Physics_bullet.hpp"
@@ -39,6 +41,12 @@ RN_DEFINE_RPC(GameStartAnnouncement, RN_ARGS()) {
         [&](NetworkingManager::ServerType& server) {
             throw RN_IllegalMessage{"Host cannot receive game start announcements."};
         });
+}
+
+RN_DEFINE_RPC(StepAnnouncement, RN_ARGS(int,num)) {
+    using namespace std::chrono;
+    auto timestamp_ = duration_cast<microseconds>(steady_clock::now().time_since_epoch()).count();
+    std::cout << "StepAnnouncement: num = " << num << ", timestamp = " << timestamp_ << "us" << std::endl;
 }
 
 } // namespace
@@ -117,6 +125,11 @@ void GameplayManager::_eventUpdate() {
             Compose_RequestGameRestart(ctx(MNetworking).getNode(), RN_COMPOSE_FOR_ALL);
         }
     }
+
+    //if (ctx().isPrivileged()) {
+    //    _num += 1;
+    //    Compose_StepAnnouncement(ctx(MNetworking).getNode(), RN_COMPOSE_FOR_ALL, _num);
+    //}
 
     // Camera movement:
     auto& view = ctx(MWindow).getView();

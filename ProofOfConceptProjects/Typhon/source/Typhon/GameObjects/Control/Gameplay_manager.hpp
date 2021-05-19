@@ -22,6 +22,8 @@ private:
     void onNetworkingEvent(const RN_Event& event) override;
 
     void _setPlayerPosition(hg::PZInteger playerIndex, float* x, float* y) const;
+
+    int _num = -1;
 };
 
 #endif // !TYPHON_GAME_OBJECTS_CONTROL_GAMEPLAY_MANAGER_HPP

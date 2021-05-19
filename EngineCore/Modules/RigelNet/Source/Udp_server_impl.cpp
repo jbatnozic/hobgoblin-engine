@@ -205,6 +205,10 @@ void RN_UdpServerImpl::_updateReceive() {
     sf::IpAddress senderIp;
     std::uint16_t senderPort;
 
+    for (auto& client : _clients) {
+        client->prepToReceive();
+    }
+
     bool keepReceiving = true;
     while (keepReceiving) {
         switch (_socket.recv(packet, senderIp, senderPort)) {
@@ -245,6 +249,7 @@ void RN_UdpServerImpl::_updateReceive() {
         auto& client = _clients[i];
         
         if (client->getStatus() == RN_ConnectorStatus::Connected) {
+            client->receivingFinished();
             client->sendAcks();
         }
         if (client->getStatus() != RN_ConnectorStatus::Disconnected) {
