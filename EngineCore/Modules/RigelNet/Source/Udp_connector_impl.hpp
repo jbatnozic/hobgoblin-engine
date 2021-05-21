@@ -65,7 +65,9 @@ public:
 
     void checkForTimeout();
     void send();
+    void prepToReceive();
     void receivedPacket(util::Packet& packet);
+    void receivingFinished();
     void handleDataMessages(RN_NodeInterface& node, util::Packet*& pointerToCurrentPacket);
     void sendAcks();
     
@@ -91,6 +93,8 @@ private:
     PZInteger _maxPacketSize;
 
     RN_RemoteInfo _remoteInfo;
+    decltype(_remoteInfo.meanLatency) _newLatency;
+    PZInteger _newLatencySampleSize = 0;
     RN_ConnectorStatus _status;
     std::optional<PZInteger> _clientIndex;
 

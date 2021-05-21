@@ -54,7 +54,7 @@ public:
 
     virtual std::uint16_t getLocalPort() const = 0;    
 
-    virtual PZInteger getSenderIndex() const = 0;
+    virtual int getSenderIndex() const = 0;
 };
 
 } // namespace rn

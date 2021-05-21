@@ -1,8 +1,7 @@
 # Rigel Net
-```cpp
-#include <Hobgoblin/RigelNet.hpp>
-#include <Hobgoblin/RigelNet_defines.hpp> // Optional
-```
+`#include <Hobgoblin/RigelNet.hpp>`
+`#include <Hobgoblin/RigelNet_defines.hpp> // Optional`
+
 
 RPC framework for games.
 
