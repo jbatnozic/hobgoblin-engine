@@ -120,6 +120,7 @@ void StateScheduler<TState>::putNewState(const TState& newState, PZInteger delay
 template <class TState>
 void StateScheduler<TState>::scheduleNewStates() {
     if (_newStates.empty()) {
+        extendLatest();
         return;
     }
 
