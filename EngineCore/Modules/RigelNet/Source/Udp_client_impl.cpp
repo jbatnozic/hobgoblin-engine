@@ -154,6 +154,7 @@ void RN_UdpClientImpl::_updateReceive() {
     // socket so we must not try to use it
     bool keepReceiving = !_connector.isConnectedLocally();
 
+    _connector.prepToReceive();
     while (keepReceiving) {
         switch (_socket.recv(packet, senderIp, senderPort)) {
         case decltype(_socket)::Status::OK:
@@ -185,6 +186,7 @@ void RN_UdpClientImpl::_updateReceive() {
     }
 
     if (_connector.getStatus() == RN_ConnectorStatus::Connected) {
+        _connector.receivingFinished();
         _connector.sendAcks();
     }
     if (_connector.getStatus() != RN_ConnectorStatus::Disconnected) {

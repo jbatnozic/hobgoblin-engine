@@ -128,6 +128,8 @@ void SynchronizedObjectRegistry::syncObjectCreate(const SynchronizedObjectBase* 
     GetIndicesForComposingToEveryone(*_syncDetails._node, _syncDetails._recepients);
     object->_syncCreateImpl(_syncDetails);
 
+    // TODO: Fail if object is not in _newlyCreatedObjects
+
     _newlyCreatedObjects.erase(object);
 }
 

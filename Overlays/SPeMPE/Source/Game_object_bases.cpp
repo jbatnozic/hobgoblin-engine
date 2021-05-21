@@ -3,6 +3,8 @@
 
 #include <Hobgoblin/Common.hpp>
 
+#include <algorithm>
+
 namespace jbatnozic {
 namespace spempe {
 
@@ -65,7 +67,7 @@ void SynchronizedObjectBase::doSyncDestroy() const {
 }
 
 void SynchronizedObjectBase::_eventUpdate(IfDummy) {
-    _scheduleAndAdvanceStatesForDummy((_syncObjReg.getDefaultDelay() + 1) * 2);
+    _scheduleAndAdvanceStatesForDummy(std::max(1, _syncObjReg.getDefaultDelay() * 2));
 
     if (_deathCounter > 0) {
         _deathCounter -= 1;

@@ -2,6 +2,7 @@
 #include <Hobgoblin/Utility/State_scheduler.hpp>
 #include <SPeMPE/SPeMPE.hpp>
 
+#include <algorithm>
 #include <cstdint>
 #include <iostream>
 #include <memory>
@@ -20,6 +21,8 @@ using MWindow     = spe::WindowManagerInterface;
 #define PRIPRITY_GAMEPLAYMGR  10
 #define PRIORITY_PLAYERAVATAR  5
 #define PRIORITY_WINDOWMGR     0
+
+#define STATE_BUFFERING_LENGTH 2
 
 ///////////////////////////////////////////////////////////////////////////
 // PLAYER CONTROLS                                                       //
@@ -130,7 +133,7 @@ public:
     {
         ccomp<MNetworking>().addEventListener(*this);
         for (int i = 0; i < 20; i += 1) { // TODO
-            _schedulers.emplace_back(2);  // TODO
+            _schedulers.emplace_back(STATE_BUFFERING_LENGTH);  // TODO
         }
     }
 
@@ -155,7 +158,7 @@ private:
         if (ctx().isPrivileged()) {
             for (auto& scheduler : _schedulers) {
                 scheduler.scheduleNewStates();
-                scheduler.advanceDownTo(4); // TODO Temp.
+                scheduler.advanceDownTo(std::max(1, STATE_BUFFERING_LENGTH * 2)); // TODO Temp.
             }
         }
     }
@@ -195,16 +198,9 @@ private:
 RN_DEFINE_RPC(PushPlayerControls, RN_ARGS(PlayerControls&, aControls)) {
     RN_NODE_IN_HANDLER().callIfServer(
         [&](RN_ServerInterface& aServer) {
-            auto& ctx   = *aServer.getUserDataOrThrow<spe::GameContext>();
-            auto& gpMgr = ctx.getComponent<GameplayManager>();
-            const auto clientIndex = aServer.getSenderIndex();
-
-            const auto latency = aServer.getClientConnector(clientIndex).getRemoteInfo().latency;
-            using TIME = std::remove_cv_t<decltype(latency)>;
-            const auto dt = std::chrono::duration_cast<TIME>(ctx.getRuntimeConfig().deltaTime);
-            const auto delaySteps = static_cast<int>(latency / dt) / 2;
-
-            gpMgr.pushNewPlayerControls(clientIndex + 1, aControls, delaySteps);
+            auto sp = SPEMPE_GET_SYNC_PARAMS(aServer);
+            auto& gpMgr = sp.context.getComponent<GameplayManager>();
+            gpMgr.pushNewPlayerControls(sp.senderIndex + 1, aControls, sp.latencyInSteps);
         });
 }
 
@@ -243,7 +239,8 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
                                                   std::string aRemoteIp,
                                                   hg::PZInteger aPlayerCount)
 {
-    auto context = std::make_unique<spe::GameContext>(spe::GameContext::RuntimeConfig{});
+    auto context = std::make_unique<spe::GameContext>(
+        spe::GameContext::RuntimeConfig{std::chrono::duration<double>(1.0 / FRAMERATE)});
     context->setToMode((aGameMode == GameMode::Server) ? spe::GameContext::Mode::Server
                                                        : spe::GameContext::Mode::Client);
 
