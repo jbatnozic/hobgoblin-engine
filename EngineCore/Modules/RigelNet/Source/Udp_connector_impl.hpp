@@ -93,7 +93,9 @@ private:
     PZInteger _maxPacketSize;
 
     RN_RemoteInfo _remoteInfo;
-    decltype(_remoteInfo.meanLatency) _newLatency;
+    decltype(_remoteInfo.meanLatency) _newMeanLatency;
+    decltype(_remoteInfo.meanLatency) _newOptimisticLatency;
+    decltype(_remoteInfo.meanLatency) _newPessimisticLatency;
     PZInteger _newLatencySampleSize = 0;
     RN_ConnectorStatus _status;
     std::optional<PZInteger> _clientIndex;

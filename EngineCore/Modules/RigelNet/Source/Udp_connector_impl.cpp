@@ -326,7 +326,7 @@ void RN_UdpConnectorImpl::send() {
 }
 
 void RN_UdpConnectorImpl::prepToReceive() {
-    _newLatency = decltype(_newLatency){0};
+    _newMeanLatency = decltype(_newMeanLatency){0};
     _newLatencySampleSize = 0;
 }
 
@@ -389,7 +389,9 @@ void RN_UdpConnectorImpl::receivedPacket(util::Packet& packet) {
 
 void RN_UdpConnectorImpl::receivingFinished() {
     if (_newLatencySampleSize > 0) {
-        _remoteInfo.meanLatency = (_newLatency / _newLatencySampleSize);
+        _remoteInfo.meanLatency = (_newMeanLatency / _newLatencySampleSize);
+        _remoteInfo.optimisticLatency  = _newOptimisticLatency;
+        _remoteInfo.pessimisticLatency = _newPessimisticLatency;
     }
 }
 
@@ -701,7 +703,16 @@ void RN_UdpConnectorImpl::_receivedAck(std::uint32_t ordinal, bool strong) {
         _sendBuffer[ind].packet.clear();
     } 
     else {
-        _newLatency += _sendBuffer[ind].stopwatch.getElapsedTime<std::chrono::microseconds>();
+        const auto timeToAck = _sendBuffer[ind].stopwatch.getElapsedTime<std::chrono::microseconds>();
+        _newMeanLatency += timeToAck;
+        if (_newLatencySampleSize == 0) {
+            _newOptimisticLatency  = decltype(_newOptimisticLatency){0};
+            _newPessimisticLatency = decltype(_newPessimisticLatency){0};
+        }
+        else {
+            _newOptimisticLatency  = std::min(_newOptimisticLatency, timeToAck);
+            _newPessimisticLatency = std::max(_newPessimisticLatency, timeToAck);
+        }
         _newLatencySampleSize += 1;
         _remoteInfo.timeoutStopwatch.restart();
 
