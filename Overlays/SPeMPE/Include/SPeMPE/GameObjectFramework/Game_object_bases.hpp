@@ -269,7 +269,7 @@ struct SyncParameters {
         : context{*aClient.getUserDataOrThrow<taContext>()}
         , netwMgr{context.getComponent<taNetwMgr>()}
         , senderIndex{-1000}
-        , latency{aClient.getServerConnector().getRemoteInfo().latency}
+        , latency{aClient.getServerConnector().getRemoteInfo().meanLatency}
         , latencyInSteps{ROUNDTOI(latency / context.getRuntimeConfig().deltaTime)}
     {
     }
@@ -278,7 +278,7 @@ struct SyncParameters {
         : context{*aServer.getUserDataOrThrow<taContext>()}
         , netwMgr{context.getComponent<taNetwMgr>()}
         , senderIndex{aServer.getSenderIndex()}
-        , latency{aServer.getClientConnector(senderIndex).getRemoteInfo().latency}
+        , latency{aServer.getClientConnector(senderIndex).getRemoteInfo().meanLatency}
         , latencyInSteps{ROUNDTOI(latency / context.getRuntimeConfig().deltaTime)}
     {
     }

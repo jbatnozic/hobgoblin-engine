@@ -246,7 +246,8 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
                                                   std::string aRemoteIp,
                                                   hg::PZInteger aPlayerCount)
 {
-    auto context = std::make_unique<spe::GameContext>(spe::GameContext::RuntimeConfig{std::chrono::duration<double>(1.0 / FRAMERATE)});
+    auto context = std::make_unique<spe::GameContext>(
+        spe::GameContext::RuntimeConfig{std::chrono::duration<double>(1.0 / FRAMERATE)});
     context->setToMode((aGameMode == GameMode::Server) ? spe::GameContext::Mode::Server
                                                        : spe::GameContext::Mode::Client);
 

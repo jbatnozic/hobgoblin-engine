@@ -326,6 +326,11 @@ void RN_UdpConnectorImpl::send() {
 }
 
 void RN_UdpConnectorImpl::prepToReceive() {
+    _newMeanLatency = decltype(_newMeanLatency){0};
+    _newLatencySampleSize = 0;
+}
+
+void RN_UdpConnectorImpl::prepToReceive() {
     _newLatency = decltype(_newLatency){0};
     _newLatencySampleSize = 0;
 }
@@ -390,6 +395,14 @@ void RN_UdpConnectorImpl::receivedPacket(util::Packet& packet) {
 void RN_UdpConnectorImpl::receivingFinished() {
     if (_newLatencySampleSize > 0) {
         _remoteInfo.latency = (_newLatency / _newLatencySampleSize);
+    }
+}
+
+void RN_UdpConnectorImpl::receivingFinished() {
+    if (_newLatencySampleSize > 0) {
+        _remoteInfo.meanLatency = (_newMeanLatency / _newLatencySampleSize);
+        _remoteInfo.optimisticLatency  = _newOptimisticLatency;
+        _remoteInfo.pessimisticLatency = _newPessimisticLatency;
     }
 }
 
@@ -626,8 +639,9 @@ void RN_UdpConnectorImpl::_uploadAllData() {
 
         bool socketCannotSendMore = false;
         if ((taggedPacket.tag == TaggedPacket::ReadyForSending)
-            || _retransmitPredicate(taggedPacket.cyclesSinceLastTransmit, taggedPacket.stopwatch.getElapsedTime(),
-                                    _remoteInfo.latency)) {
+            || _retransmitPredicate(taggedPacket.cyclesSinceLastTransmit, 
+                                    taggedPacket.stopwatch.getElapsedTime(),
+                                    _remoteInfo.meanLatency)) {
 
             switch (_socket.send(taggedPacket.packet, _remoteInfo.ipAddress, _remoteInfo.port)) {
             case RN_SocketAdapter::Status::OK:
@@ -700,9 +714,16 @@ void RN_UdpConnectorImpl::_receivedAck(std::uint32_t ordinal, bool strong) {
         _sendBuffer[ind].packet.clear();
     } 
     else {
-        // TODO Temp - Time between send & ack = latency
-        // (Temp because it should average out all the values or something)
-        _newLatency += _sendBuffer[ind].stopwatch.getElapsedTime<std::chrono::microseconds>();
+        const auto timeToAck = _sendBuffer[ind].stopwatch.getElapsedTime<std::chrono::microseconds>();
+        _newMeanLatency += timeToAck;
+        if (_newLatencySampleSize == 0) {
+            _newOptimisticLatency  = decltype(_newOptimisticLatency){0};
+            _newPessimisticLatency = decltype(_newPessimisticLatency){0};
+        }
+        else {
+            _newOptimisticLatency  = std::min(_newOptimisticLatency, timeToAck);
+            _newPessimisticLatency = std::max(_newPessimisticLatency, timeToAck);
+        }
         _newLatencySampleSize += 1;
         _remoteInfo.timeoutStopwatch.restart();
 

@@ -15,13 +15,17 @@ namespace rn {
 
 struct RN_RemoteInfo {
     util::Stopwatch timeoutStopwatch;
-    std::chrono::microseconds latency;
+    std::chrono::microseconds meanLatency;
+    std::chrono::microseconds optimisticLatency;
+    std::chrono::microseconds pessimisticLatency;
     sf::IpAddress ipAddress;
     std::uint16_t port;
 
     RN_RemoteInfo(sf::IpAddress ipAddress, std::uint16_t port)
         : timeoutStopwatch{}
-        , latency{std::chrono::microseconds{-1}}
+        , meanLatency{std::chrono::microseconds{-1}}
+        , optimisticLatency{std::chrono::microseconds{-1}}
+        , pessimisticLatency{std::chrono::microseconds{-1}}
         , ipAddress{ipAddress}
         , port{port}
     {

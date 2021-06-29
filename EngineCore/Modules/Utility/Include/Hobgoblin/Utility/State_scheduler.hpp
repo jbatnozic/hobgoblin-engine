@@ -124,13 +124,14 @@ void StateScheduler<TState>::putNewState(const TState& newState, PZInteger delay
 template <class TState>
 void StateScheduler<TState>::scheduleNewStates() {
     if (_newStates.empty()) {
+        extendLatest();
         return;
     }
 
     int pos = _stateBufferMinSize - _newStatesDelay - ToPz(_newStates.size());
 
     if (pos >= 0) {
-        for (auto& state : _newStates) {
+        for (const auto& state : _newStates) {
             setAt(state, pos);
             pos += 1;
         }
@@ -150,7 +151,7 @@ void StateScheduler<TState>::scheduleNewStates() {
     else {
         pos = 0;
 
-        for (auto& state : _newStates) {
+        for (const auto& state : _newStates) {
             setAt(state, pos);
             pos += 1;
         }
