@@ -67,7 +67,7 @@ void SynchronizedObjectBase::doSyncDestroy() const {
 }
 
 void SynchronizedObjectBase::_eventUpdate(IfDummy) {
-    _scheduleAndAdvanceStatesForDummy(std::max(1, _syncObjReg.getDefaultDelay() * 2));
+    _advanceDummyAndScheduleNewStates();
 
     if (_deathCounter > 0) {
         _deathCounter -= 1;

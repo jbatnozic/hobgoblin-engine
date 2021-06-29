@@ -22,7 +22,7 @@ using MWindow     = spe::WindowManagerInterface;
 #define PRIORITY_PLAYERAVATAR  5
 #define PRIORITY_WINDOWMGR     0
 
-#define STATE_BUFFERING_LENGTH 2
+#define STATE_BUFFERING_LENGTH 3
 
 ///////////////////////////////////////////////////////////////////////////
 // PLAYER CONTROLS                                                       //
@@ -91,8 +91,8 @@ private:
     void _eventUpdate(spe::IfDummy) override {
         SPEMPE_SYNCOBJ_BEGIN_EVENT_UPDATE_OVERRIDE();
         auto& self = _getCurrentState();
-        if (!self.hidden) {
-            //std::cout << self.x << ' ' << self.y << std::endl;
+        if (!self.hidden && sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
+            std::cout << self.x << ' ' << self.y << std::endl;
         }
     }
 
