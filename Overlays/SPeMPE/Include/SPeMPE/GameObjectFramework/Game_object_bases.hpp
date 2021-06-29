@@ -259,18 +259,26 @@ struct SyncParameters {
     int senderIndex;
 
     //! Latency to the sender
-    std::chrono::microseconds latency;
+    std::chrono::microseconds meanLatency;
+    std::chrono::microseconds optimisticLatency;
+    std::chrono::microseconds pessimisticLatency;
 
     //! Latency in steps (approximately; calculated in regards to desired
     //! framerate in the context's runtime config).
-    hg::PZInteger latencyInSteps;
+    hg::PZInteger meanLatencyInSteps;
+    hg::PZInteger optimisticLatencyInSteps;
+    hg::PZInteger pessimisticLatencyInSteps;
 
     explicit SyncParameters(hg::RN_ClientInterface& aClient)
         : context{*aClient.getUserDataOrThrow<taContext>()}
         , netwMgr{context.getComponent<taNetwMgr>()}
         , senderIndex{-1000}
-        , latency{aClient.getServerConnector().getRemoteInfo().meanLatency}
-        , latencyInSteps{ROUNDTOI(latency / context.getRuntimeConfig().deltaTime)}
+        , meanLatency{aClient.getServerConnector().getRemoteInfo().meanLatency}
+        , optimisticLatency{aClient.getServerConnector().getRemoteInfo().optimisticLatency }
+        , pessimisticLatency{aClient.getServerConnector().getRemoteInfo().pessimisticLatency }
+        , meanLatencyInSteps{ROUNDTOI(meanLatency / context.getRuntimeConfig().deltaTime)}
+        , optimisticLatencyInSteps{ROUNDTOI(optimisticLatency / context.getRuntimeConfig().deltaTime)}
+        , pessimisticLatencyInSteps{ROUNDTOI(pessimisticLatency / context.getRuntimeConfig().deltaTime)}
     {
     }
 
@@ -278,8 +286,12 @@ struct SyncParameters {
         : context{*aServer.getUserDataOrThrow<taContext>()}
         , netwMgr{context.getComponent<taNetwMgr>()}
         , senderIndex{aServer.getSenderIndex()}
-        , latency{aServer.getClientConnector(senderIndex).getRemoteInfo().meanLatency}
-        , latencyInSteps{ROUNDTOI(latency / context.getRuntimeConfig().deltaTime)}
+        , meanLatency{aServer.getClientConnector(senderIndex).getRemoteInfo().meanLatency}
+        , optimisticLatency{aServer.getClientConnector(senderIndex).getRemoteInfo().optimisticLatency}
+        , pessimisticLatency{aServer.getClientConnector(senderIndex).getRemoteInfo().pessimisticLatency}
+        , meanLatencyInSteps{ROUNDTOI(meanLatency / context.getRuntimeConfig().deltaTime)}
+        , optimisticLatencyInSteps{ROUNDTOI(optimisticLatency / context.getRuntimeConfig().deltaTime)}
+        , pessimisticLatencyInSteps{ROUNDTOI(pessimisticLatency / context.getRuntimeConfig().deltaTime)}
     {
     }
 };
@@ -327,7 +339,7 @@ void DefaultSyncUpdateHandler(hg::RN_NodeInterface& node,
             auto& syncObjReg = *reinterpret_cast<detail::SynchronizedObjectRegistry*>(regId.address);
             auto& object     = *static_cast<taSyncObj*>(syncObjReg.getMapping(syncId));
 
-            object.__spempeimpl_applyUpdate(state, sp.latencyInSteps);
+            object.__spempeimpl_applyUpdate(state, sp.pessimisticLatencyInSteps);
         });
 
     node.callIfServer(
@@ -347,7 +359,7 @@ void DefaultSyncDestroyHandler(hg::RN_NodeInterface& node,
             auto* object     = static_cast<taSyncObj*>(syncObjReg.getMapping(syncId));
 
             object->__spempeimpl_destroySelfIn(
-                static_cast<int>(syncObjReg.getDefaultDelay()) - (sp.latencyInSteps + 1));
+                static_cast<int>(syncObjReg.getDefaultDelay()) - (sp.meanLatencyInSteps + 1));
         });
 
     node.callIfServer(

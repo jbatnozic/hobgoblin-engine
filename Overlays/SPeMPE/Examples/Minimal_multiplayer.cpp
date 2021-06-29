@@ -208,7 +208,7 @@ RN_DEFINE_RPC(PushPlayerControls, RN_ARGS(PlayerControls&, aControls)) {
         [&](RN_ServerInterface& aServer) {
             auto sp = SPEMPE_GET_SYNC_PARAMS(aServer);
             auto& gpMgr = sp.context.getComponent<GameplayManager>();
-            gpMgr.pushNewPlayerControls(sp.senderIndex + 1, aControls, sp.latencyInSteps);
+            gpMgr.pushNewPlayerControls(sp.senderIndex + 1, aControls, sp.meanLatencyInSteps);
         });
 }
 
