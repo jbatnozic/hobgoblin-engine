@@ -3,8 +3,6 @@
 
 #include <Hobgoblin/Common.hpp>
 
-#include <algorithm>
-
 namespace jbatnozic {
 namespace spempe {
 

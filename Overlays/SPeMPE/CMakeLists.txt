@@ -87,7 +87,3 @@ target_link_libraries("minimal-multiplayer"
 PUBLIC
   "${OVERLAY_NAME}"
 )
-
-add_executable("logp"
-  "Examples/Logparser.cpp"
-)
