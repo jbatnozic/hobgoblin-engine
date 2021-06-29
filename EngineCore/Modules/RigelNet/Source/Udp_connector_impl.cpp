@@ -330,11 +330,6 @@ void RN_UdpConnectorImpl::prepToReceive() {
     _newLatencySampleSize = 0;
 }
 
-void RN_UdpConnectorImpl::prepToReceive() {
-    _newLatency = decltype(_newLatency){0};
-    _newLatencySampleSize = 0;
-}
-
 void RN_UdpConnectorImpl::receivedPacket(util::Packet& packet) {
     assert(_status != RN_ConnectorStatus::Disconnected);
 
@@ -390,12 +385,6 @@ void RN_UdpConnectorImpl::receivedPacket(util::Packet& packet) {
     //catch (RN_PacketReadError & ex) {
     //    // TODO
     //}
-}
-
-void RN_UdpConnectorImpl::receivingFinished() {
-    if (_newLatencySampleSize > 0) {
-        _remoteInfo.latency = (_newLatency / _newLatencySampleSize);
-    }
 }
 
 void RN_UdpConnectorImpl::receivingFinished() {
