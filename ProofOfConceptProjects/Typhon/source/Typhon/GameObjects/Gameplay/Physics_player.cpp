@@ -307,10 +307,6 @@ void PhysicsPlayer::_eventDraw1() {
     auto& canvas = ctx(MWindow).getCanvas();
     auto& self = _ssch.getCurrentState();
 
-    if (!ctx().isPrivileged()) {
-        std::cout << "Pos: " << self.x << ' ' << self.y << '\n';
-    }
-
     auto glow = ctx(DSprite, SpriteId::WhiteGlow).getSubsprite(0);
     glow.setOrigin(glow.getLocalBounds().width / 2, glow.getLocalBounds().height / 2);
     glow.setPosition(self.x, self.y);

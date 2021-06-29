@@ -37,10 +37,6 @@ public:
 
     void setDefaultDelay(PZInteger newDefaultDelay);
 
-    int getSize() const {
-        return _stateBuffer.size();
-    }
-
     // Access stored states:
 
     TState& getCurrentState();
