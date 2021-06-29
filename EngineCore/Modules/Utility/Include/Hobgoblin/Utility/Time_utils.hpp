@@ -46,7 +46,7 @@ T Stopwatch::getElapsedTime() const {
 void Sleep(std::chrono::milliseconds timeToSleep);
 
 // Max error: ~1ms
-void PreciseSleep(std::chrono::microseconds timeToSleep);
+void PreciseSleep(std::chrono::milliseconds timeToSleep);
 
 // Max error: usually ~1us; rarely up to 20us
 // Note: does busy waiting for up to a millisecond
