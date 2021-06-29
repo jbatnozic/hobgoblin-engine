@@ -22,7 +22,7 @@ using MWindow     = spe::WindowManagerInterface;
 #define PRIORITY_PLAYERAVATAR  5
 #define PRIORITY_WINDOWMGR     0
 
-#define STATE_BUFFERING_LENGTH 2
+#define STATE_BUFFERING_LENGTH 3
 
 ///////////////////////////////////////////////////////////////////////////
 // PLAYER CONTROLS                                                       //
@@ -86,6 +86,14 @@ private:
         auto& controls = ccomp<MGameplay>().getPlayerControls(self.owningPlayerIndex);
         self.x += (5.f * ((float)controls.right - (float)controls.left));
         self.y += (5.f * ((float)controls.down  - (float)controls.up));
+    }
+
+    void _eventUpdate(spe::IfDummy) override {
+        SPEMPE_SYNCOBJ_BEGIN_EVENT_UPDATE_OVERRIDE();
+        auto& self = _getCurrentState();
+        if (!self.hidden && sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
+            std::cout << self.x << ' ' << self.y << std::endl;
+        }
     }
 
     void _eventDraw1() override {
@@ -227,7 +235,6 @@ void GameplayManager::_eventUpdate() {
 #define WINDOW_WIDTH           800
 #define WINDOW_HEIGHT          800
 #define FRAMERATE               60
-#define STATE_BUFFERING_LENGTH   2
 
 enum class GameMode {
     Server, Client

@@ -250,6 +250,7 @@ void GameContext::_runImpl(hg::not_null<GameContext*> aContext,
         if (aMaxSteps > 0 && stepsCovered >= aMaxSteps) {
             break;
         }
+
         perfInfo.frameToFrameTime = frameToFrameStopwatch.restart<microseconds>();
 
         aContext->_stepOrdinal += 1;

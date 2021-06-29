@@ -173,7 +173,6 @@ private:
 
     // Game object management:
     hg::QAO_Runtime _qaoRuntime;
-    //SynchronizedObjectRegistry _syncObjReg;
 
     // Context components:
     detail::ComponentTable _components;

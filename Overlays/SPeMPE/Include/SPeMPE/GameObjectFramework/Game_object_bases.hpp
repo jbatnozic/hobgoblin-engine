@@ -4,7 +4,7 @@
 #include <Hobgoblin/QAO.hpp>
 #include <Hobgoblin/RigelNet.hpp>
 #include <Hobgoblin/RigelNet_Macros.hpp>
-#include <Hobgoblin/Utility/State_scheduler.hpp>
+#include <Hobgoblin/Utility/State_scheduler_simple.hpp>
 #include <SPeMPE/GameContext/Game_context.hpp>
 #include <SPeMPE/GameObjectFramework/Synchronized_object_registry.hpp>
 
@@ -157,7 +157,7 @@ private:
     //! Called when it's needed to sync this object's destruction to one or more recepeints.
     virtual void _syncDestroyImpl(SyncDetails& aSyncDetails) const = 0;
 
-    virtual void _scheduleAndAdvanceStatesForDummy(hg::PZInteger aMaxStateSchedulerSize) = 0;
+    virtual void _advanceDummyAndScheduleNewStates() = 0;
 
     virtual void _setStateSchedulerDefaultDelay(hg::PZInteger aNewDefaultDelaySteps) = 0;
 };
@@ -229,12 +229,11 @@ protected:
     }
 
 private:
-    hg::util::StateScheduler<taVisibleState> _ssch;
+    hg::util::SimpleStateScheduler<taVisibleState> _ssch;
 
-    void _scheduleAndAdvanceStatesForDummy(hg::PZInteger aMaxStateSchedulerSize) override final {
+    void _advanceDummyAndScheduleNewStates() override final {
         _ssch.advance();
         _ssch.scheduleNewStates();
-        _ssch.advanceDownTo(aMaxStateSchedulerSize);
     }
 
     void _setStateSchedulerDefaultDelay(hg::PZInteger aNewDefaultDelaySteps) override final {
