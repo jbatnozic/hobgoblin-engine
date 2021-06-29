@@ -12,4 +12,4 @@
 - Closing connectors, kicking clients, resizing the server
 - Better handler management (RN_HANDLER_NAME, manual registration, etc...)
 - Fix many small TODOs
-- Less contention in SharedState
+- Time since last contact

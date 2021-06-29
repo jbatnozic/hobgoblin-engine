@@ -31,6 +31,10 @@ void WindowManagerOne::setToHeadlessMode(const TimingConfig& aTimingConfig) {
     _windowToCanvasAdapter.reset();
     _mainRenderTexture.reset();
     _window.reset();
+
+    // Set timing parameters:
+    _deltaTime = std::chrono::microseconds{1'000'000 / aTimingConfig.targetFramerate};
+    _preciseTiming = aTimingConfig.preciseTiming;
 }
 
 void WindowManagerOne::setToNormalMode(const WindowConfig& aWindowConfig,

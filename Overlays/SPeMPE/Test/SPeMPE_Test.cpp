@@ -197,7 +197,7 @@ using MNetworking = NetworkingManagerInterface;
 
 } // namespace
 
-TEST_F(SPeMPE_SynchronizedTest, BasicTest) {
+TEST_F(SPeMPE_SynchronizedTest, BasicFunctionalityTest) {
     {
         SCOPED_TRACE("Configure contexts");
 

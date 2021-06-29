@@ -246,7 +246,11 @@ void GameContext::_runImpl(hg::not_null<GameContext*> aContext,
 
     hg::PZInteger stepsCovered = 0;
 
-    while ((aContext->_quit.load() == false) && (stepsCovered < aMaxSteps || aMaxSteps < 0)) {
+    while (aContext->_quit.load() == false) {
+        if (aMaxSteps > 0 && stepsCovered >= aMaxSteps) {
+            break;
+        }
+
         perfInfo.frameToFrameTime = frameToFrameStopwatch.restart<microseconds>();
 
         aContext->_stepOrdinal += 1;
@@ -256,7 +260,10 @@ void GameContext::_runImpl(hg::not_null<GameContext*> aContext,
         currentTime = now;
 
         for (int i = 0; i < maxFramesBetweenDisplays; i += 1) {
-            if (accumulatorTime < deltaTime) {
+            if (aMaxSteps > 0 && stepsCovered >= aMaxSteps) {
+                break;
+            }
+            if ((accumulatorTime < deltaTime)) {
                 break;
             }
 
@@ -279,6 +286,7 @@ void GameContext::_runImpl(hg::not_null<GameContext*> aContext,
 
             perfInfo.consecutiveUpdateLoops = i + 1;
             accumulatorTime -= deltaTime;
+            stepsCovered += 1;
         } // End for
 
         // Prevent buildup in accumulator in case the program is not meeting time requirements
@@ -296,7 +304,6 @@ void GameContext::_runImpl(hg::not_null<GameContext*> aContext,
 
         // Do post step actions:
         // aContext->_pollPostStepActions(); TODO!!!!!!!!!!!!!!!!!!!!!
-        stepsCovered += 1;
 
         // Record performance data:
         perfInfo.totalTime = perfInfo.updateAndDrawTime + perfInfo.finalizeTime;

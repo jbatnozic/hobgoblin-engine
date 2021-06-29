@@ -4,11 +4,12 @@
 #include <Hobgoblin/QAO.hpp>
 #include <Hobgoblin/RigelNet.hpp>
 #include <Hobgoblin/RigelNet_Macros.hpp>
-#include <Hobgoblin/Utility/State_scheduler.hpp>
+#include <Hobgoblin/Utility/State_scheduler_simple.hpp>
 #include <SPeMPE/GameContext/Game_context.hpp>
 #include <SPeMPE/GameObjectFramework/Synchronized_object_registry.hpp>
 
 #include <algorithm>
+#include <cmath>
 #include <cstdint>
 #include <typeinfo>
 #include <utility>
@@ -156,7 +157,7 @@ private:
     //! Called when it's needed to sync this object's destruction to one or more recepeints.
     virtual void _syncDestroyImpl(SyncDetails& aSyncDetails) const = 0;
 
-    virtual void _scheduleAndAdvanceStatesForDummy(hg::PZInteger aMaxStateSchedulerSize) = 0;
+    virtual void _advanceDummyAndScheduleNewStates() = 0;
 
     virtual void _setStateSchedulerDefaultDelay(hg::PZInteger aNewDefaultDelaySteps) = 0;
 };
@@ -228,12 +229,11 @@ protected:
     }
 
 private:
-    hg::util::StateScheduler<taVisibleState> _ssch;
+    hg::util::SimpleStateScheduler<taVisibleState> _ssch;
 
-    void _scheduleAndAdvanceStatesForDummy(hg::PZInteger aMaxStateSchedulerSize) override final {
-        _ssch.scheduleNewStates();
+    void _advanceDummyAndScheduleNewStates() override final {
         _ssch.advance();
-        _ssch.advanceDownTo(aMaxStateSchedulerSize);
+        _ssch.scheduleNewStates();
     }
 
     void _setStateSchedulerDefaultDelay(hg::PZInteger aNewDefaultDelaySteps) override final {
@@ -242,8 +242,61 @@ private:
 };
 
 ///////////////////////////////////////////////////////////////////////////
-// SYNCHRONIZATION HELPER MACROS                                         //
+// SYNCHRONIZATION HELPERS                                               //
 ///////////////////////////////////////////////////////////////////////////
+
+#define ROUNDTOI(_x_) (static_cast<int>(std::round(_x_)))
+
+template <class taContext, class taNetwMgr>
+struct SyncParameters {
+    //! Reference to game context (spempe::GameContext)
+    taContext& context;
+
+    //! Reference to instance of spempe::NetworkingManagerInterface
+    taNetwMgr& netwMgr;
+
+    //! Index of the sender (always -1000 on client)
+    int senderIndex;
+
+    //! Latency to the sender
+    std::chrono::microseconds latency;
+
+    //! Latency in steps (approximately; calculated in regards to desired
+    //! framerate in the context's runtime config).
+    hg::PZInteger latencyInSteps;
+
+    explicit SyncParameters(hg::RN_ClientInterface& aClient)
+        : context{*aClient.getUserDataOrThrow<taContext>()}
+        , netwMgr{context.getComponent<taNetwMgr>()}
+        , senderIndex{-1000}
+        , latency{aClient.getServerConnector().getRemoteInfo().meanLatency}
+        , latencyInSteps{ROUNDTOI(latency / context.getRuntimeConfig().deltaTime)}
+    {
+    }
+
+    explicit SyncParameters(hg::RN_ServerInterface& aServer)
+        : context{*aServer.getUserDataOrThrow<taContext>()}
+        , netwMgr{context.getComponent<taNetwMgr>()}
+        , senderIndex{aServer.getSenderIndex()}
+        , latency{aServer.getClientConnector(senderIndex).getRemoteInfo().meanLatency}
+        , latencyInSteps{ROUNDTOI(latency / context.getRuntimeConfig().deltaTime)}
+    {
+    }
+};
+
+#undef ROUNDTOI
+
+namespace detail {
+template <class taContext, class taNetwMgr>
+SyncParameters<taContext, taNetwMgr> GetSyncParams(hg::RN_ClientInterface& aClient) {
+    return SyncParameters<taContext, taNetwMgr>{aClient};
+}
+
+template <class taContext, class taNetwMgr>
+SyncParameters<taContext, taNetwMgr> GetSyncParams(hg::RN_ServerInterface& aServer) {
+    return SyncParameters<taContext, taNetwMgr>{aServer};
+}
+} // namespace detail
 
 template <class taSyncObj, class taContext, class taNetwMgr>
 void DefaultSyncCreateHandler(hg::RN_NodeInterface& node, 
@@ -269,18 +322,12 @@ void DefaultSyncUpdateHandler(hg::RN_NodeInterface& node,
                               typename taSyncObj::VisibleState& state) {
     node.callIfClient(
         [&](hg::RN_ClientInterface& client) {
-            auto& ctx        = *client.getUserDataOrThrow<taContext>();
-            auto& runtime    = ctx.getQAORuntime();
-            auto  regId      = ctx.getComponent<taNetwMgr>().getRegistryId();
+            SyncParameters<taContext, taNetwMgr> sp{client};
+            auto  regId      = sp.netwMgr.getRegistryId();
             auto& syncObjReg = *reinterpret_cast<detail::SynchronizedObjectRegistry*>(regId.address);
             auto& object     = *static_cast<taSyncObj*>(syncObjReg.getMapping(syncId));
 
-            const auto latency = client.getServerConnector().getRemoteInfo().latency;
-            using Time = std::remove_cv_t<decltype(latency)>;
-            const auto dt = std::chrono::duration_cast<Time>(ctx.getRuntimeConfig().deltaTime);
-            const auto delaySteps = static_cast<hg::PZInteger>(latency / dt) / 2;
-
-            object.__spempeimpl_applyUpdate(state, delaySteps);
+            object.__spempeimpl_applyUpdate(state, sp.latencyInSteps);
         });
 
     node.callIfServer(
@@ -294,18 +341,13 @@ void DefaultSyncDestroyHandler(hg::RN_NodeInterface& node,
                                SyncId syncId) {
     node.callIfClient(
         [&](hg::RN_ClientInterface& client) {
-            auto& ctx        = *client.getUserDataOrThrow<taContext>();
-            auto& runtime    = ctx.getQAORuntime();
-            auto  regId      = ctx.getComponent<taNetwMgr>().getRegistryId();
+            SyncParameters<taContext, taNetwMgr> sp{client};
+            auto  regId      = sp.context.getComponent<taNetwMgr>().getRegistryId();
             auto& syncObjReg = *reinterpret_cast<detail::SynchronizedObjectRegistry*>(regId.address);
             auto* object     = static_cast<taSyncObj*>(syncObjReg.getMapping(syncId));
 
-            const auto latency = client.getServerConnector().getRemoteInfo().latency;
-            using Time = std::remove_cv_t<decltype(latency)>;
-            const auto dt = std::chrono::duration_cast<Time>(ctx.getRuntimeConfig().deltaTime);
-            const auto delaySteps = static_cast<hg::PZInteger>(latency / dt) / 2;
-
-            object->__spempeimpl_destroySelfIn(static_cast<int>(syncObjReg.getDefaultDelay()) - (delaySteps + 1));
+            object->__spempeimpl_destroySelfIn(
+                static_cast<int>(syncObjReg.getDefaultDelay()) - (sp.latencyInSteps + 1));
         });
 
     node.callIfServer(
@@ -314,14 +356,16 @@ void DefaultSyncDestroyHandler(hg::RN_NodeInterface& node,
         });
 }
 
-#define SPEMPEIMPL_MACRO_CONCAT_WITHARG(_x_, _y_, _arg_) _x_##_y_(_arg_)
-#define SPEMPEIMPL_MACRO_EXPAND(_x_) _x_
-#define SPEMPEIMPL_MACRO_EXPAND_VA(...) __VA_ARGS__
+// ===== All macros starting with USPEMPE_ are internal =====
 
-#define SPEMPEIMPL_GENERATE_DEFAULT_SYNC_HANDLER_EMPTY(_class_name_) /* Empty */
+#define USPEMPE_MACRO_CONCAT_WITHARG(_x_, _y_, _arg_) _x_##_y_(_arg_)
+#define USPEMPE_MACRO_EXPAND(_x_) _x_
+#define USPEMPE_MACRO_EXPAND_VA(...) __VA_ARGS__
 
-#define SPEMPEIMPL_GENERATE_DEFAULT_SYNC_HANDLER_CREATE(_class_name_) \
-    RN_DEFINE_RPC(SPEMPEIMPL_Create##_class_name_, \
+#define USPEMPE_GENERATE_DEFAULT_SYNC_HANDLER_EMPTY(_class_name_) /* Empty */
+
+#define USPEMPE_GENERATE_DEFAULT_SYNC_HANDLER_CREATE(_class_name_) \
+    RN_DEFINE_RPC(USPEMPE_Create##_class_name_, \
                   RN_ARGS(::jbatnozic::spempe::SyncId, syncId)) { \
         ::jbatnozic::spempe::DefaultSyncCreateHandler<_class_name_, \
                                                       ::jbatnozic::spempe::GameContext, \
@@ -329,8 +373,8 @@ void DefaultSyncDestroyHandler(hg::RN_NodeInterface& node,
             RN_NODE_IN_HANDLER(), syncId); \
     }
 
-#define SPEMPEIMPL_GENERATE_DEFAULT_SYNC_HANDLER_UPDATE(_class_name_) \
-    RN_DEFINE_RPC(SPEMPEIMPL_Update##_class_name_, \
+#define USPEMPE_GENERATE_DEFAULT_SYNC_HANDLER_UPDATE(_class_name_) \
+    RN_DEFINE_RPC(USPEMPE_Update##_class_name_, \
                   RN_ARGS(::jbatnozic::spempe::SyncId, syncId, _class_name_::VisibleState&, state)) { \
         ::jbatnozic::spempe::DefaultSyncUpdateHandler<_class_name_, \
                                                       ::jbatnozic::spempe::GameContext, \
@@ -338,8 +382,8 @@ void DefaultSyncDestroyHandler(hg::RN_NodeInterface& node,
             RN_NODE_IN_HANDLER(), syncId, state); \
     }
 
-#define SPEMPEIMPL_GENERATE_DEFAULT_SYNC_HANDLER_DESTROY(_class_name_) \
-    RN_DEFINE_RPC(SPEMPEIMPL_Destroy##_class_name_, \
+#define USPEMPE_GENERATE_DEFAULT_SYNC_HANDLER_DESTROY(_class_name_) \
+    RN_DEFINE_RPC(USPEMPE_Destroy##_class_name_, \
                   RN_ARGS(::jbatnozic::spempe::SyncId, syncId)) { \
         ::jbatnozic::spempe::DefaultSyncDestroyHandler<_class_name_, \
                                                        ::jbatnozic::spempe::GameContext, \
@@ -347,33 +391,44 @@ void DefaultSyncDestroyHandler(hg::RN_NodeInterface& node,
             RN_NODE_IN_HANDLER(), syncId); \
     }
 
-#define SPEMPEIMPL_GENERATE_MULTIPLE_DEFAULT_SYNC_HANDLERS(_class_name_, _tag_1_, _tag_2_, _tag_3_, ...) \
-    SPEMPEIMPL_GENERATE_DEFAULT_SYNC_HANDLER_##_tag_1_ (_class_name_) \
-    SPEMPEIMPL_GENERATE_DEFAULT_SYNC_HANDLER_##_tag_2_ (_class_name_) \
-    SPEMPEIMPL_GENERATE_DEFAULT_SYNC_HANDLER_##_tag_3_ (_class_name_)
+#define USPEMPE_GENERATE_MULTIPLE_DEFAULT_SYNC_HANDLERS(_class_name_, _tag_1_, _tag_2_, _tag_3_, ...) \
+    USPEMPE_GENERATE_DEFAULT_SYNC_HANDLER_##_tag_1_ (_class_name_) \
+    USPEMPE_GENERATE_DEFAULT_SYNC_HANDLER_##_tag_2_ (_class_name_) \
+    USPEMPE_GENERATE_DEFAULT_SYNC_HANDLER_##_tag_3_ (_class_name_)
 
-#define SPEMPEIMPL_GENERATE_DEFAULT_SYNC_HANDLERS(_class_name_, ...) \
-    SPEMPEIMPL_MACRO_EXPAND( \
-        SPEMPEIMPL_GENERATE_MULTIPLE_DEFAULT_SYNC_HANDLERS(_class_name_, __VA_ARGS__, EMPTY, EMPTY) \
+#define USPEMPE_GENERATE_DEFAULT_SYNC_HANDLERS(_class_name_, ...) \
+    USPEMPE_MACRO_EXPAND( \
+        USPEMPE_GENERATE_MULTIPLE_DEFAULT_SYNC_HANDLERS(_class_name_, __VA_ARGS__, EMPTY, EMPTY) \
     )
 
+//! Create default synchronization handlers for class _class_name_.
+//! Events should be written together in parenthesis and can be CREATE, UPDATE and DESTROY.
+//! Example of usage:
+//!     SPEMPE_GENERATE_DEFAULT_SYNC_HANDLERS(MyClass, (CREATE, DESTROY));
 #define SPEMPE_GENERATE_DEFAULT_SYNC_HANDLERS(_class_name_, _for_events_) \
-    SPEMPEIMPL_MACRO_EXPAND( \
-        SPEMPEIMPL_GENERATE_DEFAULT_SYNC_HANDLERS(_class_name_, SPEMPEIMPL_MACRO_EXPAND_VA _for_events_) \
+    USPEMPE_MACRO_EXPAND( \
+        USPEMPE_GENERATE_DEFAULT_SYNC_HANDLERS(_class_name_, USPEMPE_MACRO_EXPAND_VA _for_events_) \
     )
 
+//! TODO (add description)
 #define SPEMPE_SYNC_CREATE_DEFAULT_IMPL(_class_name_, _sync_details_) \
-    Compose_SPEMPEIMPL_Create##_class_name_(_sync_details_.getNode(), \
-                                            _sync_details_.getRecepients(), getSyncId())
+    Compose_USPEMPE_Create##_class_name_(_sync_details_.getNode(), \
+                                         _sync_details_.getRecepients(), getSyncId())
 
+//! TODO (add description)
 #define SPEMPE_SYNC_UPDATE_DEFAULT_IMPL(_class_name_, _sync_details_) \
-    Compose_SPEMPEIMPL_Update##_class_name_(_sync_details_.getNode(), \
-                                            _sync_details_.getRecepients(), getSyncId(), \
-                                            _getCurrentState())
-
+    Compose_USPEMPE_Update##_class_name_(_sync_details_.getNode(), \
+                                         _sync_details_.getRecepients(), getSyncId(), \
+                                         _getCurrentState())
+//! TODO (add description)
 #define SPEMPE_SYNC_DESTROY_DEFAULT_IMPL(_class_name_, _sync_details_) \
-    Compose_SPEMPEIMPL_Destroy##_class_name_(_sync_details_.getNode(), \
-                                            _sync_details_.getRecepients(), getSyncId())
+    Compose_USPEMPE_Destroy##_class_name_(_sync_details_.getNode(), \
+                                          _sync_details_.getRecepients(), getSyncId())
+
+//! TODO (add description)
+#define SPEMPE_GET_SYNC_PARAMS(_node_) \
+    (::jbatnozic::spempe::detail::GetSyncParams<::jbatnozic::spempe::GameContext, \
+                                                ::jbatnozic::spempe::NetworkingManagerInterface>(_node_))
 
 } // namespace spempe
 } // namespace jbatnozic
