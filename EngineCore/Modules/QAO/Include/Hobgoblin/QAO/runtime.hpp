@@ -77,8 +77,10 @@ public:
     void addObjectNoOwn(QAO_Base& object, QAO_GenericId specififcId);
 
     std::unique_ptr<QAO_Base> releaseObject(QAO_Base* obj);
+    // TODO: Name should be destroyObject
     void eraseObject(QAO_Base* obj);
 
+    // TODO: Name should be destroyAllOwnedObjects
     void eraseAllNonOwnedObjects();
 
     QAO_Base* find(const std::string& name) const;

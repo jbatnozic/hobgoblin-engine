@@ -68,6 +68,14 @@ public:
     {
     }
 
+    ~PlayerAvatar() override {
+        if (isMasterObject()) {
+            // TODO: See if this can be improved.
+            // Maybe some default implementation?
+            doSyncDestroy();
+        }
+    }
+
     void init(int aOwningPlayerIndex) {
         assert(isMasterObject());
 
@@ -226,6 +234,11 @@ void GameplayManager::_eventUpdate() {
         Compose_PushPlayerControls(ccomp<MNetworking>().getClient(),
                                    RN_COMPOSE_FOR_ALL, controls);
     }
+
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
+        ctx().getQAORuntime().eraseAllNonOwnedObjects();
+        ctx().stop();
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -235,6 +248,17 @@ void GameplayManager::_eventUpdate() {
 #define WINDOW_WIDTH           800
 #define WINDOW_HEIGHT          800
 #define FRAMERATE               60
+
+bool MyRetransmitPredicate(hg::PZInteger aCyclesSinceLastTransmit,
+                           std::chrono::microseconds aTimeSinceLastSend,
+                           std::chrono::microseconds aCurrentLatency) {
+    // Default behaviour:
+    return RN_DefaultRetransmitPredicate(aCyclesSinceLastTransmit,
+                                         aTimeSinceLastSend, 
+                                         aCurrentLatency);
+    // Aggressive retransmission:
+    // return 1;
+}
 
 enum class GameMode {
     Server, Client
@@ -261,7 +285,8 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
         winMgr->setToNormalMode(
             spe::WindowManagerInterface::WindowConfig{
                 sf::VideoMode{WINDOW_WIDTH, WINDOW_WIDTH},
-                "SPeMPE Minimal Multiplayer"
+                "SPeMPE Minimal Multiplayer",
+                sf::Style::Fullscreen
             },
             spe::WindowManagerInterface::MainRenderTextureConfig{{WINDOW_HEIGHT, WINDOW_HEIGHT}},
             spe::WindowManagerInterface::TimingConfig{
@@ -283,6 +308,7 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
         netMgr->setToMode(spe::NetworkingManagerOne::Mode::Server);
         auto& server = netMgr->getServer();
         server.setTimeoutLimit(std::chrono::seconds{5});
+        server.setRetransmitPredicate(&MyRetransmitPredicate);
         server.start(aLocalPort);
         // TODO playerCount unused!
 
@@ -292,6 +318,7 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
         netMgr->setToMode(spe::NetworkingManagerOne::Mode::Client);
         auto& client = netMgr->getClient();
         client.setTimeoutLimit(std::chrono::seconds{5});
+        client.setRetransmitPredicate(&MyRetransmitPredicate);
         client.connect(aLocalPort, aRemoteIp, aRemotePort);
 
         std::printf("Client started on port %d (connecting to %s:%d)\n",

@@ -175,8 +175,9 @@ private:
     hg::QAO_Runtime _qaoRuntime;
 
     // Context components:
-    detail::ComponentTable _components;
+    // TODO: Owned components should be destroyed in a defined order (opposite of insertion)
     std::vector<std::unique_ptr<ContextComponent>> _ownedComponents;
+    detail::ComponentTable _components;
 
     // Execution:
     PerformanceInfo _performanceInfo;

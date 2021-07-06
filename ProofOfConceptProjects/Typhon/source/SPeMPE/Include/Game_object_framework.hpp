@@ -154,7 +154,7 @@ void CannonicalUpdateImpl(hg::RN_NodeInterface& node, SyncId syncId, typename T:
             auto& syncObjReg = ctx.getSyncObjReg();
             auto& object = *static_cast<T*>(syncObjReg.getMapping(syncId));
           
-            const auto latency = client.getServerConnector().getRemoteInfo().latency;
+            const auto latency = client.getServerConnector().getRemoteInfo().meanLatency;
             using TIME = std::remove_cv_t<decltype(latency)>;
             const auto dt = std::chrono::duration_cast<TIME>(ctx.getRuntimeConfig().getDeltaTime());
             const auto delaySteps = static_cast<int>(latency / dt) / 2;
@@ -177,7 +177,7 @@ void CannonicalDestroyImpl(hg::RN_NodeInterface& node, SyncId syncId) {
             auto& syncObjReg = ctx.getSyncObjReg();
             auto* object = static_cast<T*>(syncObjReg.getMapping(syncId));
 
-            const auto latency = client.getServerConnector().getRemoteInfo().latency;
+            const auto latency = client.getServerConnector().getRemoteInfo().meanLatency;
             using TIME = std::remove_cv_t<decltype(latency)>;
             const auto dt = std::chrono::duration_cast<TIME>(ctx.getRuntimeConfig().getDeltaTime());
             const auto delaySteps = static_cast<int>(latency / dt) / 2;
