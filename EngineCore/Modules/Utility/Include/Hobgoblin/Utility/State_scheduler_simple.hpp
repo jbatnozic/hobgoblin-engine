@@ -38,6 +38,8 @@ public:
     taState& getCurrentState();
     taState& getLatestState();
 
+    bool isCurrentStateFresh() const;
+
     const taState& getCurrentState() const;
     const taState& getLatestState() const;
 
@@ -213,6 +215,11 @@ taState& SimpleStateScheduler<taState>::getCurrentState() {
 template <class taState>
 taState& SimpleStateScheduler<taState>::getLatestState() {
     return _newStateAt(_newStatesBufferHand);
+}
+
+template <class taState>
+bool SimpleStateScheduler<taState>::isCurrentStateFresh() const {
+    return _bluePos >= 0;
 }
 
 template <class taState>

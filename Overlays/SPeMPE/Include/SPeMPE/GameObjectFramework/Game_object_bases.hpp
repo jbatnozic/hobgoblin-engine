@@ -445,4 +445,6 @@ void DefaultSyncDestroyHandler(hg::RN_NodeInterface& node,
 } // namespace spempe
 } // namespace jbatnozic
 
+#include <SPeMPE/Managers/Networking_manager_interface.hpp>
+
 #endif // !SPEMPE_GAME_OBJECT_FRAMEWORK_GAME_OBJECT_BASES_HPP

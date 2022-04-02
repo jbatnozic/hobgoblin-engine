@@ -115,6 +115,8 @@ PacketBase& operator<<(PacketBase& dstPacket, const Packet& srcPacket) {
 }
 
 PacketBase& operator>>(PacketBase& srcPacket, Packet& dstPacket) {
+    dstPacket.clear();
+
     std::uint32_t dataSizeInBytes;
     srcPacket >> dataSizeInBytes;
 

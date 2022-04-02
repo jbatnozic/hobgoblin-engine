@@ -14,6 +14,7 @@ namespace spe = ::jbatnozic::spempe;
 using namespace hg::qao; // All names from QAO are prefixed with QAO_
 using namespace hg::rn;  // All names from RigelNet are prefixed with RN_
 
+using MInput      = spe::InputSyncManagerInterface;
 using MNetworking = spe::NetworkingManagerInterface;
 using MWindow     = spe::WindowManagerInterface;
 
@@ -22,14 +23,18 @@ using MWindow     = spe::WindowManagerInterface;
 #define PRIORITY_PLAYERAVATAR  5
 #define PRIORITY_WINDOWMGR     0
 
-#define STATE_BUFFERING_LENGTH 3
+#define STATE_BUFFERING_LENGTH 2
 
 ///////////////////////////////////////////////////////////////////////////
 // PLAYER CONTROLS                                                       //
 ///////////////////////////////////////////////////////////////////////////
 
 struct PlayerControls {
-    bool left = false, right = false, up = false, down = false;
+    bool left  = false;
+    bool right = false;
+    bool up    = false;
+    bool down  = false;
+    bool jump  = false;
     HG_ENABLE_AUTOPACK(PlayerControls, left, right, up, down);
 };
 
@@ -38,9 +43,6 @@ struct PlayerControls {
 ///////////////////////////////////////////////////////////////////////////
 
 class GameplayManagerInterface : public spe::ContextComponent {
-public:
-    virtual const PlayerControls& getPlayerControls(hg::PZInteger aForPlayerIndex) const = 0;
-
 private:
     SPEMPE_CTXCOMP_TAG("GameplayManagerInterface");
 };
@@ -91,17 +93,22 @@ private:
         auto& self = _getCurrentState();
         assert(self.owningPlayerIndex >= 0);
 
-        auto& controls = ccomp<MGameplay>().getPlayerControls(self.owningPlayerIndex);
-        self.x += (5.f * ((float)controls.right - (float)controls.left));
-        self.y += (5.f * ((float)controls.down  - (float)controls.up));
-    }
+        spe::InputSyncManagerWrapper wrapper{ccomp<MInput>()};
 
-    void _eventUpdate(spe::IfDummy) override {
-        SPEMPE_SYNCOBJ_BEGIN_EVENT_UPDATE_OVERRIDE();
-        auto& self = _getCurrentState();
-        if (!self.hidden && sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
-            std::cout << self.x << ' ' << self.y << std::endl;
-        }
+        const bool left  = wrapper.getSignalValue<bool>(self.owningPlayerIndex, "left");
+        const bool right = wrapper.getSignalValue<bool>(self.owningPlayerIndex, "right");
+
+        self.x += (5.f * ((float)right - (float)left));
+
+        const bool up = wrapper.getSignalValue<bool>(self.owningPlayerIndex, "up");
+        const bool down = wrapper.getSignalValue<bool>(self.owningPlayerIndex, "down");
+
+        self.y += (5.f * ((float)down - (float)up));
+
+        wrapper.pollSimpleEvent(self.owningPlayerIndex, "jump",
+                                [&]() {
+                                    self.y -= 16.f;
+                                });
     }
 
     void _eventDraw1() override {
@@ -148,23 +155,10 @@ public:
         : NonstateObject{aRuntimeRef, SPEMPE_TYPEID_SELF, PRIPRITY_GAMEPLAYMGR, "GameplayManager"}
     {
         ccomp<MNetworking>().addEventListener(*this);
-        for (int i = 0; i < 20; i += 1) { // TODO
-            _schedulers.emplace_back(STATE_BUFFERING_LENGTH);  // TODO
-        }
     }
 
     ~GameplayManager() {
         ccomp<MNetworking>().removeEventListener(*this);
-    }
-
-    void pushNewPlayerControls(hg::PZInteger aForPlayerIndex,
-                               const PlayerControls& aNewControls,
-                               int aDelaySteps) {
-        _schedulers.at(aForPlayerIndex).putNewState(aNewControls, aDelaySteps);
-    }
-
-    const PlayerControls& getPlayerControls(hg::PZInteger aForPlayerIndex) const override {
-        return _schedulers.at(aForPlayerIndex).getCurrentState();
     }
 
 private:
@@ -172,10 +166,7 @@ private:
 
     void _eventPreUpdate() {
         if (ctx().isPrivileged()) {
-            for (auto& scheduler : _schedulers) {
-                scheduler.scheduleNewStates();
-                scheduler.advanceDownTo(std::max(1, STATE_BUFFERING_LENGTH * 2)); // TODO Temp.
-            }
+            ccomp<MInput>().applyNewInput();
         }
     }
 
@@ -183,9 +174,16 @@ private:
 
     void _eventPostUpdate() {
         if (ctx().isPrivileged()) {
-            for (auto& scheduler : _schedulers) {
-                scheduler.advance();
-            }
+            ccomp<MInput>().advance();
+        }
+    }
+
+    void _eventFinalizeFrame() override {
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
+            // Stopping the context will delete:
+            // - All objects owned by the QAO runtime (in undefined order)
+            // - Then, all ContextComponents owned by the context (in reverse order of insertion)
+            ctx().stop();
         }
     }
 
@@ -206,19 +204,11 @@ private:
             },
             [](const RN_Event::Disconnected& ev) {
                 // TODO Remove player avatar
+                
             }
         );
     }
 };
-
-RN_DEFINE_RPC(PushPlayerControls, RN_ARGS(PlayerControls&, aControls)) {
-    RN_NODE_IN_HANDLER().callIfServer(
-        [&](RN_ServerInterface& aServer) {
-            auto sp = SPEMPE_GET_SYNC_PARAMS(aServer);
-            auto& gpMgr = sp.context.getComponent<GameplayManager>();
-            gpMgr.pushNewPlayerControls(sp.senderIndex + 1, aControls, sp.meanLatencyInSteps);
-        });
-}
 
 void GameplayManager::_eventUpdate() {
     if (!ctx().isPrivileged() &&
@@ -228,16 +218,18 @@ void GameplayManager::_eventUpdate() {
             sf::Keyboard::isKeyPressed(sf::Keyboard::A),
             sf::Keyboard::isKeyPressed(sf::Keyboard::D),
             sf::Keyboard::isKeyPressed(sf::Keyboard::W),
-            sf::Keyboard::isKeyPressed(sf::Keyboard::S)
+            sf::Keyboard::isKeyPressed(sf::Keyboard::S),
+            sf::Keyboard::isKeyPressed(sf::Keyboard::Space)
         };
 
-        Compose_PushPlayerControls(ccomp<MNetworking>().getClient(),
-                                   RN_COMPOSE_FOR_ALL, controls);
-    }
+        spe::InputSyncManagerWrapper wrapper{ccomp<MInput>()};
+        wrapper.setSignalValue<bool>("left",  controls.left);
+        wrapper.setSignalValue<bool>("right", controls.right);
+        wrapper.setSignalValue<bool>("up",    controls.up);
+        wrapper.setSignalValue<bool>("down",  controls.down);
+        wrapper.triggerEvent("jump", controls.jump);
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
-        ctx().getQAORuntime().eraseAllNonOwnedObjects();
-        ctx().stop();
+        ccomp<MInput>().sendInput(ccomp<MNetworking>().getNode());
     }
 }
 
@@ -286,7 +278,7 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
             spe::WindowManagerInterface::WindowConfig{
                 sf::VideoMode{WINDOW_WIDTH, WINDOW_WIDTH},
                 "SPeMPE Minimal Multiplayer",
-                sf::Style::Fullscreen
+                sf::Style::Default
             },
             spe::WindowManagerInterface::MainRenderTextureConfig{{WINDOW_HEIGHT, WINDOW_HEIGHT}},
             spe::WindowManagerInterface::TimingConfig{
@@ -325,6 +317,28 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
                     (int)client.getLocalPort(), aRemoteIp.c_str(), (int)aRemotePort);
     }
     context->attachAndOwnComponent(std::move(netMgr));
+
+    // Create and attack an Input sync manager
+    std::unique_ptr<spe::InputSyncManagerOne> insMgr;
+    if (aGameMode == GameMode::Server) {
+        insMgr = std::make_unique<spe::InputSyncManagerOne>(spe::InputSyncManagerOne::FOR_HOST,
+                                                            aPlayerCount,
+                                                            STATE_BUFFERING_LENGTH);
+    }
+    else {
+        insMgr = std::make_unique<spe::InputSyncManagerOne>(spe::InputSyncManagerOne::FOR_CLIENT);
+    }
+
+    {
+        spe::InputSyncManagerWrapper wrapper{*insMgr};
+        wrapper.defineSignal<bool>("left", false);
+        wrapper.defineSignal<bool>("right", false);
+        wrapper.defineSignal<bool>("up", false);
+        wrapper.defineSignal<bool>("down", false);
+        wrapper.defineSimpleEvent("jump");
+    }
+
+    context->attachAndOwnComponent(std::move(insMgr));
 
     // Create and attach a Gameplay manager
     auto gpMgr = std::make_unique<GameplayManager>(context->getQAORuntime().nonOwning());
