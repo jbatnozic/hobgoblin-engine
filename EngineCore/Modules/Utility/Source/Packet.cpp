@@ -66,6 +66,10 @@ bool SfmlPacketAccess_GetIsValid(const sf::Packet& packet) {
 }
 
 void* SfmlPacketAccess_ExtractBytes(sf::Packet& packet, std::size_t byteCount) {
+    if (byteCount == 0) {
+        return nullptr;
+    }
+
     auto& data = SfmlPacketAccess_GetDataVector(packet);
     auto& readPos = SfmlPacketAccess_GetReadPosition(packet);
 
@@ -120,10 +124,11 @@ PacketBase& operator>>(PacketBase& srcPacket, Packet& dstPacket) {
     std::uint32_t dataSizeInBytes;
     srcPacket >> dataSizeInBytes;
 
-    void* const data = SfmlPacketAccess_ExtractBytes(srcPacket, dataSizeInBytes);
-
-    if (srcPacket) {
-        dstPacket.append(data, dataSizeInBytes);
+    if (dataSizeInBytes > 0) {
+        void* const data = SfmlPacketAccess_ExtractBytes(srcPacket, dataSizeInBytes);
+        if (srcPacket) {
+            dstPacket.append(data, dataSizeInBytes);
+        }
     }
 
     return srcPacket;

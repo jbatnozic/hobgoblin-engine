@@ -44,12 +44,17 @@ RN_DEFINE_RPC(USPEMPE_InputSyncManagerOne_SendInput, RN_ARGS(hg::util::Packet&, 
         });
 }
 
-InputSyncManagerOne::InputSyncManagerOne(ForHostType, hg::PZInteger aPlayerCount, hg::PZInteger aStateBufferingLength)
-    : _isForHost{true}
+InputSyncManagerOne::InputSyncManagerOne(hg::QAO_RuntimeRef aRuntimeRef, int aExecutionPriority) 
+    : NonstateObject{aRuntimeRef, SPEMPE_TYPEID_SELF, aExecutionPriority, "spempe::InputSyncManagerOne"}
 {
+}
+
+void InputSyncManagerOne::setToHostMode(hg::PZInteger aPlayerCount, hg::PZInteger aStateBufferingLength) {
     if (aPlayerCount < 1) {
         throw hg::TracedLogicError{"InputSyncManagerOne - Player count must be at least 1!"};
     }
+
+    _mode = Mode::Host;
 
     _maps.resize(hg::pztos(aPlayerCount));
 
@@ -59,57 +64,15 @@ InputSyncManagerOne::InputSyncManagerOne(ForHostType, hg::PZInteger aPlayerCount
     }
 }
 
-InputSyncManagerOne::InputSyncManagerOne(ForClientType)
-    : _isForHost{false}
-{
+void InputSyncManagerOne::setToClientMode() {
+    _mode = Mode::Client;
     _maps.resize(1u);
 }
 
-void InputSyncManagerOne::applyNewInput() {
-    if (!_isForHost) {
-        throw hg::TracedLogicError{"InputSyncManagerOne - Calls of applyNewInput() "
-                                   "are for host configuration only!"};
+void InputSyncManagerOne::setStateBufferingLength(hg::PZInteger aNewStateBufferingLength) {
+    for (auto& scheduler : _incomingStates) {
+        scheduler.setDefaultDelay(aNewStateBufferingLength);
     }
-
-    for (std::size_t i = 0; i < _incomingStates.size(); i += 1) {
-        _incomingStates[i].scheduleNewStates();
-
-        auto& newState      = _incomingStates[i].getCurrentState();
-        bool  newStateFresh = _incomingStates[i].isCurrentStateFresh();
-        // DataSize count be 0 if nothing was received yet from the client; 
-        // In that case the state scheduler is just juggling empty packets
-        if (newState.getDataSize() > 0 && !newState.endOfPacket()) {
-            _unpackSingleState(hg::stopz(i), newState);
-        }
-        // Old events must not be repeated
-        if (!newStateFresh) {
-            _clearAllEvents(hg::stopz(i));
-        }
-    }
-}
-
-void InputSyncManagerOne::advance() {
-    if (!_isForHost) {
-        throw hg::TracedLogicError{"InputSyncManagerOne - Calls of advance() "
-                                   "are for host configuration only!"};
-    }
-
-    for (std::size_t i = 0; i < _incomingStates.size(); i += 1) {
-        _incomingStates[i].advance();
-    }
-}
-
-void InputSyncManagerOne::sendInput(hg::RN_NodeInterface& aNode) {
-    if (_isForHost) {
-        throw hg::TracedLogicError{"InputSyncManagerOne - Calls of sendInput() "
-                                   "are for client configuration only!"};
-    }
-
-    _helperPacket.clear();
-    _packSingleState(0, _helperPacket);
-    _clearAllEvents(0);
-
-    Compose_USPEMPE_InputSyncManagerOne_SendInput(aNode, RN_COMPOSE_FOR_ALL, _helperPacket);
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -181,7 +144,7 @@ const std::type_info& InputSyncManagerOne::getEventPayloadType(std::string aEven
 
 void InputSyncManagerOne::setSignalValue(std::string aSignalName,
                                          const std::function<void(hg::util::Packet&)>& f) {
-    if (_isForHost) {
+    if (_mode != Mode::Client) {
         throw hg::TracedLogicError{"InputSyncManagerOne - This overload of setSignalValue "
                                    "is for client configuration only!"};
     }
@@ -202,7 +165,7 @@ void InputSyncManagerOne::setSignalValue(std::string aSignalName,
 void InputSyncManagerOne::setSignalValue(hg::PZInteger aForPlayer, 
                                          std::string aSignalName,
                                          const std::function<void(hg::util::Packet&)>& f) {
-    if (!_isForHost) {
+    if (_mode != Mode::Host) {
         throw hg::TracedLogicError{"InputSyncManagerOne - This overload of setSignalValue "
                                    "is for host configuration only!"};
     }
@@ -221,7 +184,7 @@ void InputSyncManagerOne::setSignalValue(hg::PZInteger aForPlayer,
 }
 
 void InputSyncManagerOne::triggerEvent(std::string aEventName) {
-    if (_isForHost) {
+    if (_mode != Mode::Client) {
         throw hg::TracedLogicError{"InputSyncManagerOne - This overload of setSignalValue "
                                    "is for client configuration only!"};
     }
@@ -239,7 +202,7 @@ void InputSyncManagerOne::triggerEvent(std::string aEventName) {
 
 void InputSyncManagerOne::triggerEvent(hg::PZInteger aForPlayer,
                                        std::string aEventName) {
-    if (!_isForHost) {
+    if (_mode != Mode::Host) {
         throw hg::TracedLogicError{"InputSyncManagerOne - This overload of setSignalValue "
                                    "is for host configuration only!"};
     }
@@ -257,7 +220,7 @@ void InputSyncManagerOne::triggerEvent(hg::PZInteger aForPlayer,
 
 void InputSyncManagerOne::triggerEventWithPayload(std::string aEventName,
                                                   const std::function<void(hg::util::Packet&)>& f) {
-    if (_isForHost) {
+    if (_mode != Mode::Client) {
         throw hg::TracedLogicError{"InputSyncManagerOne - This overload of setSignalValue "
                                    "is for client configuration only!"};
     }
@@ -281,7 +244,7 @@ void InputSyncManagerOne::triggerEventWithPayload(std::string aEventName,
 void InputSyncManagerOne::triggerEventWithPayload(hg::PZInteger aForPlayer, 
                                                   std::string aEventName,
                                                   const std::function<void(hg::util::Packet&)>& f) {
-    if (!_isForHost) {
+    if (_mode != Mode::Host) {
         throw hg::TracedLogicError{"InputSyncManagerOne - This overload of setSignalValue "
                                    "is for host configuration only!"};
     }
@@ -466,6 +429,54 @@ void InputSyncManagerOne::_clearAllEvents(hg::PZInteger aIndex) {
             assert(false && "Unreachable");
             break;
         }
+    }
+}
+
+void InputSyncManagerOne::_eventPreUpdate() {
+    // If Host, apply new input
+    if (_mode == Mode::Host) {
+
+        for (std::size_t i = 0; i < _incomingStates.size(); i += 1) {
+            _incomingStates[i].scheduleNewStates();
+
+            auto& newState = _incomingStates[i].getCurrentState();
+            bool  newStateFresh = _incomingStates[i].isCurrentStateFresh();
+            // DataSize count be 0 if nothing was received yet from the client; 
+            // In that case the state scheduler is just juggling empty packets
+            if (newState.getDataSize() > 0 && !newState.endOfPacket()) {
+                _unpackSingleState(hg::stopz(i), newState);
+            }
+            // Old events must not be repeated
+            if (!newStateFresh) {
+                _clearAllEvents(hg::stopz(i));
+            }
+        }
+
+    }
+}
+
+void InputSyncManagerOne::_eventUpdate() {
+    // If Client, send all inputs
+    if (_mode == Mode::Client) {
+
+        _helperPacket.clear();
+        _packSingleState(0, _helperPacket);
+        _clearAllEvents(0);
+
+        auto& node = ccomp<NetworkingManagerInterface>().getNode(); // TODO Temp.
+
+        Compose_USPEMPE_InputSyncManagerOne_SendInput(node, RN_COMPOSE_FOR_ALL, _helperPacket);
+    }
+}
+
+void InputSyncManagerOne::_eventPostUpdate() {
+    // If Host, advance all state schedulers
+    if (_mode == Mode::Host) {
+
+        for (std::size_t i = 0; i < _incomingStates.size(); i += 1) {
+            _incomingStates[i].advance();
+        }
+
     }
 }
 

@@ -14,4 +14,6 @@
 #include <SPeMPE/Managers/Window_manager_interface.hpp>
 #include <SPeMPE/Managers/Window_manager_one.hpp>
 
+#include <SPeMPE/Other/Sync_parameters.hpp>
+
 #endif // !SPEMPE_SPEMPE_HPP

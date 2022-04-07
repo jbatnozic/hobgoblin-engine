@@ -67,6 +67,7 @@ PUBLIC
 set(OVERLAY_TEST_NAME "spempe-test")
 
 set(OVERLAY_TEST_SOURCES
+  "Test/Input_sync_manager_test.cpp"
   "Test/SPeMPE_test.cpp"
 )
 

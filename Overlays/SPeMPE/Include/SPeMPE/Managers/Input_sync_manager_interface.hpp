@@ -22,10 +22,11 @@ PostUpdate:                                          [c] uploads input
 
 class InputSyncManagerInterface : public ContextComponent {
 public:
-    virtual void applyNewInput() = 0; // pre step
-    virtual void advance() = 0; // post step
+    virtual void setToHostMode(hg::PZInteger aPlayerCount, hg::PZInteger aStateBufferingLength) = 0;
 
-    virtual void sendInput(hg::RN_NodeInterface& aNode) = 0;
+    virtual void setToClientMode() = 0;
+
+    virtual void setStateBufferingLength(hg::PZInteger aNewStateBufferingLength) = 0;
 
     ///////////////////////////////////////////////////////////////////////////
     // INPUT DEFINITIONS                                                     //
@@ -93,19 +94,24 @@ public:
     }
 
     template <class taSignalType>
-    void defineSignal(std::string aSignalName, const taSignalType& aInitialValue) {
+    void defineSignal(std::string aSignalName, const taSignalType& aInitialValue) const {
         _helperPacket.clear();
         _helperPacket << aInitialValue;
         _mgr.defineSignal(std::move(aSignalName), typeid(taSignalType), _helperPacket);
         _helperPacket.clear();
     }
 
-    void defineSimpleEvent(std::string aEventName) {
+    void defineSimpleEvent(std::string aEventName) const {
         _mgr.defineSimpleEvent(std::move(aEventName));
     }
 
+    template <class taEventType>
+    void defineEventWithPayload(std::string aEventName) const {
+        _mgr.defineEventWithPayload(std::move(aEventName), typeid(taEventType));
+    }
+
     template <class taSignalType>
-    void setSignalValue(std::string aSignalName, const taSignalType& aValue) {
+    void setSignalValue(std::string aSignalName, const taSignalType& aValue) const {
         if (typeid(taSignalType) != _mgr.getSignalType(aSignalName)) {
             throw hg::TracedLogicError{"InputSyncManagerAdapter - Incorrect type for signal value!"};
         }
@@ -116,7 +122,7 @@ public:
     }
 
     template <class taSignalType>
-    void setSignalValue(hg::PZInteger aForPlayer, std::string aSignalName, const taSignalType& aValue) {
+    void setSignalValue(hg::PZInteger aForPlayer, std::string aSignalName, const taSignalType& aValue) const {
         if (typeid(taSignalType) != _mgr.getSignalType(aSignalName)) {
             throw hg::TracedLogicError{"InputSyncManagerAdapter - Incorrect type for signal value!"};
         }
@@ -127,9 +133,29 @@ public:
                             });
     }
 
-    void triggerEvent(std::string aEventName, bool aPredicate = true) {
+    void triggerEvent(std::string aEventName, bool aPredicate = true) const {
         if (aPredicate) {
             _mgr.triggerEvent(std::move(aEventName));
+        }
+    }
+
+    void triggerEvent(hg::PZInteger aForPlayer, std::string aEventName, bool aPredicate = true) const {
+        if (aPredicate) {
+            _mgr.triggerEvent(aForPlayer, std::move(aEventName));
+        }
+    }
+
+    template <class taPayloadType>
+    void triggerEventWithPayload(std::string aEventName, const taPayloadType& aPayload, bool aPredicate = true) const {
+        if (typeid(taPayloadType) != _mgr.getEventPayloadType(aEventName)) {
+            throw hg::TracedLogicError{"InputSyncManagerAdapter - Incorrect type for payload!"};
+        }
+
+        if (aPredicate) {
+            _mgr.triggerEventWithPayload(std::move(aEventName),
+                                         [&](hg::util::Packet& aPacket) {
+                                             aPacket << aPayload;
+                                         });
         }
     }
 
@@ -147,10 +173,45 @@ public:
         return retval;
     }
 
-    void pollSimpleEvent(hg::PZInteger aForPlayer,
-                         std::string aEventName,
-                         const std::function<void()>& aHandler) const {
-        _mgr.pollSimpleEvent(aForPlayer, std::move(aEventName), aHandler);
+    hg::PZInteger pollSimpleEvent(hg::PZInteger aForPlayer,
+                                  std::string aEventName,
+                                  const std::function<void()>& aHandler) const {
+        hg::PZInteger count = 0;
+        _mgr.pollSimpleEvent(aForPlayer, std::move(aEventName),
+                             [&]() {
+                                 count++;
+                                 aHandler();
+                             });
+        return count;
+    }
+
+    hg::PZInteger countSimpleEvent(hg::PZInteger aForPlayer,
+                          std::string aEventName) const {
+        hg::PZInteger count = 0;
+        _mgr.pollSimpleEvent(aForPlayer, 
+                             std::move(aEventName), 
+                             [&]() {
+                                 count++;
+                             });
+        return count;
+    }
+
+    template <class taPayloadType>
+    hg::PZInteger pollEventWithPayload(hg::PZInteger aForPlayer,
+                                       std::string aEventName,
+                                       const std::function<void(const taPayloadType&)>& aHandler) const {
+        if (typeid(taPayloadType) != _mgr.getEventPayloadType(aEventName)) {
+            throw hg::TracedLogicError{"InputSyncManagerAdapter - Incorrect type for payload!"};
+        }
+
+        hg::PZInteger count = 0;
+        _mgr.pollEventWithPayload(aForPlayer, std::move(aEventName),
+                                  [&](hg::util::Packet& aPacket) {
+                                      count++;
+                                      const auto payload = aPacket.extractOrThrow<taPayloadType>();
+                                      aHandler(payload);
+                                  });
+        return count;
     }
 
 private:

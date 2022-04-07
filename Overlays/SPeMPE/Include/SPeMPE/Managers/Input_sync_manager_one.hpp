@@ -3,6 +3,7 @@
 
 #include <Hobgoblin/Utility/Packet.hpp>
 #include <Hobgoblin/Utility/State_scheduler_simple.hpp>
+#include <SPeMPE/GameObjectFramework/Game_object_bases.hpp>
 #include <SPeMPE/Managers/Input_sync_manager_interface.hpp>
 
 #include <unordered_map>
@@ -11,19 +12,16 @@
 namespace jbatnozic {
 namespace spempe {
 
-class InputSyncManagerOne : public InputSyncManagerInterface {
+class InputSyncManagerOne 
+    : public InputSyncManagerInterface
+    , public NonstateObject {
 public:
-    constexpr static struct ForHostType   {} FOR_HOST   = {};
-    constexpr static struct ForClientType {} FOR_CLIENT = {};
+    InputSyncManagerOne(hg::QAO_RuntimeRef aRuntimeRef, int aExecutionPriority);
 
-    InputSyncManagerOne(ForHostType, hg::PZInteger aPlayerCount, hg::PZInteger aStateBufferingLength);
+    void setToHostMode(hg::PZInteger aPlayerCount, hg::PZInteger aStateBufferingLength) override;
+    void setToClientMode() override;
 
-    InputSyncManagerOne(ForClientType);
-
-    void applyNewInput() override;
-    void advance() override;
-
-    void sendInput(hg::RN_NodeInterface& aNode) override;
+    void setStateBufferingLength(hg::PZInteger aNewStateBufferingLength) override;
 
     ///////////////////////////////////////////////////////////////////////////
     // INPUT DEFINITIONS                                                     //
@@ -80,7 +78,13 @@ public:
                               const std::function<void(hg::util::Packet&)>& aPayloadHandler) const override;
 
 private:
-    bool _isForHost;
+    enum class Mode {
+        Default,
+        Host,
+        Client
+    };
+
+    Mode _mode = Mode::Default;
 
     struct SignalElem {
         const std::type_info& signalType;
@@ -117,6 +121,10 @@ private:
     void _packSingleState(hg::PZInteger aIndex, hg::util::Packet& packet);
     void _unpackSingleState(hg::PZInteger aIndex, hg::util::Packet& packet);
     void _clearAllEvents(hg::PZInteger aIndex);
+
+    void _eventPreUpdate() override;
+    void _eventUpdate() override;
+    void _eventPostUpdate() override;
 
     friend void PutNewState(InputSyncManagerOne&, hg::PZInteger, const hg::util::Packet&, hg::PZInteger);
 };

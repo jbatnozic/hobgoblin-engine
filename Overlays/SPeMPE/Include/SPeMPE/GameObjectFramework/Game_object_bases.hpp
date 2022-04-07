@@ -214,8 +214,9 @@ protected:
                                 , aRegId
                                 , aSyncId
                                 }
-        , _ssch{ 
-            reinterpret_cast<detail::SynchronizedObjectRegistry*>(aRegId.address)->getDefaultDelay()
+        , _ssch{
+            isMasterObject() ? 0 // Masters don't need state scheduling
+                             : reinterpret_cast<detail::SynchronizedObjectRegistry*>(aRegId.address)->getDefaultDelay()
         }
     {
     }
@@ -237,13 +238,17 @@ private:
     }
 
     void _setStateSchedulerDefaultDelay(hg::PZInteger aNewDefaultDelaySteps) override final {
-        _ssch.setDefaultDelay(aNewDefaultDelaySteps);
+        if (!isMasterObject()) {
+            _ssch.setDefaultDelay(aNewDefaultDelaySteps);
+        }
     }
 };
 
 ///////////////////////////////////////////////////////////////////////////
 // SYNCHRONIZATION HELPERS                                               //
 ///////////////////////////////////////////////////////////////////////////
+
+namespace detail {
 
 #define ROUNDTOI(_x_) (static_cast<int>(std::round(_x_)))
 
@@ -269,7 +274,7 @@ struct SyncParameters {
     hg::PZInteger optimisticLatencyInSteps;
     hg::PZInteger pessimisticLatencyInSteps;
 
-    explicit SyncParameters(hg::RN_ClientInterface& aClient)
+    explicit SyncParameters(const hg::RN_ClientInterface& aClient)
         : context{*aClient.getUserDataOrThrow<taContext>()}
         , netwMgr{context.getComponent<taNetwMgr>()}
         , senderIndex{-1000}
@@ -282,7 +287,7 @@ struct SyncParameters {
     {
     }
 
-    explicit SyncParameters(hg::RN_ServerInterface& aServer)
+    explicit SyncParameters(const hg::RN_ServerInterface& aServer)
         : context{*aServer.getUserDataOrThrow<taContext>()}
         , netwMgr{context.getComponent<taNetwMgr>()}
         , senderIndex{aServer.getSenderIndex()}
@@ -298,7 +303,6 @@ struct SyncParameters {
 
 #undef ROUNDTOI
 
-namespace detail {
 template <class taContext, class taNetwMgr>
 SyncParameters<taContext, taNetwMgr> GetSyncParams(hg::RN_ClientInterface& aClient) {
     return SyncParameters<taContext, taNetwMgr>{aClient};
@@ -308,6 +312,7 @@ template <class taContext, class taNetwMgr>
 SyncParameters<taContext, taNetwMgr> GetSyncParams(hg::RN_ServerInterface& aServer) {
     return SyncParameters<taContext, taNetwMgr>{aServer};
 }
+
 } // namespace detail
 
 template <class taSyncObj, class taContext, class taNetwMgr>
@@ -334,7 +339,7 @@ void DefaultSyncUpdateHandler(hg::RN_NodeInterface& node,
                               typename taSyncObj::VisibleState& state) {
     node.callIfClient(
         [&](hg::RN_ClientInterface& client) {
-            SyncParameters<taContext, taNetwMgr> sp{client};
+            detail::SyncParameters<taContext, taNetwMgr> sp{client};
             auto  regId      = sp.netwMgr.getRegistryId();
             auto& syncObjReg = *reinterpret_cast<detail::SynchronizedObjectRegistry*>(regId.address);
             auto& object     = *static_cast<taSyncObj*>(syncObjReg.getMapping(syncId));
@@ -353,7 +358,7 @@ void DefaultSyncDestroyHandler(hg::RN_NodeInterface& node,
                                SyncId syncId) {
     node.callIfClient(
         [&](hg::RN_ClientInterface& client) {
-            SyncParameters<taContext, taNetwMgr> sp{client};
+            detail::SyncParameters<taContext, taNetwMgr> sp{client};
             auto  regId      = sp.context.getComponent<taNetwMgr>().getRegistryId();
             auto& syncObjReg = *reinterpret_cast<detail::SynchronizedObjectRegistry*>(regId.address);
             auto* object     = static_cast<taSyncObj*>(syncObjReg.getMapping(syncId));

@@ -20,6 +20,7 @@ using MWindow     = spe::WindowManagerInterface;
 
 #define PRIORITY_NETWORKMGR   15
 #define PRIPRITY_GAMEPLAYMGR  10
+#define PRIORITY_INPUTMGR      7
 #define PRIORITY_PLAYERAVATAR  5
 #define PRIORITY_WINDOWMGR     0
 
@@ -93,6 +94,10 @@ private:
         auto& self = _getCurrentState();
         assert(self.owningPlayerIndex >= 0);
 
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
+            std::cout << "X: " << self.x << " Y: " << self.y << std::endl;
+        }
+
         spe::InputSyncManagerWrapper wrapper{ccomp<MInput>()};
 
         const bool left  = wrapper.getSignalValue<bool>(self.owningPlayerIndex, "left");
@@ -146,6 +151,20 @@ void PlayerAvatar::_syncDestroyImpl(spe::SyncDetails& aSyncDetails) const {
 // MAIN GAMEPLAY CONTROLLER IMPLEMENTATION                               //
 ///////////////////////////////////////////////////////////////////////////
 
+RN_DEFINE_RPC(SetGlobalStateBufferingLength, RN_ARGS(unsigned, aNewLength)) {
+    RN_NODE_IN_HANDLER().callIfClient(
+        [=](RN_ClientInterface& aClient) {
+            const auto sp = spe::SyncParameters(aClient);
+            sp.context.getComponent<MNetworking>().setStateBufferingLength(aNewLength);
+            sp.context.getComponent<MInput>().setStateBufferingLength(aNewLength);
+            std::cout << "Global state buffering set to " << aNewLength << " frames.\n";
+        });
+    RN_NODE_IN_HANDLER().callIfServer(
+        [](RN_ServerInterface& aClient) {
+            throw RN_IllegalMessage();
+        });
+}
+
 class GameplayManager 
     : public  GameplayManagerInterface
     , public  spe::NonstateObject
@@ -164,19 +183,9 @@ public:
 private:
     std::vector<hg::util::StateScheduler<PlayerControls>> _schedulers;
 
-    void _eventPreUpdate() {
-        if (ctx().isPrivileged()) {
-            ccomp<MInput>().applyNewInput();
-        }
-    }
+    int _cooldown = 0;
 
     void _eventUpdate() override;
-
-    void _eventPostUpdate() {
-        if (ctx().isPrivileged()) {
-            ccomp<MInput>().advance();
-        }
-    }
 
     void _eventFinalizeFrame() override {
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
@@ -219,7 +228,7 @@ void GameplayManager::_eventUpdate() {
             sf::Keyboard::isKeyPressed(sf::Keyboard::D),
             sf::Keyboard::isKeyPressed(sf::Keyboard::W),
             sf::Keyboard::isKeyPressed(sf::Keyboard::S),
-            sf::Keyboard::isKeyPressed(sf::Keyboard::Space)
+            sf::Keyboard::isKeyPressed(sf::Keyboard::Space) && false // TODO Temp.
         };
 
         spe::InputSyncManagerWrapper wrapper{ccomp<MInput>()};
@@ -228,8 +237,42 @@ void GameplayManager::_eventUpdate() {
         wrapper.setSignalValue<bool>("up",    controls.up);
         wrapper.setSignalValue<bool>("down",  controls.down);
         wrapper.triggerEvent("jump", controls.jump);
+    }
 
-        ccomp<MInput>().sendInput(ccomp<MNetworking>().getNode());
+    if (ctx().isPrivileged()) {
+        if (_cooldown == 0) {
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num2)) {
+                ctx().getComponent<MNetworking>().setStateBufferingLength(2);
+                ctx().getComponent<MInput>().setStateBufferingLength(2);
+                Compose_SetGlobalStateBufferingLength(ctx().getComponent<MNetworking>().getNode(), RN_COMPOSE_FOR_ALL, 2);
+                std::cout << "Global state buffering set to " << 2 << " frames.\n";
+                _cooldown = 60;
+            }
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num3)) {
+                ctx().getComponent<MNetworking>().setStateBufferingLength(3);
+                ctx().getComponent<MInput>().setStateBufferingLength(3);
+                Compose_SetGlobalStateBufferingLength(ctx().getComponent<MNetworking>().getNode(), RN_COMPOSE_FOR_ALL, 3);
+                std::cout << "Global state buffering set to " << 3 << " frames.\n";
+                _cooldown = 60;
+            }
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num9)) {
+                ctx().getComponent<MNetworking>().setStateBufferingLength(9);
+                ctx().getComponent<MInput>().setStateBufferingLength(9);
+                Compose_SetGlobalStateBufferingLength(ctx().getComponent<MNetworking>().getNode(), RN_COMPOSE_FOR_ALL, 9);
+                std::cout << "Global state buffering set to " << 9 << " frames.\n";
+                _cooldown = 60;
+            }
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num0)) {
+                ctx().getComponent<MNetworking>().setStateBufferingLength(30);
+                ctx().getComponent<MInput>().setStateBufferingLength(30);
+                Compose_SetGlobalStateBufferingLength(ctx().getComponent<MNetworking>().getNode(), RN_COMPOSE_FOR_ALL, 30);
+                std::cout << "Global state buffering set to " << 30 << " frames.\n";
+                _cooldown = 60;
+            }
+        }
+        else {
+            _cooldown -= 1;
+        }
     }
 }
 
@@ -319,16 +362,17 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
     context->attachAndOwnComponent(std::move(netMgr));
 
     // Create and attack an Input sync manager
-    std::unique_ptr<spe::InputSyncManagerOne> insMgr;
+    auto insMgr = std::make_unique<spe::InputSyncManagerOne>(context->getQAORuntime().nonOwning(),
+                                                             PRIORITY_INPUTMGR);
+
     if (aGameMode == GameMode::Server) {
-        insMgr = std::make_unique<spe::InputSyncManagerOne>(spe::InputSyncManagerOne::FOR_HOST,
-                                                            aPlayerCount,
-                                                            STATE_BUFFERING_LENGTH);
+        insMgr->setToHostMode(aPlayerCount, STATE_BUFFERING_LENGTH);
     }
     else {
-        insMgr = std::make_unique<spe::InputSyncManagerOne>(spe::InputSyncManagerOne::FOR_CLIENT);
+        insMgr->setToClientMode();
     }
 
+    /* Either way, define the inputs in the same way */
     {
         spe::InputSyncManagerWrapper wrapper{*insMgr};
         wrapper.defineSignal<bool>("left", false);

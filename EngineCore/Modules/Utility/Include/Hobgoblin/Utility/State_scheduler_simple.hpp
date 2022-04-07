@@ -201,8 +201,57 @@ PZInteger SimpleStateScheduler<taState>::getDefaultDelay() const noexcept {
 
 template <class taState>
 void SimpleStateScheduler<taState>::setDefaultDelay(PZInteger aNewDefaultDelay) {
-    // TODO Temporary quick-n-dirty implementation
-    reset(aNewDefaultDelay);
+    if (aNewDefaultDelay == _defaultDelay) {
+        return;
+    }
+
+    // Reduce
+    if (aNewDefaultDelay < _defaultDelay) {
+        const PZInteger difference = _defaultDelay - aNewDefaultDelay;
+
+        //    A | B | C | D || ? | ? | ? | ?
+        // -2
+        // -> C | D || ? | ?
+
+        for (PZInteger i = 0; i < _individualBufferSize() - difference; i += 1) {
+            _stateBuffer[pztos(i)] = _stateBuffer[pztos(i + difference)];
+        }
+        for (PZInteger i = 0; i < difference; i += 1) {
+            _stateBuffer.pop_back();
+            _stateBuffer.pop_back();
+        }
+
+        _bluePos = BLUE_POS_NONE;
+    }
+    // Increase
+    else {
+        const PZInteger difference = aNewDefaultDelay - _defaultDelay;
+
+        //    A | B | C | D || ? | ? | ? | ?
+        // +1
+        // -> A | A | B | C | D || ? | ? | ? | ? | ?
+
+        for (PZInteger i = 0; i < difference; i += 1) {
+            _stateBuffer.emplace_back();
+            _stateBuffer.emplace_back();
+        }
+        for (PZInteger i = _individualBufferSize() + difference - 1; i >= difference; i -= 1) {
+            _stateBuffer[pztos(i)] = _stateBuffer[pztos(i - difference)];
+        }
+        for (PZInteger i = 0; i < difference; i += 1) {
+            _stateBuffer[pztos(i)] = _stateBuffer[pztos(difference)];
+        }
+
+        if (_bluePos != BLUE_POS_NONE) {
+            _bluePos += difference;
+        }
+    }
+
+    _newStatesBufferHand = 0;
+    _newStatesCount = 0;
+    _newStatesDelay = 0;
+
+    _defaultDelay = aNewDefaultDelay;
 }
 
 // Access states:
