@@ -131,6 +131,14 @@ const sf::View& WindowManagerOne::getView(hg::PZInteger aViewIndex) const {
 // KEYBOARD & MOUSE INPUT                                                //
 ///////////////////////////////////////////////////////////////////////////
 
+KbInput WindowManagerOne::getKeyboardInput() {
+    return _kbInputTracker.getInput();
+}
+
+const KbInput WindowManagerOne::getKeyboardInput() const {
+    return _kbInputTracker.getInput();
+}
+
 ///////////////////////////////////////////////////////////////////////////
 // PRIVATE METHODS                                                       //
 ///////////////////////////////////////////////////////////////////////////
@@ -213,7 +221,8 @@ void WindowManagerOne::_drawMainRenderTexture() {
 void WindowManagerOne::_finalizeFrameByDisplayingWindow() {
     _window->display();
 
-    // _kbi.prepForEvents(); TODO
+    _kbInputTracker.prepForEvents();
+
     sf::Event ev;
     while (_window->pollEvent(ev)) {
         switch (ev.type) {
@@ -223,7 +232,7 @@ void WindowManagerOne::_finalizeFrameByDisplayingWindow() {
 
         case sf::Event::KeyPressed:
         case sf::Event::KeyReleased:
-            // _kbi.onKeyEvent(ev); TODO
+            _kbInputTracker.keyEventOccurred(ev);
             break;
 
         case sf::Event::Resized:
@@ -237,7 +246,7 @@ void WindowManagerOne::_finalizeFrameByDisplayingWindow() {
             break;
 
         case sf::Event::TextEntered:
-            // _kbi.onTextEvent(ev); TODO
+            _kbInputTracker.textEventOccurred(ev);
             break;
 
         default: (void)0;

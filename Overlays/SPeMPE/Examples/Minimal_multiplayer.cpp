@@ -94,10 +94,6 @@ private:
         auto& self = _getCurrentState();
         assert(self.owningPlayerIndex >= 0);
 
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
-            std::cout << "X: " << self.x << " Y: " << self.y << std::endl;
-        }
-
         spe::InputSyncManagerWrapper wrapper{ccomp<MInput>()};
 
         const bool left  = wrapper.getSignalValue<bool>(self.owningPlayerIndex, "left");
@@ -183,12 +179,11 @@ public:
 private:
     std::vector<hg::util::StateScheduler<PlayerControls>> _schedulers;
 
-    int _cooldown = 0;
-
     void _eventUpdate() override;
 
     void _eventFinalizeFrame() override {
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
+        const auto kbInput = ccomp<MWindow>().getKeyboardInput();
+        if (kbInput.checkPressed(spe::KbKey::Escape, spe::KbInput::Mode::Direct)) {
             // Stopping the context will delete:
             // - All objects owned by the QAO runtime (in undefined order)
             // - Then, all ContextComponents owned by the context (in reverse order of insertion)
@@ -221,14 +216,16 @@ private:
 
 void GameplayManager::_eventUpdate() {
     if (!ctx().isPrivileged() &&
-        ccomp<MNetworking>().getLocalPlayerIndex() >= 0 &&
-        ccomp<MNetworking>().getClient().getServerConnector().getStatus() == hg::RN_ConnectorStatus::Connected) {
+        ccomp<MNetworking>().getClient().getServerConnector().getStatus() == hg::RN_ConnectorStatus::Connected &&
+        ccomp<MNetworking>().getLocalPlayerIndex() >= 0) {
+
+        const auto kbInput = ccomp<MWindow>().getKeyboardInput();
         PlayerControls controls{
-            sf::Keyboard::isKeyPressed(sf::Keyboard::A),
-            sf::Keyboard::isKeyPressed(sf::Keyboard::D),
-            sf::Keyboard::isKeyPressed(sf::Keyboard::W),
-            sf::Keyboard::isKeyPressed(sf::Keyboard::S),
-            sf::Keyboard::isKeyPressed(sf::Keyboard::Space) && false // TODO Temp.
+            kbInput.checkPressed(spe::KbKey::A),
+            kbInput.checkPressed(spe::KbKey::D),
+            kbInput.checkPressed(spe::KbKey::W),
+            kbInput.checkPressed(spe::KbKey::S),
+            kbInput.checkPressed(spe::KbKey::Space, spe::KbInput::Mode::Edge)
         };
 
         spe::InputSyncManagerWrapper wrapper{ccomp<MInput>()};
@@ -240,38 +237,30 @@ void GameplayManager::_eventUpdate() {
     }
 
     if (ctx().isPrivileged()) {
-        if (_cooldown == 0) {
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num2)) {
-                ctx().getComponent<MNetworking>().setStateBufferingLength(2);
-                ctx().getComponent<MInput>().setStateBufferingLength(2);
-                Compose_SetGlobalStateBufferingLength(ctx().getComponent<MNetworking>().getNode(), RN_COMPOSE_FOR_ALL, 2);
-                std::cout << "Global state buffering set to " << 2 << " frames.\n";
-                _cooldown = 60;
-            }
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num3)) {
-                ctx().getComponent<MNetworking>().setStateBufferingLength(3);
-                ctx().getComponent<MInput>().setStateBufferingLength(3);
-                Compose_SetGlobalStateBufferingLength(ctx().getComponent<MNetworking>().getNode(), RN_COMPOSE_FOR_ALL, 3);
-                std::cout << "Global state buffering set to " << 3 << " frames.\n";
-                _cooldown = 60;
-            }
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num9)) {
-                ctx().getComponent<MNetworking>().setStateBufferingLength(9);
-                ctx().getComponent<MInput>().setStateBufferingLength(9);
-                Compose_SetGlobalStateBufferingLength(ctx().getComponent<MNetworking>().getNode(), RN_COMPOSE_FOR_ALL, 9);
-                std::cout << "Global state buffering set to " << 9 << " frames.\n";
-                _cooldown = 60;
-            }
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num0)) {
-                ctx().getComponent<MNetworking>().setStateBufferingLength(30);
-                ctx().getComponent<MInput>().setStateBufferingLength(30);
-                Compose_SetGlobalStateBufferingLength(ctx().getComponent<MNetworking>().getNode(), RN_COMPOSE_FOR_ALL, 30);
-                std::cout << "Global state buffering set to " << 30 << " frames.\n";
-                _cooldown = 60;
-            }
+        const auto kbInput = ccomp<MWindow>().getKeyboardInput();
+        if (kbInput.checkPressed(spe::KbKey::Num2, spe::KbInput::Mode::Edge)) {
+            ctx().getComponent<MNetworking>().setStateBufferingLength(2);
+            ctx().getComponent<MInput>().setStateBufferingLength(2);
+            Compose_SetGlobalStateBufferingLength(ctx().getComponent<MNetworking>().getNode(), RN_COMPOSE_FOR_ALL, 2);
+            std::cout << "Global state buffering set to " << 2 << " frames.\n";
         }
-        else {
-            _cooldown -= 1;
+        if (kbInput.checkPressed(spe::KbKey::Num3, spe::KbInput::Mode::Edge)) {
+            ctx().getComponent<MNetworking>().setStateBufferingLength(3);
+            ctx().getComponent<MInput>().setStateBufferingLength(3);
+            Compose_SetGlobalStateBufferingLength(ctx().getComponent<MNetworking>().getNode(), RN_COMPOSE_FOR_ALL, 3);
+            std::cout << "Global state buffering set to " << 3 << " frames.\n";
+        }
+        if (kbInput.checkPressed(spe::KbKey::Num9, spe::KbInput::Mode::Edge)) {
+            ctx().getComponent<MNetworking>().setStateBufferingLength(9);
+            ctx().getComponent<MInput>().setStateBufferingLength(9);
+            Compose_SetGlobalStateBufferingLength(ctx().getComponent<MNetworking>().getNode(), RN_COMPOSE_FOR_ALL, 9);
+            std::cout << "Global state buffering set to " << 9 << " frames.\n";
+        }
+        if (kbInput.checkPressed(spe::KbKey::Num0, spe::KbInput::Mode::Edge)) {
+            ctx().getComponent<MNetworking>().setStateBufferingLength(30);
+            ctx().getComponent<MInput>().setStateBufferingLength(30);
+            Compose_SetGlobalStateBufferingLength(ctx().getComponent<MNetworking>().getNode(), RN_COMPOSE_FOR_ALL, 30);
+            std::cout << "Global state buffering set to " << 30 << " frames.\n";
         }
     }
 }

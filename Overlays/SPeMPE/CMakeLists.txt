@@ -20,6 +20,7 @@ set(OVERLAY_SOURCES
   "Source/Context_components.cpp"
   "Source/Game_object_bases.cpp"
   "Source/Input_sync_manager_one.cpp"
+  "Source/Keyboard_input.cpp"
   "Source/Game_context.cpp"
   "Source/Networking_manager_one.cpp"
   "Source/Synchronized_object_registry.cpp"
@@ -68,6 +69,7 @@ set(OVERLAY_TEST_NAME "spempe-test")
 
 set(OVERLAY_TEST_SOURCES
   "Test/Input_sync_manager_test.cpp"
+  "Test/Keyboard_input_test.cpp"
   "Test/SPeMPE_test.cpp"
 )
 

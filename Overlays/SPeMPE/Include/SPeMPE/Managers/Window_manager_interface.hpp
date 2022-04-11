@@ -6,6 +6,7 @@
 #include <SFML/Window.hpp>
 
 #include <SPeMPE/GameContext/Context_components.hpp>
+#include <SPeMPE/Other/Keyboard_input.hpp>
 
 namespace jbatnozic {
 namespace spempe {
@@ -122,7 +123,9 @@ public:
     // KEYBOARD & MOUSE INPUT                                                //
     ///////////////////////////////////////////////////////////////////////////
 
-    // getKeyboardInput();
+    virtual KbInput getKeyboardInput() = 0;
+
+    virtual const KbInput getKeyboardInput() const = 0;
 
     // getMouseInput();
 

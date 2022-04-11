@@ -8,6 +8,7 @@
 
 #include <SPeMPE/GameObjectFramework/Game_object_bases.hpp>
 #include <SPeMPE/Managers/Window_manager_interface.hpp>
+#include <SPeMPE/Other/Keyboard_input.hpp>
 
 #include <chrono>
 #include <optional>
@@ -66,7 +67,9 @@ public:
     // KEYBOARD & MOUSE INPUT                                                //
     ///////////////////////////////////////////////////////////////////////////
 
-    // getKeyboardInput();
+    KbInput getKeyboardInput() override;
+
+    const KbInput getKeyboardInput() const override;
 
     // getMouseInput();
 
@@ -93,6 +96,7 @@ private:
     // GUI:
 
     // Keyboard & mouse input:
+    KbInputTracker _kbInputTracker;
 
     void _eventPostUpdate() override;
     void _eventDraw2() override;
