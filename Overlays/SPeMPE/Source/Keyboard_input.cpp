@@ -372,7 +372,7 @@ KbKey StringToKbKey(const std::string& aString) {
 // KBINPUT                                                               //
 ///////////////////////////////////////////////////////////////////////////
 
-KbInput::KbInput(KbInputTracker& aTracker)
+KbInput::KbInput(const KbInputTracker& aTracker)
     : _tracker{aTracker}
 {
 }
@@ -421,7 +421,30 @@ bool KbInput::checkReleased(KbKey aKey, Mode aMode) const {
     default:
         throw hobgoblin::TracedLogicError{"Invalid mode passed!"};
     }
-}   
+}
+
+const sf::String& KbInput::getTypedText() const {
+    return _tracker._typedText;
+}
+
+///////////////////////////////////////////////////////////////////////////
+// KBINPUT MUTATOR                                                       //
+///////////////////////////////////////////////////////////////////////////
+
+void KbInputMutator::setTypedTextMaxLength(hobgoblin::PZInteger aMaxLength) {
+    _tracker._typedTextMaxLength = aMaxLength;
+    _tracker._limitTypedTextLength();
+}
+
+void KbInputMutator::setTypedTextString(sf::String aString) {
+    _tracker._typedText = std::move(aString);
+    _tracker._limitTypedTextLength();
+}
+
+KbInputMutator::KbInputMutator(KbInputTracker& aTracker)
+    : _tracker{aTracker}
+{
+}
 
 ///////////////////////////////////////////////////////////////////////////
 // CONTROL BLOCK                                                         //
@@ -488,14 +511,12 @@ KbInputTracker::KbInputTracker() {
     _controlBlocks.resize(static_cast<std::size_t>(KbKey::KeyCount));
 }
 
-KbInput KbInputTracker::getInput() {
+KbInput KbInputTracker::getInput() const {
     return KbInput{*this};
 }
 
-const KbInput KbInputTracker::getInput() const {
-    // This cast is okay becase a const KbInput object won't be able
-    // to call methods that mutate its parent KbInputTracker
-    return KbInput{const_cast<KbInputTracker&>(*this)};
+KbInputMutator KbInputTracker::getMutator() {
+    return KbInputMutator{*this};
 }
 
 void KbInputTracker::prepForEvents() {
@@ -528,7 +549,30 @@ void KbInputTracker::keyEventOccurred(const sf::Event& aEvent) {
 }
 
 void KbInputTracker::textEventOccurred(const sf::Event& aEvent) {
-    // TODO
+    if (aEvent.type != sf::Event::TextEntered) {
+        throw hobgoblin::TracedLogicError{"Invalid event passed!"};
+    }
+
+    const sf::Uint32 character = aEvent.text.unicode;
+    // In a backspace is typed, erase the last typed character
+    if (character == '\b') {
+        const auto size = _typedText.getSize();
+        if (size > 0) {
+            _typedText.erase(size - 1);
+        }
+    }
+    // Otherwise, append the new character to the string
+    else {
+        _typedText += character;
+        _limitTypedTextLength();
+    }
+}
+
+void KbInputTracker::_limitTypedTextLength() {
+    const auto size = _typedText.getSize();
+    if (size > _typedTextMaxLength) {
+        _typedText.erase(_typedTextMaxLength, size - _typedTextMaxLength);
+    }
 }
 
 } // namespace spempe

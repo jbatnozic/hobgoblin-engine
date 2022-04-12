@@ -36,7 +36,6 @@ struct PlayerControls {
     bool up    = false;
     bool down  = false;
     bool jump  = false;
-    HG_ENABLE_AUTOPACK(PlayerControls, left, right, up, down);
 };
 
 ///////////////////////////////////////////////////////////////////////////

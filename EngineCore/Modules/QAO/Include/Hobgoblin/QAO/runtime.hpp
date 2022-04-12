@@ -80,8 +80,7 @@ public:
     // TODO: Name should be destroyObject
     void eraseObject(QAO_Base* obj);
 
-    // TODO: Name should be destroyAllOwnedObjects
-    void eraseAllNonOwnedObjects();
+    void destroyAllOwnedObjects();
 
     QAO_Base* find(const std::string& name) const;
     QAO_Base* find(QAO_GenericId id) const;

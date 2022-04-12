@@ -76,7 +76,7 @@ GameContext::GameContext(const ResourceConfig& resourceConfig, const RuntimeConf
 }
 
 GameContext::~GameContext() {
-    _qaoRuntime.eraseAllNonOwnedObjects();
+    _qaoRuntime.destroyAllOwnedObjects();
     _extensionData.reset();
     _postStepActions.clear();
 }

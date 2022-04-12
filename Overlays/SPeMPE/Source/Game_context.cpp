@@ -19,7 +19,7 @@ GameContext::GameContext(const RuntimeConfig& aRuntimeConfig, hg::PZInteger aCom
 }
 
 GameContext::~GameContext() {
-    _qaoRuntime.eraseAllNonOwnedObjects();
+    _qaoRuntime.destroyAllOwnedObjects();
     //_postStepActions.clear(); TODO
 
     while (!_ownedComponents.empty()) {

@@ -1,6 +1,8 @@
 #ifndef SPEMPE_OTHER_KEYBOARD_INPUT_HPP
 #define SPEMPE_OTHER_KEYBOARD_INPUT_HPP
 
+#include <Hobgoblin/Common.hpp>
+#include <SFML/System/String.hpp>
 #include <SFML/Window.hpp>
 
 #include <cstdint>
@@ -128,6 +130,8 @@ KbKey StringToKbKey(const std::string& aString);
 
 class KbInputTracker;
 
+//! Class to get keyboard inputs from a KbInputTracker.
+//! Objects of this class are very lightweight.
 class KbInput {
 public:
     enum class Mode {
@@ -146,32 +150,47 @@ public:
         Direct
     };
 
-    //! TODO
+    //! Checks if a key is/was pressed in accordance to the provided mode.
     bool checkPressed(KbKey aKey, Mode aMode = Mode::Default) const;
 
-    //! TODO
+    //! Checks if a key is/was released in accordance to the provided mode.
     bool checkReleased(KbKey aKey, Mode aMode = Mode::Default) const;
 
     //! TODO
-    // text input
-
-    //! TODO
-    // input clearing/setting/overrides
+    const sf::String& getTypedText() const;
 
 private:
     friend class KbInputTracker;
 
-    explicit KbInput(KbInputTracker& aTracker);
+    explicit KbInput(const KbInputTracker& aTracker);
+
+    const KbInputTracker& _tracker;
+};
+
+//! Class to change settings of a KbInputTracker and/or override recorded inputs.
+//! Objects of this class are very lightweight.
+class KbInputMutator {
+public:
+    void setTypedTextMaxLength(hobgoblin::PZInteger aMaxLength);
+
+    void setTypedTextString(sf::String aString);
+
+private:
+    friend class KbInputTracker;
+
+    explicit KbInputMutator(KbInputTracker& aTracker);
 
     KbInputTracker& _tracker;
 };
 
+//! Tracks inputs (key pressed and releases) from the keyboard.
 class KbInputTracker {
 public:
     KbInputTracker();
 
-    KbInput getInput();
-    const KbInput getInput() const;
+    KbInput getInput() const;
+
+    KbInputMutator getMutator();
 
     void prepForEvents();
     void keyEventOccurred(const sf::Event& aEvent);
@@ -179,6 +198,7 @@ public:
 
 private:
     friend class KbInput;
+    friend class KbInputMutator;
 
     class KeyControlBlock {
     public:
@@ -196,6 +216,11 @@ private:
     };
 
     std::vector<KeyControlBlock> _controlBlocks;
+
+    sf::String  _typedText;
+    std::size_t _typedTextMaxLength = 256;
+
+    void _limitTypedTextLength();
 };
 
 } // namespace spempe

@@ -92,7 +92,7 @@ TEST_F(QAO_SerializationTest, TestWithoutEvents) {
     hg::util::Serialize(_packet, *dummy1);
     hg::util::Serialize(_packet, *dummy2);
 
-    _runtime.eraseAllNonOwnedObjects();
+    _runtime.destroyAllOwnedObjects();
 
     ASSERT_EQ(_runtime.getObjectCount(), 0);
 
@@ -113,7 +113,7 @@ TEST_F(QAO_SerializationTest, TestWithoutEvents) {
     ASSERT_EQ(dummy2New->_value1, 2);
     ASSERT_EQ(dummy2New->_value2, 1002);
 
-    _runtime.eraseAllNonOwnedObjects();
+    _runtime.destroyAllOwnedObjects();
 
     ASSERT_EQ(_runtime.getObjectCount(), 0);
 }
@@ -280,7 +280,7 @@ TEST_F(QAO_SerializationTest, TestEventRestoration) {
 
     ASSERT_NE(_packet.getDataSize(), 0);
 
-    _runtime.eraseAllNonOwnedObjects();
+    _runtime.destroyAllOwnedObjects();
 
     QAO_PCreate<DeserializeAtDrawEvent>(&_runtime, _packet, deserCtx);
 

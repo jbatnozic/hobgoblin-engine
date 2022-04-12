@@ -123,7 +123,7 @@ void QAO_Runtime::eraseObject(QAO_Base* object) {
     releaseObject(object).reset();
 }
 
-void QAO_Runtime::eraseAllNonOwnedObjects() {
+void QAO_Runtime::destroyAllOwnedObjects() {
     std::vector<QAO_Base*> objectsToErase;
     for (auto& object : SELF) {
         if (ownsObject(object)) {
