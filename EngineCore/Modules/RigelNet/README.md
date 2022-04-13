@@ -1,8 +1,6 @@
 # Rigel Net
 `#include <Hobgoblin/RigelNet.hpp>`
 
-`#include <Hobgoblin/RigelNet_macros.hpp> // Optional`
-
 RigelNet is a RPC (Remote Procedure Calling) framework for games.
 
 ## Concept
@@ -154,4 +152,54 @@ while (node->pollEvent(ev)) {
 ```
 
 ## Defining and sending Messages
-\<TODO\>
+To define a Message, first you must put `#include <Hobgoblin/RigelNet_macros.hpp>` in your source file. It's recommended to include this only in .cpp files and not headers, because it will pollute the global namespace with a huge amount of macro definitions.
+
+The simplest form of a Message definition is as follows:
+
+```cpp
+RN_DEFINE_RPC(MyCoolRpc) {
+    // This code will be executed on the remote end
+    std::cout << "I have received MyCoolRpc!\n";
+}
+```
+
+The `RN_DEFINE_RPC` macro will also generate the appropriate `Compose_<name>` function, in this case `Compose_MyCoolRpc`, which we can use to instruct the local node to send the message to a remote node and execute the appropriate code. For example:
+
+```cpp
+RN_NodeInterface& node = ...;
+Compose_MyCoolRpc(node, RN_COMPOSE_FOR_ALL);
+...
+node.update(RN_UpdateMode::Send);
+```
+
+The first argument of any `Compose_*` function is the node which is supposed to send the message, and the second argument tells it to which remote to send to. In the case of a Client node, it really doesn't matter, as it can only send to its Server, so it disregards this argument (so you can put 0, or RN_COMPOSE_FOR_ALL, or any other integer). In the case of a Server, however, there are a few different ways to handle this argument:
+- Put RN_COMPOSE_FOR_ALL - this will compose the message to all currently connected clients.
+- Put an integer - 0 will compose for client with index 0, 1 for client with index 1 etc (up to server size - 1).
+- Put any forward iterable object (such as a vector) whose element type is an integer or is implicitly convertible to an integer. Each number provided by this object will compose for a client with that index.
+
+**Important:** Note that calling `Compose_*` does NOT immediately send a Message/RPC. It only adds it to the sending queue, and all queued Messages are sent only when you call `.update(RN_UpdateMode::Send)` on the node. On the remote side, Messages are not received and handled asychronously, but instead, only when you call `.update(RN_UpdateMode::Receive)` on the receiving node. When you do, Messages are interpreted and their bodies are executed in the order in which they were composed and sent (in the case of a Server node, first all Messages from client 0 are processed, then all Messages from client 1, and so on...). An example is given below:
+
+```cpp
+RN_NodeInterface& server = ...;
+RN_NodeInterface& client = ...;
+
+ConnectClientToServer(client, server); // Made up function for demonstration purposes
+
+Compose_MyCoolRpc(server, RN_COMPOSE_FOR_ALL); // Puts the Message in the queue of node 'server'
+
+server.update(RN_UpdateMode::Send); // Send all queued messages to appropriate recepients
+
+client.update(RN_UpdateMode::Receive); // Unpacks and executes all received messages in order of sending
+                                       // In this case, only the body of MyCoolRpc is executed, which
+                                       // results in printing `"I have received MyCoolRpc!\n"` to `cout`.
+
+```
+
+### Handling Messages differently on the Server and Client sides
+TODO
+
+### Accessing program state from Message bodies
+TODO
+
+### Message arguments
+TODO
