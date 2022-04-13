@@ -240,11 +240,41 @@ Later, in the body of a Message handler, you can use its `getUserData` or `getUs
 // If T doesn't match the type T provided to 'setUserData', an assert will crash your program (only
 // in Debug mode, in Release this will lead to UB, so it's recommended to use the variant below).
 template <class T>
-T* getUserData() const;
+T* RN_NodeInterface::getUserData() const;
 
 // If T doesn't match the type T provided to 'setUserData', an exception will be thrown.
 template <class T>
-T* getUserDataOrThrow() const;
+T* RN_NodeInterface::getUserDataOrThrow() const;
+```
+
+For example:
+
+```cpp
+struct MyContext {
+    Player* player;
+    std::vector<Enemy*> enemies;
+    int score;
+};
+
+...
+
+MyContext context = MakeContext();
+RN_NodeInterface& node = ...;
+node.setUserData<MyContext>(&context);
+
+...
+
+RN_DEFINE_RPC(HealPlayer) {
+    auto* context = RN_NODE_IN_HANDLER().getUserDataOrThrow<MyContext>();
+    context->player->health = 100;
+    context->score += 200;
+}
+```
+
+To reset the Node's user data pointer, do the following (and don't forget to do this before destroying the user data object itself - as the Node doesn't own it, it would be left with a dangling pointer).
+
+```cpp
+node.setUserData(nullptr);
 ```
 
 ### Message arguments
