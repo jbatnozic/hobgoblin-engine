@@ -227,7 +227,25 @@ RN_DEFINE_RPC(AnotherRpc) {
 Should you detect any errors in the Message body (for example, a Server node received a message that's intended only for Client nodes), you can throw `RN_IllegalMessage`. RigelNet will catch it and will gracefully terminate the connection and queue a Disconnect event.
 
 ### Accessing program state from Message bodies
-TODO
+When a Message handler executes, it would be convenient for it to be able to access a context wider than just its receiving Node. Yes, you could use global variables, but those are a Bad Thing and there is a better way - once you instantiate a Node, you can use its `setUserData` method:
+
+```cpp
+template <class T>
+void RN_NodeInterface::setUserData(T* aValue);
+```
+
+Later, in the body of a Message handler, you can use its `getUserData` or `getUserDataOrThrow` counterparts to retrieve the same pointer. Ideally, this pointer should be to a context-like object which then can be used to access all other data that's needed within all of the Message handlers.
+
+```cpp
+// If T doesn't match the type T provided to 'setUserData', an assert will crash your program (only
+// in Debug mode, in Release this will lead to UB, so it's recommended to use the variant below).
+template <class T>
+T* getUserData() const;
+
+// If T doesn't match the type T provided to 'setUserData', an exception will be thrown.
+template <class T>
+T* getUserDataOrThrow() const;
+```
 
 ### Message arguments
 There is also a way to pass some arguments when composing a Message to be sent. To achieve that, first we need to alter the definition of the Message.
