@@ -321,8 +321,8 @@ struct MyNetworkData {
   
   HG_ENABLE_AUTOPACK(MyNetworkData, x, y, someFlag, number);
 };
+```
 
 The usage is simple: Put the macro `HG_ENABLE_AUTOPACK` in the public area of your type, with the first argument being the name of the type, followed by the names of all of its members that you want to be serialized/deserialized when being inserted to or extracted from a packet. The only condition is that there be implementations of operators `<<` and `>>` for those members and packets as well (but you can use `HG_ENABLE_AUTOPACK`) recursively.
 
 However, if you want to implement this with a more complex type, for example one that contains pointers or references to other objects or raw memory, you'll have to invent your own scheme for inserting that object into a packet and extracting it afterwards. It would be best to always implement this in terms of already supported types, because the endianess of the remote machine isn't necessarily the same as that of the local machine (and so simply copying raw memory won't always work unless you've literally got an array of single, logically distinct bytes), but all the already supplied operators already take that into account.
-```
