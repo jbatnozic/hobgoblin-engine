@@ -301,4 +301,28 @@ Unfortunately, the types of the arguments must be separated from their names by 
 When specifying the type of the argument, write ONLY the name of the type, without any const/volatile qualifiers, and no pointers (I hope you're not planning on sending pointers over the network). What IS allowed is adding a single `&` after the type name - the object will still be sent over the network by value, but it will allow you to pass it to the `Compose_*` function by const reference, and RigelNet will also pass it by reference instead of by copy internally (where possible).
 
 #### Supported types
-TODO
+Now, you can't use just any data type as a Message argument - only those that the compiler knows how to serialize and deserialize (because, between one node sending it and the other receiving it, any data becomes just a stream of raw bytes). With RigelNet, (de)serialization happens through the `hobgoblin::util::PacketBase` class, which is guaranteed to either behave like a [SFML Packet](https://www.sfml-dev.org/tutorials/2.5/network-packet.php) or be an alias to it.
+
+So, by implementing operators `<<` and `>>` for your type and `hobgoblin::util::PacketBase` (as described in the link above under "Extending packets to handle user types"), you enable them for use with RigelNet as well. Some common types are supported out-of-the-box:
+- All signed and unsigned integral types (just make sure to use fixed-width ones such as `std::int32_t` because `int`s and `long`s may differ from platform to platform).
+- Common floating-point number types (`double` and `float`).
+- String objects (`std::string` and `sf::String`).
+- Hobgoblin packets (`hobgoblin::util::Packet` - which is different from `hobgoblin::util::PacketBase`!).
+
+There is, however, another easy way to make a data type (de)serializable - use Hobgoblin Autopack:
+
+```cpp
+#include <Hobgoblin/Utility/Autopack.hpp>
+
+struct MyNetworkData {
+  std::uint32_t x, y;
+  bool someFlag;
+  double number;
+  
+  HG_ENABLE_AUTOPACK(MyNetworkData, x, y, someFlag, number);
+};
+
+The usage is simple: Put the macro `HG_ENABLE_AUTOPACK` in the public area of your type, with the first argument being the name of the type, followed by the names of all of its members that you want to be serialized/deserialized when being inserted to or extracted from a packet. The only condition is that there be implementations of operators `<<` and `>>` for those members and packets as well (but you can use `HG_ENABLE_AUTOPACK`) recursively.
+
+However, if you want to implement this with a more complex type, for example one that contains pointers or references to other objects or raw memory, you'll have to invent your own scheme for inserting that object into a packet and extracting it afterwards. It would be best to always implement this in terms of already supported types, because the endianess of the remote machine isn't necessarily the same as that of the local machine (and so simply copying raw memory won't always work unless you've literally got an array of single, logically distinct bytes), but all the already supplied operators already take that into account.
+```
