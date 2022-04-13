@@ -1,4 +1,4 @@
-# Rigel Net
+# RigelNet
 `#include <Hobgoblin/RigelNet.hpp>`
 
 RigelNet is a RPC (Remote Procedure Calling) framework for games.
@@ -196,7 +196,26 @@ client.update(RN_UpdateMode::Receive); // Unpacks and executes all received mess
 ```
 
 ### Handling Messages differently on the Server and Client sides
-TODO
+The first important point here is that it's possible to access the node which received the Message from within the Message body itself. To do this, use the function-like macro `RN_NODE_IN_HANDLER()` (named like that because a Message body is also called a Message handler - similar to a signal handler). This macro will expand to a reference to the node which received the message.
+
+From there on, you have 2 options:
+- Use the `isServer()` method of the node tho check what type it is and then cast to either `RN_ServerInterface&` or `RN_ClientInterface&`. This, however, is not recommended because there is a better way (see next point).
+- Use the `callIfServer()` and `callIfClient()` methods of the node, which both accept lambdas that they will call only if the type of the node matches.
+
+```
+RN_DEFINE_RPC(AnotherRpc) {
+    RN_NODE_IN_HANDLER().callIfServer(
+        [](RN_ServerInterface& aServer) {
+            // Do something with server instance
+        });
+    RN_NODE_IN_HANDLER().callIfClient(
+        [](RN_ClientInterface& aClient) {
+            // Do something with client instance
+        });
+}
+```
+
+Should you detect any errors in the Message body (for example, a Server node received a message that's intended only for Client nodes), you can throw `RN_IllegalMessage`. RigelNet will catch it and will gracefully terminate the connection and queue a Disconnect event.
 
 ### Accessing program state from Message bodies
 TODO
