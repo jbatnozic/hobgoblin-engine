@@ -13,6 +13,12 @@ You will notice that there are no blocking calls anywhere in RigelNet, and inste
 manual updates. That's because RigelNet is specifically suited to working together with QAO, in a fixed timestep
 environment.
 
+### Terminology
+- **Node:** An object that can represent either a Client or a Server, and can connect to other Nodes (of opposite types - only Client-Server connections are allowed). Node objects are used to send and receive data.
+- **Message:** (synonym: **RPC**) information that a piece of code (optionally with some parameters) is to be executed on a remote Node.
+- **Message Body:** (synonym: **Message Handler**) literal body of code associated with a Message.
+- **Compose:** Prepare a Nessage to be sent by a local Node to a remote Node.
+
 ## The RigelNet Registry
 TODO
 
