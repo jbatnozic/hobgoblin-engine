@@ -202,7 +202,7 @@ From there on, you have 2 options:
 - Use the `isServer()` method of the node tho check what type it is and then cast to either `RN_ServerInterface&` or `RN_ClientInterface&`. This, however, is not recommended because there is a better way (see next point).
 - Use the `callIfServer()` and `callIfClient()` methods of the node, which both accept lambdas that they will call only if the type of the node matches.
 
-```
+```cpp
 RN_DEFINE_RPC(AnotherRpc) {
     RN_NODE_IN_HANDLER().callIfServer(
         [](RN_ServerInterface& aServer) {
