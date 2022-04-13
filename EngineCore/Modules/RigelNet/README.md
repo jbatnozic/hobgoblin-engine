@@ -144,7 +144,7 @@ the end of the frame to send. If you're also using QAO, receiving should happen 
 sending should happen during the `PostUpdate` event (and obviously your program should update its state inbetween).
 
 You can match the node update frequency to your game's framerate, but less than 30 updates per second is probably too
-little and more than 120 updates per second is too much. In any case, try to maintain a steady cadence.
+little and more than 120 updates per second is definitely too much. In any case, try to maintain a steady cadence.
 
 ### Polling for networking events
 After each call to a node's `update` method, you should poll the node for any eventual networking events which might
