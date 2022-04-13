@@ -233,4 +233,15 @@ RN_DEFINE_RPC(RpcWithArguments, RN_ARGS(std::string, aName, double, aMoney)) {
 Compose_RpcWithArguments(node, RN_COMPOSE_FOR_ALL, "Mike", 50.0);
 ```
 
-So, basically: We extend the `RN_DEFINE_RPC` "call" with a third argument, in the form of: `RN_ARGS(arg0Type, arg0Name, arg1Type, arg1Name, ...)`. Unfortunately, the types of the arguments must be separated from their names by commas because of the limitations of the preprocessor. You're also limited to a maximum of 10 arguments (though this can be circumvented by passing complex structures - see below - so it isn't a big issue). When specifying the type of the argument, write ONLY the name of the type, without any const/volatile qualifiers, and no pointers (I hope you're not planning on sending pointers over the network). What IS allowed is adding a single `&` after the type name - the object will still be sent over the network by value, but it will allow you to pass it to the `Compose_*` function by const reference, and RigelNet will also pass it by reference instead of by copy internally (where possible).
+So, basically: We extend the `RN_DEFINE_RPC` "call" with a third argument, in the form of: 
+
+```cpp
+RN_ARGS(arg0Type, arg0Name, arg1Type, arg1Name, ...)
+```
+
+Unfortunately, the types of the arguments must be separated from their names by commas because of the limitations of the preprocessor. You're also limited to a maximum of 10 arguments (though this can be circumvented by passing complex structures - see below - so it isn't a big issue). 
+
+When specifying the type of the argument, write ONLY the name of the type, without any const/volatile qualifiers, and no pointers (I hope you're not planning on sending pointers over the network). What IS allowed is adding a single `&` after the type name - the object will still be sent over the network by value, but it will allow you to pass it to the `Compose_*` function by const reference, and RigelNet will also pass it by reference instead of by copy internally (where possible).
+
+#### Supported types
+TODO
