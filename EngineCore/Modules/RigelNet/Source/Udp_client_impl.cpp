@@ -202,10 +202,16 @@ void RN_UdpClientImpl::_updateSend() {
 }
 
 void RN_UdpClientImpl::_compose(int receiver, const void* data, std::size_t sizeInBytes) {
+    if (_connector.getStatus() != RN_ConnectorStatus::Connected) {
+        throw TracedLogicError("Client is not connected; cannot compose messages");
+    }
     _connector.appendToNextOutgoingPacket(data, sizeInBytes);
 }
 
 void RN_UdpClientImpl::_compose(RN_ComposeForAllType receiver, const void* data, std::size_t sizeInBytes) {
+    if (_connector.getStatus() != RN_ConnectorStatus::Connected) {
+        return;
+    }
     _connector.appendToNextOutgoingPacket(data, sizeInBytes);
 }
 

@@ -4,11 +4,13 @@
 #include <Hobgoblin/QAO.hpp>
 #include <Hobgoblin/RigelNet.hpp>
 #include <Hobgoblin/RigelNet_Macros.hpp>
+#include <Hobgoblin/Utility/Dynamic_bitset.hpp>
 #include <Hobgoblin/Utility/State_scheduler_simple.hpp>
 #include <SPeMPE/GameContext/Game_context.hpp>
 #include <SPeMPE/GameObjectFramework/Synchronized_object_registry.hpp>
 
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <cstdint>
 #include <typeinfo>
@@ -72,6 +74,12 @@ public:
 ///////////////////////////////////////////////////////////////////////////
 // SYNCHRONIZED OBJECTS                                                  //
 ///////////////////////////////////////////////////////////////////////////
+
+enum class SyncUpdateStatus {
+    Normal,    //! TODO (desc)
+    Skip,      //! TODO (desc)
+    Deactivate //! TODO (desc)
+};
 
 struct IfMaster {};
 struct IfDummy  {};
@@ -146,6 +154,8 @@ private:
     detail::SynchronizedObjectRegistry& _syncObjReg;
     const SyncId _syncId;
 
+    hg::util::DynamicBitset _remoteStatuses;
+
     int _deathCounter = -1;
 
     //! Called when it's needed to sync this object's creation to one or more recepeints.
@@ -160,12 +170,14 @@ private:
     virtual void _advanceDummyAndScheduleNewStates() = 0;
 
     virtual void _setStateSchedulerDefaultDelay(hg::PZInteger aNewDefaultDelaySteps) = 0;
+
+    virtual void _deactivateSelfIn(hg::PZInteger aDelaySteps) = 0;
 };
 
 /*
 Note:
     If an object drived from SynchronizedObject (below), and transitively from
-    SynchronizedObjectBase overries either _eventUpdate() or eventUpdate(IfDummy),
+    SynchronizedObjectBase overrides either _eventUpdate() or eventUpdate(IfDummy),
     note that the dummy object won't behave properly unless you call the following
     code at the start of its eventUpdate:
     if (!isMasterObject()) {
@@ -193,9 +205,8 @@ class SynchronizedObject : public SynchronizedObjectBase {
 public:
     using VisibleState = taVisibleState;
 
-    //! Internal implementation, do not call manually!
-    void __spempeimpl_applyUpdate(const VisibleState& aNewState, hg::PZInteger aDelaySteps) {
-        _ssch.putNewState(aNewState, aDelaySteps);
+    bool isDeactivated() const {
+        return _ssch.getCurrentState().second.isDeactivated();
     }
 
 protected:
@@ -216,21 +227,43 @@ protected:
                                 }
         , _ssch{
             isMasterObject() ? 0 // Masters don't need state scheduling
-                             : reinterpret_cast<detail::SynchronizedObjectRegistry*>(aRegId.address)->getDefaultDelay()
+                             : reinterpret_cast<detail::SynchronizedObjectRegistry*>(
+                                   aRegId.address
+                               )->getDefaultDelay()
         }
     {
     }
 
     taVisibleState& _getCurrentState() {
-        return _ssch.getCurrentState();
+        assert(isMasterObject() || !isDeactivated());
+        return _ssch.getCurrentState().first;
     }
 
     const taVisibleState& _getCurrentState() const {
-        return _ssch.getCurrentState();
+        assert(isMasterObject() || !isDeactivated());
+        return _ssch.getCurrentState().first;
     }
 
 private:
-    hg::util::SimpleStateScheduler<taVisibleState> _ssch;
+#define DUMMY_STATUS_NORMAL      0
+#define DUMMY_STATUS_DEACTIVATED 1
+
+    struct DummyStatus {
+        DummyStatus(std::int8_t aStatus = DUMMY_STATUS_DEACTIVATED)
+            : status{aStatus}
+        {
+        }
+
+        bool isDeactivated() const {
+            return (status == DUMMY_STATUS_DEACTIVATED);
+        }
+
+        std::int8_t status;
+    };
+
+    using SchedulerPair = std::pair<taVisibleState, DummyStatus>;
+
+    hg::util::SimpleStateScheduler<SchedulerPair> _ssch;
 
     void _advanceDummyAndScheduleNewStates() override final {
         _ssch.advance();
@@ -242,6 +275,20 @@ private:
             _ssch.setDefaultDelay(aNewDefaultDelaySteps);
         }
     }
+
+    void _deactivateSelfIn(hg::PZInteger aDelaySteps) override final {
+        _ssch.putNewState(SchedulerPair{{}, {DUMMY_STATUS_DEACTIVATED}}, aDelaySteps);
+    }
+
+public:
+    //! Internal implementation, do not call manually!
+    void __spempeimpl_applyUpdate(const VisibleState& aNewState, hg::PZInteger aDelaySteps) {
+        _ssch.putNewState(SchedulerPair{aNewState, {DUMMY_STATUS_NORMAL}}, aDelaySteps);
+    }
+
+#undef DUMMY_STATUS_NORMAL
+#undef DUMMY_STATUS_DEACTIVATED
+#undef DUMMY_STATUS_DESTROY
 };
 
 ///////////////////////////////////////////////////////////////////////////
@@ -435,8 +482,9 @@ void DefaultSyncDestroyHandler(hg::RN_NodeInterface& node,
 //! TODO (add description)
 #define SPEMPE_SYNC_UPDATE_DEFAULT_IMPL(_class_name_, _sync_details_) \
     Compose_USPEMPE_Update##_class_name_(_sync_details_.getNode(), \
-                                         _sync_details_.getRecepients(), getSyncId(), \
-                                         _getCurrentState())
+                                             _sync_details_.getRecepients(), getSyncId(), \
+                                             _getCurrentState())
+
 //! TODO (add description)
 #define SPEMPE_SYNC_DESTROY_DEFAULT_IMPL(_class_name_, _sync_details_) \
     Compose_USPEMPE_Destroy##_class_name_(_sync_details_.getNode(), \

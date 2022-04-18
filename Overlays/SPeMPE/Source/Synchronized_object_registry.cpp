@@ -1,6 +1,7 @@
 
 #include <SPeMPE/GameObjectFramework/Game_object_bases.hpp>
 #include <SPeMPE/GameObjectFramework/Synchronized_object_registry.hpp>
+#include <SPeMPE/Other/Sync_parameters.hpp>
 
 #include <cassert>
 
@@ -20,19 +21,86 @@ void GetIndicesForComposingToEveryone(const hg::RN_NodeInterface& node, std::vec
         }
     }
 }
+
+RN_DEFINE_RPC(USPEMPE_DeactivateObject, RN_ARGS(SyncId, aSyncId)) {
+    RN_NODE_IN_HANDLER().callIfClient(
+        [=](hg::RN_ClientInterface& client) {
+            SyncParameters sp{client};
+            auto  regId      = sp.netwMgr.getRegistryId();
+            auto& syncObjReg = *reinterpret_cast<detail::SynchronizedObjectRegistry*>(regId.address);
+
+            syncObjReg.deactivateObject(aSyncId, sp.pessimisticLatencyInSteps);
+        });
+
+    RN_NODE_IN_HANDLER().callIfServer(
+        [](hg::RN_ServerInterface& server) {
+            throw hg::RN_IllegalMessage("Server received a sync message");
+        });
+}
 } // namespace
+
+SyncDetails::SyncDetails(detail::SynchronizedObjectRegistry& aRegistry)
+    : _registry{&aRegistry}
+{
+}
+
+hg::RN_NodeInterface& SyncDetails::getNode() const {
+    return _registry->getNode();
+}
+
+const std::vector<hg::PZInteger>& SyncDetails::getRecepients() const {
+    return _recepients;
+}
+
+void SyncDetails::filterSyncs(const SyncDetails::FilterPrecidateFunc& aPredicate) {
+    constexpr static bool REMOVE_IF_DO_REMOVE   = true;
+    constexpr static bool REMOVE_IF_DONT_REMOVE = false;
+
+    auto& reg = *_registry;
+    const SyncId forObject = _forObject;
+
+    auto iter = std::remove_if(_recepients.begin(), _recepients.end(),
+                               [&](hg::PZInteger aRecepient) -> bool {
+                                   switch (aPredicate(aRecepient)) {
+                                   case FilterResult::FullSync:
+                                       return REMOVE_IF_DONT_REMOVE;
+
+                                   case FilterResult::Skip:
+                                       return REMOVE_IF_DO_REMOVE;
+
+                                   case FilterResult::Deactivate:
+                                       if (reg.isObjectDeactivatedForClient(forObject, aRecepient)) {
+                                           break;
+                                       }
+                                       reg.setObjectDeactivatedFlagForClient(forObject, aRecepient, true);
+                                       Compose_USPEMPE_DeactivateObject(reg.getNode(), aRecepient, forObject);
+                                       return REMOVE_IF_DO_REMOVE;
+
+                                   default:
+                                       assert(false && "Unreachable");
+                                       break;
+                                   }
+                               });
+
+    _recepients.erase(iter, _recepients.end());
+}
 
 namespace detail {
 
 SynchronizedObjectRegistry::SynchronizedObjectRegistry(hg::RN_NodeInterface& node,
                                                        hg::PZInteger defaultDelay)
-    : _defaultDelay{defaultDelay}
+    : _node{&node}
+    , _syncDetails{*this}
+    , _defaultDelay{defaultDelay}
 {
-    _syncDetails._node = &node;
 }
 
 void SynchronizedObjectRegistry::setNode(hg::RN_NodeInterface& node) {
-    _syncDetails._node = &node;
+    _node = &node;
+}
+
+hg::RN_NodeInterface& SynchronizedObjectRegistry::getNode() const {
+    return *_node;
 }
 
 SyncId SynchronizedObjectRegistry::registerMasterObject(SynchronizedObjectBase* object) {
@@ -73,7 +141,7 @@ SynchronizedObjectBase* SynchronizedObjectRegistry::getMapping(SyncId syncId) co
 }
 
 void SynchronizedObjectRegistry::syncStateUpdates() {
-    GetIndicesForComposingToEveryone(*_syncDetails._node, _syncDetails._recepients);
+    GetIndicesForComposingToEveryone(*_node, _syncDetails._recepients);
 
     // Sync creations:
     for (auto* object : _newlyCreatedObjects) {
@@ -92,7 +160,12 @@ void SynchronizedObjectRegistry::syncStateUpdates() {
             // _alreadyUpdatedObjects.erase(iter);
         }
         else {
-            object->_syncUpdateImpl(_syncDetails);
+            SyncDetails syncDetailsCopy = _syncDetails;
+            syncDetailsCopy._forObject = pair.first;
+            object->_syncUpdateImpl(syncDetailsCopy);
+            for (auto rec : syncDetailsCopy._recepients) {
+                setObjectDeactivatedFlagForClient(pair.first, rec, false);
+            }
         }
     }
     _alreadyUpdatedObjects.clear();
@@ -108,6 +181,9 @@ void SynchronizedObjectRegistry::syncCompleteState(hg::PZInteger clientIndex) {
         auto* object = mapping.second;
         object->_syncCreateImpl(_syncDetails);
         object->_syncUpdateImpl(_syncDetails);
+        for (auto rec : _syncDetails._recepients) {
+            setObjectDeactivatedFlagForClient(mapping.first, rec, false);
+        }
     }
 }
 
@@ -125,7 +201,7 @@ void SynchronizedObjectRegistry::setDefaultDelay(hg::PZInteger aNewDefaultDelayS
 
 void SynchronizedObjectRegistry::syncObjectCreate(const SynchronizedObjectBase* object) {
     assert(object);
-    GetIndicesForComposingToEveryone(*_syncDetails._node, _syncDetails._recepients);
+    GetIndicesForComposingToEveryone(*_node, _syncDetails._recepients);
     object->_syncCreateImpl(_syncDetails);
 
     // TODO: Fail if object is not in _newlyCreatedObjects
@@ -135,7 +211,7 @@ void SynchronizedObjectRegistry::syncObjectCreate(const SynchronizedObjectBase* 
 
 void SynchronizedObjectRegistry::syncObjectUpdate(const SynchronizedObjectBase* object) {
     assert(object);
-    GetIndicesForComposingToEveryone(*_syncDetails._node, _syncDetails._recepients);
+    GetIndicesForComposingToEveryone(*_node, _syncDetails._recepients);
 
     // Synchronized object sync Update called manualy, before the registry got to
     // sync its Create. We need to fix this because the order of these is important!
@@ -148,13 +224,16 @@ void SynchronizedObjectRegistry::syncObjectUpdate(const SynchronizedObjectBase* 
     }
 
     object->_syncUpdateImpl(_syncDetails);
+    for (auto rec : _syncDetails._recepients) {
+        setObjectDeactivatedFlagForClient(object->getSyncId(), rec, false);
+    }
 
     _alreadyUpdatedObjects.insert(object);
 }
 
 void SynchronizedObjectRegistry::syncObjectDestroy(const SynchronizedObjectBase* object) {
     assert(object);
-    GetIndicesForComposingToEveryone(*_syncDetails._node, _syncDetails._recepients);
+    GetIndicesForComposingToEveryone(*_node, _syncDetails._recepients);
 
     // It could happen that a Synchronized object is destroyed before
     // its Update event - or even its Create event - were synced.
@@ -184,6 +263,28 @@ void SynchronizedObjectRegistry::syncObjectDestroy(const SynchronizedObjectBase*
     object->_syncDestroyImpl(_syncDetails);
 
     _alreadyDestroyedObjects.insert(object);
+}
+
+void SynchronizedObjectRegistry::deactivateObject(SyncId aObjectId, hg::PZInteger aDelayInSteps) {
+    auto& object = _mappings.at(aObjectId);
+    object->_deactivateSelfIn(aDelayInSteps);
+}
+
+bool SynchronizedObjectRegistry::isObjectDeactivatedForClient(SyncId aObjectId, hg::PZInteger aForClient) {
+    auto& object = _mappings.at(aObjectId);
+    return object->_remoteStatuses.getBit(aForClient);
+}
+
+void SynchronizedObjectRegistry::setObjectDeactivatedFlagForClient(SyncId aObjectId,
+                                                                   hg::PZInteger aForClient,
+                                                                   bool aFlag) {
+    auto& object = _mappings.at(aObjectId);
+    if (aFlag) {
+        object->_remoteStatuses.setBit(aForClient);
+    }
+    else {
+        object->_remoteStatuses.clearBit(aForClient);
+    }
 }
 
 } // namespace detail

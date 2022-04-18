@@ -236,6 +236,11 @@ TEST_F(SPeMPE_SynchronizedTest, BasicFunctionalityTest) {
 
         _serverCtx->runFor(1);
         _clientCtx->runFor(1);
+        _serverCtx->runFor(1);
+        _clientCtx->runFor(1);
+
+        ASSERT_EQ(server.getClientConnector(0).getStatus(), hg::RN_ConnectorStatus::Connected);
+        ASSERT_EQ(client.getServerConnector().getStatus(),  hg::RN_ConnectorStatus::Connected);
     }
     {
         SCOPED_TRACE("Add a synchronized Avatar instance to server");
@@ -309,6 +314,236 @@ TEST_F(SPeMPE_SynchronizedTest, BasicFunctionalityTest) {
         while (auto* drop = _clientCtx->getQAORuntime().find("AvatarDrop")) {
             hg::QAO_PDestroy(drop);
         }
+    }
+    {
+        SCOPED_TRACE("Clean up client context");
+        _clientCtx.reset();
+    }
+    {
+        SCOPED_TRACE("Clean up server context");
+        _serverCtx.reset();
+    }
+}
+
+// ============================================================================================= //
+
+struct DeactivatingAvatar_VisibleState {
+    constexpr static int CD_INITIAL = 0;
+
+    int customData = CD_INITIAL;
+    HG_ENABLE_AUTOPACK(DeactivatingAvatar_VisibleState, customData);
+};
+
+class DeactivatingAvatar : public SynchronizedObject<DeactivatingAvatar_VisibleState> {
+public:
+    DeactivatingAvatar(hg::QAO_RuntimeRef aRuntimeRef,
+                       RegistryId aRegId,
+                       SyncId aSyncId)
+        : SyncObjSuper{aRuntimeRef, SPEMPE_TYPEID_SELF, 0, "DeactivatingAvatar", aRegId, aSyncId}
+    {
+    }
+
+    ~DeactivatingAvatar() override {
+        if (isMasterObject()) {
+            doSyncDestroy();
+        }
+    }
+
+    int getCustomData() const {
+        return _getCurrentState().customData;
+    }
+
+    void setCustomData(int aCustomData) {
+        assert(isMasterObject());
+        _getCurrentState().customData = aCustomData;
+    }
+
+    SyncDetails::FilterResult syncInstruction = SyncDetails::FilterResult::FullSync;
+
+private:
+    void _syncCreateImpl(SyncDetails& aSyncDetails) const override;
+    void _syncUpdateImpl(SyncDetails& aSyncDetails) const override;
+    void _syncDestroyImpl(SyncDetails& aSyncDetails) const override;
+};
+
+SPEMPE_GENERATE_DEFAULT_SYNC_HANDLERS(DeactivatingAvatar, (CREATE, UPDATE, DESTROY));
+
+void DeactivatingAvatar::_syncCreateImpl(SyncDetails& aSyncDetails) const {
+    SPEMPE_SYNC_CREATE_DEFAULT_IMPL(DeactivatingAvatar, aSyncDetails);
+}
+
+void DeactivatingAvatar::_syncUpdateImpl(SyncDetails& aSyncDetails) const {
+    aSyncDetails.filterSyncs([this](hg::PZInteger /*aRecepient*/) -> SyncDetails::FilterResult {
+                                return this->syncInstruction;
+                             });
+    SPEMPE_SYNC_UPDATE_DEFAULT_IMPL(DeactivatingAvatar, aSyncDetails);
+}
+
+void DeactivatingAvatar::_syncDestroyImpl(SyncDetails& aSyncDetails) const {
+    SPEMPE_SYNC_DESTROY_DEFAULT_IMPL(DeactivatingAvatar, aSyncDetails);
+}
+
+TEST_F(SPeMPE_SynchronizedTest, DeactivationTest) {
+    {
+        SCOPED_TRACE("Configure contexts");
+
+        constexpr static int BUFFERING_LENGTH = 0;
+
+        // Server context:
+        _serverCtx->setToMode(GameContext::Mode::Server);
+
+        auto netwMgr1 = std::make_unique<NetworkingManagerOne>(_serverCtx->getQAORuntime().nonOwning(),
+                                                               0, BUFFERING_LENGTH);
+        netwMgr1->setToMode(MNetworking::Mode::Server);
+        _serverCtx->attachAndOwnComponent(std::move(netwMgr1));
+
+        // Client context:
+        _clientCtx->setToMode(GameContext::Mode::Client);
+
+        auto netwMgr2 = std::make_unique<NetworkingManagerOne>(_clientCtx->getQAORuntime().nonOwning(),
+                                                               0, BUFFERING_LENGTH);
+        netwMgr2->setToMode(MNetworking::Mode::Client);
+        _clientCtx->attachAndOwnComponent(std::move(netwMgr2));
+    }
+    {
+        SCOPED_TRACE("Establish conection between contexts");
+
+        ASSERT_TRUE(_serverCtx->getComponent<MNetworking>().isServer());
+        ASSERT_TRUE(_clientCtx->getComponent<MNetworking>().isClient());
+
+        auto& server = _serverCtx->getComponent<MNetworking>().getServer();
+        auto& client = _clientCtx->getComponent<MNetworking>().getClient();
+
+        server.setUserData(static_cast<GameContext*>(&*_serverCtx));
+        server.start(0);
+
+        client.setUserData(static_cast<GameContext*>(&*_clientCtx));
+        client.connectLocal(server);
+
+        _serverCtx->runFor(1);
+        _clientCtx->runFor(1);
+        _serverCtx->runFor(1);
+        _clientCtx->runFor(1);
+
+        ASSERT_EQ(server.getClientConnector(0).getStatus(), hg::RN_ConnectorStatus::Connected);
+        ASSERT_EQ(client.getServerConnector().getStatus(),  hg::RN_ConnectorStatus::Connected);
+    }
+    {
+        SCOPED_TRACE("Add a synchronized DeactivatingAvatar instance to server");
+
+        hg::QAO_PCreate<DeactivatingAvatar>(&_serverCtx->getQAORuntime(),
+                                            _serverCtx->getComponent<MNetworking>().getRegistryId(),
+                                            SYNC_ID_NEW);
+
+        _serverCtx->runFor(1);
+        _clientCtx->runFor(1);
+
+        auto* dummy = dynamic_cast<DeactivatingAvatar*>(_clientCtx->getQAORuntime().find("DeactivatingAvatar"));
+        ASSERT_NE(dummy, nullptr);
+        EXPECT_EQ(dummy->getCustomData(), DeactivatingAvatar::VisibleState::CD_INITIAL);
+    }
+    {
+        SCOPED_TRACE("Check state updates : FullSync (1)");
+
+        auto* master = dynamic_cast<DeactivatingAvatar*>(_serverCtx->getQAORuntime().find("DeactivatingAvatar"));
+        ASSERT_NE(master, nullptr);
+        master->setCustomData(DeactivatingAvatar::VisibleState::CD_INITIAL + 5);
+
+        _serverCtx->runFor(1);
+        _clientCtx->runFor(1);
+
+        auto* dummy = dynamic_cast<DeactivatingAvatar*>(_clientCtx->getQAORuntime().find("DeactivatingAvatar"));
+        ASSERT_NE(dummy, nullptr);
+        EXPECT_EQ(dummy->getCustomData(), DeactivatingAvatar::VisibleState::CD_INITIAL + 5);
+    }
+    {
+        SCOPED_TRACE("Check state updates : Skip (1)");
+
+        auto* master = dynamic_cast<DeactivatingAvatar*>(_serverCtx->getQAORuntime().find("DeactivatingAvatar"));
+        ASSERT_NE(master, nullptr);
+        master->setCustomData(DeactivatingAvatar::VisibleState::CD_INITIAL + 10);
+        master->syncInstruction = SyncDetails::FilterResult::Skip;
+
+        _serverCtx->runFor(1);
+        _clientCtx->runFor(1);
+
+        auto* dummy = dynamic_cast<DeactivatingAvatar*>(_clientCtx->getQAORuntime().find("DeactivatingAvatar"));
+        ASSERT_NE(dummy, nullptr);
+        EXPECT_EQ(dummy->getCustomData(), DeactivatingAvatar::VisibleState::CD_INITIAL + 5); // old = CD_INITIAL + 5
+    }
+    {
+        SCOPED_TRACE("Check state updates : Deactivate (1)");
+
+        auto* master = dynamic_cast<DeactivatingAvatar*>(_serverCtx->getQAORuntime().find("DeactivatingAvatar"));
+        ASSERT_NE(master, nullptr);
+        master->setCustomData(DeactivatingAvatar::VisibleState::CD_INITIAL + 15);
+        master->syncInstruction = SyncDetails::FilterResult::Deactivate;
+
+        _serverCtx->runFor(1);
+        _clientCtx->runFor(1);
+
+        auto* dummy = dynamic_cast<DeactivatingAvatar*>(_clientCtx->getQAORuntime().find("DeactivatingAvatar"));
+        ASSERT_NE(dummy, nullptr);
+        EXPECT_TRUE(dummy->isDeactivated()); 
+    }
+    {
+        SCOPED_TRACE("Check state updates : Deactivate (2)");
+
+        auto* master = dynamic_cast<DeactivatingAvatar*>(_serverCtx->getQAORuntime().find("DeactivatingAvatar"));
+        ASSERT_NE(master, nullptr);
+        master->setCustomData(DeactivatingAvatar::VisibleState::CD_INITIAL + 20);
+        master->syncInstruction = SyncDetails::FilterResult::Deactivate;
+
+        _serverCtx->runFor(1);
+        _clientCtx->runFor(1);
+
+        auto* dummy = dynamic_cast<DeactivatingAvatar*>(_clientCtx->getQAORuntime().find("DeactivatingAvatar"));
+        ASSERT_NE(dummy, nullptr);
+        EXPECT_TRUE(dummy->isDeactivated());
+    }
+    {
+        SCOPED_TRACE("Check state updates : Skip (2)");
+
+        auto* master = dynamic_cast<DeactivatingAvatar*>(_serverCtx->getQAORuntime().find("DeactivatingAvatar"));
+        ASSERT_NE(master, nullptr);
+        master->setCustomData(DeactivatingAvatar::VisibleState::CD_INITIAL + 25);
+        master->syncInstruction = SyncDetails::FilterResult::Skip;
+
+        _serverCtx->runFor(1);
+        _clientCtx->runFor(1);
+
+        auto* dummy = dynamic_cast<DeactivatingAvatar*>(_clientCtx->getQAORuntime().find("DeactivatingAvatar"));
+        ASSERT_NE(dummy, nullptr);
+        EXPECT_TRUE(dummy->isDeactivated());
+    }
+    {
+        SCOPED_TRACE("Check state updates : FullSync (2)");
+
+        auto* master = dynamic_cast<DeactivatingAvatar*>(_serverCtx->getQAORuntime().find("DeactivatingAvatar"));
+        ASSERT_NE(master, nullptr);
+        master->setCustomData(DeactivatingAvatar::VisibleState::CD_INITIAL + 30);
+        master->syncInstruction = SyncDetails::FilterResult::FullSync;
+
+        _serverCtx->runFor(1);
+        _clientCtx->runFor(1);
+
+        auto* dummy = dynamic_cast<DeactivatingAvatar*>(_clientCtx->getQAORuntime().find("DeactivatingAvatar"));
+        ASSERT_NE(dummy, nullptr);
+        ASSERT_FALSE(dummy->isDeactivated());
+        EXPECT_EQ(dummy->getCustomData(), DeactivatingAvatar::VisibleState::CD_INITIAL + 30);
+    }
+    {
+        SCOPED_TRACE("Check destruction");
+
+        auto* master = dynamic_cast<DeactivatingAvatar*>(_serverCtx->getQAORuntime().find("DeactivatingAvatar"));
+        ASSERT_NE(master, nullptr);
+        hg::QAO_PDestroy(master);
+
+        _serverCtx->runFor(1);
+        _clientCtx->runFor(1);
+
+        auto* dummy = dynamic_cast<DeactivatingAvatar*>(_clientCtx->getQAORuntime().find("DeactivatingAvatar"));
+        ASSERT_EQ(dummy, nullptr);
     }
     {
         SCOPED_TRACE("Clean up client context");

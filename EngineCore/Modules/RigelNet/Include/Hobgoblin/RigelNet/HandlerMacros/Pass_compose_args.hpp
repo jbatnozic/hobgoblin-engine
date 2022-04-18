@@ -5,26 +5,25 @@
 
 #define UHOBGOBLIN_RN_PASS_COMPOSE_ARGS_0() /* Nothing */
 
-#define UHOBGOBLIN_RN_PASS_COMPOSE_ARGS_1(type0) \
-    , type0
+#define UHOBGOBLIN_RN_PASS_COMPOSE_ARGS_1(type0) /* Nothing */
 
 #define UHOBGOBLIN_RN_PASS_COMPOSE_ARGS_2(type0, name0) \
     , name0
 
 #define UHOBGOBLIN_RN_PASS_COMPOSE_ARGS_3(type0, name0, type1) \
-    , name0, type1
+    , name0, name1
 
 #define UHOBGOBLIN_RN_PASS_COMPOSE_ARGS_4(type0, name0, type1, name1) \
     , name0, name1
 
 #define UHOBGOBLIN_RN_PASS_COMPOSE_ARGS_5(type0, name0, type1, name1, type2) \
-    , name0, name1, type2
+    , name0, name1, name2
 
 #define UHOBGOBLIN_RN_PASS_COMPOSE_ARGS_6(type0, name0, type1, name1, type2, name2) \
     , name0, name1, name2
 
 #define UHOBGOBLIN_RN_PASS_COMPOSE_ARGS_7(type0, name0, type1, name1, type2, name2, type3) \
-    , name0, name1, name2, type3
+    , name0, name1, name2, name3
 
 #define UHOBGOBLIN_RN_PASS_COMPOSE_ARGS_8(type0, name0, type1, name1, type2, name2, type3, name3) \
     , name0, name1, name2, name3
@@ -32,7 +31,7 @@
 #define UHOBGOBLIN_RN_PASS_COMPOSE_ARGS_9(type0, name0, type1, name1, type2, name2, type3, name3, \
                                           type4) \
     , name0, name1, name2, name3 \
-    , type4
+    , name4
 
 #define UHOBGOBLIN_RN_PASS_COMPOSE_ARGS_10(type0, name0, type1, name1, type2, name2, type3, name3, \
                                            type4, name4) \
@@ -42,7 +41,7 @@
 #define UHOBGOBLIN_RN_PASS_COMPOSE_ARGS_11(type0, name0, type1, name1, type2, name2, type3, name3, \
                                            type4, name4, type5) \
     , name0, name1, name2, name3 \
-    , name4, type5
+    , name4, name5
 
 #define UHOBGOBLIN_RN_PASS_COMPOSE_ARGS_12(type0, name0, type1, name1, type2, name2, type3, name3, \
                                            type4, name4, type5, name5) \
@@ -52,7 +51,7 @@
 #define UHOBGOBLIN_RN_PASS_COMPOSE_ARGS_13(type0, name0, type1, name1, type2, name2, type3, name3, \
                                            type4, name4, type5, name5, type6) \
     , name0, name1, name2, name3 \
-    , name4, name5, type6
+    , name4, name5, name6
 
 #define UHOBGOBLIN_RN_PASS_COMPOSE_ARGS_14(type0, name0, type1, name1, type2, name2, type3, name3, \
                                            type4, name4, type5, name5, type6, name6) \
@@ -62,19 +61,19 @@
 #define UHOBGOBLIN_RN_PASS_COMPOSE_ARGS_15(type0, name0, type1, name1, type2, name2, type3, name3, \
                                            type4, name4, type5, name5, type6, name6, type7) \
     , name0, name1, name2, name3 \
-    , name4, name5, name6, type7
+    , name4, name5, name6, name7
 
 #define UHOBGOBLIN_RN_PASS_COMPOSE_ARGS_16(type0, name0, type1, name1, type2, name2, type3, name3, \
                                            type4, name4, type5, name5, type6, name6, type7, name7) \
     , name0, name1, name2, name3 \
     , name4, name5, name6, name7
 
-#define UHOBGOBLIN_RN_PASS_COMPOSE_ARGS_17(_cvspec_, type0, name0, type1, name1, type2, name2, type3, name3, \
+#define UHOBGOBLIN_RN_PASS_COMPOSE_ARGS_17(type0, name0, type1, name1, type2, name2, type3, name3, \
                                            type4, name4, type5, name5, type6, name6, type7, name7, \
                                            type8) \
     , name0, name1, name2, name3 \
     , name4, name5, name6, name7 \
-    , type8
+    , name8
 
 #define UHOBGOBLIN_RN_PASS_COMPOSE_ARGS_18(type0, name0, type1, name1, type2, name2, type3, name3, \
                                            type4, name4, type5, name5, type6, name6, type7, name7, \
@@ -88,7 +87,7 @@
                                            type8, name8, type9) \
     , name0, name1, name2, name3 \
     , name4, name5, name6, name7 \
-    , name8, type9
+    , name8, name9
 
 #define UHOBGOBLIN_RN_PASS_COMPOSE_ARGS_20(type0, name0, type1, name1, type2, name2, type3, name3, \
                                            type4, name4, type5, name5, type6, name6, type7, name7, \

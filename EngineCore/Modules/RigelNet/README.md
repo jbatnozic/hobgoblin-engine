@@ -201,8 +201,30 @@ server.update(RN_UpdateMode::Send); // Send all queued messages to appropriate r
 client.update(RN_UpdateMode::Receive); // Unpacks and executes all received messages in order of sending
                                        // In this case, only the body of MyCoolRpc is executed, which
                                        // results in printing `"I have received MyCoolRpc!\n"` to `cout`.
-
 ```
+
+#### Composing and connection states
+You cannot compose a Message for a remote before a connection has been established - if you try, it will result in an
+exception being thrown. To avoid that, first check the status of the appropriate connector.
+
+```cpp
+RN_ServerInterface& server = ...;
+if (server.getClientConnector(clientIndex).getStatus() == RN_ConnectorStatus::Connected) {
+    Compose_...;
+}
+
+...
+
+
+RN_ClientInterface& client = ...;
+if (server.getServerConnector().getStatus() == RN_ConnectorStatus::Connected) {
+    Compose_...;
+}
+```
+
+Note that using `RN_COMPOSE_FOR_ALL` behaves differently! Using that constant means to compose for all **currently
+connected** remotes. It could mean that the message is dropped entirely if no connections have been made thus far,
+but it will never result in an exception.
 
 ### Handling Messages differently on the Server and Client sides
 The first important point here is that it's possible to access the node which received the Message from within the Message body itself. To do this, use the function-like macro `RN_NODE_IN_HANDLER()` (named like that because a Message body is also called a Message handler - similar to a signal handler). This macro will expand to a reference to the node which received the message.

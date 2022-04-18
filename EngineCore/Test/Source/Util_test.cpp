@@ -5,9 +5,11 @@
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Utility/Any_ptr.hpp>
 #include <Hobgoblin/Utility/Autopack.hpp>
+#include <Hobgoblin/Utility/Dynamic_bitset.hpp>
 #include <Hobgoblin/Utility/Packet.hpp>
 #include <Hobgoblin/Math.hpp>
 
+using hg::PZInteger;
 using namespace hg::util;
 using namespace hg::math;
 
@@ -156,4 +158,45 @@ TEST(MathTest, IntegralCeilDivTest) {
     ASSERT_EQ(IntegralCeilDiv(-6, -6), 1);
 
     ASSERT_EQ(IntegralCeilDiv(-6, 4), -1);
+}
+
+TEST(DynamicBitsetTest, DynamicBitsetTest) {
+    {
+        SCOPED_TRACE("Check that initial values are all zero");
+        DynamicBitset bitset;
+        for (PZInteger i = 0; i < 200; i += 1) {
+            EXPECT_EQ(bitset.getBit(i), false);
+        }
+    }
+    {
+        SCOPED_TRACE("Set and clear check; part 1");
+        DynamicBitset bitset;
+        bitset.setBit(5);
+        bitset.setBit(29);
+        for (PZInteger i = 0; i < 5; i += 1) {
+            EXPECT_EQ(bitset.getBit(i), false) << " with i=" << i;
+        }
+        EXPECT_EQ(bitset.getBit(5), true);
+        for (PZInteger i = 6; i < 29; i += 1) {
+            EXPECT_EQ(bitset.getBit(i), false) << " with i=" << i;
+        }
+        EXPECT_EQ(bitset.getBit(29), true);
+        for (PZInteger i = 30; i < 200; i += 1) {
+            EXPECT_EQ(bitset.getBit(i), false) << " with i=" << i;
+        }
+        bitset.clearBit(5);
+        bitset.clearBit(29);
+        for (PZInteger i = 0; i < 200; i += 1) {
+            EXPECT_EQ(bitset.getBit(i), false);
+        }
+    }
+    {
+        SCOPED_TRACE("Set and clear check; part 2");
+        DynamicBitset bitset;
+        bitset.setBit(200);
+        for (PZInteger i = 0; i < 200; i += 1) {
+            EXPECT_EQ(bitset.getBit(i), false) << " with i=" << i;
+        }
+        EXPECT_EQ(bitset.getBit(200), true);
+    }
 }

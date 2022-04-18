@@ -6,6 +6,7 @@
 #include <Hobgoblin/Utility/No_copy_no_move.hpp>
 
 #include <cstdint>
+#include <functional>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -27,19 +28,30 @@ class SynchronizedObjectRegistry;
 
 struct SyncDetails {
     //! The node through which the sync messages need to be sent.
-    hg::RN_NodeInterface& getNode() const {
-        return *_node;
-    }
+    hg::RN_NodeInterface& getNode() const;
 
     //! Vector of client indices of (recepients) to which sync messages
     //! need to be sent.
-    const std::vector<hg::PZInteger> getRecepients() {
-        return _recepients;
-    }
+    const std::vector<hg::PZInteger>& getRecepients() const;
+
+    enum class FilterResult {
+        FullSync,   //! Sync whole state of this object (default behaviour)
+        Skip,       //! Don't send anything during this update (no change)
+        Deactivate  //! Don't send anything and deactivate the remote dummy
+    };
+
+    //! Function object that takes an index of a client as an argument ans should
+    //! return whether (and how) to sync an object to this particular client.
+    using FilterPrecidateFunc = std::function<FilterResult(hg::PZInteger)>;
+
+    void filterSyncs(const FilterPrecidateFunc& aPredicate);
 
 private:
-    hg::RN_NodeInterface* _node = nullptr;
+    SyncDetails(detail::SynchronizedObjectRegistry& aRegistry);
+
+    hg::not_null<detail::SynchronizedObjectRegistry*> _registry;
     std::vector<hg::PZInteger> _recepients;
+    SyncId _forObject = SYNC_ID_NEW;
 
     friend class detail::SynchronizedObjectRegistry;
 };
@@ -55,6 +67,7 @@ public:
     SynchronizedObjectRegistry(hg::RN_NodeInterface& node, hg::PZInteger defaultDelay);
 
     void setNode(hg::RN_NodeInterface& node);
+    hg::RN_NodeInterface& getNode() const;
 
     SyncId registerMasterObject(SynchronizedObjectBase* object);
     void registerDummyObject(SynchronizedObjectBase* object, SyncId masterSyncId);
@@ -71,8 +84,15 @@ public:
 
     hg::PZInteger getDefaultDelay() const;
 
-    //! 
+    //! Sets the default delay (state buffering length) for all current and future
+    //! registered synchronized objects.
     void setDefaultDelay(hg::PZInteger aNewDefaultDelaySteps);
+
+    void deactivateObject(SyncId aObjectId, hg::PZInteger aDelayInSteps);
+
+    bool isObjectDeactivatedForClient(SyncId aObjectId, hg::PZInteger aForClient);
+
+    void setObjectDeactivatedFlagForClient(SyncId aObjectId, hg::PZInteger aForClient, bool aFlag);
 
 private:
     std::unordered_map<SyncId, SynchronizedObjectBase*> _mappings;
@@ -80,6 +100,7 @@ private:
     std::unordered_set<const SynchronizedObjectBase*> _alreadyUpdatedObjects;
     std::unordered_set<const SynchronizedObjectBase*> _alreadyDestroyedObjects;
 
+    hg::not_null<hg::RN_NodeInterface*> _node;
     SyncDetails _syncDetails;
 
     SyncId _syncIdCounter = 2;

@@ -56,8 +56,7 @@ using MGameplay = GameplayManagerInterface;
 struct PlayerAvatar_VisibleState {
     float x, y;
     int owningPlayerIndex = spe::PLAYER_INDEX_UNKNOWN;
-    bool hidden = true;
-    HG_ENABLE_AUTOPACK(PlayerAvatar_VisibleState, x, y, owningPlayerIndex, hidden);
+    HG_ENABLE_AUTOPACK(PlayerAvatar_VisibleState, x, y, owningPlayerIndex);
 };
 
 class PlayerAvatar : public spe::SynchronizedObject<PlayerAvatar_VisibleState> {
@@ -85,7 +84,6 @@ public:
         self.x = 400.f;
         self.y = 400.f;
         self.owningPlayerIndex = aOwningPlayerIndex;
-        self.hidden = false;
     }
 
 private:
@@ -112,11 +110,12 @@ private:
     }
 
     void _eventDraw1() override {
-        const auto& self = _getCurrentState();
-        if (self.hidden || self.owningPlayerIndex < 0) {
+        if (isDeactivated()) {
             return;
         }
 
+        const auto& self = _getCurrentState();
+        
         sf::CircleShape circle{20.f};
         circle.setFillColor(hg::gr::Color::Red);
         circle.setPosition({self.x, self.y});
@@ -135,6 +134,17 @@ void PlayerAvatar::_syncCreateImpl(spe::SyncDetails& aSyncDetails) const {
 }
 
 void PlayerAvatar::_syncUpdateImpl(spe::SyncDetails& aSyncDetails) const {
+    aSyncDetails.filterSyncs(
+        [](hg::PZInteger aRecepient) -> spe::SyncDetails::FilterResult {
+            if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+                return spe::SyncDetails::FilterResult::Skip;
+            }
+            if (sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
+                return spe::SyncDetails::FilterResult::Deactivate;
+            }
+            return spe::SyncDetails::FilterResult::FullSync;
+        }
+    );
     SPEMPE_SYNC_UPDATE_DEFAULT_IMPL(PlayerAvatar, aSyncDetails);
 }
 
