@@ -13,11 +13,18 @@
 #include <cassert>
 #include <cmath>
 #include <cstdint>
+#include <optional>
 #include <typeinfo>
 #include <utility>
 #include <vector>
 
+#include <iostream>
+
 #define SPEMPE_TYPEID_SELF (typeid(decltype(*this)))
+
+#define SPEMPE_SINCLAIRE_DISABLED 0x80
+#define SPEMPE_SINCLAIRE_YES 1
+#define SPEMPE_SINCLAIRE_NO  0
 
 namespace jbatnozic {
 namespace spempe {
@@ -148,6 +155,13 @@ protected:
     void _eventDrawGUI() override;
     void _eventFinalizeFrame() override;
 
+    void _enableSinclaire() {
+        _sinclaireState = SPEMPE_SINCLAIRE_YES;
+        _setStateSchedulerDefaultDelay(_syncObjReg.getDefaultDelay() + 1);
+    }
+
+    mutable int _sinclaireState = SPEMPE_SINCLAIRE_DISABLED;
+
 private:
     friend class detail::SynchronizedObjectRegistry;
 
@@ -239,9 +253,29 @@ protected:
         return _ssch.getCurrentState().first;
     }
 
+    taVisibleState& _getFollowingState() {
+        assert(isMasterObject() || !isDeactivated());
+        if (_ssch.getDefaultDelay() > 0) {
+            return (_ssch.begin() + 1)->first;
+        }
+        else {
+            return _ssch.getCurrentState().first;
+        }
+    }
+
     const taVisibleState& _getCurrentState() const {
         assert(isMasterObject() || !isDeactivated());
         return _ssch.getCurrentState().first;
+    }
+
+    const taVisibleState& _getFollowingState() const {
+        assert(isMasterObject() || !isDeactivated());
+        if (_ssch.getDefaultDelay() > 0) {
+            return (_ssch.begin() + 1)->first;
+        }
+        else {
+            return _ssch.getCurrentState().first;
+        }
     }
 
 private:
@@ -265,8 +299,29 @@ private:
 
     hg::util::SimpleStateScheduler<SchedulerPair> _ssch;
 
+    struct DeferredState {
+        taVisibleState state;
+        hg::PZInteger delay;
+    };
+    std::optional<DeferredState> _sinclaireDeferredState;
+
+    bool _sinclaireMark = false; // true => Align on next update
+    hg::PZInteger _sinclaireMarkDelay = 0;
+
     void _advanceDummyAndScheduleNewStates() override final {
         _ssch.advance();
+
+        if (_sinclaireMark) {
+            _ssch.alignToDelay(_sinclaireMarkDelay);
+            _sinclaireMark = false;
+        }
+
+        if (_sinclaireDeferredState.has_value()) {
+            _ssch.putNewState(SchedulerPair{(*_sinclaireDeferredState).state, {DUMMY_STATUS_NORMAL}},
+                                (*_sinclaireDeferredState).delay);
+            _sinclaireDeferredState.reset();
+        }
+
         _ssch.scheduleNewStates();
     }
 
@@ -283,7 +338,88 @@ private:
 public:
     //! Internal implementation, do not call manually!
     void __spempeimpl_applyUpdate(const VisibleState& aNewState, hg::PZInteger aDelaySteps) {
+        if (_sinclaireState == SPEMPE_SINCLAIRE_DISABLED) {
+            _ssch.putNewState(SchedulerPair{aNewState, {DUMMY_STATUS_NORMAL}}, aDelaySteps);
+            _sinclaireMarkDelay = aDelaySteps;
+        }
+        else {
+            if (_sinclaireDeferredState.has_value()) {
+                _ssch.putNewState(SchedulerPair{(*_sinclaireDeferredState).state, {DUMMY_STATUS_NORMAL}},
+                                  (*_sinclaireDeferredState).delay);
+                _sinclaireDeferredState.reset();
+            }
+
+            _ssch.putNewState(SchedulerPair{aNewState, {DUMMY_STATUS_NORMAL}}, aDelaySteps);
+
+            _sinclaireDeferredState = {aNewState, aDelaySteps};
+            _sinclaireMarkDelay = aDelaySteps;
+        }
+#if 0
+        if (_sinclaireState != SPEMPE_SINCLAIRE_DISABLED) {
+            if (_sinclaireFlag && _ssch.getBlueStateCount() < 1) {
+                return;
+            }
+        }
+
         _ssch.putNewState(SchedulerPair{aNewState, {DUMMY_STATUS_NORMAL}}, aDelaySteps);
+
+        if (_sinclaireState != SPEMPE_SINCLAIRE_DISABLED) {
+            _sinclaireDeferredState = {aNewState, aDelaySteps};
+        }
+#endif
+    }
+
+    //! Internal implementation, do not call manually!
+    void __spempeimpl_applyCatchupUpdate(const VisibleState& aNewState, hg::PZInteger aDelaySteps) {
+        if (_sinclaireState == SPEMPE_SINCLAIRE_DISABLED) {
+            _ssch.putNewState(SchedulerPair{aNewState, {DUMMY_STATUS_NORMAL}}, aDelaySteps);
+        }
+        _sinclaireMark = true;
+#if 0
+        if (_ssch.getBlueStateCount() > 2) {
+            return;
+        }
+
+        //std::cout << "Catchup!\n";
+
+        const auto oldCount = _ssch.getBlueStateCount();
+        //while (_ssch.getBlueStateCount() > std::min((int)_ssch.getDefaultDelay() - (int)aDelaySteps, -1)) {
+        while (_ssch.getBlueStateCount() > 2) {
+            _ssch.advance();
+        }
+        const auto newCount = _ssch.getBlueStateCount();
+
+        std::cout << "Catchup! (" << oldCount << " -> " << newCount << ")\n";
+        
+        _ssch.putNewState(SchedulerPair{aNewState, {DUMMY_STATUS_NORMAL}}, aDelaySteps);
+
+        if (_sinclaireState != SPEMPE_SINCLAIRE_DISABLED) {
+            _sinclaireDeferredState = {aNewState, aDelaySteps};
+        }
+#endif
+#if 0
+        if (_sinclaireState != SPEMPE_SINCLAIRE_DISABLED) {
+            if (_ssch.getBlueStateCount() > 2) {
+                return;
+            }
+        }
+
+        std::cout << "Catchup!\n";
+
+        //if (_sinclaireDeferredState.has_value()) {
+        //    _ssch.putNewState(SchedulerPair{(*_sinclaireDeferredState).state, {DUMMY_STATUS_NORMAL}},
+        //                      (*_sinclaireDeferredState).delay);
+        //    _sinclaireDeferredState.reset();
+        //}
+
+        _ssch.putNewState(SchedulerPair{aNewState, {DUMMY_STATUS_NORMAL}}, aDelaySteps);
+
+        if (_sinclaireState != SPEMPE_SINCLAIRE_DISABLED) {
+            //if (_ssch.getBlueStateCount() != 1) {
+            _sinclaireDeferredState = {aNewState, aDelaySteps};
+            //}
+        }
+#endif
     }
 
 #undef DUMMY_STATUS_NORMAL
@@ -382,7 +518,8 @@ void DefaultSyncCreateHandler(hg::RN_NodeInterface& node,
 
 template <class taSyncObj, class taContext, class taNetwMgr>
 void DefaultSyncUpdateHandler(hg::RN_NodeInterface& node,
-                              SyncId syncId, 
+                              SyncId syncId,
+                              bool isCatchupFrame,
                               typename taSyncObj::VisibleState& state) {
     node.callIfClient(
         [&](hg::RN_ClientInterface& client) {
@@ -391,7 +528,12 @@ void DefaultSyncUpdateHandler(hg::RN_NodeInterface& node,
             auto& syncObjReg = *reinterpret_cast<detail::SynchronizedObjectRegistry*>(regId.address);
             auto& object     = *static_cast<taSyncObj*>(syncObjReg.getMapping(syncId));
 
-            object.__spempeimpl_applyUpdate(state, sp.pessimisticLatencyInSteps);
+            if (!isCatchupFrame) {
+                object.__spempeimpl_applyUpdate(state, sp.pessimisticLatencyInSteps);
+            }
+            else {
+                object.__spempeimpl_applyCatchupUpdate(state, sp.pessimisticLatencyInSteps);
+            }
         });
 
     node.callIfServer(
@@ -439,11 +581,11 @@ void DefaultSyncDestroyHandler(hg::RN_NodeInterface& node,
 
 #define USPEMPE_GENERATE_DEFAULT_SYNC_HANDLER_UPDATE(_class_name_) \
     RN_DEFINE_RPC(USPEMPE_Update##_class_name_, \
-                  RN_ARGS(::jbatnozic::spempe::SyncId, syncId, _class_name_::VisibleState&, state)) { \
+                  RN_ARGS(::jbatnozic::spempe::SyncId, syncId, bool, catchup, _class_name_::VisibleState&, state)) { \
         ::jbatnozic::spempe::DefaultSyncUpdateHandler<_class_name_, \
                                                       ::jbatnozic::spempe::GameContext, \
                                                       ::jbatnozic::spempe::NetworkingManagerInterface>( \
-            RN_NODE_IN_HANDLER(), syncId, state); \
+            RN_NODE_IN_HANDLER(), syncId, catchup, state); \
     }
 
 #define USPEMPE_GENERATE_DEFAULT_SYNC_HANDLER_DESTROY(_class_name_) \
@@ -482,8 +624,10 @@ void DefaultSyncDestroyHandler(hg::RN_NodeInterface& node,
 //! TODO (add description)
 #define SPEMPE_SYNC_UPDATE_DEFAULT_IMPL(_class_name_, _sync_details_) \
     Compose_USPEMPE_Update##_class_name_(_sync_details_.getNode(), \
-                                             _sync_details_.getRecepients(), getSyncId(), \
-                                             _getCurrentState())
+                                         _sync_details_.getRecepients(), \
+                                         getSyncId(), \
+                                         _sync_details_.isCatchupFrame(), \
+                                         _getCurrentState())
 
 //! TODO (add description)
 #define SPEMPE_SYNC_DESTROY_DEFAULT_IMPL(_class_name_, _sync_details_) \

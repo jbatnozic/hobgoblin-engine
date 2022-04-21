@@ -150,6 +150,10 @@ void SynchronizedObjectRegistry::syncStateUpdates() {
     _newlyCreatedObjects.clear();
 
     // Sync updates:
+    if (!_sinclaireDoSync && _sinclaireInversionCountdown > 0) {
+        _sinclaireInversionCountdown -= 1;
+    }
+
     for (auto& pair : _mappings) {
         SynchronizedObjectBase* object = pair.second;
 
@@ -160,15 +164,27 @@ void SynchronizedObjectRegistry::syncStateUpdates() {
             // _alreadyUpdatedObjects.erase(iter);
         }
         else {
-            SyncDetails syncDetailsCopy = _syncDetails;
-            syncDetailsCopy._forObject = pair.first;
-            object->_syncUpdateImpl(syncDetailsCopy);
-            for (auto rec : syncDetailsCopy._recepients) {
-                setObjectDeactivatedFlagForClient(pair.first, rec, false);
+            if (object->_sinclaireState == SPEMPE_SINCLAIRE_DISABLED 
+                || _sinclaireDoSync 
+                || _sinclaireInversionCountdown == 0) {
+                SyncDetails syncDetailsCopy = _syncDetails;
+                syncDetailsCopy._forObject = pair.first;
+                syncDetailsCopy._alignFrame = (_sinclaireInversionCountdown == 0);
+
+                object->_syncUpdateImpl(syncDetailsCopy);
+                for (auto rec : syncDetailsCopy._recepients) {
+                    setObjectDeactivatedFlagForClient(pair.first, rec, false);
+                }
             }
         }
     }
     _alreadyUpdatedObjects.clear();
+
+    _sinclaireDoSync = !_sinclaireDoSync;
+
+    if (_sinclaireInversionCountdown == 0) {
+        _sinclaireInversionCountdown = 15;
+    }
 
     // Sync destroys - not needed (dealt with in destructors)
 }
@@ -180,7 +196,7 @@ void SynchronizedObjectRegistry::syncCompleteState(hg::PZInteger clientIndex) {
     for (auto& mapping : _mappings) {
         auto* object = mapping.second;
         object->_syncCreateImpl(_syncDetails);
-        object->_syncUpdateImpl(_syncDetails);
+        object->_syncUpdateImpl(_syncDetails); // Maybe this is not needed (double updates) ??????????????????????????? TODO
         for (auto rec : _syncDetails._recepients) {
             setObjectDeactivatedFlagForClient(mapping.first, rec, false);
         }
@@ -216,7 +232,7 @@ void SynchronizedObjectRegistry::syncObjectUpdate(const SynchronizedObjectBase* 
     // Synchronized object sync Update called manualy, before the registry got to
     // sync its Create. We need to fix this because the order of these is important!
     {
-        auto iter = _newlyCreatedObjects.find(object);
+        auto iter = _newlyCreatedObjects.find(const_cast<SynchronizedObjectBase*>(object));
         if (iter != _newlyCreatedObjects.end()) {
             object->_syncCreateImpl(_syncDetails);
             _newlyCreatedObjects.erase(iter);

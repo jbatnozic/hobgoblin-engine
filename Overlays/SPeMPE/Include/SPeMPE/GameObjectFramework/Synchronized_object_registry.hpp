@@ -34,6 +34,10 @@ struct SyncDetails {
     //! need to be sent.
     const std::vector<hg::PZInteger>& getRecepients() const;
 
+    bool isCatchupFrame() const {
+        return _alignFrame;
+    }
+
     enum class FilterResult {
         FullSync,   //! Sync whole state of this object (default behaviour)
         Skip,       //! Don't send anything during this update (no change)
@@ -52,6 +56,7 @@ private:
     hg::not_null<detail::SynchronizedObjectRegistry*> _registry;
     std::vector<hg::PZInteger> _recepients;
     SyncId _forObject = SYNC_ID_NEW;
+    bool _alignFrame = false;
 
     friend class detail::SynchronizedObjectRegistry;
 };
@@ -105,6 +110,9 @@ private:
 
     SyncId _syncIdCounter = 2;
     hg::PZInteger _defaultDelay;
+
+    bool _sinclaireDoSync = true;
+    hg::PZInteger _sinclaireInversionCountdown = 15;
 };
 
 } // namespace detail
