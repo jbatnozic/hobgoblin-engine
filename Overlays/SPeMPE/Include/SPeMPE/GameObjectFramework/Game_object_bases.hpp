@@ -104,6 +104,8 @@ public:
     //! Internal implementation, do not call manually!
     void __spempeimpl_destroySelfIn(int aStepCount);
 
+    virtual bool isDeactivated() const = 0;
+
 protected:
     // Call the following to sync this object's creation/update/destruction right away.
 
@@ -211,7 +213,7 @@ class SynchronizedObject : public SynchronizedObjectBase {
 public:
     using VisibleState = taVisibleState;
 
-    bool isDeactivated() const {
+    bool isDeactivated() const final override {
         return _ssch.getCurrentState().status.isDeactivated;
     }
 
@@ -534,11 +536,11 @@ void DefaultSyncDestroyHandler(hg::RN_NodeInterface& node,
 
 #define USPEMPE_GENERATE_DEFAULT_SYNC_HANDLER_UPDATE(_class_name_) \
     RN_DEFINE_RPC(USPEMPE_Update##_class_name_, \
-                  RN_ARGS(::jbatnozic::spempe::SyncId, syncId, bool, catchup, _class_name_::VisibleState&, state)) { \
+                  RN_ARGS(::jbatnozic::spempe::SyncId, syncId, bool, pacemakerPulse, _class_name_::VisibleState&, state)) { \
         ::jbatnozic::spempe::DefaultSyncUpdateHandler<_class_name_, \
                                                       ::jbatnozic::spempe::GameContext, \
                                                       ::jbatnozic::spempe::NetworkingManagerInterface>( \
-            RN_NODE_IN_HANDLER(), syncId, catchup, state); \
+            RN_NODE_IN_HANDLER(), syncId, pacemakerPulse, state); \
     }
 
 #define USPEMPE_GENERATE_DEFAULT_SYNC_HANDLER_DESTROY(_class_name_) \

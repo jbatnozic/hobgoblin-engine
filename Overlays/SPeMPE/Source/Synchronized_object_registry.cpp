@@ -197,7 +197,7 @@ void SynchronizedObjectRegistry::syncCompleteState(hg::PZInteger clientIndex) {
     for (auto& mapping : _mappings) {
         auto* object = mapping.second;
         object->_syncCreateImpl(_syncDetails);
-        // object->_syncUpdateImpl(_syncDetails); // Maybe this is not needed (double updates) ??????????????????????????? TODO
+        // object->_syncUpdateImpl(_syncDetails); // Seems this is not needed (double updates)
         for (auto rec : _syncDetails._recepients) {
             setObjectDeactivatedFlagForClient(mapping.first, rec, false);
         }

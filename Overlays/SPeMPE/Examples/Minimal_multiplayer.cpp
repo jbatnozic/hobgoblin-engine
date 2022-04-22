@@ -24,7 +24,7 @@ using MWindow     = spe::WindowManagerInterface;
 #define PRIORITY_PLAYERAVATAR  5
 #define PRIORITY_WINDOWMGR     0
 
-#define STATE_BUFFERING_LENGTH 3
+#define STATE_BUFFERING_LENGTH 2
 
 ///////////////////////////////////////////////////////////////////////////
 // PLAYER CONTROLS                                                       //
@@ -444,7 +444,7 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
                 FRAMERATE,
                 false,                                           /* Framerate limiter */
                 (aGameMode == GameMode::Server) ? false : true , /* V-Sync */
-                (aGameMode == GameMode::Server) ? true : true    /* Previce timing*/
+                (aGameMode == GameMode::Server) ? true : true    /* Precise timing*/
             }
         );
     }
