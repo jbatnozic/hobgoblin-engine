@@ -60,6 +60,8 @@ public:
 
     void setStateBufferingLength(hg::PZInteger aNewStateBufferingLength) override;
 
+    void setPacemakerPulsePeriod(hg::PZInteger aPeriod) override;
+
     ///////////////////////////////////////////////////////////////////////////
     // MISC.                                                                 //
     ///////////////////////////////////////////////////////////////////////////

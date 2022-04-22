@@ -50,7 +50,7 @@ private:
 using MGameplay = GameplayManagerInterface;
 
 ///////////////////////////////////////////////////////////////////////////
-// PLAYER "AVATARS"                                                      //
+// PLAYER AVATARS                                                        //
 ///////////////////////////////////////////////////////////////////////////
 
 struct PlayerAvatar_VisibleState {
@@ -96,12 +96,12 @@ private:
         const bool left  = wrapper.getSignalValue<bool>(self.owningPlayerIndex, "left");
         const bool right = wrapper.getSignalValue<bool>(self.owningPlayerIndex, "right");
 
-        self.x += (5.f * ((float)right - (float)left));
+        self.x += (10.f * ((float)right - (float)left));
 
         const bool up = wrapper.getSignalValue<bool>(self.owningPlayerIndex, "up");
         const bool down = wrapper.getSignalValue<bool>(self.owningPlayerIndex, "down");
 
-        self.y += (5.f * ((float)down - (float)up));
+        self.y += (10.f * ((float)down - (float)up));
 
         wrapper.pollSimpleEvent(self.owningPlayerIndex, "jump",
                                 [&]() {
@@ -150,6 +150,114 @@ void PlayerAvatar::_syncUpdateImpl(spe::SyncDetails& aSyncDetails) const {
 
 void PlayerAvatar::_syncDestroyImpl(spe::SyncDetails& aSyncDetails) const {
     SPEMPE_SYNC_DESTROY_DEFAULT_IMPL(PlayerAvatar, aSyncDetails);
+}
+
+///////////////////////////////////////////////////////////////////////////
+// SINCLAIRE AVATARS                                                     //
+///////////////////////////////////////////////////////////////////////////
+
+struct SinclaireAvatar_VisibleState {
+    float x, y;
+    int owningPlayerIndex = spe::PLAYER_INDEX_UNKNOWN;
+    HG_ENABLE_AUTOPACK(SinclaireAvatar_VisibleState, x, y, owningPlayerIndex);
+};
+
+class SinclaireAvatar : public spe::SynchronizedObject<SinclaireAvatar_VisibleState> {
+public:
+    SinclaireAvatar(QAO_RuntimeRef aRuntimeRef,
+                    spe::RegistryId aRegId,
+                    spe::SyncId aSyncId)
+        : SyncObjSuper{aRuntimeRef, SPEMPE_TYPEID_SELF, PRIORITY_PLAYERAVATAR,
+        "SinclaireAvatar", aRegId, aSyncId}
+    {
+        _enableAlternatingUpdates();
+    }
+
+    ~SinclaireAvatar() override {
+        if (isMasterObject()) {
+            // TODO: See if this can be improved.
+            // Maybe some default implementation?
+            doSyncDestroy();
+        }
+    }
+
+    void init(int aOwningPlayerIndex) {
+        assert(isMasterObject());
+
+        auto& self = _getCurrentState();
+        self.x = 400.f;
+        self.y = 450.f;
+        self.owningPlayerIndex = aOwningPlayerIndex;
+    }
+
+private:
+    void _eventUpdate(spe::IfMaster) override {
+        auto& self = _getCurrentState();
+        assert(self.owningPlayerIndex >= 0);
+
+        spe::InputSyncManagerWrapper wrapper{ccomp<MInput>()};
+
+        const bool left = wrapper.getSignalValue<bool>(self.owningPlayerIndex, "left");
+        const bool right = wrapper.getSignalValue<bool>(self.owningPlayerIndex, "right");
+
+        self.x += (10.f * ((float)right - (float)left));
+
+        const bool up = wrapper.getSignalValue<bool>(self.owningPlayerIndex, "up");
+        const bool down = wrapper.getSignalValue<bool>(self.owningPlayerIndex, "down");
+
+        self.y += (10.f * ((float)down - (float)up));
+
+        wrapper.pollSimpleEvent(self.owningPlayerIndex, "jump",
+                                [&]() {
+                                    self.y -= 16.f;
+                                });
+    }
+
+    void _eventDraw1() override {
+        if (isDeactivated()) {
+            return;
+        }
+
+        const auto& self1 = _getCurrentState();
+        const auto& self2 = _getFollowingState();
+
+        const float x = (self1.x + self2.x) * 0.5f;
+        const float y = (self1.y + self2.y) * 0.5f;
+
+        sf::CircleShape circle{20.f};
+        circle.setFillColor(hg::gr::Color::Green);
+        circle.setPosition({x, y});
+        ccomp<MWindow>().getCanvas().draw(circle);
+    }
+
+    void _syncCreateImpl(spe::SyncDetails& aSyncDetails) const override;
+    void _syncUpdateImpl(spe::SyncDetails& aSyncDetails) const override;
+    void _syncDestroyImpl(spe::SyncDetails& aSyncDetails) const override;
+};
+
+SPEMPE_GENERATE_DEFAULT_SYNC_HANDLERS(SinclaireAvatar, (CREATE, UPDATE, DESTROY));
+
+void SinclaireAvatar::_syncCreateImpl(spe::SyncDetails& aSyncDetails) const {
+    SPEMPE_SYNC_CREATE_DEFAULT_IMPL(SinclaireAvatar, aSyncDetails);
+}
+
+void SinclaireAvatar::_syncUpdateImpl(spe::SyncDetails& aSyncDetails) const {
+    aSyncDetails.filterSyncs(
+        [](hg::PZInteger aRecepient) -> spe::SyncDetails::FilterResult {
+            if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+                return spe::SyncDetails::FilterResult::Skip;
+            }
+            if (sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
+                return spe::SyncDetails::FilterResult::Deactivate;
+            }
+            return spe::SyncDetails::FilterResult::FullSync;
+        }
+    );
+    SPEMPE_SYNC_UPDATE_DEFAULT_IMPL(SinclaireAvatar, aSyncDetails);
+}
+
+void SinclaireAvatar::_syncDestroyImpl(spe::SyncDetails& aSyncDetails) const {
+    SPEMPE_SYNC_DESTROY_DEFAULT_IMPL(SinclaireAvatar, aSyncDetails);
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -214,6 +322,9 @@ private:
                 QAO_PCreate<PlayerAvatar>(getRuntime(),
                                           ccomp<MNetworking>().getRegistryId(),
                                           spe::SYNC_ID_NEW)->init(*ev.clientIndex + 1);
+                QAO_PCreate<SinclaireAvatar>(getRuntime(),
+                                             ccomp<MNetworking>().getRegistryId(),
+                                             spe::SYNC_ID_NEW)->init(*ev.clientIndex + 1);
             },
             [](const RN_Event::Disconnected& ev) {
                 // TODO Remove player avatar
@@ -247,29 +358,36 @@ void GameplayManager::_eventUpdate() {
 
     if (ctx().isPrivileged()) {
         const auto kbInput = ccomp<MWindow>().getKeyboardInput();
-        if (kbInput.checkPressed(spe::KbKey::Num2, spe::KbInput::Mode::Edge)) {
+        const auto mode = spe::KbInput::Mode::Edge;
+        if (kbInput.checkPressed(spe::KbKey::Num1, mode)) {
+            ctx().getComponent<MNetworking>().setStateBufferingLength(1);
+            ctx().getComponent<MInput>().setStateBufferingLength(1);
+            Compose_SetGlobalStateBufferingLength(ctx().getComponent<MNetworking>().getNode(), RN_COMPOSE_FOR_ALL, 1);
+            std::cout << "Global state buffering set to " << 1 << " frames.\n";
+        }
+        if (kbInput.checkPressed(spe::KbKey::Num2, mode)) {
             ctx().getComponent<MNetworking>().setStateBufferingLength(2);
             ctx().getComponent<MInput>().setStateBufferingLength(2);
             Compose_SetGlobalStateBufferingLength(ctx().getComponent<MNetworking>().getNode(), RN_COMPOSE_FOR_ALL, 2);
             std::cout << "Global state buffering set to " << 2 << " frames.\n";
         }
-        if (kbInput.checkPressed(spe::KbKey::Num3, spe::KbInput::Mode::Edge)) {
+        if (kbInput.checkPressed(spe::KbKey::Num3, mode)) {
             ctx().getComponent<MNetworking>().setStateBufferingLength(3);
             ctx().getComponent<MInput>().setStateBufferingLength(3);
             Compose_SetGlobalStateBufferingLength(ctx().getComponent<MNetworking>().getNode(), RN_COMPOSE_FOR_ALL, 3);
             std::cout << "Global state buffering set to " << 3 << " frames.\n";
         }
-        if (kbInput.checkPressed(spe::KbKey::Num9, spe::KbInput::Mode::Edge)) {
+        if (kbInput.checkPressed(spe::KbKey::Num9, mode)) {
             ctx().getComponent<MNetworking>().setStateBufferingLength(9);
             ctx().getComponent<MInput>().setStateBufferingLength(9);
             Compose_SetGlobalStateBufferingLength(ctx().getComponent<MNetworking>().getNode(), RN_COMPOSE_FOR_ALL, 9);
             std::cout << "Global state buffering set to " << 9 << " frames.\n";
         }
-        if (kbInput.checkPressed(spe::KbKey::Num0, spe::KbInput::Mode::Edge)) {
-            ctx().getComponent<MNetworking>().setStateBufferingLength(30);
-            ctx().getComponent<MInput>().setStateBufferingLength(30);
-            Compose_SetGlobalStateBufferingLength(ctx().getComponent<MNetworking>().getNode(), RN_COMPOSE_FOR_ALL, 30);
-            std::cout << "Global state buffering set to " << 30 << " frames.\n";
+        if (kbInput.checkPressed(spe::KbKey::Num0, mode)) {
+            ctx().getComponent<MNetworking>().setStateBufferingLength(0);
+            ctx().getComponent<MInput>().setStateBufferingLength(0);
+            Compose_SetGlobalStateBufferingLength(ctx().getComponent<MNetworking>().getNode(), RN_COMPOSE_FOR_ALL, 0);
+            std::cout << "Global state buffering set to " << 0 << " frames.\n";
         }
     }
 }
@@ -324,9 +442,9 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
             spe::WindowManagerInterface::MainRenderTextureConfig{{WINDOW_HEIGHT, WINDOW_HEIGHT}},
             spe::WindowManagerInterface::TimingConfig{
                 FRAMERATE,
-                false,                                          /* Framerate limiter */
-                (aGameMode == GameMode::Server) ? false : true, /* V-Sync */
-                (aGameMode == GameMode::Server) ? true : false  /* Previce timing*/
+                false,                                           /* Framerate limiter */
+                (aGameMode == GameMode::Server) ? false : true , /* V-Sync */
+                (aGameMode == GameMode::Server) ? true : true    /* Precise timing*/
             }
         );
     }
@@ -343,9 +461,9 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
         server.setTimeoutLimit(std::chrono::seconds{5});
         server.setRetransmitPredicate(&MyRetransmitPredicate);
         server.start(aLocalPort);
-        // TODO playerCount unused!
+        server.resize(aPlayerCount);
 
-        std::printf("Server started on port %d\n", (int)server.getLocalPort());
+        std::printf("Server started on port %d for up to %d clients.\n", (int)server.getLocalPort(), aPlayerCount);
     }
     else {
         netMgr->setToMode(spe::NetworkingManagerOne::Mode::Client);

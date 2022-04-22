@@ -131,6 +131,10 @@ void NetworkingManagerOne::setStateBufferingLength(hg::PZInteger aNewStateBuffer
     _syncObjReg.setDefaultDelay(aNewStateBufferingLength);
 }
 
+void NetworkingManagerOne::setPacemakerPulsePeriod(hg::PZInteger aPeriod) {
+    _syncObjReg.setPacemakerPulsePeriod(aPeriod);
+}
+
 ///////////////////////////////////////////////////////////////////////////
 // MISC.                                                                 //
 ///////////////////////////////////////////////////////////////////////////

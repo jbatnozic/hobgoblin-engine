@@ -41,6 +41,10 @@ bool SynchronizedObjectBase::isMasterObject() const noexcept {
     return ((_syncId & SYNC_ID_1) != 0);
 }
 
+bool SynchronizedObjectBase::isUsingAlternatingUpdates() const noexcept {
+    return _alternatingUpdatesEnabled;
+}
+
 void SynchronizedObjectBase::__spempeimpl_destroySelfIn(int aStepCount) {
     _deathCounter = (aStepCount > 0) ? aStepCount : 0;
 }
@@ -79,6 +83,11 @@ void SynchronizedObjectBase::_eventUpdate(IfDummy) {
 
 bool SynchronizedObjectBase::_willDieAfterUpdate() const {
     return (_deathCounter == 0);
+}
+
+void SynchronizedObjectBase::_enableAlternatingUpdates() {
+    _alternatingUpdatesEnabled = true;
+    _setStateSchedulerDefaultDelay(_syncObjReg.getDefaultDelay());
 }
 
 void SynchronizedObjectBase::_eventStartFrame() {

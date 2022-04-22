@@ -150,6 +150,10 @@ void SynchronizedObjectRegistry::syncStateUpdates() {
     _newlyCreatedObjects.clear();
 
     // Sync updates:
+    if (!_alternatingUpdateFlag && _pacemakerPulseCountdown > 0) {
+        _pacemakerPulseCountdown -= 1;
+    }
+
     for (auto& pair : _mappings) {
         SynchronizedObjectBase* object = pair.second;
 
@@ -160,15 +164,28 @@ void SynchronizedObjectRegistry::syncStateUpdates() {
             // _alreadyUpdatedObjects.erase(iter);
         }
         else {
-            SyncDetails syncDetailsCopy = _syncDetails;
-            syncDetailsCopy._forObject = pair.first;
-            object->_syncUpdateImpl(syncDetailsCopy);
-            for (auto rec : syncDetailsCopy._recepients) {
-                setObjectDeactivatedFlagForClient(pair.first, rec, false);
+            if (_alternatingUpdateFlag
+                || _pacemakerPulseCountdown == 0
+                || !object->isUsingAlternatingUpdates())
+            {
+                SyncDetails syncDetailsCopy = _syncDetails;
+                syncDetailsCopy._forObject = pair.first;
+                syncDetailsCopy._pacemakerPulse = (_pacemakerPulseCountdown == 0);
+
+                object->_syncUpdateImpl(syncDetailsCopy);
+                for (auto rec : syncDetailsCopy._recepients) {
+                    setObjectDeactivatedFlagForClient(pair.first, rec, false);
+                }
             }
         }
     }
     _alreadyUpdatedObjects.clear();
+
+    _alternatingUpdateFlag = !_alternatingUpdateFlag;
+
+    if (_pacemakerPulseCountdown == 0) {
+        _pacemakerPulseCountdown = _pacemakerPulsePeriod;
+    }
 
     // Sync destroys - not needed (dealt with in destructors)
 }
@@ -180,7 +197,7 @@ void SynchronizedObjectRegistry::syncCompleteState(hg::PZInteger clientIndex) {
     for (auto& mapping : _mappings) {
         auto* object = mapping.second;
         object->_syncCreateImpl(_syncDetails);
-        object->_syncUpdateImpl(_syncDetails);
+        // object->_syncUpdateImpl(_syncDetails); // Seems this is not needed (double updates)
         for (auto rec : _syncDetails._recepients) {
             setObjectDeactivatedFlagForClient(mapping.first, rec, false);
         }
@@ -197,6 +214,15 @@ void SynchronizedObjectRegistry::setDefaultDelay(hg::PZInteger aNewDefaultDelayS
         auto* object = mapping.second;
         object->_setStateSchedulerDefaultDelay(aNewDefaultDelaySteps);
     }
+}
+
+void SynchronizedObjectRegistry::setPacemakerPulsePeriod(hg::PZInteger aPeriod) {
+    if ((aPeriod % 2 == 1) || (aPeriod < 2)) {
+        throw hg::TracedLogicError{
+            "SynchronizedObjectRegistry - Pacemaker pulse period must be an even number and at least 2!"
+        };
+    }
+    _pacemakerPulsePeriod = (aPeriod / 2);
 }
 
 void SynchronizedObjectRegistry::syncObjectCreate(const SynchronizedObjectBase* object) {
@@ -216,7 +242,7 @@ void SynchronizedObjectRegistry::syncObjectUpdate(const SynchronizedObjectBase* 
     // Synchronized object sync Update called manualy, before the registry got to
     // sync its Create. We need to fix this because the order of these is important!
     {
-        auto iter = _newlyCreatedObjects.find(object);
+        auto iter = _newlyCreatedObjects.find(const_cast<SynchronizedObjectBase*>(object));
         if (iter != _newlyCreatedObjects.end()) {
             object->_syncCreateImpl(_syncDetails);
             _newlyCreatedObjects.erase(iter);

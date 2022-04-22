@@ -37,6 +37,11 @@ public:
     using TracedException::TracedException;
 };
 
+class NotImplementedError : public TracedException {
+public:
+    using TracedException::TracedException;
+};
+
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>

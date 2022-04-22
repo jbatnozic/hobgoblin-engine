@@ -79,6 +79,11 @@ public:
     //! lengths, everything will still work).
     virtual void setStateBufferingLength(hg::PZInteger aNewStateBufferingLength) = 0;
 
+    //! Every N frames the server sends a pacemaker pulse to correct any synchronized objects
+    //! that may have fallen out of sync due to lag or network delays. This method sets N.
+    //! N must be at least 2, and also for technical reasons it has to be an even number.
+    virtual void setPacemakerPulsePeriod(hg::PZInteger aPeriod) = 0;
+
     ///////////////////////////////////////////////////////////////////////////
     // MISC.                                                                 //
     ///////////////////////////////////////////////////////////////////////////
