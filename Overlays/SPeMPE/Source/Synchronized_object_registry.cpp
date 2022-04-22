@@ -150,8 +150,8 @@ void SynchronizedObjectRegistry::syncStateUpdates() {
     _newlyCreatedObjects.clear();
 
     // Sync updates:
-    if (!_sinclaireDoSync && _sinclaireInversionCountdown > 0) {
-        _sinclaireInversionCountdown -= 1;
+    if (!_alternatingUpdateFlag && _pacemakerPulseCountdown > 0) {
+        _pacemakerPulseCountdown -= 1;
     }
 
     for (auto& pair : _mappings) {
@@ -164,12 +164,13 @@ void SynchronizedObjectRegistry::syncStateUpdates() {
             // _alreadyUpdatedObjects.erase(iter);
         }
         else {
-            if (object->_sinclaireState == SPEMPE_SINCLAIRE_DISABLED 
-                || _sinclaireDoSync 
-                || _sinclaireInversionCountdown == 0) {
+            if (_alternatingUpdateFlag
+                || _pacemakerPulseCountdown == 0
+                || !object->isUsingAlternatingUpdates())
+            {
                 SyncDetails syncDetailsCopy = _syncDetails;
                 syncDetailsCopy._forObject = pair.first;
-                syncDetailsCopy._alignFrame = (_sinclaireInversionCountdown == 0);
+                syncDetailsCopy._pacemakerPulse = (_pacemakerPulseCountdown == 0);
 
                 object->_syncUpdateImpl(syncDetailsCopy);
                 for (auto rec : syncDetailsCopy._recepients) {
@@ -180,10 +181,10 @@ void SynchronizedObjectRegistry::syncStateUpdates() {
     }
     _alreadyUpdatedObjects.clear();
 
-    _sinclaireDoSync = !_sinclaireDoSync;
+    _alternatingUpdateFlag = !_alternatingUpdateFlag;
 
-    if (_sinclaireInversionCountdown == 0) {
-        _sinclaireInversionCountdown = 15;
+    if (_pacemakerPulseCountdown == 0) {
+        _pacemakerPulseCountdown = _pacemakerPulsePeriod;
     }
 
     // Sync destroys - not needed (dealt with in destructors)
@@ -196,7 +197,7 @@ void SynchronizedObjectRegistry::syncCompleteState(hg::PZInteger clientIndex) {
     for (auto& mapping : _mappings) {
         auto* object = mapping.second;
         object->_syncCreateImpl(_syncDetails);
-        object->_syncUpdateImpl(_syncDetails); // Maybe this is not needed (double updates) ??????????????????????????? TODO
+        // object->_syncUpdateImpl(_syncDetails); // Maybe this is not needed (double updates) ??????????????????????????? TODO
         for (auto rec : _syncDetails._recepients) {
             setObjectDeactivatedFlagForClient(mapping.first, rec, false);
         }
@@ -213,6 +214,15 @@ void SynchronizedObjectRegistry::setDefaultDelay(hg::PZInteger aNewDefaultDelayS
         auto* object = mapping.second;
         object->_setStateSchedulerDefaultDelay(aNewDefaultDelaySteps);
     }
+}
+
+void SynchronizedObjectRegistry::setPacemakerPulsePeriod(hg::PZInteger aPeriod) {
+    if ((aPeriod % 2 == 1) || (aPeriod < 2)) {
+        throw hg::TracedLogicError{
+            "SynchronizedObjectRegistry - Pacemaker pulse period must be an even number and at least 2!"
+        };
+    }
+    _pacemakerPulsePeriod = (aPeriod / 2);
 }
 
 void SynchronizedObjectRegistry::syncObjectCreate(const SynchronizedObjectBase* object) {

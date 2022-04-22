@@ -170,8 +170,7 @@ public:
         : SyncObjSuper{aRuntimeRef, SPEMPE_TYPEID_SELF, PRIORITY_PLAYERAVATAR,
         "SinclaireAvatar", aRegId, aSyncId}
     {
-        _enableSinclaire();
-        // _sinclaireState = SPEMPE_SINCLAIRE_YES;
+        _enableAlternatingUpdates();
     }
 
     ~SinclaireAvatar() override {
@@ -359,7 +358,13 @@ void GameplayManager::_eventUpdate() {
 
     if (ctx().isPrivileged()) {
         const auto kbInput = ccomp<MWindow>().getKeyboardInput();
-        const auto mode = spe::KbInput::Mode::Direct;
+        const auto mode = spe::KbInput::Mode::Edge;
+        if (kbInput.checkPressed(spe::KbKey::Num1, mode)) {
+            ctx().getComponent<MNetworking>().setStateBufferingLength(1);
+            ctx().getComponent<MInput>().setStateBufferingLength(1);
+            Compose_SetGlobalStateBufferingLength(ctx().getComponent<MNetworking>().getNode(), RN_COMPOSE_FOR_ALL, 1);
+            std::cout << "Global state buffering set to " << 1 << " frames.\n";
+        }
         if (kbInput.checkPressed(spe::KbKey::Num2, mode)) {
             ctx().getComponent<MNetworking>().setStateBufferingLength(2);
             ctx().getComponent<MInput>().setStateBufferingLength(2);
@@ -379,10 +384,10 @@ void GameplayManager::_eventUpdate() {
             std::cout << "Global state buffering set to " << 9 << " frames.\n";
         }
         if (kbInput.checkPressed(spe::KbKey::Num0, mode)) {
-            ctx().getComponent<MNetworking>().setStateBufferingLength(30);
-            ctx().getComponent<MInput>().setStateBufferingLength(30);
-            Compose_SetGlobalStateBufferingLength(ctx().getComponent<MNetworking>().getNode(), RN_COMPOSE_FOR_ALL, 30);
-            std::cout << "Global state buffering set to " << 30 << " frames.\n";
+            ctx().getComponent<MNetworking>().setStateBufferingLength(0);
+            ctx().getComponent<MInput>().setStateBufferingLength(0);
+            Compose_SetGlobalStateBufferingLength(ctx().getComponent<MNetworking>().getNode(), RN_COMPOSE_FOR_ALL, 0);
+            std::cout << "Global state buffering set to " << 0 << " frames.\n";
         }
     }
 }
@@ -456,9 +461,9 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
         server.setTimeoutLimit(std::chrono::seconds{5});
         server.setRetransmitPredicate(&MyRetransmitPredicate);
         server.start(aLocalPort);
-        // TODO playerCount unused!
+        server.resize(aPlayerCount);
 
-        std::printf("Server started on port %d\n", (int)server.getLocalPort());
+        std::printf("Server started on port %d for up to %d clients.\n", (int)server.getLocalPort(), aPlayerCount);
     }
     else {
         netMgr->setToMode(spe::NetworkingManagerOne::Mode::Client);

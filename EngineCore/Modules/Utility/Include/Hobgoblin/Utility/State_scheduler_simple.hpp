@@ -33,8 +33,6 @@ public:
 
     void setDefaultDelay(PZInteger aNewDefaultDelay);
 
-    // PZInteger getBlueStateCount() const noexcept; // TODO rename
-
     void alignToDelay(PZInteger aDelay);
 
     // Access stored states:
@@ -257,14 +255,6 @@ void SimpleStateScheduler<taState>::setDefaultDelay(PZInteger aNewDefaultDelay) 
 
     _defaultDelay = aNewDefaultDelay;
 }
-
-//template <class taState>
-//PZInteger SimpleStateScheduler<taState>::getBlueStateCount() const noexcept {
-//    if (_bluePos < 0) {
-//        return 0;
-//    }
-//    return _bluePos + 1;
-//}
 
 template <class taState>
 void SimpleStateScheduler<taState>::alignToDelay(PZInteger aDelay) {

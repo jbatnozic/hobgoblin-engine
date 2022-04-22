@@ -65,7 +65,7 @@ void RN_UdpServerImpl::stop() {
 
 void RN_UdpServerImpl::resize(PZInteger newSize) {
     if (newSize <= stopz(_clients.size())) {
-        // TODO Add support for downsizing
+        throw NotImplementedError{"Server downsizing not supported!"};
         return;
     }
 

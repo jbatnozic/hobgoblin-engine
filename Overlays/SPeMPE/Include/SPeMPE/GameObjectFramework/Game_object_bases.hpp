@@ -18,13 +18,7 @@
 #include <utility>
 #include <vector>
 
-#include <iostream>
-
 #define SPEMPE_TYPEID_SELF (typeid(decltype(*this)))
-
-#define SPEMPE_SINCLAIRE_DISABLED 0x80
-#define SPEMPE_SINCLAIRE_YES 1
-#define SPEMPE_SINCLAIRE_NO  0
 
 namespace jbatnozic {
 namespace spempe {
@@ -105,6 +99,7 @@ public:
 
     SyncId getSyncId() const noexcept;
     bool isMasterObject() const noexcept;
+    bool isUsingAlternatingUpdates() const noexcept;
 
     //! Internal implementation, do not call manually!
     void __spempeimpl_destroySelfIn(int aStepCount);
@@ -140,9 +135,6 @@ protected:
     virtual void _eventDrawGUI(IfDummy)       {}
     virtual void _eventFinalizeFrame(IfDummy) {}
 
-    // Misc.
-    bool _willDieAfterUpdate() const;
-
     // If you override any of the below, the overloads above will not be used.
     // The same code will be executed on both ends.
 
@@ -155,12 +147,10 @@ protected:
     void _eventDrawGUI() override;
     void _eventFinalizeFrame() override;
 
-    void _enableSinclaire() {
-        _sinclaireState = SPEMPE_SINCLAIRE_YES;
-        _setStateSchedulerDefaultDelay(_syncObjReg.getDefaultDelay() + 1);
-    }
+    // Misc.
+    bool _willDieAfterUpdate() const;
 
-    mutable int _sinclaireState = SPEMPE_SINCLAIRE_DISABLED;
+    void _enableAlternatingUpdates();
 
 private:
     friend class detail::SynchronizedObjectRegistry;
@@ -171,6 +161,8 @@ private:
     hg::util::DynamicBitset _remoteStatuses;
 
     int _deathCounter = -1;
+
+    bool _alternatingUpdatesEnabled = false;
 
     //! Called when it's needed to sync this object's creation to one or more recepeints.
     virtual void _syncCreateImpl(SyncDetails& aSyncDetails) const = 0;
@@ -220,7 +212,7 @@ public:
     using VisibleState = taVisibleState;
 
     bool isDeactivated() const {
-        return _ssch.getCurrentState().second.isDeactivated();
+        return _ssch.getCurrentState().status.isDeactivated;
     }
 
 protected:
@@ -250,76 +242,89 @@ protected:
 
     taVisibleState& _getCurrentState() {
         assert(isMasterObject() || !isDeactivated());
-        return _ssch.getCurrentState().first;
+        return _ssch.getCurrentState().visibleState;
     }
 
     taVisibleState& _getFollowingState() {
         assert(isMasterObject() || !isDeactivated());
         if (_ssch.getDefaultDelay() > 0) {
-            return (_ssch.begin() + 1)->first;
+            const auto iter = _ssch.begin() + 1;
+            if (iter->status.isDeactivated) {
+                return _ssch.getCurrentState().visibleState;
+            }
+            return (_ssch.begin() + 1)->visibleState;
         }
         else {
-            return _ssch.getCurrentState().first;
+            return _ssch.getCurrentState().visibleState;
         }
     }
 
     const taVisibleState& _getCurrentState() const {
         assert(isMasterObject() || !isDeactivated());
-        return _ssch.getCurrentState().first;
+        return _ssch.getCurrentState().visibleState;
     }
 
     const taVisibleState& _getFollowingState() const {
         assert(isMasterObject() || !isDeactivated());
         if (_ssch.getDefaultDelay() > 0) {
-            return (_ssch.begin() + 1)->first;
+            const auto iter = _ssch.begin() + 1;
+            if (iter->status.isDeactivated) {
+                return _ssch.getCurrentState().visibleState;
+            }
+            return (_ssch.begin() + 1)->visibleState;
         }
         else {
-            return _ssch.getCurrentState().first;
+            return _ssch.getCurrentState().visibleState;
         }
     }
 
 private:
-#define DUMMY_STATUS_NORMAL      0
-#define DUMMY_STATUS_DEACTIVATED 1
-
     struct DummyStatus {
-        DummyStatus(std::int8_t aStatus = DUMMY_STATUS_DEACTIVATED)
-            : status{aStatus}
-        {
+        bool isDeactivated = true;
+
+        inline constexpr static DummyStatus active() {
+            return DummyStatus{false};
         }
 
-        bool isDeactivated() const {
-            return (status == DUMMY_STATUS_DEACTIVATED);
+        inline constexpr static DummyStatus deactivated() {
+            return DummyStatus{true};
         }
-
-        std::int8_t status;
     };
 
-    using SchedulerPair = std::pair<taVisibleState, DummyStatus>;
-
-    hg::util::SimpleStateScheduler<SchedulerPair> _ssch;
+    struct SchedulerPair {
+        taVisibleState visibleState;
+        DummyStatus status;
+    };
 
     struct DeferredState {
         taVisibleState state;
         hg::PZInteger delay;
     };
-    std::optional<DeferredState> _sinclaireDeferredState;
 
-    bool _sinclaireMark = false; // true => Align on next update
-    hg::PZInteger _sinclaireMarkDelay = 0;
+    struct PacemakerPulse {
+        bool happened = false;
+        hg::PZInteger delay;
+    };
+
+    hg::util::SimpleStateScheduler<SchedulerPair> _ssch;
+
+    std::optional<DeferredState> _deferredState; // Used with alternating updates
+
+    PacemakerPulse _pacemakerPulse;
 
     void _advanceDummyAndScheduleNewStates() override final {
         _ssch.advance();
 
-        if (_sinclaireMark) {
-            _ssch.alignToDelay(_sinclaireMarkDelay);
-            _sinclaireMark = false;
+        if (_pacemakerPulse.happened) {
+            _ssch.alignToDelay(_pacemakerPulse.delay);
+            _pacemakerPulse.happened = false;
         }
 
-        if (_sinclaireDeferredState.has_value()) {
-            _ssch.putNewState(SchedulerPair{(*_sinclaireDeferredState).state, {DUMMY_STATUS_NORMAL}},
-                                (*_sinclaireDeferredState).delay);
-            _sinclaireDeferredState.reset();
+        if (_deferredState.has_value()) {
+            _ssch.putNewState(SchedulerPair{(*_deferredState).state, 
+                              DummyStatus::active()},
+                              (*_deferredState).delay);
+            _deferredState.reset();
         }
 
         _ssch.scheduleNewStates();
@@ -327,104 +332,57 @@ private:
 
     void _setStateSchedulerDefaultDelay(hg::PZInteger aNewDefaultDelaySteps) override final {
         if (!isMasterObject()) {
+            if (isUsingAlternatingUpdates()) {
+                aNewDefaultDelaySteps++;
+            }
             _ssch.setDefaultDelay(aNewDefaultDelaySteps);
         }
     }
 
     void _deactivateSelfIn(hg::PZInteger aDelaySteps) override final {
-        _ssch.putNewState(SchedulerPair{{}, {DUMMY_STATUS_DEACTIVATED}}, aDelaySteps);
+        _ssch.putNewState(SchedulerPair{{}, DummyStatus::deactivated()}, aDelaySteps);
     }
 
 public:
     //! Internal implementation, do not call manually!
-    void __spempeimpl_applyUpdate(const VisibleState& aNewState, hg::PZInteger aDelaySteps) {
-        if (_sinclaireState == SPEMPE_SINCLAIRE_DISABLED) {
-            _ssch.putNewState(SchedulerPair{aNewState, {DUMMY_STATUS_NORMAL}}, aDelaySteps);
-            _sinclaireMarkDelay = aDelaySteps;
-        }
-        else {
-            if (_sinclaireDeferredState.has_value()) {
-                _ssch.putNewState(SchedulerPair{(*_sinclaireDeferredState).state, {DUMMY_STATUS_NORMAL}},
-                                  (*_sinclaireDeferredState).delay);
-                _sinclaireDeferredState.reset();
+    void __spempeimpl_applyUpdate(const VisibleState& aNewState, hg::PZInteger aDelaySteps, bool aPacemakerPulse) {
+        switch (aPacemakerPulse) {
+        // NORMAL UPDATE
+        case false:
+            if (!isUsingAlternatingUpdates()) {
+                _ssch.putNewState(SchedulerPair{aNewState, DummyStatus::active()}, aDelaySteps);
             }
+            else {
+                if (_deferredState.has_value()) {
+                    _ssch.putNewState(SchedulerPair{(*_deferredState).state,
+                                      DummyStatus::active()},
+                                      (*_deferredState).delay);
+                    _deferredState.reset();
+                }
 
-            _ssch.putNewState(SchedulerPair{aNewState, {DUMMY_STATUS_NORMAL}}, aDelaySteps);
+                _ssch.putNewState(SchedulerPair{aNewState, DummyStatus::active()}, aDelaySteps);
 
-            _sinclaireDeferredState = {aNewState, aDelaySteps};
-            _sinclaireMarkDelay = aDelaySteps;
-        }
-#if 0
-        if (_sinclaireState != SPEMPE_SINCLAIRE_DISABLED) {
-            if (_sinclaireFlag && _ssch.getBlueStateCount() < 1) {
-                return;
+                _deferredState = {aNewState, aDelaySteps};
             }
-        }
+            if (_pacemakerPulse.happened) {
+                // This is in the correct place because the pacemaker 
+                // pulse actually affects the *following* update.
+                _pacemakerPulse.delay = aDelaySteps;
+            }
+            break;
 
-        _ssch.putNewState(SchedulerPair{aNewState, {DUMMY_STATUS_NORMAL}}, aDelaySteps);
+        // PACEMAKER UPDATE
+        case true:
+            if (!isUsingAlternatingUpdates()) {
+                _ssch.putNewState(SchedulerPair{aNewState, DummyStatus::active()}, aDelaySteps);
+            }
+            _pacemakerPulse.happened = true;
+            break;
 
-        if (_sinclaireState != SPEMPE_SINCLAIRE_DISABLED) {
-            _sinclaireDeferredState = {aNewState, aDelaySteps};
+        default:
+            break;
         }
-#endif
     }
-
-    //! Internal implementation, do not call manually!
-    void __spempeimpl_applyCatchupUpdate(const VisibleState& aNewState, hg::PZInteger aDelaySteps) {
-        if (_sinclaireState == SPEMPE_SINCLAIRE_DISABLED) {
-            _ssch.putNewState(SchedulerPair{aNewState, {DUMMY_STATUS_NORMAL}}, aDelaySteps);
-        }
-        _sinclaireMark = true;
-#if 0
-        if (_ssch.getBlueStateCount() > 2) {
-            return;
-        }
-
-        //std::cout << "Catchup!\n";
-
-        const auto oldCount = _ssch.getBlueStateCount();
-        //while (_ssch.getBlueStateCount() > std::min((int)_ssch.getDefaultDelay() - (int)aDelaySteps, -1)) {
-        while (_ssch.getBlueStateCount() > 2) {
-            _ssch.advance();
-        }
-        const auto newCount = _ssch.getBlueStateCount();
-
-        std::cout << "Catchup! (" << oldCount << " -> " << newCount << ")\n";
-        
-        _ssch.putNewState(SchedulerPair{aNewState, {DUMMY_STATUS_NORMAL}}, aDelaySteps);
-
-        if (_sinclaireState != SPEMPE_SINCLAIRE_DISABLED) {
-            _sinclaireDeferredState = {aNewState, aDelaySteps};
-        }
-#endif
-#if 0
-        if (_sinclaireState != SPEMPE_SINCLAIRE_DISABLED) {
-            if (_ssch.getBlueStateCount() > 2) {
-                return;
-            }
-        }
-
-        std::cout << "Catchup!\n";
-
-        //if (_sinclaireDeferredState.has_value()) {
-        //    _ssch.putNewState(SchedulerPair{(*_sinclaireDeferredState).state, {DUMMY_STATUS_NORMAL}},
-        //                      (*_sinclaireDeferredState).delay);
-        //    _sinclaireDeferredState.reset();
-        //}
-
-        _ssch.putNewState(SchedulerPair{aNewState, {DUMMY_STATUS_NORMAL}}, aDelaySteps);
-
-        if (_sinclaireState != SPEMPE_SINCLAIRE_DISABLED) {
-            //if (_ssch.getBlueStateCount() != 1) {
-            _sinclaireDeferredState = {aNewState, aDelaySteps};
-            //}
-        }
-#endif
-    }
-
-#undef DUMMY_STATUS_NORMAL
-#undef DUMMY_STATUS_DEACTIVATED
-#undef DUMMY_STATUS_DESTROY
 };
 
 ///////////////////////////////////////////////////////////////////////////
@@ -519,7 +477,7 @@ void DefaultSyncCreateHandler(hg::RN_NodeInterface& node,
 template <class taSyncObj, class taContext, class taNetwMgr>
 void DefaultSyncUpdateHandler(hg::RN_NodeInterface& node,
                               SyncId syncId,
-                              bool isCatchupFrame,
+                              bool pacemakerPulse,
                               typename taSyncObj::VisibleState& state) {
     node.callIfClient(
         [&](hg::RN_ClientInterface& client) {
@@ -528,12 +486,7 @@ void DefaultSyncUpdateHandler(hg::RN_NodeInterface& node,
             auto& syncObjReg = *reinterpret_cast<detail::SynchronizedObjectRegistry*>(regId.address);
             auto& object     = *static_cast<taSyncObj*>(syncObjReg.getMapping(syncId));
 
-            if (!isCatchupFrame) {
-                object.__spempeimpl_applyUpdate(state, sp.pessimisticLatencyInSteps);
-            }
-            else {
-                object.__spempeimpl_applyCatchupUpdate(state, sp.pessimisticLatencyInSteps);
-            }
+            object.__spempeimpl_applyUpdate(state, sp.pessimisticLatencyInSteps, pacemakerPulse);
         });
 
     node.callIfServer(
@@ -619,20 +572,22 @@ void DefaultSyncDestroyHandler(hg::RN_NodeInterface& node,
 //! TODO (add description)
 #define SPEMPE_SYNC_CREATE_DEFAULT_IMPL(_class_name_, _sync_details_) \
     Compose_USPEMPE_Create##_class_name_(_sync_details_.getNode(), \
-                                         _sync_details_.getRecepients(), getSyncId())
+                                         _sync_details_.getRecepients(), \
+                                         getSyncId())
 
 //! TODO (add description)
 #define SPEMPE_SYNC_UPDATE_DEFAULT_IMPL(_class_name_, _sync_details_) \
     Compose_USPEMPE_Update##_class_name_(_sync_details_.getNode(), \
                                          _sync_details_.getRecepients(), \
                                          getSyncId(), \
-                                         _sync_details_.isCatchupFrame(), \
+                                         _sync_details_.hasPacemakerPulse(), \
                                          _getCurrentState())
 
 //! TODO (add description)
 #define SPEMPE_SYNC_DESTROY_DEFAULT_IMPL(_class_name_, _sync_details_) \
     Compose_USPEMPE_Destroy##_class_name_(_sync_details_.getNode(), \
-                                          _sync_details_.getRecepients(), getSyncId())
+                                          _sync_details_.getRecepients(), \
+                                          getSyncId())
 
 //! TODO (add description)
 #define SPEMPE_GET_SYNC_PARAMS(_node_) \

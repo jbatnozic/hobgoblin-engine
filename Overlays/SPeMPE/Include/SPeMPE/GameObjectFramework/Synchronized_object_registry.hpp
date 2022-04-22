@@ -34,8 +34,11 @@ struct SyncDetails {
     //! need to be sent.
     const std::vector<hg::PZInteger>& getRecepients() const;
 
-    bool isCatchupFrame() const {
-        return _alignFrame;
+    //! Returns whether this update will be used as a pacemaker pulse on
+    //! the client side. This information is mostly only useful to the
+    //! engine itself.
+    bool hasPacemakerPulse() const {
+        return _pacemakerPulse;
     }
 
     enum class FilterResult {
@@ -56,7 +59,7 @@ private:
     hg::not_null<detail::SynchronizedObjectRegistry*> _registry;
     std::vector<hg::PZInteger> _recepients;
     SyncId _forObject = SYNC_ID_NEW;
-    bool _alignFrame = false;
+    bool _pacemakerPulse = false;
 
     friend class detail::SynchronizedObjectRegistry;
 };
@@ -93,6 +96,11 @@ public:
     //! registered synchronized objects.
     void setDefaultDelay(hg::PZInteger aNewDefaultDelaySteps);
 
+    //! Argument must be an even number!
+    void setPacemakerPulsePeriod(hg::PZInteger aPeriod);
+
+    // Helpers/accessors:
+
     void deactivateObject(SyncId aObjectId, hg::PZInteger aDelayInSteps);
 
     bool isObjectDeactivatedForClient(SyncId aObjectId, hg::PZInteger aForClient);
@@ -111,8 +119,9 @@ private:
     SyncId _syncIdCounter = 2;
     hg::PZInteger _defaultDelay;
 
-    bool _sinclaireDoSync = true;
-    hg::PZInteger _sinclaireInversionCountdown = 15;
+    hg::PZInteger _pacemakerPulsePeriod = 12; // = 24 frames
+    hg::PZInteger _pacemakerPulseCountdown = _pacemakerPulsePeriod;
+    bool _alternatingUpdateFlag = true;
 };
 
 } // namespace detail
