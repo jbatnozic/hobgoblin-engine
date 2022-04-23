@@ -150,6 +150,7 @@ int NetworkingManagerOne::getLocalPlayerIndex() {
 void NetworkingManagerOne::_eventPreUpdate() {
     _node->update(hg::RN_UpdateMode::Receive);
     _handleEvents();
+    _syncObjReg.afterRecv(ctx());
 }
 
 void NetworkingManagerOne::_eventPostUpdate() {

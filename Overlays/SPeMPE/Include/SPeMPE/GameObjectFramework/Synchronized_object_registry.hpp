@@ -10,6 +10,8 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include <deque> // TEMPORARY
+
 namespace jbatnozic {
 namespace spempe {
 
@@ -65,6 +67,7 @@ private:
 };
 
 class SynchronizedObjectBase;
+class GameContext;
 
 namespace detail {
 
@@ -87,10 +90,12 @@ public:
     void syncObjectUpdate(const SynchronizedObjectBase* object);
     void syncObjectDestroy(const SynchronizedObjectBase* object);
 
+    void afterRecv(const GameContext& context);
     void syncStateUpdates();
     void syncCompleteState(hg::PZInteger clientIndex);
 
     hg::PZInteger getDefaultDelay() const;
+    hg::PZInteger adjustDelayForLag(hg::PZInteger aDelay) const;
 
     //! Sets the default delay (state buffering length) for all current and future
     //! registered synchronized objects.
@@ -119,9 +124,13 @@ private:
     SyncId _syncIdCounter = 2;
     hg::PZInteger _defaultDelay;
 
-    hg::PZInteger _pacemakerPulsePeriod = 12; // = 24 frames
+    hg::PZInteger _pacemakerPulsePeriod = 30; // 12 => 24 frames
     hg::PZInteger _pacemakerPulseCountdown = _pacemakerPulsePeriod;
     bool _alternatingUpdateFlag = true;
+
+    // TEMPORARY
+    std::deque<hg::PZInteger> _delays;
+    hg::PZInteger _averageDelay = 0;
 };
 
 } // namespace detail

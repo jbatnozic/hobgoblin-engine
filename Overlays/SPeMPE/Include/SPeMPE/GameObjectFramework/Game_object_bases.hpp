@@ -20,6 +20,8 @@
 
 #define SPEMPE_TYPEID_SELF (typeid(decltype(*this)))
 
+#include <iostream>
+
 namespace jbatnozic {
 namespace spempe {
 
@@ -348,6 +350,9 @@ private:
 public:
     //! Internal implementation, do not call manually!
     void __spempeimpl_applyUpdate(const VisibleState& aNewState, hg::PZInteger aDelaySteps, bool aPacemakerPulse) {
+        if (aDelaySteps != 0) {
+            // std::cout << "Applying update (delay = " << aDelaySteps << " frames).\n";
+        }
         switch (aPacemakerPulse) {
         // NORMAL UPDATE
         case false:
@@ -379,6 +384,7 @@ public:
                 _ssch.putNewState(SchedulerPair{aNewState, DummyStatus::active()}, aDelaySteps);
             }
             _pacemakerPulse.happened = true;
+            _pacemakerPulse.delay = aDelaySteps;
             break;
 
         default:
@@ -406,24 +412,34 @@ struct SyncParameters {
     //! Index of the sender (always -1000 on client)
     int senderIndex;
 
-    //! Latency to the sender
+    //! Latency to the sender (SINGLE DIRECTION)
     std::chrono::microseconds meanLatency;
+
+    //! Latency to the sender (SINGLE DIRECTION)
     std::chrono::microseconds optimisticLatency;
+
+    //! Latency to the sender (SINGLE DIRECTION)
     std::chrono::microseconds pessimisticLatency;
 
     //! Latency in steps (approximately; calculated in regards to desired
-    //! framerate in the context's runtime config).
+    //! framerate in the context's runtime config). (SINGLE DIRECTION)
     hg::PZInteger meanLatencyInSteps;
+
+    //! Latency in steps (approximately; calculated in regards to desired
+    //! framerate in the context's runtime config). (SINGLE DIRECTION)
     hg::PZInteger optimisticLatencyInSteps;
+
+    //! Latency in steps (approximately; calculated in regards to desired
+    //! framerate in the context's runtime config). (SINGLE DIRECTION)
     hg::PZInteger pessimisticLatencyInSteps;
 
     explicit SyncParameters(const hg::RN_ClientInterface& aClient)
         : context{*aClient.getUserDataOrThrow<taContext>()}
         , netwMgr{context.getComponent<taNetwMgr>()}
         , senderIndex{-1000}
-        , meanLatency{aClient.getServerConnector().getRemoteInfo().meanLatency}
-        , optimisticLatency{aClient.getServerConnector().getRemoteInfo().optimisticLatency }
-        , pessimisticLatency{aClient.getServerConnector().getRemoteInfo().pessimisticLatency }
+        , meanLatency{aClient.getServerConnector().getRemoteInfo().meanLatency / 2}
+        , optimisticLatency{aClient.getServerConnector().getRemoteInfo().optimisticLatency / 2}
+        , pessimisticLatency{aClient.getServerConnector().getRemoteInfo().pessimisticLatency / 2}
         , meanLatencyInSteps{ROUNDTOI(meanLatency / context.getRuntimeConfig().deltaTime)}
         , optimisticLatencyInSteps{ROUNDTOI(optimisticLatency / context.getRuntimeConfig().deltaTime)}
         , pessimisticLatencyInSteps{ROUNDTOI(pessimisticLatency / context.getRuntimeConfig().deltaTime)}
@@ -434,9 +450,9 @@ struct SyncParameters {
         : context{*aServer.getUserDataOrThrow<taContext>()}
         , netwMgr{context.getComponent<taNetwMgr>()}
         , senderIndex{aServer.getSenderIndex()}
-        , meanLatency{aServer.getClientConnector(senderIndex).getRemoteInfo().meanLatency}
-        , optimisticLatency{aServer.getClientConnector(senderIndex).getRemoteInfo().optimisticLatency}
-        , pessimisticLatency{aServer.getClientConnector(senderIndex).getRemoteInfo().pessimisticLatency}
+        , meanLatency{aServer.getClientConnector(senderIndex).getRemoteInfo().meanLatency / 2}
+        , optimisticLatency{aServer.getClientConnector(senderIndex).getRemoteInfo().optimisticLatency / 2}
+        , pessimisticLatency{aServer.getClientConnector(senderIndex).getRemoteInfo().pessimisticLatency / 2}
         , meanLatencyInSteps{ROUNDTOI(meanLatency / context.getRuntimeConfig().deltaTime)}
         , optimisticLatencyInSteps{ROUNDTOI(optimisticLatency / context.getRuntimeConfig().deltaTime)}
         , pessimisticLatencyInSteps{ROUNDTOI(pessimisticLatency / context.getRuntimeConfig().deltaTime)}
@@ -488,7 +504,11 @@ void DefaultSyncUpdateHandler(hg::RN_NodeInterface& node,
             auto& syncObjReg = *reinterpret_cast<detail::SynchronizedObjectRegistry*>(regId.address);
             auto& object     = *static_cast<taSyncObj*>(syncObjReg.getMapping(syncId));
 
-            object.__spempeimpl_applyUpdate(state, sp.pessimisticLatencyInSteps, pacemakerPulse);
+            object.__spempeimpl_applyUpdate(
+                state, 
+                syncObjReg.adjustDelayForLag(sp.pessimisticLatencyInSteps),
+                pacemakerPulse
+            );
         });
 
     node.callIfServer(
@@ -508,7 +528,9 @@ void DefaultSyncDestroyHandler(hg::RN_NodeInterface& node,
             auto* object     = static_cast<taSyncObj*>(syncObjReg.getMapping(syncId));
 
             object->__spempeimpl_destroySelfIn(
-                static_cast<int>(syncObjReg.getDefaultDelay()) - (sp.meanLatencyInSteps + 1));
+                static_cast<int>(syncObjReg.getDefaultDelay()) 
+                - (syncObjReg.adjustDelayForLag(sp.meanLatencyInSteps) + 1)
+            );
         });
 
     node.callIfServer(

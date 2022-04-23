@@ -1,9 +1,13 @@
 
+#include <SPeMPE/GameContext/Game_context.hpp>
 #include <SPeMPE/GameObjectFramework/Game_object_bases.hpp>
 #include <SPeMPE/GameObjectFramework/Synchronized_object_registry.hpp>
 #include <SPeMPE/Other/Sync_parameters.hpp>
 
 #include <cassert>
+
+#include <numeric>
+#include <iostream>
 
 namespace jbatnozic {
 namespace spempe {
@@ -140,6 +144,41 @@ SynchronizedObjectBase* SynchronizedObjectRegistry::getMapping(SyncId syncId) co
     return _mappings.at(syncId);
 }
 
+
+void SynchronizedObjectRegistry::afterRecv(const GameContext& context) {
+#define ROUNDTOPZ(_x_) (static_cast<hg::PZInteger>(std::round(_x_)))
+
+    if (_node->isServer()) {
+        _averageDelay = 0;
+        return;
+    }
+
+    std::chrono::microseconds latency; // Single direction
+    _node->callIfClient(
+        [&](hg::RN_ClientInterface& aClient) {
+            latency = aClient.getServerConnector().getRemoteInfo().meanLatency / 2;
+        });
+
+    const auto delaySteps = ROUNDTOPZ(latency / context.getRuntimeConfig().deltaTime);
+
+    _delays.push_back(delaySteps);
+    if (_delays.size() > 60) {
+        _delays.pop_front();
+    }
+
+    const auto sumOfDelays = std::accumulate(_delays.begin(), _delays.end(), decltype(_delays)::value_type(0));
+
+    const auto newAvgDelay = ROUNDTOPZ(static_cast<double>(sumOfDelays) / _delays.size());
+
+    if (newAvgDelay != _averageDelay) {
+        std::cout << "Average delay changed from " << _averageDelay << " to " << newAvgDelay << '\n';
+        _averageDelay = newAvgDelay;
+    }
+
+#undef ROUNDTOPZ
+}
+
+
 void SynchronizedObjectRegistry::syncStateUpdates() {
     GetIndicesForComposingToEveryone(*_node, _syncDetails._recepients);
 
@@ -206,6 +245,13 @@ void SynchronizedObjectRegistry::syncCompleteState(hg::PZInteger clientIndex) {
 
 hg::PZInteger SynchronizedObjectRegistry::getDefaultDelay() const {
     return _defaultDelay;
+}
+
+hg::PZInteger SynchronizedObjectRegistry::adjustDelayForLag(hg::PZInteger aDelay) const {
+    // TODO: Reduce by 1 (min. 0) because in reality the delay is always at least 1
+    // TODO: If delay > buffering length, compensate by up to a few frames (otherwise the
+    //       state scheduler is basically useless)
+    return aDelay;
 }
 
 void SynchronizedObjectRegistry::setDefaultDelay(hg::PZInteger aNewDefaultDelaySteps) {

@@ -14,11 +14,28 @@ HOBGOBLIN_NAMESPACE_BEGIN
 namespace rn {
 
 struct RN_RemoteInfo {
+    //! TODO
     util::Stopwatch timeoutStopwatch;
+
+    //! TODO
+    //! IMPORTANT: This is the round trip latency! If you need an 
+    //! (estimated) one-direction delay, divide this by 2.
     std::chrono::microseconds meanLatency;
+
+    //! TODO
+    //! IMPORTANT: This is the round trip latency! If you need an 
+    //! (estimated) one-direction delay, divide this by 2.
     std::chrono::microseconds optimisticLatency;
+
+    //! TODO
+    //! IMPORTANT: This is the round trip latency! If you need an 
+    //! (estimated) one-direction delay, divide this by 2.
     std::chrono::microseconds pessimisticLatency;
+
+    //! IPv4 network address
     sf::IpAddress ipAddress;
+
+    //! Port number this remote is using
     std::uint16_t port;
 
     RN_RemoteInfo(sf::IpAddress ipAddress, std::uint16_t port)

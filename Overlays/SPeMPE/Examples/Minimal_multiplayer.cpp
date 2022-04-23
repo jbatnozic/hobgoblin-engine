@@ -358,7 +358,7 @@ void GameplayManager::_eventUpdate() {
 
     if (ctx().isPrivileged()) {
         const auto kbInput = ccomp<MWindow>().getKeyboardInput();
-        const auto mode = spe::KbInput::Mode::Edge;
+        const auto mode = spe::KbInput::Mode::Direct;
         if (kbInput.checkPressed(spe::KbKey::Num1, mode)) {
             ctx().getComponent<MNetworking>().setStateBufferingLength(1);
             ctx().getComponent<MInput>().setStateBufferingLength(1);
@@ -437,7 +437,7 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
             spe::WindowManagerInterface::WindowConfig{
                 sf::VideoMode{WINDOW_WIDTH, WINDOW_WIDTH},
                 "SPeMPE Minimal Multiplayer",
-                sf::Style::Default
+                sf::Style::Fullscreen
             },
             spe::WindowManagerInterface::MainRenderTextureConfig{{WINDOW_HEIGHT, WINDOW_HEIGHT}},
             spe::WindowManagerInterface::TimingConfig{
