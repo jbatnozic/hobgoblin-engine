@@ -1,7 +1,7 @@
 @ECHO OFF
 
 REM SFML implementation used std::auto_ptr (which was removed in C++17)
-REM so we have to build it as C++14 unline the rest of the project.
+REM so we have to build it as C++14 unlike the rest of the project.
 REM Luckily, it's ABI-compatible with C++17.
 
 @ECHO ON
