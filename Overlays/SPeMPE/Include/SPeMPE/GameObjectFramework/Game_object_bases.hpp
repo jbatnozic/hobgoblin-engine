@@ -403,34 +403,51 @@ namespace detail {
 
 template <class taContext, class taNetwMgr>
 struct SyncParameters {
-    //! Reference to game context (spempe::GameContext)
+    //! Reference to game context (spempe::GameContext).
     taContext& context;
 
-    //! Reference to instance of spempe::NetworkingManagerInterface
+    //! Reference to instance of spempe::NetworkingManagerInterface.
     taNetwMgr& netwMgr;
 
-    //! Index of the sender (always -1000 on client)
+    //! Index of the sender (always -1000 on client).
     int senderIndex;
 
-    //! Latency to the sender (SINGLE DIRECTION)
+    //! Latency to the sender (single direction, not round-trip).
+    //! In case of a lag spike after which many packets arrive at once,
+    //! this value should give you roughly something between the
+    //! 'optimistic' and 'pessimistic' latencies (see below).
+    //! During normal operation with a stable connection, all 3 latencies
+    //! should have similar values.
     std::chrono::microseconds meanLatency;
 
-    //! Latency to the sender (SINGLE DIRECTION)
+    //! Latency to the sender (single direction, not round-trip).
+    //! In case of a lag spike after which many packets arrive at once,
+    //! the 'optimistic' latency will take into account only the most
+    //! recent packet, so it shouldn't spike much (if at all).
+    //! During normal operation with a stable connection, all 3 latencies
+    //! should have similar values.
     std::chrono::microseconds optimisticLatency;
 
-    //! Latency to the sender (SINGLE DIRECTION)
+    //! Latency to the sender (single direction, not round-trip).
+    //! In case of a lag spike after which many packets arrive at once,
+    //! the 'pessimistic' latency will also briefly spike.
+    //! During normal operation with a stable connection, all 3 latencies
+    //! should have similar values.
     std::chrono::microseconds pessimisticLatency;
 
-    //! Latency in steps (approximately; calculated in regards to desired
-    //! framerate in the context's runtime config). (SINGLE DIRECTION)
+    //! Mean latency to the sender (single direction, not round-trip)
+    //! expressed in steps (approximated using the desired framerate
+    //! in the context's runtime configuration).
     hg::PZInteger meanLatencyInSteps;
 
-    //! Latency in steps (approximately; calculated in regards to desired
-    //! framerate in the context's runtime config). (SINGLE DIRECTION)
+    //! Optimistic latency to the sender (single direction, not round-trip)
+    //! expressed in steps (approximated using the desired framerate
+    //! in the context's runtime configuration).
     hg::PZInteger optimisticLatencyInSteps;
 
-    //! Latency in steps (approximately; calculated in regards to desired
-    //! framerate in the context's runtime config). (SINGLE DIRECTION)
+    //! Pessimistic latency to the sender (single direction, not round-trip)
+    //! expressed in steps (approximated using the desired framerate
+    //! in the context's runtime configuration).
     hg::PZInteger pessimisticLatencyInSteps;
 
     explicit SyncParameters(const hg::RN_ClientInterface& aClient)
