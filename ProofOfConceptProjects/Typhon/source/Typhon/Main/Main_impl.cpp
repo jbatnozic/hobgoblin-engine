@@ -28,7 +28,7 @@ public:
   zt::IpAddress ip6 = zt::IpAddress::ipv6Unspecified();
 };
 
-class ZeroTierEventHandler : public zt::IEventHandler {
+class ZeroTierEventHandler : public zt::EventHandlerInterface {
 public:
   ZeroTierEventHandler(NodeInfo& aNodeInfo)
     : _nodeInfo{aNodeInfo}
@@ -109,14 +109,26 @@ try
       std::string identityPath = "ZTNodeData";
       uint64_t nwid = strtoull("a09acf0233ceff5c", NULL, 16);
       int ztServicePort = 9994;
-      zt::SetEventHandler(&eventHandler);
+      zt::LocalNode::setEventHandler(&eventHandler);
 
       printf("This node's identity is stored in %s\n", identityPath.c_str());
 
-      printf("Starting ZeroTier service...\n");
+      printf("Configuring & starting ZeroTier service...\n");
       {
-        const auto res = zt::StartService(identityPath, ztServicePort);
-        ZTCPP_THROW_ON_ERROR(res, hg::TracedRuntimeError);
+          const auto res1 = zt::Config::setIdentityFromStorage(identityPath);
+          ZTCPP_THROW_ON_ERROR(res1, hg::TracedRuntimeError);
+
+          const auto res2 = zt::Config::allowNetworkCaching(true);
+          ZTCPP_THROW_ON_ERROR(res2, std::runtime_error);
+
+          const auto res3 = zt::Config::allowPeerCaching(true);
+          ZTCPP_THROW_ON_ERROR(res3, std::runtime_error);
+
+          const auto res4 = zt::Config::setPort(ztServicePort);
+          ZTCPP_THROW_ON_ERROR(res4, hg::TracedRuntimeError);
+
+          const auto res5 = zt::LocalNode::start();
+          ZTCPP_THROW_ON_ERROR(res5, hg::TracedRuntimeError);
       }
 
       printf("Waiting for node to come online...\n");
@@ -163,12 +175,12 @@ try
 	// Teardown:
 	_gameContext.reset();
 
-  if (USE_ZT) {
-      printf("Shutting down service\n");
-      zt::StopService();
-      std::this_thread::sleep_for(std::chrono::milliseconds{1000});
-      zt::SetEventHandler(nullptr);
-  }
+    if (USE_ZT) {
+        printf("Shutting down service\n");
+        zt::LocalNode::stop();
+        std::this_thread::sleep_for(std::chrono::milliseconds{1000});
+        zt::LocalNode::setEventHandler(nullptr);
+    }
 
 	// Return run's return value:
 	return retVal;

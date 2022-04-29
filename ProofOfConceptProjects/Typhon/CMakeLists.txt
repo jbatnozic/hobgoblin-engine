@@ -70,9 +70,9 @@ set(TYPHON_TARGET_NAME
 )
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    link_directories(../../EngineCore/Build/Hobgoblin-x64-Debug/lib)
+    link_directories(../../_Build/Debug/lib)
 else()
-    link_directories(../../EngineCore/Build/Hobgoblin-x64-Release/lib)
+    link_directories(../../_Build/Release/lib)
 endif()
 
 add_executable(${TYPHON_TARGET_NAME}

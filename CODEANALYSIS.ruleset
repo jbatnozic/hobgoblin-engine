@@ -1,78 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<RuleSet Name="Hobgoblin Rule Set" Description=" " ToolsVersion="10.0">
+<RuleSet Name="Hobgoblin Rule Set" Description=" " ToolsVersion="16.0">
   <Rules AnalyzerId="Microsoft.Analyzers.NativeCodeAnalysis" RuleNamespace="Microsoft.Rules.Native">
-	<Rule Id="C6001" Action="Warning" />
-    <Rule Id="C6011" Action="Warning" />
-    <Rule Id="C6029" Action="Warning" />
-    <Rule Id="C6053" Action="Warning" />
-    <Rule Id="C6059" Action="Warning" />
-    <Rule Id="C6063" Action="Warning" />
-    <Rule Id="C6064" Action="Warning" />
-    <Rule Id="C6066" Action="Warning" />
-    <Rule Id="C6067" Action="Warning" />
-    <Rule Id="C6101" Action="Warning" />
-    <Rule Id="C6200" Action="Warning" />
-    <Rule Id="C6201" Action="Warning" />
-    <Rule Id="C6270" Action="Warning" />
-    <Rule Id="C6271" Action="Warning" />
-    <Rule Id="C6272" Action="Warning" />
-    <Rule Id="C6273" Action="Warning" />
-    <Rule Id="C6274" Action="Warning" />
-    <Rule Id="C6276" Action="Warning" />
-    <Rule Id="C6277" Action="Warning" />
-    <Rule Id="C6284" Action="Warning" />
-    <Rule Id="C6290" Action="Warning" />
-    <Rule Id="C6291" Action="Warning" />
-    <Rule Id="C6302" Action="Warning" />
-    <Rule Id="C6303" Action="Warning" />
-    <Rule Id="C6305" Action="Warning" />
-    <Rule Id="C6306" Action="Warning" />
-    <Rule Id="C6328" Action="Warning" />
-    <Rule Id="C6385" Action="Warning" />
-    <Rule Id="C6386" Action="Warning" />
-    <Rule Id="C6387" Action="Warning" />
-    <Rule Id="C6500" Action="Warning" />
-    <Rule Id="C6501" Action="Warning" />
-    <Rule Id="C6503" Action="Warning" />
-    <Rule Id="C6504" Action="Warning" />
-    <Rule Id="C6505" Action="Warning" />
-    <Rule Id="C6506" Action="Warning" />
-    <Rule Id="C6508" Action="Warning" />
-    <Rule Id="C6509" Action="Warning" />
-    <Rule Id="C6510" Action="Warning" />
-    <Rule Id="C6511" Action="Warning" />
-    <Rule Id="C6513" Action="Warning" />
-    <Rule Id="C6514" Action="Warning" />
-    <Rule Id="C6515" Action="Warning" />
-    <Rule Id="C6516" Action="Warning" />
-    <Rule Id="C6517" Action="Warning" />
-    <Rule Id="C6518" Action="Warning" />
-    <Rule Id="C6522" Action="Warning" />
-    <Rule Id="C6525" Action="Warning" />
-    <Rule Id="C6527" Action="Warning" />
-    <Rule Id="C6530" Action="Warning" />
-    <Rule Id="C6540" Action="Warning" />
-    <Rule Id="C6551" Action="Warning" />
-    <Rule Id="C6552" Action="Warning" />
-    <Rule Id="C6701" Action="Warning" />
-    <Rule Id="C6702" Action="Warning" />
-    <Rule Id="C6703" Action="Warning" />
-    <Rule Id="C6704" Action="Warning" />
-    <Rule Id="C6705" Action="Warning" />
-    <Rule Id="C6706" Action="Warning" />
-
-    <!-- CppCoreCheck -->
-    <!-- Span/View over temporary -->
     <Rule Id="C26449" Action="Warning" />
-    <!-- Arithmetic overflow -->
     <Rule Id="C26450" Action="Warning" />
     <Rule Id="C26451" Action="Warning" />
     <Rule Id="C26452" Action="Warning" />
     <Rule Id="C26453" Action="Warning" />
     <Rule Id="C26454" Action="Warning" />
-    <!-- Unitialized Member -->
     <Rule Id="C26495" Action="Warning" />
-
     <Rule Id="C28021" Action="Warning" />
     <Rule Id="C28182" Action="Warning" />
     <Rule Id="C28202" Action="Warning" />
@@ -146,5 +81,64 @@
     <Rule Id="C28309" Action="Warning" />
     <Rule Id="C28350" Action="Warning" />
     <Rule Id="C28351" Action="Warning" />
+    <Rule Id="C6001" Action="Warning" />
+    <Rule Id="C6011" Action="Warning" />
+    <Rule Id="C6029" Action="Warning" />
+    <Rule Id="C6053" Action="Warning" />
+    <Rule Id="C6059" Action="Warning" />
+    <Rule Id="C6063" Action="Warning" />
+    <Rule Id="C6064" Action="Warning" />
+    <Rule Id="C6066" Action="Warning" />
+    <Rule Id="C6067" Action="Warning" />
+    <Rule Id="C6101" Action="Warning" />
+    <Rule Id="C6200" Action="Warning" />
+    <Rule Id="C6201" Action="Warning" />
+    <Rule Id="C6270" Action="Warning" />
+    <Rule Id="C6271" Action="Warning" />
+    <Rule Id="C6272" Action="Warning" />
+    <Rule Id="C6273" Action="Warning" />
+    <Rule Id="C6274" Action="Warning" />
+    <Rule Id="C6276" Action="Warning" />
+    <Rule Id="C6277" Action="Warning" />
+    <Rule Id="C6284" Action="Warning" />
+    <Rule Id="C6290" Action="Warning" />
+    <Rule Id="C6291" Action="Warning" />
+    <Rule Id="C6302" Action="Warning" />
+    <Rule Id="C6303" Action="Warning" />
+    <Rule Id="C6305" Action="Warning" />
+    <Rule Id="C6306" Action="Warning" />
+    <Rule Id="C6328" Action="Warning" />
+    <Rule Id="C6385" Action="Warning" />
+    <Rule Id="C6386" Action="Warning" />
+    <Rule Id="C6387" Action="Warning" />
+    <Rule Id="C6500" Action="Warning" />
+    <Rule Id="C6501" Action="Warning" />
+    <Rule Id="C6503" Action="Warning" />
+    <Rule Id="C6504" Action="Warning" />
+    <Rule Id="C6505" Action="Warning" />
+    <Rule Id="C6506" Action="Warning" />
+    <Rule Id="C6508" Action="Warning" />
+    <Rule Id="C6509" Action="Warning" />
+    <Rule Id="C6510" Action="Warning" />
+    <Rule Id="C6511" Action="Warning" />
+    <Rule Id="C6513" Action="Warning" />
+    <Rule Id="C6514" Action="Warning" />
+    <Rule Id="C6515" Action="Warning" />
+    <Rule Id="C6516" Action="Warning" />
+    <Rule Id="C6517" Action="Warning" />
+    <Rule Id="C6518" Action="Warning" />
+    <Rule Id="C6522" Action="Warning" />
+    <Rule Id="C6525" Action="Warning" />
+    <Rule Id="C6527" Action="Warning" />
+    <Rule Id="C6530" Action="Warning" />
+    <Rule Id="C6540" Action="Warning" />
+    <Rule Id="C6551" Action="Warning" />
+    <Rule Id="C6552" Action="Warning" />
+    <Rule Id="C6701" Action="Warning" />
+    <Rule Id="C6702" Action="Warning" />
+    <Rule Id="C6703" Action="Warning" />
+    <Rule Id="C6704" Action="Warning" />
+    <Rule Id="C6705" Action="Warning" />
+    <Rule Id="C6706" Action="Warning" />
   </Rules>
 </RuleSet>
