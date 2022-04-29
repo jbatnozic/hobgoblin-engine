@@ -6,14 +6,14 @@ REM Luckily, it's ABI-compatible with C++17.
 
 @ECHO ON
 
-conan install . -if Build/Hobgoblin-x64-Debug/ ^
+conan install . -if _Build/Debug/ ^
     --profile=default ^
     --build=outdated ^
     -s build_type=Debug ^
     -s compiler.cppstd=17 ^
     -s sfml:compiler.cppstd=14
     
-conan install . -if Build/Hobgoblin-x64-Release/ ^
+conan install . -if _Build/Release/ ^
     --profile=default ^
     --build=outdated ^
     -s build_type=Release ^

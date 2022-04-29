@@ -118,7 +118,7 @@ RN_SocketAdapter::Status RN_SocketAdapter::send(util::Packet& aPacket,
 
         const auto pollres = socket.pollEvents(zt::PollEventBitmask::ReadyToSend);
         ZTCPP_THROW_ON_ERROR(pollres, TracedRuntimeError);
-        if ((pollres & zt::PollEventBitmask::ReadyToSend) == 0) {
+        if ((*pollres & zt::PollEventBitmask::ReadyToSend) == 0) {
             return Status::NotReady;
         }
 

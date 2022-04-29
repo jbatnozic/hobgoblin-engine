@@ -1,18 +1,6 @@
-cmake_minimum_required(VERSION 3.14)
-
-project("SPeMPE" LANGUAGES CXX)
-
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
-
-# ===== CONAN INTEGRATION =====
-
-include("${CMAKE_BINARY_DIR}/conanbuildinfo.cmake")
-conan_basic_setup(TARGETS)
-
 # ===== OVERLAY SETUP =====
 
-set(OVERLAY_NAME "spempe")
+set(OVERLAY_NAME "SPeMPE")
 
 # ===== GATHER SOURCES ======
 
@@ -34,24 +22,6 @@ set(OVERLAY_SOURCES
 add_library(${OVERLAY_NAME} STATIC ${OVERLAY_SOURCES})
 target_include_directories(${OVERLAY_NAME} PUBLIC "Include/")
 
-# Hobgoblin includes
-target_include_directories(${OVERLAY_NAME} PUBLIC "../../EngineCore/Modules/ChipmunkPhysics/Include")
-target_include_directories(${OVERLAY_NAME} PUBLIC "../../EngineCore/Modules/Common/Include")
-target_include_directories(${OVERLAY_NAME} PUBLIC "../../EngineCore/Modules/Graphics/Include")
-target_include_directories(${OVERLAY_NAME} PUBLIC "../../EngineCore/Modules/Math/Include")
-target_include_directories(${OVERLAY_NAME} PUBLIC "../../EngineCore/Modules/Preprocessor/Include")
-target_include_directories(${OVERLAY_NAME} PUBLIC "../../EngineCore/Modules/Private/Include")
-target_include_directories(${OVERLAY_NAME} PUBLIC "../../EngineCore/Modules/QAO/Include")
-target_include_directories(${OVERLAY_NAME} PUBLIC "../../EngineCore/Modules/RigelNet/Include")
-target_include_directories(${OVERLAY_NAME} PUBLIC "../../EngineCore/Modules/Utility/Include")
-
-# Hobgoblin libs
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    target_link_directories(${OVERLAY_NAME} PUBLIC "../../EngineCore/Build/Hobgoblin-x64-Debug/lib")
-else()
-    target_link_directories(${OVERLAY_NAME} PUBLIC "../../EngineCore/Build/Hobgoblin-x64-Release/lib")
-endif()
-
 target_link_libraries(${OVERLAY_NAME}
 PUBLIC
   "Hobgoblin.Common"
@@ -65,7 +35,7 @@ PUBLIC
 
 # ===== BUILD TESTS =====
 
-set(OVERLAY_TEST_NAME "spempe-test")
+set(OVERLAY_TEST_NAME "${OVERLAY_NAME}.Test")
 
 set(OVERLAY_TEST_SOURCES
   "Test/Input_sync_manager_test.cpp"
