@@ -1,7 +1,7 @@
 [requires]
 gtest/1.10.0
 sfml/2.5.1@jbatnozic/stable
-ztcpp/1.2.0@jbatnozic/stable
+ztcpp/2.1.0@jbatnozic/stable
 
 [options]
 sfml:shared=False
