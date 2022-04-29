@@ -6,9 +6,6 @@
 
 #include <cassert>
 
-#include <numeric>
-#include <iostream>
-
 namespace jbatnozic {
 namespace spempe {
 
@@ -144,7 +141,7 @@ SynchronizedObjectBase* SynchronizedObjectRegistry::getMapping(SyncId syncId) co
     return _mappings.at(syncId);
 }
 
-
+#if 0 // Kept for posterity (yes, I know git exists)
 void SynchronizedObjectRegistry::afterRecv(const GameContext& context) {
 #define ROUNDTOPZ(_x_) (static_cast<hg::PZInteger>(std::round(_x_)))
 
@@ -177,7 +174,7 @@ void SynchronizedObjectRegistry::afterRecv(const GameContext& context) {
 
 #undef ROUNDTOPZ
 }
-
+#endif 
 
 void SynchronizedObjectRegistry::syncStateUpdates() {
     GetIndicesForComposingToEveryone(*_node, _syncDetails._recepients);
@@ -248,7 +245,6 @@ hg::PZInteger SynchronizedObjectRegistry::getDefaultDelay() const {
 }
 
 hg::PZInteger SynchronizedObjectRegistry::adjustDelayForLag(hg::PZInteger aDelay) const {
-    // TODO: Reduce by 1 (min. 0) because in reality the delay is always at least 1
     // TODO: If delay > buffering length, compensate by up to a few frames (otherwise the
     //       state scheduler is basically useless)
     return aDelay;

@@ -17,17 +17,31 @@ struct RN_RemoteInfo {
     //! TODO
     util::Stopwatch timeoutStopwatch;
 
-    //! TODO
+    //! Latency to the remote.
+    //! In case of a lag spike after which many packets arrive at once,
+    //! this value should give you roughly something between the
+    //! 'optimistic' and 'pessimistic' latencies (see below).
+    //! During normal operation with a stable connection, all 3 latencies
+    //! should have similar values.
     //! IMPORTANT: This is the round trip latency! If you need an 
     //! (estimated) one-direction delay, divide this by 2.
     std::chrono::microseconds meanLatency;
 
-    //! TODO
+    //! Latency to the remote.
+    //! In case of a lag spike after which many packets arrive at once,
+    //! the 'optimistic' latency will take into account only the most
+    //! recent packet, so it shouldn't spike much (if at all).
+    //! During normal operation with a stable connection, all 3 latencies
+    //! should have similar values.
     //! IMPORTANT: This is the round trip latency! If you need an 
     //! (estimated) one-direction delay, divide this by 2.
     std::chrono::microseconds optimisticLatency;
 
-    //! TODO
+    //! Latency to the remote.
+    //! In case of a lag spike after which many packets arrive at once,
+    //! the 'pessimistic' latency will also briefly spike.
+    //! During normal operation with a stable connection, all 3 latencies
+    //! should have similar values.
     //! IMPORTANT: This is the round trip latency! If you need an 
     //! (estimated) one-direction delay, divide this by 2.
     std::chrono::microseconds pessimisticLatency;

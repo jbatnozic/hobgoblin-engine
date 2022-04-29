@@ -20,8 +20,6 @@
 
 #define SPEMPE_TYPEID_SELF (typeid(decltype(*this)))
 
-#include <iostream>
-
 namespace jbatnozic {
 namespace spempe {
 
@@ -350,9 +348,6 @@ private:
 public:
     //! Internal implementation, do not call manually!
     void __spempeimpl_applyUpdate(const VisibleState& aNewState, hg::PZInteger aDelaySteps, bool aPacemakerPulse) {
-        if (aDelaySteps != 0) {
-            // std::cout << "Applying update (delay = " << aDelaySteps << " frames).\n";
-        }
         switch (aPacemakerPulse) {
         // NORMAL UPDATE
         case false:

@@ -9,11 +9,28 @@
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
-#include <iostream>
-
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace util {
 
+/**
+ *                     .
+ *
+ *                      .
+ *            /^\     .
+ *       /\   "V"
+ *      /__\   I      O  o
+ *     //..\\  I     .
+ *     \].`[/  I
+ *     /l\/j\  (]    .  O
+ *    /. ~~ ,\/I          .
+ *    \\L__j^\/I       o
+ *     \/--v}  I     o   .
+ *     |    |  I   _________
+ *     |    |  I c(`       ')o
+ *     |    l  I   \.     ,/
+ *   _/j  L l\_!  _//^---^\\_
+ *
+ */
 template <class taState>
 class SimpleStateScheduler {
 public:
@@ -262,16 +279,12 @@ template <class taState>
 void SimpleStateScheduler<taState>::alignToDelay(PZInteger aDelay) {
     const int newBluePos = _defaultDelay - aDelay;
     if (_bluePos < newBluePos) {
-        // std::cout << "Delay " << (newBluePos - _bluePos) << std::endl;
         _bluePos = std::min(newBluePos, _defaultDelay);
     }
     else if (_bluePos > newBluePos) {
-        std::cout << "(" << _bluePos << " -> " << newBluePos << ") ";
         do {
-            std::cout << "Advance ";
             advance();
         } while (_bluePos != newBluePos && _bluePos != BLUE_POS_NONE);
-        std::cout << std::endl;
     }
 }
 
