@@ -565,10 +565,14 @@ void RN_UdpConnectorImpl::appendToNextOutgoingPacket(const void *data, std::size
 
         // Mark the last outgoing packet as DATA_TAIL:
         {
+            static const std::int32_t kTypeInNetworkOrder = hton32(UDP_PACKET_TYPE_DATA_TAIL);
+
             TaggedPacket& sendBufTail = _sendBuffer.back();
-            auto* sendBufTailpacketType = 
-                static_cast<std::uint32_t*>(sendBufTail.packet.getMutableData());
-            *sendBufTailpacketType = hton32(UDP_PACKET_TYPE_DATA_TAIL);
+
+            // The first 4 bytes of a packet determine its type (but mind the endianess)
+            std::memcpy(sendBufTail.packet.getMutableData(), 
+                        &kTypeInNetworkOrder,
+                        sizeof(kTypeInNetworkOrder));
         }
 
         // We don't want chaining of multiple fragmented packets, so finalize the tail and

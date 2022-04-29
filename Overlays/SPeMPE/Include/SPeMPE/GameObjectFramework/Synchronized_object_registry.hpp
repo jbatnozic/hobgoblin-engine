@@ -91,6 +91,7 @@ public:
     void syncCompleteState(hg::PZInteger clientIndex);
 
     hg::PZInteger getDefaultDelay() const;
+    hg::PZInteger adjustDelayForLag(hg::PZInteger aDelay) const;
 
     //! Sets the default delay (state buffering length) for all current and future
     //! registered synchronized objects.
@@ -119,7 +120,7 @@ private:
     SyncId _syncIdCounter = 2;
     hg::PZInteger _defaultDelay;
 
-    hg::PZInteger _pacemakerPulsePeriod = 12; // = 24 frames
+    hg::PZInteger _pacemakerPulsePeriod = 30; // 30 => 60 frames
     hg::PZInteger _pacemakerPulseCountdown = _pacemakerPulsePeriod;
     bool _alternatingUpdateFlag = true;
 };

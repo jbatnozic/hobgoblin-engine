@@ -14,11 +14,42 @@ HOBGOBLIN_NAMESPACE_BEGIN
 namespace rn {
 
 struct RN_RemoteInfo {
+    //! TODO
     util::Stopwatch timeoutStopwatch;
+
+    //! Latency to the remote.
+    //! In case of a lag spike after which many packets arrive at once,
+    //! this value should give you roughly something between the
+    //! 'optimistic' and 'pessimistic' latencies (see below).
+    //! During normal operation with a stable connection, all 3 latencies
+    //! should have similar values.
+    //! IMPORTANT: This is the round trip latency! If you need an 
+    //! (estimated) one-direction delay, divide this by 2.
     std::chrono::microseconds meanLatency;
+
+    //! Latency to the remote.
+    //! In case of a lag spike after which many packets arrive at once,
+    //! the 'optimistic' latency will take into account only the most
+    //! recent packet, so it shouldn't spike much (if at all).
+    //! During normal operation with a stable connection, all 3 latencies
+    //! should have similar values.
+    //! IMPORTANT: This is the round trip latency! If you need an 
+    //! (estimated) one-direction delay, divide this by 2.
     std::chrono::microseconds optimisticLatency;
+
+    //! Latency to the remote.
+    //! In case of a lag spike after which many packets arrive at once,
+    //! the 'pessimistic' latency will also briefly spike.
+    //! During normal operation with a stable connection, all 3 latencies
+    //! should have similar values.
+    //! IMPORTANT: This is the round trip latency! If you need an 
+    //! (estimated) one-direction delay, divide this by 2.
     std::chrono::microseconds pessimisticLatency;
+
+    //! IPv4 network address
     sf::IpAddress ipAddress;
+
+    //! Port number this remote is using
     std::uint16_t port;
 
     RN_RemoteInfo(sf::IpAddress ipAddress, std::uint16_t port)

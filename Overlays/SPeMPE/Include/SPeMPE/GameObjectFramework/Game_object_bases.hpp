@@ -379,6 +379,7 @@ public:
                 _ssch.putNewState(SchedulerPair{aNewState, DummyStatus::active()}, aDelaySteps);
             }
             _pacemakerPulse.happened = true;
+            _pacemakerPulse.delay = aDelaySteps;
             break;
 
         default:
@@ -397,33 +398,60 @@ namespace detail {
 
 template <class taContext, class taNetwMgr>
 struct SyncParameters {
-    //! Reference to game context (spempe::GameContext)
+    //! Reference to game context (spempe::GameContext).
     taContext& context;
 
-    //! Reference to instance of spempe::NetworkingManagerInterface
+    //! Reference to instance of spempe::NetworkingManagerInterface.
     taNetwMgr& netwMgr;
 
-    //! Index of the sender (always -1000 on client)
+    //! Index of the sender (always -1000 on client).
     int senderIndex;
 
-    //! Latency to the sender
+    //! Latency to the sender (single direction, not round-trip).
+    //! In case of a lag spike after which many packets arrive at once,
+    //! this value should give you roughly something between the
+    //! 'optimistic' and 'pessimistic' latencies (see below).
+    //! During normal operation with a stable connection, all 3 latencies
+    //! should have similar values.
     std::chrono::microseconds meanLatency;
+
+    //! Latency to the sender (single direction, not round-trip).
+    //! In case of a lag spike after which many packets arrive at once,
+    //! the 'optimistic' latency will take into account only the most
+    //! recent packet, so it shouldn't spike much (if at all).
+    //! During normal operation with a stable connection, all 3 latencies
+    //! should have similar values.
     std::chrono::microseconds optimisticLatency;
+
+    //! Latency to the sender (single direction, not round-trip).
+    //! In case of a lag spike after which many packets arrive at once,
+    //! the 'pessimistic' latency will also briefly spike.
+    //! During normal operation with a stable connection, all 3 latencies
+    //! should have similar values.
     std::chrono::microseconds pessimisticLatency;
 
-    //! Latency in steps (approximately; calculated in regards to desired
-    //! framerate in the context's runtime config).
+    //! Mean latency to the sender (single direction, not round-trip)
+    //! expressed in steps (approximated using the desired framerate
+    //! in the context's runtime configuration).
     hg::PZInteger meanLatencyInSteps;
+
+    //! Optimistic latency to the sender (single direction, not round-trip)
+    //! expressed in steps (approximated using the desired framerate
+    //! in the context's runtime configuration).
     hg::PZInteger optimisticLatencyInSteps;
+
+    //! Pessimistic latency to the sender (single direction, not round-trip)
+    //! expressed in steps (approximated using the desired framerate
+    //! in the context's runtime configuration).
     hg::PZInteger pessimisticLatencyInSteps;
 
     explicit SyncParameters(const hg::RN_ClientInterface& aClient)
         : context{*aClient.getUserDataOrThrow<taContext>()}
         , netwMgr{context.getComponent<taNetwMgr>()}
         , senderIndex{-1000}
-        , meanLatency{aClient.getServerConnector().getRemoteInfo().meanLatency}
-        , optimisticLatency{aClient.getServerConnector().getRemoteInfo().optimisticLatency }
-        , pessimisticLatency{aClient.getServerConnector().getRemoteInfo().pessimisticLatency }
+        , meanLatency{aClient.getServerConnector().getRemoteInfo().meanLatency / 2}
+        , optimisticLatency{aClient.getServerConnector().getRemoteInfo().optimisticLatency / 2}
+        , pessimisticLatency{aClient.getServerConnector().getRemoteInfo().pessimisticLatency / 2}
         , meanLatencyInSteps{ROUNDTOI(meanLatency / context.getRuntimeConfig().deltaTime)}
         , optimisticLatencyInSteps{ROUNDTOI(optimisticLatency / context.getRuntimeConfig().deltaTime)}
         , pessimisticLatencyInSteps{ROUNDTOI(pessimisticLatency / context.getRuntimeConfig().deltaTime)}
@@ -434,9 +462,9 @@ struct SyncParameters {
         : context{*aServer.getUserDataOrThrow<taContext>()}
         , netwMgr{context.getComponent<taNetwMgr>()}
         , senderIndex{aServer.getSenderIndex()}
-        , meanLatency{aServer.getClientConnector(senderIndex).getRemoteInfo().meanLatency}
-        , optimisticLatency{aServer.getClientConnector(senderIndex).getRemoteInfo().optimisticLatency}
-        , pessimisticLatency{aServer.getClientConnector(senderIndex).getRemoteInfo().pessimisticLatency}
+        , meanLatency{aServer.getClientConnector(senderIndex).getRemoteInfo().meanLatency / 2}
+        , optimisticLatency{aServer.getClientConnector(senderIndex).getRemoteInfo().optimisticLatency / 2}
+        , pessimisticLatency{aServer.getClientConnector(senderIndex).getRemoteInfo().pessimisticLatency / 2}
         , meanLatencyInSteps{ROUNDTOI(meanLatency / context.getRuntimeConfig().deltaTime)}
         , optimisticLatencyInSteps{ROUNDTOI(optimisticLatency / context.getRuntimeConfig().deltaTime)}
         , pessimisticLatencyInSteps{ROUNDTOI(pessimisticLatency / context.getRuntimeConfig().deltaTime)}
@@ -488,7 +516,11 @@ void DefaultSyncUpdateHandler(hg::RN_NodeInterface& node,
             auto& syncObjReg = *reinterpret_cast<detail::SynchronizedObjectRegistry*>(regId.address);
             auto& object     = *static_cast<taSyncObj*>(syncObjReg.getMapping(syncId));
 
-            object.__spempeimpl_applyUpdate(state, sp.pessimisticLatencyInSteps, pacemakerPulse);
+            object.__spempeimpl_applyUpdate(
+                state, 
+                syncObjReg.adjustDelayForLag(sp.pessimisticLatencyInSteps),
+                pacemakerPulse
+            );
         });
 
     node.callIfServer(
@@ -508,7 +540,9 @@ void DefaultSyncDestroyHandler(hg::RN_NodeInterface& node,
             auto* object     = static_cast<taSyncObj*>(syncObjReg.getMapping(syncId));
 
             object->__spempeimpl_destroySelfIn(
-                static_cast<int>(syncObjReg.getDefaultDelay()) - (sp.meanLatencyInSteps + 1));
+                static_cast<int>(syncObjReg.getDefaultDelay()) 
+                - (syncObjReg.adjustDelayForLag(sp.meanLatencyInSteps) + 1)
+            );
         });
 
     node.callIfServer(
