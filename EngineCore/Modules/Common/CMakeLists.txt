@@ -14,7 +14,14 @@ set(COMPONENT_SOURCES
 add_library(${COMPONENT_NAME} STATIC ${COMPONENT_SOURCES})
 target_include_directories(${COMPONENT_NAME} PUBLIC "Include/")
 
+if(WIN32)
+    set(STACK_BACKTRACE_LIB "DbgHelp")
+else()
+    set(STACK_BACKTRACE_LIB "")
+endif()
+
 target_link_libraries(${COMPONENT_NAME}
 PUBLIC
   "Hobgoblin.Private"
+  ${STACK_BACKTRACE_LIB}
 )

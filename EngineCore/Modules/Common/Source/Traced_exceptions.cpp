@@ -1,16 +1,59 @@
 
 #include <Hobgoblin/Common/Traced_exceptions.hpp>
 
+#include <sstream>
+
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
-HOBGOBLIN_NAMESPACE_BEGIN
-namespace {
+#if defined(_WIN32) || defined(WIN32)
+#include <Windows.h>
+#include <DbgHelp.h>
 
-void GenerateStackTrace(std::vector<std::string>& target) {
-    // TODO
+static void GenerateStackTrace(std::vector<std::string>& target) {
+#define NUM_FRAMES 50
+
+    unsigned int i;
+    void* stack[NUM_FRAMES];
+    unsigned short frames;
+    SYMBOL_INFO* symbol;
+    HANDLE process;
+
+    process = GetCurrentProcess();
+
+    SymInitialize(process, NULL, TRUE);
+
+    frames = CaptureStackBackTrace(0, NUM_FRAMES, stack, NULL);
+
+    symbol = (SYMBOL_INFO*)calloc(sizeof(SYMBOL_INFO) + 256 * sizeof(char), 1);
+    if (symbol == NULL) {
+        return;
+    }
+
+    symbol->MaxNameLen = 255;
+    symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+
+    for (i = 0; i < frames; i++)
+    {
+        SymFromAddr(process, (DWORD64)(stack[i]), 0, symbol);
+
+        std::stringstream ss;
+
+        ss << (frames - i - 1) << ": " << symbol->Name << " - " << std::hex << symbol->Address;
+
+        target.push_back(ss.str());
+    }
+
+    free(symbol);
+
+#undef NUM_FRAMES
 }
+#else
+static void GenerateStackTrace(std::vector<std::string>& target) {
+    // No impl
+}
+#endif
 
-} // namespace
+HOBGOBLIN_NAMESPACE_BEGIN
 
 TracedException::TracedException()
     : _message{}
@@ -44,7 +87,7 @@ const std::vector<std::string>& TracedException::getStackTrace() const {
 
 void TracedException::printStackTrace(std::ostream& os) const {
     for (auto& string : _stackTrace) {
-        os << string;
+        os << string << '\n';
     }
 }
 
