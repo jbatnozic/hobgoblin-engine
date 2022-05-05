@@ -1,13 +1,11 @@
 #ifndef UHOBGOBLIN_GR_SPRITE_LOADER_HPP
 #define UHOBGOBLIN_GR_SPRITE_LOADER_HPP
 
-#include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Graphics/Multisprite.hpp>
 #include <Hobgoblin/Graphics/Texture_packing.hpp>
-#include <Hobgoblin/Utility/Rectangle.hpp>
+#include <SFML/Graphics.hpp>
 
-#include <string>
-#include <filesystem>
+#include <memory>
 #include <unordered_map>
 #include <vector>
 
@@ -16,65 +14,81 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
-using TextureHandle = int;
+inline constexpr int SUBSPRITE_APPEND = -1;
 
-constexpr struct AutoIndexType {} AUTO_INDEX;
-
-// TODO use std::filesystem::path instead of path strings
-class SpriteLoader {
+class TextureBuilder {
 public:
+	//! aSpriteId - ID to file the (multi)sprite under
+	//! aSubspriteIndex - Which subsprite is this? (-1 to append)
+	//! aFilePath - location of the image on the file system
+	TextureBuilder& addFromFile(PZInteger aSpriteId,
+								int aSubspriteIndex,
+								const std::string& aFilePath);
 
-    TextureHandle addTexture(PZInteger width, PZInteger height);
-    sf::Texture& getTexture(TextureHandle textureHandle);
+	TextureBuilder& addFromFile(const std::string& aSpriteId,
+								int aSubspriteIndex,
+								const std::string& aFilePath);
 
-    // Loading from file:
-    SpriteLoader& loadFromFile(TextureHandle textureHandle, PZInteger spriteIndex,
-                               PZInteger subspriteIndex, const std::string& filePath);
+	//TextureBuilder& addFromMemory(std::string aSpriteId,
+	//							  int aSubspriteIndex,
+	//							  ...);
 
-    SpriteLoader& loadFromFile(TextureHandle textureHandle, PZInteger spriteIndex,
-                               AutoIndexType, const std::string& filePath);
-
-    SpriteLoader& loadFromFile(TextureHandle textureHandle, std::string spriteName,
-                               PZInteger subspriteIndex, const std::string& filePath);
-
-    SpriteLoader& loadFromFile(TextureHandle textureHandle, std::string spriteName,
-                               AutoIndexType, const std::string& filePath);
-
-    // Loading from directory:
-    SpriteLoader& loadFromDirectory(TextureHandle textureHandle, PZInteger spriteIndex, const std::string& filePath);
-    SpriteLoader& loadFromDirectory(TextureHandle textureHandle, std::string spriteName, const std::string& filePath);
-
-    // Loading from memory:
-    // TODO loadFromMemory
-
-    // Search loaded sprites:
-    const Multisprite& getSprite(PZInteger spriteIndex) const;
-    const Multisprite& getSprite(const std::string& spriteName) const;
-
-    // Other:
-    void finalize(TexturePackingHeuristic heuristic);
-    void clear();
+	const sf::Texture* build(TexturePackingHeuristic aHeuristic, float* aOccupancy = nullptr);
 
 private:
-    struct SpriteData {
-        Multisprite multisprite;
+	friend class SpriteLoader;
 
-        struct PackRequest {
-            sf::Image image;
-            TextureHandle textureHandle;
-            util::Rectangle<PZInteger> rextureRect;
-            bool unused = true;
-        };
+	TextureBuilder(SpriteLoader& aLoader, PZInteger aTexWidth, PZInteger aTexHeight);
 
-        std::vector<PackRequest> packRequests;
-    };
+	SpriteLoader& _loader;
 
-    std::vector<sf::Texture> _textures;
-    std::vector<SpriteData> _indexedSprites;
-    std::unordered_map<std::string, SpriteData> _mappedSprites;
-    bool _isFinalized = false;
+	std::unique_ptr<sf::Texture> _texture;
 
-    void assertNotFinalized() const;
+	struct E {
+		sf::Image image;
+		sf::IntRect rect = sf::IntRect{0, 0, 0, 0};
+		bool occupied = false;
+	};
+
+	struct AddMultispriteRequest {
+		std::vector<E> subsprites;
+	};
+
+	std::unordered_map<PZInteger, AddMultispriteRequest> _indexedRequests;
+	std::unordered_map<std::string, AddMultispriteRequest> _mappedRequests;
+
+	bool _finalized = false;
+
+	void _assertNotFinalized() const;
+};
+
+class SpriteLoader {
+public:
+	SpriteLoader();
+
+	TextureBuilder startTexture(PZInteger aWidth, PZInteger aHeight);
+
+	void removeTexture(sf::Texture& aTexture);
+
+	const MultispriteBlueprint& getBlueprint(PZInteger aSpriteId) const;
+
+	const MultispriteBlueprint& getBlueprint(const std::string& aSpriteId) const;
+
+	void clear();
+
+private:
+	friend class TextureBuilder;
+
+	std::vector<std::unique_ptr<sf::Texture>> _textures;
+
+	std::unordered_map<PZInteger, MultispriteBlueprint> _indexedBlueprints;
+	std::unordered_map<std::string, MultispriteBlueprint> _mappedBlueprints;
+
+	void _pushBlueprint(PZInteger aSpriteId, MultispriteBlueprint aBlueprint);
+
+	void _pushBlueprint(const std::string& aSpriteId, MultispriteBlueprint aBlueprint);
+
+	void _pushTexture(std::unique_ptr<sf::Texture> aTexture);
 };
 
 } // namespace gr

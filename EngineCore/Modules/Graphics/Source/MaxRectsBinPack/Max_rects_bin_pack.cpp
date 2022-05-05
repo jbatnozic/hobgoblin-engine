@@ -8,7 +8,7 @@
 
 #include "Max_rects_bin_pack.hpp"
 
-#include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/Graphics/Texture_packing.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -123,7 +123,7 @@ std::vector<Rect> MaxRectsBinPack::Insert(std::vector<RectSize> &rects, bool rot
 		}
 
 		if (bestRectIndex == -1) {
-			throw ::jbatnozic::hobgoblin::TracedRuntimeError("Not enough room on the texture to place all sprites");
+			throw ::jbatnozic::hobgoblin::gr::TexturePackingError("Not enough room on the texture to place all sprites");
 		}
 
 		completed[bestRectIndex] = true;

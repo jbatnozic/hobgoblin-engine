@@ -1,219 +1,238 @@
 
 #include <Hobgoblin/Graphics/Sprite_loader.hpp>
-#include <Hobgoblin/Graphics/Texture_packing.hpp>
-#include <Hobgoblin/Common.hpp>
 
 #include <cassert>
-#include <filesystem>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
-TextureHandle SpriteLoader::addTexture(PZInteger width, PZInteger height) {
-    assertNotFinalized();
+///////////////////////////////////////////////////////////////////////////
+// TEXTURE BUILDER                                                       //
+///////////////////////////////////////////////////////////////////////////
 
-    _textures.emplace_back();
-    if (!_textures.back().create(static_cast<unsigned>(width), static_cast<unsigned>(height))) {
-        throw TracedRuntimeError("Could not create texture.");
-    }
-    return static_cast<TextureHandle>(_textures.size() - 1);
+TextureBuilder::TextureBuilder(SpriteLoader& aLoader, PZInteger aTexWidth, PZInteger aTexHeight)
+	: _loader{aLoader}
+	, _texture{std::make_unique<sf::Texture>()}
+{
+	if (!_texture->create(static_cast<unsigned>(aTexWidth), static_cast<unsigned>(aTexHeight))) {
+		throw TracedRuntimeError{"TextureBuilder - Could not allocate texture!"};
+	}
 }
 
-sf::Texture& SpriteLoader::getTexture(TextureHandle textureHandle) {
-    auto textureIndex = static_cast<std::size_t>(textureHandle);
-    return _textures[textureIndex];
+TextureBuilder& TextureBuilder::addFromFile(PZInteger aSpriteId,
+                                            int aSubspriteIndex,
+                                            const std::string& aFilePath) {
+	_assertNotFinalized();
+
+	sf::Image image;
+	if (!image.loadFromFile(aFilePath)) {
+		throw TracedRuntimeError{"TextureBuilder - Could not load image at " + aFilePath};
+	}
+
+	auto& elem = _indexedRequests[aSpriteId];
+	if (aSubspriteIndex < 0) {
+		elem.subsprites.emplace_back();
+		elem.subsprites.back().image = std::move(image);
+		elem.subsprites.back().occupied = true;
+	}
+	else {
+		if (elem.subsprites.size() <= static_cast<std::size_t>(aSubspriteIndex)) {
+			elem.subsprites.resize(static_cast<std::size_t>(aSubspriteIndex) + 1);
+		}
+		auto& ss = elem.subsprites[static_cast<std::size_t>(aSubspriteIndex)];
+		if (ss.occupied) {
+			throw TracedLogicError{"TextureBuilder - This subsprite has already been loaded!"};
+		}
+		ss.image = std::move(image);
+		ss.occupied = true;
+	}
+
+	return SELF;
 }
 
-// Loading from file:
-SpriteLoader& SpriteLoader::loadFromFile(TextureHandle textureHandle, PZInteger spriteIndex,
-                                         PZInteger subspriteIndex, const std::string& filePath) {
-    assertNotFinalized();
+TextureBuilder& TextureBuilder::addFromFile(const std::string& aSpriteId,
+                                            int aSubspriteIndex,
+                                            const std::string& aFilePath) {
+	_assertNotFinalized();
 
-    auto textureIndex = static_cast<std::size_t>(textureHandle);
-    assert(textureIndex < _textures.size());
+	sf::Image image;
+	if (!image.loadFromFile(aFilePath)) {
+		throw TracedRuntimeError{"TextureBuilder - Could not load image at " + aFilePath};
+	}
 
-    auto spriteIndexSz = static_cast<std::size_t>(spriteIndex);
-    if (spriteIndexSz >= _indexedSprites.size()) {
-        _indexedSprites.resize(spriteIndexSz + 1);
-    }
-    auto& spriteData = _indexedSprites[spriteIndexSz];
+	auto& elem = _mappedRequests[aSpriteId];
+	if (aSubspriteIndex < 0) {
+		elem.subsprites.emplace_back();
+		elem.subsprites.back().image = std::move(image);
+		elem.subsprites.back().occupied = true;
+	}
+	else {
+		if (elem.subsprites.size() <= static_cast<std::size_t>(aSubspriteIndex)) {
+			elem.subsprites.resize(static_cast<std::size_t>(aSubspriteIndex) + 1);
+		}
+		auto& ss = elem.subsprites[static_cast<std::size_t>(aSubspriteIndex)];
+		if (ss.occupied) {
+			throw TracedLogicError{"TextureBuilder - This subsprite has already been loaded!"};
+		}
+		ss.image = std::move(image);
+		ss.occupied = true;
+	}
 
-    auto packRequestIndex = static_cast<std::size_t>(subspriteIndex);
-    if (packRequestIndex >= spriteData.packRequests.size()) {
-        spriteData.packRequests.resize(packRequestIndex + 1);
-    }
-    auto& packRequest = spriteData.packRequests[packRequestIndex];
-
-    ///////////////////////////////////////////////////////////////////////////
-
-    assert(packRequest.unused == true);
-    
-    if (!packRequest.image.loadFromFile(filePath)) {
-        throw TracedRuntimeError("Could not load image: " + filePath);
-    }
-
-    packRequest.textureHandle = textureHandle;
-    packRequest.unused = false;
-
-    return SELF;
+	return SELF;
 }
 
-SpriteLoader& SpriteLoader::loadFromFile(TextureHandle textureHandle, PZInteger spriteIndex,
-                                         AutoIndexType, const std::string& filePath) {
-    assertNotFinalized();
-    
-    auto textureIndex = static_cast<std::size_t>(textureHandle);
-    assert(textureIndex < _textures.size());
 
-    auto spriteIndexSz = static_cast<std::size_t>(spriteIndex);
-    if (spriteIndexSz >= _indexedSprites.size()) {
-        _indexedSprites.resize(spriteIndexSz + 1);
-    }
-    auto& spriteData = _indexedSprites[spriteIndexSz];
+const sf::Texture* TextureBuilder::build(TexturePackingHeuristic aHeuristic, float* aOccupancy) {
+	_assertNotFinalized();
 
-    spriteData.packRequests.resize(spriteData.packRequests.size() + 1);
-    auto& packRequest = spriteData.packRequests.back();
+	const sf::Texture* result = _texture.get();
 
-    ///////////////////////////////////////////////////////////////////////////
+	// Part 1: Pack the texture
+	{
+		std::vector<E*> subspritePointers;
+		std::vector<sf::Image*> imagePointers;
 
-    assert(packRequest.unused == true);
+		for (auto& pair : _indexedRequests) {
+			for (auto& ss : pair.second.subsprites) {
+				subspritePointers.push_back(std::addressof(ss));
+				imagePointers.push_back(std::addressof(ss.image));
+			}
+		}
 
-    if (!packRequest.image.loadFromFile(filePath)) {
-        throw TracedRuntimeError("Could not load image: " + filePath);
-    }
+		for (auto& pair : _mappedRequests) {
+			for (auto& ss : pair.second.subsprites) {
+				subspritePointers.push_back(std::addressof(ss));
+				imagePointers.push_back(std::addressof(ss.image));
+			}
+		}
 
-    packRequest.textureHandle = textureHandle;
-    packRequest.unused = false;
+		try {
+			const auto texRects = PackTexture(*_texture, imagePointers, aHeuristic, aOccupancy);
+			assert(subspritePointers.size() == imagePointers.size() &&
+				   imagePointers.size() == texRects.size());
 
-    return SELF;
+			for (std::size_t i = 0; i < texRects.size(); i += 1) {
+				subspritePointers[i]->rect = sf::IntRect(
+					texRects[i].x,
+					texRects[i].y,
+					texRects[i].w,
+					texRects[i].h
+				);
+			}
+		}
+		catch (const TexturePackingError& ex) {
+			result = nullptr;
+			goto END;
+		}
+	}
+
+	// Part 2: Make blueprints and push to the loader
+	{
+		std::vector<sf::IntRect> rects;
+
+		for (auto& pair : _indexedRequests) {
+			rects.clear();
+			for (const auto& ss : pair.second.subsprites) {
+				rects.push_back(ss.rect);
+			}
+			
+			_loader._pushBlueprint(pair.first, {*_texture, rects});
+		}
+
+		for (auto& pair : _mappedRequests) {
+			rects.clear();
+			for (const auto& ss : pair.second.subsprites) {
+				rects.push_back(ss.rect);
+			}
+
+			_loader._pushBlueprint(pair.first, {*_texture, rects});
+		}
+
+		_loader._pushTexture(std::move(_texture));
+	}
+
+	// Part 3: Finalize builder
+	END: {
+		_indexedRequests.clear();
+		_mappedRequests.clear();
+		_finalized = true;
+	}
+
+	return result;
 }
 
-SpriteLoader& SpriteLoader::loadFromFile(TextureHandle texture, std::string spriteName,
-                                         PZInteger subspriteIndex, const std::string& filePath) {
-    assertNotFinalized();
-    // TODO
-    return SELF;
+void TextureBuilder::_assertNotFinalized() const {
+	if (_finalized) {
+		throw TracedLogicError("SpriteBuilder - Texture already built and finalized!");
+	}
 }
 
-SpriteLoader& SpriteLoader::loadFromFile(TextureHandle texture, std::string spriteName,
-                                         AutoIndexType, const std::string& filePath) {
-    // TODO
-    return SELF;
+///////////////////////////////////////////////////////////////////////////
+// SPRITE LOADER                                                         //
+///////////////////////////////////////////////////////////////////////////
+
+SpriteLoader::SpriteLoader() = default;
+
+TextureBuilder SpriteLoader::startTexture(PZInteger aWidth, PZInteger aHeight) {
+	return TextureBuilder{SELF, aWidth, aHeight};
 }
 
-// Loading from directory:
-SpriteLoader& SpriteLoader::loadFromDirectory(TextureHandle texture, PZInteger spriteIndex,
-                                              const std::string& filePath) {
-    std::vector<std::string> filesInDirectory;
-    for (auto& entry : std::filesystem::directory_iterator(filePath)) {
-        filesInDirectory.push_back(entry.path().generic_string()); // TODO This fails for non-ASCII paths/files
-    }
-
-    std::sort(filesInDirectory.begin(), filesInDirectory.end());
-
-    for (auto& file : filesInDirectory) {
-        loadFromFile(texture, spriteIndex, AUTO_INDEX, file);
-    }
-
-    return SELF;
+void SpriteLoader::removeTexture(sf::Texture& aTexture) {
+	const auto iter = std::remove_if(
+		_textures.begin(),
+		_textures.end(),
+		[&](const std::unique_ptr<sf::Texture>& aTexturePtr) {
+			return (aTexturePtr.get() == &aTexture);
+		});
+	_textures.erase(iter, _textures.end());
 }
 
-SpriteLoader& SpriteLoader::loadFromDirectory(TextureHandle texture, std::string spriteName,
-                                              const std::string& filePath) {
-    // TODO
-    return SELF;
+const MultispriteBlueprint& SpriteLoader::getBlueprint(PZInteger aSpriteId) const {
+	const auto iter = _indexedBlueprints.find(aSpriteId);
+	if (iter == _indexedBlueprints.end()) {
+		throw TracedRuntimeError{"SpriteLoader - No blueprint with this ID was found!"};
+	}
+
+	return iter->second;
 }
 
-// Loading from memory:
-// TODO loadFromMemory
+const MultispriteBlueprint& SpriteLoader::getBlueprint(const std::string& aSpriteId) const {
+	const auto iter = _mappedBlueprints.find(aSpriteId);
+	if (iter == _mappedBlueprints.end()) {
+		throw TracedRuntimeError{"SpriteLoader - No blueprint with this ID was found!"};
+	}
 
-// Search loaded sprites:
-const Multisprite& SpriteLoader::getSprite(PZInteger spriteIndex) const {
-    auto spriteIndexSz = static_cast<std::size_t>(spriteIndex);
-    return _indexedSprites[spriteIndexSz].multisprite;
-}
-
-const Multisprite& SpriteLoader::getSprite(const std::string& spriteName) const {
-    auto iter = _mappedSprites.find(spriteName);
-    if (iter == _mappedSprites.end()) {
-        throw TracedLogicError("Sprite with name " + spriteName + " was not loaded.");
-    }
-    return (*iter).second.multisprite;
-}
-
-// Other:
-void SpriteLoader::finalize(TexturePackingHeuristic heuristic) {
-    assertNotFinalized();
-
-    std::vector<std::vector<SpriteData::PackRequest*>> texturePackRequests;
-    texturePackRequests.resize(_textures.size()); // Requests are per-texture
-
-    // Get all pack requests for indexed sprites:
-    for (auto& spriteData : _indexedSprites) {
-        for (auto& packRequest : spriteData.packRequests) {
-            if (!packRequest.unused) {
-                texturePackRequests[static_cast<std::size_t>(packRequest.textureHandle)].push_back(&packRequest);
-            }
-        }
-    }
-
-    // Get all pack requests for mapped sprites:
-    for (auto& pair : _mappedSprites) {
-        for (auto& packRequest : pair.second.packRequests) {
-            if (!packRequest.unused) {
-                texturePackRequests[static_cast<std::size_t>(packRequest.textureHandle)].push_back(&packRequest);
-            }
-        }
-    }
-
-    // Try to fulfill all requests:
-    for (std::size_t i = 0; i < texturePackRequests.size(); i += 1) {
-        auto& currentTexture = _textures[i];
-        auto& requestsForCurrentTexture = texturePackRequests[i];
-
-        std::vector<sf::Image*> images;
-        for (auto& request : requestsForCurrentTexture) {
-            images.push_back(&(request->image));
-        }
-
-        auto results = PackTexture(currentTexture, images, heuristic, nullptr); // TODO Use occupancy
-
-        for (PZInteger t = 0; t < stopz(requestsForCurrentTexture.size()); t += 1) {
-            auto& subsprite = requestsForCurrentTexture[t];
-            subsprite->rextureRect = results[t];
-        }
-    }
-
-    // Move all generated data into multisprites & clean up requests:
-    for (auto& spriteData : _indexedSprites) {
-        for (auto& packRequest : spriteData.packRequests) {
-            spriteData.multisprite.addSubsprite(getTexture(packRequest.textureHandle), packRequest.rextureRect);
-        }
-        spriteData.packRequests.clear();
-    }
-
-    for (auto& pair : _mappedSprites) {
-        for (auto& packRequest : pair.second.packRequests) {
-            pair.second.multisprite.addSubsprite(getTexture(packRequest.textureHandle), packRequest.rextureRect);
-        }
-        pair.second.packRequests.clear();
-    }
-
-    // Set finalized flag:
-    _isFinalized = true;
+	return iter->second;
 }
 
 void SpriteLoader::clear() {
-    // TODO
-    _isFinalized = false;
+	_indexedBlueprints.clear();
+	_mappedBlueprints.clear();
+	_textures.clear();
 }
 
-void SpriteLoader::assertNotFinalized() const {
-    if (_isFinalized) {
-        throw TracedLogicError("Sprite loader was already finalized.");
-    }
+void SpriteLoader::_pushBlueprint(PZInteger aSpriteId, MultispriteBlueprint aBlueprint) {
+	const auto iter = _indexedBlueprints.find(aSpriteId);
+	if (iter != _indexedBlueprints.end()) {
+		throw TracedRuntimeError{"SpriteLoader - Blueprint for sprite with this ID already exists!"};
+	}
+
+	_indexedBlueprints.emplace(aSpriteId, std::move(aBlueprint));
+}
+
+void SpriteLoader::_pushBlueprint(const std::string& aSpriteId, MultispriteBlueprint aBlueprint) {
+	const auto iter = _mappedBlueprints.find(aSpriteId);
+	if (iter != _mappedBlueprints.end()) {
+		throw TracedRuntimeError{"SpriteLoader - Blueprint for sprite with this ID already exists!"};
+	}
+
+	_mappedBlueprints.emplace(aSpriteId, std::move(aBlueprint));
+}
+
+void SpriteLoader::_pushTexture(std::unique_ptr<sf::Texture> aTexture) {
+	_textures.push_back(std::move(aTexture));
 }
 
 } // namespace gr

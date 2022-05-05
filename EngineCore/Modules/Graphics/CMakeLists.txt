@@ -8,11 +8,13 @@ set(COMPONENT_SOURCES
   "Source/MaxRectsBinPack/Max_rects_bin_pack.cpp"
   "Source/MaxRectsBinPack/Rbp_rect.cpp"
 
-  "Source/Brush.cpp"
   "Source/Builtin_fonts.cpp"
   "Source/Color.cpp"
+  "Source/Draw_batcher.cpp"
+  "Source/Drawable.cpp"
   "Source/Multisprite.cpp"
   "Source/Sprite_loader.cpp"
+  "Source/Sprite.cpp"
   "Source/Texture_packing.cpp"
   "Source/Views.cpp"
 )
