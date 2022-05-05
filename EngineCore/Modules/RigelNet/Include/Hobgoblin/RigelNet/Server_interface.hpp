@@ -16,7 +16,7 @@ namespace rn {
 
 class RN_ServerInterface : public RN_NodeInterface {
 public:
-    ~RN_ServerInterface() = default;
+    virtual ~RN_ServerInterface() = default;
 
     ///////////////////////////////////////////////////////////////////////////
     // SERVER CONTROL                                                        //
