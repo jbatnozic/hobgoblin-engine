@@ -85,13 +85,15 @@ private:
     std::optional<sf::RenderWindow> _window;
 
     // Graphics & drawing:
-    std::optional<sf::RenderTexture> _mainRenderTexture;
     std::optional<hg::gr::CanvasAdapter> _windowToCanvasAdapter;
+    std::optional<hg::gr::DrawBatcher> _windowDrawBatcher;
+    std::optional<sf::RenderTexture> _mainRenderTexture;
 
     DrawPosition _mainRenderTextureDrawPos = DrawPosition::Fit;
 
     // Views:
     std::optional<hg::gr::MultiViewRenderTargetAdapter> _mainRenderTextureViewAdapter;
+    std::optional<hg::gr::DrawBatcher> _mainRenderTextureDrawBatcher;
 
     // GUI:
 

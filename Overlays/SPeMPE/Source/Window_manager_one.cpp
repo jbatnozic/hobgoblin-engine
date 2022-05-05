@@ -14,9 +14,11 @@ WindowManagerOne::WindowManagerOne(hg::QAO_RuntimeRef aRuntimeRef,
                                    int aExecutionPriority)
     : NonstateObject{aRuntimeRef, SPEMPE_TYPEID_SELF, aExecutionPriority, "jbatnozic::spempe::WindowManagerOne"}
     , _window{}
-    , _mainRenderTexture{}
     , _windowToCanvasAdapter{}
+    , _windowDrawBatcher{}
+    , _mainRenderTexture{}
     , _mainRenderTextureViewAdapter{}
+    , _mainRenderTextureDrawBatcher{}
 {
 }
 
@@ -27,9 +29,11 @@ WindowManagerOne::WindowManagerOne(hg::QAO_RuntimeRef aRuntimeRef,
 void WindowManagerOne::setToHeadlessMode(const TimingConfig& aTimingConfig) {
     _headless = true;
 
+    _mainRenderTextureDrawBatcher.reset();
     _mainRenderTextureViewAdapter.reset();
-    _windowToCanvasAdapter.reset();
     _mainRenderTexture.reset();
+    _windowDrawBatcher.reset();
+    _windowToCanvasAdapter.reset();
     _window.reset();
 
     // Set timing parameters:
@@ -57,7 +61,9 @@ void WindowManagerOne::setToNormalMode(const WindowConfig& aWindowConfig,
 
     // Create adapters:
     _windowToCanvasAdapter.emplace(*_window);
+    _windowDrawBatcher.emplace(*_windowToCanvasAdapter);
     _mainRenderTextureViewAdapter.emplace(*_mainRenderTexture);
+    _mainRenderTextureDrawBatcher.emplace(*_mainRenderTextureViewAdapter);
 
     // Create default view:
     const auto w = static_cast<float>(aMainRenderTextureConfig.size.x);
@@ -88,10 +94,10 @@ void WindowManagerOne::setToNormalMode(const WindowConfig& aWindowConfig,
 hg::gr::Canvas& WindowManagerOne::getCanvas() {
     HARD_ASSERT(!_headless);
     if (getRuntime()->getCurrentEvent() == hg::QAO_Event::DrawGUI) {
-        return *_windowToCanvasAdapter;
+        return *_windowDrawBatcher;
     }
     else {
-        return *_mainRenderTextureViewAdapter;
+        return *_mainRenderTextureDrawBatcher;
     }
 }
 
@@ -168,6 +174,7 @@ void WindowManagerOne::_eventFinalizeFrame() {
 }
 
 void WindowManagerOne::_drawMainRenderTexture() {
+    _mainRenderTextureDrawBatcher->flush();
     _mainRenderTexture->display();
     sf::Sprite mrtSprite{_mainRenderTexture->getTexture()};
     const sf::Vector2u mrtSize = _mainRenderTexture->getSize();
@@ -219,6 +226,7 @@ void WindowManagerOne::_drawMainRenderTexture() {
 }
 
 void WindowManagerOne::_finalizeFrameByDisplayingWindow() {
+    _windowDrawBatcher->flush();
     _window->display();
 
     _kbInputTracker.prepForEvents();
