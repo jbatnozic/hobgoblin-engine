@@ -87,8 +87,13 @@ private:
     const sf::Texture& _texture;
 
     struct Subsprite {
+        Subsprite() = default;
+        explicit Subsprite(const sf::IntRect& aTextureRect);
+
         sf::Vertex  vertices[4];
         sf::IntRect textureRect;
+
+        sf::FloatRect getLocalBounds() const;
     };
 
     std::variant<Subsprite, std::vector<Subsprite>> _subsprites;
@@ -100,8 +105,6 @@ private:
     Subsprite* _firstSubspritePtr();
 
     const Subsprite* _firstSubspritePtr() const;
-
-    static Subsprite _makeSubsprite(const sf::IntRect& aTextureRect);
 };
 
 template <class taRects>
@@ -115,6 +118,10 @@ Multisprite::Multisprite(const sf::Texture& aTexture, const taRects& aTextureRec
 
 class MultispriteBlueprint {
 public:
+    ///////////////////////////////////////////////////////////////////////////
+    // CONSTRUCTORS                                                          //
+    ///////////////////////////////////////////////////////////////////////////
+
     // Construct with single subsprite
     MultispriteBlueprint(const sf::Texture& aTexture, const sf::IntRect& aTextureRect);
 
@@ -122,6 +129,9 @@ public:
     template <class taRects>
     MultispriteBlueprint(const sf::Texture& aTexture, const taRects& aTextureRects);
 
+    ///////////////////////////////////////////////////////////////////////////
+    // COPIES & MOVES                                                        //
+    ///////////////////////////////////////////////////////////////////////////
 
     MultispriteBlueprint(const MultispriteBlueprint& aOther);
 
@@ -131,11 +141,17 @@ public:
 
     MultispriteBlueprint& operator=(MultispriteBlueprint&& aOther);
 
+    ///////////////////////////////////////////////////////////////////////////
+    // GETTERS                                                               //
+    ///////////////////////////////////////////////////////////////////////////
 
+    //! Returns number of contained subsprites.
     PZInteger getSubspriteCount() const;
 
+    //! Make a regular Sprite from a single subsprite from within the blueprint.
     Sprite subspr(PZInteger aSubspriteIndex) const;
 
+    //! Make a complete Multisprite from the whole blueprint.
     Multisprite multispr() const;
 
 private:

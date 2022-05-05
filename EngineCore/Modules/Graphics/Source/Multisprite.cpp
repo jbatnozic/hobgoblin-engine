@@ -35,23 +35,43 @@ void Multisprite::selectSubsprite(PZInteger aSubspriteIndex) {
 
 void Multisprite::addSubsprite(const sf::IntRect& aTextureRect) {
     if (_subspriteCount == 0) {
-        _subsprites = _makeSubsprite(aTextureRect);
+        _subsprites.emplace<Subsprite>(aTextureRect);
     }
     else if (_subspriteCount == 1) {
         const auto subsprite0 = *_firstSubspritePtr();
         _subsprites = std::vector<Subsprite>{};
         std::get<std::vector<Subsprite>>(_subsprites).push_back(subsprite0);
-        std::get<std::vector<Subsprite>>(_subsprites).push_back(_makeSubsprite(aTextureRect));
+        std::get<std::vector<Subsprite>>(_subsprites).emplace_back(aTextureRect);
     }
     else {
-        std::get<std::vector<Subsprite>>(_subsprites).push_back(_makeSubsprite(aTextureRect));
+        std::get<std::vector<Subsprite>>(_subsprites).emplace_back(aTextureRect);
     }
 
     _subspriteCount += 1;
 }
 
 void Multisprite::removeSubsprite(PZInteger aSubspriteIndex) {
-    // TODO
+    if (aSubspriteIndex < 0 || aSubspriteIndex >= _subspriteCount) {
+        throw TracedLogicError{"Multisprite - Subsprite index out of bounds!"};
+    }
+
+    if (_subspriteCount > 2) {
+        auto& vec = std::get<std::vector<Subsprite>>(_subsprites);
+        vec.erase(vec.begin() + aSubspriteIndex);
+        _subspriteCount -= 1;
+    }
+    else if (_subspriteCount == 2) {
+        auto& vec = std::get<std::vector<Subsprite>>(_subsprites);
+        vec.erase(vec.begin() + aSubspriteIndex);
+
+        const Subsprite temp = vec.front();
+        _subsprites = temp;
+
+        _subspriteCount = 1;
+    }
+    else /* count = 1 */ {
+        _subspriteCount = 0; // There's not really anything to delete so we just mark it as empty
+    }
 }
 
 void Multisprite::setColor(sf::Color aColor) {
@@ -62,13 +82,61 @@ sf::Color Multisprite::getColor() const {
     return _color;
 }
 
+sf::FloatRect Multisprite::getLocalBounds(PZInteger aSubspriteIndex) const {
+    if (aSubspriteIndex < 0 || aSubspriteIndex >= _subspriteCount) {
+        throw TracedLogicError{"Multisprite - Subsprite index out of bounds!"};
+    }
+
+    return _firstSubspritePtr()[aSubspriteIndex].getLocalBounds();
+}
+
+sf::FloatRect Multisprite::getLocalBounds() const {
+    if (_selectedSubsprite < 0 || _selectedSubsprite >= _subspriteCount) {
+        throw TracedLogicError{"Multisprite - Selected subsprite index out of bounds!"};
+    }
+
+    return _firstSubspritePtr()[_selectedSubsprite].getLocalBounds();
+}
+
+sf::FloatRect Multisprite::getGlobalBounds(PZInteger aSubspriteIndex) const {
+    if (aSubspriteIndex < 0 || aSubspriteIndex >= _subspriteCount) {
+        throw TracedLogicError{"Multisprite - Subsprite index out of bounds!"};
+    }
+
+    return getTransform().transformRect(
+        _firstSubspritePtr()[aSubspriteIndex].getLocalBounds()
+    );
+}
+
+sf::FloatRect Multisprite::getGlobalBounds() const {
+    if (_selectedSubsprite < 0 || _selectedSubsprite >= _subspriteCount) {
+        throw TracedLogicError{"Multisprite - Selected subsprite index out of bounds!"};
+    }
+
+    return getTransform().transformRect(
+        _firstSubspritePtr()[_selectedSubsprite].getLocalBounds()
+    );
+}
+
+bool Multisprite::isNormalized() const {
+    const auto* subspsrites = _firstSubspritePtr();
+
+    for (PZInteger i = 1; i < getSubspriteCount(); i += 1) {
+        if (subspsrites[i].getLocalBounds() != subspsrites[i - 1].getLocalBounds()) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 void Multisprite::_draw(Canvas& aCanvas, const sf::RenderStates& aStates) const {
     if (_subspriteCount == 0) {
         return;
     }
 
     if (_selectedSubsprite < 0 || _selectedSubsprite >= _subspriteCount) {
-        // TODO Exception (out of bounds)
+        throw TracedLogicError{"Multisprite - Selected subsprite index out of bounds!"};
     }
 
     const auto& subspr = *(_firstSubspritePtr() + _selectedSubsprite);
@@ -104,29 +172,17 @@ const Multisprite::Subsprite* Multisprite::_firstSubspritePtr() const {
     }
 }
 
-// TODO This could be a Subsprite c-tor
-Multisprite::Subsprite Multisprite::_makeSubsprite(const sf::IntRect& aTextureRect) {
-    Subsprite result;
-    result.textureRect = aTextureRect;
-
+Multisprite::Subsprite::Subsprite(const sf::IntRect& aTextureRect)
+    : textureRect{aTextureRect}
+{
     // World positions
     {
-        // TODO This is result.getLocalBounds()
-        const sf::FloatRect bounds = {
-            {
-                0.f,
-                0.f
-            },
-        {
-            static_cast<float>(std::abs(aTextureRect.width)),
-            static_cast<float>(std::abs(aTextureRect.height))
-        }
-        };
+        const sf::FloatRect bounds = getLocalBounds();
 
-        result.vertices[0].position = sf::Vector2f{0.f, 0.f};
-        result.vertices[1].position = sf::Vector2f{0.f, bounds.height};
-        result.vertices[2].position = sf::Vector2f{bounds.width, 0.f};
-        result.vertices[3].position = sf::Vector2f{bounds.width, bounds.height};
+        vertices[0].position = sf::Vector2f{0.f, 0.f};
+        vertices[1].position = sf::Vector2f{0.f, bounds.height};
+        vertices[2].position = sf::Vector2f{bounds.width, 0.f};
+        vertices[3].position = sf::Vector2f{bounds.width, bounds.height};
     }
 
     // Texture positions
@@ -138,13 +194,24 @@ Multisprite::Subsprite Multisprite::_makeSubsprite(const sf::IntRect& aTextureRe
         const float top = convertedTextureRect.top;
         const float bottom = top + convertedTextureRect.height;
 
-        result.vertices[0].texCoords = sf::Vector2f{left, top};
-        result.vertices[1].texCoords = sf::Vector2f{left, bottom};
-        result.vertices[2].texCoords = sf::Vector2f{right, top};
-        result.vertices[3].texCoords = sf::Vector2f{right, bottom};
+        vertices[0].texCoords = sf::Vector2f{left, top};
+        vertices[1].texCoords = sf::Vector2f{left, bottom};
+        vertices[2].texCoords = sf::Vector2f{right, top};
+        vertices[3].texCoords = sf::Vector2f{right, bottom};
     }
+}
 
-    return result;
+sf::FloatRect Multisprite::Subsprite::getLocalBounds() const {
+    return {
+        {
+            0.f,
+            0.f
+        },
+        {
+            static_cast<float>(std::abs(textureRect.width)),
+            static_cast<float>(std::abs(textureRect.height))
+        }
+    };
 }
 
 ///////////////////////////////////////////////////////////////////////////
