@@ -2,7 +2,9 @@
 #define UHOBGOBLIN_GR_MULTISPRITE_HPP
 
 #include <Hobgoblin/Common.hpp>
-#include <Hobgoblin/Utility/Rectangle.hpp>
+#include <Hobgoblin/Graphics/Color.hpp>
+#include <Hobgoblin/Graphics/Drawable.hpp>
+#include <Hobgoblin/Graphics/Sprite.hpp>
 #include <SFML/Graphics.hpp>
 
 #include <variant>
@@ -13,25 +15,157 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
-class Multisprite : public sf::Drawable, public sf::Transformable {
+class Multisprite : public Drawable, public sf::Transformable {
 public:
-    void setSubspriteIndex(PZInteger subspriteIndex);
-    void setColor(const sf::Color& color);
+    //! Constructs a multisprite with a single subsprite.
+    Multisprite(const sf::Texture& aTexture, const sf::IntRect& aTextureRect);
+
+    //! Constructs a multisprite with one or more subsprite from a collection of
+    //! texture rects.
+    template <class taRects>
+    Multisprite(const sf::Texture& aTexture, const taRects& aTextureRects);
+
+    ///////////////////////////////////////////////////////////////////////////
+    // TEXTURE                                                               //
+    ///////////////////////////////////////////////////////////////////////////
+
+    const sf::Texture& getTexture() const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    // SUBSPRITES                                                            //
+    ///////////////////////////////////////////////////////////////////////////
+
+    PZInteger getSubspriteCount() const;
+
+    void selectSubsprite(PZInteger aSubspriteIndex);
+
+    void addSubsprite(const sf::IntRect& aTextureRect);
+
+    void removeSubsprite(PZInteger aSubspriteIndex);
+
+    Sprite extractSubsprite(PZInteger aSubspriteIndex) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    // COLOUR                                                                //
+    ///////////////////////////////////////////////////////////////////////////
+
+    void setColor(sf::Color aColor);
+
     sf::Color getColor() const;
 
-    void addSubsprite(sf::Texture& texture, util::Rectangle<PZInteger>& textureRect);
-    PZInteger getSubspriteCount() const;
-    const sf::Sprite& getSubsprite(PZInteger subspriteIndex) const;
+    ///////////////////////////////////////////////////////////////////////////
+    // BOUNDS                                                                //
+    ///////////////////////////////////////////////////////////////////////////
+
+    //! Returns the local bounding rectangle of a specific subsprite.
+    //! The returned rectangle is in local coordinates, which means that it 
+    //! ignores the transformations (translation, rotation, scale, ...) that are
+    //! applied to the subsprite. In other words, this function returns the 
+    //! bounds of the subsprite in the subsprite's coordinate system.
+    sf::FloatRect getLocalBounds(PZInteger aSubspriteIndex) const;
+
+    //! Returns the local bounding rectangle of the surrently selected subsprite.
+    sf::FloatRect getLocalBounds() const;
+
+    //! Returns the global bounding rectangle of a specific subsprite.
+    //! The returned rectangle is in global coordinates, which means that it takes
+    //! into account the transformations (translation, rotation, scale, ...) that
+    //! are applied to the subsprite. In other words, this function returns the
+    //! bounds of the subsprite in the global 2D world's coordinate system.
+    sf::FloatRect getGlobalBounds(PZInteger aSubspriteIndex) const;
+
+    //! Returns the global bounding rectangle of the currently selected subsprite.
+    sf::FloatRect getGlobalBounds() const;
+
+    //! Returns true if all the subsprites are of the same size.
+    bool isNormalized() const;
+
+protected:
+    void _draw(Canvas& aCanvas, const sf::RenderStates& aStates) const override;
 
 private:
-    std::variant<sf::Sprite, std::vector<sf::Sprite>> _subsprites;
-    PZInteger _subspriteCount = 0;
-    PZInteger _subspriteIndex = 0;
-    sf::Color _color;
+    const sf::Texture& _texture;
 
-    void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
-    const sf::Sprite* addressOfFirstSprite() const;
+    struct Subsprite {
+        sf::Vertex  vertices[4];
+        sf::IntRect textureRect;
+    };
+
+    std::variant<Subsprite, std::vector<Subsprite>> _subsprites;
+
+    PZInteger _subspriteCount = 0;
+    PZInteger _selectedSubsprite = 0;
+    sf::Color _color = sf::Color::White;
+
+    Subsprite* _firstSubspritePtr();
+
+    const Subsprite* _firstSubspritePtr() const;
+
+    static Subsprite _makeSubsprite(const sf::IntRect& aTextureRect);
 };
+
+template <class taRects>
+Multisprite::Multisprite(const sf::Texture& aTexture, const taRects& aTextureRects)
+    : _texture{aTexture}
+{
+    for (const auto& rect : aTextureRects) {
+        addSubsprite(rect);
+    }
+}
+
+class MultispriteBlueprint {
+public:
+    // Construct with single subsprite
+    MultispriteBlueprint(const sf::Texture& aTexture, const sf::IntRect& aTextureRect);
+
+    // Construct with one or more subsprites
+    template <class taRects>
+    MultispriteBlueprint(const sf::Texture& aTexture, const taRects& aTextureRects);
+
+
+    MultispriteBlueprint(const MultispriteBlueprint& aOther);
+
+    MultispriteBlueprint& operator=(const MultispriteBlueprint& aOther);
+
+    MultispriteBlueprint(MultispriteBlueprint&& aOther);
+
+    MultispriteBlueprint& operator=(MultispriteBlueprint&& aOther);
+
+
+    PZInteger getSubspriteCount() const;
+
+    Sprite subspr(PZInteger aSubspriteIndex) const;
+
+    Multisprite multispr() const;
+
+private:
+    const sf::Texture* _texture;
+
+    std::variant<sf::IntRect, std::vector<sf::IntRect>> _textureRects;
+
+    PZInteger _subspriteCount;
+};
+
+template <class taRects>
+MultispriteBlueprint::MultispriteBlueprint(const sf::Texture& aTexture, const taRects& aTextureRects)
+    : _texture{&aTexture}
+    , _subspriteCount{stopz(aTextureRects.size())}
+{
+    if (_subspriteCount > 1) {
+        _textureRects = std::vector<sf::IntRect>{};
+        for (const auto& rect : aTextureRects) {
+            std::get<std::vector<sf::IntRect>>(_textureRects).push_back(rect);
+        }
+        return;
+    }
+
+    if (_subspriteCount == 1) {
+        _textureRects = *(aTextureRects.begin());
+        return;
+    }
+
+    throw TracedLogicError{"MultispriteBlueprint - Must be constructed with at least 1 subsprite!"};
+}
 
 } // namespace gr
 HOBGOBLIN_NAMESPACE_END

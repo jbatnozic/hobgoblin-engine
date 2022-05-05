@@ -17,6 +17,8 @@ class RN_ServerInterface;
 
 class RN_ClientInterface : public RN_NodeInterface {
 public:
+    ~RN_ClientInterface() = default;
+
     ///////////////////////////////////////////////////////////////////////////
     // CLIENT CONTROL                                                        //
     ///////////////////////////////////////////////////////////////////////////

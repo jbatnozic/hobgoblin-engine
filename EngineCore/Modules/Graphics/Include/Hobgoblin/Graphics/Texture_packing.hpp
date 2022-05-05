@@ -20,6 +20,11 @@ enum class TexturePackingHeuristic {
 	ContactPointRule
 };
 
+class TexturePackingError : public TracedRuntimeError {
+public:
+	using TracedRuntimeError::TracedRuntimeError;
+};
+
 std::vector<util::Rectangle<PZInteger>> PackTexture(sf::Texture& texture, 
 													const std::vector<sf::Image*>& images,
                                                     TexturePackingHeuristic heuristic, 

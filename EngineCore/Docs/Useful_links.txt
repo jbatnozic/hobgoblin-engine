@@ -13,3 +13,6 @@ SPRITE NORMAL MAP GENERATOR
 
 ISOMETRIC SPRITE EDITOR
     https://marmoset.co/hexels/
+
+FOG SHADER
+    https://ijdykeman.github.io/graphics/simple_fog_shader
