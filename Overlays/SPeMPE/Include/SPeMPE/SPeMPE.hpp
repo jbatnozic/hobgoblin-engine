@@ -11,6 +11,8 @@
 #include <SPeMPE/Managers/Input_sync_manager_one.hpp>
 #include <SPeMPE/Managers/Networking_manager_interface.hpp>
 #include <SPeMPE/Managers/Networking_manager_one.hpp>
+#include <SPeMPE/Managers/Synced_varmap_manager_default.hpp>
+#include <SPeMPE/Managers/Synced_varmap_manager_interface.hpp>
 #include <SPeMPE/Managers/Window_manager_interface.hpp>
 #include <SPeMPE/Managers/Window_manager_one.hpp>
 

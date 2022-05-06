@@ -22,6 +22,8 @@ PostUpdate:                                          [c] uploads input
 
 class InputSyncManagerInterface : public ContextComponent {
 public:
+    virtual ~InputSyncManagerInterface() = default;
+
     virtual void setToHostMode(hg::PZInteger aPlayerCount, hg::PZInteger aStateBufferingLength) = 0;
 
     virtual void setToClientMode() = 0;

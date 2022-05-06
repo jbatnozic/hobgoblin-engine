@@ -18,6 +18,7 @@ using MInput      = spe::InputSyncManagerInterface;
 using MNetworking = spe::NetworkingManagerInterface;
 using MWindow     = spe::WindowManagerInterface;
 
+#define PRIORITY_VARMAPMGR    16
 #define PRIORITY_NETWORKMGR   15
 #define PRIPRITY_GAMEPLAYMGR  10
 #define PRIORITY_INPUTMGR      7
@@ -298,6 +299,30 @@ private:
 
     void _eventUpdate() override;
 
+    void _eventDrawGUI() override {
+        sf::Text text;
+        text.setFont(
+            hg::gr::BuiltInFonts::getFont(
+                hg::gr::BuiltInFonts::FontChoice::TitilliumRegular
+            )
+        );
+        std::string s;
+        for (int i = 0; i < 5; i += 1) {
+            auto& svmMgr = ccomp<spe::SyncedVarmapManagerInterface>();
+            auto val = svmMgr.getInt64("val" + std::to_string(i));
+            if (val) {
+                s += std::to_string(*val) + '\n';
+            }
+            else {
+                s += std::string("n/a") + '\n';
+            }
+        }
+        text.setString(s);
+        text.setPosition(40.f, 40.f);
+
+        ccomp<MWindow>().getCanvas().draw(text);
+    }
+
     void _eventFinalizeFrame() override {
         const auto kbInput = ccomp<MWindow>().getKeyboardInput();
         if (kbInput.checkPressed(spe::KbKey::Escape, spe::KbInput::Mode::Direct)) {
@@ -354,6 +379,15 @@ void GameplayManager::_eventUpdate() {
         wrapper.setSignalValue<bool>("up",    controls.up);
         wrapper.setSignalValue<bool>("down",  controls.down);
         wrapper.triggerEvent("jump", controls.jump);
+
+        for (int i = 0; i <= 9; i += 1) {
+            if (kbInput.checkPressed(spe::StringToKbKey("Numpad" + std::to_string(i)))) {
+                ccomp<spe::SyncedVarmapManagerInterface>().requestToSetInt64(
+                    "val" + std::to_string(ccomp<MNetworking>().getLocalPlayerIndex()), 
+                    i
+                );
+            }
+        }
     }
 
     if (ctx().isPrivileged()) {
@@ -398,7 +432,7 @@ void GameplayManager::_eventUpdate() {
 
 #define WINDOW_WIDTH           800
 #define WINDOW_HEIGHT          800
-#define FRAMERATE               60
+#define FRAMERATE               30
 
 bool MyRetransmitPredicate(hg::PZInteger aCyclesSinceLastTransmit,
                            std::chrono::microseconds aTimeSinceLastSend,
@@ -499,6 +533,21 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
     }
 
     context->attachAndOwnComponent(std::move(insMgr));
+
+    // Create and attach a varmap manager
+    auto svmMgr = std::make_unique<spe::DefaultSyncedVarmapManager>(context->getQAORuntime().nonOwning(),
+                                                                    PRIORITY_VARMAPMGR);
+    if (aGameMode == GameMode::Server) {
+        svmMgr->setToMode(spe::SyncedVarmapManagerInterface::Mode::Host);
+        for (hg::PZInteger i = 0; i < aPlayerCount; i += 1) {
+            svmMgr->int64SetClientWritePermission("val" + std::to_string(i), i, true);
+        }
+    }
+    else {
+        svmMgr->setToMode(spe::SyncedVarmapManagerInterface::Mode::Client);
+    }
+
+    context->attachAndOwnComponent(std::move(svmMgr));
 
     // Create and attach a Gameplay manager
     auto gpMgr = std::make_unique<GameplayManager>(context->getQAORuntime().nonOwning());

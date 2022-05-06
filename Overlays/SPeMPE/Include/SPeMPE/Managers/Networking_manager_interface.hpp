@@ -22,6 +22,8 @@ constexpr int PLAYER_INDEX_LOCAL_PLAYER =  0; //! Local player = not connected t
 
 class NetworkingManagerInterface : public ContextComponent {
 public:
+    virtual ~NetworkingManagerInterface() = default;
+
     using NodeType   = hg::RN_NodeInterface;
     using ServerType = hg::RN_ServerInterface;
     using ClientType = hg::RN_ClientInterface;

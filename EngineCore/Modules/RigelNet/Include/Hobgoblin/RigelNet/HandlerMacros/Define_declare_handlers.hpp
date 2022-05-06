@@ -24,19 +24,25 @@
     ::jbatnozic::hobgoblin::rn::detail::RN_StaticHandlerInitializer \
     UHOBGOBLIN_RN_HandlerInit_##_name_{#_name_, UHOBGOBLIN_RN_HandlerProxy_##_name_}
 
+// Some preprocessors will paste Compose_* with the return type (void - see below) if _prefix_ is empty
+template <class taType>
+using UHOBGOBLIN_TypeIdentity = taType;
+
 #define UHOBGOBLIN_RN_GENERATE_COMPOSE_FUNCTION(_name_, _prefix_, ...) \
-    void _prefix_##Compose_##_name_(::jbatnozic::hobgoblin::rn::RN_NodeInterface& node, \
-                                    std::initializer_list<::jbatnozic::hobgoblin::PZInteger> recepients /* , */ \
-                                    UHOBGOBLIN_RN_NORMALIZE_ARGS(const, __VA_ARGS__)) { \
+    ::UHOBGOBLIN_TypeIdentity<void> \
+    _prefix_##Compose_##_name_(::jbatnozic::hobgoblin::rn::RN_NodeInterface& node, \
+                               std::initializer_list<::jbatnozic::hobgoblin::PZInteger> recepients /* , */ \
+                               UHOBGOBLIN_RN_NORMALIZE_ARGS(const, __VA_ARGS__)) { \
         static ::jbatnozic::hobgoblin::rn::detail::RN_HandlerNameToIdCacher hntic{#_name_}; \
         ::jbatnozic::hobgoblin::rn::UHOBGOBLIN_RN_ComposeImpl(node, recepients, \
                                                               hntic.getHandlerId() /* , */ \
                                                               UHOBGOBLIN_RN_PASS_COMPOSE_ARGS(__VA_ARGS__)); \
     } \
     template <class taRec> \
-    void _prefix_##Compose_##_name_(::jbatnozic::hobgoblin::rn::RN_NodeInterface& node, \
-                                    taRec&& recepients /* , */ \
-                                    UHOBGOBLIN_RN_NORMALIZE_ARGS(const, __VA_ARGS__)) { \
+    UHOBGOBLIN_TypeIdentity<void> \
+    _prefix_##Compose_##_name_(::jbatnozic::hobgoblin::rn::RN_NodeInterface& node, \
+                                taRec&& recepients /* , */ \
+                                UHOBGOBLIN_RN_NORMALIZE_ARGS(const, __VA_ARGS__)) { \
         static ::jbatnozic::hobgoblin::rn::detail::RN_HandlerNameToIdCacher hntic{#_name_}; \
         ::jbatnozic::hobgoblin::rn::UHOBGOBLIN_RN_ComposeImpl(node, std::forward<taRec>(recepients), \
                                                               hntic.getHandlerId() /* , */ \

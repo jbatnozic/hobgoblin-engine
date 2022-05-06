@@ -13,6 +13,8 @@ namespace spempe {
 
 class WindowManagerInterface : public ContextComponent {
 public:
+    virtual ~WindowManagerInterface() = default;
+
     ///////////////////////////////////////////////////////////////////////////
     // CONFIGURATION                                                         //
     ///////////////////////////////////////////////////////////////////////////
