@@ -6,9 +6,8 @@
 
 #include <memory>
 
-namespace hg = jbatnozic::hobgoblin;
-using namespace hg::qao;
 using namespace jbatnozic::spempe;
+using namespace hg::qao;
 
 class InputSyncManagerTest : public ::testing::Test {
 public:
