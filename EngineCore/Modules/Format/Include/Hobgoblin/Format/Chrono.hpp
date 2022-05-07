@@ -1,0 +1,6 @@
+#ifndef UHOBGOBLIN_FORMAT_CHRONO_HPP
+#define UHOBGOBLIN_FORMAT_CHRONO_HPP
+
+#include <fmt/chrono.h>
+
+#endif // !UHOBGOBLIN_FORMAT_CHRONO_HPP

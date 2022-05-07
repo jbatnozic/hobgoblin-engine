@@ -1,0 +1,6 @@
+#ifndef UHOBGOBLIN_FORMAT_CORE_HPP
+#define UHOBGOBLIN_FORMAT_CORE_HPP
+
+#include <fmt/core.h>
+
+#endif // !UHOBGOBLIN_FORMAT_CORE_HPP
