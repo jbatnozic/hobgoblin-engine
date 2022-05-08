@@ -1,4 +1,4 @@
-// Note: Header guard ommitted on purpose.
+// Note: Header guard omitted on purpose.
 // IMPORTANT: Always include this as the last header file
 
 ///////////////////////////////////////////////////////////////////////////
@@ -11,6 +11,22 @@
 #else
 #define CURRENT_FUNCTION __PRETTY_FUNCTION__
 #define SWITCH_FALLTHROUGH (void)0 /* TEMP */
+#endif
+
+///////////////////////////////////////////////////////////////////////////
+// DYNAMIC LIB API                                                       //
+///////////////////////////////////////////////////////////////////////////
+
+#if defined(_WIN32)
+    #ifdef UHOBGOBLIN_EXPORT
+        #define HG_DYNAPI __declspec(dllexport)
+    #else
+        #define HG_DYNAPI __declspec(dllimport)
+    #endif
+#define HGCALL __cdecl
+#else
+#define ZTS_API
+#define HGCALL
 #endif
 
 ///////////////////////////////////////////////////////////////////////////

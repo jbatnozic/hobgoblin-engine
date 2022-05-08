@@ -28,6 +28,7 @@ class HobgoblinConan(ConanFile):
         "Common",
         "Format",
         "Graphics",
+        "Logging",
         "Math",
         "Preprocessor",
         "Private",
@@ -110,9 +111,10 @@ class HobgoblinConan(ConanFile):
             "Hobgoblin.ColDetect",       # TODO Should be optional
             "Hobgoblin.Common",
             "Hobgoblin.Graphics",        # TODO Should be optional
+            "Hobgoblin.Logging",
             "Hobgoblin.QAO",             # TODO Should be optional
             "Hobgoblin.RigelNet",        # TODO Should be optional
-            "Hobgoblin.Utility",         # TODO Should be optional
+            "Hobgoblin.Utility",
             # Overlays
             "SPeMPE"
         ]

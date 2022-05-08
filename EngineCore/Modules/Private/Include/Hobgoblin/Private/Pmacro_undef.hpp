@@ -1,16 +1,35 @@
+// Note: Header guard omitted on purpose.
 
-// General:
+///////////////////////////////////////////////////////////////////////////
+// COMPILER-SPECIFIC                                                     //
+///////////////////////////////////////////////////////////////////////////
+
+#undef CURRENT_FUNCTION
+#undef SWITCH_FALLTHROUGH
+
+///////////////////////////////////////////////////////////////////////////
+// DYNAMIC LIB API                                                       //
+///////////////////////////////////////////////////////////////////////////
+
+                      /* ! DO NOT UNDEF THESE ! */
+
+///////////////////////////////////////////////////////////////////////////
+// GENERAL                                                               //
+///////////////////////////////////////////////////////////////////////////
+
 #undef HOBGOBLIN_NAMESPACE_BEGIN
 #undef HOBGOBLIN_NAMESPACE_END
+
+#undef MDEFER
+#undef MSTRINGIFY
+
+#undef CRTP_METHOD
+
+#undef CURRENT_FUNCTION_STR
+
+#undef HARD_ASSERT
+
 #undef NO_COPY
 #undef NO_MOVE
-#undef PASSKEY
-#undef SELF
-#undef SWITCH_FALLTHROUGH
 #undef NO_OP
-#undef CRTP_METHOD
-#undef FRIEND_ACCESS
-#undef MSTRINGIFY
-#undef MDEFER
-#undef CURRENT_FUNCTION
-#undef CURRENT_FUNCTION_STR
+#undef SELF

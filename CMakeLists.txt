@@ -14,5 +14,9 @@ conan_basic_setup(TARGETS)
 
 # ===== ADD ALL THE PARTS =====
 
+# This will make the modules which compile to Windows DLLs
+# export their symbols properly.
+add_compile_definitions("UHOBGOBLIN_EXPORT")
+
 add_subdirectory("EngineCore")
 add_subdirectory("Overlays")
