@@ -1,14 +1,17 @@
 
 #include <SPeMPE/Managers/Networking_manager_one.hpp>
 
+#include <Hobgoblin/Logging.hpp>
+
 #include <algorithm>
 #include <cassert>
 #include <type_traits>
 
-#include <iostream> 
-
 namespace jbatnozic {
 namespace spempe {
+namespace {
+constexpr const char* LOG_ID = "jbatnozic::spempe::NetworkingManagerOne";
+} // namespace
 
 NetworkingManagerOne::NetworkingManagerOne(hg::QAO_RuntimeRef aRuntimeRef,
                                            int aExecutionPriority,
@@ -163,30 +166,30 @@ void NetworkingManagerOne::_eventPostUpdate() {
 }
 
 void NetworkingManagerOne::_handleEvents() {
-    // TODO Temporary couts (move to logger)
-
     using hg::RN_Event;
+
     RN_Event event;
+
     while (_node->pollEvent(event)) {
         event.visit(
             [](const RN_Event::BadPassphrase& ev) {
-                std::cout << "Bad passphrase\n";
+                HG_LOG_INFO(LOG_ID, "Received event: Bad passphrase.");
             },
             [](const RN_Event::ConnectAttemptFailed& ev) {
-                std::cout << "Connection attempt failed\n";
+                HG_LOG_INFO(LOG_ID, "Received event: Connection attempt failed ({}).", /*ev.reason*/ "?");
             },
             [this](const RN_Event::Connected& ev) {
                 if (_node->isServer()) {
-                    std::cout << "New client connected\n";
+                    HG_LOG_INFO(LOG_ID, "Received event: New client ({}) connected.", *ev.clientIndex);
                     _syncObjReg.syncCompleteState(*ev.clientIndex);
                 }
                 else {
-                    std::cout << "Connected to server\n";
+                    HG_LOG_INFO(LOG_ID, "Received event: Connected to server.");
                     _localPlayerIndex = (getClient().getClientIndex() + 1);
                 }
             },
             [](const RN_Event::Disconnected& ev) {
-                std::cout << "Disconnected (message: " << ev.message << ")\n";
+                HG_LOG_INFO(LOG_ID, "Received event: Disconnect ({}).", ev.message);
             }
         );
 

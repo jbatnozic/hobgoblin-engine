@@ -23,10 +23,10 @@
     #else
         #define HG_DYNAPI __declspec(dllimport)
     #endif
-#define HGCALL __cdecl
+    #define HGCALL __cdecl
 #else
-#define ZTS_API
-#define HGCALL
+    #define ZTS_API
+    #define HGCALL
 #endif
 
 ///////////////////////////////////////////////////////////////////////////

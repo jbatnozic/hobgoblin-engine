@@ -12,20 +12,22 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace log {
 
+// TODO: Turn on/off console (stdout) echoing
+
 namespace detail {
-HG_DYNAPI void HGCALL FuncLogImpl(Severity aSeverity, const char* aLogId, const std::string& aFormattedOutput);
+HG_DYNAPI void HGCALL FuncLogImpl(Severity aSeverity, const char* aLogId, const std::string& aMessage);
 } // namespace detail
 
 #define UHOBGOBLIN_LOG_IMPL_N(_severity_, _log_id_, _format_, ...) \
     if (_severity_ >= ::jbatnozic::hobgoblin::log::GetMinimalLogSeverity()) { \
-        std::string uhobgoblin_formattedOutput = ::fmt::format(FMT_STRING(_format_), __VA_ARGS__); \
-        ::jbatnozic::hobgoblin::log::detail::FuncLogImpl(_severity_, _log_id_, uhobgoblin_formattedOutput); \
+        std::string uhobgoblin_message = ::fmt::format(FMT_STRING(_format_), __VA_ARGS__); \
+        ::jbatnozic::hobgoblin::log::detail::FuncLogImpl(_severity_, _log_id_, uhobgoblin_message); \
     }
 
 #define UHOBGOBLIN_LOG_IMPL_0(_severity_, _log_id_, _format_, ...) \
     if (_severity_ >= ::jbatnozic::hobgoblin::log::GetMinimalLogSeverity()) { \
-        std::string uhobgoblin_formattedOutput = _format_; \
-        ::jbatnozic::hobgoblin::log::detail::FuncLogImpl(_severity_, _log_id_, uhobgoblin_formattedOutput); \
+        std::string uhobgoblin_message = _format_; \
+        ::jbatnozic::hobgoblin::log::detail::FuncLogImpl(_severity_, _log_id_, uhobgoblin_message); \
     }
 
 #define UHOBGOBLIN_LOG_IMPL_1(_severity_, _log_id_, _format_, ...) UHOBGOBLIN_LOG_IMPL_N(_severity_, _log_id_, _format_, __VA_ARGS__)

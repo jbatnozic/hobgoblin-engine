@@ -14,8 +14,8 @@ ContextComponent::~ContextComponent() = default;
 
 namespace detail {
 
-ComponentTable::ComponentTable(std::size_t aTableSize) {
-    _table.resize(aTableSize);
+ComponentTable::ComponentTable(hobgoblin::PZInteger aTableSize) {
+    _table.resize(hobgoblin::pztos(aTableSize));
 }
 
 void ComponentTable::detachComponent(ContextComponent& aComponent) {
