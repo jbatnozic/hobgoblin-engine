@@ -1,11 +1,17 @@
 
 #include <SPeMPE/GameContext/Game_context.hpp>
 
+#include <Hobgoblin/Logging.hpp>
+
 #include <algorithm>
 #include <iostream>
 
 namespace jbatnozic {
 namespace spempe {
+
+namespace {
+constexpr const char* LOG_ID = "::jbatnozic::spempe::GameContext";
+} // namespace
 
 GameContext::GameContext(const RuntimeConfig& aRuntimeConfig, hg::PZInteger aComponentTableSize)
     : _runtimeConfig{aRuntimeConfig}
@@ -93,8 +99,7 @@ int GameContext::runFor(int aSteps) {
 void GameContext::stop() {
     if (hasChildContext() && isChildContextJoinable()) {
         const auto childRv = stopAndJoinChildContext();
-        // TODO Remove temporary cout
-        std::cout << "Child context stopped with exit code " << childRv << '\n';
+        HG_LOG_INFO(LOG_ID, "Child context stopped with exit code {}.", childRv);
     }
 
     _quit.store(true);
@@ -191,11 +196,11 @@ int DoSingleQaoIteration(hg::QAO_Runtime& runtime, std::int32_t eventFlags) {
             runtime.advanceStep(done, eventFlags);
         }
         catch (std::exception& ex) {
-            std::cout << "Exception caught: " << ex.what() << '\n';
+            HG_LOG_ERROR(LOG_ID, "Exception caught: {}", ex.what());
             return 1;
         }
         catch (...) {
-            std::cout << "Unknown exception caught!\n";
+            HG_LOG_ERROR(LOG_ID, "Unknown exception caught!");
             return 2;
         }
     #else

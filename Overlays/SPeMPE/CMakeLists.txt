@@ -27,6 +27,7 @@ target_link_libraries(${OVERLAY_NAME}
 PUBLIC
   "Hobgoblin.Common"
   "Hobgoblin.Graphics"
+  "Hobgoblin.Logging"
   "Hobgoblin.QAO"
   "Hobgoblin.RigelNet"
   "Hobgoblin.Utility"

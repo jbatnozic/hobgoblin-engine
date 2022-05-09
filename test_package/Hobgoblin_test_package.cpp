@@ -1,6 +1,7 @@
 #include <Hobgoblin/ChipmunkPhysics.hpp>
 #include <Hobgoblin/ColDetect.hpp>
 #include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/Format.hpp>
 #include <Hobgoblin/Graphics.hpp>
 #include <Hobgoblin/Math.hpp>
 #include <Hobgoblin/Preprocessor.hpp>
@@ -25,6 +26,10 @@ int main() {
         }
         catch (...) {
         }
+    }
+    // Format
+    {
+        fmt::format("This is {}!", "Hobgoblin");
     }
     // Graphics
     {

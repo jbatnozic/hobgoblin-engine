@@ -1,1 +1,7 @@
 https://devblogs.microsoft.com/cppblog/clang-llvm-support-in-visual-studio/
+
+BUILD REQUIREMENTS:
+ - Conan (at least 1.48.0)
+   - Make sure it's added to PATH
+ - CMake (at least 3.23.1)
+ - C++ compiler that supports C++17

@@ -1,0 +1,6 @@
+#ifndef UHOBGOBLIN_FORMAT_RANGES_HPP
+#define UHOBGOBLIN_FORMAT_RANGES_HPP
+
+#include <fmt/ranges.h>
+
+#endif // !UHOBGOBLIN_FORMAT_RANGES_HPP

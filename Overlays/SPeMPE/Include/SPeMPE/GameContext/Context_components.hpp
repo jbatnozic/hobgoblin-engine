@@ -39,7 +39,7 @@ namespace detail {
 class ComponentTable {
 public:
     //! Number of slots in the component hash table.
-    ComponentTable(std::size_t aTableSize);
+    ComponentTable(hobgoblin::PZInteger aTableSize);
 
     //! Throws hg::TracedLogicError in case of tagHash clash.
     template <class taComponent>

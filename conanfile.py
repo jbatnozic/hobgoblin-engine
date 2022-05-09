@@ -2,7 +2,7 @@ from conans import ConanFile, CMake, tools
 
 
 class HobgoblinConan(ConanFile):
-    name = "Hobgoblin"
+    name = "hobgoblin"
     version = "0.1.0"
 
     settings = "os", "compiler", "build_type", "arch"
@@ -26,7 +26,9 @@ class HobgoblinConan(ConanFile):
         "ChipmunkPhysics",
         "ColDetect",
         "Common",
+        "Format",
         "Graphics",
+        "Logging",
         "Math",
         "Preprocessor",
         "Private",
@@ -52,8 +54,9 @@ class HobgoblinConan(ConanFile):
             del self.options.fPIC
 
     def requirements(self):
+        self.requires("fmt/8.1.1")
         self.requires("gtest/1.10.0")
-        self.requires("sfml/2.5.1@jbatnozic/stable")
+        self.requires("sfml/2.5.1")
         self.requires("ztcpp/2.1.0@jbatnozic/stable")
 
     def configure(self):
@@ -108,9 +111,14 @@ class HobgoblinConan(ConanFile):
             "Hobgoblin.ColDetect",       # TODO Should be optional
             "Hobgoblin.Common",
             "Hobgoblin.Graphics",        # TODO Should be optional
+            "Hobgoblin.Logging",
             "Hobgoblin.QAO",             # TODO Should be optional
             "Hobgoblin.RigelNet",        # TODO Should be optional
-            "Hobgoblin.Utility",         # TODO Should be optional
+            "Hobgoblin.Utility",
             # Overlays
             "SPeMPE"
         ]
+        if self.settings.os == "Windows":
+            self.cpp_info.system_libs = [
+                "DbgHelp"
+            ]

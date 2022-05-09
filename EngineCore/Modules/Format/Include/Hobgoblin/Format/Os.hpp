@@ -1,0 +1,6 @@
+#ifndef UHOBGOBLIN_FORMAT_OS_HPP
+#define UHOBGOBLIN_FORMAT_OS_HPP
+
+#include <fmt/os.h>
+
+#endif // !UHOBGOBLIN_FORMAT_OS_HPP

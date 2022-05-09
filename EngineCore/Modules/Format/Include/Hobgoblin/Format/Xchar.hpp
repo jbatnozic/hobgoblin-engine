@@ -1,0 +1,6 @@
+#ifndef UHOBGOBLIN_FORMAT_XCHAR_HPP
+#define UHOBGOBLIN_FORMAT_XCHAR_HPP
+
+#include <fmt/xchar.h>
+
+#endif // !UHOBGOBLIN_FORMAT_XCHAR_HPP

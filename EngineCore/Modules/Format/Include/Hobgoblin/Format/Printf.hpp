@@ -1,0 +1,6 @@
+#ifndef UHOBGOBLIN_FORMAT_PRINTF_HPP
+#define UHOBGOBLIN_FORMAT_PRINTF_HPP
+
+#include <fmt/printf.h>
+
+#endif // !UHOBGOBLIN_FORMAT_PRINTF_HPP
