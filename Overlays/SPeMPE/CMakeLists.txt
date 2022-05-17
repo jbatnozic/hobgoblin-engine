@@ -9,6 +9,7 @@ set(OVERLAY_SOURCES
   "Source/Game_object_bases.cpp"
   "Source/Input_sync_manager_one.cpp"
   "Source/Keyboard_input.cpp"
+  "Source/Mouse_input.cpp"
   "Source/Game_context.cpp"
   "Source/Networking_manager_one.cpp"
   "Source/Synced_varmap_manager_default.cpp"

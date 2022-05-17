@@ -9,6 +9,7 @@
 #include <SPeMPE/GameObjectFramework/Game_object_bases.hpp>
 #include <SPeMPE/Managers/Window_manager_interface.hpp>
 #include <SPeMPE/Other/Keyboard_input.hpp>
+#include <SPeMPE/Other/Mouse_input.hpp>
 
 #include <chrono>
 #include <optional>
@@ -74,6 +75,12 @@ public:
     // getMouseInput();
 
 private:
+    struct MainRenderTexturePositioningData {
+        sf::Vector2f position;
+        sf::Vector2f origin;
+        sf::Vector2f scale;
+    };
+
     // Configuration:
     bool _headless;
 
@@ -99,14 +106,20 @@ private:
 
     // Keyboard & mouse input:
     KbInputTracker _kbInputTracker;
+    // MouseInputTracker _mouseInputTracker;
 
     void _eventPostUpdate() override;
     void _eventDraw2() override;
     void _eventFinalizeFrame() override;
 
+    MainRenderTexturePositioningData _getMainRenderTexturePositioningData() const;
+
     void _drawMainRenderTexture();
     void _finalizeFrameByDisplayingWindow();
     void _finalizeFrameBySleeping();
+
+public:
+    sf::Vector2f _getMousePos(hobgoblin::PZInteger aViewIndex) const;
 };
 
 } // namespace spempe

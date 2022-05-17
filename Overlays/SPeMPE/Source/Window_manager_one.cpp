@@ -19,6 +19,7 @@ WindowManagerOne::WindowManagerOne(hg::QAO_RuntimeRef aRuntimeRef,
     , _mainRenderTexture{}
     , _mainRenderTextureViewAdapter{}
     , _mainRenderTextureDrawBatcher{}
+    // , _mouseInputTracker{}
 {
 }
 
@@ -173,54 +174,76 @@ void WindowManagerOne::_eventFinalizeFrame() {
     }
 }
 
-void WindowManagerOne::_drawMainRenderTexture() {
-    _mainRenderTextureDrawBatcher->flush();
-    _mainRenderTexture->display();
-    sf::Sprite mrtSprite{_mainRenderTexture->getTexture()};
+WindowManagerOne::MainRenderTexturePositioningData WindowManagerOne::_getMainRenderTexturePositioningData() const {
+    MainRenderTexturePositioningData result;
+
     const sf::Vector2u mrtSize = _mainRenderTexture->getSize();
     const sf::Vector2u winSize = _window->getSize();
 
     switch (_mainRenderTextureDrawPos) {
     case DrawPosition::None:
-        return;
+        result.position = {0.f, 0.f};
+        result.origin   = {0.f, 0.f};
+        result.scale    = {0.f, 0.f};
         break;
 
     case DrawPosition::Fill:
     case DrawPosition::Fit:
-        {
-            float scale;
-            if (_mainRenderTextureDrawPos == DrawPosition::Fill) {
-                scale = std::max(static_cast<float>(winSize.x) / mrtSize.x,
-                                 static_cast<float>(winSize.y) / mrtSize.y);
-            }
-            else {
-                scale = std::min(static_cast<float>(winSize.x) / mrtSize.x,
-                                 static_cast<float>(winSize.y) / mrtSize.y);
-            }
-            mrtSprite.setScale({scale, scale});
+    {
+        float scale;
+        if (_mainRenderTextureDrawPos == DrawPosition::Fill) {
+            scale = std::max(static_cast<float>(winSize.x) / mrtSize.x,
+                             static_cast<float>(winSize.y) / mrtSize.y);
         }
-        // FALLTHROUGH
+        else {
+            scale = std::min(static_cast<float>(winSize.x) / mrtSize.x,
+                             static_cast<float>(winSize.y) / mrtSize.y);
+        }
+        result.scale = {scale, scale};
+    }
+    // FALLTHROUGH
 
     case DrawPosition::Centre:
-        mrtSprite.setOrigin({static_cast<float>(mrtSize.x) * 0.5f,
-                             static_cast<float>(mrtSize.y) * 0.5f});
-        mrtSprite.setPosition({static_cast<float>(winSize.x) * 0.5f,
-                               static_cast<float>(winSize.y) * 0.5f});
+        if (_mainRenderTextureDrawPos == DrawPosition::Centre) {
+            result.scale = {1.f, 1.f};
+        }
+
+        result.position = {static_cast<float>(winSize.x) * 0.5f,
+                           static_cast<float>(winSize.y) * 0.5f};
+        result.origin = {static_cast<float>(mrtSize.x) * 0.5f,
+                         static_cast<float>(mrtSize.y) * 0.5f};
         break;
 
     case DrawPosition::Stretch:
-        mrtSprite.setScale({static_cast<float>(winSize.x) / mrtSize.x,
-                            static_cast<float>(winSize.y) / mrtSize.y});
+        result.position = {0.f, 0.f};
+        result.origin   = {0.f, 0.f};
+        result.scale    = {static_cast<float>(winSize.x) / mrtSize.x,
+                            static_cast<float>(winSize.y) / mrtSize.y};
         break;
 
     case DrawPosition::TopLeft:
-        mrtSprite.setOrigin({0.f, 0.f});
-        mrtSprite.setPosition({0.f, 0.f});
+        result.position = {0.f, 0.f};
+        result.origin   = {0.f, 0.f};
+        result.scale    = {1.f, 1.f};
         break;
 
     default:
         assert(false && "Unreachable");
     }
+
+    return result;
+}
+
+void WindowManagerOne::_drawMainRenderTexture() {
+    _mainRenderTextureDrawBatcher->flush();
+    _mainRenderTexture->display();
+    sf::Sprite mrtSprite{_mainRenderTexture->getTexture()};
+
+    const auto mrtPositioning = _getMainRenderTexturePositioningData();
+
+    mrtSprite.setPosition(mrtPositioning.position);
+    mrtSprite.setOrigin(mrtPositioning.origin);
+    mrtSprite.setScale(mrtPositioning.scale);
 
     _window->draw(mrtSprite);
 }
@@ -279,6 +302,29 @@ void WindowManagerOne::_finalizeFrameBySleeping() {
     }
 
     _frameDurationStopwatch.restart();
+}
+
+sf::Vector2f WindowManagerOne::_getMousePos(hobgoblin::PZInteger aViewIndex) const {
+    if (_headless) {
+        return {0.f, 0.f};
+    }
+
+    if (getRuntime()->getCurrentEvent() == hg::QAO_Event::DrawGUI) {
+        const auto pixelPos = sf::Mouse::getPosition(*_window);
+        return _window->mapPixelToCoords(pixelPos);
+    }
+    else {
+        const auto mrtPositioning = _getMainRenderTexturePositioningData();
+        const auto pixelPos = sf::Mouse::getPosition(*_window);
+
+        auto windowPos = _window->mapPixelToCoords(pixelPos);
+        windowPos.x = (windowPos.x - mrtPositioning.position.x) / mrtPositioning.scale.x + mrtPositioning.origin.x;
+        windowPos.y = (windowPos.y - mrtPositioning.position.y) / mrtPositioning.scale.y + mrtPositioning.origin.y;
+
+        const sf::Vector2i windowPosI = {static_cast<int>(windowPos.x), static_cast<int>(windowPos.y)};
+
+        return _mainRenderTexture->mapPixelToCoords(windowPosI, _mainRenderTextureViewAdapter->getView(aViewIndex));
+    }
 }
 
 } // namespace spempe

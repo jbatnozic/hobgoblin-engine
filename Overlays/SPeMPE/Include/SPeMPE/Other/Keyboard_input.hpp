@@ -121,7 +121,7 @@ enum class KbKey {
 };
 
 //! Returns the string representation of a keyboard key. It will be the same as the name of
-//! the corresponsing enum field in 'KbKey' if it's a valid key, and "Unknown" otherwise.
+//! the corresponding enum field in 'KbKey' if it's a valid key, and "Unknown" otherwise.
 std::string KbKeyToString(KbKey aKey);
 
 //! Parses a string into KbKey value. The string has to contain exactly one of the names from

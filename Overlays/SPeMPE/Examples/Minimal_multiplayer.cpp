@@ -121,6 +121,16 @@ private:
         circle.setFillColor(hg::gr::Color::Red);
         circle.setPosition({self.x, self.y});
         ccomp<MWindow>().getCanvas().draw(circle);
+
+        if (!ctx().isHeadless()) {
+            auto& winMgr = static_cast<spe::WindowManagerOne&>(ccomp<MWindow>());
+            const auto pos = winMgr._getMousePos(0);
+            sf::RectangleShape rect;
+            rect.setSize({32.f, 32.f});
+            rect.setFillColor(hg::gr::Color::AliceBlue);
+            rect.setPosition(pos);
+            winMgr.getCanvas().draw(rect);
+        }
     }
 
     void _syncCreateImpl(spe::SyncDetails& aSyncDetails) const override;
@@ -481,6 +491,7 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
                 (aGameMode == GameMode::Server) ? true : true    /* Precise timing*/
             }
         );
+        winMgr->setMainRenderTextureDrawPosition(spe::WindowManagerInterface::DrawPosition::Stretch);
     }
 
     context->attachAndOwnComponent(std::move(winMgr));

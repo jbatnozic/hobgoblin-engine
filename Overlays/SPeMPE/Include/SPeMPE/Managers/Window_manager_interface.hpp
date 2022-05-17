@@ -7,6 +7,7 @@
 
 #include <SPeMPE/GameContext/Context_components.hpp>
 #include <SPeMPE/Other/Keyboard_input.hpp>
+#include <SPeMPE/Other/Mouse_input.hpp>
 
 namespace jbatnozic {
 namespace spempe {
@@ -129,7 +130,9 @@ public:
 
     virtual const KbInput getKeyboardInput() const = 0;
 
-    // getMouseInput();
+    //virtual MouseInput getMouseInput() = 0;
+
+    //virtual const MouseInput getMouseInput() const = 0;
 
 private:
     SPEMPE_CTXCOMP_TAG("jbatnozic::spempe::WindowManagerInterface");
