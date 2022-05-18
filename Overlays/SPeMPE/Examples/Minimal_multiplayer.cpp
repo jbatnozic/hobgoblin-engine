@@ -430,7 +430,7 @@ void GameplayManager::_eventUpdate() {
 
 #define WINDOW_WIDTH           800
 #define WINDOW_HEIGHT          800
-#define FRAMERATE               30
+#define FRAMERATE               60
 
 bool MyRetransmitPredicate(hg::PZInteger aCyclesSinceLastTransmit,
                            std::chrono::microseconds aTimeSinceLastSend,
