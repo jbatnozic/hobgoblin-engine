@@ -24,6 +24,8 @@ sf::Mouse::Button ToSfButton(MouseButton aButton) {
 
     case MouseButton::Extra_2:
         return sf::Mouse::XButton2;
+
+    default: {}
     }
 
     throw hobgoblin::TracedRuntimeError{"ToSfButton - Unknown button type provided!"};
@@ -45,6 +47,8 @@ MouseButton ToSPeMPEButton(sf::Mouse::Button aButton) {
 
     case sf::Mouse::XButton2:
         return MouseButton::Extra_2;
+
+    default: {}
     }
 
     return MouseButton::Unknown;
@@ -121,6 +125,18 @@ float MouseInput::getHorizontalWheelScroll() const {
     return _tracker._horizontalScrollDelta;
 }
 
+bool MouseInput::checkEnteredWindow() const {
+    return  _tracker._cursorWithinWindow.isPressedEdge();
+}
+
+bool MouseInput::checkLeftWindow() const {
+    return  _tracker._cursorWithinWindow.isReleasedEdge();
+}
+
+bool MouseInput::checkInWindow() const {
+    return  _tracker._cursorWithinWindow.isPressed();
+}
+
 ///////////////////////////////////////////////////////////////////////////
 // CONTROL BLOCK                                                         //
 ///////////////////////////////////////////////////////////////////////////
@@ -174,6 +190,10 @@ MouseInput MouseInputTracker::getInput() const {
     return MouseInput{*this};
 }
 
+MouseInputMutator MouseInputTracker::getMutator() {
+    return MouseInputMutator{};
+}
+
 void MouseInputTracker::prepForEvents() {
     _didMove = false;
     _verticalScrollDelta = 0.f;
@@ -182,6 +202,8 @@ void MouseInputTracker::prepForEvents() {
     for (auto& controlBlock : _controlBlocks) {
         controlBlock.advance();
     }
+
+    _cursorWithinWindow.advance();
 }
 
 void MouseInputTracker::buttonEventOccurred(const sf::Event& aEvent) {
@@ -218,11 +240,11 @@ void MouseInputTracker::buttonEventOccurred(const sf::Event& aEvent) {
         break;
 
     case sf::Event::MouseEntered:
-        // TODO
+        _cursorWithinWindow.recordPress();
         break;
 
     case sf::Event::MouseLeft:
-        // TODO
+        _cursorWithinWindow.recordRelease();
         break;
 
     default:

@@ -144,20 +144,20 @@ const sf::View& WindowManagerOne::getView(hg::PZInteger aViewIndex) const {
 // KEYBOARD & MOUSE INPUT                                                //
 ///////////////////////////////////////////////////////////////////////////
 
-KbInput WindowManagerOne::getKeyboardInput() {
+KbInput WindowManagerOne::getKeyboardInput() const {
     return _kbInputTracker.getInput();
 }
 
-const KbInput WindowManagerOne::getKeyboardInput() const {
-    return _kbInputTracker.getInput();
+KbInputMutator WindowManagerOne::getKeyboardInputMutator() {
+    return _kbInputTracker.getMutator();
 }
 
-MouseInput WindowManagerOne::getMouseInput() {
+MouseInput WindowManagerOne::getMouseInput() const {
     return _mouseInputTracker.getInput();
 }
 
-const MouseInput WindowManagerOne::getMouseInput() const {
-    return _mouseInputTracker.getInput();
+MouseInputMutator WindowManagerOne::getMouseInputMutator() {
+    return _mouseInputTracker.getMutator();
 }
 
 ///////////////////////////////////////////////////////////////////////////

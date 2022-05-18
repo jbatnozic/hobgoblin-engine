@@ -146,6 +146,14 @@ private:
             if (winMgr.getMouseInput().checkMoved()) {
                 std::cout << "Mouse moved\n";
             }
+
+            if (winMgr.getMouseInput().checkEnteredWindow()) {
+                std::cout << "Mouse entered window\n";
+            }
+
+            if (winMgr.getMouseInput().checkLeftWindow()) {
+                std::cout << "Mouse left window\n";
+            }
         }
     }
 
@@ -202,8 +210,6 @@ public:
 
     ~SinclaireAvatar() override {
         if (isMasterObject()) {
-            // TODO: See if this can be improved.
-            // Maybe some default implementation?
             doSyncDestroy();
         }
     }

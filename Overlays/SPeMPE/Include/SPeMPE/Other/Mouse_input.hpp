@@ -52,7 +52,7 @@ public:
     //! Returns the  position of the mouse cursor relative to the selected view (in game world coordinates).
     sf::Vector2f getViewRelativePos(hobgoblin::PZInteger aViewIndex = 0) const;
 
-    //! Returns the position of the mouse cursor relative to the window (in window coordinates);
+    //! Returns the position of the mouse cursor relative to the window (in window coordinates).
     sf::Vector2i getWindowRelativePos() const;
 
     //! Positive is up, negative is down, 0 = no change since last frame
@@ -61,12 +61,25 @@ public:
     //! Positive is left, negative is right, 0 = no change since last frame
     float getHorizontalWheelScroll() const;
 
+    //! Checks if the mouse cursor entered the bounds of the window since the last frame.
+    bool checkEnteredWindow() const;
+
+    //! Checks if the mouse cursor left the bounds of the window since the last frame.
+    bool checkLeftWindow() const;
+
+    //! Checks if the mouse cursor is currently within the bounds of the window.
+    bool checkInWindow() const;
+
 private:
     friend class MouseInputTracker;
 
     explicit MouseInput(const MouseInputTracker& aTracker);
 
     const MouseInputTracker& _tracker;
+};
+
+class MouseInputMutator {
+    // TODO
 };
 
 class MouseInputTracker {
@@ -78,6 +91,8 @@ public:
                                GetWindowRelativeMousePosFunc aGetWindowRelativeMousePos);
 
     MouseInput getInput() const;
+
+    MouseInputMutator getMutator();
 
     void prepForEvents();
     void buttonEventOccurred(const sf::Event& aEvent);
@@ -108,6 +123,9 @@ private:
 
     float _verticalScrollDelta = 0.f;
     float _horizontalScrollDelta = 0.f;
+
+    // enter = "press", leave = "release"
+    ButtonControlBlock _cursorWithinWindow;
 };
 
 } // namespace spempe

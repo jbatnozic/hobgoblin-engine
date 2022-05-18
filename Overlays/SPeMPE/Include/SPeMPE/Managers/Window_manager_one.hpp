@@ -67,14 +67,14 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     // KEYBOARD & MOUSE INPUT                                                //
     ///////////////////////////////////////////////////////////////////////////
+    
+    KbInput getKeyboardInput() const override;
 
-    KbInput getKeyboardInput() override;
+    KbInputMutator getKeyboardInputMutator() override;
+    
+    MouseInput getMouseInput() const override;
 
-    const KbInput getKeyboardInput() const override;
-
-    MouseInput getMouseInput() override;
-
-    const MouseInput getMouseInput() const override;
+    MouseInputMutator getMouseInputMutator() override;
 
 private:
     struct MainRenderTexturePositioningData {

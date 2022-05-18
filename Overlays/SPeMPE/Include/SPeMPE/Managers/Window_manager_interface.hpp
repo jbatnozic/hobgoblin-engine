@@ -126,13 +126,13 @@ public:
     // KEYBOARD & MOUSE INPUT                                                //
     ///////////////////////////////////////////////////////////////////////////
 
-    virtual KbInput getKeyboardInput() = 0;
+    virtual KbInput getKeyboardInput() const = 0;
 
-    virtual const KbInput getKeyboardInput() const = 0;
+    virtual KbInputMutator getKeyboardInputMutator() = 0;
 
-    virtual MouseInput getMouseInput() = 0;
+    virtual MouseInput getMouseInput() const = 0;
 
-    virtual const MouseInput getMouseInput() const = 0;
+    virtual MouseInputMutator getMouseInputMutator() = 0;
 
 private:
     SPEMPE_CTXCOMP_TAG("jbatnozic::spempe::WindowManagerInterface");
