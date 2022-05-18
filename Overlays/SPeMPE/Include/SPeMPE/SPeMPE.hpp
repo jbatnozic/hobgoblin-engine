@@ -18,5 +18,6 @@
 
 #include <SPeMPE/Other/Sync_parameters.hpp>
 #include <SPeMPE/Other/Keyboard_input.hpp>
+#include <SPeMPE/Other/Mouse_input.hpp>
 
 #endif // !SPEMPE_SPEMPE_HPP
