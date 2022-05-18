@@ -56,6 +56,47 @@ MouseButton ToSPeMPEButton(sf::Mouse::Button aButton) {
 
 } // namespace
 
+std::string MouseButtonToString(MouseButton aButton) {
+    switch (aButton) {
+    case MouseButton::Left:
+        return "Left";
+
+    case MouseButton::Right:
+        return "Right";
+
+    case MouseButton::Middle:
+        return "Middle";
+
+    case MouseButton::Extra_1:
+        return "Extra_1";
+
+    case MouseButton::Extra_2:
+        return "Extra_2";
+
+    default:
+        return "Unknown";
+    }
+}
+
+MouseButton StringToMouseButton(const std::string& aString) {
+    if (aString == "Left") {
+        return MouseButton::Left;
+    }
+    if (aString == "Right") {
+        return MouseButton::Right;
+    }
+    if (aString == "Middle") {
+        return MouseButton::Middle;
+    }
+    if (aString == "Extra_1") {
+        return MouseButton::Extra_1;
+    }
+    if (aString == "Extra_2") {
+        return MouseButton::Extra_2;
+    }
+    return MouseButton::Unknown;
+}
+
 ///////////////////////////////////////////////////////////////////////////
 // MOUSEINPUT                                                            //
 ///////////////////////////////////////////////////////////////////////////

@@ -24,6 +24,14 @@ enum class MouseButton {
     ButtonCount
 };
 
+//! Returns the string representation of a mouse button. It will be the same as the name of
+//! the corresponding enum field in 'MouseButton' if it's a valid key, and "Unknown" otherwise.
+std::string MouseButtonToString(MouseButton aButton);
+
+//! Parses a string into KbKey value. The string has to contain exactly one of the names from
+//! the 'MouseButton' enum, otherwise MouseButton::Unknown will be returned.
+MouseButton StringToMouseButton(const std::string& aString);
+
 class MouseInputTracker;
 
 class MouseInput {
@@ -41,10 +49,10 @@ public:
     };
 
     //! Checks if a button is/was pressed in accordance to the provided mode.
-    bool checkPressed(MouseButton aKey, Mode aMode = Mode::Default) const;
+    bool checkPressed(MouseButton aButton, Mode aMode = Mode::Default) const;
 
     //! Checks if a button is/was released in accordance to the provided mode.
-    bool checkReleased(MouseButton aKey, Mode aMode = Mode::Default) const;
+    bool checkReleased(MouseButton aButton, Mode aMode = Mode::Default) const;
 
     //! Checks if the mouse cursor was moved since the last frame.
     bool checkMoved() const;
