@@ -124,12 +124,28 @@ private:
 
         if (!ctx().isHeadless()) {
             auto& winMgr = static_cast<spe::WindowManagerOne&>(ccomp<MWindow>());
-            const auto pos = winMgr._getMousePos(0);
+            const auto pos = winMgr.getMouseInput().getViewRelativePos();
             sf::RectangleShape rect;
             rect.setSize({32.f, 32.f});
             rect.setFillColor(hg::gr::Color::AliceBlue);
             rect.setPosition(pos);
             winMgr.getCanvas().draw(rect);
+
+            if (winMgr.getMouseInput().checkPressed(spe::MouseButton::Left)) {
+                std::cout << "MbLeft pressed\n";
+            }
+
+            if (winMgr.getMouseInput().checkPressed(spe::MouseButton::Left, spe::MouseInput::Mode::Edge)) {
+                std::cout << "MbLeft pressed (edge)\n";
+            }
+
+            if (winMgr.getMouseInput().checkReleased(spe::MouseButton::Left, spe::MouseInput::Mode::Edge)) {
+                std::cout << "MbLeft released (edge)\n";
+            }
+
+            if (winMgr.getMouseInput().checkMoved()) {
+                std::cout << "Mouse moved\n";
+            }
         }
     }
 

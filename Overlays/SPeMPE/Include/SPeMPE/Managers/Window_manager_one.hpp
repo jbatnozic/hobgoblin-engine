@@ -44,7 +44,7 @@ public:
 
     // sf::RenderTexture& getMainRenderTexture();
 
-    virtual hg::gr::Canvas& getCanvas() override;
+    hg::gr::Canvas& getCanvas() override;
 
     void setMainRenderTextureDrawPosition(DrawPosition aDrawPosition) override;
 
@@ -72,7 +72,9 @@ public:
 
     const KbInput getKeyboardInput() const override;
 
-    // getMouseInput();
+    MouseInput getMouseInput() override;
+
+    const MouseInput getMouseInput() const override;
 
 private:
     struct MainRenderTexturePositioningData {
@@ -106,7 +108,7 @@ private:
 
     // Keyboard & mouse input:
     KbInputTracker _kbInputTracker;
-    // MouseInputTracker _mouseInputTracker;
+    MouseInputTracker _mouseInputTracker;
 
     void _eventPostUpdate() override;
     void _eventDraw2() override;
@@ -118,8 +120,8 @@ private:
     void _finalizeFrameByDisplayingWindow();
     void _finalizeFrameBySleeping();
 
-public:
-    sf::Vector2f _getMousePos(hobgoblin::PZInteger aViewIndex) const;
+    sf::Vector2f _getViewRelativeMousePos(hobgoblin::PZInteger aViewIndex) const;
+    sf::Vector2i _getWindowRelativeMousePos() const;
 };
 
 } // namespace spempe

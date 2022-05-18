@@ -19,7 +19,13 @@ WindowManagerOne::WindowManagerOne(hg::QAO_RuntimeRef aRuntimeRef,
     , _mainRenderTexture{}
     , _mainRenderTextureViewAdapter{}
     , _mainRenderTextureDrawBatcher{}
-    // , _mouseInputTracker{}
+    , _mouseInputTracker{
+        [this](hg::PZInteger aViewIndex) -> sf::Vector2f {
+            return _getViewRelativeMousePos(aViewIndex);
+        },
+        [this]() -> sf::Vector2i {
+            return _getWindowRelativeMousePos();
+        }}
 {
 }
 
@@ -146,6 +152,14 @@ const KbInput WindowManagerOne::getKeyboardInput() const {
     return _kbInputTracker.getInput();
 }
 
+MouseInput WindowManagerOne::getMouseInput() {
+    return _mouseInputTracker.getInput();
+}
+
+const MouseInput WindowManagerOne::getMouseInput() const {
+    return _mouseInputTracker.getInput();
+}
+
 ///////////////////////////////////////////////////////////////////////////
 // PRIVATE METHODS                                                       //
 ///////////////////////////////////////////////////////////////////////////
@@ -253,6 +267,7 @@ void WindowManagerOne::_finalizeFrameByDisplayingWindow() {
     _window->display();
 
     _kbInputTracker.prepForEvents();
+    _mouseInputTracker.prepForEvents();
 
     sf::Event ev;
     while (_window->pollEvent(ev)) {
@@ -261,15 +276,10 @@ void WindowManagerOne::_finalizeFrameByDisplayingWindow() {
             // TODO
             break;
 
-        case sf::Event::KeyPressed:
-        case sf::Event::KeyReleased:
-            _kbInputTracker.keyEventOccurred(ev);
-            break;
-
         case sf::Event::Resized:
             {
-                sf::FloatRect visibleArea(0.f, 
-                                          0.f, 
+                sf::FloatRect visibleArea(0.f,
+                                          0.f,
                                           static_cast<float>(ev.size.width),
                                           static_cast<float>(ev.size.height));
                 _window->setView(sf::View(visibleArea));
@@ -278,6 +288,20 @@ void WindowManagerOne::_finalizeFrameByDisplayingWindow() {
 
         case sf::Event::TextEntered:
             _kbInputTracker.textEventOccurred(ev);
+            break;
+
+        case sf::Event::KeyPressed:
+        case sf::Event::KeyReleased:
+            _kbInputTracker.keyEventOccurred(ev);
+            break;
+
+        case sf::Event::MouseWheelScrolled:
+        case sf::Event::MouseButtonPressed:
+        case sf::Event::MouseButtonReleased:
+        case sf::Event::MouseMoved:
+        case sf::Event::MouseEntered:
+        case sf::Event::MouseLeft:
+            _mouseInputTracker.buttonEventOccurred(ev);
             break;
 
         default: (void)0;
@@ -304,27 +328,29 @@ void WindowManagerOne::_finalizeFrameBySleeping() {
     _frameDurationStopwatch.restart();
 }
 
-sf::Vector2f WindowManagerOne::_getMousePos(hobgoblin::PZInteger aViewIndex) const {
+sf::Vector2f WindowManagerOne::_getViewRelativeMousePos(hobgoblin::PZInteger aViewIndex) const {
     if (_headless) {
         return {0.f, 0.f};
     }
 
-    if (getRuntime()->getCurrentEvent() == hg::QAO_Event::DrawGUI) {
-        const auto pixelPos = sf::Mouse::getPosition(*_window);
-        return _window->mapPixelToCoords(pixelPos);
+    const auto mrtPositioning = _getMainRenderTexturePositioningData();
+    const auto pixelPos = sf::Mouse::getPosition(*_window);
+
+    auto windowPos = _window->mapPixelToCoords(pixelPos);
+    windowPos.x = (windowPos.x - mrtPositioning.position.x) / mrtPositioning.scale.x + mrtPositioning.origin.x;
+    windowPos.y = (windowPos.y - mrtPositioning.position.y) / mrtPositioning.scale.y + mrtPositioning.origin.y;
+
+    const sf::Vector2i windowPosI = {static_cast<int>(windowPos.x), static_cast<int>(windowPos.y)};
+
+    return _mainRenderTexture->mapPixelToCoords(windowPosI, _mainRenderTextureViewAdapter->getView(aViewIndex));
+}
+
+sf::Vector2i WindowManagerOne::_getWindowRelativeMousePos() const {
+    if (_headless) {
+        return {0, 0};
     }
-    else {
-        const auto mrtPositioning = _getMainRenderTexturePositioningData();
-        const auto pixelPos = sf::Mouse::getPosition(*_window);
 
-        auto windowPos = _window->mapPixelToCoords(pixelPos);
-        windowPos.x = (windowPos.x - mrtPositioning.position.x) / mrtPositioning.scale.x + mrtPositioning.origin.x;
-        windowPos.y = (windowPos.y - mrtPositioning.position.y) / mrtPositioning.scale.y + mrtPositioning.origin.y;
-
-        const sf::Vector2i windowPosI = {static_cast<int>(windowPos.x), static_cast<int>(windowPos.y)};
-
-        return _mainRenderTexture->mapPixelToCoords(windowPosI, _mainRenderTextureViewAdapter->getView(aViewIndex));
-    }
+    return sf::Mouse::getPosition(*_window);
 }
 
 } // namespace spempe

@@ -130,9 +130,9 @@ public:
 
     virtual const KbInput getKeyboardInput() const = 0;
 
-    //virtual MouseInput getMouseInput() = 0;
+    virtual MouseInput getMouseInput() = 0;
 
-    //virtual const MouseInput getMouseInput() const = 0;
+    virtual const MouseInput getMouseInput() const = 0;
 
 private:
     SPEMPE_CTXCOMP_TAG("jbatnozic::spempe::WindowManagerInterface");

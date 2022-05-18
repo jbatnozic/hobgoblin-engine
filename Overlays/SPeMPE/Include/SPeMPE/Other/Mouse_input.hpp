@@ -3,20 +3,25 @@
 
 #include <Hobgoblin/Common.hpp>
 
-#include <SFML/System.hpp>
+#include <SFML/Window.hpp>
 
 #include <functional>
+#include <vector>
 
 namespace jbatnozic {
 namespace spempe {
 
 //! Mouse button enumeration
 enum class MouseButton {
+    Unknown = -1,
+
     Left,
     Right,
     Middle,
     Extra_1,
-    Extra_2
+    Extra_2,
+
+    ButtonCount
 };
 
 class MouseInputTracker;
@@ -41,24 +46,68 @@ public:
     //! Checks if a button is/was released in accordance to the provided mode.
     bool checkReleased(MouseButton aKey, Mode aMode = Mode::Default) const;
 
+    //! Checks if the mouse cursor was moved since the last frame.
+    bool checkMoved() const;
+
+    //! Returns the  position of the mouse cursor relative to the selected view (in game world coordinates).
+    sf::Vector2f getViewRelativePos(hobgoblin::PZInteger aViewIndex = 0) const;
+
+    //! Returns the position of the mouse cursor relative to the window (in window coordinates);
+    sf::Vector2i getWindowRelativePos() const;
+
+    //! Positive is up, negative is down, 0 = no change since last frame
+    float getVerticalWheelScroll() const;
+
+    //! Positive is left, negative is right, 0 = no change since last frame
+    float getHorizontalWheelScroll() const;
+
 private:
     friend class MouseInputTracker;
 
-    explicit MouseInput(MouseInputTracker& aTracker);
+    explicit MouseInput(const MouseInputTracker& aTracker);
 
-    MouseInputTracker& _tracker;
+    const MouseInputTracker& _tracker;
 };
 
 class MouseInputTracker {
 public:
-    using GetMousePosFunc = std::function<sf::Vector2f(hobgoblin::PZInteger)>;
+    using GetViewRelativeMousePosFunc   = std::function<sf::Vector2f(hobgoblin::PZInteger)>;
+    using GetWindowRelativeMousePosFunc = std::function<sf::Vector2i()>;
 
-    explicit MouseInputTracker(GetMousePosFunc aGetMousePos);
+    explicit MouseInputTracker(GetViewRelativeMousePosFunc   aGetViewRelativeMousePos,
+                               GetWindowRelativeMousePosFunc aGetWindowRelativeMousePos);
 
-    sf::Vector2f getMousePos(hobgoblin::PZInteger aViewIndex) const;
+    MouseInput getInput() const;
+
+    void prepForEvents();
+    void buttonEventOccurred(const sf::Event& aEvent);
 
 private:
-    GetMousePosFunc _getMousePos;
+    friend class MouseInput;
+
+    GetViewRelativeMousePosFunc   _getViewRelativeMousePos;
+    GetWindowRelativeMousePosFunc _getWindowRelativeMousePos;
+
+    class ButtonControlBlock {
+    public:
+        void advance();
+        void recordPress();
+        void recordRelease();
+
+        bool isPressed() const;
+        bool isPressedEdge() const;
+        bool isReleasedEdge() const;
+
+    private:
+        std::uint8_t _status = 0;
+    };
+
+    std::vector<ButtonControlBlock> _controlBlocks;
+
+    bool _didMove = false;
+
+    float _verticalScrollDelta = 0.f;
+    float _horizontalScrollDelta = 0.f;
 };
 
 } // namespace spempe
