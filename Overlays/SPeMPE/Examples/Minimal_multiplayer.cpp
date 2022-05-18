@@ -121,40 +121,6 @@ private:
         circle.setFillColor(hg::gr::Color::Red);
         circle.setPosition({self.x, self.y});
         ccomp<MWindow>().getCanvas().draw(circle);
-
-        if (!ctx().isHeadless()) {
-            auto& winMgr = static_cast<spe::WindowManagerOne&>(ccomp<MWindow>());
-            const auto pos = winMgr.getMouseInput().getViewRelativePos();
-            sf::RectangleShape rect;
-            rect.setSize({32.f, 32.f});
-            rect.setFillColor(hg::gr::Color::AliceBlue);
-            rect.setPosition(pos);
-            winMgr.getCanvas().draw(rect);
-
-            if (winMgr.getMouseInput().checkPressed(spe::MouseButton::Left)) {
-                std::cout << "MbLeft pressed\n";
-            }
-
-            if (winMgr.getMouseInput().checkPressed(spe::MouseButton::Left, spe::MouseInput::Mode::Edge)) {
-                std::cout << "MbLeft pressed (edge)\n";
-            }
-
-            if (winMgr.getMouseInput().checkReleased(spe::MouseButton::Left, spe::MouseInput::Mode::Edge)) {
-                std::cout << "MbLeft released (edge)\n";
-            }
-
-            if (winMgr.getMouseInput().checkMoved()) {
-                std::cout << "Mouse moved\n";
-            }
-
-            if (winMgr.getMouseInput().checkEnteredWindow()) {
-                std::cout << "Mouse entered window\n";
-            }
-
-            if (winMgr.getMouseInput().checkLeftWindow()) {
-                std::cout << "Mouse left window\n";
-            }
-        }
     }
 
     void _syncCreateImpl(spe::SyncDetails& aSyncDetails) const override;
@@ -513,7 +479,6 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
                 (aGameMode == GameMode::Server) ? true : true    /* Precise timing*/
             }
         );
-        winMgr->setMainRenderTextureDrawPosition(spe::WindowManagerInterface::DrawPosition::Stretch);
     }
 
     context->attachAndOwnComponent(std::move(winMgr));
