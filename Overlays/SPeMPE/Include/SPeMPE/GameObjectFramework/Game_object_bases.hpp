@@ -28,7 +28,7 @@ namespace hg = ::jbatnozic::hobgoblin;
 //! Not to be inherited from directly. Use one of the classes below.
 class GameObjectBase : public hg::QAO_Base {
 public:
-    using hg::QAO_Base::QAO_Base;
+    using QAO_Base::QAO_Base;
 
     //! Shorthand to get the GameContext in which this object lives.
     GameContext& ctx() const {

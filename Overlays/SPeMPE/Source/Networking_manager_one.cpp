@@ -16,7 +16,7 @@ constexpr const char* LOG_ID = "jbatnozic::spempe::NetworkingManagerOne";
 NetworkingManagerOne::NetworkingManagerOne(hg::QAO_RuntimeRef aRuntimeRef,
                                            int aExecutionPriority,
                                            hg::PZInteger aStateBufferingLength)
-    : NonstateObject{aRuntimeRef, SPEMPE_TYPEID_SELF, aExecutionPriority, "spempe::NetworkingManagerOne"}
+    : NonstateObject{aRuntimeRef, SPEMPE_TYPEID_SELF, aExecutionPriority, "::jbatnozic::spempe::NetworkingManagerOne"}
     , _node{hg::RN_ServerFactory::createDummyServer()}
     , _syncObjReg{getNode(), aStateBufferingLength}
 {

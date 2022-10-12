@@ -90,6 +90,7 @@ public:
     // MISC.                                                                 //
     ///////////////////////////////////////////////////////////////////////////
 
+    // TODO - Not gonna be correct anymore (use lobby mapping!)
     virtual int getLocalPlayerIndex() = 0;
 
 private:

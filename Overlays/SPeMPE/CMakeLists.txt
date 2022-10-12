@@ -58,6 +58,7 @@ PUBLIC
 # ===== BUILD EXAMPLES =====
 
 add_executable("minimal-multiplayer"
+  "Examples/Lobby_manager_default.cpp"
   "Examples/Minimal_multiplayer.cpp"
 )
 

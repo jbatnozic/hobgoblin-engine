@@ -1,3 +1,4 @@
+#include <Hobgoblin/Logging.hpp>
 #include <Hobgoblin/Utility/Autopack.hpp>
 #include <Hobgoblin/Utility/State_scheduler.hpp>
 #include <SPeMPE/SPeMPE.hpp>
@@ -8,6 +9,9 @@
 #include <memory>
 #include <string>
 #include <vector>
+
+#include "Lobby_manager_interface.hpp"
+#include "Lobby_manager_default.hpp"
 
 namespace hg  = ::jbatnozic::hobgoblin;
 namespace spe = ::jbatnozic::spempe;
@@ -20,6 +24,7 @@ using MWindow     = spe::WindowManagerInterface;
 
 #define PRIORITY_VARMAPMGR    16
 #define PRIORITY_NETWORKMGR   15
+#define PRIORITY_LOBBYMGR     14
 #define PRIPRITY_GAMEPLAYMGR  10
 #define PRIORITY_INPUTMGR      7
 #define PRIORITY_PLAYERAVATAR  5
@@ -89,6 +94,8 @@ public:
 
 private:
     void _eventUpdate(spe::IfMaster) override {
+        // if (ctx().getGameState().isPaused) return;
+
         auto& self = _getCurrentState();
         assert(self.owningPlayerIndex >= 0);
 
@@ -282,13 +289,13 @@ class GameplayManager
     , public  spe::NonstateObject
     , private spe::NetworkingEventListener {
 public:
-    GameplayManager(QAO_RuntimeRef aRuntimeRef)
+    explicit GameplayManager(QAO_RuntimeRef aRuntimeRef)
         : NonstateObject{aRuntimeRef, SPEMPE_TYPEID_SELF, PRIPRITY_GAMEPLAYMGR, "GameplayManager"}
     {
         ccomp<MNetworking>().addEventListener(*this);
     }
 
-    ~GameplayManager() {
+    ~GameplayManager() override {
         ccomp<MNetworking>().removeEventListener(*this);
     }
 
@@ -388,6 +395,7 @@ void GameplayManager::_eventUpdate() {
         }
     }
 
+#if 0
     if (ctx().isPrivileged()) {
         const auto kbInput = ccomp<MWindow>().getKeyboardInput();
         const auto mode = spe::KbInput::Mode::Direct;
@@ -422,6 +430,7 @@ void GameplayManager::_eventUpdate() {
             std::cout << "Global state buffering set to " << 0 << " frames.\n";
         }
     }
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -547,6 +556,19 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
 
     context->attachAndOwnComponent(std::move(svmMgr));
 
+    // Create and attach a lobby manager
+    auto lobbyMgr = std::make_unique<spe::DefaultLobbyManager>(context->getQAORuntime().nonOwning(),
+                                                               PRIORITY_LOBBYMGR);
+
+    if (aGameMode == GameMode::Server) {
+        lobbyMgr->setToHostMode(aPlayerCount);
+    }
+    else {
+        lobbyMgr->setToClientMode(1); // TODO - use default value and resize later
+    }
+
+    context->attachAndOwnComponent(std::move(lobbyMgr));
+
     // Create and attach a Gameplay manager
     auto gpMgr = std::make_unique<GameplayManager>(context->getQAORuntime().nonOwning());
     context->attachAndOwnComponent(std::move(gpMgr));
@@ -562,6 +584,7 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
  *
  */
 int main(int argc, char* argv[]) {
+    hg::log::SetMinimalLogSeverity(hg::log::Severity::All);
     RN_IndexHandlers();
 
     // Parse command line arguments:

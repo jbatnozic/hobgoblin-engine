@@ -12,6 +12,9 @@
 namespace jbatnozic {
 namespace spempe {
 
+/**
+ * Needs: Networking manager
+ */
 class DefaultSyncedVarmapManager 
     : public SyncedVarmapManagerInterface
     , public NonstateObject
@@ -29,9 +32,9 @@ public:
     // VALUE GETTERS                                                         //
     ///////////////////////////////////////////////////////////////////////////
 
-    auto getInt64(const std::string& aKey) const->std::optional<std::int64_t> override;
-    auto getDouble(const std::string& aKey) const->std::optional<double> override;
-    auto getString(const std::string& aKey) const->std::optional<std::string> override;
+    auto getInt64(const std::string& aKey) const -> std::optional<std::int64_t> override;
+    auto getDouble(const std::string& aKey) const -> std::optional<double> override;
+    auto getString(const std::string& aKey) const -> std::optional<std::string> override;
 
     ///////////////////////////////////////////////////////////////////////////
     // VALUE SETTERS (HOST SIDE)                                             //

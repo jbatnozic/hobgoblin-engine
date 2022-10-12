@@ -3,6 +3,7 @@
 
 #include <Hobgoblin/Common.hpp>
 
+#include <cassert>
 #include <utility>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
@@ -130,11 +131,11 @@ const RN_ConnectorInterface& RN_UdpServerImpl::getClientConnector(PZInteger clie
 }
 
 void RN_UdpServerImpl::swapClients(PZInteger index1, PZInteger index2) {
-    // TODO
+    assert(false && "Not implemented (and not going to be)"); // TODO
 }
 
 void RN_UdpServerImpl::kickClient(PZInteger index) {
-    // TODO
+    assert(false && "Not implemented"); // TODO
 }
 
 ///////////////////////////////////////////////////////////////////////////
