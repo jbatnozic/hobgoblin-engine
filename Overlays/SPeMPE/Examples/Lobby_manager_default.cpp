@@ -7,6 +7,7 @@
 
 #include <Hobgoblin/Format.hpp>
 #include <Hobgoblin/Logging.hpp>
+#include <Hobgoblin/RigelNet_macros.hpp>
 #include <SPeMPE/Managers/Networking_manager_interface.hpp>
 #include <SPeMPE/Managers/Synced_varmap_manager_interface.hpp>
 #include <SPeMPE/Managers/Window_manager_interface.hpp>
@@ -24,7 +25,7 @@ bool IsConnected(const RN_ConnectorInterface& client) {
     return (client.getStatus() == RN_ConnectorStatus::Connected);
 }
 
-bool IsSameClient(const RN_ConnectorInterface& client, const PlayerId& player) {
+bool IsSameClient(const RN_ConnectorInterface& client, const PlayerInfo& player) {
     return (client.getRemoteInfo().ipAddress == player.ipAddress &&
             client.getRemoteInfo().port == player.port);
 }
@@ -36,6 +37,10 @@ const std::string& MakeVarmapKey_LobbySize() {
 
 std::string MakeVarmapKey_LockedIn_Name(hg::PZInteger aSlotIndex) {
     return fmt::format("::jbatnozic::spempe::DefaultLobbyManager_LI_NAME_{}", aSlotIndex);
+}
+
+std::string MakeVarmapKey_LockedIn_UniqueId(hg::PZInteger aSlotIndex) {
+    return fmt::format("::jbatnozic::spempe::DefaultLobbyManager_LI_UUID_{}", aSlotIndex);
 }
 
 std::string MakeVarmapKey_LockedIn_IpAddr(hg::PZInteger aSlotIndex) {
@@ -50,6 +55,10 @@ std::string MakeVarmapKey_Desired_Name(hg::PZInteger aSlotIndex) {
     return fmt::format("::jbatnozic::spempe::DefaultLobbyManager_DE_NAME_{}", aSlotIndex);
 }
 
+std::string MakeVarmapKey_Desired_UniqueId(hg::PZInteger aSlotIndex) {
+    return fmt::format("::jbatnozic::spempe::DefaultLobbyManager_DE_UUID_{}", aSlotIndex);
+}
+
 std::string MakeVarmapKey_Desired_IpAddr(hg::PZInteger aSlotIndex) {
     return fmt::format("::jbatnozic::spempe::DefaultLobbyManager_DE_IPADDR_{}", aSlotIndex);
 }
@@ -60,6 +69,69 @@ std::string MakeVarmapKey_Desired_Port(hg::PZInteger aSlotIndex) {
 
 } // namespace
 
+static void USPEMPE_DefaultLobbyManager_SetPlayerInfo_Impl(
+    DefaultLobbyManager& aLobbyMgr,
+    const std::string& aName,
+    const std::string& aUniqueId,
+    int aClientIndex
+) {
+    auto& self = aLobbyMgr;
+    auto& varmap = self.ccomp<SyncedVarmapManagerInterface>();
+
+    hg::PZInteger l;
+    for (l = 0; l < self._getSize(); l += 1) {
+        auto& entry = self._lockedIn[hg::pztos(l)];
+        if (entry.clientIndex == aClientIndex) {
+            entry.name = aName;
+            entry.uniqueId = aUniqueId;
+            break;
+        }
+    }
+    if (l != self._getSize()) {
+        varmap.setString(MakeVarmapKey_LockedIn_Name(l), aName);
+        varmap.setString(MakeVarmapKey_LockedIn_UniqueId(l), aUniqueId);
+    } else {
+        HG_LOG_WARN(LOG_ID, "USPEMPE_DefaultLobbyManager_SetPlayerInfo_Impl - "
+                    "Could not find client with corresponding idx amongst locked in clients.");
+    }
+
+    hg::PZInteger d;
+    for (d = 0; d < self._getSize(); d += 1) {
+        auto& entry = self._desired[hg::pztos(d)];
+        if (entry.clientIndex == aClientIndex) {
+            entry.name = aName;
+            entry.uniqueId = aUniqueId;
+            break;
+        }
+    }
+    if (d != self._getSize()) {
+        varmap.setString(MakeVarmapKey_Desired_Name(d), aName);
+        varmap.setString(MakeVarmapKey_Desired_UniqueId(d), aUniqueId);
+    }
+    else {
+        HG_LOG_WARN(LOG_ID, "USPEMPE_DefaultLobbyManager_SetPlayerInfo_Impl - "
+                    "Could not find client with corresponding idx amongst pending clients.");
+    }
+}
+
+RN_DEFINE_RPC(USPEMPE_DefaultLobbyManager_SetPlayerInfo,
+              RN_ARGS(std::string&, aName, std::string&, aUniqueId)) {
+    RN_NODE_IN_HANDLER().callIfServer(
+        [&](RN_ServerInterface& aServer) {
+            const auto sp = SPEMPE_GET_SYNC_PARAMS(aServer);
+            USPEMPE_DefaultLobbyManager_SetPlayerInfo_Impl(
+                dynamic_cast<DefaultLobbyManager&>(sp.context.getComponent<LobbyManagerInterface>()),
+                aName,
+                aUniqueId,
+                sp.senderIndex
+            );
+        });
+    RN_NODE_IN_HANDLER().callIfClient(
+        [](RN_ClientInterface&) {
+            throw RN_IllegalMessage();
+        });
+}
+
 DefaultLobbyManager::DefaultLobbyManager(hg::QAO_RuntimeRef aRuntimeRef, int aExecutionPriority)
     : NonstateObject(aRuntimeRef, SPEMPE_TYPEID_SELF, aExecutionPriority, "::jbatnozic::spempe::DefaultLobbyManager")
 {    
@@ -68,6 +140,8 @@ DefaultLobbyManager::DefaultLobbyManager(hg::QAO_RuntimeRef aRuntimeRef, int aEx
 DefaultLobbyManager::~DefaultLobbyManager() = default;
 
 void DefaultLobbyManager::setToHostMode(hobgoblin::PZInteger aLobbySize) {
+    assert(aLobbySize > 0); // TODO (hard assert)
+
     _lockedIn.resize(hg::pztos(aLobbySize));
     _desired.resize(hg::pztos(aLobbySize));
 
@@ -75,11 +149,57 @@ void DefaultLobbyManager::setToHostMode(hobgoblin::PZInteger aLobbySize) {
         MakeVarmapKey_LobbySize(),
         aLobbySize
     );
+
+    // Set local player
+    _lockedIn[0].name = "<< SPeMPE SERVER >>";
+    _lockedIn[0].uniqueId = "n/a";
+    _lockedIn[0].ipAddress = "localhost";
+    _lockedIn[0].port = 0;
+    _lockedIn[0].clientIndex = CLIENT_INDEX_LOCAL;
+
+    _desired[0] = _lockedIn[0];
+
+    _clientIdxToPlayerIdxMapping[CLIENT_INDEX_LOCAL] = PLAYER_INDEX_LOCAL;
+
+    auto& varmap = ccomp<SyncedVarmapManagerInterface>();
+    varmap.setString(MakeVarmapKey_LockedIn_Name(0), _lockedIn[0].name);
+    varmap.setString(MakeVarmapKey_LockedIn_IpAddr(0), _lockedIn[0].ipAddress);
+    varmap.setInt64(MakeVarmapKey_LockedIn_Port(0), _lockedIn[0].port);
+    varmap.setString(MakeVarmapKey_Desired_Name(0), _desired[0].name);
+    varmap.setString(MakeVarmapKey_Desired_IpAddr(0), _desired[0].ipAddress);
+    varmap.setInt64(MakeVarmapKey_Desired_Port(0), _desired[0].port);
 }
 
 void DefaultLobbyManager::setToClientMode(hobgoblin::PZInteger aLobbySize) {
     _lockedIn.resize(hg::pztos(aLobbySize));
     _desired.resize(hg::pztos(aLobbySize));
+}
+
+void DefaultLobbyManager::setLocalName(const std::string& aNewName) {
+    _localPlayerInfo.name = aNewName;
+}
+
+std::string DefaultLobbyManager::getLocalName() const {
+    return _localPlayerInfo.name;
+}
+
+void DefaultLobbyManager::setLocalUniqueId(const std::string& aNewUniqueId) {
+    _localPlayerInfo.uniqueId = aNewUniqueId;
+}
+
+std::string DefaultLobbyManager::getLocalUniqueId() const {
+    return _localPlayerInfo.uniqueId;
+}
+
+void DefaultLobbyManager::uploadLocalInfo() const {
+    // TODO assert(this == client)
+    auto& netMgr = ccomp<NetworkingManagerInterface>();
+    Compose_USPEMPE_DefaultLobbyManager_SetPlayerInfo(
+        netMgr.getNode(),
+        RN_COMPOSE_FOR_ALL,
+        _localPlayerInfo.name,
+        _localPlayerInfo.uniqueId
+    );
 }
 
 void DefaultLobbyManager::lockIn() {
@@ -94,6 +214,10 @@ void DefaultLobbyManager::lockIn() {
 
         // send msg to client to update his Player ID
     }
+}
+
+int DefaultLobbyManager::getLocalPlayerIndex() const {
+    return _localPlayerIndex;
 }
 
 hg::PZInteger DefaultLobbyManager::clientIdxToPlayerIdx(hg::PZInteger aClientIdx) const {
@@ -252,14 +376,14 @@ hg::PZInteger DefaultLobbyManager::_findOptimalPositionForClient(const RN_Connec
     return currentBest.pos;
 }
 
-void DefaultLobbyManager::_removeEntriesForDisconnectedPlayers(std::vector<TaggedPlayerId>& aTarget) {
+void DefaultLobbyManager::_removeEntriesForDisconnectedPlayers(std::vector<ExtendedPlayerInfo>& aTarget) {
     const auto& server = ccomp<NetworkingManagerInterface>().getServer();
     auto& varmap = ccomp<SyncedVarmapManagerInterface>();
 
     for (std::size_t i = 0; i < aTarget.size(); i += 1) {
         auto& player = aTarget[i];
 
-        if (player.clientIndex == CLIENT_INDEX_NONE) {
+        if (player.clientIndex == CLIENT_INDEX_NONE || player.clientIndex == CLIENT_INDEX_LOCAL) {
             continue;
         }
 

@@ -102,7 +102,7 @@ void DefaultSyncedVarmapManager::onNetworkingEvent(const hg::RN_Event& aEvent) {
     }
 
     using namespace hg::rn;
-    aEvent.visit(
+    aEvent.strictVisit(
         [](const RN_Event::BadPassphrase&) {
             // Don't care
         },

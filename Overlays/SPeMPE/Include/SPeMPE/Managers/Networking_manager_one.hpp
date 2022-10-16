@@ -66,7 +66,7 @@ public:
     // MISC.                                                                 //
     ///////////////////////////////////////////////////////////////////////////
 
-    int getLocalPlayerIndex() override;
+    int getLocalClientIndex() const override;
 
 protected:
     void _eventPreUpdate() override;
@@ -74,7 +74,7 @@ protected:
 
 private:
     Mode _mode = Mode::Uninitialized;
-    int _localPlayerIndex = PLAYER_INDEX_NONE;
+    int _localClientIndex = CLIENT_INDEX_UNKNOWN;
 
     std::unique_ptr<NodeType> _node;
     detail::SynchronizedObjectRegistry _syncObjReg;

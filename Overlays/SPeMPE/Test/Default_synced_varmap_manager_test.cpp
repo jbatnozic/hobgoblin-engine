@@ -58,7 +58,7 @@ public:
 
         ASSERT_EQ(_netMgr2->getClient().getServerConnector().getStatus(),
                   jbatnozic::hobgoblin::RN_ConnectorStatus::Connected);
-        ASSERT_EQ(_netMgr2->getLocalPlayerIndex(), 1); // Player 0 is the host, player 0 is client 0
+        ASSERT_EQ(_netMgr2->getLocalClientIndex(), 0);
     }
 
     void TearDown() override {

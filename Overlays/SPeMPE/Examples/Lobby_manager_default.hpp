@@ -34,7 +34,23 @@ public:
     // ???                                                                   //
     ///////////////////////////////////////////////////////////////////////////
 
+    void setLocalName(const std::string& aNewName) override;
+
+    std::string getLocalName() const override;
+
+    void setLocalUniqueId(const std::string& aNewUniqueId) override;
+
+    std::string getLocalUniqueId() const override;
+
+    void uploadLocalInfo() const override;
+
+    hobgoblin::PZInteger getSize() const override { return 0; }
+
+    void resize(hobgoblin::PZInteger aNewLobbySize) const override {}
+
     void lockIn() override;
+
+    int getLocalPlayerIndex() const override;
 
     hg::PZInteger clientIdxToPlayerIdx(hg::PZInteger aClientIdx) const override;
     hg::PZInteger playerIdxToClientIdx(hg::PZInteger aPlayerIdx) const override;
@@ -43,10 +59,12 @@ private:
     constexpr static int CLIENT_INDEX_NONE  = -2;
     constexpr static int CLIENT_INDEX_LOCAL = -1;
 
-    struct TaggedPlayerId : PlayerId {
+    struct ExtendedPlayerInfo : PlayerInfo {
         int clientIndex = CLIENT_INDEX_NONE;
+        std::uint16_t port = 0;
 
-        bool operator==(const TaggedPlayerId& aOther) const {
+        // TODO Turn into regular method
+        bool operator==(const ExtendedPlayerInfo& aOther) const {
             return
                 name == aOther.name &&
                 ipAddress == aOther.ipAddress &&
@@ -54,15 +72,18 @@ private:
                 uniqueId == aOther.uniqueId;
         }
 
-        bool operator!=(const TaggedPlayerId& aOther) const {
+        bool operator!=(const ExtendedPlayerInfo& aOther) const {
             return !(*this == aOther);
         }
     };
 
-    std::vector<TaggedPlayerId> _lockedIn;
-    std::vector<TaggedPlayerId> _desired;
+    std::vector<ExtendedPlayerInfo> _lockedIn;
+    std::vector<ExtendedPlayerInfo> _desired;
 
     std::unordered_map<int, int> _clientIdxToPlayerIdxMapping;
+
+    PlayerInfo _localPlayerInfo;
+    int _localPlayerIndex = PLAYER_INDEX_UNKNOWN;
 
     void _eventPreUpdate() override;
     void _eventDrawGUI() override;
@@ -70,7 +91,14 @@ private:
     hg::PZInteger _getSize() const;
     bool _hasEntryForClient(const hobgoblin::RN_ConnectorInterface& aClient) const;
     hg::PZInteger _findOptimalPositionForClient(const hobgoblin::RN_ConnectorInterface& aClient) const;
-    void _removeEntriesForDisconnectedPlayers(std::vector<TaggedPlayerId>& aTarget);
+    void _removeEntriesForDisconnectedPlayers(std::vector<ExtendedPlayerInfo>& aTarget);
+
+    friend void USPEMPE_DefaultLobbyManager_SetPlayerInfo_Impl(
+        DefaultLobbyManager& aLobbyMgr,
+        const std::string& aName,
+        const std::string& aUniqueId,
+        int aClientIndex
+    );
 };
 
 } // namespace spempe

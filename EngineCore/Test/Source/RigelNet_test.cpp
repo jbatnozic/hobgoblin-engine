@@ -71,7 +71,7 @@ protected:
 
         RN_Event ev;
         while (node.pollEvent(ev)) {
-            ev.visit(
+            ev.strictVisit(
                 [&](const RN_Event::BadPassphrase& ev) {
                     cnt.badPassphrase += 1;
                 },

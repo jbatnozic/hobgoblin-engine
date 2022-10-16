@@ -11,7 +11,7 @@ namespace util {
 
 template <class ...Args>
 struct Visitor : Args... {
-    Visitor(Args&&... args) 
+    Visitor(Args&&... args)
         : Args{std::forward<Args>(args)}...
     {
     }

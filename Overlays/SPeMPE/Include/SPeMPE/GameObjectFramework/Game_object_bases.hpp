@@ -39,7 +39,7 @@ public:
     //! Shorthand to get one of the context components of the context 
     //! in which this object lives.
     template <class taComponent>
-    taComponent& ccomp() {
+    taComponent& ccomp() const {
         return ctx().getComponent<taComponent>();
     }
 };

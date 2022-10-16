@@ -230,13 +230,11 @@ void RN_UdpConnectorImpl::connectLocal(RN_ServerInterface& server) {
     auto* udpServer = dynamic_cast<RN_UdpServerImpl*>(&server);
     if (!udpServer) {
         throw TracedLogicError("Incompatible node types for local connection");
-        return;
     }
 
     const int clientIndex = udpServer->acceptLocalConnection(SELF, _passphrase);
     if (clientIndex < 0) {
         throw TracedRuntimeError("Local connection refused");
-        return;
     }
 
     assert(_localSharedState != nullptr);
@@ -279,8 +277,6 @@ void RN_UdpConnectorImpl::checkForTimeout() {
         else {
             _eventFactory.createDisconnected(RN_Event::Disconnected::Reason::TimedOut, "Connection timed out");
         }
-
-        return;
     }
 }
 
@@ -416,6 +412,11 @@ void RN_UdpConnectorImpl::sendAcks() {
 void RN_UdpConnectorImpl::handleDataMessages(RN_NodeInterface& node, 
                                              util::Packet*& pointerToCurrentPacket) {
     assert(_status != RN_ConnectorStatus::Disconnected);
+
+    if (_skipNextDataPacketProcessing) {
+        _skipNextDataPacketProcessing = false;
+        return;
+    }
 
     if (_isConnectedLocally()) {
         if (_localSharedState->getData(SELF)) {
@@ -735,6 +736,9 @@ void RN_UdpConnectorImpl::_receivedAck(std::uint32_t ordinal, bool strong) {
 void RN_UdpConnectorImpl::_startSession() {
     _status = RN_ConnectorStatus::Connected;
     _remoteInfo.timeoutStopwatch.restart();
+    // It's important that events have a chance to be polles and 
+    // processed before we process any data packets.
+    _skipNextDataPacketProcessing = true;
 }
 
 void RN_UdpConnectorImpl::_prepareNextOutgoingDataPacket(std::uint32_t packetType) {
@@ -774,12 +778,10 @@ void RN_UdpConnectorImpl::_tryToAssembleFragmentedPacketAtHead() {
             // All fragments present!
             allFragmentsPresent = true;
             goto BREAK_FOR;
-            break;
 
         default:
             // This isn't supposed to happen
             throw RN_IllegalMessage("Impossible to assemble fragmented packet");
-            break;
         }
     }
 BREAK_FOR:
@@ -860,7 +862,6 @@ void RN_UdpConnectorImpl::_processHelloPacket(util::Packet& packet) {
     switch (_status) {
     case RN_ConnectorStatus::Connecting:
         throw FatalPacketTypeReceived{"Received HELLO packet (status: Connecting)"};
-        break;
 
     case RN_ConnectorStatus::Accepting:
         NO_OP();
@@ -881,7 +882,7 @@ void RN_UdpConnectorImpl::_processConnectPacket(util::Packet& packet) {
     switch (_status) {
     case RN_ConnectorStatus::Connecting:
     {
-        std::string receivedPassphrase = packet.extractOrThrow<std::string>();
+        auto receivedPassphrase = packet.extractOrThrow<std::string>();
         const PZInteger receivedClientIndex = packet.extractOrThrow<PZInteger>();
         if (receivedPassphrase == _passphrase) {
             // Client connected to server
@@ -898,7 +899,6 @@ void RN_UdpConnectorImpl::_processConnectPacket(util::Packet& packet) {
 
     case RN_ConnectorStatus::Accepting:
         throw FatalPacketTypeReceived{"Received CONNECT packet (status: Accepting)"};
-        break;
 
     case RN_ConnectorStatus::Connected:
         // TODO erroneous, nonfatal
@@ -932,7 +932,6 @@ void RN_UdpConnectorImpl::_processDataPacket(util::Packet& packet) {
     switch (_status) {
     case RN_ConnectorStatus::Connecting:
         throw FatalPacketTypeReceived{"Received DATA packet (status: Connecting)"};
-        break;
 
     case RN_ConnectorStatus::Accepting:       
         _eventFactory.createConnected();
@@ -953,7 +952,6 @@ void RN_UdpConnectorImpl::_processDataMorePacket(util::Packet& packet) {
     switch (_status) {
     case RN_ConnectorStatus::Connecting:
         throw FatalPacketTypeReceived{"Received DATA_MORE packet (status: Connecting)"};
-        break;
 
     case RN_ConnectorStatus::Accepting:       
         _eventFactory.createConnected();
@@ -974,7 +972,6 @@ void RN_UdpConnectorImpl::_processDataTailPacket(util::Packet& packet) {
     switch (_status) {
     case RN_ConnectorStatus::Connecting:
         throw FatalPacketTypeReceived{"Received DATA_TAIL packet (status: Connecting)"};
-        break;
 
     case RN_ConnectorStatus::Accepting:       
         _eventFactory.createConnected();
@@ -995,11 +992,9 @@ void RN_UdpConnectorImpl::_processAcksPacket(util::Packet& packet) {
     switch (_status) {
     case RN_ConnectorStatus::Connecting:
         throw FatalPacketTypeReceived{"Received ACKS packet (status: Connecting)"};
-        break;
 
     case RN_ConnectorStatus::Accepting:
         throw FatalPacketTypeReceived{"Received ACKS packet (status: Accepting)"};
-        break;
 
     case RN_ConnectorStatus::Connected:
         while (!packet.endOfPacket()) {
