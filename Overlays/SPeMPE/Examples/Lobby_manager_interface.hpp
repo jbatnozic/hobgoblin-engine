@@ -30,6 +30,9 @@ struct PlayerInfo {
     //! completely different.
     //! Four separate slots are provided for this data.
     std::array<std::string, 4> customData;
+
+    friend bool operator==(const PlayerInfo& aLhs, const PlayerInfo& aRhs);
+    friend bool operator!=(const PlayerInfo& aLhs, const PlayerInfo& aRhs);
 };
 
 
@@ -40,9 +43,17 @@ class LobbyManagerInterface : public ContextComponent {
 public:
     ~LobbyManagerInterface() override = default;
 
+    enum class Mode {
+        Uninitialized,
+        Host,
+        Client
+    };
+
     virtual void setToHostMode(hobgoblin::PZInteger aLobbySize) = 0;
 
     virtual void setToClientMode(hobgoblin::PZInteger aLobbySize) = 0;
+
+    virtual Mode getMode() const = 0;
 
     ///////////////////////////////////////////////////////////////////////////
     // HOST-MODE METHODS                                                     //
@@ -51,11 +62,14 @@ public:
 
     //! Use while in Host mode to map an index of a client connected to a SPeMPE
     //! Networking manager to their player index.
-    virtual hobgoblin::PZInteger clientIdxToPlayerIdx(hobgoblin::PZInteger aClientIdx) const = 0;
+    virtual hobgoblin::PZInteger clientIdxToPlayerIdx(int aClientIdx) const = 0;
 
     //! Use while in Host mode to map a player index to their client index
     //! (client = client connected to a SPeMPE Networking manager).
-    virtual hobgoblin::PZInteger playerIdxToClientIdx(hobgoblin::PZInteger aPlayerIdx) const = 0;
+    virtual int playerIdxToClientIdx(hobgoblin::PZInteger aPlayerIdx) const = 0;
+
+    //! TODO
+    virtual void beginSwap(hobgoblin::PZInteger aSlotIndex1, hobgoblin::PZInteger aSlotIndex2) = 0;
 
     //! TODO
     //! @returns true if any locked-in slot was changed by this; false otherwise.
@@ -64,7 +78,7 @@ public:
     //! TODO
     //! @returns true if any pending slot was changed by this; false otherwise.
     virtual bool resetPendingChanges() = 0;
-
+    
     ///////////////////////////////////////////////////////////////////////////
     // CLIENT-MODE METHODS                                                   //
     ///////////////////////////////////////////////////////////////////////////
@@ -99,7 +113,7 @@ public:
     //! Resizes the lobby (aNewLobbySize must be at least 1). When called on the Host size,
     //! it will set the lobby size for all connected clients. On client side, you can also
     //! call this but the lobby will keep reverting to the size set by the host.
-    virtual void resize(hobgoblin::PZInteger aNewLobbySize) const = 0;
+    virtual void resize(hobgoblin::PZInteger aNewLobbySize) = 0;
 
     virtual const PlayerInfo& getLockedInPlayerInfo(hobgoblin::PZInteger aSlotIndex) const = 0;
 
@@ -118,6 +132,19 @@ public:
 private:
     SPEMPE_CTXCOMP_TAG("jbatnozic::spempe::LobbyManager");
 };
+
+inline
+bool operator==(const PlayerInfo& aLhs, const PlayerInfo& aRhs) {
+    return (aLhs.name == aRhs.name &&
+            aLhs.ipAddress == aRhs.ipAddress &&
+            aLhs.uniqueId == aRhs.uniqueId &&
+            aLhs.customData == aRhs.customData);
+}
+
+inline
+bool operator!=(const PlayerInfo& aLhs, const PlayerInfo& aRhs) {
+    return !(aLhs == aRhs);
+}
 
 } // namespace spempe
 } // namespace jbatnozic

@@ -10,6 +10,7 @@
 #include <vector>
 
 #include <SPeMPE/GameObjectFramework/Game_object_bases.hpp>
+#include <SPeMPE/Managers/Networking_manager_interface.hpp>
 
 namespace jbatnozic {
 namespace spempe {
@@ -30,52 +31,70 @@ public:
 
     void setToClientMode(hobgoblin::PZInteger aLobbySize) override;
 
+    Mode getMode() const override;
+
     ///////////////////////////////////////////////////////////////////////////
-    // ???                                                                   //
+    // HOST-MODE METHODS                                                     //
     ///////////////////////////////////////////////////////////////////////////
 
-    void setLocalName(const std::string& aNewName) override;
+    hobgoblin::PZInteger clientIdxToPlayerIdx(int aClientIdx) const override;
 
-    std::string getLocalName() const override;
+    int playerIdxToClientIdx(hobgoblin::PZInteger aPlayerIdx) const override;
 
-    void setLocalUniqueId(const std::string& aNewUniqueId) override;
+    void beginSwap(hobgoblin::PZInteger aSlotIndex1, hobgoblin::PZInteger aSlotIndex2) override;
 
-    std::string getLocalUniqueId() const override;
+    bool lockInPendingChanges() override;
 
+    bool resetPendingChanges() override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    // CLIENT-MODE METHODS                                                   //
+    ///////////////////////////////////////////////////////////////////////////
+    
     void uploadLocalInfo() const override;
 
-    hobgoblin::PZInteger getSize() const override { return 0; }
+    ///////////////////////////////////////////////////////////////////////////
+    // MODE-INDEPENDENT METHODS                                              //
+    ///////////////////////////////////////////////////////////////////////////
 
-    void resize(hobgoblin::PZInteger aNewLobbySize) const override {}
+    void setLocalName(const std::string& aName) override;
 
-    void lockIn() override;
+    const std::string& getLocalName() const override;
+
+    void setLocalUniqueId(const std::string& aUniqueId) override;
+
+    const std::string& getLocalUniqueId() const override;
+
+    void setLocalCustomData(hobgoblin::PZInteger aIndex,
+                            const std::string& aCustomData) override;
+
+    const std::string& getLocalCustomData(hobgoblin::PZInteger aIndex) const override;
+
+    hobgoblin::PZInteger getSize() const override;
+
+    void resize(hobgoblin::PZInteger aNewLobbySize) override;
+
+    const PlayerInfo& getLockedInPlayerInfo(hobgoblin::PZInteger aSlotIndex) const override;
+
+    const PlayerInfo& getPendingPlayerInfo(hobgoblin::PZInteger aSlotIndex) const override;
+
+    bool areChangesPending(hobgoblin::PZInteger aSlotIndex) const override;
+
+    bool areChangesPending() const override;
 
     int getLocalPlayerIndex() const override;
 
-    hg::PZInteger clientIdxToPlayerIdx(hg::PZInteger aClientIdx) const override;
-    hg::PZInteger playerIdxToClientIdx(hg::PZInteger aPlayerIdx) const override;
-
 private:
-    constexpr static int CLIENT_INDEX_NONE  = -2;
-    constexpr static int CLIENT_INDEX_LOCAL = -1;
+    Mode _mode = Mode::Uninitialized;
 
     struct ExtendedPlayerInfo : PlayerInfo {
-        int clientIndex = CLIENT_INDEX_NONE;
+        int clientIndex = CLIENT_INDEX_UNKNOWN;
         std::uint16_t port = 0;
-
-        // TODO Turn into regular method
-        bool operator==(const ExtendedPlayerInfo& aOther) const {
-            return
-                name == aOther.name &&
-                ipAddress == aOther.ipAddress &&
-                port == aOther.port &&
-                uniqueId == aOther.uniqueId;
-        }
-
-        bool operator!=(const ExtendedPlayerInfo& aOther) const {
-            return !(*this == aOther);
-        }
+        
+        bool isSameAs(const hobgoblin::RN_ConnectorInterface& aClient) const;
     };
+    friend bool operator==(const ExtendedPlayerInfo& aLhs, const ExtendedPlayerInfo& aRhs);
+    friend bool operator!=(const ExtendedPlayerInfo& aLhs, const ExtendedPlayerInfo& aRhs);
 
     std::vector<ExtendedPlayerInfo> _lockedIn;
     std::vector<ExtendedPlayerInfo> _desired;
@@ -91,13 +110,24 @@ private:
     hg::PZInteger _getSize() const;
     bool _hasEntryForClient(const hobgoblin::RN_ConnectorInterface& aClient) const;
     hg::PZInteger _findOptimalPositionForClient(const hobgoblin::RN_ConnectorInterface& aClient) const;
-    void _removeEntriesForDisconnectedPlayers(std::vector<ExtendedPlayerInfo>& aTarget);
+    void _removeDesiredEntriesForDisconnectedPlayers();
+    void _updateVarmapForLockedInEntry(hobgoblin::PZInteger aSlotIndex) const;
+    void _updateVarmapForDesiredEntry(hobgoblin::PZInteger aSlotIndex) const;
 
     friend void USPEMPE_DefaultLobbyManager_SetPlayerInfo_Impl(
         DefaultLobbyManager& aLobbyMgr,
+        const int aClientIndex,
         const std::string& aName,
         const std::string& aUniqueId,
-        int aClientIndex
+        const std::string& aCustomData_0,
+        const std::string& aCustomData_1,
+        const std::string& aCustomData_2,
+        const std::string& aCustomData_3
+    );
+
+    friend void USPEMPE_DefaultLobbyManager_SetPlayerIndex_Impl(
+        DefaultLobbyManager& aLobbyMgr,
+        hobgoblin::PZInteger aPlayerIndex
     );
 };
 
