@@ -1,7 +1,7 @@
+#ifndef SPEMPE_MANAGERS_LOBBY_MANAGER_DEFAULT_HPP
+#define SPEMPE_MANAGERS_LOBBY_MANAGER_DEFAULT_HPP
 
-#pragma once
-
-#include "Lobby_manager_interface.hpp"
+#include <SPeMPE/Managers/Lobby_manager_interface.hpp>
 
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/RigelNet.hpp>
@@ -108,7 +108,7 @@ private:
     void _eventDrawGUI() override;
 
     hg::PZInteger _getSize() const;
-    bool _hasEntryForClient(const hobgoblin::RN_ConnectorInterface& aClient) const;
+    bool _hasEntryForClient(const hobgoblin::RN_ConnectorInterface& aClient, int aClientIndex) const;
     hg::PZInteger _findOptimalPositionForClient(const hobgoblin::RN_ConnectorInterface& aClient) const;
     void _removeDesiredEntriesForDisconnectedPlayers();
     void _updateVarmapForLockedInEntry(hobgoblin::PZInteger aSlotIndex) const;
@@ -133,3 +133,5 @@ private:
 
 } // namespace spempe
 } // namespace jbatnozic
+
+#endif // !SPEMPE_MANAGERS_LOBBY_MANAGER_DEFAULT_HPP

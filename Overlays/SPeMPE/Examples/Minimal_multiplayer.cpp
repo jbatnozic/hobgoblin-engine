@@ -10,9 +10,6 @@
 #include <string>
 #include <vector>
 
-#include "Lobby_manager_interface.hpp"
-#include "Lobby_manager_default.hpp"
-
 namespace hg  = ::jbatnozic::hobgoblin;
 namespace spe = ::jbatnozic::spempe;
 using namespace hg::qao; // All names from QAO are prefixed with QAO_

@@ -4,7 +4,6 @@
 #include <Hobgoblin/Common.hpp>
 
 #include <array>
-#include <cstdint>
 #include <string>
 
 #include <SPeMPE/GameContext/Context_components.hpp>

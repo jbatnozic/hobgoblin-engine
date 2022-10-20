@@ -1,6 +1,7 @@
 
-#include "Lobby_manager_default.hpp"
+#include <SPeMPE/Managers/Lobby_manager_default.hpp>
 
+#include <algorithm>
 #include <cassert>
 #include <sstream>
 #include <utility>
@@ -96,8 +97,10 @@ void USPEMPE_DefaultLobbyManager_SetPlayerInfo_Impl(
         self._updateVarmapForLockedInEntry(l);
     }
     else {
-        HG_LOG_WARN(LOG_ID, "USPEMPE_DefaultLobbyManager_SetPlayerInfo_Impl - "
-                    "Could not find client with corresponding idx amongst locked in clients.");
+        HG_LOG_WARN(LOG_ID, 
+                    "USPEMPE_DefaultLobbyManager_SetPlayerInfo_Impl - "
+                    "Could not find client with corresponding idx {} amongst locked in clients.",
+                    aClientIndex);
     }
 
     hg::PZInteger d;
@@ -117,8 +120,10 @@ void USPEMPE_DefaultLobbyManager_SetPlayerInfo_Impl(
         self._updateVarmapForDesiredEntry(d);
     }
     else {
-        HG_LOG_WARN(LOG_ID, "USPEMPE_DefaultLobbyManager_SetPlayerInfo_Impl - "
-                    "Could not find client with corresponding idx amongst pending clients.");
+        HG_LOG_WARN(LOG_ID, 
+                    "USPEMPE_DefaultLobbyManager_SetPlayerInfo_Impl - "
+                    "Could not find client with corresponding idx {} amongst pending clients.",
+                    aClientIndex);
     }
 }
 
@@ -187,8 +192,9 @@ bool operator!=(const DefaultLobbyManager::ExtendedPlayerInfo& aLhs,
 
 
 bool DefaultLobbyManager::ExtendedPlayerInfo::isSameAs(const hg::RN_ConnectorInterface& aClient) const {
-    return (aClient.getRemoteInfo().ipAddress == ipAddress &&
-            aClient.getRemoteInfo().port == port);
+    const auto ip_ = aClient.getRemoteInfo().ipAddress.toString();
+    const auto port_ = aClient.getRemoteInfo().port;
+    return (ip_ == ipAddress && port_ == port);
 }
 
 DefaultLobbyManager::DefaultLobbyManager(hg::QAO_RuntimeRef aRuntimeRef, int aExecutionPriority)
@@ -211,7 +217,7 @@ void DefaultLobbyManager::setToHostMode(hobgoblin::PZInteger aLobbySize) {
     // Set local player
     _lockedIn[0].name = "<< SPeMPE SERVER >>";
     _lockedIn[0].uniqueId = "n/a";
-    _lockedIn[0].ipAddress = "localhost";
+    _lockedIn[0].ipAddress = "127.0.0.1";
     _lockedIn[0].port = 0;
     _lockedIn[0].clientIndex = CLIENT_INDEX_LOCAL;
 
@@ -247,7 +253,8 @@ hg::PZInteger DefaultLobbyManager::clientIdxToPlayerIdx(int aClientIdx) const {
     if (iter != _clientIdxToPlayerIdxMapping.end()) {
         return iter->second;
     }
-    // else...? TODO
+    
+    return PLAYER_INDEX_UNKNOWN;
 }
 
 int DefaultLobbyManager::playerIdxToClientIdx(hg::PZInteger aPlayerIdx) const {
@@ -333,6 +340,26 @@ void DefaultLobbyManager::uploadLocalInfo() const {
 
 void DefaultLobbyManager::setLocalName(const std::string& aName) {
     _localPlayerInfo.name = aName;
+
+    if (_mode == Mode::Host) {
+        auto& varmap = ccomp<SyncedVarmapManagerInterface>();
+        {
+            const auto localSlot =
+                std::find_if(_lockedIn.begin(), _lockedIn.end(),
+                             [](const ExtendedPlayerInfo& aEpi) { return aEpi.clientIndex == CLIENT_INDEX_LOCAL; }
+            ) - _lockedIn.begin();
+            _lockedIn[static_cast<std::size_t>(localSlot)].name = aName;
+            varmap.setString(MakeVarmapKey_LockedIn_Name(static_cast<hg::PZInteger>(localSlot)), aName);
+        }
+        {
+            const auto localSlot =
+                std::find_if(_desired.begin(), _desired.end(),
+                             [](const ExtendedPlayerInfo& aEpi) { return aEpi.clientIndex == CLIENT_INDEX_LOCAL; }
+            ) - _desired.begin();
+            _desired[static_cast<std::size_t>(localSlot)].name = aName;
+            varmap.setString(MakeVarmapKey_Desired_Name(static_cast<hg::PZInteger>(localSlot)), aName);
+        }
+    }
 }
 
 const std::string& DefaultLobbyManager::getLocalName() const {
@@ -341,6 +368,26 @@ const std::string& DefaultLobbyManager::getLocalName() const {
 
 void DefaultLobbyManager::setLocalUniqueId(const std::string& aUniqueId) {
     _localPlayerInfo.uniqueId = aUniqueId;
+
+    if (_mode == Mode::Host) {
+        auto& varmap = ccomp<SyncedVarmapManagerInterface>();
+        {
+            const auto localSlot =
+                std::find_if(_lockedIn.begin(), _lockedIn.end(),
+                             [](const ExtendedPlayerInfo& aEpi) { return aEpi.clientIndex == CLIENT_INDEX_LOCAL; }
+            ) - _lockedIn.begin();
+            _lockedIn[static_cast<std::size_t>(localSlot)].uniqueId = aUniqueId;
+            varmap.setString(MakeVarmapKey_LockedIn_UniqueId(static_cast<hg::PZInteger>(localSlot)), aUniqueId);
+        }
+        {
+            const auto localSlot =
+                std::find_if(_desired.begin(), _desired.end(),
+                             [](const ExtendedPlayerInfo& aEpi) { return aEpi.clientIndex == CLIENT_INDEX_LOCAL; }
+            ) - _desired.begin();
+            _desired[static_cast<std::size_t>(localSlot)].uniqueId = aUniqueId;
+            varmap.setString(MakeVarmapKey_Desired_UniqueId(static_cast<hg::PZInteger>(localSlot)), aUniqueId);
+        }
+    }
 }
 
 const std::string& DefaultLobbyManager::getLocalUniqueId() const {
@@ -350,6 +397,26 @@ const std::string& DefaultLobbyManager::getLocalUniqueId() const {
 void DefaultLobbyManager::setLocalCustomData(hobgoblin::PZInteger aIndex,
                                              const std::string& aCustomData) {
     _localPlayerInfo.customData.at(hg::pztos(aIndex)) = aCustomData;
+
+    if (_mode == Mode::Host) {
+        auto& varmap = ccomp<SyncedVarmapManagerInterface>();
+        {
+            const auto localSlot =
+                std::find_if(_lockedIn.begin(), _lockedIn.end(),
+                             [](const ExtendedPlayerInfo& aEpi) { return aEpi.clientIndex == CLIENT_INDEX_LOCAL; }
+            ) - _lockedIn.begin();
+            _lockedIn[static_cast<std::size_t>(localSlot)].customData[hg::pztos(aIndex)] = aCustomData;
+            varmap.setString(MakeVarmapKey_LockedIn_CData(static_cast<hg::PZInteger>(localSlot), aIndex), aCustomData);
+        }
+        {
+            const auto localSlot =
+                std::find_if(_desired.begin(), _desired.end(),
+                             [](const ExtendedPlayerInfo& aEpi) { return aEpi.clientIndex == CLIENT_INDEX_LOCAL; }
+            ) - _desired.begin();
+            _desired[static_cast<std::size_t>(localSlot)].customData[hg::pztos(aIndex)] = aCustomData;
+            varmap.setString(MakeVarmapKey_Desired_CData(static_cast<hg::PZInteger>(localSlot), aIndex), aCustomData);
+        }
+    }
 }
 
 const std::string& DefaultLobbyManager::getLocalCustomData(hobgoblin::PZInteger aIndex) const {
@@ -419,7 +486,7 @@ void DefaultLobbyManager::_eventPreUpdate() {
         for (hg::PZInteger i = 0; i < server.getSize(); i += 1) {
             const auto& client = server.getClientConnector(i);
 
-            if (IsConnected(client) && !_hasEntryForClient(client)) {
+            if (IsConnected(client) && !_hasEntryForClient(client, i)) {
                 const auto pos = _findOptimalPositionForClient(client);
 
                 _desired[hg::pztos(pos)].name        = "<name>";
@@ -434,12 +501,12 @@ void DefaultLobbyManager::_eventPreUpdate() {
             }
         }
 
-        if (ccomp<WindowManagerInterface>().getKeyboardInput().checkPressed(KbKey::L, KbInput::Mode::Direct)) {
-            if (_mode == Mode::Host) {
-                HG_LOG_INFO(LOG_ID, "Locking in slots");
-                lockInPendingChanges(); // TODO Temp.
-            }
-        }
+        //if (ccomp<WindowManagerInterface>().getKeyboardInput().checkPressed(KbKey::L, KbInput::Mode::Direct)) {
+        //    if (_mode == Mode::Host) {
+        //        HG_LOG_INFO(LOG_ID, "Locking in slots");
+        //        lockInPendingChanges(); // TODO Temp.
+        //    }
+        //}
     } else {
         // ***** CLIENT ***** //
 
@@ -533,9 +600,9 @@ hg::PZInteger DefaultLobbyManager::_getSize() const {
     return hg::stopz(_lockedIn.size());
 }
 
-bool DefaultLobbyManager::_hasEntryForClient(const RN_ConnectorInterface& aClient) const {
+bool DefaultLobbyManager::_hasEntryForClient(const RN_ConnectorInterface& aClient, int aClientIndex) const {
     for (const auto& entry : _desired) {
-        if (entry.isSameAs(aClient)) {
+        if (entry.isSameAs(aClient) && entry.clientIndex == aClientIndex) {
             return true;
         }
     }
@@ -576,7 +643,7 @@ hg::PZInteger DefaultLobbyManager::_findOptimalPositionForClient(const RN_Connec
 void DefaultLobbyManager::_removeDesiredEntriesForDisconnectedPlayers() {
     const auto& server = ccomp<NetworkingManagerInterface>().getServer();
 
-    for (std::size_t i = 0; i < _desired.size(); i += 1) {
+    for (std::size_t i = 0; i < hg::pztos(_getSize()); i += 1) {
         auto& player = _desired[i];
 
         if (player.clientIndex == CLIENT_INDEX_UNKNOWN || player.clientIndex == CLIENT_INDEX_LOCAL) {
