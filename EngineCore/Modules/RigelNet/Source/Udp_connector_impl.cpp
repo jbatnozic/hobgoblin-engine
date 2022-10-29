@@ -736,7 +736,7 @@ void RN_UdpConnectorImpl::_receivedAck(std::uint32_t ordinal, bool strong) {
 void RN_UdpConnectorImpl::_startSession() {
     _status = RN_ConnectorStatus::Connected;
     _remoteInfo.timeoutStopwatch.restart();
-    // It's important that events have a chance to be polles and 
+    // It's important that events have a chance to be polled and
     // processed before we process any data packets.
     _skipNextDataPacketProcessing = true;
 }
