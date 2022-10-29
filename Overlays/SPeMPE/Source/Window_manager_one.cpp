@@ -12,7 +12,7 @@ namespace spempe {
 
 WindowManagerOne::WindowManagerOne(hg::QAO_RuntimeRef aRuntimeRef,
                                    int aExecutionPriority)
-    : NonstateObject{aRuntimeRef, SPEMPE_TYPEID_SELF, aExecutionPriority, "jbatnozic::spempe::WindowManagerOne"}
+    : NonstateObject{aRuntimeRef, SPEMPE_TYPEID_SELF, aExecutionPriority, "::jbatnozic::spempe::WindowManagerOne"}
     , _window{}
     , _windowToCanvasAdapter{}
     , _windowDrawBatcher{}

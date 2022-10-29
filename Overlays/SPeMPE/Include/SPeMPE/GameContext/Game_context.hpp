@@ -20,11 +20,13 @@ namespace spempe {
 namespace hg = ::jbatnozic::hobgoblin;
 
 namespace detail {
+// Game Context Mode Flags
 constexpr int GCMF_NONE = 0x0;
 constexpr int GCMF_PRIV = 0x1;
 constexpr int GCMF_HDLS = 0x2;
 constexpr int GCMF_NETW = 0x4;
 
+// Game Context Modes
 constexpr int GCM_INIT = GCMF_NONE;
 constexpr int GCM_SERV = GCMF_PRIV | GCMF_HDLS | GCMF_NETW;
 constexpr int GCM_CLNT = GCMF_NETW;
@@ -73,6 +75,17 @@ public:
     const RuntimeConfig& getRuntimeConfig() const;
 
     ///////////////////////////////////////////////////////////////////////////
+    // GAME STATE MANAGEMENT                                                 //
+    ///////////////////////////////////////////////////////////////////////////
+
+    struct GameState {
+        bool isPaused = false;
+    };
+
+    GameState& getGameState();
+    const GameState& getGameState() const;
+
+    ///////////////////////////////////////////////////////////////////////////
     // GAME OBJECT MANAGEMENT                                                //
     ///////////////////////////////////////////////////////////////////////////
 
@@ -97,6 +110,10 @@ public:
     //! Throws hg::TracedLogicError if the component isn't present.
     template <class taComponent>
     taComponent& getComponent() const;
+
+    //! Returns nullptr if the component isn't present.
+    template <class taComponent>
+    taComponent* getComponentPtr() const;
 
     std::string getComponentTableString(char aSeparator = '\n') const;
 
@@ -171,6 +188,9 @@ private:
     Mode _mode = Mode::Initial;
     RuntimeConfig _runtimeConfig;
 
+    // State:
+    GameState _state;
+
     // Game object management:
     hg::QAO_Runtime _qaoRuntime;
 
@@ -212,6 +232,11 @@ void GameContext::attachAndOwnComponent(std::unique_ptr<taComponent> aComponent)
 template <class taComponent>
 taComponent& GameContext::getComponent() const {
     return _components.getComponent<taComponent>();
+}
+
+template <class taComponent>
+taComponent* GameContext::getComponentPtr() const {
+    return _components.getComponentPtr<taComponent>();
 }
 
 } // namespace spempe

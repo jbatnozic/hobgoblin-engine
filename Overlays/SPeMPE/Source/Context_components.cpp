@@ -76,20 +76,28 @@ void ComponentTable::_attachComponent(ContextComponent& aComponent,
     throw hobgoblin::TracedLogicError("No space for component");
 }
 
-ContextComponent& ComponentTable::_getComponent(ContextComponent::TagHash aTagHash) const {
+ContextComponent* ComponentTable::_getComponentPtr(ContextComponent::TagHash aTagHash) const {
     const auto pos = aTagHash % _table.size();
 
     if (_table[pos].tagHash == aTagHash) {
         assert(_table[pos].component != nullptr);
-        return *(_table[pos].component);
+        return _table[pos].component;
     }
 
     for (std::size_t i = 1; i < _table.size(); i += 1) {
         auto& node = _table[(pos + i) % _table.size()];
         if (node.tagHash == aTagHash) {
             assert(node.component != nullptr);
-            return *(node.component);
+            return node.component;
         }
+    }
+
+    return nullptr;
+}
+
+ContextComponent& ComponentTable::_getComponent(ContextComponent::TagHash aTagHash) const {
+    if (const auto result = _getComponentPtr(aTagHash)) {
+        return *result;
     }
 
     throw hobgoblin::TracedLogicError("Component not present");

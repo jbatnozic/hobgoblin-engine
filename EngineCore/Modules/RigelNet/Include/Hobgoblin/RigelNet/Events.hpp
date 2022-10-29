@@ -60,11 +60,31 @@ struct RN_Event {
 
     template <class ...Callables>
     void visit(Callables&&... callables) {
-        std::visit(util::MakeVisitor(std::forward<Callables>(callables)...), eventVariant.value());
+        std::visit(
+            util::MakeVisitor([](const auto&) {}, std::forward<Callables>(callables)...),
+            eventVariant.value()
+        );
     }
 
     template <class ...Callables>
     void visit(Callables&&... callables) const {
+        std::visit(
+            util::MakeVisitor([](const auto&) {}, std::forward<Callables>(callables)...),
+            eventVariant.value()
+        );
+    }
+
+    //! Unlike visit, a call to strictVisit will not compile unless a
+    //! matching callable is provided for each event type.
+    template <class ...Callables>
+    void strictVisit(Callables&&... callables) {
+        std::visit(util::MakeVisitor(std::forward<Callables>(callables)...), eventVariant.value());
+    }
+
+    //! Unlike visit, a call to strictVisit will not compile unless a
+    //! matching callable is provided for each event type.
+    template <class ...Callables>
+    void strictVisit(Callables&&... callables) const {
         std::visit(util::MakeVisitor(std::forward<Callables>(callables)...), eventVariant.value());
     }
 };

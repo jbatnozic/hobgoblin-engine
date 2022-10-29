@@ -5,3 +5,7 @@ BUILD REQUIREMENTS:
    - Make sure it's added to PATH
  - CMake (at least 3.23.1)
  - C++ compiler that supports C++17
+
+WHEN INSTALLING PYTHON ON WINDOWS:
+C:\Users\<username>\AppData\Roaming\Python\Python310\Scripts        to PATH
+C:\Users\<username>\AppData\Local\Programs\Python\Python310\Scripts to PATH

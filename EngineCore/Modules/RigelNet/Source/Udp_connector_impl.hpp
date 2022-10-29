@@ -110,6 +110,8 @@ private:
     class LocalConnectionSharedState;
     std::shared_ptr<LocalConnectionSharedState> _localSharedState = nullptr;
 
+    bool _skipNextDataPacketProcessing = false;
+
     ///////////////////////////////////////////////////////////////////////////
     // PRIVATE METHODS                                                       //
     ///////////////////////////////////////////////////////////////////////////
