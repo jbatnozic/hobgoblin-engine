@@ -45,16 +45,6 @@ public:
         _lobbyMgr[HOST]->setToHostMode(3);
 
         _ctx[HOST]->attachComponent(*_lobbyMgr[HOST]);
-
-        //// Run both contexts a little to propagate the connection
-        //_clientContext1->runFor(1);
-        //_hostContext->runFor(1);
-        //_clientContext1->runFor(1);
-        //_hostContext->runFor(1);
-
-        //ASSERT_EQ(_netMgr2->getClient().getServerConnector().getStatus(),
-        //          jbatnozic::hobgoblin::RN_ConnectorStatus::Connected);
-        //ASSERT_EQ(_netMgr2->getLocalClientIndex(), 0);
     }
 
     void TearDown() override {
@@ -249,7 +239,7 @@ TEST_F(DefaultLobbyManagerTest, SingleClientTest) {
     // Test disconnect
     _netMgr[HOST]->getServer().setTimeoutLimit(std::chrono::microseconds{1});
     _netMgr[CLI1]->getClient().disconnect(false);
-    _runAllContextsFor(10);
+    _runAllContextsFor(4);
     ASSERT_EQ(_netMgr[HOST]->getServer().getClientConnector(0).getStatus(),
               jbatnozic::hobgoblin::RN_ConnectorStatus::Disconnected);
 
@@ -270,5 +260,187 @@ TEST_F(DefaultLobbyManagerTest, SingleClientTest) {
 }
 
 TEST_F(DefaultLobbyManagerTest, MultipleClientsTest) {
+    /*
+     * SCENARIO: server start, client 1 connect, lock in, client 2 connect, client 1 disconnect, lock in
+     */
+
+    _lobbyMgr[HOST]->setLocalName("host");
+    _lobbyMgr[HOST]->setLocalUniqueId("1234");
+    _lobbyMgr[HOST]->setLocalCustomData(0, "cdat0");
+
+    _initClientContext(CLI1);
+    _runAllContextsFor(2);
+
+    ASSERT_EQ(_netMgr[CLI1]->getClient().getServerConnector().getStatus(),
+              jbatnozic::hobgoblin::RN_ConnectorStatus::Connected);
+
+    _lobbyMgr[HOST]->lockInPendingChanges();
+
+    _runAllContextsFor(2);
+
+    // Verify slots from CLI1 perspective
+    {
+        const auto& info = _lobbyMgr[CLI1]->getPendingPlayerInfo(0);
+        EXPECT_EQ(info.name, "host");
+        EXPECT_EQ(info.uniqueId, "1234");
+        EXPECT_EQ(info.customData[0], "cdat0");
+
+        EXPECT_EQ(_lobbyMgr[CLI1]->getLockedInPlayerInfo(0), info);
+    }
+    {
+        const auto& info = _lobbyMgr[CLI1]->getPendingPlayerInfo(1);
+        EXPECT_NE(info.name, "");
+        EXPECT_NE(info.uniqueId, "");
+        EXPECT_NE(info.ipAddress, "");
+
+        EXPECT_EQ(_lobbyMgr[CLI1]->getLockedInPlayerInfo(1), info);
+    }
+    {
+        const auto& info = _lobbyMgr[CLI1]->getPendingPlayerInfo(2);
+        EXPECT_EQ(info.name, "");
+        EXPECT_EQ(info.uniqueId, "");
+        EXPECT_EQ(info.customData[0], "");
+
+        EXPECT_EQ(_lobbyMgr[CLI1]->getLockedInPlayerInfo(2), info);
+    }
+
+    _initClientContext(CLI2);
+    _runAllContextsFor(2);
+
+    ASSERT_EQ(_netMgr[CLI2]->getClient().getServerConnector().getStatus(),
+              jbatnozic::hobgoblin::RN_ConnectorStatus::Connected);
+
+    // Verify slots from CLI1 perspective
+    {
+        const auto& info = _lobbyMgr[CLI1]->getPendingPlayerInfo(0);
+        EXPECT_EQ(info.name, "host");
+        EXPECT_EQ(info.uniqueId, "1234");
+        EXPECT_EQ(info.customData[0], "cdat0");
+
+        EXPECT_EQ(_lobbyMgr[CLI1]->getLockedInPlayerInfo(0), info);
+    }
+    {
+        const auto& info = _lobbyMgr[CLI1]->getPendingPlayerInfo(1);
+        EXPECT_NE(info.name, "");
+        EXPECT_NE(info.uniqueId, "");
+        EXPECT_NE(info.ipAddress, "");
+
+        EXPECT_EQ(_lobbyMgr[CLI1]->getLockedInPlayerInfo(1), info);
+    }
+    {
+        const auto& info = _lobbyMgr[CLI1]->getPendingPlayerInfo(2);
+        EXPECT_NE(info.name, "");
+        EXPECT_NE(info.uniqueId, "");
+        EXPECT_NE(info.ipAddress, "");
+    }
+    {
+        const auto& info = _lobbyMgr[CLI1]->getLockedInPlayerInfo(2);
+        EXPECT_EQ(info.name, "");
+        EXPECT_EQ(info.uniqueId, "");
+        EXPECT_EQ(info.ipAddress, "");
+    }
+
+    // Verify slots from CLI2 perspective
+    {
+        const auto& info = _lobbyMgr[CLI2]->getPendingPlayerInfo(0);
+        EXPECT_EQ(info.name, "host");
+        EXPECT_EQ(info.uniqueId, "1234");
+        EXPECT_EQ(info.customData[0], "cdat0");
+
+        EXPECT_EQ(_lobbyMgr[CLI2]->getLockedInPlayerInfo(0), info);
+    }
+    {
+        const auto& info = _lobbyMgr[CLI2]->getPendingPlayerInfo(1);
+        EXPECT_NE(info.name, "");
+        EXPECT_NE(info.uniqueId, "");
+        EXPECT_NE(info.ipAddress, "");
+
+        EXPECT_EQ(_lobbyMgr[CLI2]->getLockedInPlayerInfo(1), info);
+    }
+    {
+        const auto& info = _lobbyMgr[CLI2]->getPendingPlayerInfo(2);
+        EXPECT_NE(info.name, "");
+        EXPECT_NE(info.uniqueId, "");
+        EXPECT_NE(info.ipAddress, "");
+    }
+    {
+        const auto& info = _lobbyMgr[CLI2]->getLockedInPlayerInfo(2);
+        EXPECT_EQ(info.name, "");
+        EXPECT_EQ(info.uniqueId, "");
+        EXPECT_EQ(info.ipAddress, "");
+    }
+
+    _netMgr[HOST]->getServer().setTimeoutLimit(std::chrono::microseconds{1});
+    _netMgr[CLI1]->getClient().disconnect(false);
+    _runAllContextsFor(4);
+    ASSERT_EQ(_netMgr[HOST]->getServer().getClientConnector(0).getStatus(),
+              jbatnozic::hobgoblin::RN_ConnectorStatus::Disconnected);
+    ASSERT_EQ(_netMgr[HOST]->getServer().getClientConnector(1).getStatus(),
+              jbatnozic::hobgoblin::RN_ConnectorStatus::Connected);
+
+    // Verify slots from CLI2 perspective
+    {
+        const auto& info = _lobbyMgr[CLI2]->getPendingPlayerInfo(0);
+        EXPECT_EQ(info.name, "host");
+        EXPECT_EQ(info.uniqueId, "1234");
+        EXPECT_EQ(info.customData[0], "cdat0");
+
+        EXPECT_EQ(_lobbyMgr[CLI2]->getLockedInPlayerInfo(0), info);
+    }
+    {
+        const auto& info = _lobbyMgr[CLI2]->getPendingPlayerInfo(1);
+        EXPECT_EQ(info.name, "");
+        EXPECT_EQ(info.uniqueId, "");
+        EXPECT_EQ(info.ipAddress, "");
+    }
+    {
+        const auto& info = _lobbyMgr[CLI2]->getLockedInPlayerInfo(1);
+        EXPECT_NE(info.name, "");
+        EXPECT_NE(info.uniqueId, "");
+        EXPECT_NE(info.ipAddress, "");
+    }
+    {
+        const auto& info = _lobbyMgr[CLI2]->getPendingPlayerInfo(2);
+        EXPECT_NE(info.name, "");
+        EXPECT_NE(info.uniqueId, "");
+        EXPECT_NE(info.ipAddress, "");
+    }
+    {
+        const auto& info = _lobbyMgr[CLI2]->getLockedInPlayerInfo(2);
+        EXPECT_EQ(info.name, "");
+        EXPECT_EQ(info.uniqueId, "");
+        EXPECT_EQ(info.ipAddress, "");
+    }
+
+    _lobbyMgr[HOST]->lockInPendingChanges();
+    _runAllContextsFor(2);
+
+    {
+        const auto& info = _lobbyMgr[CLI2]->getPendingPlayerInfo(0);
+        EXPECT_EQ(info.name, "host");
+        EXPECT_EQ(info.uniqueId, "1234");
+        EXPECT_EQ(info.customData[0], "cdat0");
+
+        EXPECT_EQ(_lobbyMgr[CLI2]->getLockedInPlayerInfo(0), info);
+    }
+    {
+        const auto& info = _lobbyMgr[CLI2]->getPendingPlayerInfo(1);
+        EXPECT_EQ(info.name, "");
+        EXPECT_EQ(info.uniqueId, "");
+        EXPECT_EQ(info.ipAddress, "");
+
+        EXPECT_EQ(_lobbyMgr[CLI2]->getLockedInPlayerInfo(1), info);
+    }
+    {
+        const auto& info = _lobbyMgr[CLI2]->getPendingPlayerInfo(2);
+        EXPECT_NE(info.name, "");
+        EXPECT_NE(info.uniqueId, "");
+        EXPECT_NE(info.ipAddress, "");
+
+        EXPECT_EQ(_lobbyMgr[CLI2]->getLockedInPlayerInfo(2), info);
+    }
+}
+
+TEST_F(DefaultLobbyManagerTest, SwapSlotsTest) {
     // TODO
 }

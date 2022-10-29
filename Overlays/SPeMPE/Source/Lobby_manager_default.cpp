@@ -267,7 +267,21 @@ int DefaultLobbyManager::playerIdxToClientIdx(hg::PZInteger aPlayerIdx) const {
 }
 
 void DefaultLobbyManager::beginSwap(hobgoblin::PZInteger aSlotIndex1, hobgoblin::PZInteger aSlotIndex2) {
-    throw hg::NotImplementedError{}; // TODO
+    if (_mode != Mode::Host) {
+        throw hg::TracedLogicError("DefaultLobbyManager::beginSwap can only "
+                                   "be called while in Host mode!");
+    }
+    if (aSlotIndex1 >= _getSize() || aSlotIndex2 >= _getSize()) {
+        throw hg::TracedLogicError("DefaultLobbyManager::beginSwap - passed indices out of bounds!");
+    }
+    if (aSlotIndex1 == aSlotIndex2) {
+        return;
+    }
+
+    std::swap(_desired[hg::pztos(aSlotIndex1)], _desired[hg::pztos(aSlotIndex2)]);
+
+    _updateVarmapForDesiredEntry(aSlotIndex1);
+    _updateVarmapForDesiredEntry(aSlotIndex2);
 }
 
 bool DefaultLobbyManager::lockInPendingChanges() {
