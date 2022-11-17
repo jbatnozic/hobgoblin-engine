@@ -220,6 +220,170 @@ multiplayer sessions. For example, units, terrain, interactible items (and, basi
 
 There are a few elements which are common to all 3 of the above and will be available to your classes no matter which
 one they inherit from:
+- The method `ctx()` which will simply return a reference to the game context the instance is in (remember that if an
+instance is not attached to a QAO runtime, it is not in any context). This is basically shorthand for
+`this->getRuntime()->getUserData<spe::GameContext>()`.
+- The method `ccomp<T>()` which can be used to quickly access any context component attached to the context the
+instance is in. It is shorthand for `ctx().getComponent<T>()`. For example:
+`auto& spriteProvider = ccomp<SpriteProviderInterface>();`.
+
+Other than the above, `NonstateObject` and `StateObject` don't differ from `QAO_Base` (so you could skip all of this
+and use `QAO_Base` directly in SPeMPE, it would work, there's just no benefit to it). In fact, they don't even differ
+from one another, other than serving as tag interfaces.
+
+Same as with bare QAO, the recommended way to create an object inheriting from any of the 3 classes listed above is to
+use `QAO_PCreate`, `QAO_ICreate` and friends.
+
+### Synchronized Objects
+
+While `spe::NonstateObject` and `spe::StateObject` are quite uninteresting, `spe::SynchronizedObject` is where SPeMPE
+magic really happens.
+
+By inheriting from `spe::SynchronizedObject`, you're asking the engine to synchronize this object's state to all
+connected clients (players) so they can see what's going on in the game. It _does_ impose certain (albeit small)
+limitations on how your object can look, but once you get over that, the process is nearly entirely automatic.
+
+**TODO** explain master/dummy objects and how this works conceptually, mention networking manager, registry etc.
+
+We'll start from an example - let's say we're implementing a multiplayer platformer and we want to create a class
+that will represent a simple computer-controlled enemy on a level. We start by creating a struct to hold the _visible_
+state of these objects. What I mean by "visible" state is that this information should be enough to present this object
+to players on the client-side. While our enemy object can have very complex state (for their AI, physics calculations
+etc.) on the server side, we don't need to sync all of this to players. For them it's enough to know where the enemy
+is, how much health they have, and similar.
+
+```cpp
+struct Enemy_VisibleState {
+    float x_coordinate;
+    float y_coordinate;
+    int health;
+    int animation_frame;
+    // ...
+};
+```
+
+Your visible state struct may look like something above, except this isn't enough. As this struct is going to be sent
+over the network, we must also define serialization and deserialization functions for it. This was already touched upon
+in the RigelNet guide and it comes down to providing operators `<<` and `>>` for your type and
+`hobgoblin::util::PacketBase`; and this is easiest if you use Hobgoblin's autopack feature - so let's use that and
+fix our struct.
+
+```cpp
+#include <Hobgoblin/Utility/Autopack.hpp>
+
+struct Enemy_VisibleState {
+    float x_coordinate;
+    float y_coordinate;
+    int health;
+    int animation_frame;
+    // ...
+    HG_ENABLE_AUTOPACK(Enemy_VisibleState, x_coordinate, y_coordinate, health, animation_frame);
+};
+```
+
+Once that's done we can start building our synchronized enemy.
+
+```cpp
+class Enemy
+    : public spe::SynchronizedObject<Enemy_VisibleState> // SynchronizedObject is actually a template
+{
+public:
+    Enemy(QAO_RuntimeRef aRuntimeRef, spe::RegistryId aRegId, spe::SyncId aSyncId);
+
+    void init(float aXCoord, float aYCoord);
+    // ...
+};
+```
+
+For SPeMPE to be able to create a Dummy counterpart (on the client side) to the Master object (on the server side)
+automatically, the constructor has to follow this specific pattern:
+`Constructor(QAO_RuntimeRef aRuntimeRef, spe::RegistryId aRegId, spe::SyncId aSyncId);`. In furhter text I will call
+this the "canonical" constructor. It, however, has the unfortunate side-effect of forcing us to use two-step
+initialization with `init` methods, but this is not _that_ bad. You can wrap it all in factory functions or convenience
+constructors if you wish.
+
+The typical creation and initialization of a synchronized object on the server-side should look something like:
+
+```cpp
+spe::GameContext& context = ...; // get a reference to the context somehow
+auto* obj = QAO_PCreate<Enemy>(context.getQAORuntime(),
+                               context.getComponent<spe::NetworkingManagerInterface>().getRegistryId(),
+                               SYNC_ID_NEW /* we always use SYNC_ID_NEW to create a new Master object */);
+obj->init(xCoord, yCoord);
+```
+
+It's not the most comfortable code to use, which is why I said you may want to write factory methods, something that
+can be used like:
+
+```cpp
+spe::GameContext& context = ...;
+Enemy::create(context, xCoord, yCoord);
+```
+
+You'll notice that the constructor of `spe::SynchronizedObject` has a scary parameter list of six(!):
+
+```cpp
+// Too many parameters...
+SynchronizedObject(hg::QAO_RuntimeRef aRuntimeRef,
+                   const std::type_info& aTypeInfo,
+                   int aExecutionPriority,
+                   std::string aName,
+                   RegistryId aRegId,
+                   SyncId aSyncId = SYNC_ID_NEW);
+```
+
+But calling it from the cannonical constructor actually isn't that hard:
+
+```cpp
+Enemy::Enemy(QAO_RuntimeRef aRuntimeRef, spe::RegistryId aRegId, spe::SyncId aSyncId)
+    : SyncObjSuper{ // SyncObjSuper is a convenience alias provided by SynchronizedObject
+                   aRuntimeRef,
+                   SPEMPE_TYPEID_SELF, // Convenience macro provided by SPeMPE
+                   PRIORITY_ENEMY,     // You will have to define this yourself
+                   "<put whatever you want here>",
+                   aRegId,
+                   aSyncId} { ... }
+```
+
+Before continuing with building the synchronized Enemy, we should go over all the methods provided by the
+`spe::SynchronizedObject` base class:
+
+```cpp
+// TODO (spoiler alert: there are A LOT of them...)
+```
+
+**TODO:** destructor, overriding event methods, default sync implementations, sinclaire (alternating updates),
+pacemaker pulses, skipping updates, deactivation, custom syncing (so many...)
+
+## SPeMPE Managers
+
+(In order of importance, more or less)
+
+### WindowManager
+
+TODO (handles window I/O, including keyboard and mouse input, frame timing, graphics and GUI rendering and display)
+
+### NetworkingManager
+
+TODO (handles network communication; holds the registry of synchronized objects)
+
+### InputSyncManager
+
+TODO (syncs players' inputs to the server)
+
+### AuthorizationManager
+
+TODO (manages permissions for players to be the 'game master' - to start, stop and control the game)
+
+### SyncedVarmapManager
+
+TODO (holds a dictionary of values to be synced automatically to all clients in a very simple way)
+
+### LobbyBackendManager
+
+TODO (manages players joining and leaving the game, who goes into which slot etc...)
+
+### Handling Managers' Execution Priorities
 
 TODO
 
