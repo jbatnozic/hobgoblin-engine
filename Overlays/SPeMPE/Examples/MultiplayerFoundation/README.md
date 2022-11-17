@@ -214,7 +214,6 @@ present, so we don't need to save or synchronize them.
 - `spe::StateObject` - You should inherit from this class for objects which are essential for the game's state, but
 will not be synchronized with clients. This is intended for use with singleplayer games, as it's not particularly
 useful for multiplayer games, though it could possibly be utilized for some hidden server-side-only objects.
-//! objects in multiplayer games.
 - `spe::SynchronizedObject` - You should inherit from this one when making objects which are essential to the game's
 state, so they are both saved when writing game state, and synchronized (with SPeMPE, automatically!) with clients in
 multiplayer sessions. For example, units, terrain, interactible items (and, basically, most other game objects).
