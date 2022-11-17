@@ -16,6 +16,7 @@ set(COMPONENT_SOURCES
   "Source/Sprite_loader.cpp"
   "Source/Sprite.cpp"
   "Source/Texture_packing.cpp"
+  "Source/Tga_export.cpp"
   "Source/Views.cpp"
 )
 

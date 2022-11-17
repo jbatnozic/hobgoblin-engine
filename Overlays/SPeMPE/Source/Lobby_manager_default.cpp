@@ -21,7 +21,7 @@ namespace hg = hobgoblin;
 using namespace hg::rn;
 
 namespace {
-constexpr auto LOG_ID = "::jbatnozic::spempe::DefaultLobbyManager";
+constexpr auto LOG_ID = "jbatnozic::spempe::DefaultLobbyManager";
 
 constexpr auto CUSTOM_DATA_LEN = hg::stopz(std::tuple_size_v<decltype(PlayerInfo::customData)>);
 
@@ -30,40 +30,40 @@ bool IsConnected(const RN_ConnectorInterface& client) {
 }
 
 const std::string& MakeVarmapKey_LobbySize() {
-    static std::string KEY = "::jbatnozic::spempe::DefaultLobbyManager_LOBBYSIZE";
+    static std::string KEY = "jbatnozic::spempe::DefaultLobbyManager_LOBBYSIZE";
     return KEY;
 }
 
 std::string MakeVarmapKey_LockedIn_Name(hg::PZInteger aSlotIndex) {
-    return fmt::format("::jbatnozic::spempe::DefaultLobbyManager_LI_NAME_{}", aSlotIndex);
+    return fmt::format("jbatnozic::spempe::DefaultLobbyManager_LI_NAME_{}", aSlotIndex);
 }
 
 std::string MakeVarmapKey_LockedIn_UniqueId(hg::PZInteger aSlotIndex) {
-    return fmt::format("::jbatnozic::spempe::DefaultLobbyManager_LI_UUID_{}", aSlotIndex);
+    return fmt::format("jbatnozic::spempe::DefaultLobbyManager_LI_UUID_{}", aSlotIndex);
 }
 
 std::string MakeVarmapKey_LockedIn_IpAddr(hg::PZInteger aSlotIndex) {
-    return fmt::format("::jbatnozic::spempe::DefaultLobbyManager_LI_IPADDR_{}", aSlotIndex);
+    return fmt::format("jbatnozic::spempe::DefaultLobbyManager_LI_IPADDR_{}", aSlotIndex);
 }
 
 std::string MakeVarmapKey_LockedIn_CData(hg::PZInteger aSlotIndex, hg::PZInteger aCDataIndex) {
-    return fmt::format("::jbatnozic::spempe::DefaultLobbyManager_LI_CDAT{}_{}", aCDataIndex, aSlotIndex);
+    return fmt::format("jbatnozic::spempe::DefaultLobbyManager_LI_CDAT{}_{}", aCDataIndex, aSlotIndex);
 }
 
 std::string MakeVarmapKey_Desired_Name(hg::PZInteger aSlotIndex) {
-    return fmt::format("::jbatnozic::spempe::DefaultLobbyManager_DE_NAME_{}", aSlotIndex);
+    return fmt::format("jbatnozic::spempe::DefaultLobbyManager_DE_NAME_{}", aSlotIndex);
 }
 
 std::string MakeVarmapKey_Desired_UniqueId(hg::PZInteger aSlotIndex) {
-    return fmt::format("::jbatnozic::spempe::DefaultLobbyManager_DE_UUID_{}", aSlotIndex);
+    return fmt::format("jbatnozic::spempe::DefaultLobbyManager_DE_UUID_{}", aSlotIndex);
 }
 
 std::string MakeVarmapKey_Desired_IpAddr(hg::PZInteger aSlotIndex) {
-    return fmt::format("::jbatnozic::spempe::DefaultLobbyManager_DE_IPADDR_{}", aSlotIndex);
+    return fmt::format("jbatnozic::spempe::DefaultLobbyManager_DE_IPADDR_{}", aSlotIndex);
 }
 
 std::string MakeVarmapKey_Desired_CData(hg::PZInteger aSlotIndex, hg::PZInteger aCDataIndex) {
-    return fmt::format("::jbatnozic::spempe::DefaultLobbyManager_DE_CDAT{}_{}", aCDataIndex, aSlotIndex);
+    return fmt::format("jbatnozic::spempe::DefaultLobbyManager_DE_CDAT{}_{}", aCDataIndex, aSlotIndex);
 }
 
 } // namespace
@@ -243,7 +243,7 @@ DefaultLobbyManager::Mode DefaultLobbyManager::getMode() const {
 // HOST-MODE METHODS                                                     //
 ///////////////////////////////////////////////////////////////////////////
 
-hg::PZInteger DefaultLobbyManager::clientIdxToPlayerIdx(int aClientIdx) const {
+int DefaultLobbyManager::clientIdxToPlayerIdx(int aClientIdx) const {
     if (_mode != Mode::Host) {
         throw hg::TracedLogicError("DefaultLobbyManager::clientIdxToPlayerIdx can only "
                                    "be called while in Host mode!");
@@ -264,6 +264,15 @@ int DefaultLobbyManager::playerIdxToClientIdx(hg::PZInteger aPlayerIdx) const {
     }
 
     return _lockedIn.at(hg::pztos(aPlayerIdx)).clientIndex;
+}
+
+int DefaultLobbyManager::clientIdxOfPlayerInPendingSlot(hobgoblin::PZInteger aSlotIndex) const {
+    if (_mode != Mode::Host) {
+        throw hg::TracedLogicError("DefaultLobbyManager::clientIdxOfPlayerInPendingSlot "
+                                   "can only be called while in Host mode!");
+    }
+
+    return _desired.at(hg::pztos(aSlotIndex)).clientIndex;
 }
 
 void DefaultLobbyManager::beginSwap(hobgoblin::PZInteger aSlotIndex1, hobgoblin::PZInteger aSlotIndex2) {
@@ -291,6 +300,7 @@ bool DefaultLobbyManager::lockInPendingChanges() {
     }
 
     if (_lockedIn == _desired) {
+        HG_LOG_INFO(LOG_ID, "Slots locked in (no change).");
         return false; // Nothing to change
     }
 
@@ -314,6 +324,7 @@ bool DefaultLobbyManager::lockInPendingChanges() {
         }
     }
 
+    HG_LOG_INFO(LOG_ID, "Slots locked in.");
     return true;
 }
 
@@ -482,6 +493,22 @@ int DefaultLobbyManager::getLocalPlayerIndex() const {
     return _localPlayerIndex;
 }
 
+std::string DefaultLobbyManager::getEntireStateString() const {
+    std::stringstream ss;
+    for (std::size_t i = 0; i < _lockedIn.size(); i += 1) {
+        ss << "SLOT " << i << ":\n";
+        ss << fmt::format("    {} {}:{}", _lockedIn[i].name, _lockedIn[i].ipAddress, _lockedIn[i].port);
+
+        if (static_cast<const PlayerInfo&>(_lockedIn[i]) != static_cast<const PlayerInfo&>(_desired[i])) {
+            ss << fmt::format(" <- {} {}:{}\n", _desired[i].name, _desired[i].ipAddress, _desired[i].port);
+        }
+        else {
+            ss << '\n';
+        }
+    }
+    return ss.str();
+}
+
 ///////////////////////////////////////////////////////////////////////////
 // PRIVATE METHODS                                                       //
 ///////////////////////////////////////////////////////////////////////////
@@ -503,8 +530,8 @@ void DefaultLobbyManager::_eventPreUpdate() {
             if (IsConnected(client) && !_hasEntryForClient(client, i)) {
                 const auto pos = _findOptimalPositionForClient(client);
 
-                _desired[hg::pztos(pos)].name        = "<name>";
-                _desired[hg::pztos(pos)].uniqueId    = "<uuid>";
+                _desired[hg::pztos(pos)].name        = "";
+                _desired[hg::pztos(pos)].uniqueId    = "";
                 _desired[hg::pztos(pos)].ipAddress   = client.getRemoteInfo().ipAddress.toString();
                 _desired[hg::pztos(pos)].port        = client.getRemoteInfo().port;
                 _desired[hg::pztos(pos)].clientIndex = i;
@@ -514,13 +541,6 @@ void DefaultLobbyManager::_eventPreUpdate() {
                 HG_LOG_INFO(LOG_ID, "Inserted new player into slot {}", pos);
             }
         }
-
-        //if (ccomp<WindowManagerInterface>().getKeyboardInput().checkPressed(KbKey::L, KbInput::Mode::Direct)) {
-        //    if (_mode == Mode::Host) {
-        //        HG_LOG_INFO(LOG_ID, "Locking in slots");
-        //        lockInPendingChanges(); // TODO Temp.
-        //    }
-        //}
     } else {
         // ***** CLIENT ***** //
 
@@ -573,39 +593,6 @@ void DefaultLobbyManager::_eventPreUpdate() {
                 }
             }
         }
-    }
-    HG_LOG_INFO(LOG_ID, "Local player idx = {}", getLocalPlayerIndex());
-}
-
-void DefaultLobbyManager::_eventDrawGUI() {
-    if (auto* winMgr = ctx().getComponentPtr<WindowManagerInterface>()) {
-        std::stringstream ss;
-        for (std::size_t i = 0; i < _lockedIn.size(); i += 1) {
-            ss << "POSITION " << i << ":\n";
-            ss << fmt::format("    {} {}:{}", _lockedIn[i].name, _lockedIn[i].ipAddress, _lockedIn[i].port);
-
-            if (static_cast<const PlayerInfo&>(_lockedIn[i])
-                != static_cast<const PlayerInfo&>(_desired[i])) {
-                //HG_LOG_INFO(LOG_ID, "{} {} {} != {} {} {}",
-                //            _lockedIn[i].name,
-                //            _lockedIn[i].uniqueId,
-                //            _lockedIn[i].ipAddress,
-                //            _desired[i].name,
-                //            _desired[i].uniqueId,
-                //            _desired[i].ipAddress);
-                ss << fmt::format(" <- {} {}:{}\n", _desired[i].name, _desired[i].ipAddress, _desired[i].port);
-            } else {
-                ss << '\n';
-            }
-        }
-
-        auto& canvas = winMgr->getCanvas();
-        sf::Text text;
-        text.setPosition(32.f, 32.f);
-        text.setFont(hg::gr::BuiltInFonts::getFont(hg::gr::BuiltInFonts::TitilliumRegular));
-        text.setFillColor(sf::Color::Yellow);
-        text.setString(ss.str());
-        canvas.draw(text);
     }
 }
 

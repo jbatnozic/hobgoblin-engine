@@ -24,10 +24,10 @@ const char* SeverityCString(Severity aSeverity) {
         return "DEBUG";
 
     case Severity::Info: 
-        return "INFO ";
+        return " INFO";
 
     case Severity::Warning:
-        return "WARN ";
+        return " WARN";
 
     case Severity::Error:
         return "ERROR";

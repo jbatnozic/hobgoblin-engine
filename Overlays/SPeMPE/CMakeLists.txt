@@ -5,6 +5,7 @@ set(OVERLAY_NAME "SPeMPE")
 # ===== GATHER SOURCES ======
 
 set(OVERLAY_SOURCES
+  "Source/Authorization_manager_default.cpp"
   "Source/Context_components.cpp"
   "Source/Game_object_bases.cpp"
   "Source/Input_sync_manager_one.cpp"
@@ -16,8 +17,6 @@ set(OVERLAY_SOURCES
   "Source/Synced_varmap_manager_default.cpp"
   "Source/Synchronized_object_registry.cpp"
   "Source/Window_manager_one.cpp"
-
-  # "Source/Temp_demo.cpp"
 )
 
 # ===== TARGET SETUP =====
@@ -32,6 +31,7 @@ PUBLIC
   "Hobgoblin.Logging"
   "Hobgoblin.QAO"
   "Hobgoblin.RigelNet"
+  "Hobgoblin.RmlUi"
   "Hobgoblin.Utility"
   "CONAN_PKG::sfml"
   "CONAN_PKG::ztcpp"
@@ -59,11 +59,4 @@ PUBLIC
 
 # ===== BUILD EXAMPLES =====
 
-add_executable("minimal-multiplayer"
-  "Examples/Minimal_multiplayer.cpp"
-)
-
-target_link_libraries("minimal-multiplayer"
-PUBLIC
-  "${OVERLAY_NAME}"
-)
+add_subdirectory("Examples")

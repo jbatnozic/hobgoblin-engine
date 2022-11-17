@@ -2,6 +2,7 @@
 #define SPEMPE_MANAGERS_WINDOW_MANAGER_ONE_HPP
 
 #include <Hobgoblin/Graphics.hpp>
+#include <Hobgoblin/RmlUi.hpp>
 #include <Hobgoblin/Utility/Time_utils.hpp>
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
@@ -64,6 +65,8 @@ public:
     // GUI                                                                   //
     ///////////////////////////////////////////////////////////////////////////
 
+    Rml::Context& getGUIContext() override;
+
     ///////////////////////////////////////////////////////////////////////////
     // KEYBOARD & MOUSE INPUT                                                //
     ///////////////////////////////////////////////////////////////////////////
@@ -105,6 +108,8 @@ private:
     std::optional<hg::gr::DrawBatcher> _mainRenderTextureDrawBatcher;
 
     // GUI:
+    std::unique_ptr<hg::rml::HobgoblinBackend::BackendLifecycleGuard> _rmlUiBackendLifecycleGuard;
+    std::optional<hg::rml::ContextDriver> _rmlUiContextDriver;
 
     // Keyboard & mouse input:
     KbInputTracker _kbInputTracker;

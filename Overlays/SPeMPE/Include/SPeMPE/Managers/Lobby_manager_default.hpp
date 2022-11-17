@@ -37,9 +37,11 @@ public:
     // HOST-MODE METHODS                                                     //
     ///////////////////////////////////////////////////////////////////////////
 
-    hobgoblin::PZInteger clientIdxToPlayerIdx(int aClientIdx) const override;
+    int clientIdxToPlayerIdx(int aClientIdx) const override;
 
     int playerIdxToClientIdx(hobgoblin::PZInteger aPlayerIdx) const override;
+
+    int clientIdxOfPlayerInPendingSlot(hobgoblin::PZInteger aSlotIndex) const override;
 
     void beginSwap(hobgoblin::PZInteger aSlotIndex1, hobgoblin::PZInteger aSlotIndex2) override;
 
@@ -84,6 +86,8 @@ public:
 
     int getLocalPlayerIndex() const override;
 
+    std::string getEntireStateString() const override;
+
 private:
     Mode _mode = Mode::Uninitialized;
 
@@ -105,7 +109,6 @@ private:
     int _localPlayerIndex = PLAYER_INDEX_UNKNOWN;
 
     void _eventPreUpdate() override;
-    void _eventDrawGUI() override;
 
     hg::PZInteger _getSize() const;
     bool _hasEntryForClient(const hobgoblin::RN_ConnectorInterface& aClient, int aClientIndex) const;

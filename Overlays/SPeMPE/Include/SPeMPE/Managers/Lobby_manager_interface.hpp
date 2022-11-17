@@ -19,16 +19,26 @@ struct PlayerInfo {
     //! Unique ID of this player (provided by their client).
     std::string uniqueId;
 
-    //! IP address of the player in the form of X.X.X.X (X = 0..255).
+    //! IP address of the player in the form X.X.X.X (X = 0..255).
     std::string ipAddress;
 
     //! Some user-defined data that will be synced but not otherwise
-    //! by the lobby. This data is set by the clients.
+    //! used by the lobby. This data is set by the clients.
     //! This custom data can be a simple string, a JSON string, a piece of
     //! base64-encoded binary data, a combination of those, or something
     //! completely different.
     //! Four separate slots are provided for this data.
     std::array<std::string, 4> customData;
+
+    //! Returns whether the slot is empty (doesn't represent any
+    //! connected player) or not.
+    bool isEmpty() const;
+
+    //! Returns whether the slot is complete. If the slot is empty, it is
+    //! for sure also incomplete. However, a non-empty slot isn't necessarily
+    //! complete (for example if a player connected but hasn't yet sent their
+    //! name and unique ID).
+    bool isComplete() const;
 
     friend bool operator==(const PlayerInfo& aLhs, const PlayerInfo& aRhs);
     friend bool operator!=(const PlayerInfo& aLhs, const PlayerInfo& aRhs);
@@ -61,11 +71,19 @@ public:
 
     //! Use while in Host mode to map an index of a client connected to a SPeMPE
     //! Networking manager to their player index.
-    virtual hobgoblin::PZInteger clientIdxToPlayerIdx(int aClientIdx) const = 0;
+    //! As this refers to players in LockedIn slots, some players may not have been
+    //! assigned a player index yet and in those cases this function will return
+    //! PLAYER_INDEX_UNKNOWN.
+    virtual int clientIdxToPlayerIdx(int aClientIdx) const = 0;
 
     //! Use while in Host mode to map a player index to their client index
     //! (client = client connected to a SPeMPE Networking manager).
+    //! As this refers to players in LockedIn slots, it will return PLAYER_INDEX_UNKNOWN
+    //! if the selected slot is empty.
     virtual int playerIdxToClientIdx(hobgoblin::PZInteger aPlayerIdx) const = 0;
+
+    //! TODO
+    virtual int clientIdxOfPlayerInPendingSlot(hobgoblin::PZInteger aSlotIndex) const = 0;
 
     //! TODO
     virtual void beginSwap(hobgoblin::PZInteger aSlotIndex1, hobgoblin::PZInteger aSlotIndex2) = 0;
@@ -128,9 +146,25 @@ public:
     //! PLAYER_INDEX_UNKNOWN can be returned if the index wasn't yet assigned by the host.
     virtual int getLocalPlayerIndex() const = 0;
 
+    //! Returns a string (in an undefined format) describing the entire state of the lobby.
+    //! This function is meant for debugging purposes only.
+    virtual std::string getEntireStateString() const = 0;
+
 private:
     SPEMPE_CTXCOMP_TAG("jbatnozic::spempe::LobbyManager");
 };
+
+inline
+bool PlayerInfo::isEmpty() const {
+    // It's guaranteed that at least the IP address of a connected
+    // player is known, even if the name and unique ID aren't.
+    return ipAddress.empty();
+}
+
+inline
+bool PlayerInfo::isComplete() const {
+    return !name.empty() && !ipAddress.empty() && !uniqueId.empty();
+}
 
 inline
 bool operator==(const PlayerInfo& aLhs, const PlayerInfo& aRhs) {

@@ -2,6 +2,7 @@
 #define SPEMPE_MANAGERS_WINDOW_MANAGER_INTERFACE_HPP
 
 #include <Hobgoblin/Graphics.hpp>
+#include <Hobgoblin/RmlUi.hpp>
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
 
@@ -121,6 +122,8 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     // GUI                                                                   //
     ///////////////////////////////////////////////////////////////////////////
+
+    virtual Rml::Context& getGUIContext() = 0;
 
     ///////////////////////////////////////////////////////////////////////////
     // KEYBOARD & MOUSE INPUT                                                //

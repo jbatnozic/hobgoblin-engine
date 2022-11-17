@@ -19,6 +19,7 @@ WindowManagerOne::WindowManagerOne(hg::QAO_RuntimeRef aRuntimeRef,
     , _mainRenderTexture{}
     , _mainRenderTextureViewAdapter{}
     , _mainRenderTextureDrawBatcher{}
+    , _rmlUiContextDriver{}
     , _mouseInputTracker{
         [this](hg::PZInteger aViewIndex) -> sf::Vector2f {
             return _getViewRelativeMousePos(aViewIndex);
@@ -71,6 +72,10 @@ void WindowManagerOne::setToNormalMode(const WindowConfig& aWindowConfig,
     _windowDrawBatcher.emplace(*_windowToCanvasAdapter);
     _mainRenderTextureViewAdapter.emplace(*_mainRenderTexture);
     _mainRenderTextureDrawBatcher.emplace(*_mainRenderTextureViewAdapter);
+
+    // Create GUI:
+    _rmlUiBackendLifecycleGuard = hg::rml::HobgoblinBackend::initialize();
+    _rmlUiContextDriver.emplace("WindowManagerOne::RmlContext", *_window);
 
     // Create default view:
     const auto w = static_cast<float>(aMainRenderTextureConfig.size.x);
@@ -139,6 +144,11 @@ const sf::View& WindowManagerOne::getView(hg::PZInteger aViewIndex) const {
 ///////////////////////////////////////////////////////////////////////////
 // GUI                                                                   //
 ///////////////////////////////////////////////////////////////////////////
+
+Rml::Context& WindowManagerOne::getGUIContext() {
+    HARD_ASSERT(!_headless);
+    return *(*_rmlUiContextDriver);
+}
 
 ///////////////////////////////////////////////////////////////////////////
 // KEYBOARD & MOUSE INPUT                                                //
@@ -264,6 +274,8 @@ void WindowManagerOne::_drawMainRenderTexture() {
 
 void WindowManagerOne::_finalizeFrameByDisplayingWindow() {
     _windowDrawBatcher->flush();
+    _rmlUiContextDriver->update();
+    _rmlUiContextDriver->render();
     _window->display();
 
     _kbInputTracker.prepForEvents();
@@ -271,6 +283,11 @@ void WindowManagerOne::_finalizeFrameByDisplayingWindow() {
 
     sf::Event ev;
     while (_window->pollEvent(ev)) {
+        const auto rmlUiDidConsumeEvent = _rmlUiContextDriver->processEvent(ev);
+        if (rmlUiDidConsumeEvent) {
+            continue;
+        }
+
         switch (ev.type) {
         case sf::Event::Closed:
             // TODO

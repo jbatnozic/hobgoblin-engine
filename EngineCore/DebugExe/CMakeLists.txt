@@ -1,7 +1,7 @@
 
 add_executable("Hobgoblin.DebugExe"
-    "Source/LoggingMain.cpp"
- )
+  "Source/RcssPreprocessorMain.cpp"
+)
 
 target_link_libraries("Hobgoblin.DebugExe"
 PUBLIC
@@ -12,6 +12,7 @@ PUBLIC
   # "Hobgoblin.RigelNet"
   "Hobgoblin.Math"
   "Hobgoblin.Utility"
+  "Hobgoblin.RmlUi"
   "CONAN_PKG::sfml"
   # "CONAN_PKG::ztcpp"
 )
