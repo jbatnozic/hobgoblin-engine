@@ -70,6 +70,9 @@ starts a single context in server mode and waits for players to connect.
 - **Connecting to server experience:** Player enters the game, now there is only one context that the player sees and
 it's in client mode. So they connect to a server and play the game. They don't care if the server is dedicated or not.
 
+By the way, the above is how some popular games out in the real world, including Minecraft, function. As long as it's
+implemented correctly it's a _good idea_.
+
 Now that we've covered the philosophy behind contexts and context design, let's move on to how to actually achieve it...
 
 ### Context Components
