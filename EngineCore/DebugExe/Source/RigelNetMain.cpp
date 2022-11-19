@@ -5,7 +5,7 @@
 #include <Hobgoblin/RigelNet/Udp_client.hpp>
 #include <Hobgoblin/RigelNet/Event.hpp>
 
-#include <Hobgoblin/RigelNet_Macros.hpp>
+#include <Hobgoblin/RigelNet_macros.hpp>
 
 #include <Hobgoblin/Utility/Time_utils.hpp>
 #include <Hobgoblin/Utility/Visitor.hpp>

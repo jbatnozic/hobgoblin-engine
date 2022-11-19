@@ -4,7 +4,7 @@
 #define HOBGOBLIN_SHORT_NAMESPACE
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/RigelNet.hpp>
-#include <Hobgoblin/RigelNet_Macros.hpp>
+#include <Hobgoblin/RigelNet_macros.hpp>
 using namespace hg::rn;
 
 #include <chrono>

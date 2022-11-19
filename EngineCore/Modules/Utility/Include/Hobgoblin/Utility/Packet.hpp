@@ -101,6 +101,30 @@ void PackArgs(util::Packet& packet, ArgsHead argsHead, ArgsRest&&... argsRest) {
 } // namespace util
 HOBGOBLIN_NAMESPACE_END
 
+///////////////////////////////////////////////////////////////////////////
+// MAKE SUPER PACKETBASE SUPPORTS ALL FIXED STD INTS ON ALL PLATFORMS    //
+///////////////////////////////////////////////////////////////////////////
+
+// Note: This is likely a temporary solution necessitated by 2 facts:
+//   - PacketBase is currently an alias to sf::Packet
+//   - We're using an older SFML version where std fixed width ints aren't all handled properly
+
+#ifndef _MSC_VER
+#define hgutil jbatnozic::hobgoblin::util
+
+namespace sf {
+
+hgutil::PacketBase& operator<<(hgutil::PacketBase& aPacketBase, std::int64_t  aData);
+hgutil::PacketBase& operator>>(hgutil::PacketBase& aPacketBase, std::int64_t& aData);
+
+hgutil::PacketBase& operator<<(hgutil::PacketBase& aPacketBase, std::uint64_t  aData);
+hgutil::PacketBase& operator>>(hgutil::PacketBase& aPacketBase, std::uint64_t& aData);
+
+} // namespace sf
+
+#undef hgutil
+#endif
+
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
 #include <Hobgoblin/Private/Short_namespace.hpp>
 

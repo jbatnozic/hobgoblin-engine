@@ -66,12 +66,12 @@ public:
                                         bool aAllowed) override;
 
 private:
-    friend void DefaultSyncedVarmapManager_SetValues(DefaultSyncedVarmapManager&,
-                                                     hobgoblin::util::Packet&);
-
-    friend void DefaultSyncedVarmapManager_SetValueRequested(DefaultSyncedVarmapManager&,
-                                                             hobgoblin::PZInteger aPlayerIndex,
+    friend void USPEMPE_DefaultSyncedVarmapManager_SetValues(DefaultSyncedVarmapManager&,
                                                              hobgoblin::util::Packet&);
+
+    friend void USPEMPE_DefaultSyncedVarmapManager_SetValueRequested(DefaultSyncedVarmapManager&,
+                                                                     hobgoblin::PZInteger aPlayerIndex,
+                                                                     hobgoblin::util::Packet&);
 
     template <class taVal>
     struct Elem {

@@ -9,17 +9,17 @@ namespace spempe {
 
 using namespace hobgoblin::rn;
 
-static void DefaultSyncedVarmapManager_SetValues(DefaultSyncedVarmapManager& aMgr,
-                                                 hobgoblin::util::Packet& aPacket) {
+void USPEMPE_DefaultSyncedVarmapManager_SetValues(DefaultSyncedVarmapManager& aMgr,
+                                                  hobgoblin::util::Packet& aPacket) {
     if (aMgr._mode != DefaultSyncedVarmapManager::Mode::Client) {
         throw RN_IllegalMessage{"DefaultSyncedVarmapManager_SetValues - Called on non-Client."};
     }
     aMgr._unpackValues(aPacket);
 }
 
-static void DefaultSyncedVarmapManager_SetValueRequested(DefaultSyncedVarmapManager& aMgr,
-                                                         hobgoblin::PZInteger aPlayerIndex,
-                                                         hobgoblin::util::Packet& aPacket) {
+void USPEMPE_DefaultSyncedVarmapManager_SetValueRequested(DefaultSyncedVarmapManager& aMgr,
+                                                          hobgoblin::PZInteger aPlayerIndex,
+                                                          hobgoblin::util::Packet& aPacket) {
     if (aMgr._mode != DefaultSyncedVarmapManager::Mode::Host) {
         throw RN_IllegalMessage{"DefaultSyncedVarmapManager_SetValueRequested - Called on non-Host."};
     }
@@ -40,7 +40,7 @@ RN_DEFINE_RPC(USPEMPE_DefaultSyncedVarmapManager_SetValues, RN_ARGS(hobgoblin::u
             auto& svmMgr = dynamic_cast<DefaultSyncedVarmapManager&>(
                 sp.context.getComponent<SyncedVarmapManagerInterface>()
                 );
-            DefaultSyncedVarmapManager_SetValues(svmMgr, aPacket);
+            USPEMPE_DefaultSyncedVarmapManager_SetValues(svmMgr, aPacket);
         });
     RN_NODE_IN_HANDLER().callIfClient(
         [&](RN_ClientInterface& aClient) {
@@ -48,7 +48,7 @@ RN_DEFINE_RPC(USPEMPE_DefaultSyncedVarmapManager_SetValues, RN_ARGS(hobgoblin::u
             auto& svmMgr = dynamic_cast<DefaultSyncedVarmapManager&>(
                 sp.context.getComponent<SyncedVarmapManagerInterface>()
             );
-            DefaultSyncedVarmapManager_SetValues(svmMgr, aPacket);
+            USPEMPE_DefaultSyncedVarmapManager_SetValues(svmMgr, aPacket);
         });
 }
 
@@ -59,7 +59,7 @@ RN_DEFINE_RPC(USPEMPE_DefaultSyncedVarmapManager_RequestToSet, RN_ARGS(hobgoblin
             auto& svmMgr = dynamic_cast<DefaultSyncedVarmapManager&>(
                 sp.context.getComponent<SyncedVarmapManagerInterface>()
             );
-            DefaultSyncedVarmapManager_SetValueRequested(svmMgr, sp.senderIndex + 1, aPacket);
+            USPEMPE_DefaultSyncedVarmapManager_SetValueRequested(svmMgr, sp.senderIndex + 1, aPacket);
         });
     RN_NODE_IN_HANDLER().callIfClient(
         [&](RN_ClientInterface& aClient) {
@@ -67,7 +67,7 @@ RN_DEFINE_RPC(USPEMPE_DefaultSyncedVarmapManager_RequestToSet, RN_ARGS(hobgoblin
             auto& svmMgr = dynamic_cast<DefaultSyncedVarmapManager&>(
                 sp.context.getComponent<SyncedVarmapManagerInterface>()
             );
-            DefaultSyncedVarmapManager_SetValueRequested(svmMgr, 0, aPacket);
+            USPEMPE_DefaultSyncedVarmapManager_SetValueRequested(svmMgr, 0, aPacket);
         });
 }
 } // namespace

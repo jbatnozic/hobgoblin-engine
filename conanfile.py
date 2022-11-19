@@ -105,19 +105,24 @@ class HobgoblinConan(ConanFile):
             self.copy("*{}*.a".format(overlay), dst="lib", keep_path=False)
 
     def package_info(self):
+        # For some reason, specifying libraries in reverse order (most dependent
+        # ones first, most basic ones last) prevents link errors on Linux...
         self.cpp_info.libs = [
+            # Overlays
+            "SPeMPE",
+
             # Core modules
             "Hobgoblin.ChipmunkPhysics", # TODO Should be optional
-            "Hobgoblin.ColDetect",       # TODO Should be optional
-            "Hobgoblin.Common",
-            "Hobgoblin.Graphics",        # TODO Should be optional
-            "Hobgoblin.Logging",
+            "Hobgoblin.ColDetect",       # TODO Should be optional          
+            "Hobgoblin.Graphics",        # TODO Should be optional         
             "Hobgoblin.QAO",             # TODO Should be optional
             "Hobgoblin.RigelNet",        # TODO Should be optional
+
             "Hobgoblin.Utility",
-            # Overlays
-            "SPeMPE"
+            "Hobgoblin.Logging",
+            "Hobgoblin.Common",
         ]
+
         if self.settings.os == "Windows":
             self.cpp_info.system_libs = [
                 "DbgHelp"
