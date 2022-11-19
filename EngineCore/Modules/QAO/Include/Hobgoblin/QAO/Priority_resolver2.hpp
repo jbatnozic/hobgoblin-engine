@@ -50,11 +50,11 @@ public:
 
 private:
     friend class DependencyInserter;
-    struct CategoryDefinition;
-    using DefinitionMap = std::unordered_map<int*, CategoryDefinition>;
+
+    class DefinitionMapIterator;
 
     struct CategoryDefinition {
-        std::vector<DefinitionMap::iterator> dependees;
+        std::vector<DefinitionMapIterator> dependees;
         int dependencyCounter = 0;
         int dependencyFulfilledCounter = 0;
         std::optional<int> priority;
@@ -62,6 +62,14 @@ private:
         void reset();
         bool priorityAssigned() const;
         bool dependenciesSatisfied() const;
+    };
+
+    using DefinitionMap = std::unordered_map<int*, CategoryDefinition>;
+    class DefinitionMapIterator : public DefinitionMap::iterator {
+        // This doesn't seem like a very well thought out class but whatever, it works.
+    public:
+        DefinitionMapIterator(const DefinitionMap::iterator& aOther) 
+            : DefinitionMap::iterator(aOther) {}
     };
 
     DefinitionMap _definitions;

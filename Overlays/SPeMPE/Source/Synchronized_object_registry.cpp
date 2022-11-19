@@ -70,11 +70,10 @@ void SyncDetails::filterSyncs(const SyncDetails::FilterPrecidateFunc& aPredicate
                                        return REMOVE_IF_DO_REMOVE;
 
                                    case FilterResult::Deactivate:
-                                       if (reg.isObjectDeactivatedForClient(forObject, aRecepient)) {
-                                           break;
+                                       if (!reg.isObjectDeactivatedForClient(forObject, aRecepient)) {
+                                           reg.setObjectDeactivatedFlagForClient(forObject, aRecepient, true);
+                                           Compose_USPEMPE_DeactivateObject(reg.getNode(), aRecepient, forObject);
                                        }
-                                       reg.setObjectDeactivatedFlagForClient(forObject, aRecepient, true);
-                                       Compose_USPEMPE_DeactivateObject(reg.getNode(), aRecepient, forObject);
                                        return REMOVE_IF_DO_REMOVE;
 
                                    default:

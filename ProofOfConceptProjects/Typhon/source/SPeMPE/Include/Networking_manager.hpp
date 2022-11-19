@@ -2,7 +2,7 @@
 #define SPEMPE_NETWORKING_MANAGER_HPP
 
 #include <Hobgoblin/RigelNet.hpp>
-#include <Hobgoblin/RigelNet_Macros.hpp>
+#include <Hobgoblin/RigelNet_macros.hpp>
 #include <SPeMPE/Include/Game_object_framework.hpp>
 
 #include <list>

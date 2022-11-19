@@ -118,7 +118,7 @@ template <class taArgType>
 typename std::remove_reference<taArgType>::type UHOBGOBLIN_RN_ExtractArg(RN_NodeInterface& node) {
     auto* pack = node._getCurrentPacket();
     assert(pack);
-    return pack->extractOrThrow<std::remove_reference<taArgType>::type>();
+    return pack->extractOrThrow<typename std::remove_reference<taArgType>::type>();
 }
 
 } // namespace rn

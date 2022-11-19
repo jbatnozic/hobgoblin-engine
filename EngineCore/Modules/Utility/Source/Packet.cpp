@@ -137,4 +137,40 @@ PacketBase& operator>>(PacketBase& srcPacket, Packet& dstPacket) {
 } // namespace util
 HOBGOBLIN_NAMESPACE_END
 
+///////////////////////////////////////////////////////////////////////////
+// MAKE SUPER PACKETBASE SUPPORTS ALL FIXED STD INTS ON ALL PLATFORMS    //
+///////////////////////////////////////////////////////////////////////////
+
+#ifndef _MSC_VER
+#define hgutil jbatnozic::hobgoblin::util
+
+namespace sf {
+
+hgutil::PacketBase& operator<<(hgutil::PacketBase& aPacketBase, std::int64_t  aData) {
+    return aPacketBase << static_cast<sf::Int64>(aData);
+}
+
+hgutil::PacketBase& operator>>(hgutil::PacketBase& aPacketBase, std::int64_t& aData) {
+    sf::Int64 data;
+    aPacketBase >> data;
+    aData = static_cast<std::int64_t>(data);
+    return aPacketBase;
+}
+
+hgutil::PacketBase& operator<<(hgutil::PacketBase& aPacketBase, std::uint64_t  aData) {
+    return aPacketBase << static_cast<sf::Uint64>(aData);
+}
+
+hgutil::PacketBase& operator>>(hgutil::PacketBase& aPacketBase, std::uint64_t& aData) {
+    sf::Uint64 data;
+    aPacketBase >> data;
+    aData = static_cast<std::uint64_t>(data);
+    return aPacketBase;
+}
+
+} // namespace sf
+
+#undef hgutil
+#endif
+
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
