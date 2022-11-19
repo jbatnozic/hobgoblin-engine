@@ -20,10 +20,10 @@ static constexpr char EVENT_WITH_PAYLOAD_TAG = 'P';
 
 using namespace hg::rn;
 
-static void PutNewState(InputSyncManagerOne& aMgr,
-                        hg::PZInteger aForPlayer,
-                        const hg::util::Packet& aPacket,
-                        hg::PZInteger aDelay) {
+void USPEMPE_InputSyncManagerOne_PutNewState(InputSyncManagerOne& aMgr,
+                                             hg::PZInteger aForPlayer,
+                                             const hg::util::Packet& aPacket,
+                                             hg::PZInteger aDelay) {
     aMgr._incomingStates.at(hg::pztos(aForPlayer)).putNewState(aPacket, aDelay);
 }
 
@@ -32,10 +32,12 @@ RN_DEFINE_RPC(USPEMPE_InputSyncManagerOne_SendInput, RN_ARGS(hg::util::Packet&, 
         [&](RN_ServerInterface& aServer) {
             const auto sp = SPEMPE_GET_SYNC_PARAMS(aServer);
             sp.context.getComponent<InputSyncManagerInterface>();
-            PutNewState(static_cast<InputSyncManagerOne&>(sp.context.getComponent<InputSyncManagerInterface>()),
-                        sp.senderIndex + 1,
-                        aPacket,
-                        sp.pessimisticLatencyInSteps);
+            USPEMPE_InputSyncManagerOne_PutNewState(
+                static_cast<InputSyncManagerOne&>(sp.context.getComponent<InputSyncManagerInterface>()),
+                sp.senderIndex + 1,
+                aPacket,
+                sp.pessimisticLatencyInSteps
+            );
         });
 
     RN_NODE_IN_HANDLER().callIfClient(

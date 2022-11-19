@@ -1,6 +1,6 @@
 
 #include <Hobgoblin/Common/Gsl_pointers.hpp>
-#include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/Common/Traced_exceptions.hpp>
 
 #include <stdexcept>
 

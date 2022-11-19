@@ -5,6 +5,7 @@
 #include <Hobgoblin/Common.hpp>
 
 #include <cassert>
+#include <cstring>
 #include <chrono>
 #include <mutex>
 #include <stdexcept>

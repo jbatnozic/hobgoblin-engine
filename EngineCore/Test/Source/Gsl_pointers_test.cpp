@@ -38,6 +38,8 @@ using namespace jbatnozic::hobgoblin;
 
 namespace {
 
+static constexpr char DEATH_MESSAGE[] = "Expected Death";
+
 void f(int* i) { 
     *i += 1;
 }
@@ -650,10 +652,6 @@ TEST(strict_notnull_tests, TestStrictNotNull)
 }
 
 #if defined(__cplusplus) && (__cplusplus >= 201703L)
-namespace
-{
-static constexpr char DEATH_MESSAGE[] = "Expected Death";
-}
 
 TEST(strict_notnull_tests, TestStrictNotNullConstructorTypeDeduction)
 {

@@ -5,25 +5,30 @@
 #include <stdio.h>
 
 //TODO: Move all the thread stuff to another file
-
 //#include <sys/param.h >
-#ifndef _WIN32
-#include <sys/sysctl.h>
+
+#ifndef _WIN32 /////////////////// NOT WINDOWS
+
+#ifdef __APPLE__
+	#include <sys/sysctl.h>
+#endif
 #include <pthread.h>
-#else
+
+#else //////////////////////////// WINDOWS
+
 #ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
+	#define WIN32_LEAN_AND_MEAN
 #endif
 
 #ifndef NOMINMAX
-#define NOMINMAX
+	#define NOMINMAX
 #endif
 
 #include <process.h> // _beginthreadex
 #include <windows.h>
 
 #ifndef ETIMEDOUT
-#define ETIMEDOUT 1
+	#define ETIMEDOUT 1
 #endif
 
 // Simple pthread implementation for Windows

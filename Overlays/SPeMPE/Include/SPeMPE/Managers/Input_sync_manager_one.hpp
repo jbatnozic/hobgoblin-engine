@@ -126,7 +126,10 @@ private:
     void _eventUpdate() override;
     void _eventPostUpdate() override;
 
-    friend void PutNewState(InputSyncManagerOne&, hg::PZInteger, const hg::util::Packet&, hg::PZInteger);
+    friend void USPEMPE_InputSyncManagerOne_PutNewState(InputSyncManagerOne&,
+                                                        hg::PZInteger,
+                                                        const hg::util::Packet&,
+                                                        hg::PZInteger);
 };
 
 } // namespace spempe

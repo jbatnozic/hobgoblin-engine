@@ -16,6 +16,8 @@ namespace gr {
 
 inline constexpr int SUBSPRITE_APPEND = -1;
 
+class SpriteLoader;
+
 class TextureBuilder {
 public:
 	//! aSpriteId - ID to file the (multi)sprite under

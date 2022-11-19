@@ -1,7 +1,9 @@
 
 #include <Hobgoblin/Utility/Dynamic_bitset.hpp>
 
+#include <climits>
 #include <cstdlib>
+#include <cstring>
 #include <new>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>

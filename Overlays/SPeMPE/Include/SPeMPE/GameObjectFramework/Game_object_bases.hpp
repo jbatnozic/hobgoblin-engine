@@ -3,7 +3,7 @@
 
 #include <Hobgoblin/QAO.hpp>
 #include <Hobgoblin/RigelNet.hpp>
-#include <Hobgoblin/RigelNet_Macros.hpp>
+#include <Hobgoblin/RigelNet_macros.hpp>
 #include <Hobgoblin/Utility/Dynamic_bitset.hpp>
 #include <Hobgoblin/Utility/State_scheduler_simple.hpp>
 #include <SPeMPE/GameContext/Game_context.hpp>
@@ -447,7 +447,7 @@ struct SyncParameters {
 
     explicit SyncParameters(const hg::RN_ClientInterface& aClient)
         : context{*aClient.getUserDataOrThrow<taContext>()}
-        , netwMgr{context.getComponent<taNetwMgr>()}
+        , netwMgr{context.template getComponent<taNetwMgr>()}
         , senderIndex{-1000}
         , meanLatency{aClient.getServerConnector().getRemoteInfo().meanLatency / 2}
         , optimisticLatency{aClient.getServerConnector().getRemoteInfo().optimisticLatency / 2}
@@ -460,7 +460,7 @@ struct SyncParameters {
 
     explicit SyncParameters(const hg::RN_ServerInterface& aServer)
         : context{*aServer.getUserDataOrThrow<taContext>()}
-        , netwMgr{context.getComponent<taNetwMgr>()}
+        , netwMgr{context.template getComponent<taNetwMgr>()}
         , senderIndex{aServer.getSenderIndex()}
         , meanLatency{aServer.getClientConnector(senderIndex).getRemoteInfo().meanLatency / 2}
         , optimisticLatency{aServer.getClientConnector(senderIndex).getRemoteInfo().optimisticLatency / 2}
@@ -493,7 +493,7 @@ void DefaultSyncCreateHandler(hg::RN_NodeInterface& node,
         [&](hg::RN_ClientInterface& client) {
             auto& ctx     = *client.getUserDataOrThrow<taContext>();
             auto& runtime = ctx.getQAORuntime();
-            auto  regId   = ctx.getComponent<taNetwMgr>().getRegistryId();
+            auto  regId   = ctx.template getComponent<taNetwMgr>().getRegistryId();
 
             hg::QAO_PCreate<taSyncObj>(&runtime, regId, syncId);
         });
@@ -535,7 +535,7 @@ void DefaultSyncDestroyHandler(hg::RN_NodeInterface& node,
     node.callIfClient(
         [&](hg::RN_ClientInterface& client) {
             detail::SyncParameters<taContext, taNetwMgr> sp{client};
-            auto  regId      = sp.context.getComponent<taNetwMgr>().getRegistryId();
+            auto  regId      = sp.context.template getComponent<taNetwMgr>().getRegistryId();
             auto& syncObjReg = *reinterpret_cast<detail::SynchronizedObjectRegistry*>(regId.address);
             auto* object     = static_cast<taSyncObj*>(syncObjReg.getMapping(syncId));
 

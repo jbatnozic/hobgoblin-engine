@@ -25,7 +25,7 @@
     #endif
     #define HGCALL __cdecl
 #else
-    #define ZTS_API
+    #define HG_DYNAPI
     #define HGCALL
 #endif
 
