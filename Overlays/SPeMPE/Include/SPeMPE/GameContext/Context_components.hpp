@@ -18,7 +18,7 @@ class ContextComponent {
 public:
     using TagHash = std::size_t;
 
-    virtual ~ContextComponent();
+    virtual ~ContextComponent() = 0;
 };
 
 //! Define a component's tag.
@@ -52,6 +52,10 @@ public:
     template <class taComponent>
     taComponent& getComponent() const;
 
+    //! Returns nullptr if the component isn't present.
+    template <class taComponent>
+    taComponent* getComponentPtr() const;
+
     std::string toString(char aSeparator = '\n') const;
 
 private:
@@ -67,6 +71,7 @@ private:
                           std::string aTag,
                           ContextComponent::TagHash aTagHash);
 
+    ContextComponent* _getComponentPtr(ContextComponent::TagHash aTagHash) const;
     ContextComponent& _getComponent(ContextComponent::TagHash aTagHash) const;
 };
 
@@ -84,6 +89,15 @@ taComponent& ComponentTable::getComponent() const {
     const auto tagHash = 
         reinterpret_cast<taComponent*>(0x12345678)->__spempeimpl_getComponentTagHash();
     return static_cast<taComponent&>(_getComponent(tagHash));
+}
+
+template <class taComponent>
+taComponent* ComponentTable::getComponentPtr() const {
+    //! Ugly hack that relies on the fact that __spempeimpl_getComponentTagHash
+    //! doesn't actually at any point dereference 'this'.
+    const auto tagHash =
+        reinterpret_cast<taComponent*>(0x12345678)->__spempeimpl_getComponentTagHash();
+    return static_cast<taComponent*>(_getComponentPtr(tagHash));
 }
 
 } // namespace detail

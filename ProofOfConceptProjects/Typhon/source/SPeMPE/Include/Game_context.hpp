@@ -22,10 +22,6 @@
 
 namespace spempe {
 
-constexpr int PLAYER_INDEX_UNKNOWN = -2;
-constexpr int PLAYER_INDEX_NONE = -1;
-constexpr int PLAYER_INDEX_LOCAL_PLAYER = 0;
-
 constexpr class GameContext_AllowOnHost_Type {} ALLOW_ON_HOST;
 
 class GameContextExtensionData {
@@ -93,9 +89,6 @@ public:
     const ResourceConfig& getResourceConfig() const;
     const RuntimeConfig& getRuntimeConfig() const;
 
-    void setLocalPlayerIndex(int index);
-    int getLocalPlayerIndex() const;
-
     void setExtensionData(std::unique_ptr<GameContextExtensionData> extData);
     GameContextExtensionData* getExtensionData() const;
 
@@ -144,7 +137,6 @@ private:
     PerformanceInfo _performanceInfo;
     std::unique_ptr<GameContextExtensionData> _extensionData;
     int _stepOrdinal = 0;
-    int _localPlayerIndex = PLAYER_INDEX_UNKNOWN;
     Mode _mode = Mode::Initial;
     bool _quit = false;
 

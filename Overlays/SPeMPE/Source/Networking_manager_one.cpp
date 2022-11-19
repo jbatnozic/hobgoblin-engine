@@ -16,7 +16,7 @@ constexpr const char* LOG_ID = "jbatnozic::spempe::NetworkingManagerOne";
 NetworkingManagerOne::NetworkingManagerOne(hg::QAO_RuntimeRef aRuntimeRef,
                                            int aExecutionPriority,
                                            hg::PZInteger aStateBufferingLength)
-    : NonstateObject{aRuntimeRef, SPEMPE_TYPEID_SELF, aExecutionPriority, "spempe::NetworkingManagerOne"}
+    : NonstateObject{aRuntimeRef, SPEMPE_TYPEID_SELF, aExecutionPriority, "::jbatnozic::spempe::NetworkingManagerOne"}
     , _node{hg::RN_ServerFactory::createDummyServer()}
     , _syncObjReg{getNode(), aStateBufferingLength}
 {
@@ -35,21 +35,21 @@ void NetworkingManagerOne::setToMode(Mode aMode) {
 
     switch (_mode) {
     case Mode::Uninitialized:
-        _localPlayerIndex = PLAYER_INDEX_NONE;
+        _localClientIndex = CLIENT_INDEX_UNKNOWN;
         _node = hg::RN_ServerFactory::createDummyServer();
         _node->setUserData(&ctx());
         _syncObjReg.setNode(*_node);
         break;
 
     case Mode::Server:
-        _localPlayerIndex = PLAYER_INDEX_LOCAL_PLAYER;
+        _localClientIndex = CLIENT_INDEX_LOCAL;
         _node = hg::RN_ServerFactory::createServer(hg::RN_Protocol::UDP, "pass"); // TODO Parametrize !!!!!!!!!!!
         _node->setUserData(&ctx());
         _syncObjReg.setNode(*_node);
         break;
 
     case Mode::Client:
-        _localPlayerIndex = PLAYER_INDEX_UNKNOWN;
+        _localClientIndex = CLIENT_INDEX_UNKNOWN;
         _node = hg::RN_ClientFactory::createClient(hg::RN_Protocol::UDP, "pass");
         _node->setUserData(&ctx());
         _syncObjReg.setNode(*_node);
@@ -142,8 +142,8 @@ void NetworkingManagerOne::setPacemakerPulsePeriod(hg::PZInteger aPeriod) {
 // MISC.                                                                 //
 ///////////////////////////////////////////////////////////////////////////
 
-int NetworkingManagerOne::getLocalPlayerIndex() {
-    return _localPlayerIndex;
+int NetworkingManagerOne::getLocalClientIndex() const {
+    return _localClientIndex;
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -171,7 +171,7 @@ void NetworkingManagerOne::_handleEvents() {
     RN_Event event;
 
     while (_node->pollEvent(event)) {
-        event.visit(
+        event.strictVisit(
             [](const RN_Event::BadPassphrase& ev) {
                 HG_LOG_INFO(LOG_ID, "Received event: Bad passphrase.");
             },
@@ -185,11 +185,14 @@ void NetworkingManagerOne::_handleEvents() {
                 }
                 else {
                     HG_LOG_INFO(LOG_ID, "Received event: Connected to server.");
-                    _localPlayerIndex = (getClient().getClientIndex() + 1);
+                    _localClientIndex = getClient().getClientIndex();
                 }
             },
-            [](const RN_Event::Disconnected& ev) {
+            [this](const RN_Event::Disconnected& ev) {
                 HG_LOG_INFO(LOG_ID, "Received event: Disconnect ({}).", ev.message);
+                if (!_node->isServer()) {
+                    _localClientIndex = CLIENT_INDEX_UNKNOWN;
+                }
             }
         );
 

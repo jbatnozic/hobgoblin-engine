@@ -9,6 +9,8 @@
 
 #include <SPeMPE/Managers/Input_sync_manager_interface.hpp>
 #include <SPeMPE/Managers/Input_sync_manager_one.hpp>
+#include <SPeMPE/Managers/Lobby_manager_interface.hpp>
+#include <SPeMPE/Managers/Lobby_manager_default.hpp>
 #include <SPeMPE/Managers/Networking_manager_interface.hpp>
 #include <SPeMPE/Managers/Networking_manager_one.hpp>
 #include <SPeMPE/Managers/Synced_varmap_manager_default.hpp>
@@ -18,5 +20,6 @@
 
 #include <SPeMPE/Other/Sync_parameters.hpp>
 #include <SPeMPE/Other/Keyboard_input.hpp>
+#include <SPeMPE/Other/Mouse_input.hpp>
 
 #endif // !SPEMPE_SPEMPE_HPP

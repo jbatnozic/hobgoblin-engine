@@ -12,13 +12,13 @@ HOBGOBLIN_NAMESPACE_BEGIN
 using PZInteger = int;
 
 // std::size_t to PZInteger
-inline
+constexpr
 PZInteger stopz(std::size_t value) {
     return static_cast<PZInteger>(value);
 }
 
 // PZInteger to std::size_t
-inline
+constexpr
 std::size_t pztos(PZInteger value) {
     return static_cast<std::size_t>(value);
 }

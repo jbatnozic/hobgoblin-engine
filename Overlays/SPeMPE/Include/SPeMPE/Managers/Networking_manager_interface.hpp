@@ -16,9 +16,8 @@ public:
     virtual void onNetworkingEvent(const hg::RN_Event& ev) = 0;
 };
 
-constexpr int PLAYER_INDEX_NONE         = -2; //! Not everything has been initialized yet.
-constexpr int PLAYER_INDEX_UNKNOWN      = -1; //! Client index not yet received from Server.
-constexpr int PLAYER_INDEX_LOCAL_PLAYER =  0; //! Local player = not connected through RigelNet.
+constexpr int CLIENT_INDEX_UNKNOWN = -2; //! Client index not yet received from Server.
+constexpr int CLIENT_INDEX_LOCAL   = -1; //! Denotes the same machine/process that's also the host.
 
 class NetworkingManagerInterface : public ContextComponent {
 public:
@@ -90,7 +89,8 @@ public:
     // MISC.                                                                 //
     ///////////////////////////////////////////////////////////////////////////
 
-    virtual int getLocalPlayerIndex() = 0;
+
+    virtual int getLocalClientIndex() const = 0;
 
 private:
     SPEMPE_CTXCOMP_TAG("jbatnozic::spempe::NetworkingManagerInterface");

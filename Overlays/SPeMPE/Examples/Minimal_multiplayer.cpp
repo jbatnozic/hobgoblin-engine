@@ -1,3 +1,4 @@
+#include <Hobgoblin/Logging.hpp>
 #include <Hobgoblin/Utility/Autopack.hpp>
 #include <Hobgoblin/Utility/State_scheduler.hpp>
 #include <SPeMPE/SPeMPE.hpp>
@@ -15,17 +16,21 @@ using namespace hg::qao; // All names from QAO are prefixed with QAO_
 using namespace hg::rn;  // All names from RigelNet are prefixed with RN_
 
 using MInput      = spe::InputSyncManagerInterface;
+using MLobby      = spe::LobbyManagerInterface;
 using MNetworking = spe::NetworkingManagerInterface;
 using MWindow     = spe::WindowManagerInterface;
 
 #define PRIORITY_VARMAPMGR    16
 #define PRIORITY_NETWORKMGR   15
+#define PRIORITY_LOBBYMGR     14
 #define PRIPRITY_GAMEPLAYMGR  10
 #define PRIORITY_INPUTMGR      7
 #define PRIORITY_PLAYERAVATAR  5
 #define PRIORITY_WINDOWMGR     0
 
 #define STATE_BUFFERING_LENGTH 2
+
+static constexpr auto LOG_ID = "MinimalMultiplayer";
 
 ///////////////////////////////////////////////////////////////////////////
 // PLAYER CONTROLS                                                       //
@@ -89,6 +94,8 @@ public:
 
 private:
     void _eventUpdate(spe::IfMaster) override {
+        // if (ctx().getGameState().isPaused) return;
+
         auto& self = _getCurrentState();
         assert(self.owningPlayerIndex >= 0);
 
@@ -176,8 +183,6 @@ public:
 
     ~SinclaireAvatar() override {
         if (isMasterObject()) {
-            // TODO: See if this can be improved.
-            // Maybe some default implementation?
             doSyncDestroy();
         }
     }
@@ -284,13 +289,13 @@ class GameplayManager
     , public  spe::NonstateObject
     , private spe::NetworkingEventListener {
 public:
-    GameplayManager(QAO_RuntimeRef aRuntimeRef)
+    explicit GameplayManager(QAO_RuntimeRef aRuntimeRef)
         : NonstateObject{aRuntimeRef, SPEMPE_TYPEID_SELF, PRIPRITY_GAMEPLAYMGR, "GameplayManager"}
     {
         ccomp<MNetworking>().addEventListener(*this);
     }
 
-    ~GameplayManager() {
+    ~GameplayManager() override {
         ccomp<MNetworking>().removeEventListener(*this);
     }
 
@@ -335,34 +340,36 @@ private:
 
     void onNetworkingEvent(const hg::RN_Event& ev) override {
         if (ccomp<MNetworking>().isClient()) {
-            return;
+            // CLIENT
+            ev.visit(
+                [this](const RN_Event::Connected& ev) {
+                    HG_LOG_INFO(LOG_ID, "Client lobby uploading local info to server.");
+                    ccomp<MLobby>().uploadLocalInfo();
+                }
+            );
         }
-
-        ev.visit(
-            [](const RN_Event::BadPassphrase& ev) {
-            },
-            [](const RN_Event::ConnectAttemptFailed& ev) {
-            },
-            [this](const RN_Event::Connected& ev) {
-                QAO_PCreate<PlayerAvatar>(getRuntime(),
-                                          ccomp<MNetworking>().getRegistryId(),
-                                          spe::SYNC_ID_NEW)->init(*ev.clientIndex + 1);
-                QAO_PCreate<SinclaireAvatar>(getRuntime(),
-                                             ccomp<MNetworking>().getRegistryId(),
-                                             spe::SYNC_ID_NEW)->init(*ev.clientIndex + 1);
-            },
-            [](const RN_Event::Disconnected& ev) {
-                // TODO Remove player avatar
-                
-            }
-        );
+        else {
+            // HOST
+            ev.visit(
+                [this](const RN_Event::Connected& ev) {
+                    QAO_PCreate<PlayerAvatar>(getRuntime(),
+                                              ccomp<MNetworking>().getRegistryId(),
+                                              spe::SYNC_ID_NEW)->init(*ev.clientIndex + 1);
+                    QAO_PCreate<SinclaireAvatar>(getRuntime(),
+                                                 ccomp<MNetworking>().getRegistryId(),
+                                                 spe::SYNC_ID_NEW)->init(*ev.clientIndex + 1);
+                },
+                [](const RN_Event::Disconnected& ev) {
+                    // TODO Remove player avatar
+                }
+            );
+        }
     }
 };
 
 void GameplayManager::_eventUpdate() {
     if (!ctx().isPrivileged() &&
-        ccomp<MNetworking>().getClient().getServerConnector().getStatus() == hg::RN_ConnectorStatus::Connected &&
-        ccomp<MNetworking>().getLocalPlayerIndex() >= 0) {
+        ccomp<MNetworking>().getClient().getServerConnector().getStatus() == RN_ConnectorStatus::Connected) {
 
         const auto kbInput = ccomp<MWindow>().getKeyboardInput();
         PlayerControls controls{
@@ -379,17 +386,9 @@ void GameplayManager::_eventUpdate() {
         wrapper.setSignalValue<bool>("up",    controls.up);
         wrapper.setSignalValue<bool>("down",  controls.down);
         wrapper.triggerEvent("jump", controls.jump);
-
-        for (int i = 0; i <= 9; i += 1) {
-            if (kbInput.checkPressed(spe::StringToKbKey("Numpad" + std::to_string(i)))) {
-                ccomp<spe::SyncedVarmapManagerInterface>().requestToSetInt64(
-                    "val" + std::to_string(ccomp<MNetworking>().getLocalPlayerIndex()), 
-                    i
-                );
-            }
-        }
     }
 
+#if 0
     if (ctx().isPrivileged()) {
         const auto kbInput = ccomp<MWindow>().getKeyboardInput();
         const auto mode = spe::KbInput::Mode::Direct;
@@ -424,6 +423,7 @@ void GameplayManager::_eventUpdate() {
             std::cout << "Global state buffering set to " << 0 << " frames.\n";
         }
     }
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -495,9 +495,10 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
         server.setTimeoutLimit(std::chrono::seconds{5});
         server.setRetransmitPredicate(&MyRetransmitPredicate);
         server.start(aLocalPort);
-        server.resize(aPlayerCount);
+        server.resize(aPlayerCount - 1); // -1 because player 0 is the host itself
+                                         // (even if it doesn't participate in the game)
 
-        std::printf("Server started on port %d for up to %d clients.\n", (int)server.getLocalPort(), aPlayerCount);
+        std::printf("Server started on port %d for up to %d clients.\n", (int)server.getLocalPort(), aPlayerCount - 1);
     }
     else {
         netMgr->setToMode(spe::NetworkingManagerOne::Mode::Client);
@@ -549,6 +550,21 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
 
     context->attachAndOwnComponent(std::move(svmMgr));
 
+    // Create and attach a lobby manager
+    auto lobbyMgr = std::make_unique<spe::DefaultLobbyManager>(context->getQAORuntime().nonOwning(),
+                                                               PRIORITY_LOBBYMGR);
+
+    if (aGameMode == GameMode::Server) {
+        lobbyMgr->setToHostMode(aPlayerCount);
+    }
+    else {
+        lobbyMgr->setToClientMode(1);
+        lobbyMgr->setLocalName("player_" + std::to_string(reinterpret_cast<std::uintptr_t>(lobbyMgr.get()) % 10'000));
+        lobbyMgr->setLocalUniqueId("id_" + std::to_string(reinterpret_cast<std::uintptr_t>(lobbyMgr.get()) % 10'000));
+    }
+
+    context->attachAndOwnComponent(std::move(lobbyMgr));
+
     // Create and attach a Gameplay manager
     auto gpMgr = std::make_unique<GameplayManager>(context->getQAORuntime().nonOwning());
     context->attachAndOwnComponent(std::move(gpMgr));
@@ -564,6 +580,7 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
  *
  */
 int main(int argc, char* argv[]) {
+    hg::log::SetMinimalLogSeverity(hg::log::Severity::All);
     RN_IndexHandlers();
 
     // Parse command line arguments:

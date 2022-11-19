@@ -47,7 +47,7 @@ RN_DEFINE_RPC(USPEMPE_InputSyncManagerOne_SendInput, RN_ARGS(hg::util::Packet&, 
 }
 
 InputSyncManagerOne::InputSyncManagerOne(hg::QAO_RuntimeRef aRuntimeRef, int aExecutionPriority) 
-    : NonstateObject{aRuntimeRef, SPEMPE_TYPEID_SELF, aExecutionPriority, "spempe::InputSyncManagerOne"}
+    : NonstateObject{aRuntimeRef, SPEMPE_TYPEID_SELF, aExecutionPriority, "::jbatnozic::spempe::InputSyncManagerOne"}
 {
 }
 
