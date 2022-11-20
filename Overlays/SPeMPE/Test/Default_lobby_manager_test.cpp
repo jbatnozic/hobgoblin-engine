@@ -25,9 +25,9 @@ public:
         _ctx[HOST] = std::make_unique<GameContext>(rc);
 
         // Add networking manager
-        _netMgr[HOST] = std::make_unique<NetworkingManagerOne>(_ctx[HOST]->getQAORuntime().nonOwning(),
-                                                               PRIORITY_NETMGR,
-                                                               0);
+        _netMgr[HOST] = std::make_unique<DefaultNetworkingManager>(_ctx[HOST]->getQAORuntime().nonOwning(),
+                                                                   PRIORITY_NETMGR,
+                                                                   0);
         _netMgr[HOST]->setToMode(NetworkingManagerInterface::Mode::Server);
         _netMgr[HOST]->getServer().start(0);
         _netMgr[HOST]->getServer().resize(2);
@@ -70,9 +70,9 @@ protected:
         _ctx[pos] = std::make_unique<GameContext>(rc);
 
         // Add networking manager
-        _netMgr[pos] = std::make_unique<NetworkingManagerOne>(_ctx[pos]->getQAORuntime().nonOwning(),
-                                                              PRIORITY_NETMGR,
-                                                              0);
+        _netMgr[pos] = std::make_unique<DefaultNetworkingManager>(_ctx[pos]->getQAORuntime().nonOwning(),
+                                                                  PRIORITY_NETMGR,
+                                                                  0);
         _netMgr[pos]->setToMode(NetworkingManagerInterface::Mode::Client);
         _netMgr[pos]->getClient().connectLocal(_netMgr[HOST]->getServer());
 

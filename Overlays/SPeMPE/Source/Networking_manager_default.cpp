@@ -1,5 +1,5 @@
 
-#include <SPeMPE/Managers/Networking_manager_one.hpp>
+#include <SPeMPE/Managers/Networking_manager_default.hpp>
 
 #include <Hobgoblin/Logging.hpp>
 
@@ -10,13 +10,13 @@
 namespace jbatnozic {
 namespace spempe {
 namespace {
-constexpr const char* LOG_ID = "jbatnozic::spempe::NetworkingManagerOne";
+constexpr const char* LOG_ID = "jbatnozic::spempe::DefaultNetworkingManager";
 } // namespace
 
-NetworkingManagerOne::NetworkingManagerOne(hg::QAO_RuntimeRef aRuntimeRef,
-                                           int aExecutionPriority,
-                                           hg::PZInteger aStateBufferingLength)
-    : NonstateObject{aRuntimeRef, SPEMPE_TYPEID_SELF, aExecutionPriority, "::jbatnozic::spempe::NetworkingManagerOne"}
+DefaultNetworkingManager::DefaultNetworkingManager(hg::QAO_RuntimeRef aRuntimeRef,
+                                                   int aExecutionPriority,
+                                                   hg::PZInteger aStateBufferingLength)
+    : NonstateObject{aRuntimeRef, SPEMPE_TYPEID_SELF, aExecutionPriority, "::jbatnozic::spempe::DefaultNetworkingManager"}
     , _node{hg::RN_ServerFactory::createDummyServer()}
     , _syncObjReg{getNode(), aStateBufferingLength}
 {
@@ -26,7 +26,7 @@ NetworkingManagerOne::NetworkingManagerOne(hg::QAO_RuntimeRef aRuntimeRef,
 // CONFIGURATION                                                         //
 ///////////////////////////////////////////////////////////////////////////
 
-void NetworkingManagerOne::setToMode(Mode aMode) {
+void DefaultNetworkingManager::setToMode(Mode aMode) {
     if (_mode == aMode) {
         return;
     }
@@ -61,19 +61,19 @@ void NetworkingManagerOne::setToMode(Mode aMode) {
     // TODO !!!!!!!!!!!!!!!!!
 }
 
-NetworkingManagerInterface::Mode NetworkingManagerOne::getMode() const {
+NetworkingManagerInterface::Mode DefaultNetworkingManager::getMode() const {
     return _mode;
 }
 
-bool NetworkingManagerOne::isUninitialized() const {
+bool DefaultNetworkingManager::isUninitialized() const {
     return _mode == Mode::Uninitialized;
 }
 
-bool NetworkingManagerOne::isServer() const {
+bool DefaultNetworkingManager::isServer() const {
     return _mode == Mode::Server;
 }
 
-bool NetworkingManagerOne::isClient() const {
+bool DefaultNetworkingManager::isClient() const {
     return _mode == Mode::Client;
 }
 
@@ -81,16 +81,16 @@ bool NetworkingManagerOne::isClient() const {
 // NODE ACCESS                                                           //
 ///////////////////////////////////////////////////////////////////////////
 
-NetworkingManagerInterface::NodeType& NetworkingManagerOne::getNode() const {
+NetworkingManagerInterface::NodeType& DefaultNetworkingManager::getNode() const {
     return *_node;
 }
 
-NetworkingManagerInterface::ServerType& NetworkingManagerOne::getServer() const {
+NetworkingManagerInterface::ServerType& DefaultNetworkingManager::getServer() const {
     assert(isServer());
     return static_cast<ServerType&>(getNode());
 }
 
-NetworkingManagerInterface::ClientType& NetworkingManagerOne::getClient() const {
+NetworkingManagerInterface::ClientType& DefaultNetworkingManager::getClient() const {
     assert(isClient());
     return static_cast<ClientType&>(getNode());
 }
@@ -99,7 +99,7 @@ NetworkingManagerInterface::ClientType& NetworkingManagerOne::getClient() const 
 // LISTENER MANAGEMENT                                                   //
 ///////////////////////////////////////////////////////////////////////////
 
-void NetworkingManagerOne::addEventListener(NetworkingEventListener& aListener) {
+void DefaultNetworkingManager::addEventListener(NetworkingEventListener& aListener) {
     for (const auto listener : _eventListeners) {
         if (listener == &aListener) {
             return;
@@ -108,7 +108,7 @@ void NetworkingManagerOne::addEventListener(NetworkingEventListener& aListener) 
     _eventListeners.push_back(&aListener);
 }
 
-void NetworkingManagerOne::removeEventListener(NetworkingEventListener& aListener) {
+void DefaultNetworkingManager::removeEventListener(NetworkingEventListener& aListener) {
     _eventListeners.erase(
         std::remove_if(_eventListeners.begin(), _eventListeners.end(),
                        [&aListener](const NetworkingEventListener* aCurr) {
@@ -120,21 +120,21 @@ void NetworkingManagerOne::removeEventListener(NetworkingEventListener& aListene
 // SYNCHRONIZATION                                                       //
 ///////////////////////////////////////////////////////////////////////////
 
-RegistryId NetworkingManagerOne::getRegistryId() {
+RegistryId DefaultNetworkingManager::getRegistryId() {
     return {
         reinterpret_cast< decltype(std::declval<RegistryId>().address) >(&_syncObjReg)
     };
 }
 
-hg::PZInteger NetworkingManagerOne::getStateBufferingLength() const {
+hg::PZInteger DefaultNetworkingManager::getStateBufferingLength() const {
     return _syncObjReg.getDefaultDelay();
 }
 
-void NetworkingManagerOne::setStateBufferingLength(hg::PZInteger aNewStateBufferingLength) {
+void DefaultNetworkingManager::setStateBufferingLength(hg::PZInteger aNewStateBufferingLength) {
     _syncObjReg.setDefaultDelay(aNewStateBufferingLength);
 }
 
-void NetworkingManagerOne::setPacemakerPulsePeriod(hg::PZInteger aPeriod) {
+void DefaultNetworkingManager::setPacemakerPulsePeriod(hg::PZInteger aPeriod) {
     _syncObjReg.setPacemakerPulsePeriod(aPeriod);
 }
 
@@ -142,7 +142,7 @@ void NetworkingManagerOne::setPacemakerPulsePeriod(hg::PZInteger aPeriod) {
 // MISC.                                                                 //
 ///////////////////////////////////////////////////////////////////////////
 
-int NetworkingManagerOne::getLocalClientIndex() const {
+int DefaultNetworkingManager::getLocalClientIndex() const {
     return _localClientIndex;
 }
 
@@ -150,12 +150,12 @@ int NetworkingManagerOne::getLocalClientIndex() const {
 // PROTECTED & PRIVATE METHODS                                           //
 ///////////////////////////////////////////////////////////////////////////
 
-void NetworkingManagerOne::_eventPreUpdate() {
+void DefaultNetworkingManager::_eventPreUpdate() {
     _node->update(hg::RN_UpdateMode::Receive);
     _handleEvents();
 }
 
-void NetworkingManagerOne::_eventPostUpdate() {
+void DefaultNetworkingManager::_eventPostUpdate() {
     // Update all Synchronized objects
     if (_node->isServer()) {
         _syncObjReg.syncStateUpdates();
@@ -165,7 +165,7 @@ void NetworkingManagerOne::_eventPostUpdate() {
     _handleEvents();
 }
 
-void NetworkingManagerOne::_handleEvents() {
+void DefaultNetworkingManager::_handleEvents() {
     using hg::RN_Event;
 
     RN_Event event;

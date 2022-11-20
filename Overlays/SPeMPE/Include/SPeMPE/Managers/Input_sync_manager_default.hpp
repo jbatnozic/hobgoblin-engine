@@ -1,5 +1,5 @@
-#ifndef SPEMPE_MANAGERS_INPUT_SYNC_MANAGER_ONE_HPP
-#define SPEMPE_MANAGERS_INPUT_SYNC_MANAGER_ONE_HPP
+#ifndef SPEMPE_MANAGERS_INPUT_SYNC_MANAGER_DEFAULT_HPP
+#define SPEMPE_MANAGERS_INPUT_SYNC_MANAGER_DEFAULT_HPP
 
 #include <Hobgoblin/Utility/Packet.hpp>
 #include <Hobgoblin/Utility/State_scheduler_simple.hpp>
@@ -12,11 +12,11 @@
 namespace jbatnozic {
 namespace spempe {
 
-class InputSyncManagerOne 
+class DefaultInputSyncManager 
     : public InputSyncManagerInterface
     , public NonstateObject {
 public:
-    InputSyncManagerOne(hg::QAO_RuntimeRef aRuntimeRef, int aExecutionPriority);
+    DefaultInputSyncManager(hg::QAO_RuntimeRef aRuntimeRef, int aExecutionPriority);
 
     void setToHostMode(hg::PZInteger aPlayerCount, hg::PZInteger aStateBufferingLength) override;
     void setToClientMode() override;
@@ -126,7 +126,7 @@ private:
     void _eventUpdate() override;
     void _eventPostUpdate() override;
 
-    friend void USPEMPE_InputSyncManagerOne_PutNewState(InputSyncManagerOne&,
+    friend void USPEMPE_InputSyncManagerOne_PutNewState(DefaultInputSyncManager&,
                                                         hg::PZInteger,
                                                         const hg::util::Packet&,
                                                         hg::PZInteger);
@@ -135,4 +135,4 @@ private:
 } // namespace spempe
 } // namespace jbatnozic
 
-#endif // !SPEMPE_MANAGERS_INPUT_SYNC_MANAGER_ONE_HPP
+#endif // !SPEMPE_MANAGERS_INPUT_SYNC_MANAGER_DEFAULT_HPP

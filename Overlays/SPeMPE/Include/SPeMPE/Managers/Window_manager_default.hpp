@@ -1,5 +1,5 @@
-#ifndef SPEMPE_MANAGERS_WINDOW_MANAGER_ONE_HPP
-#define SPEMPE_MANAGERS_WINDOW_MANAGER_ONE_HPP
+#ifndef SPEMPE_MANAGERS_WINDOW_MANAGER_DEFAULT_HPP
+#define SPEMPE_MANAGERS_WINDOW_MANAGER_DEFAULT_HPP
 
 #include <Hobgoblin/Graphics.hpp>
 #include <Hobgoblin/RmlUi.hpp>
@@ -18,11 +18,11 @@
 namespace jbatnozic {
 namespace spempe {
 
-class WindowManagerOne 
+class DefaultWindowManager 
     : public WindowManagerInterface
     , public NonstateObject {
 public:
-    WindowManagerOne(hg::QAO_RuntimeRef aRuntimeRef,
+    DefaultWindowManager(hg::QAO_RuntimeRef aRuntimeRef,
                      int aExecutionPriority);
 
     ///////////////////////////////////////////////////////////////////////////
@@ -132,4 +132,4 @@ private:
 } // namespace spempe
 } // namespace jbatnozic
 
-#endif // !SPEMPE_MANAGERS_WINDOW_MANAGER_ONE_HPP
+#endif // !SPEMPE_MANAGERS_WINDOW_MANAGER_DEFAULT_HPP

@@ -55,7 +55,7 @@ int main() {
     }
     // RmlUi
     {
-        auto guard = RmlUiBackend::initialize();
+        auto guard = rml::HobgoblinBackend::initialize();
         guard.reset();
     }
     // Utility

@@ -59,14 +59,14 @@ protected:
         _ctx2 = std::make_unique<GameContext>(rc);
 
         // Add networking managers
-        _netMgr1 = std::make_unique<NetworkingManagerOne>(_ctx1->getQAORuntime().nonOwning(),
-                                                          PRIORITY_NETMGR,
-                                                          aStateBufferingLength);
+        _netMgr1 = std::make_unique<DefaultNetworkingManager>(_ctx1->getQAORuntime().nonOwning(),
+                                                              PRIORITY_NETMGR,
+                                                              aStateBufferingLength);
         _netMgr1->setToMode(NetworkingManagerInterface::Mode::Server);
 
-        _netMgr2 = std::make_unique<NetworkingManagerOne>(_ctx2->getQAORuntime().nonOwning(),
-                                                          PRIORITY_NETMGR,
-                                                          aStateBufferingLength);
+        _netMgr2 = std::make_unique<DefaultNetworkingManager>(_ctx2->getQAORuntime().nonOwning(),
+                                                              PRIORITY_NETMGR,
+                                                              aStateBufferingLength);
         _netMgr2->setToMode(NetworkingManagerInterface::Mode::Client);
 
         {
@@ -81,12 +81,12 @@ protected:
         _ctx2->attachComponent(*_netMgr2);
 
         // Add input sync managers
-        _insMgr1 = std::make_unique<InputSyncManagerOne>(_ctx1->getQAORuntime().nonOwning(), PRIORITY_INSMGR);
+        _insMgr1 = std::make_unique<DefaultInputSyncManager>(_ctx1->getQAORuntime().nonOwning(), PRIORITY_INSMGR);
         // aPlayerCount is 2 because player 0 is the local player and player 1 is the actual client
         _insMgr1->setToHostMode(2, aStateBufferingLength);
         _defineInputs(*_insMgr1);
 
-        _insMgr2 = std::make_unique<InputSyncManagerOne>(_ctx2->getQAORuntime().nonOwning(), PRIORITY_INSMGR);
+        _insMgr2 = std::make_unique<DefaultInputSyncManager>(_ctx2->getQAORuntime().nonOwning(), PRIORITY_INSMGR);
         _insMgr2->setToClientMode();
         _defineInputs(*_insMgr2);
 

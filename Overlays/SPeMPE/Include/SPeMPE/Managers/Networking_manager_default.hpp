@@ -1,5 +1,5 @@
-#ifndef SPEMPE_MANAGERS_NETWORKING_MANAGER_ONE_HPP
-#define SPEMPE_MANAGERS_NETWORKING_MANAGER_ONE_HPP
+#ifndef SPEMPE_MANAGERS_NETWORKING_MANAGER_DEFAULT_HPP
+#define SPEMPE_MANAGERS_NETWORKING_MANAGER_DEFAULT_HPP
 
 #include <SPeMPE/GameObjectFramework/Game_object_bases.hpp>
 #include <SPeMPE/Managers/Networking_manager_interface.hpp>
@@ -12,13 +12,13 @@ namespace spempe {
 
 //! One concrete implementation of NetworkingManagerInterface.
 //! TODO: Tip on setting execution priority?
-class NetworkingManagerOne 
+class DefaultNetworkingManager 
     : public NetworkingManagerInterface
     , public NonstateObject {
 public:
-    NetworkingManagerOne(hg::QAO_RuntimeRef aRuntimeRef,
-                         int aExecutionPriority,
-                         hg::PZInteger aStateBufferingLength);
+    DefaultNetworkingManager(hg::QAO_RuntimeRef aRuntimeRef,
+                             int aExecutionPriority,
+                             hg::PZInteger aStateBufferingLength);
 
     ///////////////////////////////////////////////////////////////////////////
     // CONFIGURATION                                                         //
@@ -87,4 +87,4 @@ private:
 } // namespace spempe
 } // namespace jbatnozic
 
-#endif // !SPEMPE_MANAGERS_NETWORKING_MANAGER_ONE_HPP
+#endif // !SPEMPE_MANAGERS_NETWORKING_MANAGER_DEFAULT_HPP

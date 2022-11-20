@@ -8,15 +8,15 @@ set(OVERLAY_SOURCES
   "Source/Authorization_manager_default.cpp"
   "Source/Context_components.cpp"
   "Source/Game_object_bases.cpp"
-  "Source/Input_sync_manager_one.cpp"
+  "Source/Input_sync_manager_default.cpp"
   "Source/Keyboard_input.cpp"
   "Source/Lobby_manager_default.cpp"
   "Source/Mouse_input.cpp"
   "Source/Game_context.cpp"
-  "Source/Networking_manager_one.cpp"
+  "Source/Networking_manager_default.cpp"
   "Source/Synced_varmap_manager_default.cpp"
   "Source/Synchronized_object_registry.cpp"
-  "Source/Window_manager_one.cpp"
+  "Source/Window_manager_default.cpp"
 )
 
 # ===== TARGET SETUP =====

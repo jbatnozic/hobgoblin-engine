@@ -46,8 +46,8 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
                        : spe::GameContext::Mode::Client);
 
     // Create and attach a Window manager
-    auto winMgr = std::make_unique<spe::WindowManagerOne>(context->getQAORuntime().nonOwning(),
-                                                          PRIORITY_WINDOWMGR);
+    auto winMgr = std::make_unique<spe::DefaultWindowManager>(context->getQAORuntime().nonOwning(),
+                                                              PRIORITY_WINDOWMGR);
     if (aGameMode == GameMode::Server) {
         winMgr->setToHeadlessMode(spe::WindowManagerInterface::TimingConfig{FRAMERATE});
     }
@@ -88,11 +88,11 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
     context->attachAndOwnComponent(std::move(winMgr));
 
     // Create and attach a Networking manager
-    auto netMgr = std::make_unique<spe::NetworkingManagerOne>(context->getQAORuntime().nonOwning(),
-                                                              PRIORITY_NETWORKMGR,
-                                                              STATE_BUFFERING_LENGTH);
+    auto netMgr = std::make_unique<spe::DefaultNetworkingManager>(context->getQAORuntime().nonOwning(),
+                                                                  PRIORITY_NETWORKMGR,
+                                                                  STATE_BUFFERING_LENGTH);
     if (aGameMode == GameMode::Server) {
-        netMgr->setToMode(spe::NetworkingManagerOne::Mode::Server);
+        netMgr->setToMode(spe::DefaultNetworkingManager::Mode::Server);
         auto& server = netMgr->getServer();
         server.setTimeoutLimit(std::chrono::seconds{5});
         server.setRetransmitPredicate(&MyRetransmitPredicate);
@@ -103,7 +103,7 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
         std::printf("Server started on port %d for up to %d clients.\n", (int)server.getLocalPort(), aPlayerCount - 1);
     }
     else {
-        netMgr->setToMode(spe::NetworkingManagerOne::Mode::Client);
+        netMgr->setToMode(spe::DefaultNetworkingManager::Mode::Client);
         auto& client = netMgr->getClient();
         client.setTimeoutLimit(std::chrono::seconds{5});
         client.setRetransmitPredicate(&MyRetransmitPredicate);
@@ -115,8 +115,8 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
     context->attachAndOwnComponent(std::move(netMgr));
 
     // Create and attack an Input sync manager
-    auto insMgr = std::make_unique<spe::InputSyncManagerOne>(context->getQAORuntime().nonOwning(),
-                                                             PRIORITY_INPUTMGR);
+    auto insMgr = std::make_unique<spe::DefaultInputSyncManager>(context->getQAORuntime().nonOwning(),
+                                                                 PRIORITY_INPUTMGR);
 
     if (aGameMode == GameMode::Server) {
         insMgr->setToHostMode(aPlayerCount, STATE_BUFFERING_LENGTH);
