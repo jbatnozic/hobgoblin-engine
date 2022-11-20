@@ -19,10 +19,12 @@ top to tie them together into a cohesive whole and something that looks more lik
 Here you will find:
  - **EngineCore:** The core of the engine.
  - **Overlays:** Various ready-to-use Overlays that can be combined with the core.
+ - **ProjectSkeletons:** Standalone projects that you can copy to quickly get started with making a game with
+ Hobgoblin.
  - **ProofOfConceptProjects:** Projects which are used either to develop future Hobgoblin features, or depend on
 Hobgoblin and serve as showcases and examples of its usage. They also test whether the API is user-friendly, so
 they are placed in the same repository for faster development in case something needs to be changed.
- - **Tools:** TODO
+ - **Scripts:** Various helper scripts for building and exporting the engine.
 
 Most of the directories have their own Readme file which describes relevant contents in more detail.
 
