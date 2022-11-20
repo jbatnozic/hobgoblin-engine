@@ -3,6 +3,8 @@
 
 #include <Hobgoblin/Logging.hpp>
 
+#include <string>
+
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace rml {
@@ -57,7 +59,17 @@ void RmlUiSFMLSystem::SetClipboardText(const Rml::String& aText) {
 }
 
 void RmlUiSFMLSystem::GetClipboardText(Rml::String& aText) {
-    aText = sf::Clipboard::getString().toAnsiString(); // TODO should I use toUtf8 instead?
+    const auto utf8string = sf::Clipboard::getString().toUtf8();
+    const auto length = utf8string.size();
+    aText.clear();
+    if (length > 0) {
+        aText.resize(length);
+        std::memcpy(
+            aText.data(),
+            utf8string.data(),
+            length * sizeof(decltype(utf8string)::value_type)
+        );
+    }
 }
 
 } // namespace detail
