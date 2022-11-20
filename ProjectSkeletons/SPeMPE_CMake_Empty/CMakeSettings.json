@@ -1,0 +1,30 @@
+﻿{
+    "configurations": [
+        {
+            "name": "SPeMPE-CMake-Empty-x64-Debug",
+            "generator": "Ninja",
+            "configurationType": "Debug",
+            "inheritEnvironments": [ "msvc_x64_x64" ],
+            "buildRoot": "${projectDir}\\_Build\\${configurationType}",
+            "installRoot": "${projectDir}\\build.out\\install\\${name}",
+            "codeAnalysisRuleset": "${projectDir}\\CODEANALYSIS.ruleset",
+            "cmakeCommandArgs": "",
+            "buildCommandArgs": "-v",
+            "ctestCommandArgs": "",
+            "variables": []
+        },
+        {
+            "name": "SPeMPE-CMake-Empty-x64-Release",
+            "generator": "Ninja",
+            "configurationType": "Release",
+            "inheritEnvironments": [ "msvc_x64_x64" ],
+            "buildRoot": "${projectDir}\\_Build\\${configurationType}",
+            "installRoot": "${projectDir}\\build.out\\install\\${name}",
+            "codeAnalysisRuleset": "${projectDir}\\CODEANALYSIS.ruleset",
+            "cmakeCommandArgs": "",
+            "buildCommandArgs": "-v",
+            "ctestCommandArgs": "",
+            "variables": []
+        }
+    ]
+}

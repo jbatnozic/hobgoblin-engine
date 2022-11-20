@@ -1,6 +1,6 @@
 
 #include <SPeMPE/Managers/Synced_varmap_manager_default.hpp>
-#include <SPeMPE/Other/Sync_parameters.hpp>
+#include <SPeMPE/Other/Rpc_receiver_context.hpp>
 
 #include <Hobgoblin/Common.hpp>
 
@@ -36,17 +36,17 @@ constexpr char TYPE_TAG_STRING = 'S';
 RN_DEFINE_RPC(USPEMPE_DefaultSyncedVarmapManager_SetValues, RN_ARGS(hobgoblin::util::Packet&, aPacket)) {
     RN_NODE_IN_HANDLER().callIfServer(
         [&](RN_ServerInterface& aServer) {
-            const SyncParameters sp{aServer};
+            const RPCReceiverContext rc{aServer};
             auto& svmMgr = dynamic_cast<DefaultSyncedVarmapManager&>(
-                sp.context.getComponent<SyncedVarmapManagerInterface>()
+                rc.gameContext.getComponent<SyncedVarmapManagerInterface>()
                 );
             USPEMPE_DefaultSyncedVarmapManager_SetValues(svmMgr, aPacket);
         });
     RN_NODE_IN_HANDLER().callIfClient(
         [&](RN_ClientInterface& aClient) {
-            const SyncParameters sp{aClient};
+            const RPCReceiverContext rc{aClient};
             auto& svmMgr = dynamic_cast<DefaultSyncedVarmapManager&>(
-                sp.context.getComponent<SyncedVarmapManagerInterface>()
+                rc.gameContext.getComponent<SyncedVarmapManagerInterface>()
             );
             USPEMPE_DefaultSyncedVarmapManager_SetValues(svmMgr, aPacket);
         });
@@ -55,17 +55,17 @@ RN_DEFINE_RPC(USPEMPE_DefaultSyncedVarmapManager_SetValues, RN_ARGS(hobgoblin::u
 RN_DEFINE_RPC(USPEMPE_DefaultSyncedVarmapManager_RequestToSet, RN_ARGS(hobgoblin::util::Packet&, aPacket)) {
     RN_NODE_IN_HANDLER().callIfServer(
         [&](RN_ServerInterface& aServer) {
-            const SyncParameters sp{aServer};
+            const RPCReceiverContext rc{aServer};
             auto& svmMgr = dynamic_cast<DefaultSyncedVarmapManager&>(
-                sp.context.getComponent<SyncedVarmapManagerInterface>()
+                rc.gameContext.getComponent<SyncedVarmapManagerInterface>()
             );
-            USPEMPE_DefaultSyncedVarmapManager_SetValueRequested(svmMgr, sp.senderIndex + 1, aPacket);
+            USPEMPE_DefaultSyncedVarmapManager_SetValueRequested(svmMgr, rc.senderIndex + 1, aPacket);
         });
     RN_NODE_IN_HANDLER().callIfClient(
         [&](RN_ClientInterface& aClient) {
-            const SyncParameters sp{aClient};
+            const RPCReceiverContext rc{aClient};
             auto& svmMgr = dynamic_cast<DefaultSyncedVarmapManager&>(
-                sp.context.getComponent<SyncedVarmapManagerInterface>()
+                rc.gameContext.getComponent<SyncedVarmapManagerInterface>()
             );
             USPEMPE_DefaultSyncedVarmapManager_SetValueRequested(svmMgr, 0, aPacket);
         });

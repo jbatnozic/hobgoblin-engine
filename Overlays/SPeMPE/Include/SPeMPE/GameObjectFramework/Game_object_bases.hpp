@@ -394,12 +394,12 @@ public:
 
 namespace detail {
 
-#define ROUNDTOI(_x_) (static_cast<int>(std::round(_x_)))
-
-template <class taContext, class taNetwMgr>
-struct SyncParameters {
+//! This class can be instantiated within the body of a RigelNet RPC (=within a handler)
+//! to get easy access to the GameContext of the receiver and other relevant important info.
+template <class taGameContext, class taNetwMgr>
+struct RPCReceiverContext {
     //! Reference to game context (spempe::GameContext).
-    taContext& context;
+    taGameContext& gameContext;
 
     //! Reference to instance of spempe::NetworkingManagerInterface.
     taNetwMgr& netwMgr;
@@ -432,66 +432,66 @@ struct SyncParameters {
 
     //! Mean latency to the sender (single direction, not round-trip)
     //! expressed in steps (approximated using the desired framerate
-    //! in the context's runtime configuration).
+    //! in the game context's runtime configuration).
     hg::PZInteger meanLatencyInSteps;
 
     //! Optimistic latency to the sender (single direction, not round-trip)
     //! expressed in steps (approximated using the desired framerate
-    //! in the context's runtime configuration).
+    //! in the game context's runtime configuration).
     hg::PZInteger optimisticLatencyInSteps;
 
     //! Pessimistic latency to the sender (single direction, not round-trip)
     //! expressed in steps (approximated using the desired framerate
-    //! in the context's runtime configuration).
+    //! in the game context's runtime configuration).
     hg::PZInteger pessimisticLatencyInSteps;
 
-    explicit SyncParameters(const hg::RN_ClientInterface& aClient)
-        : context{*aClient.getUserDataOrThrow<taContext>()}
-        , netwMgr{context.template getComponent<taNetwMgr>()}
+#define ROUNDTOI(_x_) (static_cast<int>(std::round(_x_)))
+    explicit RPCReceiverContext(const hg::RN_ClientInterface& aClient)
+        : gameContext{*aClient.getUserDataOrThrow<taGameContext>()}
+        , netwMgr{gameContext.template getComponent<taNetwMgr>()}
         , senderIndex{-1000}
         , meanLatency{aClient.getServerConnector().getRemoteInfo().meanLatency / 2}
         , optimisticLatency{aClient.getServerConnector().getRemoteInfo().optimisticLatency / 2}
         , pessimisticLatency{aClient.getServerConnector().getRemoteInfo().pessimisticLatency / 2}
-        , meanLatencyInSteps{ROUNDTOI(meanLatency / context.getRuntimeConfig().deltaTime)}
-        , optimisticLatencyInSteps{ROUNDTOI(optimisticLatency / context.getRuntimeConfig().deltaTime)}
-        , pessimisticLatencyInSteps{ROUNDTOI(pessimisticLatency / context.getRuntimeConfig().deltaTime)}
+        , meanLatencyInSteps{ROUNDTOI(meanLatency / gameContext.getRuntimeConfig().deltaTime)}
+        , optimisticLatencyInSteps{ROUNDTOI(optimisticLatency / gameContext.getRuntimeConfig().deltaTime)}
+        , pessimisticLatencyInSteps{ROUNDTOI(pessimisticLatency / gameContext.getRuntimeConfig().deltaTime)}
     {
     }
 
-    explicit SyncParameters(const hg::RN_ServerInterface& aServer)
-        : context{*aServer.getUserDataOrThrow<taContext>()}
-        , netwMgr{context.template getComponent<taNetwMgr>()}
+    explicit RPCReceiverContext(const hg::RN_ServerInterface& aServer)
+        : gameContext{*aServer.getUserDataOrThrow<taGameContext>()}
+        , netwMgr{gameContext.template getComponent<taNetwMgr>()}
         , senderIndex{aServer.getSenderIndex()}
         , meanLatency{aServer.getClientConnector(senderIndex).getRemoteInfo().meanLatency / 2}
         , optimisticLatency{aServer.getClientConnector(senderIndex).getRemoteInfo().optimisticLatency / 2}
         , pessimisticLatency{aServer.getClientConnector(senderIndex).getRemoteInfo().pessimisticLatency / 2}
-        , meanLatencyInSteps{ROUNDTOI(meanLatency / context.getRuntimeConfig().deltaTime)}
-        , optimisticLatencyInSteps{ROUNDTOI(optimisticLatency / context.getRuntimeConfig().deltaTime)}
-        , pessimisticLatencyInSteps{ROUNDTOI(pessimisticLatency / context.getRuntimeConfig().deltaTime)}
+        , meanLatencyInSteps{ROUNDTOI(meanLatency / gameContext.getRuntimeConfig().deltaTime)}
+        , optimisticLatencyInSteps{ROUNDTOI(optimisticLatency / gameContext.getRuntimeConfig().deltaTime)}
+        , pessimisticLatencyInSteps{ROUNDTOI(pessimisticLatency / gameContext.getRuntimeConfig().deltaTime)}
     {
     }
+#undef ROUNDTOI
 };
 
-#undef ROUNDTOI
-
-template <class taContext, class taNetwMgr>
-SyncParameters<taContext, taNetwMgr> GetSyncParams(hg::RN_ClientInterface& aClient) {
-    return SyncParameters<taContext, taNetwMgr>{aClient};
+template <class taGameContext, class taNetwMgr>
+RPCReceiverContext<taGameContext, taNetwMgr> GetRPCReceiverContext(hg::RN_ClientInterface& aClient) {
+    return RPCReceiverContext<taGameContext, taNetwMgr>{aClient};
 }
 
-template <class taContext, class taNetwMgr>
-SyncParameters<taContext, taNetwMgr> GetSyncParams(hg::RN_ServerInterface& aServer) {
-    return SyncParameters<taContext, taNetwMgr>{aServer};
+template <class taGameContext, class taNetwMgr>
+RPCReceiverContext<taGameContext, taNetwMgr> GetRPCReceiverContext(hg::RN_ServerInterface& aServer) {
+    return RPCReceiverContext<taGameContext, taNetwMgr>{aServer};
 }
 
 } // namespace detail
 
-template <class taSyncObj, class taContext, class taNetwMgr>
+template <class taSyncObj, class taGameContext, class taNetwMgr>
 void DefaultSyncCreateHandler(hg::RN_NodeInterface& node, 
                               SyncId syncId) {
     node.callIfClient(
         [&](hg::RN_ClientInterface& client) {
-            auto& ctx     = *client.getUserDataOrThrow<taContext>();
+            auto& ctx     = *client.getUserDataOrThrow<taGameContext>();
             auto& runtime = ctx.getQAORuntime();
             auto  regId   = ctx.template getComponent<taNetwMgr>().getRegistryId();
 
@@ -504,21 +504,21 @@ void DefaultSyncCreateHandler(hg::RN_NodeInterface& node,
         });
 }
 
-template <class taSyncObj, class taContext, class taNetwMgr>
+template <class taSyncObj, class taGameContext, class taNetwMgr>
 void DefaultSyncUpdateHandler(hg::RN_NodeInterface& node,
                               SyncId syncId,
                               bool pacemakerPulse,
                               typename taSyncObj::VisibleState& state) {
     node.callIfClient(
         [&](hg::RN_ClientInterface& client) {
-            detail::SyncParameters<taContext, taNetwMgr> sp{client};
-            auto  regId      = sp.netwMgr.getRegistryId();
+            detail::RPCReceiverContext<taGameContext, taNetwMgr> rc{client};
+            auto  regId      = rc.netwMgr.getRegistryId();
             auto& syncObjReg = *reinterpret_cast<detail::SynchronizedObjectRegistry*>(regId.address);
             auto& object     = *static_cast<taSyncObj*>(syncObjReg.getMapping(syncId));
 
             object.__spempeimpl_applyUpdate(
                 state, 
-                syncObjReg.adjustDelayForLag(sp.pessimisticLatencyInSteps),
+                syncObjReg.adjustDelayForLag(rc.pessimisticLatencyInSteps),
                 pacemakerPulse
             );
         });
@@ -529,19 +529,19 @@ void DefaultSyncUpdateHandler(hg::RN_NodeInterface& node,
         });
 }
 
-template <class taSyncObj, class taContext, class taNetwMgr>
+template <class taSyncObj, class taGameContext, class taNetwMgr>
 void DefaultSyncDestroyHandler(hg::RN_NodeInterface& node, 
                                SyncId syncId) {
     node.callIfClient(
         [&](hg::RN_ClientInterface& client) {
-            detail::SyncParameters<taContext, taNetwMgr> sp{client};
-            auto  regId      = sp.context.template getComponent<taNetwMgr>().getRegistryId();
+            detail::RPCReceiverContext<taGameContext, taNetwMgr> rc{client};
+            auto  regId      = rc.gameContext.template getComponent<taNetwMgr>().getRegistryId();
             auto& syncObjReg = *reinterpret_cast<detail::SynchronizedObjectRegistry*>(regId.address);
             auto* object     = static_cast<taSyncObj*>(syncObjReg.getMapping(syncId));
 
             object->__spempeimpl_destroySelfIn(
                 static_cast<int>(syncObjReg.getDefaultDelay()) 
-                - (syncObjReg.adjustDelayForLag(sp.meanLatencyInSteps) + 1)
+                - (syncObjReg.adjustDelayForLag(rc.meanLatencyInSteps) + 1)
             );
         });
 
@@ -625,10 +625,12 @@ void DefaultSyncDestroyHandler(hg::RN_NodeInterface& node,
                                           _sync_details_.getRecepients(), \
                                           getSyncId())
 
-//! TODO (add description)
-#define SPEMPE_GET_SYNC_PARAMS(_node_) \
-    (::jbatnozic::spempe::detail::GetSyncParams<::jbatnozic::spempe::GameContext, \
-                                                ::jbatnozic::spempe::NetworkingManagerInterface>(_node_))
+//! Creates an instance of RPCReceiverContext from a reference to either a RN_ServerInterface or
+//! a RN_ClientInterface.
+//! The use of this macro in user code is discouraged (just use spempe::GetRPCReceiverContext directly).
+#define SPEMPE_GET_RPC_RECEIVER_CONTEXT(_node_) \
+    (::jbatnozic::spempe::detail::GetRPCReceiverContext<::jbatnozic::spempe::GameContext, \
+                                                        ::jbatnozic::spempe::NetworkingManagerInterface>(_node_))
 
 } // namespace spempe
 } // namespace jbatnozic

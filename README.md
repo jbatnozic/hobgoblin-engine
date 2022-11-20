@@ -4,9 +4,9 @@ facilities such as object and timing measurement, graphics, physics, networking 
 
 It is written in C++17 and uses [SFML](https://www.sfml-dev.org/) as the core for many of its features.
 
-It is tested most thoroughly on Windows (built with MSVC), but as it uses CMake as its build system and only
-standard language features, it should work with little to no modifications on other platforms where its 
-dependencies work (Linux and MacOS at least).
+It is tested most thoroughly on Windows (built with MSVC), and semi-regularly on Linux and Mac
+(built with Clang and GCC). Basically: It should work without issue on major platforms and major
+compilers.
 
 ## Concept
 The idea is that when you're using Hobgoblin, you use it in two parts: The 
@@ -19,10 +19,12 @@ top to tie them together into a cohesive whole and something that looks more lik
 Here you will find:
  - **EngineCore:** The core of the engine.
  - **Overlays:** Various ready-to-use Overlays that can be combined with the core.
+ - **ProjectSkeletons:** Standalone projects that you can copy to quickly get started with making a game with
+ Hobgoblin.
  - **ProofOfConceptProjects:** Projects which are used either to develop future Hobgoblin features, or depend on
 Hobgoblin and serve as showcases and examples of its usage. They also test whether the API is user-friendly, so
 they are placed in the same repository for faster development in case something needs to be changed.
- - **Tools:** TODO
+ - **Scripts:** Various helper scripts for building and exporting the engine.
 
 Most of the directories have their own Readme file which describes relevant contents in more detail.
 

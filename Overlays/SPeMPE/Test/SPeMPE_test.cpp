@@ -206,16 +206,16 @@ TEST_F(SPeMPE_SynchronizedTest, BasicFunctionalityTest) {
         // Server context:
         _serverCtx->setToMode(GameContext::Mode::Server);
 
-        auto netwMgr1 = std::make_unique<NetworkingManagerOne>(_serverCtx->getQAORuntime().nonOwning(), 
-                                                               0, BUFFERING_LENGTH);
+        auto netwMgr1 = std::make_unique<DefaultNetworkingManager>(_serverCtx->getQAORuntime().nonOwning(), 
+                                                                   0, BUFFERING_LENGTH);
         netwMgr1->setToMode(MNetworking::Mode::Server);
         _serverCtx->attachAndOwnComponent(std::move(netwMgr1));
 
         // Client context:
         _clientCtx->setToMode(GameContext::Mode::Client);
 
-        auto netwMgr2 = std::make_unique<NetworkingManagerOne>(_clientCtx->getQAORuntime().nonOwning(), 
-                                                               0, BUFFERING_LENGTH);
+        auto netwMgr2 = std::make_unique<DefaultNetworkingManager>(_clientCtx->getQAORuntime().nonOwning(), 
+                                                                   0, BUFFERING_LENGTH);
         netwMgr2->setToMode(MNetworking::Mode::Client);
         _clientCtx->attachAndOwnComponent(std::move(netwMgr2));
     }
@@ -392,16 +392,16 @@ TEST_F(SPeMPE_SynchronizedTest, DeactivationTest) {
         // Server context:
         _serverCtx->setToMode(GameContext::Mode::Server);
 
-        auto netwMgr1 = std::make_unique<NetworkingManagerOne>(_serverCtx->getQAORuntime().nonOwning(),
-                                                               0, BUFFERING_LENGTH);
+        auto netwMgr1 = std::make_unique<DefaultNetworkingManager>(_serverCtx->getQAORuntime().nonOwning(),
+                                                                   0, BUFFERING_LENGTH);
         netwMgr1->setToMode(MNetworking::Mode::Server);
         _serverCtx->attachAndOwnComponent(std::move(netwMgr1));
 
         // Client context:
         _clientCtx->setToMode(GameContext::Mode::Client);
 
-        auto netwMgr2 = std::make_unique<NetworkingManagerOne>(_clientCtx->getQAORuntime().nonOwning(),
-                                                               0, BUFFERING_LENGTH);
+        auto netwMgr2 = std::make_unique<DefaultNetworkingManager>(_clientCtx->getQAORuntime().nonOwning(),
+                                                                   0, BUFFERING_LENGTH);
         netwMgr2->setToMode(MNetworking::Mode::Client);
         _clientCtx->attachAndOwnComponent(std::move(netwMgr2));
     }

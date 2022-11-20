@@ -7,6 +7,7 @@
 #include <Hobgoblin/Preprocessor.hpp>
 #include <Hobgoblin/QAO.hpp>
 #include <Hobgoblin/RigelNet.hpp>
+#include <Hobgoblin/RmlUi.hpp>
 #include <Hobgoblin/Utility/Dynamic_bitset.hpp> // Utility doesn't have an umbrella header
 
 #include <SPeMPE/SPeMPE.hpp>
@@ -51,6 +52,11 @@ int main() {
     // RigelNet
     {
         RN_IndexHandlers();
+    }
+    // RmlUi
+    {
+        auto guard = rml::HobgoblinBackend::initialize();
+        guard.reset();
     }
     // Utility
     {

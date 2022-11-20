@@ -19,14 +19,14 @@ public:
         _ctx2 = std::make_unique<GameContext>(rc);
 
         // Add networking managers
-        _netMgr1 = std::make_unique<NetworkingManagerOne>(_ctx1->getQAORuntime().nonOwning(),
-                                                          PRIORITY_NETMGR,
-                                                          0);
+        _netMgr1 = std::make_unique<DefaultNetworkingManager>(_ctx1->getQAORuntime().nonOwning(),
+                                                              PRIORITY_NETMGR,
+                                                              0);
         _netMgr1->setToMode(NetworkingManagerInterface::Mode::Server);
 
-        _netMgr2 = std::make_unique<NetworkingManagerOne>(_ctx2->getQAORuntime().nonOwning(),
-                                                          PRIORITY_NETMGR,
-                                                          0);
+        _netMgr2 = std::make_unique<DefaultNetworkingManager>(_ctx2->getQAORuntime().nonOwning(),
+                                                              PRIORITY_NETMGR,
+                                                              0);
         _netMgr2->setToMode(NetworkingManagerInterface::Mode::Client);
 
         {
