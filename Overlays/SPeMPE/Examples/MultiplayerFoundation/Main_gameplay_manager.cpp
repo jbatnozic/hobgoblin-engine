@@ -12,9 +12,9 @@ constexpr auto LOG_ID = "MainGameplayManager";
 RN_DEFINE_RPC(SetGlobalStateBufferingLength, RN_ARGS(unsigned, aNewLength)) {
     RN_NODE_IN_HANDLER().callIfClient(
         [=](RN_ClientInterface& aClient) {
-            const auto sp = spe::SyncParameters(aClient);
-            sp.context.getComponent<MNetworking>().setStateBufferingLength(aNewLength);
-            sp.context.getComponent<MInput>().setStateBufferingLength(aNewLength);
+            const auto rc = spe::RPCReceiverContext(aClient);
+            rc.gameContext.getComponent<MNetworking>().setStateBufferingLength(aNewLength);
+            rc.gameContext.getComponent<MInput>().setStateBufferingLength(aNewLength);
             HG_LOG_INFO(LOG_ID, "Global state buffering set to {} frames.", aNewLength);
         });
     RN_NODE_IN_HANDLER().callIfServer(

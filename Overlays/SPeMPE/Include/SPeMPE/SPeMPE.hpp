@@ -20,8 +20,8 @@
 #include <SPeMPE/Managers/Window_manager_default.hpp>
 #include <SPeMPE/Managers/Window_manager_interface.hpp>
 
-#include <SPeMPE/Other/Sync_parameters.hpp>
 #include <SPeMPE/Other/Keyboard_input.hpp>
 #include <SPeMPE/Other/Mouse_input.hpp>
+#include <SPeMPE/Other/Rpc_receiver_context.hpp>
 
 #endif // !SPEMPE_SPEMPE_HPP

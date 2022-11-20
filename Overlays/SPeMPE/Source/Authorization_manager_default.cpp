@@ -91,9 +91,9 @@ void USPEMPE_DefaultAuthorizationManager_SetLocalAuthToken(
 RN_DEFINE_RPC(SetLocalAuthToken, RN_ARGS(AuthToken&, aToken)) {
     RN_NODE_IN_HANDLER().callIfClient(
         [&](RN_ClientInterface& aClient) {
-            const auto sp = SPEMPE_GET_SYNC_PARAMS(aClient);
+            const auto rc = SPEMPE_GET_RPC_RECEIVER_CONTEXT(aClient);
             auto& authMgr = dynamic_cast<DefaultAuthorizationManager&>(
-                sp.context.getComponent<AuthorizationManagerInterface>()
+                rc.gameContext.getComponent<AuthorizationManagerInterface>()
             );
             USPEMPE_DefaultAuthorizationManager_SetLocalAuthToken(authMgr, aToken);
         });

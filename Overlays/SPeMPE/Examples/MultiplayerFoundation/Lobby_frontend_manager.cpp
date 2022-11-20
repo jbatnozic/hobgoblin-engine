@@ -72,14 +72,14 @@ namespace {
 RN_DEFINE_RPC(LockInLobby, RN_ARGS(std::string&, aAuthToken)) {
     RN_NODE_IN_HANDLER().callIfServer(
         [&](RN_ServerInterface& aServer) {
-        const spe::SyncParameters sp{aServer};
-        auto& authMgr = sp.context.getComponent<spe::AuthorizationManagerInterface>();
+        const spe::RPCReceiverContext rc{aServer};
+        auto& authMgr = rc.gameContext.getComponent<spe::AuthorizationManagerInterface>();
         if (aAuthToken != *authMgr.getLocalAuthToken()) {
             throw RN_IllegalMessage();
         }
         ActivateCommand(
             dynamic_cast<LobbyFrontendManager&>(
-                sp.context.getComponent<LobbyFrontendManagerInterface>()),
+                rc.gameContext.getComponent<LobbyFrontendManagerInterface>()),
             COMMAND_LOCK_IN,
             nullptr
         );
@@ -93,14 +93,14 @@ RN_DEFINE_RPC(LockInLobby, RN_ARGS(std::string&, aAuthToken)) {
 RN_DEFINE_RPC(MoveUp, RN_ARGS(std::string&, aAuthToken, hg::PZInteger, aSlotIndex)) {
     RN_NODE_IN_HANDLER().callIfServer(
         [&](RN_ServerInterface& aServer) {
-        const spe::SyncParameters sp{aServer};
-        auto& authMgr = sp.context.getComponent<spe::AuthorizationManagerInterface>();
+        const spe::RPCReceiverContext rc{aServer};
+        auto& authMgr = rc.gameContext.getComponent<spe::AuthorizationManagerInterface>();
         if (aAuthToken != *authMgr.getLocalAuthToken()) {
             throw RN_IllegalMessage();
         }
         ActivateCommand(
             dynamic_cast<LobbyFrontendManager&>(
-                sp.context.getComponent<LobbyFrontendManagerInterface>()),
+                rc.gameContext.getComponent<LobbyFrontendManagerInterface>()),
             COMMAND_MOVE_UP,
             &aSlotIndex
         );
@@ -114,14 +114,14 @@ RN_DEFINE_RPC(MoveUp, RN_ARGS(std::string&, aAuthToken, hg::PZInteger, aSlotInde
 RN_DEFINE_RPC(MoveDown, RN_ARGS(std::string&, aAuthToken, hg::PZInteger, aSlotIndex)) {
     RN_NODE_IN_HANDLER().callIfServer(
         [&](RN_ServerInterface& aServer) {
-        const spe::SyncParameters sp{aServer};
-        auto& authMgr = sp.context.getComponent<spe::AuthorizationManagerInterface>();
+        const spe::RPCReceiverContext rc{aServer};
+        auto& authMgr = rc.gameContext.getComponent<spe::AuthorizationManagerInterface>();
         if (aAuthToken != *authMgr.getLocalAuthToken()) {
             throw RN_IllegalMessage();
         }
         ActivateCommand(
             dynamic_cast<LobbyFrontendManager&>(
-                sp.context.getComponent<LobbyFrontendManagerInterface>()),
+                rc.gameContext.getComponent<LobbyFrontendManagerInterface>()),
             COMMAND_MOVE_DN,
             &aSlotIndex
         );
@@ -135,14 +135,14 @@ RN_DEFINE_RPC(MoveDown, RN_ARGS(std::string&, aAuthToken, hg::PZInteger, aSlotIn
 RN_DEFINE_RPC(Kick, RN_ARGS(std::string&, aAuthToken, hg::PZInteger, aSlotIndex)) {
     RN_NODE_IN_HANDLER().callIfServer(
         [&](RN_ServerInterface& aServer) {
-        const spe::SyncParameters sp{aServer};
-        auto& authMgr = sp.context.getComponent<spe::AuthorizationManagerInterface>();
+        const spe::RPCReceiverContext rc{aServer};
+        auto& authMgr = rc.gameContext.getComponent<spe::AuthorizationManagerInterface>();
         if (aAuthToken != *authMgr.getLocalAuthToken()) {
             throw RN_IllegalMessage();
         }
         ActivateCommand(
             dynamic_cast<LobbyFrontendManager&>(
-                sp.context.getComponent<LobbyFrontendManagerInterface>()),
+                rc.gameContext.getComponent<LobbyFrontendManagerInterface>()),
             COMMAND_KICK,
             &aSlotIndex
         );

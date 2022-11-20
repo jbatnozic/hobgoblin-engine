@@ -136,10 +136,10 @@ RN_DEFINE_RPC(USPEMPE_DefaultLobbyManager_SetPlayerInfo,
                       std::string&, aCustomData_3)) {
     RN_NODE_IN_HANDLER().callIfServer(
         [&](RN_ServerInterface& aServer) {
-            const auto sp = SPEMPE_GET_SYNC_PARAMS(aServer);
+            const auto rc = SPEMPE_GET_RPC_RECEIVER_CONTEXT(aServer);
             USPEMPE_DefaultLobbyManager_SetPlayerInfo_Impl(
-                dynamic_cast<DefaultLobbyManager&>(sp.context.getComponent<LobbyBackendManagerInterface>()),
-                sp.senderIndex,
+                dynamic_cast<DefaultLobbyManager&>(rc.gameContext.getComponent<LobbyBackendManagerInterface>()),
+                rc.senderIndex,
                 aName,
                 aUniqueId,
                 aCustomData_0,
@@ -170,9 +170,9 @@ RN_DEFINE_RPC(USPEMPE_DefaultLobbyManager_SetPlayerIndex,
         });
     RN_NODE_IN_HANDLER().callIfClient(
         [=](RN_ClientInterface& aClient) {
-            const auto sp = SPEMPE_GET_SYNC_PARAMS(aClient);
+            const auto rc = SPEMPE_GET_RPC_RECEIVER_CONTEXT(aClient);
             USPEMPE_DefaultLobbyManager_SetPlayerIndex_Impl(
-                dynamic_cast<DefaultLobbyManager&>(sp.context.getComponent<LobbyBackendManagerInterface>()),
+                dynamic_cast<DefaultLobbyManager&>(rc.gameContext.getComponent<LobbyBackendManagerInterface>()),
                 aPlayerIndex
             );
         });

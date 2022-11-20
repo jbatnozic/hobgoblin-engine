@@ -273,9 +273,9 @@ void SinclaireAvatar::_syncDestroyImpl(spe::SyncDetails& aSyncDetails) const {
 RN_DEFINE_RPC(SetGlobalStateBufferingLength, RN_ARGS(unsigned, aNewLength)) {
     RN_NODE_IN_HANDLER().callIfClient(
         [=](RN_ClientInterface& aClient) {
-            const auto sp = spe::SyncParameters(aClient);
-            sp.context.getComponent<MNetworking>().setStateBufferingLength(aNewLength);
-            sp.context.getComponent<MInput>().setStateBufferingLength(aNewLength);
+            const auto rc = spe::RPCReceiverContext(aClient);
+            rc.gameContext.getComponent<MNetworking>().setStateBufferingLength(aNewLength);
+            rc.gameContext.getComponent<MInput>().setStateBufferingLength(aNewLength);
             std::cout << "Global state buffering set to " << aNewLength << " frames.\n";
         });
     RN_NODE_IN_HANDLER().callIfServer(

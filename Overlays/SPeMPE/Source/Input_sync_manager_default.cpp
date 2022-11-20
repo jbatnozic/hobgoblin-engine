@@ -30,13 +30,13 @@ void USPEMPE_InputSyncManagerOne_PutNewState(DefaultInputSyncManager& aMgr,
 RN_DEFINE_RPC(USPEMPE_InputSyncManagerOne_SendInput, RN_ARGS(hg::util::Packet&, aPacket)) {
     RN_NODE_IN_HANDLER().callIfServer(
         [&](RN_ServerInterface& aServer) {
-            const auto sp = SPEMPE_GET_SYNC_PARAMS(aServer);
-            sp.context.getComponent<InputSyncManagerInterface>();
+            const auto rc = SPEMPE_GET_RPC_RECEIVER_CONTEXT(aServer);
+            rc.gameContext.getComponent<InputSyncManagerInterface>();
             USPEMPE_InputSyncManagerOne_PutNewState(
-                static_cast<DefaultInputSyncManager&>(sp.context.getComponent<InputSyncManagerInterface>()),
-                sp.senderIndex + 1,
+                static_cast<DefaultInputSyncManager&>(rc.gameContext.getComponent<InputSyncManagerInterface>()),
+                rc.senderIndex + 1,
                 aPacket,
-                sp.pessimisticLatencyInSteps
+                rc.pessimisticLatencyInSteps
             );
         });
 

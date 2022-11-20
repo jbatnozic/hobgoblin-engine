@@ -2,7 +2,7 @@
 #include <SPeMPE/GameContext/Game_context.hpp>
 #include <SPeMPE/GameObjectFramework/Game_object_bases.hpp>
 #include <SPeMPE/GameObjectFramework/Synchronized_object_registry.hpp>
-#include <SPeMPE/Other/Sync_parameters.hpp>
+#include <SPeMPE/Other/Rpc_receiver_context.hpp>
 
 #include <cassert>
 
@@ -26,11 +26,11 @@ void GetIndicesForComposingToEveryone(const hg::RN_NodeInterface& node, std::vec
 RN_DEFINE_RPC(USPEMPE_DeactivateObject, RN_ARGS(SyncId, aSyncId)) {
     RN_NODE_IN_HANDLER().callIfClient(
         [=](hg::RN_ClientInterface& client) {
-            SyncParameters sp{client};
-            auto  regId      = sp.netwMgr.getRegistryId();
+            RPCReceiverContext rc{client};
+            auto  regId      = rc.netwMgr.getRegistryId();
             auto& syncObjReg = *reinterpret_cast<detail::SynchronizedObjectRegistry*>(regId.address);
 
-            syncObjReg.deactivateObject(aSyncId, sp.pessimisticLatencyInSteps);
+            syncObjReg.deactivateObject(aSyncId, rc.pessimisticLatencyInSteps);
         });
 
     RN_NODE_IN_HANDLER().callIfServer(
@@ -141,7 +141,7 @@ SynchronizedObjectBase* SynchronizedObjectRegistry::getMapping(SyncId syncId) co
 }
 
 #if 0 // Kept for posterity (yes, I know git exists)
-void SynchronizedObjectRegistry::afterRecv(const GameContext& context) {
+void SynchronizedObjectRegistry::afterRecv(const GameContext& gameContext) {
 #define ROUNDTOPZ(_x_) (static_cast<hg::PZInteger>(std::round(_x_)))
 
     if (_node->isServer()) {
@@ -155,7 +155,7 @@ void SynchronizedObjectRegistry::afterRecv(const GameContext& context) {
             latency = aClient.getServerConnector().getRemoteInfo().meanLatency / 2;
         });
 
-    const auto delaySteps = ROUNDTOPZ(latency / context.getRuntimeConfig().deltaTime);
+    const auto delaySteps = ROUNDTOPZ(latency / gameContext.getRuntimeConfig().deltaTime);
 
     _delays.push_back(delaySteps);
     if (_delays.size() > 60) {
