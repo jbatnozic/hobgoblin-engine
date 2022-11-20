@@ -15,10 +15,10 @@ namespace spe = ::jbatnozic::spempe;
 using namespace hg::qao; // All names from QAO are prefixed with QAO_
 using namespace hg::rn;  // All names from RigelNet are prefixed with RN_
 
-using MInput      = spe::InputSyncManagerInterface;
-using MLobby      = spe::LobbyManagerInterface;
-using MNetworking = spe::NetworkingManagerInterface;
-using MWindow     = spe::WindowManagerInterface;
+using MInput        = spe::InputSyncManagerInterface;
+using MLobbyBackend = spe::LobbyBackendManagerInterface;
+using MNetworking   = spe::NetworkingManagerInterface;
+using MWindow       = spe::WindowManagerInterface;
 
 #define PRIORITY_VARMAPMGR    16
 #define PRIORITY_NETWORKMGR   15
@@ -344,7 +344,7 @@ private:
             ev.visit(
                 [this](const RN_Event::Connected& ev) {
                     HG_LOG_INFO(LOG_ID, "Client lobby uploading local info to server.");
-                    ccomp<MLobby>().uploadLocalInfo();
+                    ccomp<MLobbyBackend>().uploadLocalInfo();
                 }
             );
         }

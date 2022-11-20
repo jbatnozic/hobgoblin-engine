@@ -154,7 +154,7 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
 
     // Create and attach a lobby backend manager
     auto lobbyMgr = std::make_unique<spe::DefaultLobbyManager>(context->getQAORuntime().nonOwning(),
-                                                               PRIORITY_LOBBYMGR);
+                                                               PRIORITY_LOBBYBACKMGR);
 
     if (aGameMode == GameMode::Server) {
         lobbyMgr->setToHostMode(aPlayerCount);

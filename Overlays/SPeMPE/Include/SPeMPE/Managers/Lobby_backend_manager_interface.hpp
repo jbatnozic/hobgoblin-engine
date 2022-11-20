@@ -1,5 +1,5 @@
-#ifndef SPEMPE_MANAGERS_LOBBY_MANAGER_INTERFACE_HPP
-#define SPEMPE_MANAGERS_LOBBY_MANAGER_INTERFACE_HPP
+#ifndef SPEMPE_MANAGERS_LOBBY_BACKEND_MANAGER_INTERFACE_HPP
+#define SPEMPE_MANAGERS_LOBBY_BACKEND_MANAGER_INTERFACE_HPP
 
 #include <Hobgoblin/Common.hpp>
 
@@ -48,9 +48,9 @@ struct PlayerInfo {
 //! TODO
 constexpr int PLAYER_INDEX_UNKNOWN = -1;
 
-class LobbyManagerInterface : public ContextComponent {
+class LobbyBackendManagerInterface : public ContextComponent {
 public:
-    ~LobbyManagerInterface() override = default;
+    ~LobbyBackendManagerInterface() override = default;
 
     enum class Mode {
         Uninitialized,
@@ -182,4 +182,4 @@ bool operator!=(const PlayerInfo& aLhs, const PlayerInfo& aRhs) {
 } // namespace spempe
 } // namespace jbatnozic
 
-#endif // !SPEMPE_MANAGERS_LOBBY_MANAGER_INTERFACE_HPP
+#endif // !SPEMPE_MANAGERS_LOBBY_BACKEND_MANAGER_INTERFACE_HPP

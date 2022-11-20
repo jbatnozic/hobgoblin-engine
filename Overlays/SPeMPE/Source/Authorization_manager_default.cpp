@@ -1,7 +1,7 @@
 
 #include <SPeMPE/Managers/Authorization_manager_default.hpp>
 
-#include <SPeMPE/Managers/Lobby_manager_interface.hpp>
+#include <SPeMPE/Managers/Lobby_backend_manager_interface.hpp>
 #include <SPeMPE/Managers/Networking_manager_interface.hpp>
 
 #include <Hobgoblin/Logging.hpp>
@@ -63,7 +63,7 @@ namespace {
 
 using PlayerInfoWISet = std::unordered_set<detail::PlayerInfoWithIndex>;
 
-PlayerInfoWISet ScanLobbyManagerForAllCurrentlyConnectedPlayers(LobbyManagerInterface& aLobbyMgr) {
+PlayerInfoWISet ScanLobbyManagerForAllCurrentlyConnectedPlayers(LobbyBackendManagerInterface& aLobbyMgr) {
     PlayerInfoWISet result;
     for (hg::PZInteger i = 0; i < aLobbyMgr.getSize(); i += 1) {
         const auto& playerInfo = aLobbyMgr.getPendingPlayerInfo(i);
@@ -137,7 +137,7 @@ void DefaultAuthorizationManager::_eventPreUpdate() {
         return;
     }
 
-    auto& aLobbyMgr = ccomp<LobbyManagerInterface>();
+    auto& aLobbyMgr = ccomp<LobbyBackendManagerInterface>();
     const auto players = ScanLobbyManagerForAllCurrentlyConnectedPlayers(aLobbyMgr);
 
     if (_hasCurrentlyAuthorizedPlayer()) {

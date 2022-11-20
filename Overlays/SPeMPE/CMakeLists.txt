@@ -10,7 +10,7 @@ set(OVERLAY_SOURCES
   "Source/Game_object_bases.cpp"
   "Source/Input_sync_manager_default.cpp"
   "Source/Keyboard_input.cpp"
-  "Source/Lobby_manager_default.cpp"
+  "Source/Lobby_backend_manager_default.cpp"
   "Source/Mouse_input.cpp"
   "Source/Game_context.cpp"
   "Source/Networking_manager_default.cpp"

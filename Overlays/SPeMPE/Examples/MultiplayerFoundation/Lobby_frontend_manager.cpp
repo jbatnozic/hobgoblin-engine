@@ -30,7 +30,7 @@ struct LobbyModel {
 #define COMMAND_KICK    3
 
 void ActivateCommand(LobbyFrontendManager& aMgr, int aCommand, void* aArgs) {
-    auto& lobbyBackendMgr = aMgr.ccomp<MLobby>();
+    auto& lobbyBackendMgr = aMgr.ccomp<MLobbyBackend>();
     switch (aCommand) {
         case COMMAND_LOCK_IN:
             HG_LOG_INFO(LOG_ID, "Locking in lobby.");
@@ -206,7 +206,7 @@ public:
             return;
         }
 
-        const auto& lobbyBackendMgr = ccomp<MLobby>();
+        const auto& lobbyBackendMgr = ccomp<MLobbyBackend>();
 
         _lobbyModel.players.resize(hg::pztos(lobbyBackendMgr.getSize()));
         for (hg::PZInteger i = 0; i < lobbyBackendMgr.getSize(); i += 1) {

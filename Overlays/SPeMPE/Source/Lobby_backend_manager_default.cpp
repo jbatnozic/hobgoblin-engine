@@ -1,5 +1,5 @@
 
-#include <SPeMPE/Managers/Lobby_manager_default.hpp>
+#include <SPeMPE/Managers/Lobby_backend_manager_default.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -138,7 +138,7 @@ RN_DEFINE_RPC(USPEMPE_DefaultLobbyManager_SetPlayerInfo,
         [&](RN_ServerInterface& aServer) {
             const auto sp = SPEMPE_GET_SYNC_PARAMS(aServer);
             USPEMPE_DefaultLobbyManager_SetPlayerInfo_Impl(
-                dynamic_cast<DefaultLobbyManager&>(sp.context.getComponent<LobbyManagerInterface>()),
+                dynamic_cast<DefaultLobbyManager&>(sp.context.getComponent<LobbyBackendManagerInterface>()),
                 sp.senderIndex,
                 aName,
                 aUniqueId,
@@ -172,7 +172,7 @@ RN_DEFINE_RPC(USPEMPE_DefaultLobbyManager_SetPlayerIndex,
         [=](RN_ClientInterface& aClient) {
             const auto sp = SPEMPE_GET_SYNC_PARAMS(aClient);
             USPEMPE_DefaultLobbyManager_SetPlayerIndex_Impl(
-                dynamic_cast<DefaultLobbyManager&>(sp.context.getComponent<LobbyManagerInterface>()),
+                dynamic_cast<DefaultLobbyManager&>(sp.context.getComponent<LobbyBackendManagerInterface>()),
                 aPlayerIndex
             );
         });

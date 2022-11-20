@@ -68,7 +68,7 @@ void MainGameplayManager::onNetworkingEvent(const hg::RN_Event& aEvent) {
         aEvent.visit(
             [this](const RN_Event::Connected& ev) {
                 HG_LOG_INFO(LOG_ID, "Client lobby uploading local info to server.");
-                ccomp<MLobby>().uploadLocalInfo();
+                ccomp<MLobbyBackend>().uploadLocalInfo();
             }
         );
     }
