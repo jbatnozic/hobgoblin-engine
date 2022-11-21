@@ -396,6 +396,29 @@ TODO (manages players joining and leaving the game, who goes into which slot etc
 
 ### Handling Managers' Execution Priorities
 
-TODO
+An important element in your game's programming will be properly setting the execution priorities of all active objects
+to ensure that all events (especially those of the Manager objects, which do a lot of important work) of those objects
+are executed in the correct order. If you get it wrong, the game most likely won't crash but it it could become less
+responsive and the on-screen output could look wrong.
+
+**Recommended execution priority setup:**
+- Highest: `SyncedVarmapManager`, `NetworkingManager`, `LobbyBackendManager`, `LobbyFrontendManager`,
+`AuthenticationManager` - in that specific order.
+- Then all other objects, including your own custom manager. Note: SPeMPE's `InputSyncManager` should go somewhere in
+here - for it it's important that it goes after `NetworkingManager` (but that's already fulfilled), that on the client
+side, it goes after whatever it is that reads and sets the player input, and on the server side it goes before
+anything that reads the input state.
+- Finally, `WindowManager` goes after ALL OTHER objects.
+
+For example:
+- `SyncedVarmapManager` => 1105
+- `NetworkingManager` =>  1104
+- `LobbyBackendManager` => 1103
+- `LobbyFrontendManager` => 1102
+- `AuthenticationManager` => 1101
+- `<input reader>` => 1010
+- `InputSyncManager` => 1009
+- `<other>` => 1000 - 0
+- `WindowManager` => -1
 
 `=====================================================================================================================`
