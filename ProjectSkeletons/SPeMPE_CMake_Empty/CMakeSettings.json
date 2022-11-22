@@ -2,27 +2,27 @@
     "configurations": [
         {
             "name": "SPeMPE-CMake-Empty-x64-Debug",
-            "generator": "Ninja",
+            "generator": "Visual Studio 17 2022 Win64",
             "configurationType": "Debug",
             "inheritEnvironments": [ "msvc_x64_x64" ],
             "buildRoot": "${projectDir}\\_Build\\${configurationType}",
             "installRoot": "${projectDir}\\build.out\\install\\${name}",
-            "codeAnalysisRuleset": "${projectDir}\\CODEANALYSIS.ruleset",
-            "cmakeCommandArgs": "",
-            "buildCommandArgs": "-v",
+            "codeAnalysisRuleset": "",
+            "cmakeCommandArgs": "-T v143",
+            "buildCommandArgs": "/v:n",
             "ctestCommandArgs": "",
             "variables": []
         },
         {
             "name": "SPeMPE-CMake-Empty-x64-Release",
-            "generator": "Ninja",
+            "generator": "Visual Studio 17 2022 Win64",
             "configurationType": "Release",
             "inheritEnvironments": [ "msvc_x64_x64" ],
             "buildRoot": "${projectDir}\\_Build\\${configurationType}",
             "installRoot": "${projectDir}\\build.out\\install\\${name}",
-            "codeAnalysisRuleset": "${projectDir}\\CODEANALYSIS.ruleset",
-            "cmakeCommandArgs": "",
-            "buildCommandArgs": "-v",
+            "codeAnalysisRuleset": "",
+            "cmakeCommandArgs": "-T v143",
+            "buildCommandArgs": "/v:n",
             "ctestCommandArgs": "",
             "variables": []
         }
