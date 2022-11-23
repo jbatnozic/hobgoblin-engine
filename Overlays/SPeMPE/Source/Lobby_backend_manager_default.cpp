@@ -205,6 +205,8 @@ DefaultLobbyManager::DefaultLobbyManager(hg::QAO_RuntimeRef aRuntimeRef, int aEx
 DefaultLobbyManager::~DefaultLobbyManager() = default;
 
 void DefaultLobbyManager::setToHostMode(hobgoblin::PZInteger aLobbySize) {
+    SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(ctx(), privileged==true, networking==true);
+
     _mode = Mode::Host;
     
     resize(aLobbySize);
@@ -231,6 +233,8 @@ void DefaultLobbyManager::setToHostMode(hobgoblin::PZInteger aLobbySize) {
 }
 
 void DefaultLobbyManager::setToClientMode(hobgoblin::PZInteger aLobbySize) {
+    SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(ctx(), privileged==false, networking==true);
+
     _mode = Mode::Client;
     resize(aLobbySize);
 }

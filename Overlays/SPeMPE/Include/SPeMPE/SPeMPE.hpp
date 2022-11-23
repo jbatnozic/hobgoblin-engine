@@ -1,11 +1,18 @@
 #ifndef SPEMPE_SPEMPE_HPP
 #define SPEMPE_SPEMPE_HPP
 
+// Game context
+
 #include <SPeMPE/GameContext/Context_components.hpp>
 #include <SPeMPE/GameContext/Game_context.hpp>
+#include <SPeMPE/GameContext/Game_context_verification.hpp>
+
+// Game object framework
 
 #include <SPeMPE/GameObjectFramework/Game_object_bases.hpp>
 #include <SPeMPE/GameObjectFramework/Synchronized_object_registry.hpp>
+
+// Managers
 
 #include <SPeMPE/Managers/Authorization_manager_interface.hpp>
 #include <SPeMPE/Managers/Authorization_manager_default.hpp>
@@ -19,6 +26,8 @@
 #include <SPeMPE/Managers/Synced_varmap_manager_interface.hpp>
 #include <SPeMPE/Managers/Window_manager_default.hpp>
 #include <SPeMPE/Managers/Window_manager_interface.hpp>
+
+// Other
 
 #include <SPeMPE/Other/Keyboard_input.hpp>
 #include <SPeMPE/Other/Mouse_input.hpp>

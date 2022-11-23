@@ -242,4 +242,7 @@ taComponent* GameContext::getComponentPtr() const {
 } // namespace spempe
 } // namespace jbatnozic
 
+// Convenience #include
+#include <SPeMPE/GameContext/Game_context_verification.hpp>
+
 #endif // !SPEMPE_GAME_CONTEXT_GAME_CONTEXT_HPP

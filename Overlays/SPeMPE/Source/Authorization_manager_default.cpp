@@ -114,12 +114,14 @@ DefaultAuthorizationManager::DefaultAuthorizationManager(hg::QAO_RuntimeRef aRun
 DefaultAuthorizationManager::~DefaultAuthorizationManager() = default;
 
 void DefaultAuthorizationManager::setToHostMode(/* TODO: provide auth strategy*/) {
+    SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(ctx(), privileged==true, networking==true);
     _mode = Mode::Host;
     _localAuthToken = "<placeholder-token>";
 }
 
 
 void DefaultAuthorizationManager::setToClientMode() {
+    SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(ctx(), privileged==false, networking==true);
     _mode = Mode::Client; // TODO
 }
 

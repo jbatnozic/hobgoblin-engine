@@ -16,7 +16,9 @@ public:
 
         GameContext::RuntimeConfig rc{};
         _ctx1 = std::make_unique<GameContext>(rc);
+        _ctx1->setToMode(GameContext::Mode::Server);
         _ctx2 = std::make_unique<GameContext>(rc);
+        _ctx2->setToMode(GameContext::Mode::Client);
 
         // Add networking managers
         _netMgr1 = std::make_unique<DefaultNetworkingManager>(_ctx1->getQAORuntime().nonOwning(),

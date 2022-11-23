@@ -93,6 +93,13 @@ void DefaultSyncedVarmapManager::setToMode(Mode aMode) {
     if (_mode != Mode::Uninitialized) {
         throw hobgoblin::NotImplementedError{}; // TODO
     }
+
+    if (aMode == Mode::Host) {
+        SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(ctx(), privileged==true, networking=true);
+    } else if (aMode == Mode::Client) {
+        SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(ctx(), privileged==false, networking=true);
+    }
+
     _mode = aMode;
 }
 

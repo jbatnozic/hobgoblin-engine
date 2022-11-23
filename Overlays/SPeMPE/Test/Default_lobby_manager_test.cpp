@@ -23,6 +23,7 @@ public:
 
         GameContext::RuntimeConfig rc{};
         _ctx[HOST] = std::make_unique<GameContext>(rc);
+        _ctx[HOST]->setToMode(GameContext::Mode::Server);
 
         // Add networking manager
         _netMgr[HOST] = std::make_unique<DefaultNetworkingManager>(_ctx[HOST]->getQAORuntime().nonOwning(),
@@ -68,6 +69,7 @@ protected:
 
         GameContext::RuntimeConfig rc{};
         _ctx[pos] = std::make_unique<GameContext>(rc);
+        _ctx[pos]->setToMode(GameContext::Mode::Client);
 
         // Add networking manager
         _netMgr[pos] = std::make_unique<DefaultNetworkingManager>(_ctx[pos]->getQAORuntime().nonOwning(),

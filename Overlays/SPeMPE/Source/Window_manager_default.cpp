@@ -35,6 +35,8 @@ DefaultWindowManager::DefaultWindowManager(hg::QAO_RuntimeRef aRuntimeRef,
 ///////////////////////////////////////////////////////////////////////////
 
 void DefaultWindowManager::setToHeadlessMode(const TimingConfig& aTimingConfig) {
+    SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(ctx(), headless==true);
+
     _headless = true;
 
     _mainRenderTextureDrawBatcher.reset();
@@ -52,6 +54,8 @@ void DefaultWindowManager::setToHeadlessMode(const TimingConfig& aTimingConfig) 
 void DefaultWindowManager::setToNormalMode(const WindowConfig& aWindowConfig,
                                            const MainRenderTextureConfig& aMainRenderTextureConfig,
                                            const TimingConfig& aTimingConfig) {
+    SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(ctx(), headless==false);
+
     _headless = false;
 
     // Create window:

@@ -52,6 +52,8 @@ DefaultInputSyncManager::DefaultInputSyncManager(hg::QAO_RuntimeRef aRuntimeRef,
 }
 
 void DefaultInputSyncManager::setToHostMode(hg::PZInteger aPlayerCount, hg::PZInteger aStateBufferingLength) {
+    SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(ctx(), privileged==true, networking==true);
+
     if (aPlayerCount < 1) {
         throw hg::TracedLogicError{"DefaultInputSyncManager - Player count must be at least 1!"};
     }
@@ -67,6 +69,7 @@ void DefaultInputSyncManager::setToHostMode(hg::PZInteger aPlayerCount, hg::PZIn
 }
 
 void DefaultInputSyncManager::setToClientMode() {
+    SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(ctx(), privileged==false, networking==true);
     _mode = Mode::Client;
     _maps.resize(1u);
 }

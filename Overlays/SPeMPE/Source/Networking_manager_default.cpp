@@ -42,6 +42,7 @@ void DefaultNetworkingManager::setToMode(Mode aMode) {
         break;
 
     case Mode::Server:
+        SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(ctx(), privileged==true, networking==true);
         _localClientIndex = CLIENT_INDEX_LOCAL;
         _node = hg::RN_ServerFactory::createServer(hg::RN_Protocol::UDP, "pass"); // TODO Parametrize !!!!!!!!!!!
         _node->setUserData(&ctx());
@@ -49,6 +50,7 @@ void DefaultNetworkingManager::setToMode(Mode aMode) {
         break;
 
     case Mode::Client:
+        SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(ctx(), privileged==false, networking==true);
         _localClientIndex = CLIENT_INDEX_UNKNOWN;
         _node = hg::RN_ClientFactory::createClient(hg::RN_Protocol::UDP, "pass");
         _node->setUserData(&ctx());
