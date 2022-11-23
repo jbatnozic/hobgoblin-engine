@@ -32,8 +32,6 @@ void Get64bitRNG(std::mt19937_64** aEngine, std::mutex** aMutex) {
 }
 } // namespace detail
 
-// functions - get real random, get simple uniform random (int/float), seedwith, seedautomatically...
-
 std::uint64_t Generate64bitSeed() {
     const auto now = std::chrono::system_clock::now();
     const auto timeValue = static_cast<std::uint64_t>(now.time_since_epoch().count());
@@ -49,8 +47,6 @@ std::uint64_t Generate64bitSeed() {
 std::uint32_t Generate32bitSeed() {
     return static_cast<std::uint32_t>(Generate64bitSeed() & 0xFFFFFFFF);
 }
-
-
 
 }
 HOBGOBLIN_NAMESPACE_END
