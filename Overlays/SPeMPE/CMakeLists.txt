@@ -43,7 +43,7 @@ PUBLIC
 set(OVERLAY_TEST_NAME "${OVERLAY_NAME}.Test")
 
 set(OVERLAY_TEST_SOURCES
-  "Test/Default_lobby_manager_test.cpp"
+  "Test/Default_lobby_backend_manager_test.cpp"
   "Test/Default_synced_varmap_manager_test.cpp"
   "Test/Input_sync_manager_test.cpp"
   "Test/Keyboard_input_test.cpp"

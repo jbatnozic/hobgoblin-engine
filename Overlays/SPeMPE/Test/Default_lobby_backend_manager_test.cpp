@@ -15,7 +15,7 @@ using namespace hg::qao;
 #define CLI1 1
 #define CLI2 2
 
-class DefaultLobbyManagerTest : public ::testing::Test {
+class DefaultLobbyBackendManagerTest : public ::testing::Test {
 public:
     void SetUp() override {
         // hg::log::SetMinimalLogSeverity(hg::log::Severity::All);
@@ -133,7 +133,7 @@ protected:
     }
 };
 
-TEST_F(DefaultLobbyManagerTest, InitialStateTest) {
+TEST_F(DefaultLobbyBackendManagerTest, InitialStateTest) {
     EXPECT_EQ(_lobbyMgr[HOST]->getLocalPlayerIndex(), 0); // Host is in slot 0 unless changed
 
     _lobbyMgr[HOST]->setLocalName("host");
@@ -169,7 +169,7 @@ TEST_F(DefaultLobbyManagerTest, InitialStateTest) {
     }
 }
 
-TEST_F(DefaultLobbyManagerTest, SingleClientTest) {
+TEST_F(DefaultLobbyBackendManagerTest, SingleClientTest) {
     _lobbyMgr[HOST]->setLocalName("host");
     _lobbyMgr[HOST]->setLocalUniqueId("1234");
     _lobbyMgr[HOST]->setLocalCustomData(0, "cdat0");
@@ -194,21 +194,18 @@ TEST_F(DefaultLobbyManagerTest, SingleClientTest) {
     // CLI1 is pending in slot [1] but locked-in slot [1] is empty
     {
         const auto& info = _lobbyMgr[CLI1]->getPendingPlayerInfo(1);
-        EXPECT_NE(info.name, "");
-        EXPECT_NE(info.uniqueId, "");
-        EXPECT_NE(info.ipAddress, "");
+        EXPECT_FALSE(info.isEmpty());
+        EXPECT_FALSE(info.isComplete());
     }
     {
         const auto& info = _lobbyMgr[CLI1]->getLockedInPlayerInfo(1);
-        EXPECT_EQ(info.name, "");
-        EXPECT_EQ(info.uniqueId, "");
+        EXPECT_TRUE(info.isEmpty());
         EXPECT_EQ(info.customData[0], "");
     }
     // Both [2] slots are empty
     {
         const auto& info = _lobbyMgr[CLI1]->getPendingPlayerInfo(2);
-        EXPECT_EQ(info.name, "");
-        EXPECT_EQ(info.uniqueId, "");
+        EXPECT_TRUE(info.isEmpty());
         EXPECT_EQ(info.customData[0], "");
 
         EXPECT_EQ(_lobbyMgr[CLI1]->getLockedInPlayerInfo(2), info);
@@ -247,9 +244,7 @@ TEST_F(DefaultLobbyManagerTest, SingleClientTest) {
 
     {
         const auto& info = _lobbyMgr[HOST]->getPendingPlayerInfo(1);
-        EXPECT_EQ(info.name, "");
-        EXPECT_EQ(info.uniqueId, "");
-        EXPECT_EQ(info.ipAddress, "");
+        EXPECT_TRUE(info.isEmpty());
     }
     {
         const auto& info = _lobbyMgr[HOST]->getLockedInPlayerInfo(1);
@@ -257,11 +252,12 @@ TEST_F(DefaultLobbyManagerTest, SingleClientTest) {
         EXPECT_EQ(info.uniqueId, "5678");
         EXPECT_EQ(info.customData[0], "CDAT0");
 
-        EXPECT_NE(info.ipAddress, "");
+        EXPECT_FALSE(info.isEmpty());
+        EXPECT_TRUE(info.isComplete());
     }
 }
 
-TEST_F(DefaultLobbyManagerTest, MultipleClientsTest) {
+TEST_F(DefaultLobbyBackendManagerTest, MultipleClientsTest) {
     /*
      * SCENARIO: server start, client 1 connect, lock in, client 2 connect, client 1 disconnect, lock in
      */
@@ -291,16 +287,13 @@ TEST_F(DefaultLobbyManagerTest, MultipleClientsTest) {
     }
     {
         const auto& info = _lobbyMgr[CLI1]->getPendingPlayerInfo(1);
-        EXPECT_NE(info.name, "");
-        EXPECT_NE(info.uniqueId, "");
-        EXPECT_NE(info.ipAddress, "");
+        EXPECT_FALSE(info.isEmpty());
 
         EXPECT_EQ(_lobbyMgr[CLI1]->getLockedInPlayerInfo(1), info);
     }
     {
         const auto& info = _lobbyMgr[CLI1]->getPendingPlayerInfo(2);
-        EXPECT_EQ(info.name, "");
-        EXPECT_EQ(info.uniqueId, "");
+        EXPECT_TRUE(info.isEmpty());
         EXPECT_EQ(info.customData[0], "");
 
         EXPECT_EQ(_lobbyMgr[CLI1]->getLockedInPlayerInfo(2), info);
@@ -323,23 +316,17 @@ TEST_F(DefaultLobbyManagerTest, MultipleClientsTest) {
     }
     {
         const auto& info = _lobbyMgr[CLI1]->getPendingPlayerInfo(1);
-        EXPECT_NE(info.name, "");
-        EXPECT_NE(info.uniqueId, "");
-        EXPECT_NE(info.ipAddress, "");
+        EXPECT_FALSE(info.isEmpty());
 
         EXPECT_EQ(_lobbyMgr[CLI1]->getLockedInPlayerInfo(1), info);
     }
     {
         const auto& info = _lobbyMgr[CLI1]->getPendingPlayerInfo(2);
-        EXPECT_NE(info.name, "");
-        EXPECT_NE(info.uniqueId, "");
-        EXPECT_NE(info.ipAddress, "");
+        EXPECT_FALSE(info.isEmpty());
     }
     {
         const auto& info = _lobbyMgr[CLI1]->getLockedInPlayerInfo(2);
-        EXPECT_EQ(info.name, "");
-        EXPECT_EQ(info.uniqueId, "");
-        EXPECT_EQ(info.ipAddress, "");
+        EXPECT_TRUE(info.isEmpty());
     }
 
     // Verify slots from CLI2 perspective
@@ -353,23 +340,17 @@ TEST_F(DefaultLobbyManagerTest, MultipleClientsTest) {
     }
     {
         const auto& info = _lobbyMgr[CLI2]->getPendingPlayerInfo(1);
-        EXPECT_NE(info.name, "");
-        EXPECT_NE(info.uniqueId, "");
-        EXPECT_NE(info.ipAddress, "");
+        EXPECT_FALSE(info.isEmpty());
 
         EXPECT_EQ(_lobbyMgr[CLI2]->getLockedInPlayerInfo(1), info);
     }
     {
         const auto& info = _lobbyMgr[CLI2]->getPendingPlayerInfo(2);
-        EXPECT_NE(info.name, "");
-        EXPECT_NE(info.uniqueId, "");
-        EXPECT_NE(info.ipAddress, "");
+        EXPECT_FALSE(info.isEmpty());
     }
     {
         const auto& info = _lobbyMgr[CLI2]->getLockedInPlayerInfo(2);
-        EXPECT_EQ(info.name, "");
-        EXPECT_EQ(info.uniqueId, "");
-        EXPECT_EQ(info.ipAddress, "");
+        EXPECT_TRUE(info.isEmpty());
     }
 
     _netMgr[HOST]->getServer().setTimeoutLimit(std::chrono::microseconds{1});
@@ -391,27 +372,19 @@ TEST_F(DefaultLobbyManagerTest, MultipleClientsTest) {
     }
     {
         const auto& info = _lobbyMgr[CLI2]->getPendingPlayerInfo(1);
-        EXPECT_EQ(info.name, "");
-        EXPECT_EQ(info.uniqueId, "");
-        EXPECT_EQ(info.ipAddress, "");
+        EXPECT_TRUE(info.isEmpty());
     }
     {
         const auto& info = _lobbyMgr[CLI2]->getLockedInPlayerInfo(1);
-        EXPECT_NE(info.name, "");
-        EXPECT_NE(info.uniqueId, "");
-        EXPECT_NE(info.ipAddress, "");
+        EXPECT_FALSE(info.isEmpty());
     }
     {
         const auto& info = _lobbyMgr[CLI2]->getPendingPlayerInfo(2);
-        EXPECT_NE(info.name, "");
-        EXPECT_NE(info.uniqueId, "");
-        EXPECT_NE(info.ipAddress, "");
+        EXPECT_FALSE(info.isEmpty());
     }
     {
         const auto& info = _lobbyMgr[CLI2]->getLockedInPlayerInfo(2);
-        EXPECT_EQ(info.name, "");
-        EXPECT_EQ(info.uniqueId, "");
-        EXPECT_EQ(info.ipAddress, "");
+        EXPECT_TRUE(info.isEmpty());
     }
 
     _lobbyMgr[HOST]->lockInPendingChanges();
@@ -427,22 +400,18 @@ TEST_F(DefaultLobbyManagerTest, MultipleClientsTest) {
     }
     {
         const auto& info = _lobbyMgr[CLI2]->getPendingPlayerInfo(1);
-        EXPECT_EQ(info.name, "");
-        EXPECT_EQ(info.uniqueId, "");
-        EXPECT_EQ(info.ipAddress, "");
+        EXPECT_TRUE(info.isEmpty());
 
         EXPECT_EQ(_lobbyMgr[CLI2]->getLockedInPlayerInfo(1), info);
     }
     {
         const auto& info = _lobbyMgr[CLI2]->getPendingPlayerInfo(2);
-        EXPECT_NE(info.name, "");
-        EXPECT_NE(info.uniqueId, "");
-        EXPECT_NE(info.ipAddress, "");
+        EXPECT_FALSE(info.isEmpty());
 
         EXPECT_EQ(_lobbyMgr[CLI2]->getLockedInPlayerInfo(2), info);
     }
 }
 
-TEST_F(DefaultLobbyManagerTest, SwapSlotsTest) {
+TEST_F(DefaultLobbyBackendManagerTest, SwapSlotsTest) {
     // TODO
 }

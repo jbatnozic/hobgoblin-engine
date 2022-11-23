@@ -27,7 +27,7 @@ bool RmlUiSFMLSystem::LogMessage(Rml::Log::Type aType, const Rml::String& aMessa
             break;
 
         case Rml::Log::LT_ASSERT:
-            HG_LOG_FATAL(LOG_ID, "{}", aMessage);
+            HG_LOG_DEBUG(LOG_ID, "{}", aMessage);
             break;
             
         case Rml::Log::LT_WARNING:
