@@ -383,15 +383,15 @@ virtual void _eventUpdate(spe::IfDummy);
 virtual void _eventFinalizeFrame(spe::IfDummy);
 ```
 
-By overriding, for example, `_eventPreUpdate(spe::IfMaster)` you are defining the update event behaviour this object
-will have only when it is a Master object, and, analogously to that, by overriding `_eventPreUpdate(spe::IfDummy)` you
+By overriding, for example, `_eventUpdate(spe::IfMaster)` you are defining the update event behaviour this object
+will have only when it is a Master object, and, analogously to that, by overriding `_eventUpdate(spe::IfDummy)` you
 are defining the update event behaviour this object will have only when it is a Dummy object.
 
 A lot of the time, the Dummy object will have only draw events defined, as it doesn't need to execute any logic, and
 the Master object will have its update events defined but not draw events, as it executes all the logic but lives on
 a Server which doesn't have a window to display any of it.
 
-**Note:** You still _can_ override general `_event*()` methods (for example `_eventPreUpdate()`), in which case you
+**Note:** You still _can_ override general `_event*()` methods (for example `_eventStartFrame()`), in which case you
 will be defining the behaviour for both Master and Dummy objects, and the `spe::IfMaster`/`spe::IfDummy` variants
 will NEVER be called (unless you call them manually). So, this is generally not recommended. One final caveat here is
 that if you choose to override `_eventUpdate()` (specifically the update event, and not any of the others), you will
