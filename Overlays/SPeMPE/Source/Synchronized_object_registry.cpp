@@ -34,7 +34,7 @@ RN_DEFINE_RPC(USPEMPE_DeactivateObject, RN_ARGS(SyncId, aSyncId)) {
         });
 
     RN_NODE_IN_HANDLER().callIfServer(
-        [](hg::RN_ServerInterface& server) {
+        [](hg::RN_ServerInterface&) {
             throw hg::RN_IllegalMessage("Server received a sync message");
         });
 }

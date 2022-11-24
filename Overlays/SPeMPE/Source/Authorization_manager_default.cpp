@@ -191,7 +191,7 @@ void DefaultAuthorizationManager::_authorizePlayer(
 ) {
     _currentAuthorizedPlayer = aPlayerToAuthorize;
     Compose_SetLocalAuthToken(aNetMgr.getNode(), aPlayerToAuthorize.clientIndex, *_localAuthToken);
-    // set varmap values...
+    // TODO set varmap values...
     HG_LOG_INFO(LOG_ID, "Authorized player {} ({}).", aPlayerToAuthorize.name, aPlayerToAuthorize.ipAddress);
 }
 
