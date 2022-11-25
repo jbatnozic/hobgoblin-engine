@@ -15,7 +15,7 @@
 	<body class="window">
 		<div id="title-bar">
 			<handle move_target="#document">
-				<span id="title">__Lobby</span>
+				<span id="title">Lobby</span>
 			</handle>
 		</div>
 
