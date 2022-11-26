@@ -2,6 +2,8 @@
 
 #include "Engine.h"
 
+#include <string>
+
 class LobbyFrontendManagerInterface
     : public spe::ContextComponent
 {
@@ -14,7 +16,7 @@ public:
 
     ~LobbyFrontendManagerInterface() override = default;
 
-    virtual void setToNormalMode() = 0;
+    virtual void setToNormalMode(const std::string& aName, const std::string& aUniqueId) = 0;
     virtual void setToHeadlessMode() = 0;
     virtual Mode getMode() const = 0;
 

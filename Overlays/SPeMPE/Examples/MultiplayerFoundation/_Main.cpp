@@ -4,6 +4,7 @@
 #include "Main_gameplay_manager.hpp"
 
 #include <Hobgoblin/Logging.hpp>
+#include <Hobgoblin/Utility/Randomization.hpp>
 #include <Hobgoblin/Utility/State_scheduler.hpp>
 
 #include <cstdint>
@@ -153,16 +154,14 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
     context->attachAndOwnComponent(std::move(svmMgr));
 
     // Create and attach a lobby backend manager
-    auto lobbyMgr = std::make_unique<spe::DefaultLobbyManager>(context->getQAORuntime().nonOwning(),
-                                                               PRIORITY_LOBBYBACKMGR);
+    auto lobbyMgr = std::make_unique<spe::DefaultLobbyBackendManager>(context->getQAORuntime().nonOwning(),
+                                                                      PRIORITY_LOBBYBACKMGR);
 
     if (aGameMode == GameMode::Server) {
         lobbyMgr->setToHostMode(aPlayerCount);
     }
     else {
         lobbyMgr->setToClientMode(1);
-        lobbyMgr->setLocalName("player_" + std::to_string(reinterpret_cast<std::uintptr_t>(lobbyMgr.get()) % 10'000));
-        lobbyMgr->setLocalUniqueId("id_" + std::to_string(reinterpret_cast<std::uintptr_t>(lobbyMgr.get()) % 10'000));
     }
 
     context->attachAndOwnComponent(std::move(lobbyMgr));
@@ -175,7 +174,9 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
         lobbyFrontendMgr->setToHeadlessMode();
     }
     else {
-        lobbyFrontendMgr->setToNormalMode();
+        const auto nameInLobby = "player_" + std::to_string(hg::util::GetRandomNumber<int>(10'000, 99'999));
+        const auto uniqueId    =     "id_" + std::to_string(hg::util::GetRandomNumber<int>(10'000, 99'999));
+        lobbyFrontendMgr->setToNormalMode(nameInLobby, uniqueId);
     }
 
     context->attachAndOwnComponent(std::move(lobbyFrontendMgr));
@@ -209,7 +210,18 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
  *
  */
 int main(int argc, char* argv[]) {
+    // Set logging severity:
     hg::log::SetMinimalLogSeverity(hg::log::Severity::All);
+
+    // Seed pseudorandom number generators:
+    hg::util::DoWith32bitRNG([](std::mt19937& aRNG) {
+        aRNG.seed(hg::util::Generate32bitSeed());
+    });
+    hg::util::DoWith64bitRNG([](std::mt19937_64& aRNG) {
+        aRNG.seed(hg::util::Generate64bitSeed());
+    });
+    
+    // Initialize RigelNet:
     RN_IndexHandlers();
 
     // Parse command line arguments:

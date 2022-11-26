@@ -55,7 +55,7 @@ div#title-bar span {
     decorator: image(titlebar);
 }
 
-div#player-table-holder {
+.window-contents {
     padding-left: 20dp;
 	padding-right: 20dp;
 	padding-top: 20dp;
@@ -97,4 +97,8 @@ thead, tbody, tfoot {
 .button:hover {
 	text-align: center;
 	background-color: #70ceeb;
+}
+.button:active {
+	text-align: center;
+	background-color: #354449;
 }

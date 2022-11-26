@@ -4,12 +4,17 @@
 #include <SPeMPE/GameObjectFramework/Synchronized_object_registry.hpp>
 #include <SPeMPE/Other/Rpc_receiver_context.hpp>
 
+#include <Hobgoblin/Logging.hpp>
+
 #include <cassert>
+#include <sstream>
 
 namespace jbatnozic {
 namespace spempe {
 
 namespace {
+constexpr auto LOG_ID = "SynchronizedObjectRegistry";
+
 void GetIndicesForComposingToEveryone(const hg::RN_NodeInterface& node, std::vector<hg::PZInteger>& vec) {
     vec.clear();
     if (node.isServer()) {
@@ -136,8 +141,38 @@ void SynchronizedObjectRegistry::unregisterObject(SynchronizedObjectBase* object
     _mappings.erase(object->getSyncId());
 }
 
+void SynchronizedObjectRegistry::destroyAllRegisteredObjects() {
+    std::vector<SynchronizedObjectBase*> objectsToDelete;
+    objectsToDelete.reserve(_mappings.size());
+    for (const auto pair : _mappings) {
+        objectsToDelete.push_back(pair.second);
+    }
+
+    auto& rt = _node->getUserDataOrThrow<GameContext>()->getQAORuntime();
+    for (auto* object : objectsToDelete) {
+        if (rt.ownsObject(object)) {
+            rt.eraseObject(object);
+        }
+    }
+
+    if (!_mappings.empty()) {
+        std::stringstream ss;
+        for (const auto pair : _mappings) {
+            ss << pair.second->getName() << ", ";
+        }
+        HG_LOG_WARN(LOG_ID,
+                    "{} registered objects remain after destroyAllRegisteredObjects() was called: {}",
+                    _mappings.size(),
+                    ss.str()
+        );
+    }
+}
+
 SynchronizedObjectBase* SynchronizedObjectRegistry::getMapping(SyncId syncId) const {
-    return _mappings.at(syncId);
+    if (const auto iter = _mappings.find(syncId); iter != _mappings.end()) {
+        return iter->second;
+    }
+    return nullptr;
 }
 
 #if 0 // Kept for posterity (yes, I know git exists)
@@ -337,7 +372,7 @@ void SynchronizedObjectRegistry::deactivateObject(SyncId aObjectId, hg::PZIntege
     object->_deactivateSelfIn(aDelayInSteps);
 }
 
-bool SynchronizedObjectRegistry::isObjectDeactivatedForClient(SyncId aObjectId, hg::PZInteger aForClient) {
+bool SynchronizedObjectRegistry::isObjectDeactivatedForClient(SyncId aObjectId, hg::PZInteger aForClient) const {
     auto& object = _mappings.at(aObjectId);
     return object->_remoteStatuses.getBit(aForClient);
 }

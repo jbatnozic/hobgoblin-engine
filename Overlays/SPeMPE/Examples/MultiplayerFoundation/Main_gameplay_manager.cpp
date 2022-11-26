@@ -37,19 +37,6 @@ MainGameplayManager::~MainGameplayManager() {
 
 void MainGameplayManager::_eventDrawGUI() {
     // Do nothing
-
-    // TODO \/ TEMPORARY FOR TESTING
-    auto& winMgr = ccomp<MWindow>();
-    auto mouseInput = winMgr.getMouseInput();
-    if (mouseInput.checkPressed(spe::MouseButton::Left, spe::MouseInput::Mode::Edge)) {
-        sf::RectangleShape rect({64.f, 64.f});
-        rect.setFillColor(sf::Color::White);
-
-        const auto pos = mouseInput.getWindowRelativePos();
-        rect.setPosition((float)pos.x - 32.f, (float)pos.y - 32.f);
-
-        winMgr.getCanvas().draw(rect);
-    }
 }
 
 void MainGameplayManager::_eventFinalizeFrame() {

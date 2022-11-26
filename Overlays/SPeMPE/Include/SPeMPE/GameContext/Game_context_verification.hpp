@@ -30,7 +30,7 @@ public:
         ::jbatnozic::spempe::detail::Tribool USPEMPE_privileged; \
         ::jbatnozic::spempe::detail::Tribool USPEMPE_headless;   \
         ::jbatnozic::spempe::detail::Tribool USPEMPE_networking; \
-        USPEMPE_PP_EXPAND(USPEMPE_VOID_EXPRESSIONS_5(__VA_ARGS__, 0, 0, 0, 0, 0)); \
+        USPEMPE_MACRO_EXPAND_VA(USPEMPE_VOID_EXPRESSIONS_5(__VA_ARGS__, 0, 0, 0, 0, 0)); \
         \
         bool USPEMPE_privileged_matches = true, USPEMPE_headless_matches = true, USPEMPE_networking_matches = true; \
         const ::jbatnozic::spempe::GameContext& USPEMPE_ctx = (_ctx_);\
@@ -59,7 +59,9 @@ public:
 // IMPLEMENTATION BELOW                                                  //
 ///////////////////////////////////////////////////////////////////////////
 
-#define USPEMPE_PP_EXPAND(...) __VA_ARGS__
+#ifndef USPEMPE_MACRO_EXPAND_VA
+#define USPEMPE_MACRO_EXPAND_VA(...) __VA_ARGS__
+#endif // !USPEMPE_MACRO_EXPAND_VA
 
 #define USPEMPE_0 0
 

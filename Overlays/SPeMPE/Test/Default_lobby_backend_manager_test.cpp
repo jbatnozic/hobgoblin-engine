@@ -42,7 +42,7 @@ public:
         _ctx[HOST]->attachComponent(*_svmMgr[HOST]);
 
         // Add lobby manager
-        _lobbyMgr[HOST] = std::make_unique<DefaultLobbyManager>(_ctx[HOST]->getQAORuntime().nonOwning(), PRIORITY_LOBMGR);
+        _lobbyMgr[HOST] = std::make_unique<DefaultLobbyBackendManager>(_ctx[HOST]->getQAORuntime().nonOwning(), PRIORITY_LOBMGR);
         _lobbyMgr[HOST]->setToHostMode(3);
 
         _ctx[HOST]->attachComponent(*_lobbyMgr[HOST]);
@@ -62,7 +62,7 @@ protected:
     std::array<std::unique_ptr<GameContext>, 3> _ctx;
     std::array<std::unique_ptr<NetworkingManagerInterface>, 3> _netMgr;
     std::array<std::unique_ptr<DefaultSyncedVarmapManager>, 3> _svmMgr;
-    std::array<std::unique_ptr<DefaultLobbyManager>, 3> _lobbyMgr;
+    std::array<std::unique_ptr<DefaultLobbyBackendManager>, 3> _lobbyMgr;
 
     void _initClientContext(hg::PZInteger aContextIndex) {
         const auto pos = hg::pztos(aContextIndex);
@@ -87,7 +87,7 @@ protected:
         _ctx[pos]->attachComponent(*_svmMgr[pos]);
 
         // Add lobby manager
-        _lobbyMgr[pos] = std::make_unique<DefaultLobbyManager>(_ctx[pos]->getQAORuntime().nonOwning(), PRIORITY_LOBMGR);
+        _lobbyMgr[pos] = std::make_unique<DefaultLobbyBackendManager>(_ctx[pos]->getQAORuntime().nonOwning(), PRIORITY_LOBMGR);
         _lobbyMgr[pos]->setToClientMode(1);
 
         _ctx[pos]->attachComponent(*_lobbyMgr[pos]);

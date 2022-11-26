@@ -3,6 +3,7 @@
 
 #include <Hobgoblin/Logging.hpp>
 #include <Hobgoblin/RigelNet_macros.hpp>
+#include <Hobgoblin/Utility/No_copy_no_move.hpp>
 
 namespace {
 constexpr auto LOG_ID = "LobbyFrontendManager";
@@ -16,18 +17,21 @@ struct PlayerInfoModel {
 struct DualPlayerInfoModel {
     PlayerInfoModel lockedIn;
     PlayerInfoModel pending;
-    bool showPending;
+    bool showPending = false;
 };
 
 struct LobbyModel {
     std::vector<DualPlayerInfoModel> players;
+    Rml::String localName;
+    bool isAuthorized = false;
 };
 } // namespace
 
 #define COMMAND_LOCK_IN 0
-#define COMMAND_MOVE_UP 1
-#define COMMAND_MOVE_DN 2
-#define COMMAND_KICK    3
+#define COMMAND_RESET   1
+#define COMMAND_MOVE_UP 2
+#define COMMAND_MOVE_DN 3
+#define COMMAND_KICK    4
 
 void ActivateCommand(LobbyFrontendManager& aMgr, int aCommand, void* aArgs) {
     auto& lobbyBackendMgr = aMgr.ccomp<MLobbyBackend>();
@@ -37,11 +41,20 @@ void ActivateCommand(LobbyFrontendManager& aMgr, int aCommand, void* aArgs) {
             lobbyBackendMgr.lockInPendingChanges();
             break;
 
+        case COMMAND_RESET:
+            HG_LOG_INFO(LOG_ID, "Resetting lobby.");
+            lobbyBackendMgr.resetPendingChanges();
+            break;
+
         case COMMAND_MOVE_UP:
             {
                 const auto size = lobbyBackendMgr.getSize();
-                const auto slotIndex1 = *static_cast<hg::PZInteger*>(aArgs);
-                const auto slotIndex2 = (slotIndex1 + size - 1) % size;
+                auto slotIndex1 = *static_cast<hg::PZInteger*>(aArgs);
+                if (slotIndex1 == 0) break;
+                auto slotIndex2 = (slotIndex1 + size - 1) % size;
+                if (slotIndex2 == 0) slotIndex2 = (slotIndex1 + size - 2) % size;
+                if (slotIndex2 == 0) break;
+
                 HG_LOG_INFO(LOG_ID, "Swapping slots {} and {}.", slotIndex1, slotIndex2);
                 lobbyBackendMgr.beginSwap(slotIndex1, slotIndex2);
             }
@@ -50,8 +63,12 @@ void ActivateCommand(LobbyFrontendManager& aMgr, int aCommand, void* aArgs) {
         case COMMAND_MOVE_DN:
             {
                 const auto size = lobbyBackendMgr.getSize();
-                const auto slotIndex1 = *static_cast<hg::PZInteger*>(aArgs);
-                const auto slotIndex2 = (slotIndex1 + 1) % size;
+                auto slotIndex1 = *static_cast<hg::PZInteger*>(aArgs);
+                if (slotIndex1 == 0) break;
+                auto slotIndex2 = (slotIndex1 + 1) % size;
+                if (slotIndex2 == 0) slotIndex2 = (slotIndex1 + 2) % size;
+                if (slotIndex2 == 0) break;
+
                 HG_LOG_INFO(LOG_ID, "Swapping slots {} and {}.", slotIndex1, slotIndex2);
                 lobbyBackendMgr.beginSwap(slotIndex1, slotIndex2);
             }
@@ -69,7 +86,7 @@ void ActivateCommand(LobbyFrontendManager& aMgr, int aCommand, void* aArgs) {
 }
 
 namespace {
-RN_DEFINE_RPC(LockInLobby, RN_ARGS(std::string&, aAuthToken)) {
+RN_DEFINE_RPC(LobbyFrontendManager_LockInLobby, RN_ARGS(std::string&, aAuthToken)) {
     RN_NODE_IN_HANDLER().callIfServer(
         [&](RN_ServerInterface& aServer) {
         const spe::RPCReceiverContext rc{aServer};
@@ -90,7 +107,28 @@ RN_DEFINE_RPC(LockInLobby, RN_ARGS(std::string&, aAuthToken)) {
     });
 }
 
-RN_DEFINE_RPC(MoveUp, RN_ARGS(std::string&, aAuthToken, hg::PZInteger, aSlotIndex)) {
+RN_DEFINE_RPC(LobbyFrontendManager_ResetLobby, RN_ARGS(std::string&, aAuthToken)) {
+    RN_NODE_IN_HANDLER().callIfServer(
+        [&](RN_ServerInterface& aServer) {
+        const spe::RPCReceiverContext rc{aServer};
+        auto& authMgr = rc.gameContext.getComponent<spe::AuthorizationManagerInterface>();
+        if (aAuthToken != *authMgr.getLocalAuthToken()) {
+            throw RN_IllegalMessage();
+        }
+        ActivateCommand(
+            dynamic_cast<LobbyFrontendManager&>(
+                rc.gameContext.getComponent<LobbyFrontendManagerInterface>()),
+            COMMAND_RESET,
+            nullptr
+        );
+    });
+    RN_NODE_IN_HANDLER().callIfClient(
+        [](RN_ClientInterface&) {
+        throw RN_IllegalMessage();
+    });
+}
+
+RN_DEFINE_RPC(LobbyFrontendManager_MoveUp, RN_ARGS(std::string&, aAuthToken, hg::PZInteger, aSlotIndex)) {
     RN_NODE_IN_HANDLER().callIfServer(
         [&](RN_ServerInterface& aServer) {
         const spe::RPCReceiverContext rc{aServer};
@@ -111,7 +149,7 @@ RN_DEFINE_RPC(MoveUp, RN_ARGS(std::string&, aAuthToken, hg::PZInteger, aSlotInde
     });
 }
 
-RN_DEFINE_RPC(MoveDown, RN_ARGS(std::string&, aAuthToken, hg::PZInteger, aSlotIndex)) {
+RN_DEFINE_RPC(LobbyFrontendManager_MoveDown, RN_ARGS(std::string&, aAuthToken, hg::PZInteger, aSlotIndex)) {
     RN_NODE_IN_HANDLER().callIfServer(
         [&](RN_ServerInterface& aServer) {
         const spe::RPCReceiverContext rc{aServer};
@@ -132,7 +170,7 @@ RN_DEFINE_RPC(MoveDown, RN_ARGS(std::string&, aAuthToken, hg::PZInteger, aSlotIn
     });
 }
 
-RN_DEFINE_RPC(Kick, RN_ARGS(std::string&, aAuthToken, hg::PZInteger, aSlotIndex)) {
+RN_DEFINE_RPC(LobbyFrontendManager_Kick, RN_ARGS(std::string&, aAuthToken, hg::PZInteger, aSlotIndex)) {
     RN_NODE_IN_HANDLER().callIfServer(
         [&](RN_ServerInterface& aServer) {
         const spe::RPCReceiverContext rc{aServer};
@@ -158,10 +196,10 @@ RN_DEFINE_RPC(Kick, RN_ARGS(std::string&, aAuthToken, hg::PZInteger, aSlotIndex)
 // IMPL                                                                  //
 ///////////////////////////////////////////////////////////////////////////
 
-class LobbyFrontendManager::Impl {
+class LobbyFrontendManager::Impl: hg::util::NonCopyable, hg::util::NonMoveable {
 public:
-#define ctx   _super.ctx
-#define ccomp _super.ccomp
+#define CTX   _super.ctx
+#define CCOMP _super.ccomp
 
     explicit Impl(LobbyFrontendManager& aLobbyFrontendManager)
         : _super{aLobbyFrontendManager}
@@ -170,19 +208,27 @@ public:
 
     ~Impl() {
         if (_document) {
-            ccomp<MWindow>().getGUIContext().UnloadDocument(_document);
+            CCOMP<MWindow>().getGUIContext().UnloadDocument(_document);
             _document = nullptr;
         }
     }
 
     void setToHeadlessMode() {
+        SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(CTX(), headless==true);
         _mode = Mode::Headless;
     }
 
-    void setToNormalMode() {
+    void setToNormalMode(const std::string& aName, const std::string& aUniqueId) {
+        SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(CTX(), headless==false);
         _mode = Mode::Normal;
 
-        auto& guiContext = ccomp<MWindow>().getGUIContext();
+        {
+            auto& lobbyBackendMgr = CCOMP<MLobbyBackend>();
+            lobbyBackendMgr.setLocalName(aName);
+            lobbyBackendMgr.setLocalUniqueId(aUniqueId);
+        }
+
+        auto& guiContext = CCOMP<MWindow>().getGUIContext();
         auto handle = _setUpDataBinding(guiContext);
         _dataModelHandle = *handle; // TODO
 
@@ -201,19 +247,34 @@ public:
         return _mode;
     }
 
+    void eventPreUpdate() {
+        auto& lobbyBackendMgr = CCOMP<MLobbyBackend>();
+        spe::LobbyBackendEvent ev;
+        while (lobbyBackendMgr.pollEvent(ev)) {
+            ev.strictVisit(
+                [](spe::LobbyBackendEvent::LobbyLockedIn& aEvData) {
+                    HG_LOG_INFO(LOG_ID, "(event) Lobby locked in.");
+                },
+                [](spe::LobbyBackendEvent::LobbyChanged& aEvData) {
+                    HG_LOG_INFO(LOG_ID, "(event) Lobby changed.");
+                }
+            );
+        }
+    }
+
     void eventDrawGUI() {
         if (_mode != Mode::Normal) {
             return;
         }
 
-        const auto& lobbyBackendMgr = ccomp<MLobbyBackend>();
+        const auto& lobbyBackendMgr = CCOMP<MLobbyBackend>();
 
         _lobbyModel.players.resize(hg::pztos(lobbyBackendMgr.getSize()));
         for (hg::PZInteger i = 0; i < lobbyBackendMgr.getSize(); i += 1) {
             const auto& lockedIn = lobbyBackendMgr.getLockedInPlayerInfo(i);
             _lobbyModel.players[hg::pztos(i)].lockedIn = 
                 PlayerInfoModel{
-                lockedIn.name,
+                (!lockedIn.name.empty()) ? lockedIn.name : "<empty>",
                 lockedIn.uniqueId,
                 lockedIn.ipAddress
             };
@@ -223,7 +284,7 @@ public:
                 const auto& pending = lobbyBackendMgr.getPendingPlayerInfo(i);
                 _lobbyModel.players[hg::pztos(i)].pending = 
                     PlayerInfoModel{
-                    pending.name,
+                    (!pending.name.empty()) ? pending.name : "<empty>",
                     pending.uniqueId,
                     pending.ipAddress
                 };
@@ -231,6 +292,10 @@ public:
                 _lobbyModel.players[hg::pztos(i)].showPending = false;
             }
         }
+
+        _lobbyModel.localName = lobbyBackendMgr.getLocalName();
+        _lobbyModel.isAuthorized = CCOMP<spe::AuthorizationManagerInterface>().getLocalAuthToken().has_value();
+
         _dataModelHandle.DirtyAllVariables();
     }
 
@@ -244,9 +309,19 @@ private:
     Rml::DataModelHandle _dataModelHandle;
 
     void _onLockInClicked(Rml::DataModelHandle, Rml::Event&, const Rml::VariantList&) {
-        if (auto authToken = ccomp<spe::AuthorizationManagerInterface>().getLocalAuthToken()) {
-            Compose_LockInLobby(
-                ccomp<MNetworking>().getNode(),
+        if (auto authToken = CCOMP<spe::AuthorizationManagerInterface>().getLocalAuthToken()) {
+            Compose_LobbyFrontendManager_LockInLobby(
+                CCOMP<MNetworking>().getNode(),
+                RN_COMPOSE_FOR_ALL,
+                *authToken
+            );
+        }        
+    }
+
+    void _onResetClicked(Rml::DataModelHandle, Rml::Event&, const Rml::VariantList&) {
+        if (auto authToken = CCOMP<spe::AuthorizationManagerInterface>().getLocalAuthToken()) {
+            Compose_LobbyFrontendManager_ResetLobby(
+                CCOMP<MNetworking>().getNode(),
                 RN_COMPOSE_FOR_ALL,
                 *authToken
             );
@@ -254,9 +329,9 @@ private:
     }
 
     void _onMoveUpClicked(Rml::DataModelHandle, Rml::Event&, const Rml::VariantList& aArguments) {
-        if (auto authToken = ccomp<spe::AuthorizationManagerInterface>().getLocalAuthToken()) {
-            Compose_MoveUp(
-                ccomp<MNetworking>().getNode(),
+        if (auto authToken = CCOMP<spe::AuthorizationManagerInterface>().getLocalAuthToken()) {
+            Compose_LobbyFrontendManager_MoveUp(
+                CCOMP<MNetworking>().getNode(),
                 RN_COMPOSE_FOR_ALL,
                 *authToken,
                 aArguments.at(0).Get<int>(-1)
@@ -265,9 +340,9 @@ private:
     }
 
     void _onMoveDownClicked(Rml::DataModelHandle, Rml::Event&, const Rml::VariantList& aArguments) {
-        if (auto authToken = ccomp<spe::AuthorizationManagerInterface>().getLocalAuthToken()) {
-            Compose_MoveDown(
-                ccomp<MNetworking>().getNode(),
+        if (auto authToken = CCOMP<spe::AuthorizationManagerInterface>().getLocalAuthToken()) {
+            Compose_LobbyFrontendManager_MoveDown(
+                CCOMP<MNetworking>().getNode(),
                 RN_COMPOSE_FOR_ALL,
                 *authToken,
                 aArguments.at(0).Get<int>(-1)
@@ -276,7 +351,7 @@ private:
     }
 
     void _onKickClicked(Rml::DataModelHandle, Rml::Event&, const Rml::VariantList& aArguments) {
-        if (auto authToken = ccomp<spe::AuthorizationManagerInterface>().getLocalAuthToken()) {
+        if (auto authToken = CCOMP<spe::AuthorizationManagerInterface>().getLocalAuthToken()) {
 
         }  
     }
@@ -315,9 +390,17 @@ private:
         }
 
         constructor.Bind("players", &_lobbyModel.players);
+        constructor.Bind("localName", &_lobbyModel.localName);
+        constructor.Bind("isAuthorized", &_lobbyModel.isAuthorized);
+
         constructor.BindEventCallback(
             "LockIn",
             &Impl::_onLockInClicked,
+            this
+        );
+        constructor.BindEventCallback(
+            "Reset",
+            &Impl::_onResetClicked,
             this
         );
         constructor.BindEventCallback(
@@ -339,8 +422,8 @@ private:
         return constructor.GetModelHandle();
     }
 
-#undef ccomp
-#undef ctx
+#undef CCOMP
+#undef CTX
 };
 
 ///////////////////////////////////////////////////////////////////////////
@@ -355,8 +438,8 @@ LobbyFrontendManager::LobbyFrontendManager(QAO_RuntimeRef aRuntimeRef, int aExec
 
 LobbyFrontendManager::~LobbyFrontendManager() = default;
 
-void LobbyFrontendManager::setToNormalMode() {
-    _impl->setToNormalMode();
+void LobbyFrontendManager::setToNormalMode(const std::string& aName, const std::string& aUniqueId) {
+    _impl->setToNormalMode(aName, aUniqueId);
 }
 
 void LobbyFrontendManager::setToHeadlessMode() {
@@ -365,6 +448,10 @@ void LobbyFrontendManager::setToHeadlessMode() {
 
 LobbyFrontendManager::Mode LobbyFrontendManager::getMode() const {
     return _impl->getMode();
+}
+
+void LobbyFrontendManager::_eventPreUpdate() {
+    _impl->eventPreUpdate();
 }
 
 void LobbyFrontendManager:: _eventDrawGUI() {

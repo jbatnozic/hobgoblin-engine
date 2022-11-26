@@ -551,7 +551,7 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
     context->attachAndOwnComponent(std::move(svmMgr));
 
     // Create and attach a lobby manager
-    auto lobbyMgr = std::make_unique<spe::DefaultLobbyManager>(context->getQAORuntime().nonOwning(),
+    auto lobbyMgr = std::make_unique<spe::DefaultLobbyBackendManager>(context->getQAORuntime().nonOwning(),
                                                                PRIORITY_LOBBYMGR);
 
     if (aGameMode == GameMode::Server) {
