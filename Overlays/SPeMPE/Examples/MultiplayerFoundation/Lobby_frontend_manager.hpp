@@ -23,6 +23,7 @@ private:
     std::unique_ptr<Impl> _impl;
 
     void _eventPreUpdate() override;
+    void _eventUpdate() override;
     void _eventDrawGUI() override;
 
     friend void ActivateCommand(LobbyFrontendManager& aMgr, int aCommand, void* aArgs);

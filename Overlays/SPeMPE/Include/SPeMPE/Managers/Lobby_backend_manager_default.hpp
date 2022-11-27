@@ -116,6 +116,9 @@ private:
     void _eventPreUpdate() override;
     void _eventFinalizeFrame() override;
 
+    void _eventPreUpdate_Host();
+    void _eventPreUpdate_Client();
+
     hg::PZInteger _getSize() const;
     bool _hasEntryForClient(const hobgoblin::RN_ConnectorInterface& aClient, int aClientIndex) const;
     hg::PZInteger _findOptimalPositionForClient(const hobgoblin::RN_ConnectorInterface& aClient) const;

@@ -552,87 +552,17 @@ std::string DefaultLobbyBackendManager::getEntireStateString() const {
 // PRIVATE METHODS                                                       //
 ///////////////////////////////////////////////////////////////////////////
 
-// TODO: break up into smaller functions
 void DefaultLobbyBackendManager::_eventPreUpdate() {
-    auto& netMgr = ccomp<NetworkingManagerInterface>();
-    if (netMgr.isServer()) {
-        // ***** SERVER ***** //
+    switch (_mode) {
+        case Mode::Host:
+            _eventPreUpdate_Host();
+            break;
 
-        auto& server = netMgr.getServer();
+        case Mode::Client:
+            _eventPreUpdate_Client();
+            break;
 
-        _removeDesiredEntriesForDisconnectedPlayers();
-
-        // Check if all connected clients are represented in _desired. If not, add them.
-        for (hg::PZInteger i = 0; i < server.getSize(); i += 1) {
-            const auto& client = server.getClientConnector(i);
-
-            if (IsConnected(client) && !_hasEntryForClient(client, i)) {
-                const auto pos = _findOptimalPositionForClient(client);
-
-                _desired[hg::pztos(pos)].name        = "";
-                _desired[hg::pztos(pos)].uniqueId    = "";
-                _desired[hg::pztos(pos)].ipAddress   = client.getRemoteInfo().ipAddress.toString();
-                _desired[hg::pztos(pos)].port        = client.getRemoteInfo().port;
-                _desired[hg::pztos(pos)].clientIndex = i;
-
-                _updateVarmapForDesiredEntry(pos);
-
-                _enqueueLobbyChanged();
-                HG_LOG_INFO(LOG_ID, "Inserted new player into slot {}", pos);
-            }
-        }
-    } else {
-        // ***** CLIENT ***** //
-
-        const auto& varmap = ccomp<SyncedVarmapManagerInterface>();
-
-        // Check that size is correct and adjust if needed
-        const auto& size = varmap.getInt64(MakeVarmapKey_LobbySize());
-        if (size && *size != _getSize()) {
-            resize(hg::stopz(*size));
-        }
-
-        // Load names & other info
-        for (hg::PZInteger i = 0; i < _getSize(); i += 1) {
-            // Locked in:
-            {
-                const auto n = varmap.getString(MakeVarmapKey_LockedIn_Name(i));
-                _lockedIn[i].name = n ? *n : "";
-            }
-            {
-                const auto a = varmap.getString(MakeVarmapKey_LockedIn_IpAddr(i));
-                _lockedIn[i].ipAddress = a ? *a : "";
-            }
-            {
-                const auto u = varmap.getString(MakeVarmapKey_LockedIn_UniqueId(i));
-                _lockedIn[i].uniqueId = u ? *u : "";
-            }
-            {
-                for (hg::PZInteger j = 0; j < CUSTOM_DATA_LEN; j += 1) {
-                    const auto c = varmap.getString(MakeVarmapKey_LockedIn_CData(i, j));
-                    _lockedIn[i].customData[j] = c ? *c : "";
-                }
-            }
-            // Desired:
-            {
-                const auto n = varmap.getString(MakeVarmapKey_Desired_Name(i));
-                _desired[i].name = n ? *n : "";
-            }
-            {
-                const auto a = varmap.getString(MakeVarmapKey_Desired_IpAddr(i));
-                _desired[i].ipAddress = a ? *a : "";
-            }
-            {
-                const auto u = varmap.getString(MakeVarmapKey_Desired_UniqueId(i));
-                _desired[i].uniqueId = u ? *u : "";
-            }
-            {
-                for (hg::PZInteger j = 0; j < CUSTOM_DATA_LEN; j += 1) {
-                    const auto c = varmap.getString(MakeVarmapKey_Desired_CData(i, j));
-                    _desired[i].customData[j] = c ? *c : "";
-                }
-            }
-        }
+        default: {}
     }
 }
 
@@ -640,6 +570,92 @@ void DefaultLobbyBackendManager::_eventFinalizeFrame() {
     if (!_eventQueue.empty()) {
         HG_LOG_WARN(LOG_ID, "Clearing events that weren't polled.");
         _eventQueue.clear();
+    }
+}
+
+void DefaultLobbyBackendManager::_eventPreUpdate_Host() {
+    auto& netMgr = ccomp<NetworkingManagerInterface>();
+    auto& server = netMgr.getServer();
+
+    _removeDesiredEntriesForDisconnectedPlayers();
+
+    // Check if all connected clients are represented in _desired. If not, add them.
+    for (hg::PZInteger i = 0; i < server.getSize(); i += 1) {
+        const auto& client = server.getClientConnector(i);
+
+        if (IsConnected(client) && !_hasEntryForClient(client, i)) {
+            const auto pos = _findOptimalPositionForClient(client);
+
+            _desired[hg::pztos(pos)].name        = "";
+            _desired[hg::pztos(pos)].uniqueId    = "";
+            _desired[hg::pztos(pos)].ipAddress   = client.getRemoteInfo().ipAddress.toString();
+            _desired[hg::pztos(pos)].port        = client.getRemoteInfo().port;
+            _desired[hg::pztos(pos)].clientIndex = i;
+
+            _updateVarmapForDesiredEntry(pos);
+
+            _enqueueLobbyChanged();
+            HG_LOG_INFO(LOG_ID, "Inserted new player into slot {}", pos);
+        }
+    }
+}
+
+void DefaultLobbyBackendManager::_eventPreUpdate_Client() {
+    const auto& varmap = ccomp<SyncedVarmapManagerInterface>();
+
+    // Check that size is correct and adjust if needed
+    const auto& size = varmap.getInt64(MakeVarmapKey_LobbySize());
+    if (size && *size != _getSize()) {
+        resize(hg::stopz(*size));
+    }
+
+    // Load names & other info
+    bool lobbyDidChange = false;
+
+    #define LOAD_VALUE(_slot_, _field_, _key_) \
+        do { \
+            auto newval_ = varmap.getString(_key_); \
+            if (newval_.has_value() && (_slot_._field_) != *newval_) { \
+                (_slot_._field_) = std::move(*newval_); \
+                lobbyDidChange = true; \
+            } \
+        } while (false)
+
+    #define LOAD_VALUE_NO_CHANGE_DETECTION(_slot_, _field_, _key_) \
+        do { \
+            auto newval_ = varmap.getString(_key_); \
+            if (newval_.has_value() && (_slot_._field_) != *newval_) { \
+                (_slot_._field_) = std::move(*newval_); \
+            } \
+        } while (false)
+
+    for (hg::PZInteger i = 0; i < _getSize(); i += 1) {
+        // Locked in slots:
+        LOAD_VALUE(_lockedIn[i], name,      MakeVarmapKey_LockedIn_Name(i));
+        LOAD_VALUE(_lockedIn[i], ipAddress, MakeVarmapKey_LockedIn_IpAddr(i));
+        LOAD_VALUE(_lockedIn[i], uniqueId,  MakeVarmapKey_LockedIn_UniqueId(i));
+
+        LOAD_VALUE_NO_CHANGE_DETECTION(_lockedIn[i], customData[0], MakeVarmapKey_LockedIn_CData(i, 0));
+        LOAD_VALUE_NO_CHANGE_DETECTION(_lockedIn[i], customData[1], MakeVarmapKey_LockedIn_CData(i, 1));
+        LOAD_VALUE_NO_CHANGE_DETECTION(_lockedIn[i], customData[2], MakeVarmapKey_LockedIn_CData(i, 2));
+        LOAD_VALUE_NO_CHANGE_DETECTION(_lockedIn[i], customData[3], MakeVarmapKey_LockedIn_CData(i, 3));
+
+        // Desired slots:
+        LOAD_VALUE(_desired[i], name,      MakeVarmapKey_Desired_Name(i));
+        LOAD_VALUE(_desired[i], ipAddress, MakeVarmapKey_Desired_IpAddr(i));
+        LOAD_VALUE(_desired[i], uniqueId,  MakeVarmapKey_Desired_UniqueId(i));
+
+        LOAD_VALUE_NO_CHANGE_DETECTION(_desired[i], customData[0], MakeVarmapKey_Desired_CData(i, 0));
+        LOAD_VALUE_NO_CHANGE_DETECTION(_desired[i], customData[1], MakeVarmapKey_Desired_CData(i, 1));
+        LOAD_VALUE_NO_CHANGE_DETECTION(_desired[i], customData[2], MakeVarmapKey_Desired_CData(i, 2));
+        LOAD_VALUE_NO_CHANGE_DETECTION(_desired[i], customData[3], MakeVarmapKey_Desired_CData(i, 3));
+    }
+
+    #undef LOAD_VALUE_NO_CHANGE_DETECTION
+    #undef LOAD_VALUE
+
+    if (lobbyDidChange) {
+        _enqueueLobbyChanged();
     }
 }
 

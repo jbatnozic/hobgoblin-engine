@@ -213,12 +213,12 @@ public:
         }
     }
 
-    void setToHeadlessMode() {
+    void setToHeadlessHostMode() {
         SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(CTX(), headless==true);
         _mode = Mode::HeadlessHost;
     }
 
-    void setToNormalMode(const std::string& aName, const std::string& aUniqueId) {
+    void setToClientMode(const std::string& aName, const std::string& aUniqueId) {
         SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(CTX(), headless==false);
         _mode = Mode::Client;
 
@@ -236,6 +236,7 @@ public:
         _document = guiContext.LoadDocument("assets/lobby.rml");
         if (_document) {
             _document->Show();
+            _documentVisible = true;
             HG_LOG_INFO(LOG_ID, "RMLUI Document loaded successfully.");
         }
         else {
@@ -252,13 +253,38 @@ public:
         spe::LobbyBackendEvent ev;
         while (lobbyBackendMgr.pollEvent(ev)) {
             ev.strictVisit(
-                [](spe::LobbyBackendEvent::LobbyLockedIn& aEvData) {
+                [this](spe::LobbyBackendEvent::LobbyLockedIn& aEvData) {
                     HG_LOG_INFO(LOG_ID, "(event) Lobby locked in.");
+                    if (_mode == Mode::Client && aEvData.somethingDidChange) {
+                        _document->Show();
+                        _documentVisible = true;
+                    }
                 },
-                [](spe::LobbyBackendEvent::LobbyChanged& aEvData) {
+                [this](spe::LobbyBackendEvent::LobbyChanged&) {
                     HG_LOG_INFO(LOG_ID, "(event) Lobby changed.");
+                    if (_mode == Mode::Client) {
+                        _document->Show();
+                        _documentVisible = true;
+                    }
                 }
             );
+        }
+    }
+
+    void eventUpdate() {
+        if (_mode != Mode::Client) {
+            return;
+        }
+
+        auto& winMgr = CCOMP<MWindow>();
+        if (winMgr.getKeyboardInput().checkPressed(spe::KbKey::L, spe::KbInput::Mode::Edge)) {
+            _documentVisible = !_documentVisible;
+            if (_documentVisible) {
+                _document->Show();
+            }
+            else {
+                _document->Hide();
+            }
         }
     }
 
@@ -307,6 +333,8 @@ private:
     Rml::ElementDocument* _document = nullptr;
     LobbyModel _lobbyModel;
     Rml::DataModelHandle _dataModelHandle;
+
+    bool _documentVisible = false;
 
     void _onLockInClicked(Rml::DataModelHandle, Rml::Event&, const Rml::VariantList&) {
         if (auto authToken = CCOMP<spe::AuthorizationManagerInterface>().getLocalAuthToken()) {
@@ -439,11 +467,11 @@ LobbyFrontendManager::LobbyFrontendManager(QAO_RuntimeRef aRuntimeRef, int aExec
 LobbyFrontendManager::~LobbyFrontendManager() = default;
 
 void LobbyFrontendManager::setToHeadlessHostMode() {
-    _impl->setToHeadlessMode();
+    _impl->setToHeadlessHostMode();
 }
 
 void LobbyFrontendManager::setToClientMode(const std::string& aName, const std::string& aUniqueId) {
-    _impl->setToNormalMode(aName, aUniqueId);
+    _impl->setToClientMode(aName, aUniqueId);
 }
 
 LobbyFrontendManager::Mode LobbyFrontendManager::getMode() const {
@@ -452,6 +480,10 @@ LobbyFrontendManager::Mode LobbyFrontendManager::getMode() const {
 
 void LobbyFrontendManager::_eventPreUpdate() {
     _impl->eventPreUpdate();
+}
+
+void LobbyFrontendManager::_eventUpdate() {
+    _impl->eventUpdate();
 }
 
 void LobbyFrontendManager:: _eventDrawGUI() {
