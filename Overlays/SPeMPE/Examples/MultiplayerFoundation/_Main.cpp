@@ -251,7 +251,7 @@ int main(int argc, char* argv[]) {
     if (gameModeStr == "server") {
         gameMode = GameMode::Server;
         localPort = std::stoi(argv[2]);
-        playerCount = std::stoi(argv[3]);
+        playerCount = std::stoi(argv[3]) + 1;
     }
     else if (gameModeStr == "client") {
         gameMode = GameMode::Client;
