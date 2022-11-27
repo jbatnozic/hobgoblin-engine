@@ -13,8 +13,8 @@ public:
     LobbyFrontendManager(QAO_RuntimeRef aRuntimeRef, int aExecutionPriority);
     ~LobbyFrontendManager() override;
 
-    void setToNormalMode() override;
-    void setToHeadlessMode() override;
+    void setToHeadlessHostMode() override;
+    void setToClientMode(const std::string& aName, const std::string& aUniqueId) override;
     Mode getMode() const override;
 
 private:
@@ -22,6 +22,7 @@ private:
     friend Impl;
     std::unique_ptr<Impl> _impl;
 
+    void _eventPreUpdate() override;
     void _eventDrawGUI() override;
 
     friend void ActivateCommand(LobbyFrontendManager& aMgr, int aCommand, void* aArgs);

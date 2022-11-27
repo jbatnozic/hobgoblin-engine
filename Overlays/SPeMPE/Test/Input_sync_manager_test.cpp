@@ -148,9 +148,9 @@ TEST_F(InputSyncManagerTest, HappyPathTest_NoStateBuffering) {
     const InputSyncManagerWrapper wrap1{*_insMgr1}; // Host
     const InputSyncManagerWrapper wrap2{*_insMgr2}; // Client
 
-    EXPECT_EQ(wrap1.getSignalValue<SignalType>(0, SIGNAL_NAME), SIGNAL_INIT);
-    EXPECT_EQ(wrap1.countSimpleEvent(0, EVENT_NAME), 0);
-    EXPECT_EQ(_countEventWP(wrap1, 0, EVENTWP_NAME), 0);
+    EXPECT_EQ(wrap1.getSignalValue<SignalType>(CLIENT_INDEX_LOCAL, SIGNAL_NAME), SIGNAL_INIT);
+    EXPECT_EQ(wrap1.countSimpleEvent(CLIENT_INDEX_LOCAL, EVENT_NAME), 0);
+    EXPECT_EQ(_countEventWP(wrap1, CLIENT_INDEX_LOCAL, EVENTWP_NAME), 0);
 
     wrap2.setSignalValue<SignalType>(SIGNAL_NAME, 420);
     wrap2.triggerEvent(EVENT_NAME);
@@ -160,10 +160,10 @@ TEST_F(InputSyncManagerTest, HappyPathTest_NoStateBuffering) {
     _ctx1->runFor(1); // Inputs received
 
     // There is no state buffering, so we expect the new inputs immediately
-    EXPECT_EQ(wrap1.getSignalValue<SignalType>(1, SIGNAL_NAME), 420);
-    EXPECT_EQ(wrap1.countSimpleEvent(1, EVENT_NAME), 1);
+    EXPECT_EQ(wrap1.getSignalValue<SignalType>(0, SIGNAL_NAME), 420);
+    EXPECT_EQ(wrap1.countSimpleEvent(0, EVENT_NAME), 1);
     EventWPType payload = 0;
-    EXPECT_EQ(wrap1.pollEventWithPayload<EventWPType>(1, EVENTWP_NAME,
+    EXPECT_EQ(wrap1.pollEventWithPayload<EventWPType>(0, EVENTWP_NAME,
                                                       [&](const EventWPType& aPayload) {
                                                           payload = aPayload;
                                                       }), 1);
@@ -172,8 +172,8 @@ TEST_F(InputSyncManagerTest, HappyPathTest_NoStateBuffering) {
     _ctx1->runFor(1);
 
     // After one more cycle, the signals should remain the same but the events chould be cleared
-    EXPECT_EQ(wrap1.getSignalValue<SignalType>(1, SIGNAL_NAME), 420);
-    EXPECT_EQ(wrap1.countSimpleEvent(1, EVENT_NAME), 0);
+    EXPECT_EQ(wrap1.getSignalValue<SignalType>(0, SIGNAL_NAME), 420);
+    EXPECT_EQ(wrap1.countSimpleEvent(0, EVENT_NAME), 0);
 }
 
 TEST_F(InputSyncManagerTest, HappyPathTest_StateBuffering_1) {
@@ -198,12 +198,12 @@ TEST_F(InputSyncManagerTest, HappyPathTest_StateBuffering_1) {
     _ctx1->runFor(1);
 
     // After 1 more cycle, the received inputs become current
-    EXPECT_EQ(wrap1.getSignalValue<SignalType>(1, SIGNAL_NAME), 420);
-    EXPECT_EQ(wrap1.countSimpleEvent(1, EVENT_NAME), 1);
+    EXPECT_EQ(wrap1.getSignalValue<SignalType>(0, SIGNAL_NAME), 420);
+    EXPECT_EQ(wrap1.countSimpleEvent(0, EVENT_NAME), 1);
 
     _ctx1->runFor(1);
 
     // After yet another cycle, the signals should remain the same but the events chould be cleared
-    EXPECT_EQ(wrap1.getSignalValue<SignalType>(1, SIGNAL_NAME), 420);
-    EXPECT_EQ(wrap1.countSimpleEvent(1, EVENT_NAME), 0);
+    EXPECT_EQ(wrap1.getSignalValue<SignalType>(0, SIGNAL_NAME), 420);
+    EXPECT_EQ(wrap1.countSimpleEvent(0, EVENT_NAME), 0);
 }

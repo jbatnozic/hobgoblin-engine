@@ -21,7 +21,7 @@ namespace hg = hobgoblin;
 using namespace hg::rn;
 
 namespace {
-constexpr auto LOG_ID = "jbatnozic::spempe::DefaultLobbyManager";
+constexpr auto LOG_ID = "jbatnozic::spempe::DefaultLobbyBackendManager";
 
 constexpr auto CUSTOM_DATA_LEN = hg::stopz(std::tuple_size_v<decltype(PlayerInfo::customData)>);
 
@@ -30,46 +30,46 @@ bool IsConnected(const RN_ConnectorInterface& client) {
 }
 
 const std::string& MakeVarmapKey_LobbySize() {
-    static std::string KEY = "jbatnozic::spempe::DefaultLobbyManager_LOBBYSIZE";
+    static std::string KEY = "jbatnozic::spempe::DefaultLobbyBackendManager_LOBBYSIZE";
     return KEY;
 }
 
 std::string MakeVarmapKey_LockedIn_Name(hg::PZInteger aSlotIndex) {
-    return fmt::format("jbatnozic::spempe::DefaultLobbyManager_LI_NAME_{}", aSlotIndex);
+    return fmt::format("jbatnozic::spempe::DefaultLobbyBackendManager_LI_NAME_{}", aSlotIndex);
 }
 
 std::string MakeVarmapKey_LockedIn_UniqueId(hg::PZInteger aSlotIndex) {
-    return fmt::format("jbatnozic::spempe::DefaultLobbyManager_LI_UUID_{}", aSlotIndex);
+    return fmt::format("jbatnozic::spempe::DefaultLobbyBackendManager_LI_UUID_{}", aSlotIndex);
 }
 
 std::string MakeVarmapKey_LockedIn_IpAddr(hg::PZInteger aSlotIndex) {
-    return fmt::format("jbatnozic::spempe::DefaultLobbyManager_LI_IPADDR_{}", aSlotIndex);
+    return fmt::format("jbatnozic::spempe::DefaultLobbyBackendManager_LI_IPADDR_{}", aSlotIndex);
 }
 
 std::string MakeVarmapKey_LockedIn_CData(hg::PZInteger aSlotIndex, hg::PZInteger aCDataIndex) {
-    return fmt::format("jbatnozic::spempe::DefaultLobbyManager_LI_CDAT{}_{}", aCDataIndex, aSlotIndex);
+    return fmt::format("jbatnozic::spempe::DefaultLobbyBackendManager_LI_CDAT{}_{}", aCDataIndex, aSlotIndex);
 }
 
 std::string MakeVarmapKey_Desired_Name(hg::PZInteger aSlotIndex) {
-    return fmt::format("jbatnozic::spempe::DefaultLobbyManager_DE_NAME_{}", aSlotIndex);
+    return fmt::format("jbatnozic::spempe::DefaultLobbyBackendManager_DE_NAME_{}", aSlotIndex);
 }
 
 std::string MakeVarmapKey_Desired_UniqueId(hg::PZInteger aSlotIndex) {
-    return fmt::format("jbatnozic::spempe::DefaultLobbyManager_DE_UUID_{}", aSlotIndex);
+    return fmt::format("jbatnozic::spempe::DefaultLobbyBackendManager_DE_UUID_{}", aSlotIndex);
 }
 
 std::string MakeVarmapKey_Desired_IpAddr(hg::PZInteger aSlotIndex) {
-    return fmt::format("jbatnozic::spempe::DefaultLobbyManager_DE_IPADDR_{}", aSlotIndex);
+    return fmt::format("jbatnozic::spempe::DefaultLobbyBackendManager_DE_IPADDR_{}", aSlotIndex);
 }
 
 std::string MakeVarmapKey_Desired_CData(hg::PZInteger aSlotIndex, hg::PZInteger aCDataIndex) {
-    return fmt::format("jbatnozic::spempe::DefaultLobbyManager_DE_CDAT{}_{}", aCDataIndex, aSlotIndex);
+    return fmt::format("jbatnozic::spempe::DefaultLobbyBackendManager_DE_CDAT{}_{}", aCDataIndex, aSlotIndex);
 }
 
 } // namespace
 
-void USPEMPE_DefaultLobbyManager_SetPlayerInfo_Impl(
-    DefaultLobbyManager& aLobbyMgr,
+void USPEMPE_DefaultLobbyBackendManager_SetPlayerInfo_Impl(
+    DefaultLobbyBackendManager& aLobbyMgr,
     const int aClientIndex,
     const std::string& aName,
     const std::string& aUniqueId,
@@ -98,7 +98,7 @@ void USPEMPE_DefaultLobbyManager_SetPlayerInfo_Impl(
     }
     else {
         HG_LOG_WARN(LOG_ID, 
-                    "USPEMPE_DefaultLobbyManager_SetPlayerInfo_Impl - "
+                    "USPEMPE_DefaultLobbyBackendManager_SetPlayerInfo_Impl - "
                     "Could not find client with corresponding idx {} amongst locked in clients.",
                     aClientIndex);
     }
@@ -121,13 +121,13 @@ void USPEMPE_DefaultLobbyManager_SetPlayerInfo_Impl(
     }
     else {
         HG_LOG_WARN(LOG_ID, 
-                    "USPEMPE_DefaultLobbyManager_SetPlayerInfo_Impl - "
+                    "USPEMPE_DefaultLobbyBackendManager_SetPlayerInfo_Impl - "
                     "Could not find client with corresponding idx {} amongst pending clients.",
                     aClientIndex);
     }
 }
 
-RN_DEFINE_RPC(USPEMPE_DefaultLobbyManager_SetPlayerInfo,
+RN_DEFINE_RPC(USPEMPE_DefaultLobbyBackendManager_SetPlayerInfo,
               RN_ARGS(std::string&, aName, 
                       std::string&, aUniqueId,
                       std::string&, aCustomData_0,
@@ -137,8 +137,10 @@ RN_DEFINE_RPC(USPEMPE_DefaultLobbyManager_SetPlayerInfo,
     RN_NODE_IN_HANDLER().callIfServer(
         [&](RN_ServerInterface& aServer) {
             const auto rc = SPEMPE_GET_RPC_RECEIVER_CONTEXT(aServer);
-            USPEMPE_DefaultLobbyManager_SetPlayerInfo_Impl(
-                dynamic_cast<DefaultLobbyManager&>(rc.gameContext.getComponent<LobbyBackendManagerInterface>()),
+            USPEMPE_DefaultLobbyBackendManager_SetPlayerInfo_Impl(
+                dynamic_cast<DefaultLobbyBackendManager&>(
+                    rc.gameContext.getComponent<LobbyBackendManagerInterface>()
+                ),
                 rc.senderIndex,
                 aName,
                 aUniqueId,
@@ -154,15 +156,18 @@ RN_DEFINE_RPC(USPEMPE_DefaultLobbyManager_SetPlayerInfo,
         });
 }
 
-void USPEMPE_DefaultLobbyManager_SetPlayerIndex_Impl(
-    DefaultLobbyManager& aLobbyMgr,
+void USPEMPE_DefaultLobbyBackendManager_SetPlayerIndex_Impl(
+    DefaultLobbyBackendManager& aLobbyMgr,
     hobgoblin::PZInteger aPlayerIndex
 ) {
     auto& self = aLobbyMgr;
-    self._localPlayerIndex = aPlayerIndex;
+    if (self._localPlayerIndex != aPlayerIndex) {
+        self._localPlayerIndex = aPlayerIndex;
+        HG_LOG_INFO(LOG_ID, "Local player index set to {}.", aPlayerIndex);
+    }
 }
 
-RN_DEFINE_RPC(USPEMPE_DefaultLobbyManager_SetPlayerIndex,
+RN_DEFINE_RPC(USPEMPE_DefaultLobbyBackendManager_SetPlayerIndex,
               RN_ARGS(hg::PZInteger, aPlayerIndex)) {
     RN_NODE_IN_HANDLER().callIfServer(
         [](RN_ServerInterface&) {
@@ -171,40 +176,40 @@ RN_DEFINE_RPC(USPEMPE_DefaultLobbyManager_SetPlayerIndex,
     RN_NODE_IN_HANDLER().callIfClient(
         [=](RN_ClientInterface& aClient) {
             const auto rc = SPEMPE_GET_RPC_RECEIVER_CONTEXT(aClient);
-            USPEMPE_DefaultLobbyManager_SetPlayerIndex_Impl(
-                dynamic_cast<DefaultLobbyManager&>(rc.gameContext.getComponent<LobbyBackendManagerInterface>()),
+            USPEMPE_DefaultLobbyBackendManager_SetPlayerIndex_Impl(
+                dynamic_cast<DefaultLobbyBackendManager&>(rc.gameContext.getComponent<LobbyBackendManagerInterface>()),
                 aPlayerIndex
             );
         });
 }
 
-bool operator==(const DefaultLobbyManager::ExtendedPlayerInfo& aLhs,
-                const DefaultLobbyManager::ExtendedPlayerInfo& aRhs) {
+bool operator==(const DefaultLobbyBackendManager::ExtendedPlayerInfo& aLhs,
+                const DefaultLobbyBackendManager::ExtendedPlayerInfo& aRhs) {
     return (static_cast<const PlayerInfo&>(aLhs) == static_cast<const PlayerInfo&>(aRhs) &&
             aLhs.clientIndex == aRhs.clientIndex &&
             aLhs.port == aRhs.port);
 }
 
-bool operator!=(const DefaultLobbyManager::ExtendedPlayerInfo& aLhs,
-                const DefaultLobbyManager::ExtendedPlayerInfo& aRhs) {
+bool operator!=(const DefaultLobbyBackendManager::ExtendedPlayerInfo& aLhs,
+                const DefaultLobbyBackendManager::ExtendedPlayerInfo& aRhs) {
     return !(aLhs == aRhs);
 }
 
 
-bool DefaultLobbyManager::ExtendedPlayerInfo::isSameAs(const hg::RN_ConnectorInterface& aClient) const {
+bool DefaultLobbyBackendManager::ExtendedPlayerInfo::isSameAs(const hg::RN_ConnectorInterface& aClient) const {
     const auto ip_ = aClient.getRemoteInfo().ipAddress.toString();
     const auto port_ = aClient.getRemoteInfo().port;
     return (ip_ == ipAddress && port_ == port);
 }
 
-DefaultLobbyManager::DefaultLobbyManager(hg::QAO_RuntimeRef aRuntimeRef, int aExecutionPriority)
-    : NonstateObject(aRuntimeRef, SPEMPE_TYPEID_SELF, aExecutionPriority, "::jbatnozic::spempe::DefaultLobbyManager")
+DefaultLobbyBackendManager::DefaultLobbyBackendManager(hg::QAO_RuntimeRef aRuntimeRef, int aExecutionPriority)
+    : NonstateObject(aRuntimeRef, SPEMPE_TYPEID_SELF, aExecutionPriority, "::jbatnozic::spempe::DefaultLobbyBackendManager")
 {    
 }
 
-DefaultLobbyManager::~DefaultLobbyManager() = default;
+DefaultLobbyBackendManager::~DefaultLobbyBackendManager() = default;
 
-void DefaultLobbyManager::setToHostMode(hobgoblin::PZInteger aLobbySize) {
+void DefaultLobbyBackendManager::setToHostMode(hobgoblin::PZInteger aLobbySize) {
     SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(ctx(), privileged==true, networking==true);
 
     _mode = Mode::Host;
@@ -232,14 +237,14 @@ void DefaultLobbyManager::setToHostMode(hobgoblin::PZInteger aLobbySize) {
     _updateVarmapForDesiredEntry(0);
 }
 
-void DefaultLobbyManager::setToClientMode(hobgoblin::PZInteger aLobbySize) {
+void DefaultLobbyBackendManager::setToClientMode(hobgoblin::PZInteger aLobbySize) {
     SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(ctx(), privileged==false, networking==true);
 
     _mode = Mode::Client;
     resize(aLobbySize);
 }
 
-DefaultLobbyManager::Mode DefaultLobbyManager::getMode() const {
+DefaultLobbyBackendManager::Mode DefaultLobbyBackendManager::getMode() const {
     return _mode;
 }
 
@@ -247,9 +252,9 @@ DefaultLobbyManager::Mode DefaultLobbyManager::getMode() const {
 // HOST-MODE METHODS                                                     //
 ///////////////////////////////////////////////////////////////////////////
 
-int DefaultLobbyManager::clientIdxToPlayerIdx(int aClientIdx) const {
+int DefaultLobbyBackendManager::clientIdxToPlayerIdx(int aClientIdx) const {
     if (_mode != Mode::Host) {
-        throw hg::TracedLogicError("DefaultLobbyManager::clientIdxToPlayerIdx can only "
+        throw hg::TracedLogicError("DefaultLobbyBackendManager::clientIdxToPlayerIdx can only "
                                    "be called while in Host mode!");
     }
 
@@ -261,31 +266,31 @@ int DefaultLobbyManager::clientIdxToPlayerIdx(int aClientIdx) const {
     return PLAYER_INDEX_UNKNOWN;
 }
 
-int DefaultLobbyManager::playerIdxToClientIdx(hg::PZInteger aPlayerIdx) const {
+int DefaultLobbyBackendManager::playerIdxToClientIdx(hg::PZInteger aPlayerIdx) const {
     if (_mode != Mode::Host) {
-        throw hg::TracedLogicError("DefaultLobbyManager::playerIdxToClientIdx can only "
+        throw hg::TracedLogicError("DefaultLobbyBackendManager::playerIdxToClientIdx can only "
                                    "be called while in Host mode!");
     }
 
     return _lockedIn.at(hg::pztos(aPlayerIdx)).clientIndex;
 }
 
-int DefaultLobbyManager::clientIdxOfPlayerInPendingSlot(hobgoblin::PZInteger aSlotIndex) const {
+int DefaultLobbyBackendManager::clientIdxOfPlayerInPendingSlot(hobgoblin::PZInteger aSlotIndex) const {
     if (_mode != Mode::Host) {
-        throw hg::TracedLogicError("DefaultLobbyManager::clientIdxOfPlayerInPendingSlot "
+        throw hg::TracedLogicError("DefaultLobbyBackendManager::clientIdxOfPlayerInPendingSlot "
                                    "can only be called while in Host mode!");
     }
 
     return _desired.at(hg::pztos(aSlotIndex)).clientIndex;
 }
 
-void DefaultLobbyManager::beginSwap(hobgoblin::PZInteger aSlotIndex1, hobgoblin::PZInteger aSlotIndex2) {
+void DefaultLobbyBackendManager::beginSwap(hobgoblin::PZInteger aSlotIndex1, hobgoblin::PZInteger aSlotIndex2) {
     if (_mode != Mode::Host) {
-        throw hg::TracedLogicError("DefaultLobbyManager::beginSwap can only "
+        throw hg::TracedLogicError("DefaultLobbyBackendManager::beginSwap can only "
                                    "be called while in Host mode!");
     }
     if (aSlotIndex1 >= _getSize() || aSlotIndex2 >= _getSize()) {
-        throw hg::TracedLogicError("DefaultLobbyManager::beginSwap - passed indices out of bounds!");
+        throw hg::TracedLogicError("DefaultLobbyBackendManager::beginSwap - passed indices out of bounds!");
     }
     if (aSlotIndex1 == aSlotIndex2) {
         return;
@@ -295,15 +300,18 @@ void DefaultLobbyManager::beginSwap(hobgoblin::PZInteger aSlotIndex1, hobgoblin:
 
     _updateVarmapForDesiredEntry(aSlotIndex1);
     _updateVarmapForDesiredEntry(aSlotIndex2);
+
+    _enqueueLobbyChanged();
 }
 
-bool DefaultLobbyManager::lockInPendingChanges() {
+bool DefaultLobbyBackendManager::lockInPendingChanges() {
     if (_mode != Mode::Host) {
-        throw hg::TracedLogicError("DefaultLobbyManager::lockInPendingChanges can only "
+        throw hg::TracedLogicError("DefaultLobbyBackendManager::lockInPendingChanges can only "
                                    "be called while in Host mode!");
     }
 
     if (_lockedIn == _desired) {
+        _enqueueLobbyLockedIn(false);
         HG_LOG_INFO(LOG_ID, "Slots locked in (no change).");
         return false; // Nothing to change
     }
@@ -318,7 +326,7 @@ bool DefaultLobbyManager::lockInPendingChanges() {
 
         auto& netMgr = ccomp<NetworkingManagerInterface>();
         if (clientIndex >= 0) {
-            Compose_USPEMPE_DefaultLobbyManager_SetPlayerIndex(
+            Compose_USPEMPE_DefaultLobbyBackendManager_SetPlayerIndex(
                 netMgr.getNode(),
                 _lockedIn[slotIndex].clientIndex,
                 slotIndex
@@ -328,30 +336,48 @@ bool DefaultLobbyManager::lockInPendingChanges() {
         }
     }
 
+    _enqueueLobbyChanged();
+    _enqueueLobbyLockedIn(true);
+    
     HG_LOG_INFO(LOG_ID, "Slots locked in.");
     return true;
 }
 
-bool DefaultLobbyManager::resetPendingChanges() {
+bool DefaultLobbyBackendManager::resetPendingChanges() {
     if (_mode != Mode::Host) {
-        throw hg::TracedLogicError("DefaultLobbyManager::resetPendingChanges can only "
+        throw hg::TracedLogicError("DefaultLobbyBackendManager::resetPendingChanges can only "
                                    "be called while in Host mode!");
     }
-    return true; // TODO
+
+    HG_LOG_WARN(LOG_ID, "Skipping lobby reset because it is not yet implemented.");
+
+    //bool somethingDidChange = false;
+    //for (hg::PZInteger i = 0; i < _getSize(); i += 1) {
+    //    if (areChangesPending(i)) {
+    //        somethingDidChange = true;
+    //        _desired[hg::pztos(i)] = _lockedIn[hg::pztos(i)];
+    //    }
+    //}
+    //if (somethingDidChange) {
+    //    _eventPreUpdate(); // TODO
+    //}
+    //return somethingDidChange;
+
+    return false;
 }
 
 ///////////////////////////////////////////////////////////////////////////
 // CLIENT-MODE METHODS                                                   //
 ///////////////////////////////////////////////////////////////////////////
 
-void DefaultLobbyManager::uploadLocalInfo() const {
+void DefaultLobbyBackendManager::uploadLocalInfo() const {
     if (_mode != Mode::Client) {
-        throw hg::TracedLogicError("DefaultLobbyManager::uploadLocalInfo can only "
+        throw hg::TracedLogicError("DefaultLobbyBackendManager::uploadLocalInfo can only "
                                    "be called while in Client mode!");
     }
 
     auto& netMgr = ccomp<NetworkingManagerInterface>();
-    Compose_USPEMPE_DefaultLobbyManager_SetPlayerInfo(
+    Compose_USPEMPE_DefaultLobbyBackendManager_SetPlayerInfo(
         netMgr.getNode(),
         RN_COMPOSE_FOR_ALL,
         _localPlayerInfo.name,
@@ -367,7 +393,7 @@ void DefaultLobbyManager::uploadLocalInfo() const {
 // MODE-INDEPENDENT METHODS                                              //
 ///////////////////////////////////////////////////////////////////////////
 
-void DefaultLobbyManager::setLocalName(const std::string& aName) {
+void DefaultLobbyBackendManager::setLocalName(const std::string& aName) {
     _localPlayerInfo.name = aName;
 
     if (_mode == Mode::Host) {
@@ -391,11 +417,11 @@ void DefaultLobbyManager::setLocalName(const std::string& aName) {
     }
 }
 
-const std::string& DefaultLobbyManager::getLocalName() const {
+const std::string& DefaultLobbyBackendManager::getLocalName() const {
     return _localPlayerInfo.name;
 }
 
-void DefaultLobbyManager::setLocalUniqueId(const std::string& aUniqueId) {
+void DefaultLobbyBackendManager::setLocalUniqueId(const std::string& aUniqueId) {
     _localPlayerInfo.uniqueId = aUniqueId;
 
     if (_mode == Mode::Host) {
@@ -419,11 +445,11 @@ void DefaultLobbyManager::setLocalUniqueId(const std::string& aUniqueId) {
     }
 }
 
-const std::string& DefaultLobbyManager::getLocalUniqueId() const {
+const std::string& DefaultLobbyBackendManager::getLocalUniqueId() const {
     return _localPlayerInfo.uniqueId;
 }
 
-void DefaultLobbyManager::setLocalCustomData(hobgoblin::PZInteger aIndex,
+void DefaultLobbyBackendManager::setLocalCustomData(hobgoblin::PZInteger aIndex,
                                              const std::string& aCustomData) {
     _localPlayerInfo.customData.at(hg::pztos(aIndex)) = aCustomData;
 
@@ -448,17 +474,26 @@ void DefaultLobbyManager::setLocalCustomData(hobgoblin::PZInteger aIndex,
     }
 }
 
-const std::string& DefaultLobbyManager::getLocalCustomData(hobgoblin::PZInteger aIndex) const {
+const std::string& DefaultLobbyBackendManager::getLocalCustomData(hobgoblin::PZInteger aIndex) const {
     return _localPlayerInfo.customData.at(hg::pztos(aIndex));
 }
 
-hg::PZInteger DefaultLobbyManager::getSize() const {
+bool DefaultLobbyBackendManager::pollEvent(LobbyBackendEvent& aEvent) {
+    if (_eventQueue.empty()) {
+        return false;
+    }
+    aEvent = std::move(_eventQueue.front());
+    _eventQueue.pop_front();
+    return true;
+}
+
+hg::PZInteger DefaultLobbyBackendManager::getSize() const {
     return _getSize();
 }
 
-void DefaultLobbyManager::resize(hobgoblin::PZInteger aNewLobbySize) {
+void DefaultLobbyBackendManager::resize(hobgoblin::PZInteger aNewLobbySize) {
     if (aNewLobbySize < 1) {
-        throw hg::TracedLogicError("DefaultLobbyManager::resize - aNewLobbySize must be at least 1!");
+        throw hg::TracedLogicError("DefaultLobbyBackendManager::resize - aNewLobbySize must be at least 1!");
     }
 
     _lockedIn.resize(hg::pztos(aNewLobbySize));
@@ -472,19 +507,19 @@ void DefaultLobbyManager::resize(hobgoblin::PZInteger aNewLobbySize) {
     }
 }
 
-const PlayerInfo& DefaultLobbyManager::getLockedInPlayerInfo(hobgoblin::PZInteger aSlotIndex) const {
+const PlayerInfo& DefaultLobbyBackendManager::getLockedInPlayerInfo(hobgoblin::PZInteger aSlotIndex) const {
     return _lockedIn.at(hg::pztos(aSlotIndex));
 }
 
-const PlayerInfo& DefaultLobbyManager::getPendingPlayerInfo(hobgoblin::PZInteger aSlotIndex) const {
+const PlayerInfo& DefaultLobbyBackendManager::getPendingPlayerInfo(hobgoblin::PZInteger aSlotIndex) const {
     return _desired.at(hg::pztos(aSlotIndex));
 }
 
-bool  DefaultLobbyManager::areChangesPending(hobgoblin::PZInteger aSlotIndex) const {
+bool  DefaultLobbyBackendManager::areChangesPending(hobgoblin::PZInteger aSlotIndex) const {
     return (_lockedIn.at(hg::pztos(aSlotIndex)) != _desired[hg::pztos(aSlotIndex)]);
 }
 
-bool  DefaultLobbyManager::areChangesPending() const {
+bool  DefaultLobbyBackendManager::areChangesPending() const {
     for (hg::PZInteger i = 0; i < _getSize(); i += 1) {
         if (areChangesPending(i)) {
             return true;
@@ -493,11 +528,11 @@ bool  DefaultLobbyManager::areChangesPending() const {
     return false;
 }
 
-int DefaultLobbyManager::getLocalPlayerIndex() const {
+int DefaultLobbyBackendManager::getLocalPlayerIndex() const {
     return _localPlayerIndex;
 }
 
-std::string DefaultLobbyManager::getEntireStateString() const {
+std::string DefaultLobbyBackendManager::getEntireStateString() const {
     std::stringstream ss;
     for (std::size_t i = 0; i < _lockedIn.size(); i += 1) {
         ss << "SLOT " << i << ":\n";
@@ -518,7 +553,7 @@ std::string DefaultLobbyManager::getEntireStateString() const {
 ///////////////////////////////////////////////////////////////////////////
 
 // TODO: break up into smaller functions
-void DefaultLobbyManager::_eventPreUpdate() {
+void DefaultLobbyBackendManager::_eventPreUpdate() {
     auto& netMgr = ccomp<NetworkingManagerInterface>();
     if (netMgr.isServer()) {
         // ***** SERVER ***** //
@@ -542,6 +577,7 @@ void DefaultLobbyManager::_eventPreUpdate() {
 
                 _updateVarmapForDesiredEntry(pos);
 
+                _enqueueLobbyChanged();
                 HG_LOG_INFO(LOG_ID, "Inserted new player into slot {}", pos);
             }
         }
@@ -553,7 +589,7 @@ void DefaultLobbyManager::_eventPreUpdate() {
         // Check that size is correct and adjust if needed
         const auto& size = varmap.getInt64(MakeVarmapKey_LobbySize());
         if (size && *size != _getSize()) {
-            resize(*size);
+            resize(hg::stopz(*size));
         }
 
         // Load names & other info
@@ -600,12 +636,19 @@ void DefaultLobbyManager::_eventPreUpdate() {
     }
 }
 
-hg::PZInteger DefaultLobbyManager::_getSize() const {
+void DefaultLobbyBackendManager::_eventFinalizeFrame() {
+    if (!_eventQueue.empty()) {
+        HG_LOG_WARN(LOG_ID, "Clearing events that weren't polled.");
+        _eventQueue.clear();
+    }
+}
+
+hg::PZInteger DefaultLobbyBackendManager::_getSize() const {
     assert(_lockedIn.size() == _desired.size());
     return hg::stopz(_lockedIn.size());
 }
 
-bool DefaultLobbyManager::_hasEntryForClient(const RN_ConnectorInterface& aClient, int aClientIndex) const {
+bool DefaultLobbyBackendManager::_hasEntryForClient(const RN_ConnectorInterface& aClient, int aClientIndex) const {
     for (const auto& entry : _desired) {
         if (entry.isSameAs(aClient) && entry.clientIndex == aClientIndex) {
             return true;
@@ -614,7 +657,7 @@ bool DefaultLobbyManager::_hasEntryForClient(const RN_ConnectorInterface& aClien
     return false;
 }
 
-hg::PZInteger DefaultLobbyManager::_findOptimalPositionForClient(const RN_ConnectorInterface& aClient) const {
+hg::PZInteger DefaultLobbyBackendManager::_findOptimalPositionForClient(const RN_ConnectorInterface& aClient) const {
     struct {
         int pos = -1;
         int score = -1;
@@ -645,7 +688,7 @@ hg::PZInteger DefaultLobbyManager::_findOptimalPositionForClient(const RN_Connec
     return currentBest.pos;
 }
 
-void DefaultLobbyManager::_removeDesiredEntriesForDisconnectedPlayers() {
+void DefaultLobbyBackendManager::_removeDesiredEntriesForDisconnectedPlayers() {
     const auto& server = ccomp<NetworkingManagerInterface>().getServer();
 
     for (std::size_t i = 0; i < hg::pztos(_getSize()); i += 1) {
@@ -666,11 +709,12 @@ void DefaultLobbyManager::_removeDesiredEntriesForDisconnectedPlayers() {
             player.clientIndex = CLIENT_INDEX_UNKNOWN;
 
             _updateVarmapForDesiredEntry(i);
+            // TODO ev: lobby changed
         }
     }
 }
 
-void  DefaultLobbyManager::_updateVarmapForLockedInEntry(hobgoblin::PZInteger aSlotIndex) const {
+void DefaultLobbyBackendManager::_updateVarmapForLockedInEntry(hobgoblin::PZInteger aSlotIndex) const {
     const auto& entry = _lockedIn[hg::pztos(aSlotIndex)];
     auto& varmap = ccomp<SyncedVarmapManagerInterface>();
 
@@ -683,7 +727,7 @@ void  DefaultLobbyManager::_updateVarmapForLockedInEntry(hobgoblin::PZInteger aS
     }
 }
 
-void  DefaultLobbyManager::_updateVarmapForDesiredEntry(hobgoblin::PZInteger aSlotIndex) const {
+void DefaultLobbyBackendManager::_updateVarmapForDesiredEntry(hobgoblin::PZInteger aSlotIndex) const {
     const auto& entry = _desired[hg::pztos(aSlotIndex)];
     auto& varmap = ccomp<SyncedVarmapManagerInterface>();
 
@@ -694,6 +738,18 @@ void  DefaultLobbyManager::_updateVarmapForDesiredEntry(hobgoblin::PZInteger aSl
     for (hg::PZInteger i = 0; i < CUSTOM_DATA_LEN; i += 1) {
         varmap.setString(MakeVarmapKey_Desired_CData(aSlotIndex, i), entry.customData[i]);
     }
+}
+
+void DefaultLobbyBackendManager::_enqueueLobbyLockedIn(bool aSomethingDidChange) {
+    LobbyBackendEvent ev;
+    ev.eventVariant = LobbyBackendEvent::LobbyLockedIn{aSomethingDidChange};
+    _eventQueue.push_back(ev);
+}
+
+void DefaultLobbyBackendManager::_enqueueLobbyChanged() {
+    LobbyBackendEvent ev;
+    ev.eventVariant = LobbyBackendEvent::LobbyChanged{};
+    _eventQueue.push_back(ev);
 }
 
 } // namespace spempe

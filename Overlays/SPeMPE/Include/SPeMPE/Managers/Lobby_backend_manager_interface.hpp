@@ -2,16 +2,20 @@
 #define SPEMPE_MANAGERS_LOBBY_BACKEND_MANAGER_INTERFACE_HPP
 
 #include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/Utility/Visitor.hpp>
 
 #include <array>
+#include <optional>
 #include <string>
+#include <utility>
+#include <variant>
 
 #include <SPeMPE/GameContext/Context_components.hpp>
 
 namespace jbatnozic {
 namespace spempe {
 
-//! TODO
+//! Information about an individual player in the lobby.
 struct PlayerInfo {
     //! Name of the player (set by the player themselves).
     std::string name;
@@ -40,12 +44,16 @@ struct PlayerInfo {
     //! name and unique ID).
     bool isComplete() const;
 
+    //! Returns true if all members are equal (including the custom data).
     friend bool operator==(const PlayerInfo& aLhs, const PlayerInfo& aRhs);
+
+    //! Opposite of operator==.
     friend bool operator!=(const PlayerInfo& aLhs, const PlayerInfo& aRhs);
 };
 
+struct LobbyBackendEvent; // Forward-declare
 
-//! TODO
+//! Represents a non-existing or undefined player.
 constexpr int PLAYER_INDEX_UNKNOWN = -1;
 
 class LobbyBackendManagerInterface : public ContextComponent {
@@ -124,6 +132,9 @@ public:
 
     virtual const std::string& getLocalCustomData(hobgoblin::PZInteger aIndex) const = 0;
 
+    //! Returns true if a new event was written to 'aEvent' and false if the event queue was empty.
+    virtual bool pollEvent(LobbyBackendEvent& aEvent) = 0;
+
     //! Returns the size of the lobby.
     virtual hobgoblin::PZInteger getSize() const = 0;
 
@@ -151,8 +162,69 @@ public:
     virtual std::string getEntireStateString() const = 0;
 
 private:
-    SPEMPE_CTXCOMP_TAG("jbatnozic::spempe::LobbyManager");
+    SPEMPE_CTXCOMP_TAG("jbatnozic::spempe::LobbyBackendManager");
 };
+
+///////////////////////////////////////////////////////////////////////////
+// LOBBY BACKEND EVENT                                                   //
+///////////////////////////////////////////////////////////////////////////
+
+struct LobbyBackendEvent {
+    struct LobbyLockedIn {
+        bool somethingDidChange;
+    };
+
+    struct LobbyChanged {};
+
+    using EventVariant = std::variant<
+        LobbyChanged,
+        LobbyLockedIn
+    >;
+
+    LobbyBackendEvent() = default;
+
+    template <class taArgs>
+    LobbyBackendEvent(taArgs&& aArgs)
+        : eventVariant{std::forward<taArgs>(aArgs)}
+    {
+    }
+
+    std::optional<EventVariant> eventVariant;
+
+    template <class ...taCallables>
+    void visit(taCallables&&... callables) {
+        std::visit(
+            hobgoblin::util::MakeVisitor([](const auto&) {}, std::forward<taCallables>(callables)...),
+            eventVariant.value()
+        );
+    }
+
+    template <class ...taCallables>
+    void visit(taCallables&&... callables) const {
+        std::visit(
+            hobgoblin::util::MakeVisitor([](const auto&) {}, std::forward<taCallables>(callables)...),
+            eventVariant.value()
+        );
+    }
+
+    //! Unlike visit, a call to strictVisit will not compile unless a
+    //! matching callable is provided for each event type.
+    template <class ...taCallables>
+    void strictVisit(taCallables&&... callables) {
+        std::visit(hobgoblin::util::MakeVisitor(std::forward<taCallables>(callables)...), eventVariant.value());
+    }
+
+    //! Unlike visit, a call to strictVisit will not compile unless a
+    //! matching callable is provided for each event type.
+    template <class ...taCallables>
+    void strictVisit(taCallables&&... callables) const {
+        std::visit(hobgoblin::util::MakeVisitor(std::forward<taCallables>(callables)...), eventVariant.value());
+    }
+};
+
+///////////////////////////////////////////////////////////////////////////
+//INLINE IMPLEMENTATIONS                                                 //
+///////////////////////////////////////////////////////////////////////////
 
 inline
 bool PlayerInfo::isEmpty() const {

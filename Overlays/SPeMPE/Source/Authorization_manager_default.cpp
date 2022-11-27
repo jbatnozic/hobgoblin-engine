@@ -144,6 +144,8 @@ void DefaultAuthorizationManager::_eventPreUpdate() {
 
     if (_hasCurrentlyAuthorizedPlayer()) {
         if (players.find(_currentAuthorizedPlayer) == players.end()) {
+            _currentAuthorizedPlayer.clientIndex = CLIENT_INDEX_UNKNOWN;
+
             // Authorized player disconnected; authorize another one if able
             for (const auto& player : players) {
                 // We never want to authorize the local player (they always
@@ -155,14 +157,13 @@ void DefaultAuthorizationManager::_eventPreUpdate() {
                         ccomp<NetworkingManagerInterface>(),
                         ccomp<SyncedVarmapManagerInterface>()
                     );
+                    break;
                 }
-                break;
             }
         }
     }
     else {
         if (!players.empty()) {
-            _localAuthToken = GenerateRandomString(AUTH_TOKEN_LENGTH);
             for (const auto& player : players) {
                 // We never want to authorize the local player (they always
                 // have full privileges to do anything they want)

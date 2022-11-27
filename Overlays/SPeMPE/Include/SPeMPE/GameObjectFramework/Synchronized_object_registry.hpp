@@ -81,6 +81,9 @@ public:
     void registerDummyObject(SynchronizedObjectBase* object, SyncId masterSyncId);
     void unregisterObject(SynchronizedObjectBase* object);
 
+    void destroyAllRegisteredObjects();
+
+    //! Can return nullptr if there is no matching object.
     SynchronizedObjectBase* getMapping(SyncId syncId) const;
 
     void syncObjectCreate(const SynchronizedObjectBase* object);
@@ -100,11 +103,13 @@ public:
     //! Argument must be an even number!
     void setPacemakerPulsePeriod(hg::PZInteger aPeriod);
 
-    // Helpers/accessors:
+    ///////////////////////////////////////////////////////////////////////////
+    // HELPERS & ACCESSORS                                                   //
+    ///////////////////////////////////////////////////////////////////////////
 
     void deactivateObject(SyncId aObjectId, hg::PZInteger aDelayInSteps);
 
-    bool isObjectDeactivatedForClient(SyncId aObjectId, hg::PZInteger aForClient);
+    bool isObjectDeactivatedForClient(SyncId aObjectId, hg::PZInteger aForClient) const;
 
     void setObjectDeactivatedFlagForClient(SyncId aObjectId, hg::PZInteger aForClient, bool aFlag);
 

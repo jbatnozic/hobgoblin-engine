@@ -18,7 +18,7 @@ class DefaultInputSyncManager
 public:
     DefaultInputSyncManager(hg::QAO_RuntimeRef aRuntimeRef, int aExecutionPriority);
 
-    void setToHostMode(hg::PZInteger aPlayerCount, hg::PZInteger aStateBufferingLength) override;
+    void setToHostMode(hg::PZInteger aClientCount, hg::PZInteger aStateBufferingLength) override;
     void setToClientMode() override;
 
     void setStateBufferingLength(hg::PZInteger aNewStateBufferingLength) override;
@@ -46,18 +46,22 @@ public:
     void setSignalValue(std::string aSignalName,
                         const std::function<void(hg::util::Packet&)>& f) override;
 
-    void setSignalValue(hg::PZInteger aForPlayer, 
+    void triggerEvent(std::string aEventName) override;
+    
+    void triggerEventWithPayload(std::string aEventName,
+                                 const std::function<void(hg::util::Packet&)>& f) override;
+    
+    ///////////////////////////////////////////////////////////////////////////
+    // SETTING INPUT VALUES (SERVER-SIDE)                                    //
+    ///////////////////////////////////////////////////////////////////////////
+
+    void setSignalValue(int aForClient, 
                         std::string aSignalName,
                         const std::function<void(hg::util::Packet&)>& f) override;
 
-    void triggerEvent(std::string aEventName) override;
+    void triggerEvent(int aForClient, std::string aEventName) override;
 
-    void triggerEvent(hg::PZInteger aForPlayer, std::string aEventName) override;
-
-    void triggerEventWithPayload(std::string aEventName,
-                                 const std::function<void(hg::util::Packet&)>& f) override;
-
-    void triggerEventWithPayload(hg::PZInteger aForPlayer, 
+    void triggerEventWithPayload(int aForClient, 
                                  std::string aEventName,
                                  const std::function<void(hg::util::Packet&)>& f) override;
 
@@ -65,15 +69,15 @@ public:
     // GETTING INPUT VALUES (SERVER-SIDE)                                    //
     ///////////////////////////////////////////////////////////////////////////
 
-    void getSignalValue(hg::PZInteger aForPlayer,
+    void getSignalValue(int aForClient,
                         std::string aSignalName,
                         hg::util::Packet& aPacket) const override;
 
-    void pollSimpleEvent(hg::PZInteger aForPlayer,
+    void pollSimpleEvent(int aForClient,
                          std::string aEventName,
                          const std::function<void()>& aHandler) const override;
 
-    void pollEventWithPayload(hg::PZInteger aForPlayer,
+    void pollEventWithPayload(int aForClient,
                               std::string aEventName,
                               const std::function<void(hg::util::Packet&)>& aPayloadHandler) const override;
 
@@ -126,10 +130,10 @@ private:
     void _eventUpdate() override;
     void _eventPostUpdate() override;
 
-    friend void USPEMPE_InputSyncManagerOne_PutNewState(DefaultInputSyncManager&,
-                                                        hg::PZInteger,
-                                                        const hg::util::Packet&,
-                                                        hg::PZInteger);
+    friend void USPEMPE_DefaultInputSyncManager_PutNewState(DefaultInputSyncManager&,
+                                                            int,
+                                                            const hg::util::Packet&,
+                                                            hg::PZInteger);
 };
 
 } // namespace spempe

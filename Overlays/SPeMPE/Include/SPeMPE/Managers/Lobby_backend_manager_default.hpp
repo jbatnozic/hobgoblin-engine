@@ -6,6 +6,7 @@
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/RigelNet.hpp>
 
+#include <deque>
 #include <unordered_map>
 #include <vector>
 
@@ -18,14 +19,14 @@ namespace spempe {
 /**
  * Needs: Networking manager, Synced varmap manager, [opt] Window manager
  */
-class DefaultLobbyManager
+class DefaultLobbyBackendManager
     : public LobbyBackendManagerInterface
     , public NonstateObject
 {
 public:
-    DefaultLobbyManager(hg::QAO_RuntimeRef aRuntimeRef, int aExecutionPriority);
+    DefaultLobbyBackendManager(hg::QAO_RuntimeRef aRuntimeRef, int aExecutionPriority);
 
-    ~DefaultLobbyManager() override;
+    ~DefaultLobbyBackendManager() override;
 
     void setToHostMode(hobgoblin::PZInteger aLobbySize) override;
 
@@ -72,8 +73,10 @@ public:
 
     const std::string& getLocalCustomData(hobgoblin::PZInteger aIndex) const override;
 
-    hobgoblin::PZInteger getSize() const override;
+    bool pollEvent(LobbyBackendEvent& aEvent) override;
 
+    hobgoblin::PZInteger getSize() const override;
+    
     void resize(hobgoblin::PZInteger aNewLobbySize) override;
 
     const PlayerInfo& getLockedInPlayerInfo(hobgoblin::PZInteger aSlotIndex) const override;
@@ -108,7 +111,10 @@ private:
     PlayerInfo _localPlayerInfo;
     int _localPlayerIndex = PLAYER_INDEX_UNKNOWN;
 
+    std::deque<LobbyBackendEvent> _eventQueue;
+
     void _eventPreUpdate() override;
+    void _eventFinalizeFrame() override;
 
     hg::PZInteger _getSize() const;
     bool _hasEntryForClient(const hobgoblin::RN_ConnectorInterface& aClient, int aClientIndex) const;
@@ -117,8 +123,11 @@ private:
     void _updateVarmapForLockedInEntry(hobgoblin::PZInteger aSlotIndex) const;
     void _updateVarmapForDesiredEntry(hobgoblin::PZInteger aSlotIndex) const;
 
-    friend void USPEMPE_DefaultLobbyManager_SetPlayerInfo_Impl(
-        DefaultLobbyManager& aLobbyMgr,
+    void _enqueueLobbyLockedIn(bool aSomethingDidChange);
+    void _enqueueLobbyChanged();
+
+    friend void USPEMPE_DefaultLobbyBackendManager_SetPlayerInfo_Impl(
+        DefaultLobbyBackendManager& aLobbyMgr,
         const int aClientIndex,
         const std::string& aName,
         const std::string& aUniqueId,
@@ -128,8 +137,8 @@ private:
         const std::string& aCustomData_3
     );
 
-    friend void USPEMPE_DefaultLobbyManager_SetPlayerIndex_Impl(
-        DefaultLobbyManager& aLobbyMgr,
+    friend void USPEMPE_DefaultLobbyBackendManager_SetPlayerIndex_Impl(
+        DefaultLobbyBackendManager& aLobbyMgr,
         hobgoblin::PZInteger aPlayerIndex
     );
 };

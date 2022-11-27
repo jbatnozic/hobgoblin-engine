@@ -33,7 +33,7 @@ handle {
 
 div#title-bar {
     position: absolute;
-    top: -50dp;
+    top: -45dp;
 }
 
 div#title-bar span {
@@ -43,10 +43,11 @@ div#title-bar span {
 	font-size: 22px;
 	font-weight: bold;
 
-    padding-left: 0px;
-	padding-right: 0px;
-	padding-top: 15px;
-	padding-bottom: 15px;
+	box-sizing: border-box;
+    padding-left: 20dp;
+	padding-right: 20dp;
+	padding-top: 15dp;
+	padding-bottom: 15dp;
 
 	font-effect: shadow(2px 2px rgba(2, 2, 2, 0.425));
 	color: white;
@@ -54,7 +55,7 @@ div#title-bar span {
     decorator: image(titlebar);
 }
 
-div#player-table-holder {
+.window-contents {
     padding-left: 20dp;
 	padding-right: 20dp;
 	padding-top: 20dp;
@@ -96,4 +97,8 @@ thead, tbody, tfoot {
 .button:hover {
 	text-align: center;
 	background-color: #70ceeb;
+}
+.button:active {
+	text-align: center;
+	background-color: #354449;
 }

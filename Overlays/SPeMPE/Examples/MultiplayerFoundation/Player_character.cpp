@@ -15,31 +15,45 @@ PlayerCharacter::~PlayerCharacter() {
     }
 }
 
+void PlayerCharacter::init(int aOwningPlayerIndex) {
+    assert(isMasterObject());
+
+    auto& self = _getCurrentState();
+    self.x = 400.f;
+    self.y = 400.f;
+    self.owningPlayerIndex = aOwningPlayerIndex;
+}
+
 void PlayerCharacter::_eventUpdate(spe::IfMaster) {
     if (ctx().getGameState().isPaused) return;
 
     auto& self = _getCurrentState();
     assert(self.owningPlayerIndex >= 0);
+    if (const auto clientIndex = ccomp<MLobbyBackend>().playerIdxToClientIdx(self.owningPlayerIndex);
+        clientIndex != spe::CLIENT_INDEX_UNKNOWN) {
 
-    spe::InputSyncManagerWrapper wrapper{ccomp<MInput>()};
+        spe::InputSyncManagerWrapper wrapper{ccomp<MInput>()};
 
-    const bool left = wrapper.getSignalValue<bool>(self.owningPlayerIndex, "left");
-    const bool right = wrapper.getSignalValue<bool>(self.owningPlayerIndex, "right");
+        const bool left = wrapper.getSignalValue<bool>(clientIndex, "left");
+        const bool right = wrapper.getSignalValue<bool>(clientIndex, "right");
 
-    self.x += (10.f * ((float)right - (float)left));
+        self.x += (10.f * ((float)right - (float)left));
 
-    const bool up = wrapper.getSignalValue<bool>(self.owningPlayerIndex, "up");
-    const bool down = wrapper.getSignalValue<bool>(self.owningPlayerIndex, "down");
+        const bool up = wrapper.getSignalValue<bool>(clientIndex, "up");
+        const bool down = wrapper.getSignalValue<bool>(clientIndex, "down");
 
-    self.y += (10.f * ((float)down - (float)up));
+        self.y += (10.f * ((float)down - (float)up));
 
-    wrapper.pollSimpleEvent(self.owningPlayerIndex, "jump",
-                            [&]() {
-                                self.y -= 16.f;
-                            });
+        wrapper.pollSimpleEvent(clientIndex, "jump",
+                                [&]() {
+            self.y -= 16.f;
+        });
+    }
 }
 
 void PlayerCharacter::_eventDraw1() {
+    if (this->isDeactivated()) return;
+
     #define NUM_COLORS 12
     static const hg::gr::Color COLORS[NUM_COLORS] = {
         hg::gr::Color::Red,
