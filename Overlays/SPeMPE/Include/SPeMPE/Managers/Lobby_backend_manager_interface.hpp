@@ -15,7 +15,7 @@
 namespace jbatnozic {
 namespace spempe {
 
-//! TODO
+//! Information about an individual player in the lobby.
 struct PlayerInfo {
     //! Name of the player (set by the player themselves).
     std::string name;
@@ -44,14 +44,16 @@ struct PlayerInfo {
     //! name and unique ID).
     bool isComplete() const;
 
+    //! Returns true if all members are equal (including the custom data).
     friend bool operator==(const PlayerInfo& aLhs, const PlayerInfo& aRhs);
+
+    //! Opposite of operator==.
     friend bool operator!=(const PlayerInfo& aLhs, const PlayerInfo& aRhs);
 };
 
-// Forward-declared
-struct LobbyBackendEvent;
+struct LobbyBackendEvent; // Forward-declare
 
-//! TODO
+//! Represents a non-existing or undefined player.
 constexpr int PLAYER_INDEX_UNKNOWN = -1;
 
 class LobbyBackendManagerInterface : public ContextComponent {
