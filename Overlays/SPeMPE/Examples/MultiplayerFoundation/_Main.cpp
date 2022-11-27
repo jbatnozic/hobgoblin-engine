@@ -2,6 +2,7 @@
 #include "Engine.h"
 #include "Lobby_frontend_manager.hpp"
 #include "Main_gameplay_manager.hpp"
+#include "Player_character.hpp"
 
 #include <Hobgoblin/Logging.hpp>
 #include <Hobgoblin/Utility/Randomization.hpp>
@@ -57,14 +58,14 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
             spe::WindowManagerInterface::WindowConfig{
                 sf::VideoMode{WINDOW_WIDTH, WINDOW_WIDTH},
                 "SPeMPE Minimal Multiplayer",
-                sf::Style::Default
+                sf::Style::Fullscreen
             },
             spe::WindowManagerInterface::MainRenderTextureConfig{{WINDOW_HEIGHT, WINDOW_HEIGHT}},
             spe::WindowManagerInterface::TimingConfig{
                 FRAMERATE,
                 false,                                           /* Framerate limiter */
                 (aGameMode == GameMode::Server) ? false : true , /* V-Sync */
-                (aGameMode == GameMode::Server) ? true : true    /* Precise timing*/
+                (aGameMode == GameMode::Server) ? true : true    /* Precise timing */
             }
         );
 
@@ -120,7 +121,7 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
                                                                  PRIORITY_INPUTMGR);
 
     if (aGameMode == GameMode::Server) {
-        insMgr->setToHostMode(aPlayerCount, STATE_BUFFERING_LENGTH);
+        insMgr->setToHostMode(aPlayerCount - 1, STATE_BUFFERING_LENGTH);
     }
     else {
         insMgr->setToClientMode();
@@ -171,12 +172,12 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
                                                                    PRIORITY_LOBBYFRONTMGR);
 
     if (aGameMode == GameMode::Server) {
-        lobbyFrontendMgr->setToHeadlessMode();
+        lobbyFrontendMgr->setToHeadlessHostMode();
     }
     else {
         const auto nameInLobby = "player_" + std::to_string(hg::util::GetRandomNumber<int>(10'000, 99'999));
         const auto uniqueId    =     "id_" + std::to_string(hg::util::GetRandomNumber<int>(10'000, 99'999));
-        lobbyFrontendMgr->setToNormalMode(nameInLobby, uniqueId);
+        lobbyFrontendMgr->setToClientMode(nameInLobby, uniqueId);
     }
 
     context->attachAndOwnComponent(std::move(lobbyFrontendMgr));
@@ -198,6 +199,17 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
     auto gpMgr = std::make_unique<MainGameplayManager>(context->getQAORuntime().nonOwning(),
                                                        PRIORITY_GAMEPLAYMGR);
     context->attachAndOwnComponent(std::move(gpMgr));
+
+    // Create player "characters"
+    if (aGameMode == GameMode::Server) {
+        for (hg::PZInteger i = 0; i < aPlayerCount; i += 1) {
+            if (i == 0) continue; // host doesn't need a character
+            auto* p = QAO_PCreate<PlayerCharacter>(context->getQAORuntime(),
+                                                   context->getComponent<MNetworking>().getRegistryId(),
+                                                   spe::SYNC_ID_NEW);
+            p->init(i);
+        }
+    }
 
     return context;
 }

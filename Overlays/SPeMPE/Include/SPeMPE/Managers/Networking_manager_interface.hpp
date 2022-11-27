@@ -85,6 +85,14 @@ public:
     //! N must be at least 2, and also for technical reasons it has to be an even number.
     virtual void setPacemakerPulsePeriod(hg::PZInteger aPeriod) = 0;
 
+    //! Toggles whether all synchronized objects will be synchronized to a new client as soom
+    //! as they are connected. By default this is enabled.
+    virtual void setAutomaticStateSyncForNewConnectionsEnabled(bool aEnabled) = 0;
+
+    //! Syncs all synchronized objects to the specified client. If 'aCleanFirst' is true, first
+    //! all TODO
+    virtual void syncCompleteStateToClient(hg::PZInteger aClientIndex, bool aCleanFirst) = 0;
+
     ///////////////////////////////////////////////////////////////////////////
     // MISC.                                                                 //
     ///////////////////////////////////////////////////////////////////////////

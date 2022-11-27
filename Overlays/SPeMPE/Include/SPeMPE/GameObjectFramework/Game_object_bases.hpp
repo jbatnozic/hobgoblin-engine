@@ -493,9 +493,12 @@ void DefaultSyncCreateHandler(hg::RN_NodeInterface& node,
         [&](hg::RN_ClientInterface& client) {
             auto& ctx     = *client.getUserDataOrThrow<taGameContext>();
             auto& runtime = ctx.getQAORuntime();
-            auto  regId   = ctx.template getComponent<taNetwMgr>().getRegistryId();
+            auto  regId   = ctx.getComponent<NetworkingManagerInterface>().getRegistryId();
+            auto& syncObjReg = *reinterpret_cast<detail::SynchronizedObjectRegistry*>(regId.address);
 
-            hg::QAO_PCreate<taSyncObj>(&runtime, regId, syncId);
+            if (syncObjReg.getMapping(syncId) == nullptr) {
+                hg::QAO_PCreate<taSyncObj>(&runtime, regId, syncId);
+            }
         });
 
     node.callIfServer(

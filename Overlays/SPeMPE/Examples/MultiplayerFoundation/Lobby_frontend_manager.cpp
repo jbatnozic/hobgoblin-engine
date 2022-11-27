@@ -215,12 +215,12 @@ public:
 
     void setToHeadlessMode() {
         SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(CTX(), headless==true);
-        _mode = Mode::Headless;
+        _mode = Mode::HeadlessHost;
     }
 
     void setToNormalMode(const std::string& aName, const std::string& aUniqueId) {
         SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(CTX(), headless==false);
-        _mode = Mode::Normal;
+        _mode = Mode::Client;
 
         {
             auto& lobbyBackendMgr = CCOMP<MLobbyBackend>();
@@ -263,7 +263,7 @@ public:
     }
 
     void eventDrawGUI() {
-        if (_mode != Mode::Normal) {
+        if (_mode != Mode::Client) {
             return;
         }
 
@@ -438,12 +438,12 @@ LobbyFrontendManager::LobbyFrontendManager(QAO_RuntimeRef aRuntimeRef, int aExec
 
 LobbyFrontendManager::~LobbyFrontendManager() = default;
 
-void LobbyFrontendManager::setToNormalMode(const std::string& aName, const std::string& aUniqueId) {
-    _impl->setToNormalMode(aName, aUniqueId);
+void LobbyFrontendManager::setToHeadlessHostMode() {
+    _impl->setToHeadlessMode();
 }
 
-void LobbyFrontendManager::setToHeadlessMode() {
-    _impl->setToHeadlessMode();
+void LobbyFrontendManager::setToClientMode(const std::string& aName, const std::string& aUniqueId) {
+    _impl->setToNormalMode(aName, aUniqueId);
 }
 
 LobbyFrontendManager::Mode LobbyFrontendManager::getMode() const {

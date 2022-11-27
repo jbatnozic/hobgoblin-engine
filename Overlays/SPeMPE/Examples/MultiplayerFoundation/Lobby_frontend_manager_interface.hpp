@@ -10,14 +10,16 @@ class LobbyFrontendManagerInterface
 public:
     enum class Mode {
         Uninitialized,
-        Normal,
-        Headless
+        HeadlessHost,
+        Client,
     };
 
     ~LobbyFrontendManagerInterface() override = default;
 
-    virtual void setToNormalMode(const std::string& aName, const std::string& aUniqueId) = 0;
-    virtual void setToHeadlessMode() = 0;
+    virtual void setToHeadlessHostMode() = 0;
+    //virtual void setToHostMode() = 0;
+    virtual void setToClientMode(const std::string& aName, const std::string& aUniqueId) = 0;
+    
     virtual Mode getMode() const = 0;
 
 private:

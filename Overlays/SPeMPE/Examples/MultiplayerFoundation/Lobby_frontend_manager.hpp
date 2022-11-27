@@ -13,8 +13,8 @@ public:
     LobbyFrontendManager(QAO_RuntimeRef aRuntimeRef, int aExecutionPriority);
     ~LobbyFrontendManager() override;
 
-    void setToNormalMode(const std::string& aName, const std::string& aUniqueId) override;
-    void setToHeadlessMode() override;
+    void setToHeadlessHostMode() override;
+    void setToClientMode(const std::string& aName, const std::string& aUniqueId) override;
     Mode getMode() const override;
 
 private:

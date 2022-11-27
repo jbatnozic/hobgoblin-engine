@@ -1,7 +1,6 @@
 #ifndef SPEMPE_MANAGERS_INPUT_SYNC_MANAGER_INTERFACE_HPP
 #define SPEMPE_MANAGERS_INPUT_SYNC_MANAGER_INTERFACE_HPP
 
-#include <Hobgoblin/RigelNet/Node_interface.hpp>
 #include <Hobgoblin/Utility/Packet.hpp>
 #include <SPeMPE/GameContext/Context_components.hpp>
 #include <SPeMPE/GameObjectFramework/Synchronized_object_registry.hpp>
@@ -22,9 +21,11 @@ PostUpdate:                                          [c] uploads input
 
 class InputSyncManagerInterface : public ContextComponent {
 public:
-    virtual ~InputSyncManagerInterface() = default;
+    ~InputSyncManagerInterface() override = default;
 
-    virtual void setToHostMode(hg::PZInteger aPlayerCount, hg::PZInteger aStateBufferingLength) = 0;
+    //! Initializes the manager as the host for up to 'aClientCount' clients. Note: if 'aClientCount'
+    //! is 0, the manager will be able only to echo the inputs of the local player.
+    virtual void setToHostMode(hg::PZInteger aClientCount, hg::PZInteger aStateBufferingLength) = 0;
 
     virtual void setToClientMode() = 0;
 
@@ -33,6 +34,8 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     // INPUT DEFINITIONS                                                     //
     ///////////////////////////////////////////////////////////////////////////
+    
+    // Note: Use the InputSyncManagerWrapper to manage signal & event definitions
 
     virtual void defineSignal(std::string aSignalName, 
                               const std::type_info& aSignalType,
@@ -50,21 +53,29 @@ public:
     // SETTING INPUT VALUES (CLIENT-SIDE)                                    //
     ///////////////////////////////////////////////////////////////////////////
 
+    // Note: Use the InputSyncManagerWrapper to set signals & events
+
     virtual void setSignalValue(std::string aSignalName,
                                 const std::function<void(hg::util::Packet&)>& f) = 0;
+    
+    virtual void triggerEvent(std::string aEventName) = 0;
+    
+    virtual void triggerEventWithPayload(std::string aEventName,
+                                         const std::function<void(hg::util::Packet&)>& f) = 0;
+    
+    ///////////////////////////////////////////////////////////////////////////
+    // SETTING INPUT VALUES (SERVER-SIDE)                                    //
+    ///////////////////////////////////////////////////////////////////////////
 
-    virtual void setSignalValue(hg::PZInteger aForPlayer,
+    // Note: Use the InputSyncManagerWrapper to set signals & events
+
+    virtual void setSignalValue(int aForClient,
                                 std::string aSignalName,
                                 const std::function<void(hg::util::Packet&)>& f) = 0;
 
-    virtual void triggerEvent(std::string aEventName) = 0;
+    virtual void triggerEvent(int aForClient, std::string aEventName) = 0;
 
-    virtual void triggerEvent(hg::PZInteger aForPlayer, std::string aEventName) = 0;
-
-    virtual void triggerEventWithPayload(std::string aEventName,
-                                         const std::function<void(hg::util::Packet&)>& f) = 0;
-
-    virtual void triggerEventWithPayload(hg::PZInteger aForPlayer, 
+    virtual void triggerEventWithPayload(int aForClient, 
                                          std::string aEventName,
                                          const std::function<void(hg::util::Packet&)>& f) = 0;
 
@@ -72,15 +83,17 @@ public:
     // GETTING INPUT VALUES (SERVER-SIDE)                                    //
     ///////////////////////////////////////////////////////////////////////////
 
-    virtual void getSignalValue(hg::PZInteger aForPlayer,
+    // Note: Use the InputSyncManagerWrapper to get signal & event values
+
+    virtual void getSignalValue(int aForClient,
                                 std::string aSignalName,
                                 hg::util::Packet& aPacket) const = 0;
 
-    virtual void pollSimpleEvent(hg::PZInteger aForPlayer,
+    virtual void pollSimpleEvent(int aForClient,
                                  std::string aEventName,
                                  const std::function<void()>& aHandler) const = 0;
 
-    virtual void pollEventWithPayload(hg::PZInteger aForPlayer,
+    virtual void pollEventWithPayload(int aForClient,
                                       std::string aEventName,
                                       const std::function<void(hg::util::Packet&)>& aPayloadHandler) const = 0;
 
@@ -88,6 +101,11 @@ private:
     SPEMPE_CTXCOMP_TAG("jbatnozic::spempe::InputSyncManager");
 };
 
+//! The bare InputSyncManagerInterface has very unwieldy methods which are difficult to use, so
+//! in any place where you want to define, set or get inputs, you can construct an instance of
+//! 'InputSyncManagerWrapper' instead and use its templated methods which are must more ergonomic.
+//! This wrapper is very lightweight to construct so there isn't much overhead (if any) when using
+//! it, and you don't have to keep the instance around - just construct a new one when needed.
 class InputSyncManagerWrapper {
 public:
     InputSyncManagerWrapper(InputSyncManagerInterface& aMgr)
@@ -95,6 +113,12 @@ public:
     {
     }
 
+    ///////////////////////////////////////////////////////////////////////////
+    // INPUT DEFINITIONS                                                     //
+    ///////////////////////////////////////////////////////////////////////////
+
+    //! Defines a signal of type 'taSignalType', with the name 'aSignalName', and with the initial
+    //! value of 'aInitialValue'.
     template <class taSignalType>
     void defineSignal(std::string aSignalName, const taSignalType& aInitialValue) const {
         _helperPacket.clear();
@@ -103,15 +127,22 @@ public:
         _helperPacket.clear();
     }
 
+    //! Defines a simple event with the name 'aEventName'.
     void defineSimpleEvent(std::string aEventName) const {
         _mgr.defineSimpleEvent(std::move(aEventName));
     }
 
-    template <class taEventType>
+    //! Defines an event with a payload (of type 'taPayloadType') with the name 'aEventName'.
+    template <class taPayloadType>
     void defineEventWithPayload(std::string aEventName) const {
-        _mgr.defineEventWithPayload(std::move(aEventName), typeid(taEventType));
+        _mgr.defineEventWithPayload(std::move(aEventName), typeid(taPayloadType));
     }
 
+    ///////////////////////////////////////////////////////////////////////////
+    // SETTING INPUT VALUES (CLIENT-SIDE)                                    //
+    ///////////////////////////////////////////////////////////////////////////
+
+    //! Sets the signal with the name 'aSignalName' to the value 'aValue'.
     template <class taSignalType>
     void setSignalValue(std::string aSignalName, const taSignalType& aValue) const {
         if (typeid(taSignalType) != _mgr.getSignalType(aSignalName)) {
@@ -123,32 +154,19 @@ public:
                             });
     }
 
-    template <class taSignalType>
-    void setSignalValue(hg::PZInteger aForPlayer, std::string aSignalName, const taSignalType& aValue) const {
-        if (typeid(taSignalType) != _mgr.getSignalType(aSignalName)) {
-            throw hg::TracedLogicError{"InputSyncManagerAdapter - Incorrect type for signal value!"};
-        }
-        _mgr.setSignalValue(aForPlayer,
-                            std::move(aSignalName),
-                            [&](hg::util::Packet& aPacket) {
-                                aPacket << aValue;
-                            });
-    }
-
+    //! Triggers the signal with the name 'aEventName' if 'aPredicate' is true.
     void triggerEvent(std::string aEventName, bool aPredicate = true) const {
         if (aPredicate) {
             _mgr.triggerEvent(std::move(aEventName));
         }
     }
 
-    void triggerEvent(hg::PZInteger aForPlayer, std::string aEventName, bool aPredicate = true) const {
-        if (aPredicate) {
-            _mgr.triggerEvent(aForPlayer, std::move(aEventName));
-        }
-    }
-
+    //! Triggers the signal with the name 'aEventName' if 'aPredicate' is true, and attaches the
+    //! payload (of type 'taPayloadType') 'aPayload'.
     template <class taPayloadType>
-    void triggerEventWithPayload(std::string aEventName, const taPayloadType& aPayload, bool aPredicate = true) const {
+    void triggerEventWithPayload(std::string aEventName,
+                                 const taPayloadType& aPayload,
+                                 bool aPredicate = true) const {
         if (typeid(taPayloadType) != _mgr.getEventPayloadType(aEventName)) {
             throw hg::TracedLogicError{"InputSyncManagerAdapter - Incorrect type for payload!"};
         }
@@ -161,25 +179,78 @@ public:
         }
     }
 
+    ///////////////////////////////////////////////////////////////////////////
+    // SETTING INPUT VALUES (SERVER-SIDE)                                    //
+    ///////////////////////////////////////////////////////////////////////////
+
+    //! Sets the signal with the name 'aSignalName' to the value 'aValue' for client with index
+    //! 'aForClient' (or for the host if spempe::CLIENT_INDEX_LOCAL is provided).
     template <class taSignalType>
-    taSignalType getSignalValue(hg::PZInteger aForPlayer,
+    void setSignalValue(int aForClient, std::string aSignalName, const taSignalType& aValue) const {
+        if (typeid(taSignalType) != _mgr.getSignalType(aSignalName)) {
+            throw hg::TracedLogicError{"InputSyncManagerAdapter - Incorrect type for signal value!"};
+        }
+        _mgr.setSignalValue(aForClient,
+                            std::move(aSignalName),
+                            [&](hg::util::Packet& aPacket) {
+            aPacket << aValue;
+        });
+    }
+
+    //! Triggers the signal with the name 'aEventName' if 'aPredicate' is true, for client with
+    //! index 'aForClient' (or for the host if spempe::CLIENT_INDEX_LOCAL is provided).
+    void triggerEvent(int aForClient, std::string aEventName, bool aPredicate = true) const {
+        if (aPredicate) {
+            _mgr.triggerEvent(aForClient, std::move(aEventName));
+        }
+    }
+
+    //! Triggers the signal with the name 'aEventName' if 'aPredicate' is true, and attaches the
+    //! payload (of type 'taPayloadType') 'aPayload', for client with index 'aForClient'
+    //! (or for the host if spempe::CLIENT_INDEX_LOCAL is provided).
+    template <class taPayloadType>
+    void triggerEventWithPayload(int aForClient,
+                                 std::string aEventName,
+                                 const taPayloadType& aPayload,
+                                 bool aPredicate = true) const {
+        if (typeid(taPayloadType) != _mgr.getEventPayloadType(aEventName)) {
+            throw hg::TracedLogicError{"InputSyncManagerAdapter - Incorrect type for payload!"};
+        }
+
+        if (aPredicate) {
+            _mgr.triggerEventWithPayload(aForClient,
+                                         std::move(aEventName),
+                                         [&](hg::util::Packet& aPacket) {
+                aPacket << aPayload;
+            });
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    // GETTING INPUT VALUES (SERVER-SIDE)                                    //
+    ///////////////////////////////////////////////////////////////////////////
+
+    //! TODO (add description)
+    template <class taSignalType>
+    taSignalType getSignalValue(int aForClient,
                                 std::string aSignalName) const {
         if (typeid(taSignalType) != _mgr.getSignalType(aSignalName)) {
             throw hg::TracedLogicError{"InputSyncManagerAdapter - Incorrect type for signal value!"};
         }
         _helperPacket.clear();
-        _mgr.getSignalValue(aForPlayer, std::move(aSignalName), _helperPacket);
+        _mgr.getSignalValue(aForClient, std::move(aSignalName), _helperPacket);
         taSignalType retval;
         _helperPacket >> retval;
         _helperPacket.clear();
         return retval;
     }
 
-    hg::PZInteger pollSimpleEvent(hg::PZInteger aForPlayer,
+    //! TODO (add description)
+    hg::PZInteger pollSimpleEvent(int aForClient,
                                   std::string aEventName,
                                   const std::function<void()>& aHandler) const {
         hg::PZInteger count = 0;
-        _mgr.pollSimpleEvent(aForPlayer, std::move(aEventName),
+        _mgr.pollSimpleEvent(aForClient, std::move(aEventName),
                              [&]() {
                                  count++;
                                  aHandler();
@@ -187,10 +258,11 @@ public:
         return count;
     }
 
-    hg::PZInteger countSimpleEvent(hg::PZInteger aForPlayer,
+    //! TODO (add description)
+    hg::PZInteger countSimpleEvent(int aForClient,
                           std::string aEventName) const {
         hg::PZInteger count = 0;
-        _mgr.pollSimpleEvent(aForPlayer, 
+        _mgr.pollSimpleEvent(aForClient, 
                              std::move(aEventName), 
                              [&]() {
                                  count++;
@@ -198,8 +270,9 @@ public:
         return count;
     }
 
+    //! TODO (add description)
     template <class taPayloadType>
-    hg::PZInteger pollEventWithPayload(hg::PZInteger aForPlayer,
+    hg::PZInteger pollEventWithPayload(int aForClient,
                                        std::string aEventName,
                                        const std::function<void(const taPayloadType&)>& aHandler) const {
         if (typeid(taPayloadType) != _mgr.getEventPayloadType(aEventName)) {
@@ -207,7 +280,7 @@ public:
         }
 
         hg::PZInteger count = 0;
-        _mgr.pollEventWithPayload(aForPlayer, std::move(aEventName),
+        _mgr.pollEventWithPayload(aForClient, std::move(aEventName),
                                   [&](hg::util::Packet& aPacket) {
                                       count++;
                                       const auto payload = aPacket.extractOrThrow<taPayloadType>();

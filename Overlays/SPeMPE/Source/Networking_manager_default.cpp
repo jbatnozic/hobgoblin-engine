@@ -140,6 +140,14 @@ void DefaultNetworkingManager::setPacemakerPulsePeriod(hg::PZInteger aPeriod) {
     _syncObjReg.setPacemakerPulsePeriod(aPeriod);
 }
 
+void DefaultNetworkingManager::setAutomaticStateSyncForNewConnectionsEnabled(bool aEnabled) {
+    // TODO
+}
+
+void DefaultNetworkingManager::syncCompleteStateToClient(hg::PZInteger aClientIndex, bool aCleanFirst) {
+    // TODO
+}
+
 ///////////////////////////////////////////////////////////////////////////
 // MISC.                                                                 //
 ///////////////////////////////////////////////////////////////////////////
@@ -170,28 +178,28 @@ void DefaultNetworkingManager::_eventPostUpdate() {
 void DefaultNetworkingManager::_handleEvents() {
     using hg::RN_Event;
 
-    RN_Event event;
+    RN_Event ev;
 
-    while (_node->pollEvent(event)) {
-        event.strictVisit(
-            [](const RN_Event::BadPassphrase& ev) {
+    while (_node->pollEvent(ev)) {
+        ev.strictVisit(
+            [](const RN_Event::BadPassphrase&) {
                 HG_LOG_INFO(LOG_ID, "Received event: Bad passphrase.");
             },
-            [](const RN_Event::ConnectAttemptFailed& ev) {
+            [](const RN_Event::ConnectAttemptFailed&) {
                 HG_LOG_INFO(LOG_ID, "Received event: Connection attempt failed ({}).", /*ev.reason*/ "?");
             },
-            [this](const RN_Event::Connected& ev) {
+            [this](const RN_Event::Connected& aEventData) {
                 if (_node->isServer()) {
-                    HG_LOG_INFO(LOG_ID, "Received event: New client ({}) connected.", *ev.clientIndex);
-                    _syncObjReg.syncCompleteState(*ev.clientIndex);
+                    HG_LOG_INFO(LOG_ID, "Received event: New client ({}) connected.", *aEventData.clientIndex);
+                    _syncObjReg.syncCompleteState(*aEventData.clientIndex);
                 }
                 else {
                     HG_LOG_INFO(LOG_ID, "Received event: Connected to server.");
                     _localClientIndex = getClient().getClientIndex();
                 }
             },
-            [this](const RN_Event::Disconnected& ev) {
-                HG_LOG_INFO(LOG_ID, "Received event: Disconnect ({}).", ev.message);
+            [this](const RN_Event::Disconnected& aEventData) {
+                HG_LOG_INFO(LOG_ID, "Received event: Disconnect ({}).", aEventData.message);
                 if (!_node->isServer()) {
                     _localClientIndex = CLIENT_INDEX_UNKNOWN;
                 }
@@ -199,7 +207,7 @@ void DefaultNetworkingManager::_handleEvents() {
         );
 
         for (auto& listener : _eventListeners) {
-            listener->onNetworkingEvent(event);
+            listener->onNetworkingEvent(ev);
         }
     }
 }

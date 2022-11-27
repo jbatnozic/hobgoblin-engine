@@ -62,6 +62,10 @@ public:
 
     void setPacemakerPulsePeriod(hg::PZInteger aPeriod) override;
 
+    void setAutomaticStateSyncForNewConnectionsEnabled(bool aEnabled) override;
+
+    void syncCompleteStateToClient(hg::PZInteger aClientIndex, bool aCleanFirst) override;
+
     ///////////////////////////////////////////////////////////////////////////
     // MISC.                                                                 //
     ///////////////////////////////////////////////////////////////////////////
