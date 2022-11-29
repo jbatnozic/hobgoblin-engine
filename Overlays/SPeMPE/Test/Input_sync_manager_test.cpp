@@ -8,11 +8,12 @@
 
 using namespace jbatnozic::spempe;
 using namespace hg::qao;
+using namespace hg::rn;
 
 class InputSyncManagerTest : public ::testing::Test {
 public:
     void SetUp() {
-        hg::RN_IndexHandlers();
+        RN_IndexHandlers();
     }
 
     void TearDown() override {
@@ -64,12 +65,12 @@ protected:
         _netMgr1 = std::make_unique<DefaultNetworkingManager>(_ctx1->getQAORuntime().nonOwning(),
                                                               PRIORITY_NETMGR,
                                                               aStateBufferingLength);
-        _netMgr1->setToMode(NetworkingManagerInterface::Mode::Server);
+        _netMgr1->setToServerMode(RN_Protocol::UDP, "pass", 2, 512, RN_NetworkingStack::Default);
 
         _netMgr2 = std::make_unique<DefaultNetworkingManager>(_ctx2->getQAORuntime().nonOwning(),
                                                               PRIORITY_NETMGR,
                                                               aStateBufferingLength);
-        _netMgr2->setToMode(NetworkingManagerInterface::Mode::Client);
+        _netMgr2->setToClientMode(RN_Protocol::UDP, "pass", 512, RN_NetworkingStack::Default);
 
         {
             auto& server = _netMgr1->getServer();

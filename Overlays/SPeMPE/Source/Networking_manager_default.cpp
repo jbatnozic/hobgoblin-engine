@@ -18,7 +18,7 @@ DefaultNetworkingManager::DefaultNetworkingManager(hg::QAO_RuntimeRef aRuntimeRe
                                                    hg::PZInteger aStateBufferingLength)
     : NonstateObject{aRuntimeRef, SPEMPE_TYPEID_SELF, aExecutionPriority, "::jbatnozic::spempe::DefaultNetworkingManager"}
     , _node{hg::RN_ServerFactory::createDummyServer()}
-    , _syncObjReg{getNode(), aStateBufferingLength}
+    , _syncObjReg{*_node, aStateBufferingLength}
 {
 }
 
@@ -26,41 +26,47 @@ DefaultNetworkingManager::DefaultNetworkingManager(hg::QAO_RuntimeRef aRuntimeRe
 // CONFIGURATION                                                         //
 ///////////////////////////////////////////////////////////////////////////
 
-void DefaultNetworkingManager::setToMode(Mode aMode) {
-    if (_mode == aMode) {
-        return;
-    }
+void DefaultNetworkingManager::setToServerMode(hg::RN_Protocol aProtocol,
+                                               std::string aPassphrase,
+                                               hg::PZInteger aServerSize,
+                                               hg::PZInteger aMaxPacketSize,
+                                               hg::RN_NetworkingStack aNetworkingStack) {
+    assert(_mode == Mode::Uninitialized);
 
-    _mode = aMode;
+    SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(ctx(), privileged==true, networking==true);
+    _localClientIndex = CLIENT_INDEX_LOCAL;
+    _node = hg::RN_ServerFactory::createServer(
+        aProtocol,
+        std::move(aPassphrase),
+        aServerSize,
+        aMaxPacketSize,
+        aNetworkingStack
+    );
+    _node->setUserData(&ctx());
+    _syncObjReg.setNode(*_node);
 
-    switch (_mode) {
-    case Mode::Uninitialized:
-        _localClientIndex = CLIENT_INDEX_UNKNOWN;
-        _node = hg::RN_ServerFactory::createDummyServer();
-        _node->setUserData(&ctx());
-        _syncObjReg.setNode(*_node);
-        break;
+    _mode = Mode::Server;
+}
 
-    case Mode::Server:
-        SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(ctx(), privileged==true, networking==true);
-        _localClientIndex = CLIENT_INDEX_LOCAL;
-        _node = hg::RN_ServerFactory::createServer(hg::RN_Protocol::UDP, "pass"); // TODO Parametrize !!!!!!!!!!!
-        _node->setUserData(&ctx());
-        _syncObjReg.setNode(*_node);
-        break;
 
-    case Mode::Client:
-        SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(ctx(), privileged==false, networking==true);
-        _localClientIndex = CLIENT_INDEX_UNKNOWN;
-        _node = hg::RN_ClientFactory::createClient(hg::RN_Protocol::UDP, "pass");
-        _node->setUserData(&ctx());
-        _syncObjReg.setNode(*_node);
-        break;
+void DefaultNetworkingManager::setToClientMode(hg::RN_Protocol aProtocol,
+                                               std::string aPassphrase,
+                                               hg::PZInteger aMaxPacketSize,
+                                               hg::RN_NetworkingStack aNetworkingStack) {
+    assert(_mode == Mode::Uninitialized);
 
-    default: {}
-    }
+    SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(ctx(), privileged==false, networking==true);
+    _localClientIndex = CLIENT_INDEX_UNKNOWN;
+    _node = hg::RN_ClientFactory::createClient(
+        aProtocol,
+        std::move(aPassphrase),
+        aMaxPacketSize,
+        aNetworkingStack
+    );
+    _node->setUserData(&ctx());
+    _syncObjReg.setNode(*_node);
 
-    // TODO !!!!!!!!!!!!!!!!!
+    _mode = Mode::Client;
 }
 
 NetworkingManagerInterface::Mode DefaultNetworkingManager::getMode() const {

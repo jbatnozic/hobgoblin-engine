@@ -10,6 +10,7 @@
 
 using namespace jbatnozic::spempe;
 using namespace hg::qao;
+using namespace hg::rn;
 
 #define HOST 0
 #define CLI1 1
@@ -18,8 +19,7 @@ using namespace hg::qao;
 class DefaultLobbyBackendManagerTest : public ::testing::Test {
 public:
     void SetUp() override {
-        // hg::log::SetMinimalLogSeverity(hg::log::Severity::All);
-        hg::RN_IndexHandlers();
+        RN_IndexHandlers();
 
         GameContext::RuntimeConfig rc{};
         _ctx[HOST] = std::make_unique<GameContext>(rc);
@@ -29,9 +29,8 @@ public:
         _netMgr[HOST] = std::make_unique<DefaultNetworkingManager>(_ctx[HOST]->getQAORuntime().nonOwning(),
                                                                    PRIORITY_NETMGR,
                                                                    0);
-        _netMgr[HOST]->setToMode(NetworkingManagerInterface::Mode::Server);
+        _netMgr[HOST]->setToServerMode(RN_Protocol::UDP, "pass", 2, 512, RN_NetworkingStack::Default);
         _netMgr[HOST]->getServer().start(0);
-        _netMgr[HOST]->getServer().resize(2);
 
         _ctx[HOST]->attachComponent(*_netMgr[HOST]);
 
@@ -75,7 +74,7 @@ protected:
         _netMgr[pos] = std::make_unique<DefaultNetworkingManager>(_ctx[pos]->getQAORuntime().nonOwning(),
                                                                   PRIORITY_NETMGR,
                                                                   0);
-        _netMgr[pos]->setToMode(NetworkingManagerInterface::Mode::Client);
+        _netMgr[pos]->setToClientMode(RN_Protocol::UDP, "pass", 512, RN_NetworkingStack::Default);
         _netMgr[pos]->getClient().connectLocal(_netMgr[HOST]->getServer());
 
         _ctx[pos]->attachComponent(*_netMgr[pos]);

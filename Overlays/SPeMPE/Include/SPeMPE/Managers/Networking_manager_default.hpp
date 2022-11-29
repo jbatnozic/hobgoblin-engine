@@ -24,7 +24,17 @@ public:
     // CONFIGURATION                                                         //
     ///////////////////////////////////////////////////////////////////////////
 
-    void setToMode(Mode aMode) override;
+    void setToServerMode(hg::RN_Protocol aProtocol,
+                         std::string aPassphrase,
+                         hg::PZInteger aServerSize,
+                         hg::PZInteger aMaxPacketSize,
+                         hg::RN_NetworkingStack aNetworkingStack) override;
+
+
+    void setToClientMode(hg::RN_Protocol aProtocol,
+                         std::string aPassphrase,
+                         hg::PZInteger aMaxPacketSize,
+                         hg::RN_NetworkingStack aNetworkingStack) override;
 
     Mode getMode() const override;
 

@@ -37,7 +37,20 @@ public:
         Client,        //! Underlying node is a Client
     };
 
-    virtual void setToMode(Mode aMode) = 0;
+    //! Sets the manager into Host/Server mode and initializes the underlying RigelNet Node as
+    //! an implementation of RN_ServerInterface with the given parameters.
+    virtual void setToServerMode(hg::RN_Protocol aProtocol,
+                                 std::string aPassphrase,
+                                 hg::PZInteger aServerSize,
+                                 hg::PZInteger aMaxPacketSize,
+                                 hg::RN_NetworkingStack aNetworkingStack) = 0;
+
+    //! Sets the manager into Client mode and initializes the underlying RigelNet Node as
+    //! an implementation of RN_ClientInterface with the given parameters.
+    virtual void setToClientMode(hg::RN_Protocol aProtocol,
+                                 std::string aPassphrase,
+                                 hg::PZInteger aMaxPacketSize,
+                                 hg::RN_NetworkingStack aNetworkingStack) = 0;
 
     virtual Mode getMode() const = 0;
 

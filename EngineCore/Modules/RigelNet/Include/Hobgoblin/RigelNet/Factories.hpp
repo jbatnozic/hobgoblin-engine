@@ -42,6 +42,7 @@ public:
 };
 
 #undef DEFAULT_STACK
+#undef DEFAULT_MAX_PACKET_SIZE
 
 } // namespace rn
 HOBGOBLIN_NAMESPACE_END

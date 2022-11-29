@@ -201,6 +201,8 @@ TEST_F(SPeMPE_SynchronizedTest, BasicFunctionalityTest) {
     {
         SCOPED_TRACE("Configure contexts");
 
+        using namespace hobgoblin::rn;
+
         constexpr static int BUFFERING_LENGTH = 0;
 
         // Server context:
@@ -208,7 +210,7 @@ TEST_F(SPeMPE_SynchronizedTest, BasicFunctionalityTest) {
 
         auto netwMgr1 = std::make_unique<DefaultNetworkingManager>(_serverCtx->getQAORuntime().nonOwning(), 
                                                                    0, BUFFERING_LENGTH);
-        netwMgr1->setToMode(MNetworking::Mode::Server);
+        netwMgr1->setToServerMode(RN_Protocol::UDP, "pass", 2, 512, RN_NetworkingStack::Default);
         _serverCtx->attachAndOwnComponent(std::move(netwMgr1));
 
         // Client context:
@@ -216,7 +218,7 @@ TEST_F(SPeMPE_SynchronizedTest, BasicFunctionalityTest) {
 
         auto netwMgr2 = std::make_unique<DefaultNetworkingManager>(_clientCtx->getQAORuntime().nonOwning(), 
                                                                    0, BUFFERING_LENGTH);
-        netwMgr2->setToMode(MNetworking::Mode::Client);
+        netwMgr2->setToClientMode(RN_Protocol::UDP, "pass", 512, RN_NetworkingStack::Default);
         _clientCtx->attachAndOwnComponent(std::move(netwMgr2));
     }
     {
@@ -387,6 +389,8 @@ TEST_F(SPeMPE_SynchronizedTest, DeactivationTest) {
     {
         SCOPED_TRACE("Configure contexts");
 
+        using namespace hobgoblin::rn;
+
         constexpr static int BUFFERING_LENGTH = 0;
 
         // Server context:
@@ -394,7 +398,7 @@ TEST_F(SPeMPE_SynchronizedTest, DeactivationTest) {
 
         auto netwMgr1 = std::make_unique<DefaultNetworkingManager>(_serverCtx->getQAORuntime().nonOwning(),
                                                                    0, BUFFERING_LENGTH);
-        netwMgr1->setToMode(MNetworking::Mode::Server);
+        netwMgr1->setToServerMode(RN_Protocol::UDP, "pass", 2, 512, RN_NetworkingStack::Default);
         _serverCtx->attachAndOwnComponent(std::move(netwMgr1));
 
         // Client context:
@@ -402,7 +406,7 @@ TEST_F(SPeMPE_SynchronizedTest, DeactivationTest) {
 
         auto netwMgr2 = std::make_unique<DefaultNetworkingManager>(_clientCtx->getQAORuntime().nonOwning(),
                                                                    0, BUFFERING_LENGTH);
-        netwMgr2->setToMode(MNetworking::Mode::Client);
+        netwMgr2->setToClientMode(RN_Protocol::UDP, "pass", 512, RN_NetworkingStack::Default);
         _clientCtx->attachAndOwnComponent(std::move(netwMgr2));
     }
     {

@@ -94,18 +94,27 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
                                                                   PRIORITY_NETWORKMGR,
                                                                   STATE_BUFFERING_LENGTH);
     if (aGameMode == GameMode::Server) {
-        netMgr->setToMode(spe::DefaultNetworkingManager::Mode::Server);
+        netMgr->setToServerMode(
+            RN_Protocol::UDP,
+            "minimal-multiplayer",
+            aPlayerCount - 1, // -1 because player 0 is the host itself (even if it doesn't participate in the game)
+            1024,
+            RN_NetworkingStack::Default
+        );
         auto& server = netMgr->getServer();
         server.setTimeoutLimit(std::chrono::seconds{5});
         server.setRetransmitPredicate(&MyRetransmitPredicate);
         server.start(aLocalPort);
-        server.resize(aPlayerCount - 1); // -1 because player 0 is the host itself
-                                         // (even if it doesn't participate in the game)
 
         std::printf("Server started on port %d for up to %d clients.\n", (int)server.getLocalPort(), aPlayerCount - 1);
     }
     else {
-        netMgr->setToMode(spe::DefaultNetworkingManager::Mode::Client);
+        netMgr->setToClientMode(
+            RN_Protocol::UDP,
+            "minimal-multiplayer",
+            1024,
+            RN_NetworkingStack::Default
+        );
         auto& client = netMgr->getClient();
         client.setTimeoutLimit(std::chrono::seconds{5});
         client.setRetransmitPredicate(&MyRetransmitPredicate);
