@@ -4,7 +4,10 @@
 #include <cstdint>
 #include <mutex>
 #include <random>
+<<<<<<< HEAD
 #include <type_traits>
+=======
+>>>>>>> e2774ff (idk what)
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 

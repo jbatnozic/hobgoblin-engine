@@ -560,7 +560,6 @@ void DefaultSyncDestroyHandler(hg::RN_NodeInterface& node,
 
 // ===== All macros starting with USPEMPE_ are internal =====
 
-#define USPEMPE_MACRO_CONCAT_WITHARG(_x_, _y_, _arg_) _x_##_y_(_arg_)
 #define USPEMPE_MACRO_EXPAND(_x_) _x_
 #ifndef USPEMPE_MACRO_EXPAND_VA
 #define USPEMPE_MACRO_EXPAND_VA(...) __VA_ARGS__

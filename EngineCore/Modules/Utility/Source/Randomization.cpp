@@ -48,7 +48,7 @@ std::uint32_t Generate32bitSeed() {
     return static_cast<std::uint32_t>(Generate64bitSeed() & 0xFFFFFFFF);
 }
 
-}
+} // namespace util
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>

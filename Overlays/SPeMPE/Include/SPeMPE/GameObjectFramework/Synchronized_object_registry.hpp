@@ -47,7 +47,7 @@ struct SyncDetails {
         Deactivate  //! Don't send anything and deactivate the remote dummy
     };
 
-    //! Function object that takes an index of a client as an argument ans should
+    //! Function object that takes an index of a client as an argument and should
     //! return whether (and how) to sync an object to this particular client.
     using FilterPrecidateFunc = std::function<FilterResult(hg::PZInteger)>;
 
