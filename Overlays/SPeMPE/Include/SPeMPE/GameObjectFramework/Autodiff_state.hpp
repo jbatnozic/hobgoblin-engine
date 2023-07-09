@@ -825,6 +825,8 @@ bool AutodiffStateCmp(
             ::jbatnozic::spempe::detail::CountBases(HG_PP_COUNT_ARGS(__VA_ARGS__)), \
             USPEMPE_ADS_PASS_BASES(_struct_name_, __VA_ARGS__) \
         > { \
+        using Super = USPEMPE_AutodiffState_##_struct_name_##_LowerBase; \
+        \
         void commit() { \
             ::jbatnozic::spempe::detail::AutodiffStateCommit(USPEMPE_ADS_PASS_MEMBER_REFS(__VA_ARGS__)); \
         } \
@@ -842,6 +844,11 @@ bool AutodiffStateCmp(
         }; \
         bool cmp() const { \
             return ::jbatnozic::spempe::detail::AutodiffStateCmp(USPEMPE_ADS_PASS_MEMBER_REFS(__VA_ARGS__)); \
+        }; \
+        \
+        friend \
+        ::jbatnozic::hobgoblin::util::PacketBase& operator>>(::jbatnozic::hobgoblin::util::PacketBase& aPacket, Super& aSelf) { \
+            aSelf.unpack(aPacket); return aPacket; \
         }; \
     }; \
     struct _struct_name_ : public USPEMPE_AutodiffState_##_struct_name_##_LowerBase
