@@ -347,8 +347,8 @@ private:
 
 public:
     //! Internal implementation, do not call manually!
-    void __spempeimpl_applyUpdate(const VisibleState& aNewState, hg::PZInteger aDelaySteps, bool aPacemakerPulse) {
-        switch (aPacemakerPulse) {
+    void __spempeimpl_applyUpdate(const VisibleState& aNewState, hg::PZInteger aDelaySteps, SyncFlags aFlags) {
+        switch (HasPacemakerPulse(aFlags)) {
         // NORMAL UPDATE
         case false:
             if (!isUsingAlternatingUpdates()) {
@@ -510,7 +510,7 @@ void DefaultSyncCreateHandler(hg::RN_NodeInterface& node,
 template <class taSyncObj, class taGameContext, class taNetwMgr>
 void DefaultSyncUpdateHandler(hg::RN_NodeInterface& node,
                               SyncId syncId,
-                              bool pacemakerPulse,
+                              SyncFlags flags,
                               typename taSyncObj::VisibleState& state) {
     node.callIfClient(
         [&](hg::RN_ClientInterface& client) {
@@ -523,7 +523,7 @@ void DefaultSyncUpdateHandler(hg::RN_NodeInterface& node,
                 object->__spempeimpl_applyUpdate(
                     state,
                     syncObjReg.adjustDelayForLag(rc.pessimisticLatencyInSteps),
-                    pacemakerPulse
+                    flags
                 );
             }
         });
@@ -578,11 +578,13 @@ void DefaultSyncDestroyHandler(hg::RN_NodeInterface& node,
 
 #define USPEMPE_GENERATE_DEFAULT_SYNC_HANDLER_UPDATE(_class_name_) \
     RN_DEFINE_RPC(USPEMPE_Update##_class_name_, \
-                  RN_ARGS(::jbatnozic::spempe::SyncId, syncId, bool, pacemakerPulse, _class_name_::VisibleState&, state)) { \
+                  RN_ARGS(::jbatnozic::spempe::SyncId, syncId, \
+                          ::jbatnozic::spempe::SyncFlags, flags, \
+                          _class_name_::VisibleState&, state)) { \
         ::jbatnozic::spempe::DefaultSyncUpdateHandler<_class_name_, \
                                                       ::jbatnozic::spempe::GameContext, \
                                                       ::jbatnozic::spempe::NetworkingManagerInterface>( \
-            RN_NODE_IN_HANDLER(), syncId, pacemakerPulse, state); \
+            RN_NODE_IN_HANDLER(), syncId, flags, state); \
     }
 
 #define USPEMPE_GENERATE_DEFAULT_SYNC_HANDLER_DESTROY(_class_name_) \
@@ -626,7 +628,7 @@ void DefaultSyncDestroyHandler(hg::RN_NodeInterface& node,
     Compose_USPEMPE_Update##_class_name_((_sync_details_).getNode(), \
                                          (_sync_details_).getRecepients(), \
                                          getSyncId(), \
-                                         (_sync_details_).hasPacemakerPulse(), \
+                                         (_sync_details_).getFlags(), \
                                          _getCurrentState())
 
 //! Calls the default sync/DESTROY implementation of a SynchronizedObject

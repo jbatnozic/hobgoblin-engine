@@ -4,6 +4,7 @@
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/RigelNet.hpp>
 #include <Hobgoblin/Utility/No_copy_no_move.hpp>
+#include <Hobgoblin/Utility/Packet.hpp>
 
 #include <cstdint>
 #include <functional>
@@ -24,7 +25,43 @@ struct RegistryId {
 
 namespace detail {
 class SynchronizedObjectRegistry;
+using SyncFlagsUnderlyingType = std::uint8_t;
 } // namespace detail
+
+enum class SyncFlags : detail::SyncFlagsUnderlyingType {
+    None = 0x00,
+    // Shows whether this update will be used as a pacemaker pulse on
+    //! the client side. This information is mostly only useful to the
+    //! engine itself.
+    PacemakerPulse = 0x01
+};
+
+inline
+bool HasPacemakerPulse(SyncFlags aFlags) {
+    return (static_cast<detail::SyncFlagsUnderlyingType>(aFlags) &
+            static_cast<detail::SyncFlagsUnderlyingType>(SyncFlags::PacemakerPulse)) != 0;
+}
+
+inline
+SyncFlags& operator|=(SyncFlags& aLhs, const SyncFlags aRhs) {
+    return aLhs = static_cast<SyncFlags>(
+        static_cast<detail::SyncFlagsUnderlyingType>(aLhs) | 
+        static_cast<detail::SyncFlagsUnderlyingType>(aRhs)
+    );
+}
+
+inline
+hg::util::PacketBase& operator<<(hg::util::PacketBase& aPacket, SyncFlags aFlags) {
+    return (aPacket << static_cast<detail::SyncFlagsUnderlyingType>(aFlags));
+}
+
+inline
+hg::util::PacketBase& operator>>(hg::util::PacketBase& aPacket, SyncFlags& aFlags) {
+    detail::SyncFlagsUnderlyingType value;
+    aPacket >> value;
+    aFlags = static_cast<SyncFlags>(value);
+    return aPacket;
+}
 
 struct SyncDetails {
     //! The node through which the sync messages need to be sent.
@@ -34,11 +71,8 @@ struct SyncDetails {
     //! need to be sent.
     const std::vector<hg::PZInteger>& getRecepients() const;
 
-    //! Returns whether this update will be used as a pacemaker pulse on
-    //! the client side. This information is mostly only useful to the
-    //! engine itself.
-    bool hasPacemakerPulse() const {
-        return _pacemakerPulse;
+    SyncFlags getFlags() {
+        return _flags;
     }
 
     enum class FilterResult {
@@ -59,7 +93,7 @@ private:
     hg::not_null<detail::SynchronizedObjectRegistry*> _registry;
     std::vector<hg::PZInteger> _recepients;
     SyncId _forObject = SYNC_ID_NEW;
-    bool _pacemakerPulse = false;
+    SyncFlags _flags = static_cast<SyncFlags>(0);
 
     friend class detail::SynchronizedObjectRegistry;
 };

@@ -101,6 +101,7 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
             1024,
             RN_NetworkingStack::Default
         );
+        netMgr->setPacemakerPulsePeriod(120);
         auto& server = netMgr->getServer();
         server.setTimeoutLimit(std::chrono::seconds{5});
         server.setRetransmitPredicate(&MyRetransmitPredicate);

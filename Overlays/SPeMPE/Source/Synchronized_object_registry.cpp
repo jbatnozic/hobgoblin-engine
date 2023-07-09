@@ -224,6 +224,9 @@ void SynchronizedObjectRegistry::syncStateUpdates() {
         _pacemakerPulseCountdown -= 1;
     }
 
+    _syncDetails._flags = (_pacemakerPulseCountdown == 0) ? SyncFlags::PacemakerPulse 
+                                                          : SyncFlags::None;
+
     for (auto& pair : _mappings) {
         SynchronizedObjectBase* object = pair.second;
 
@@ -240,7 +243,6 @@ void SynchronizedObjectRegistry::syncStateUpdates() {
             {
                 SyncDetails syncDetailsCopy = _syncDetails;
                 syncDetailsCopy._forObject = pair.first;
-                syncDetailsCopy._pacemakerPulse = (_pacemakerPulseCountdown == 0);
 
                 object->_syncUpdateImpl(syncDetailsCopy);
                 for (auto rec : syncDetailsCopy._recepients) {
