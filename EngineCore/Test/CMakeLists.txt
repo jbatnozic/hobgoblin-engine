@@ -9,6 +9,7 @@ set(COMPONENT_SOURCES
   "Source/Format_test.cpp"
   "Source/Gsl_pointers_test.cpp"
   "Source/gtest_main.cpp"
+  "Source/Preprocessor_test.cpp"
   "Source/QAO_serialization_test.cpp"
   "Source/QAO_test.cpp"
   "Source/RigelNet_test.cpp"
