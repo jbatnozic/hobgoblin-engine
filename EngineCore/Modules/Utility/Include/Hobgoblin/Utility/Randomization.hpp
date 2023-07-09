@@ -69,10 +69,10 @@ taNumber GetRandomNumber(taNumber aMin, taNumber aMax) {
         DoWith32bitRNG(
             [aMin, aMax, &result](std::mt19937& aRNG) {
                 if constexpr (std::is_integral<taNumber>::value) {
-                    const std::uniform_int_distribution dist{aMin, aMax};
+                    std::uniform_int_distribution dist{aMin, aMax};
                     result = dist(aRNG);
                 } else {
-                    const std::uniform_real_distribution dist{aMin, aMax};
+                    std::uniform_real_distribution dist{aMin, aMax};
                     result = dist(aRNG);
                 }
             }
@@ -81,10 +81,10 @@ taNumber GetRandomNumber(taNumber aMin, taNumber aMax) {
         DoWith64bitRNG(
             [aMin, aMax, &result](std::mt19937_64& aRNG) {
                 if constexpr (std::is_integral<taNumber>::value) {
-                    const std::uniform_int_distribution dist{aMin, aMax};
+                    std::uniform_int_distribution dist{aMin, aMax};
                     result = dist(aRNG);
                 } else {
-                    const std::uniform_real_distribution dist{aMin, aMax};
+                    std::uniform_real_distribution dist{aMin, aMax};
                     result = dist(aRNG);
                 }
             }

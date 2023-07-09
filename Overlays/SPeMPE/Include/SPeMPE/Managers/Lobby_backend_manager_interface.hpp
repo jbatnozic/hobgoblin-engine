@@ -239,18 +239,6 @@ bool PlayerInfo::isComplete() const {
 }
 
 inline
-bool PlayerInfo::isEmpty() const {
-    // It's guaranteed that at least the IP address of a connected
-    // player is known, even if the name and unique ID aren't.
-    return ipAddress.empty();
-}
-
-inline
-bool PlayerInfo::isComplete() const {
-    return !name.empty() && !ipAddress.empty() && !uniqueId.empty();
-}
-
-inline
 bool operator==(const PlayerInfo& aLhs, const PlayerInfo& aRhs) {
     return (aLhs.name == aRhs.name &&
             aLhs.ipAddress == aRhs.ipAddress &&
