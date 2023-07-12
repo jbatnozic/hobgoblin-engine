@@ -7,8 +7,18 @@
 #include <Hobgoblin/Utility/Packet.hpp>
 
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <utility>
+
+///////////////////////////////////////////////////////////////////////////
+// MACROS: GENERAL NAMES                                                 //
+///////////////////////////////////////////////////////////////////////////
+
+#define USPEMPE_ADS_MIRROR_OBJECT_TYPE __spempeimpl_mirror_t
+#define USPEMPE_ADS_MIRROR_OBJECT_NAME __spempeimpl_mirrorObject
+#define USPEMPE_ADS_BITS_TYPE          __spempeimpl_bits_t
+#define USPEMPE_ADS_PACK_MODE_NAME     __spempeimpl_packMode
 
 ///////////////////////////////////////////////////////////////////////////
 // MACROS: GENERATING BASES                                              //
@@ -421,9 +431,6 @@
 // MACROS: PASSING MEMBER REFERENCES                                     //
 ///////////////////////////////////////////////////////////////////////////
 
-#define USPEMPE_ADS_MIRROR_OBJECT_TYPE __spempeimpl_mirror_t
-#define USPEMPE_ADS_MIRROR_OBJECT_NAME __spempeimpl_mirrorObject
-
 #define USPEMPE_ADS_PASS_MEMBER_REFS_ERROR \
     "SPeMPE: Error while passing member references for an AutodiffState struct - invalid argument count"
 
@@ -494,131 +501,131 @@
 #define USPEMPE_ADS_PASS_MEMBER_REFS_95(...) USPEMPE_ADS_PASS_MEMBER_REFS_ERROR
 
 #define USPEMPE_ADS_PASS_MEMBER_REFS_3(_type0_, _name0_, _init0_) \
-    USPEMPE_ADS_MIRROR_OBJECT_NAME._name0_, _name0_
+    USPEMPE_ADS_MIRROR_OBJECT_NAME->_name0_, _name0_
 
 #define USPEMPE_ADS_PASS_MEMBER_REFS_6(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_) \
     USPEMPE_ADS_PASS_MEMBER_REFS_3(_type0_, _name0_, _init0_), \
-    USPEMPE_ADS_MIRROR_OBJECT_NAME._name1_, _name1_
+    USPEMPE_ADS_MIRROR_OBJECT_NAME->_name1_, _name1_
 
 #define USPEMPE_ADS_PASS_MEMBER_REFS_9(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_) \
     USPEMPE_ADS_PASS_MEMBER_REFS_6(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_), \
-    USPEMPE_ADS_MIRROR_OBJECT_NAME._name2_, _name2_
+    USPEMPE_ADS_MIRROR_OBJECT_NAME->_name2_, _name2_
 
 #define USPEMPE_ADS_PASS_MEMBER_REFS_12(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_) \
     USPEMPE_ADS_PASS_MEMBER_REFS_9(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_), \
-    USPEMPE_ADS_MIRROR_OBJECT_NAME._name3_, _name3_
+    USPEMPE_ADS_MIRROR_OBJECT_NAME->_name3_, _name3_
 
 #define USPEMPE_ADS_PASS_MEMBER_REFS_15(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_) \
     USPEMPE_ADS_PASS_MEMBER_REFS_12(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_), \
-    USPEMPE_ADS_MIRROR_OBJECT_NAME._name4_, _name4_
+    USPEMPE_ADS_MIRROR_OBJECT_NAME->_name4_, _name4_
 
 #define USPEMPE_ADS_PASS_MEMBER_REFS_18(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_) \
     USPEMPE_ADS_PASS_MEMBER_REFS_15(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_), \
-    USPEMPE_ADS_MIRROR_OBJECT_NAME._name5_, _name5_
+    USPEMPE_ADS_MIRROR_OBJECT_NAME->_name5_, _name5_
 
 #define USPEMPE_ADS_PASS_MEMBER_REFS_21(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_) \
     USPEMPE_ADS_PASS_MEMBER_REFS_18(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_), \
-    USPEMPE_ADS_MIRROR_OBJECT_NAME._name6_, _name6_
+    USPEMPE_ADS_MIRROR_OBJECT_NAME->_name6_, _name6_
 
 #define USPEMPE_ADS_PASS_MEMBER_REFS_24(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_) \
     USPEMPE_ADS_PASS_MEMBER_REFS_21(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_), \
-    USPEMPE_ADS_MIRROR_OBJECT_NAME._name7_, _name7_
+    USPEMPE_ADS_MIRROR_OBJECT_NAME->_name7_, _name7_
 
 #define USPEMPE_ADS_PASS_MEMBER_REFS_27(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_) \
     USPEMPE_ADS_PASS_MEMBER_REFS_24(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_), \
-    USPEMPE_ADS_MIRROR_OBJECT_NAME._name8_, _name8_
+    USPEMPE_ADS_MIRROR_OBJECT_NAME->_name8_, _name8_
 
 #define USPEMPE_ADS_PASS_MEMBER_REFS_30(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_) \
     USPEMPE_ADS_PASS_MEMBER_REFS_27(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_), \
-    USPEMPE_ADS_MIRROR_OBJECT_NAME._name9_, _name9_
+    USPEMPE_ADS_MIRROR_OBJECT_NAME->_name9_, _name9_
 
 #define USPEMPE_ADS_PASS_MEMBER_REFS_33(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_) \
     USPEMPE_ADS_PASS_MEMBER_REFS_30(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_), \
-    USPEMPE_ADS_MIRROR_OBJECT_NAME._name10_, _name10_
+    USPEMPE_ADS_MIRROR_OBJECT_NAME->_name10_, _name10_
 
 #define USPEMPE_ADS_PASS_MEMBER_REFS_36(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_) \
     USPEMPE_ADS_PASS_MEMBER_REFS_33(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_), \
-    USPEMPE_ADS_MIRROR_OBJECT_NAME._name11_, _name11_
+    USPEMPE_ADS_MIRROR_OBJECT_NAME->_name11_, _name11_
 
 #define USPEMPE_ADS_PASS_MEMBER_REFS_39(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_) \
     USPEMPE_ADS_PASS_MEMBER_REFS_36(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_), \
-    USPEMPE_ADS_MIRROR_OBJECT_NAME._name12_, _name12_
+    USPEMPE_ADS_MIRROR_OBJECT_NAME->_name12_, _name12_
 
 #define USPEMPE_ADS_PASS_MEMBER_REFS_42(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_, _type13_, _name13_, _init13_) \
     USPEMPE_ADS_PASS_MEMBER_REFS_39(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_), \
-    USPEMPE_ADS_MIRROR_OBJECT_NAME._name13_, _name13_
+    USPEMPE_ADS_MIRROR_OBJECT_NAME->_name13_, _name13_
 
 #define USPEMPE_ADS_PASS_MEMBER_REFS_45(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_, _type13_, _name13_, _init13_, _type14_, _name14_, _init14_) \
     USPEMPE_ADS_PASS_MEMBER_REFS_42(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_, _type13_, _name13_, _init13_), \
-    USPEMPE_ADS_MIRROR_OBJECT_NAME._name14_, _name14_
+    USPEMPE_ADS_MIRROR_OBJECT_NAME->_name14_, _name14_
 
 #define USPEMPE_ADS_PASS_MEMBER_REFS_48(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_, _type13_, _name13_, _init13_, _type14_, _name14_, _init14_, _type15_, _name15_, _init15_) \
     USPEMPE_ADS_PASS_MEMBER_REFS_45(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_, _type13_, _name13_, _init13_, _type14_, _name14_, _init14_), \
-    USPEMPE_ADS_MIRROR_OBJECT_NAME._name15_, _name15_
+    USPEMPE_ADS_MIRROR_OBJECT_NAME->_name15_, _name15_
 
 #define USPEMPE_ADS_PASS_MEMBER_REFS_51(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_, _type13_, _name13_, _init13_, _type14_, _name14_, _init14_, _type15_, _name15_, _init15_, _type16_, _name16_, _init16_) \
     USPEMPE_ADS_PASS_MEMBER_REFS_48(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_, _type13_, _name13_, _init13_, _type14_, _name14_, _init14_, _type15_, _name15_, _init15_), \
-    USPEMPE_ADS_MIRROR_OBJECT_NAME._name16_, _name16_
+    USPEMPE_ADS_MIRROR_OBJECT_NAME->_name16_, _name16_
 
 #define USPEMPE_ADS_PASS_MEMBER_REFS_54(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_, _type13_, _name13_, _init13_, _type14_, _name14_, _init14_, _type15_, _name15_, _init15_, _type16_, _name16_, _init16_, _type17_, _name17_, _init17_) \
     USPEMPE_ADS_PASS_MEMBER_REFS_51(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_, _type13_, _name13_, _init13_, _type14_, _name14_, _init14_, _type15_, _name15_, _init15_, _type16_, _name16_, _init16_), \
-    USPEMPE_ADS_MIRROR_OBJECT_NAME._name17_, _name17_
+    USPEMPE_ADS_MIRROR_OBJECT_NAME->_name17_, _name17_
 
 #define USPEMPE_ADS_PASS_MEMBER_REFS_57(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_, _type13_, _name13_, _init13_, _type14_, _name14_, _init14_, _type15_, _name15_, _init15_, _type16_, _name16_, _init16_, _type17_, _name17_, _init17_, _type18_, _name18_, _init18_) \
     USPEMPE_ADS_PASS_MEMBER_REFS_54(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_, _type13_, _name13_, _init13_, _type14_, _name14_, _init14_, _type15_, _name15_, _init15_, _type16_, _name16_, _init16_, _type17_, _name17_, _init17_), \
-    USPEMPE_ADS_MIRROR_OBJECT_NAME._name18_, _name18_
+    USPEMPE_ADS_MIRROR_OBJECT_NAME->_name18_, _name18_
 
 #define USPEMPE_ADS_PASS_MEMBER_REFS_60(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_, _type13_, _name13_, _init13_, _type14_, _name14_, _init14_, _type15_, _name15_, _init15_, _type16_, _name16_, _init16_, _type17_, _name17_, _init17_, _type18_, _name18_, _init18_, _type19_, _name19_, _init19_) \
     USPEMPE_ADS_PASS_MEMBER_REFS_57(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_, _type13_, _name13_, _init13_, _type14_, _name14_, _init14_, _type15_, _name15_, _init15_, _type16_, _name16_, _init16_, _type17_, _name17_, _init17_, _type18_, _name18_, _init18_), \
-    USPEMPE_ADS_MIRROR_OBJECT_NAME._name19_, _name19_
+    USPEMPE_ADS_MIRROR_OBJECT_NAME->_name19_, _name19_
 
 #define USPEMPE_ADS_PASS_MEMBER_REFS_63(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_, _type13_, _name13_, _init13_, _type14_, _name14_, _init14_, _type15_, _name15_, _init15_, _type16_, _name16_, _init16_, _type17_, _name17_, _init17_, _type18_, _name18_, _init18_, _type19_, _name19_, _init19_, _type20_, _name20_, _init20_) \
     USPEMPE_ADS_PASS_MEMBER_REFS_60(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_, _type13_, _name13_, _init13_, _type14_, _name14_, _init14_, _type15_, _name15_, _init15_, _type16_, _name16_, _init16_, _type17_, _name17_, _init17_, _type18_, _name18_, _init18_, _type19_, _name19_, _init19_), \
-    USPEMPE_ADS_MIRROR_OBJECT_NAME._name20_, _name20_
+    USPEMPE_ADS_MIRROR_OBJECT_NAME->_name20_, _name20_
 
 #define USPEMPE_ADS_PASS_MEMBER_REFS_66(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_, _type13_, _name13_, _init13_, _type14_, _name14_, _init14_, _type15_, _name15_, _init15_, _type16_, _name16_, _init16_, _type17_, _name17_, _init17_, _type18_, _name18_, _init18_, _type19_, _name19_, _init19_, _type20_, _name20_, _init20_, _type21_, _name21_, _init21_) \
     USPEMPE_ADS_PASS_MEMBER_REFS_63(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_, _type13_, _name13_, _init13_, _type14_, _name14_, _init14_, _type15_, _name15_, _init15_, _type16_, _name16_, _init16_, _type17_, _name17_, _init17_, _type18_, _name18_, _init18_, _type19_, _name19_, _init19_, _type20_, _name20_, _init20_), \
-    USPEMPE_ADS_MIRROR_OBJECT_NAME._name21_, _name21_
+    USPEMPE_ADS_MIRROR_OBJECT_NAME->_name21_, _name21_
 
 #define USPEMPE_ADS_PASS_MEMBER_REFS_69(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_, _type13_, _name13_, _init13_, _type14_, _name14_, _init14_, _type15_, _name15_, _init15_, _type16_, _name16_, _init16_, _type17_, _name17_, _init17_, _type18_, _name18_, _init18_, _type19_, _name19_, _init19_, _type20_, _name20_, _init20_, _type21_, _name21_, _init21_, _type22_, _name22_, _init22_) \
     USPEMPE_ADS_PASS_MEMBER_REFS_66(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_, _type13_, _name13_, _init13_, _type14_, _name14_, _init14_, _type15_, _name15_, _init15_, _type16_, _name16_, _init16_, _type17_, _name17_, _init17_, _type18_, _name18_, _init18_, _type19_, _name19_, _init19_, _type20_, _name20_, _init20_, _type21_, _name21_, _init21_), \
-    USPEMPE_ADS_MIRROR_OBJECT_NAME._name22_, _name22_
+    USPEMPE_ADS_MIRROR_OBJECT_NAME->_name22_, _name22_
 
 #define USPEMPE_ADS_PASS_MEMBER_REFS_72(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_, _type13_, _name13_, _init13_, _type14_, _name14_, _init14_, _type15_, _name15_, _init15_, _type16_, _name16_, _init16_, _type17_, _name17_, _init17_, _type18_, _name18_, _init18_, _type19_, _name19_, _init19_, _type20_, _name20_, _init20_, _type21_, _name21_, _init21_, _type22_, _name22_, _init22_, _type23_, _name23_, _init23_) \
     USPEMPE_ADS_PASS_MEMBER_REFS_69(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_, _type13_, _name13_, _init13_, _type14_, _name14_, _init14_, _type15_, _name15_, _init15_, _type16_, _name16_, _init16_, _type17_, _name17_, _init17_, _type18_, _name18_, _init18_, _type19_, _name19_, _init19_, _type20_, _name20_, _init20_, _type21_, _name21_, _init21_, _type22_, _name22_, _init22_), \
-    USPEMPE_ADS_MIRROR_OBJECT_NAME._name23_, _name23_
+    USPEMPE_ADS_MIRROR_OBJECT_NAME->_name23_, _name23_
 
 #define USPEMPE_ADS_PASS_MEMBER_REFS_75(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_, _type13_, _name13_, _init13_, _type14_, _name14_, _init14_, _type15_, _name15_, _init15_, _type16_, _name16_, _init16_, _type17_, _name17_, _init17_, _type18_, _name18_, _init18_, _type19_, _name19_, _init19_, _type20_, _name20_, _init20_, _type21_, _name21_, _init21_, _type22_, _name22_, _init22_, _type23_, _name23_, _init23_, _type24_, _name24_, _init24_) \
     USPEMPE_ADS_PASS_MEMBER_REFS_72(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_, _type13_, _name13_, _init13_, _type14_, _name14_, _init14_, _type15_, _name15_, _init15_, _type16_, _name16_, _init16_, _type17_, _name17_, _init17_, _type18_, _name18_, _init18_, _type19_, _name19_, _init19_, _type20_, _name20_, _init20_, _type21_, _name21_, _init21_, _type22_, _name22_, _init22_, _type23_, _name23_, _init23_), \
-    USPEMPE_ADS_MIRROR_OBJECT_NAME._name24_, _name24_
+    USPEMPE_ADS_MIRROR_OBJECT_NAME->_name24_, _name24_
 
 #define USPEMPE_ADS_PASS_MEMBER_REFS_78(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_, _type13_, _name13_, _init13_, _type14_, _name14_, _init14_, _type15_, _name15_, _init15_, _type16_, _name16_, _init16_, _type17_, _name17_, _init17_, _type18_, _name18_, _init18_, _type19_, _name19_, _init19_, _type20_, _name20_, _init20_, _type21_, _name21_, _init21_, _type22_, _name22_, _init22_, _type23_, _name23_, _init23_, _type24_, _name24_, _init24_, _type25_, _name25_, _init25_) \
     USPEMPE_ADS_PASS_MEMBER_REFS_75(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_, _type13_, _name13_, _init13_, _type14_, _name14_, _init14_, _type15_, _name15_, _init15_, _type16_, _name16_, _init16_, _type17_, _name17_, _init17_, _type18_, _name18_, _init18_, _type19_, _name19_, _init19_, _type20_, _name20_, _init20_, _type21_, _name21_, _init21_, _type22_, _name22_, _init22_, _type23_, _name23_, _init23_, _type24_, _name24_, _init24_), \
-    USPEMPE_ADS_MIRROR_OBJECT_NAME._name25_, _name25_
+    USPEMPE_ADS_MIRROR_OBJECT_NAME->_name25_, _name25_
 
 #define USPEMPE_ADS_PASS_MEMBER_REFS_81(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_, _type13_, _name13_, _init13_, _type14_, _name14_, _init14_, _type15_, _name15_, _init15_, _type16_, _name16_, _init16_, _type17_, _name17_, _init17_, _type18_, _name18_, _init18_, _type19_, _name19_, _init19_, _type20_, _name20_, _init20_, _type21_, _name21_, _init21_, _type22_, _name22_, _init22_, _type23_, _name23_, _init23_, _type24_, _name24_, _init24_, _type25_, _name25_, _init25_, _type26_, _name26_, _init26_) \
     USPEMPE_ADS_PASS_MEMBER_REFS_78(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_, _type13_, _name13_, _init13_, _type14_, _name14_, _init14_, _type15_, _name15_, _init15_, _type16_, _name16_, _init16_, _type17_, _name17_, _init17_, _type18_, _name18_, _init18_, _type19_, _name19_, _init19_, _type20_, _name20_, _init20_, _type21_, _name21_, _init21_, _type22_, _name22_, _init22_, _type23_, _name23_, _init23_, _type24_, _name24_, _init24_, _type25_, _name25_, _init25_), \
-    USPEMPE_ADS_MIRROR_OBJECT_NAME._name26_, _name26_
+    USPEMPE_ADS_MIRROR_OBJECT_NAME->_name26_, _name26_
 
 #define USPEMPE_ADS_PASS_MEMBER_REFS_84(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_, _type13_, _name13_, _init13_, _type14_, _name14_, _init14_, _type15_, _name15_, _init15_, _type16_, _name16_, _init16_, _type17_, _name17_, _init17_, _type18_, _name18_, _init18_, _type19_, _name19_, _init19_, _type20_, _name20_, _init20_, _type21_, _name21_, _init21_, _type22_, _name22_, _init22_, _type23_, _name23_, _init23_, _type24_, _name24_, _init24_, _type25_, _name25_, _init25_, _type26_, _name26_, _init26_, _type27_, _name27_, _init27_) \
     USPEMPE_ADS_PASS_MEMBER_REFS_81(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_, _type13_, _name13_, _init13_, _type14_, _name14_, _init14_, _type15_, _name15_, _init15_, _type16_, _name16_, _init16_, _type17_, _name17_, _init17_, _type18_, _name18_, _init18_, _type19_, _name19_, _init19_, _type20_, _name20_, _init20_, _type21_, _name21_, _init21_, _type22_, _name22_, _init22_, _type23_, _name23_, _init23_, _type24_, _name24_, _init24_, _type25_, _name25_, _init25_, _type26_, _name26_, _init26_), \
-    USPEMPE_ADS_MIRROR_OBJECT_NAME._name27_, _name27_
+    USPEMPE_ADS_MIRROR_OBJECT_NAME->_name27_, _name27_
 
 #define USPEMPE_ADS_PASS_MEMBER_REFS_87(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_, _type13_, _name13_, _init13_, _type14_, _name14_, _init14_, _type15_, _name15_, _init15_, _type16_, _name16_, _init16_, _type17_, _name17_, _init17_, _type18_, _name18_, _init18_, _type19_, _name19_, _init19_, _type20_, _name20_, _init20_, _type21_, _name21_, _init21_, _type22_, _name22_, _init22_, _type23_, _name23_, _init23_, _type24_, _name24_, _init24_, _type25_, _name25_, _init25_, _type26_, _name26_, _init26_, _type27_, _name27_, _init27_, _type28_, _name28_, _init28_) \
     USPEMPE_ADS_PASS_MEMBER_REFS_84(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_, _type13_, _name13_, _init13_, _type14_, _name14_, _init14_, _type15_, _name15_, _init15_, _type16_, _name16_, _init16_, _type17_, _name17_, _init17_, _type18_, _name18_, _init18_, _type19_, _name19_, _init19_, _type20_, _name20_, _init20_, _type21_, _name21_, _init21_, _type22_, _name22_, _init22_, _type23_, _name23_, _init23_, _type24_, _name24_, _init24_, _type25_, _name25_, _init25_, _type26_, _name26_, _init26_, _type27_, _name27_, _init27_), \
-    USPEMPE_ADS_MIRROR_OBJECT_NAME._name28_, _name28_
+    USPEMPE_ADS_MIRROR_OBJECT_NAME->_name28_, _name28_
 
 #define USPEMPE_ADS_PASS_MEMBER_REFS_90(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_, _type13_, _name13_, _init13_, _type14_, _name14_, _init14_, _type15_, _name15_, _init15_, _type16_, _name16_, _init16_, _type17_, _name17_, _init17_, _type18_, _name18_, _init18_, _type19_, _name19_, _init19_, _type20_, _name20_, _init20_, _type21_, _name21_, _init21_, _type22_, _name22_, _init22_, _type23_, _name23_, _init23_, _type24_, _name24_, _init24_, _type25_, _name25_, _init25_, _type26_, _name26_, _init26_, _type27_, _name27_, _init27_, _type28_, _name28_, _init28_, _type29_, _name29_, _init29_) \
     USPEMPE_ADS_PASS_MEMBER_REFS_87(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_, _type13_, _name13_, _init13_, _type14_, _name14_, _init14_, _type15_, _name15_, _init15_, _type16_, _name16_, _init16_, _type17_, _name17_, _init17_, _type18_, _name18_, _init18_, _type19_, _name19_, _init19_, _type20_, _name20_, _init20_, _type21_, _name21_, _init21_, _type22_, _name22_, _init22_, _type23_, _name23_, _init23_, _type24_, _name24_, _init24_, _type25_, _name25_, _init25_, _type26_, _name26_, _init26_, _type27_, _name27_, _init27_, _type28_, _name28_, _init28_), \
-    USPEMPE_ADS_MIRROR_OBJECT_NAME._name29_, _name29_
+    USPEMPE_ADS_MIRROR_OBJECT_NAME->_name29_, _name29_
 
 #define USPEMPE_ADS_PASS_MEMBER_REFS_93(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_, _type13_, _name13_, _init13_, _type14_, _name14_, _init14_, _type15_, _name15_, _init15_, _type16_, _name16_, _init16_, _type17_, _name17_, _init17_, _type18_, _name18_, _init18_, _type19_, _name19_, _init19_, _type20_, _name20_, _init20_, _type21_, _name21_, _init21_, _type22_, _name22_, _init22_, _type23_, _name23_, _init23_, _type24_, _name24_, _init24_, _type25_, _name25_, _init25_, _type26_, _name26_, _init26_, _type27_, _name27_, _init27_, _type28_, _name28_, _init28_, _type29_, _name29_, _init29_, _type30_, _name30_, _init30_) \
     USPEMPE_ADS_PASS_MEMBER_REFS_90(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_, _type13_, _name13_, _init13_, _type14_, _name14_, _init14_, _type15_, _name15_, _init15_, _type16_, _name16_, _init16_, _type17_, _name17_, _init17_, _type18_, _name18_, _init18_, _type19_, _name19_, _init19_, _type20_, _name20_, _init20_, _type21_, _name21_, _init21_, _type22_, _name22_, _init22_, _type23_, _name23_, _init23_, _type24_, _name24_, _init24_, _type25_, _name25_, _init25_, _type26_, _name26_, _init26_, _type27_, _name27_, _init27_, _type28_, _name28_, _init28_, _type29_, _name29_, _init29_), \
-    USPEMPE_ADS_MIRROR_OBJECT_NAME._name30_, _name30_
+    USPEMPE_ADS_MIRROR_OBJECT_NAME->_name30_, _name30_
 
 #define USPEMPE_ADS_PASS_MEMBER_REFS_96(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_, _type13_, _name13_, _init13_, _type14_, _name14_, _init14_, _type15_, _name15_, _init15_, _type16_, _name16_, _init16_, _type17_, _name17_, _init17_, _type18_, _name18_, _init18_, _type19_, _name19_, _init19_, _type20_, _name20_, _init20_, _type21_, _name21_, _init21_, _type22_, _name22_, _init22_, _type23_, _name23_, _init23_, _type24_, _name24_, _init24_, _type25_, _name25_, _init25_, _type26_, _name26_, _init26_, _type27_, _name27_, _init27_, _type28_, _name28_, _init28_, _type29_, _name29_, _init29_, _type30_, _name30_, _init30_, _type31_, _name31_, _init31_) \
     USPEMPE_ADS_PASS_MEMBER_REFS_93(_type0_, _name0_, _init0_, _type1_, _name1_, _init1_, _type2_, _name2_, _init2_, _type3_, _name3_, _init3_, _type4_, _name4_, _init4_, _type5_, _name5_, _init5_, _type6_, _name6_, _init6_, _type7_, _name7_, _init7_, _type8_, _name8_, _init8_, _type9_, _name9_, _init9_, _type10_, _name10_, _init10_, _type11_, _name11_, _init11_, _type12_, _name12_, _init12_, _type13_, _name13_, _init13_, _type14_, _name14_, _init14_, _type15_, _name15_, _init15_, _type16_, _name16_, _init16_, _type17_, _name17_, _init17_, _type18_, _name18_, _init18_, _type19_, _name19_, _init19_, _type20_, _name20_, _init20_, _type21_, _name21_, _init21_, _type22_, _name22_, _init22_, _type23_, _name23_, _init23_, _type24_, _name24_, _init24_, _type25_, _name25_, _init25_, _type26_, _name26_, _init26_, _type27_, _name27_, _init27_, _type28_, _name28_, _init28_, _type29_, _name29_, _init29_, _type30_, _name30_, _init30_), \
-    USPEMPE_ADS_MIRROR_OBJECT_NAME._name31_, _name31_
+    USPEMPE_ADS_MIRROR_OBJECT_NAME->_name31_, _name31_
 
 
 #if defined(UHOBGOBLIN_USING_TRADITIONAL_MSVC_PREPROCESSOR)
@@ -643,14 +650,16 @@
 // C++                                                                   //
 ///////////////////////////////////////////////////////////////////////////
 
-#define USPEMPE_ADS_BITS_TYPE __spempeimpl_bits_t
-
 namespace jbatnozic {
 namespace spempe {
 namespace detail {
 
 namespace hg = jbatnozic::hobgoblin;
 
+/**
+ * A bitset that's large enough to accomodate at least taBitCount bits, and
+ * supports packing/unpacking to/from a hg::util::Package.
+ */
 template <int taBitCount>
 class StaticPackableBitset {
 public:
@@ -695,17 +704,105 @@ private:
     std::int8_t _bytes[BYTE_COUNT];
 };
 
+/**
+ * Similar to std::unique_ptr<>, but it's copyable (makes a deep copy of the held object).
+ */
+template <class taResource>
+class DeepCopyPtr {
+public:
+    DeepCopyPtr() = default;
+
+    DeepCopyPtr(const DeepCopyPtr& aOther)
+        : _myUptr{ (aOther == nullptr) ? nullptr : std::make_unique<taResource>(*aOther._myUptr) }
+    {
+    }
+
+    DeepCopyPtr& operator=(const DeepCopyPtr& aOther) {
+        _myUptr = (aOther == nullptr) ? nullptr : std::make_unique<taResource>(*aOther._myUptr);
+        return *this;
+    }
+
+    DeepCopyPtr(DeepCopyPtr&& aOther) = default;
+
+    template <class... taArgs>
+    DeepCopyPtr(taArgs&&... aArgs)
+        : _myUptr{std::forward<taArgs>(aArgs)...}
+    {
+    }
+    
+    taResource& operator*() {
+        return *_myUptr;
+    }
+
+    const taResource& operator*() const {
+        return *_myUptr;
+    }
+
+    taResource* operator->() {
+        return _myUptr.get();
+    }
+
+    const taResource* operator->() const {
+        return _myUptr.get();
+    }
+
+    bool operator==(std::nullptr_t) const {
+        return _myUptr == nullptr;
+    }
+
+private:
+    // Identifier _uptr is reserved in MSVC.
+    std::unique_ptr<taResource> _myUptr;
+};
+
+} // namespace detail
+
+enum class AutodiffPackMode : std::int8_t {
+    //! Pack only members that have been changed.
+    PackDiff,
+    //! Pack all members.
+    PackAll, 
+    //! Iniital value that's used when nothing is specified.
+    Default = PackAll
+};
+
+namespace detail {
+
 template <int taBaseCount, class... taBases>
 class AutodiffStateUpperBase : public taBases... {
 protected:
-    struct USPEMPE_ADS_MIRROR_OBJECT_TYPE : public taBases... {} USPEMPE_ADS_MIRROR_OBJECT_NAME;
-    using  USPEMPE_ADS_BITS_TYPE = StaticPackableBitset<taBaseCount>;
+    class USPEMPE_ADS_MIRROR_OBJECT_TYPE : public taBases... {};
+    using USPEMPE_ADS_BITS_TYPE          = StaticPackableBitset<taBaseCount>;
+
+    DeepCopyPtr<USPEMPE_ADS_MIRROR_OBJECT_TYPE> USPEMPE_ADS_MIRROR_OBJECT_NAME;
+    AutodiffPackMode                            USPEMPE_ADS_PACK_MODE_NAME = AutodiffPackMode::Default;
+
+public:
+    //! Initializes the Mirror (so a diff can be tracked). Only needed on a Master object.
+    void initMirror() {
+        USPEMPE_ADS_MIRROR_OBJECT_NAME = {std::make_unique<USPEMPE_ADS_MIRROR_OBJECT_TYPE>()};
+    }
+
+    //! Forces packing all members on the next operator<< invocation.
+    void setPackMode(AutodiffPackMode aPackMode) {
+        USPEMPE_ADS_PACK_MODE_NAME = aPackMode;
+    }
+
+    //! Returns the current packing mode of the object.
+    AutodiffPackMode getPackMode() const {
+        return USPEMPE_ADS_PACK_MODE_NAME;
+    }
+};
+
+class AutodiffStateIllegalStateError : public hg::TracedLogicError {
+public:
+    using TracedLogicError::TracedLogicError;
 };
 
 constexpr int CountBases(int argc) {
-    // Note: It doesn't matter which type we throw in the else branch, because
+    // Note: It doesn't really matter which type we throw in the else branch, because
     // throwing exceptions is not constexpr and will fail to compile.
-    return (argc > 0 && argc % 3 == 0) ? (argc / 3) : (throw new void*);
+    return (argc > 0 && argc % 3 == 0) ? (argc / 3) : (throw hg::TracedLogicError{"CountBases - ERROR"});
 }
 
 //! Commits all changes in the autodiff object, meaning that future diffs
@@ -747,6 +844,7 @@ void AutodiffStatePackDiff(
     }
 }
 
+//! Packs the whole object into the packet.
 template <class taBits, class taMember, class... taRest>
 void AutodiffStatePackAll(
     hg::util::PacketBase& aPacket,
@@ -767,6 +865,7 @@ void AutodiffStatePackAll(
     }
 }
 
+//! Unpacks the object from the packet.
 template <class taBits, class taMember, class... taRest>
 void AutodiffStateUnpack(
     hg::util::PacketBase& aPacket,
@@ -791,8 +890,15 @@ void AutodiffStateUnpack(
     }
 }
 
-constexpr bool NO_CHANGE  = false;
-constexpr bool HAS_CHANGE = true;
+} // namespace detail
+
+//! The state of the autodiff object has not changed since the last commit.
+constexpr bool AUTODIFF_STATE_NO_CHANGE  = false;
+
+//! The state of the autodiff object has changed since the last commit.
+constexpr bool AUTODIFF_STATE_HAS_CHANGE = true;
+
+namespace detail {
 
 template <class taMember, class... taRest>
 bool AutodiffStateCmp(
@@ -801,18 +907,23 @@ bool AutodiffStateCmp(
     taRest&&... aRest)
 {
     if (aReal != aMirror) {
-        return HAS_CHANGE;
+        return AUTODIFF_STATE_HAS_CHANGE;
     }
     if constexpr (sizeof...(taRest) > 0) {
         return AutodiffStateCmp(std::forward<taRest>(aRest)...);
     } else {
-        return NO_CHANGE;
+        return AUTODIFF_STATE_NO_CHANGE;
     }
 }
 
 } // namespace detail
 } // namespace spempe
 } // namespace jbatnozic
+
+#define USPEMPE_ADS_ASSERT_MIRROR_NOT_NULL() \
+    do { if (USPEMPE_ADS_MIRROR_OBJECT_NAME == nullptr) { \
+        throw ::jbatnozic::spempe::detail::AutodiffStateIllegalStateError{"Mirror object wasn't initialized."}; \
+    } } while (false)
 
 ///////////////////////////////////////////////////////////////////////////
 // MACROS: USER                                                          //
@@ -821,16 +932,19 @@ bool AutodiffStateCmp(
 #define SPEMPE_DEFINE_AUTODIFF_STATE(_struct_name_, ...) \
     USPEMPE_ADS_GENERATE_BASES(_struct_name_, __VA_ARGS__); \
     struct USPEMPE_AutodiffState_##_struct_name_##_LowerBase \
-        : public ::jbatnozic::spempe::detail::AutodiffStateUpperBase< \
-            ::jbatnozic::spempe::detail::CountBases(HG_PP_COUNT_ARGS(__VA_ARGS__)), \
-            USPEMPE_ADS_PASS_BASES(_struct_name_, __VA_ARGS__) \
-        > { \
+        : ::jbatnozic::spempe::detail::AutodiffStateUpperBase \
+              < ::jbatnozic::spempe::detail::CountBases(HG_PP_COUNT_ARGS(__VA_ARGS__)) \
+              , USPEMPE_ADS_PASS_BASES(_struct_name_, __VA_ARGS__) \
+              > \
+    { \
         using Super = USPEMPE_AutodiffState_##_struct_name_##_LowerBase; \
         \
         void commit() { \
+            USPEMPE_ADS_ASSERT_MIRROR_NOT_NULL(); \
             ::jbatnozic::spempe::detail::AutodiffStateCommit(USPEMPE_ADS_PASS_MEMBER_REFS(__VA_ARGS__)); \
         } \
         void packDiff(::jbatnozic::hobgoblin::util::PacketBase& aPacket) const { \
+            USPEMPE_ADS_ASSERT_MIRROR_NOT_NULL(); \
             USPEMPE_ADS_BITS_TYPE bits; \
             ::jbatnozic::spempe::detail::AutodiffStatePackDiff(aPacket, bits, 0, USPEMPE_ADS_PASS_MEMBER_REFS(__VA_ARGS__)); \
         } \
@@ -843,24 +957,29 @@ bool AutodiffStateCmp(
             ::jbatnozic::spempe::detail::AutodiffStateUnpack(aPacket, bits, 0, USPEMPE_ADS_PASS_MEMBER_REFS(__VA_ARGS__)); \
         }; \
         bool cmp() const { \
+            USPEMPE_ADS_ASSERT_MIRROR_NOT_NULL(); \
             return ::jbatnozic::spempe::detail::AutodiffStateCmp(USPEMPE_ADS_PASS_MEMBER_REFS(__VA_ARGS__)); \
         }; \
         \
         friend \
         ::jbatnozic::hobgoblin::util::PacketBase& operator>>(::jbatnozic::hobgoblin::util::PacketBase& aPacket, Super& aSelf) { \
-            aSelf.unpack(aPacket); return aPacket; \
+            aSelf.unpack(aPacket); \
+            return aPacket; \
         }; \
+        friend \
+        ::jbatnozic::hobgoblin::util::PacketBase& operator<<(::jbatnozic::hobgoblin::util::PacketBase& aPacket, const Super& aSelf) { \
+            if (aSelf.USPEMPE_ADS_PACK_MODE_NAME == ::jbatnozic::spempe::AutodiffPackMode::PackDiff) { \
+                aSelf.packDiff(aPacket); \
+            } else { \
+                aSelf.packAll(aPacket); \
+            } \
+            return aPacket; \
+        } \
     }; \
     struct _struct_name_ : public USPEMPE_AutodiffState_##_struct_name_##_LowerBase
 
-#define SPEMPE_MEMBER(_type_, _name_, _default_value_) \
-    _type_, _name_, _default_value_
-
-#define SPEMPE_AUTODIFF_STATE_NO_CHANGE \
-    ::jbatnozic::spempe::detail::NO_CHANGE
-
-#define SPEMPE_AUTODIFF_STATE_HAS_CHANGE \
-    ::jbatnozic::spempe::detail::HAS_CHANGE
+//! Declare a member field of an autodiff class.
+#define SPEMPE_MEMBER(_type_, _name_, _default_value_) _type_, _name_, _default_value_
 
 ///////////////////////////////////////////////////////////////////////////
 // GENERATOR: GENERATE_BASES                                             //
@@ -1015,7 +1134,7 @@ int main() {
             << "    USPEMPE_ADS_PASS_MEMBER_REFS_" << (argc - 3) << "(" << nm3params << "), \\\n";
 
         std::printf(
-            "    USPEMPE_ADS_MIRROR_OBJECT_NAME._name%d_, _name%d_\n",
+            "    USPEMPE_ADS_MIRROR_OBJECT_NAME->_name%d_, _name%d_\n",
             argc / 3 - 1, argc / 3 - 1
         );
         std::cout << "\n";

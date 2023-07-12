@@ -4,11 +4,11 @@
 
 #include <Hobgoblin/Utility/Autopack.hpp>
 
-struct PlayerCharacter_VisibleState {
-    float x, y;
-    int owningPlayerIndex = spe::PLAYER_INDEX_UNKNOWN;
-    HG_ENABLE_AUTOPACK(PlayerCharacter_VisibleState, x, y, owningPlayerIndex);
-};
+SPEMPE_DEFINE_AUTODIFF_STATE(PlayerCharacter_VisibleState,
+    SPEMPE_MEMBER(float, x, 0.f),
+    SPEMPE_MEMBER(float, y, 0.f),
+    SPEMPE_MEMBER(int, owningPlayerIndex, spe::PLAYER_INDEX_UNKNOWN)
+) {};
 
 class PlayerCharacter
     : public spe::SynchronizedObject<PlayerCharacter_VisibleState>

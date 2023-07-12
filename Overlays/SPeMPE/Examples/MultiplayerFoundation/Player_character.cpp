@@ -7,6 +7,9 @@ PlayerCharacter::PlayerCharacter(QAO_RuntimeRef aRuntimeRef,
     : SyncObjSuper{aRuntimeRef, SPEMPE_TYPEID_SELF, PRIORITY_PLAYERAVATAR,
                    "PlayerCharacter", aRegId, aSyncId}
 {
+    if (isMasterObject()) {
+        _getCurrentState().initMirror();
+    }
 }
 
 PlayerCharacter::~PlayerCharacter() {

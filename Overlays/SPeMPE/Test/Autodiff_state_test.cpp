@@ -18,18 +18,29 @@ SPEMPE_DEFINE_AUTODIFF_STATE(TestAutodiff2,
     SPEMPE_MEMBER(std::int8_t, c, 'a')
 ) {};
 
+TEST(AutodiffStateTest, IllegalStateTest) {
+    TestAutodiff1 ad1;
+    hg::util::Packet packet;
+
+    EXPECT_THROW({ ad1.cmp(); }, detail::AutodiffStateIllegalStateError);
+    EXPECT_THROW({ ad1.commit(); }, detail::AutodiffStateIllegalStateError);
+    EXPECT_THROW({ ad1.packDiff(packet); }, detail::AutodiffStateIllegalStateError);
+}
+
 TEST(AutodiffStateTest, CommitAndCmpTest) {
     TestAutodiff1 ad1;
+    ad1.initMirror();
     EXPECT_EQ(ad1.i, 123);
-    EXPECT_EQ(ad1.cmp(), SPEMPE_AUTODIFF_STATE_NO_CHANGE);
+    EXPECT_EQ(ad1.cmp(), AUTODIFF_STATE_NO_CHANGE);
     ad1.i = 456;
-    EXPECT_EQ(ad1.cmp(), SPEMPE_AUTODIFF_STATE_HAS_CHANGE);
+    EXPECT_EQ(ad1.cmp(), AUTODIFF_STATE_HAS_CHANGE);
     ad1.commit();
-    EXPECT_EQ(ad1.cmp(), SPEMPE_AUTODIFF_STATE_NO_CHANGE);
+    EXPECT_EQ(ad1.cmp(), AUTODIFF_STATE_NO_CHANGE);
 }
 
 TEST(AutodiffStateTest, PackAllTest) {
     TestAutodiff2 ad2;
+    ad2.initMirror();
     ad2.i = 456;
     ad2.c = 'b';
 
@@ -47,7 +58,8 @@ TEST(AutodiffStateTest, PackAllTest) {
 
 TEST(AutodiffStateTest, PackEmptyDiffTest) {
     TestAutodiff2 ad2;
-    EXPECT_EQ(ad2.cmp(), SPEMPE_AUTODIFF_STATE_NO_CHANGE);
+    ad2.initMirror();
+    EXPECT_EQ(ad2.cmp(), AUTODIFF_STATE_NO_CHANGE);
 
     hg::util::Packet packet;
     ad2.packDiff(packet);
@@ -59,6 +71,7 @@ TEST(AutodiffStateTest, PackEmptyDiffTest) {
 TEST(AutodiffStateTest, PackDiffTest) {
     {
         TestAutodiff2 ad2;
+        ad2.initMirror();
         ad2.i = 456;
         hg::util::Packet packet;
         ad2.packDiff(packet);
@@ -68,6 +81,7 @@ TEST(AutodiffStateTest, PackDiffTest) {
     }
     {
         TestAutodiff2 ad2;
+        ad2.initMirror();
         ad2.c = 'b';
         hg::util::Packet packet;
         ad2.packDiff(packet);
@@ -77,6 +91,7 @@ TEST(AutodiffStateTest, PackDiffTest) {
     }
     {
         TestAutodiff2 ad2;
+        ad2.initMirror();
         ad2.i = 456;
         ad2.c = 'b';
         hg::util::Packet packet;
@@ -140,8 +155,8 @@ SPEMPE_DEFINE_AUTODIFF_STATE(TestAutodiff32,
 
 TEST(AutodiffStateTest, AutodiffState_32Members) {
     TestAutodiff32 ad32;
-
-    EXPECT_EQ(ad32.cmp(), SPEMPE_AUTODIFF_STATE_NO_CHANGE);
+    ad32.initMirror();
+    EXPECT_EQ(ad32.cmp(), AUTODIFF_STATE_NO_CHANGE);
 
     {
         hg::util::Packet packet;
@@ -157,7 +172,7 @@ TEST(AutodiffStateTest, AutodiffState_32Members) {
     }
     {
         ad32.i4 = 0xDEADBEEF;
-        EXPECT_EQ(ad32.cmp(), SPEMPE_AUTODIFF_STATE_HAS_CHANGE);
+        EXPECT_EQ(ad32.cmp(), AUTODIFF_STATE_HAS_CHANGE);
         hg::util::Packet packet;
         ad32.packDiff(packet);
         EXPECT_EQ(packet.getDataSize(), 4 + sizeof(std::int32_t));
