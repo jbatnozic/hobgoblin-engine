@@ -10,6 +10,10 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace rn {
 
+namespace {
+constexpr auto UDP_HEADER_BYTE_COUNT = 8u;
+} // namespace
+
 RN_UdpClientImpl::RN_UdpClientImpl(std::string aPassphrase,
                                    RN_NetworkingStack aNetworkingStack,
                                    PZInteger aMaxPacketSize)
@@ -68,23 +72,21 @@ void RN_UdpClientImpl::setRetransmitPredicate(RN_RetransmitPredicate pred) {
     _retransmitPredicate = pred;
 }
 
-void RN_UdpClientImpl::update(RN_UpdateMode mode) {
+PZInteger RN_UdpClientImpl::update(RN_UpdateMode mode) {
     if (!_running) {
-        return;
+        return 0;
     }
     else if (_connector.getStatus() == RN_ConnectorStatus::Disconnected) {
         _running = false;
-        return;
+        return 0;
     }
 
     switch (mode) {
     case RN_UpdateMode::Receive:
-        _updateReceive();
-        break;
+        return _updateReceive();
 
     case RN_UpdateMode::Send:
-        _updateSend();
-        break;
+        return _updateSend();
 
     default:
         HARD_ASSERT(false && "Unreachable");
@@ -145,7 +147,9 @@ RN_NetworkingStack RN_UdpClientImpl::getNetworkingStack() const noexcept {
 // PRIVATE IMPLEMENTATION                                                //
 ///////////////////////////////////////////////////////////////////////////
 
-void RN_UdpClientImpl::_updateReceive() {
+PZInteger RN_UdpClientImpl::_updateReceive() {
+    PZInteger receivedByteCount = 0;
+
     util::Packet packet;
     sf::IpAddress senderIp;
     std::uint16_t senderPort;
@@ -158,6 +162,7 @@ void RN_UdpClientImpl::_updateReceive() {
     while (keepReceiving) {
         switch (_socket.recv(packet, senderIp, senderPort)) {
         case decltype(_socket)::Status::OK:
+            receivedByteCount += stopz(packet.getDataSize() + UDP_HEADER_BYTE_COUNT);
             if (senderIp == _connector.getRemoteInfo().ipAddress
                 && senderPort == _connector.getRemoteInfo().port) {
                 _connector.receivedPacket(packet);
@@ -195,10 +200,12 @@ void RN_UdpClientImpl::_updateReceive() {
     if (_connector.getStatus() != RN_ConnectorStatus::Disconnected) {
         _connector.checkForTimeout();
     }
+
+    return receivedByteCount;
 }
 
-void RN_UdpClientImpl::_updateSend() {
-    _connector.send();
+PZInteger RN_UdpClientImpl::_updateSend() {
+    return _connector.send();
 }
 
 void RN_UdpClientImpl::_compose(int receiver, const void* data, std::size_t sizeInBytes) {

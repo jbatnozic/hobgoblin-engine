@@ -155,6 +155,50 @@ void DefaultNetworkingManager::syncCompleteStateToClient(hg::PZInteger aClientIn
 }
 
 ///////////////////////////////////////////////////////////////////////////
+// TELEMETRY                                                             //
+///////////////////////////////////////////////////////////////////////////
+
+void DefaultNetworkingManager::setTelemetryCycleLimit(hg::PZInteger aCycleLimit) {
+    while (hg::stopz(_telemetry.size()) < aCycleLimit) {
+        _telemetry.emplace_front();
+    }
+
+    while (hg::stopz(_telemetry.size()) > aCycleLimit) {
+        _telemetry.pop_front();
+    }
+}
+
+hg::PZInteger DefaultNetworkingManager::getTelemetryUploadByteCount(hg::PZInteger aCycleCount) const {
+    if (aCycleCount > hg::stopz(_telemetry.size())) {
+        throw hg::TracedLogicError{"getTelemetryUploadByteCount - aCycleCount must not be greater than the telemetry cycle limit"};
+    }
+
+    hg::PZInteger result = 0;
+    for ( int i = static_cast<int>(_telemetry.size()) - 1
+        ; i > static_cast<int>(_telemetry.size()) - 1 - aCycleCount
+        ; i -= 1
+        ) {
+        result += _telemetry[static_cast<std::size_t>(i)].uploadByteCount;
+    }
+    return result;
+}
+
+hg::PZInteger DefaultNetworkingManager::getTelemetryDownloadByteCount(hg::PZInteger aCycleCount) const {
+    if (aCycleCount > hg::stopz(_telemetry.size())) {
+        throw hg::TracedLogicError{"getTelemetryDownloadByteCount - aCycleCount must not be greater than the telemetry cycle limit"};
+    }
+
+    hg::PZInteger result = 0;
+    for ( int i = static_cast<int>(_telemetry.size()) - 1
+        ; i > static_cast<int>(_telemetry.size()) - 1 - aCycleCount
+        ; i -= 1
+        ) {
+        result += _telemetry[static_cast<std::size_t>(i)].downloadByteCount;
+    }
+    return result;
+}
+
+///////////////////////////////////////////////////////////////////////////
 // MISC.                                                                 //
 ///////////////////////////////////////////////////////////////////////////
 
@@ -166,8 +210,16 @@ int DefaultNetworkingManager::getLocalClientIndex() const {
 // PROTECTED & PRIVATE METHODS                                           //
 ///////////////////////////////////////////////////////////////////////////
 
+void DefaultNetworkingManager::_eventStartFrame() {
+    _telemetry.emplace_back();
+    _telemetry.pop_front();
+}
+
 void DefaultNetworkingManager::_eventPreUpdate() {
-    _node->update(hg::RN_UpdateMode::Receive);
+    const auto receivedByteCount = _node->update(hg::RN_UpdateMode::Receive);
+    if (!_telemetry.empty()) {
+        _telemetry.back().downloadByteCount = receivedByteCount;
+    }
     _handleEvents();
 }
 
@@ -177,7 +229,10 @@ void DefaultNetworkingManager::_eventPostUpdate() {
         _syncObjReg.syncStateUpdates();
     }
 
-    _node->update(hg::RN_UpdateMode::Send);
+    const auto uploadedByteCount = _node->update(hg::RN_UpdateMode::Send);
+    if (!_telemetry.empty()) {
+        _telemetry.back().uploadByteCount = uploadedByteCount;
+    }
     _handleEvents();
 }
 

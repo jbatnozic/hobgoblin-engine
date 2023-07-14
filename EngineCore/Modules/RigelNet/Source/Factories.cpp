@@ -31,7 +31,7 @@ public:
 
     // From RN_NodeInterface:
 
-    void update(RN_UpdateMode mode) override {}
+    PZInteger update(RN_UpdateMode mode) override { return 0; }
 
     bool pollEvent(RN_Event& ev) override {
         return false;

@@ -16,6 +16,10 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace rn {
 
+namespace {
+constexpr auto UDP_HEADER_BYTE_COUNT = 8u;
+} // namespace
+
 bool RN_DefaultRetransmitPredicate(PZInteger /*aCyclesSinceLastTransmit*/, 
                                    std::chrono::microseconds aTimeSinceLastSend,
                                    std::chrono::microseconds aCurrentLatency) {
@@ -281,8 +285,9 @@ void RN_UdpConnectorImpl::checkForTimeout() {
     }
 }
 
-void RN_UdpConnectorImpl::send() {
+PZInteger RN_UdpConnectorImpl::send() {
     assert(_status != RN_ConnectorStatus::Disconnected);
+    PZInteger uploadedByteCount = 0;
 
     switch (_status) {
     case RN_ConnectorStatus::Accepting:  // Send CONNECT packets to the client, until a DATA packet is received  
@@ -293,6 +298,7 @@ void RN_UdpConnectorImpl::send() {
         // Safe to ignore recoverable errors here - Disconnected doesn't happen with UDP and
         // NotReady is irrelevant because CONNECTs keep getting resent until acknowledged anyway
         _socket.send(packet, _remoteInfo.ipAddress, _remoteInfo.port);
+        uploadedByteCount += stopz(packet.getDataSize() + UDP_HEADER_BYTE_COUNT);
     }
     break;
 
@@ -304,12 +310,13 @@ void RN_UdpConnectorImpl::send() {
         // Safe to ignore recoverable errors here - Disconnected doesn't happen with UDP and
         // NotReady is irrelevant because HELLOs keep getting resent until acknowledged anyway
         _socket.send(packet, _remoteInfo.ipAddress, _remoteInfo.port);
+        uploadedByteCount += stopz(packet.getDataSize() + UDP_HEADER_BYTE_COUNT);
     }
     break;
 
     case RN_ConnectorStatus::Connected:
         if (!_isConnectedLocally()) {
-            _uploadAllData();
+            uploadedByteCount += _uploadAllData();
         }
         else {
             _transferAllDataToLocalPeer();
@@ -320,6 +327,8 @@ void RN_UdpConnectorImpl::send() {
         HARD_ASSERT(false && "Unreachable");
         break;
     }
+
+    return uploadedByteCount;
 }
 
 void RN_UdpConnectorImpl::prepToReceive() {
@@ -624,7 +633,8 @@ bool RN_UdpConnectorImpl::_isConnectionTimedOut() const {
     return false;
 }
 
-void RN_UdpConnectorImpl::_uploadAllData() {
+PZInteger RN_UdpConnectorImpl::_uploadAllData() {
+    PZInteger uploadedByteCount = 0;
     PZInteger uploadCounter = 0;
     for (auto& taggedPacket : _sendBuffer) {
         if (taggedPacket.tag == TaggedPacket::AcknowledgedWeakly ||
@@ -640,10 +650,12 @@ void RN_UdpConnectorImpl::_uploadAllData() {
 
             switch (_socket.send(taggedPacket.packet, _remoteInfo.ipAddress, _remoteInfo.port)) {
             case RN_SocketAdapter::Status::OK:
+                uploadedByteCount += stopz(taggedPacket.packet.getDataSize() + UDP_HEADER_BYTE_COUNT);
                 // All good, carry on
                 break;
 
             case RN_SocketAdapter::Status::NotReady:
+                uploadedByteCount += stopz(taggedPacket.packet.getDataSize() + UDP_HEADER_BYTE_COUNT);
                 socketCannotSendMore = true;
                 break;
 
@@ -665,7 +677,8 @@ void RN_UdpConnectorImpl::_uploadAllData() {
             uploadCounter += 1;
 
             // TODO Configurable uploadCounter max
-            if (socketCannotSendMore || uploadCounter == 1000) {
+            const auto UPLOAD_COUNTER_MAX = 128;
+            if (socketCannotSendMore || uploadCounter == UPLOAD_COUNTER_MAX) {
                 break;
             }
         }
@@ -675,6 +688,8 @@ void RN_UdpConnectorImpl::_uploadAllData() {
     }
 
     _prepareNextOutgoingDataPacket(UDP_PACKET_TYPE_DATA);
+
+    return uploadedByteCount;
 }
 
 void RN_UdpConnectorImpl::_transferAllDataToLocalPeer() {

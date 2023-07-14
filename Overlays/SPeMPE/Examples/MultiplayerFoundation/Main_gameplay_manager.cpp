@@ -47,6 +47,18 @@ void MainGameplayManager::_eventFinalizeFrame() {
         // - Then, all ContextComponents owned by the context (in reverse order of insertion)
         ctx().stop();
     }
+
+    printBandwidthUsageCountdown -= 1;
+    if (printBandwidthUsageCountdown == 0) {
+        printBandwidthUsageCountdown = 120;
+        auto& netMgr = ccomp<MNetworking>();
+        HG_LOG_INFO(
+            LOG_ID,
+            "Bandwidth usage in the last 120 frames: {:6.2f}kB UP, {:6.2f}kB DOWN.",
+            static_cast<double>(netMgr.getTelemetryUploadByteCount(120)) / 1024.0,
+            static_cast<double>(netMgr.getTelemetryDownloadByteCount(120)) / 1024.0
+        );
+    }
 }
 
 void MainGameplayManager::onNetworkingEvent(const hg::RN_Event& aEvent) {

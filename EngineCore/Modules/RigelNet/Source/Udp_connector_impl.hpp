@@ -64,7 +64,8 @@ public:
     void disconnect(bool notfiyRemote);
 
     void checkForTimeout();
-    void send();
+    //! Return estimated number of bytes uploaded.
+    auto send() -> PZInteger;
     void prepToReceive();
     void receivedPacket(util::Packet& packet);
     void receivingFinished();
@@ -133,7 +134,8 @@ private:
     bool _isConnectionTimedOut() const;
 
     //! Sends all prepared data to the remote host (that is actually remote).
-    void _uploadAllData();
+    //! Return estimated number of bytes uploaded.
+    PZInteger _uploadAllData();
 
     //! Same as "_uploadAllData" but for a local connection.
     void _transferAllDataToLocalPeer();

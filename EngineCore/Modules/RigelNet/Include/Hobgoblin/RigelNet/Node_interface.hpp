@@ -35,7 +35,7 @@ public:
 
     virtual RN_NetworkingStack getNetworkingStack() const noexcept = 0;
 
-    virtual void update(RN_UpdateMode updateMode) = 0;
+    virtual PZInteger update(RN_UpdateMode updateMode) = 0;
 
     //! Call the provided function if this node is a Client.
     void callIfClient(std::function<void(RN_ClientInterface& client)> func);

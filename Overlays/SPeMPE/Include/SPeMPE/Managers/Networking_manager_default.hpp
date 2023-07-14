@@ -4,6 +4,7 @@
 #include <SPeMPE/GameObjectFramework/Game_object_bases.hpp>
 #include <SPeMPE/Managers/Networking_manager_interface.hpp>
 
+#include <deque>
 #include <memory>
 #include <vector>
 
@@ -77,12 +78,23 @@ public:
     void syncCompleteStateToClient(hg::PZInteger aClientIndex, bool aCleanFirst) override;
 
     ///////////////////////////////////////////////////////////////////////////
+    // TELEMETRY                                                             //
+    ///////////////////////////////////////////////////////////////////////////
+
+    void setTelemetryCycleLimit(hg::PZInteger aCycleLimit) override;
+
+    hg::PZInteger getTelemetryUploadByteCount(hg::PZInteger aCycleCount) const override;
+
+    hg::PZInteger getTelemetryDownloadByteCount(hg::PZInteger aCycleCount) const override;
+
+    ///////////////////////////////////////////////////////////////////////////
     // MISC.                                                                 //
     ///////////////////////////////////////////////////////////////////////////
 
     int getLocalClientIndex() const override;
 
 protected:
+    void _eventStartFrame() override;
     void _eventPreUpdate() override;
     void _eventPostUpdate() override;
 
@@ -94,6 +106,12 @@ private:
     detail::SynchronizedObjectRegistry _syncObjReg;
 
     std::vector<NetworkingEventListener*> _eventListeners;
+
+    struct TelemetryCycleInfo {
+        hg::PZInteger uploadByteCount   = 0;
+        hg::PZInteger downloadByteCount = 0;
+    };
+    std::deque<TelemetryCycleInfo> _telemetry;
 
     void _handleEvents();
 };

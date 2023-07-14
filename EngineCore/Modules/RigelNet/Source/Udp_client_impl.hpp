@@ -43,7 +43,7 @@ public:
 
     // From RN_NodeInterface:
 
-    void update(RN_UpdateMode mode) override;
+    PZInteger update(RN_UpdateMode mode) override;
 
     bool pollEvent(RN_Event& ev) override;
 
@@ -84,8 +84,8 @@ private:
 
     util::Packet* _currentPacket = nullptr;
 
-    void _updateReceive();
-    void _updateSend();
+    PZInteger _updateReceive();
+    PZInteger _updateSend();
 
     void _compose(int receiver, const void* data, std::size_t sizeInBytes) override;
     void _compose(RN_ComposeForAllType receiver, const void* data, std::size_t sizeInBytes) override;
