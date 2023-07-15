@@ -4,8 +4,6 @@
 
 #include <Hobgoblin/Common.hpp>
 
-#include <Hobgoblin/Logging.hpp>
-
 #include <cassert>
 #include <cstring>
 #include <chrono>

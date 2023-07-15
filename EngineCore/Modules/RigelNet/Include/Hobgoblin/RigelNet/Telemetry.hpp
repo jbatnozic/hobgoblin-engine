@@ -10,8 +10,12 @@ namespace rn {
 
 struct RN_Telemetry {
     //! Estimated number of bytes uploaded to the network.
+    //! Note that this does NOT count bytes exchanged between
+    //! locally connected nodes.
     hobgoblin::PZInteger uploadByteCount = 0;
     //! Estimated number of bytes downloaded from the network.
+    //! Note that this does NOT count bytes exchanged between
+    //! locally connected nodes.
     hobgoblin::PZInteger downloadByteCount = 0;
 };
 
