@@ -100,9 +100,9 @@ void RN_UdpServerImpl::setRetransmitPredicate(RN_RetransmitPredicate pred) {
     _retransmitPredicate = pred;
 }
 
-PZInteger RN_UdpServerImpl::update(RN_UpdateMode mode) {
+RN_Telemetry RN_UdpServerImpl::update(RN_UpdateMode mode) {
     if (!_running) {
-        return 0;
+        return {};
     }
 
     switch (mode) {
@@ -206,8 +206,8 @@ int RN_UdpServerImpl::acceptLocalConnection(RN_UdpConnectorImpl& localPeer,
 // PRIVATE IMPLEMENTATION                                                //
 ///////////////////////////////////////////////////////////////////////////
 
-PZInteger RN_UdpServerImpl::_updateReceive() {
-    PZInteger receivedByteCount = 0;
+RN_Telemetry RN_UdpServerImpl::_updateReceive() {
+    RN_Telemetry telemetry;
     util::Packet packet;
     sf::IpAddress senderIp;
     std::uint16_t senderPort;
@@ -221,7 +221,7 @@ PZInteger RN_UdpServerImpl::_updateReceive() {
         switch (_socket.recv(packet, senderIp, senderPort)) {
         case decltype(_socket)::Status::OK:
             {
-                receivedByteCount += stopz(packet.getDataSize() + UDP_HEADER_BYTE_COUNT);
+                telemetry.downloadByteCount += stopz(packet.getDataSize() + UDP_HEADER_BYTE_COUNT);
                 const int senderConnectorIndex = _findConnector(senderIp, senderPort);
 
                 if (senderConnectorIndex != -1) {
@@ -258,7 +258,7 @@ PZInteger RN_UdpServerImpl::_updateReceive() {
         
         if (client->getStatus() == RN_ConnectorStatus::Connected) {
             client->receivingFinished();
-            client->sendAcks();
+            telemetry += client->sendAcks();
         }
         if (client->getStatus() != RN_ConnectorStatus::Disconnected) {
             _senderIndex = i;
@@ -270,18 +270,18 @@ PZInteger RN_UdpServerImpl::_updateReceive() {
     }
     _senderIndex = -1;
 
-    return receivedByteCount;
+    return telemetry;
 }
 
-PZInteger RN_UdpServerImpl::_updateSend() {
-    PZInteger uploadedByteCount = 0;
+RN_Telemetry RN_UdpServerImpl::_updateSend() {
+    RN_Telemetry telemetry;
     for (auto& client : _clients) {
         if (client->getStatus() == RN_ConnectorStatus::Disconnected) {
             continue;
         }
-        uploadedByteCount += client->send();
+        telemetry += client->send();
     }
-    return uploadedByteCount;
+    return telemetry;
 }
 
 int RN_UdpServerImpl::_findConnector(sf::IpAddress addr, std::uint16_t port) const {

@@ -83,9 +83,7 @@ public:
 
     void setTelemetryCycleLimit(hg::PZInteger aCycleLimit) override;
 
-    hg::PZInteger getTelemetryUploadByteCount(hg::PZInteger aCycleCount) const override;
-
-    hg::PZInteger getTelemetryDownloadByteCount(hg::PZInteger aCycleCount) const override;
+    hg::RN_Telemetry getTelemetry(hg::PZInteger aCycleCount) const override;
 
     ///////////////////////////////////////////////////////////////////////////
     // MISC.                                                                 //
@@ -107,11 +105,7 @@ private:
 
     std::vector<NetworkingEventListener*> _eventListeners;
 
-    struct TelemetryCycleInfo {
-        hg::PZInteger uploadByteCount   = 0;
-        hg::PZInteger downloadByteCount = 0;
-    };
-    std::deque<TelemetryCycleInfo> _telemetry;
+    std::deque<hg::RN_Telemetry> _telemetry;
 
     void _handleEvents();
 };

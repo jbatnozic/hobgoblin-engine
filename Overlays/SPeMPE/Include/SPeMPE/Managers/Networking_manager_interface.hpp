@@ -113,15 +113,9 @@ public:
     //! TODO
     virtual void setTelemetryCycleLimit(hg::PZInteger aCycleLimit) = 0;
 
-    //! Returns the estimated number of bytes uploaded during the last number
-    //! (specified by `aCycleCount`) of cycles. `aCycleCount` must not be greater than the
-    //! limit set by setTelemetryCycleLimit().
-    virtual hg::PZInteger getTelemetryUploadByteCount(hg::PZInteger aCycleCount) const = 0;
-
-    //! Returns the estimated number of bytes downloaded during the last number
-    //! (specified by `aCycleCount`) of cycles. `aCycleCount` must not be greater than the
-    //! limit set by setTelemetryCycleLimit().
-    virtual hg::PZInteger getTelemetryDownloadByteCount(hg::PZInteger aCycleCount) const = 0;
+    //! Returns the RigelNet telemetry for the last `aCycleCount` cycles.
+    //! `aCycleCount` must not be greater than the limit set by setTelemetryCycleLimit().
+    virtual hg::RN_Telemetry getTelemetry(hg::PZInteger aCycleCount) const = 0;
 
     ///////////////////////////////////////////////////////////////////////////
     // MISC.                                                                 //

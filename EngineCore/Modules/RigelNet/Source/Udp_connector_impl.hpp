@@ -7,6 +7,7 @@
 #include <Hobgoblin/RigelNet/Events.hpp>
 #include <Hobgoblin/RigelNet/Node_interface.hpp>
 #include <Hobgoblin/RigelNet/Remote_info.hpp>
+#include <Hobgoblin/RigelNet/Telemetry.hpp>
 #include <Hobgoblin/Utility/No_copy_no_move.hpp>
 #include <Hobgoblin/Utility/Time_utils.hpp>
 
@@ -64,13 +65,12 @@ public:
     void disconnect(bool notfiyRemote);
 
     void checkForTimeout();
-    //! Return estimated number of bytes uploaded.
-    auto send() -> PZInteger;
+    auto send() -> RN_Telemetry;
     void prepToReceive();
     void receivedPacket(util::Packet& packet);
     void receivingFinished();
     void handleDataMessages(RN_NodeInterface& node, util::Packet*& pointerToCurrentPacket);
-    void sendAcks();
+    auto sendAcks() -> RN_Telemetry;
     
     void setClientIndex(std::optional<PZInteger> clientIndex);
     std::optional<PZInteger> getClientIndex() const;

@@ -4,6 +4,7 @@
 #include <Hobgoblin/RigelNet/Configuration.hpp>
 #include <Hobgoblin/RigelNet/Events.hpp>
 #include <Hobgoblin/RigelNet/Handlermgmt.hpp>
+#include <Hobgoblin/RigelNet/Telemetry.hpp>
 #include <Hobgoblin/Utility/Any_ptr.hpp>
 #include <Hobgoblin/Utility/Packet.hpp>
 
@@ -35,7 +36,7 @@ public:
 
     virtual RN_NetworkingStack getNetworkingStack() const noexcept = 0;
 
-    virtual PZInteger update(RN_UpdateMode updateMode) = 0;
+    virtual RN_Telemetry update(RN_UpdateMode updateMode) = 0;
 
     //! Call the provided function if this node is a Client.
     void callIfClient(std::function<void(RN_ClientInterface& client)> func);

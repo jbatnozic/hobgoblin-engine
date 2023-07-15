@@ -3,6 +3,7 @@
 
 #include <Hobgoblin/RigelNet/Server_interface.hpp>
 #include <Hobgoblin/RigelNet/Remote_info.hpp>
+#include <Hobgoblin/RigelNet/Telemetry.hpp>
 #include <Hobgoblin/Utility/No_copy_no_move.hpp>
 
 #include "Node_base.hpp"
@@ -45,7 +46,7 @@ public:
 
     // From RN_NodeInterface:
 
-    PZInteger update(RN_UpdateMode mode) override;
+    RN_Telemetry update(RN_UpdateMode mode) override;
 
     bool pollEvent(RN_Event& ev) override;
 
@@ -104,10 +105,8 @@ private:
 
     util::Packet* _currentPacket = nullptr;
 
-    //! Returns estimated number of bytes received.
-    PZInteger _updateReceive();
-    //! Returns estimaned number of bytes sent.
-    PZInteger _updateSend();
+    RN_Telemetry _updateReceive();
+    RN_Telemetry _updateSend();
     int  _findConnector(sf::IpAddress addr, std::uint16_t port) const;
     void _handlePacketFromUnknownSender(sf::IpAddress senderIp, std::uint16_t senderPort,
                                         util::Packet& packet);

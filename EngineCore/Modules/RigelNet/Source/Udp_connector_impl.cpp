@@ -4,6 +4,8 @@
 
 #include <Hobgoblin/Common.hpp>
 
+#include <Hobgoblin/Logging.hpp>
+
 #include <cassert>
 #include <cstring>
 #include <chrono>
@@ -285,9 +287,9 @@ void RN_UdpConnectorImpl::checkForTimeout() {
     }
 }
 
-PZInteger RN_UdpConnectorImpl::send() {
+RN_Telemetry RN_UdpConnectorImpl::send() {
     assert(_status != RN_ConnectorStatus::Disconnected);
-    PZInteger uploadedByteCount = 0;
+    RN_Telemetry telemetry;
 
     switch (_status) {
     case RN_ConnectorStatus::Accepting:  // Send CONNECT packets to the client, until a DATA packet is received  
@@ -298,7 +300,7 @@ PZInteger RN_UdpConnectorImpl::send() {
         // Safe to ignore recoverable errors here - Disconnected doesn't happen with UDP and
         // NotReady is irrelevant because CONNECTs keep getting resent until acknowledged anyway
         _socket.send(packet, _remoteInfo.ipAddress, _remoteInfo.port);
-        uploadedByteCount += stopz(packet.getDataSize() + UDP_HEADER_BYTE_COUNT);
+        telemetry.uploadByteCount += stopz(packet.getDataSize() + UDP_HEADER_BYTE_COUNT);
     }
     break;
 
@@ -310,13 +312,13 @@ PZInteger RN_UdpConnectorImpl::send() {
         // Safe to ignore recoverable errors here - Disconnected doesn't happen with UDP and
         // NotReady is irrelevant because HELLOs keep getting resent until acknowledged anyway
         _socket.send(packet, _remoteInfo.ipAddress, _remoteInfo.port);
-        uploadedByteCount += stopz(packet.getDataSize() + UDP_HEADER_BYTE_COUNT);
+        telemetry.uploadByteCount += stopz(packet.getDataSize() + UDP_HEADER_BYTE_COUNT);
     }
     break;
 
     case RN_ConnectorStatus::Connected:
         if (!_isConnectedLocally()) {
-            uploadedByteCount += _uploadAllData();
+            telemetry.uploadByteCount += _uploadAllData();
         }
         else {
             _transferAllDataToLocalPeer();
@@ -328,7 +330,7 @@ PZInteger RN_UdpConnectorImpl::send() {
         break;
     }
 
-    return uploadedByteCount;
+    return telemetry;
 }
 
 void RN_UdpConnectorImpl::prepToReceive() {
@@ -401,11 +403,11 @@ void RN_UdpConnectorImpl::receivingFinished() {
     }
 }
 
-void RN_UdpConnectorImpl::sendAcks() {
+RN_Telemetry RN_UdpConnectorImpl::sendAcks() {
     assert(_status == RN_ConnectorStatus::Connected);
 
     if (_ackOrdinals.empty()) {
-        return;
+        return {};
     }
 
     util::Packet packet;
@@ -417,6 +419,10 @@ void RN_UdpConnectorImpl::sendAcks() {
     // Safe to ignore recoverable errors here - Disconnected doesn't happen with UDP and
     // NotReady is irrelevant because Acks keep getting resent until acknowledged back anyway
     _socket.send(packet, _remoteInfo.ipAddress, _remoteInfo.port);
+
+    RN_Telemetry telemetry;
+    telemetry.uploadByteCount = stopz(packet.getDataSize() + UDP_HEADER_BYTE_COUNT);
+    return telemetry;
 }
 
 void RN_UdpConnectorImpl::handleDataMessages(RN_NodeInterface& node, 

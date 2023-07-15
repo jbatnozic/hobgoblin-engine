@@ -72,13 +72,13 @@ void RN_UdpClientImpl::setRetransmitPredicate(RN_RetransmitPredicate pred) {
     _retransmitPredicate = pred;
 }
 
-PZInteger RN_UdpClientImpl::update(RN_UpdateMode mode) {
+RN_Telemetry RN_UdpClientImpl::update(RN_UpdateMode mode) {
     if (!_running) {
-        return 0;
+        return {};
     }
     else if (_connector.getStatus() == RN_ConnectorStatus::Disconnected) {
         _running = false;
-        return 0;
+        return {};
     }
 
     switch (mode) {
@@ -147,8 +147,8 @@ RN_NetworkingStack RN_UdpClientImpl::getNetworkingStack() const noexcept {
 // PRIVATE IMPLEMENTATION                                                //
 ///////////////////////////////////////////////////////////////////////////
 
-PZInteger RN_UdpClientImpl::_updateReceive() {
-    PZInteger receivedByteCount = 0;
+RN_Telemetry RN_UdpClientImpl::_updateReceive() {
+    RN_Telemetry telemetry;
 
     util::Packet packet;
     sf::IpAddress senderIp;
@@ -162,7 +162,7 @@ PZInteger RN_UdpClientImpl::_updateReceive() {
     while (keepReceiving) {
         switch (_socket.recv(packet, senderIp, senderPort)) {
         case decltype(_socket)::Status::OK:
-            receivedByteCount += stopz(packet.getDataSize() + UDP_HEADER_BYTE_COUNT);
+            telemetry.downloadByteCount += stopz(packet.getDataSize() + UDP_HEADER_BYTE_COUNT);
             if (senderIp == _connector.getRemoteInfo().ipAddress
                 && senderPort == _connector.getRemoteInfo().port) {
                 _connector.receivedPacket(packet);
@@ -192,7 +192,7 @@ PZInteger RN_UdpClientImpl::_updateReceive() {
 
     if (_connector.getStatus() == RN_ConnectorStatus::Connected) {
         _connector.receivingFinished();
-        _connector.sendAcks();
+        telemetry += _connector.sendAcks();
     }
     if (_connector.getStatus() != RN_ConnectorStatus::Disconnected) {
         _connector.handleDataMessages(SELF, /* reference to pointer -> */ _currentPacket);
@@ -201,10 +201,10 @@ PZInteger RN_UdpClientImpl::_updateReceive() {
         _connector.checkForTimeout();
     }
 
-    return receivedByteCount;
+    return telemetry;
 }
 
-PZInteger RN_UdpClientImpl::_updateSend() {
+RN_Telemetry RN_UdpClientImpl::_updateSend() {
     return _connector.send();
 }
 

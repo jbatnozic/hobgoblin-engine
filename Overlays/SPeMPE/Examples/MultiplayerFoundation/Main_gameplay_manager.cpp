@@ -52,11 +52,12 @@ void MainGameplayManager::_eventFinalizeFrame() {
     if (printBandwidthUsageCountdown == 0) {
         printBandwidthUsageCountdown = 120;
         auto& netMgr = ccomp<MNetworking>();
+        const auto telemetry = netMgr.getTelemetry(120);
         HG_LOG_INFO(
             LOG_ID,
-            "Bandwidth usage in the last 120 frames: {:6.2f}kB UP, {:6.2f}kB DOWN.",
-            static_cast<double>(netMgr.getTelemetryUploadByteCount(120)) / 1024.0,
-            static_cast<double>(netMgr.getTelemetryDownloadByteCount(120)) / 1024.0
+            "Bandwidth usage in the last 1 frame(s): {:6.2f}B UP, {:6.2f}B DOWN.",
+            static_cast<double>(telemetry.uploadByteCount) / 1024.0,
+            static_cast<double>(telemetry.downloadByteCount) / 1024.0
         );
     }
 }
