@@ -107,9 +107,19 @@ public:
     virtual void syncCompleteStateToClient(hg::PZInteger aClientIndex, bool aCleanFirst) = 0;
 
     ///////////////////////////////////////////////////////////////////////////
-    // MISC.                                                                 //
+    // TELEMETRY                                                             //
     ///////////////////////////////////////////////////////////////////////////
 
+    //! TODO
+    virtual void setTelemetryCycleLimit(hg::PZInteger aCycleLimit) = 0;
+
+    //! Returns the RigelNet telemetry for the last `aCycleCount` cycles.
+    //! `aCycleCount` must not be greater than the limit set by setTelemetryCycleLimit().
+    virtual hg::RN_Telemetry getTelemetry(hg::PZInteger aCycleCount) const = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    // MISC.                                                                 //
+    ///////////////////////////////////////////////////////////////////////////
 
     virtual int getLocalClientIndex() const = 0;
 
