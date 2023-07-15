@@ -81,14 +81,14 @@ void PlayerCharacter::_eventDraw1() {
     ccomp<MWindow>().getCanvas().draw(circle);
 }
 
-SPEMPE_GENERATE_DEFAULT_SYNC_HANDLERS(PlayerCharacter, (CREATE, UPDATE, DESTROY));
+SPEMPE_GENERATE_DEFAULT_SYNC_HANDLERS(PlayerCharacter, (CREATE, UPDATE_AD, DESTROY));
 
 void PlayerCharacter::_syncCreateImpl(spe::SyncDetails& aSyncDetails) const {
     SPEMPE_SYNC_CREATE_DEFAULT_IMPL(PlayerCharacter, aSyncDetails);
 }
 
 void PlayerCharacter::_syncUpdateImpl(spe::SyncDetails& aSyncDetails) const {
-    SPEMPE_SYNC_UPDATE_DEFAULT_IMPL(PlayerCharacter, aSyncDetails);
+    SPEMPE_SYNC_UPDATE_AD_DEFAULT_IMPL(PlayerCharacter, aSyncDetails);
 }
 
 void PlayerCharacter::_syncDestroyImpl(spe::SyncDetails& aSyncDetails) const {

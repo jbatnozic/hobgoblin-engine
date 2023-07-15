@@ -30,10 +30,13 @@ using SyncFlagsUnderlyingType = std::uint8_t;
 
 enum class SyncFlags : detail::SyncFlagsUnderlyingType {
     None = 0x00,
-    // Shows whether this update will be used as a pacemaker pulse on
+    //! Shows whether this update will be used as a pacemaker pulse on
     //! the client side. This information is mostly only useful to the
     //! engine itself.
-    PacemakerPulse = 0x01
+    PacemakerPulse = 0x01,
+    //! Shows whether it's allowed to send only the diff of this object
+    //! since the last cycle.
+    DiffAllowed = 0x02,
 };
 
 inline
@@ -43,9 +46,17 @@ bool HasPacemakerPulse(SyncFlags aFlags) {
 }
 
 inline
-SyncFlags& operator|=(SyncFlags& aLhs, const SyncFlags aRhs) {
+SyncFlags& operator|=(SyncFlags& aLhs, SyncFlags aRhs) {
     return aLhs = static_cast<SyncFlags>(
         static_cast<detail::SyncFlagsUnderlyingType>(aLhs) | 
+        static_cast<detail::SyncFlagsUnderlyingType>(aRhs)
+    );
+}
+
+inline
+SyncFlags operator&(SyncFlags aLhs, SyncFlags aRhs) {
+    return static_cast<SyncFlags>(
+        static_cast<detail::SyncFlagsUnderlyingType>(aLhs) &
         static_cast<detail::SyncFlagsUnderlyingType>(aRhs)
     );
 }
@@ -76,7 +87,7 @@ struct SyncDetails {
     }
 
     enum class FilterResult {
-        FullSync,   //! Sync whole state of this object (default behaviour)
+        FullSync,   //! Sync whole state of this object (default behaviour) TODO rename this
         Skip,       //! Don't send anything during this update (no change)
         Deactivate  //! Don't send anything and deactivate the remote dummy
     };

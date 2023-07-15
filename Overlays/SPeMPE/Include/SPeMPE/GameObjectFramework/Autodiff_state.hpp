@@ -775,7 +775,7 @@ protected:
     using USPEMPE_ADS_BITS_TYPE          = StaticPackableBitset<taBaseCount>;
 
     DeepCopyPtr<USPEMPE_ADS_MIRROR_OBJECT_TYPE> USPEMPE_ADS_MIRROR_OBJECT_NAME;
-    AutodiffPackMode                            USPEMPE_ADS_PACK_MODE_NAME = AutodiffPackMode::Default;
+    AutodiffPackMode mutable                    USPEMPE_ADS_PACK_MODE_NAME = AutodiffPackMode::Default;
 
 public:
     //! Initializes the Mirror (so a diff can be tracked). Only needed on a Master object.
