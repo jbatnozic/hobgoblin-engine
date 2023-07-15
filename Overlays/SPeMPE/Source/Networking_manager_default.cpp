@@ -155,6 +155,35 @@ void DefaultNetworkingManager::syncCompleteStateToClient(hg::PZInteger aClientIn
 }
 
 ///////////////////////////////////////////////////////////////////////////
+// TELEMETRY                                                             //
+///////////////////////////////////////////////////////////////////////////
+
+void DefaultNetworkingManager::setTelemetryCycleLimit(hg::PZInteger aCycleLimit) {
+    while (hg::stopz(_telemetry.size()) < aCycleLimit) {
+        _telemetry.emplace_front();
+    }
+
+    while (hg::stopz(_telemetry.size()) > aCycleLimit) {
+        _telemetry.pop_front();
+    }
+}
+
+hg::RN_Telemetry DefaultNetworkingManager::getTelemetry(hg::PZInteger aCycleCount) const {
+    if (aCycleCount > hg::stopz(_telemetry.size())) {
+        throw hg::TracedLogicError{"getTelemetry - aCycleCount must not be greater than the telemetry cycle limit"};
+    }
+
+    hg::RN_Telemetry result;
+    for ( int i = static_cast<int>(_telemetry.size()) - 1
+        ; i > static_cast<int>(_telemetry.size()) - 1 - aCycleCount
+        ; i -= 1
+        ) {
+        result += _telemetry[static_cast<std::size_t>(i)];
+    }
+    return result;
+}
+
+///////////////////////////////////////////////////////////////////////////
 // MISC.                                                                 //
 ///////////////////////////////////////////////////////////////////////////
 
@@ -166,8 +195,16 @@ int DefaultNetworkingManager::getLocalClientIndex() const {
 // PROTECTED & PRIVATE METHODS                                           //
 ///////////////////////////////////////////////////////////////////////////
 
+void DefaultNetworkingManager::_eventStartFrame() {
+    _telemetry.emplace_back();
+    _telemetry.pop_front();
+}
+
 void DefaultNetworkingManager::_eventPreUpdate() {
-    _node->update(hg::RN_UpdateMode::Receive);
+    const auto telemetry = _node->update(hg::RN_UpdateMode::Receive);
+    if (!_telemetry.empty()) {
+        _telemetry.back() += telemetry;
+    }
     _handleEvents();
 }
 
@@ -177,7 +214,10 @@ void DefaultNetworkingManager::_eventPostUpdate() {
         _syncObjReg.syncStateUpdates();
     }
 
-    _node->update(hg::RN_UpdateMode::Send);
+    const auto telemetry = _node->update(hg::RN_UpdateMode::Send);
+    if (!_telemetry.empty()) {
+        _telemetry.back() += telemetry;
+    }
     _handleEvents();
 }
 

@@ -3,6 +3,7 @@
 
 #include <Hobgoblin/RigelNet/Client_interface.hpp>
 #include <Hobgoblin/RigelNet/Remote_info.hpp>
+#include <Hobgoblin/RigelNet/Telemetry.hpp>
 #include <Hobgoblin/Utility/No_copy_no_move.hpp>
 
 #include "Node_base.hpp"
@@ -43,7 +44,7 @@ public:
 
     // From RN_NodeInterface:
 
-    void update(RN_UpdateMode mode) override;
+    RN_Telemetry update(RN_UpdateMode mode) override;
 
     bool pollEvent(RN_Event& ev) override;
 
@@ -84,8 +85,8 @@ private:
 
     util::Packet* _currentPacket = nullptr;
 
-    void _updateReceive();
-    void _updateSend();
+    RN_Telemetry _updateReceive();
+    RN_Telemetry _updateSend();
 
     void _compose(int receiver, const void* data, std::size_t sizeInBytes) override;
     void _compose(RN_ComposeForAllType receiver, const void* data, std::size_t sizeInBytes) override;

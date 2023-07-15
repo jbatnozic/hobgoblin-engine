@@ -124,6 +124,7 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
         std::printf("Client started on port %d (connecting to %s:%d)\n",
                     (int)client.getLocalPort(), aRemoteIp.c_str(), (int)aRemotePort);
     }
+    netMgr->setTelemetryCycleLimit(120);
     context->attachAndOwnComponent(std::move(netMgr));
 
     // Create and attack an Input sync manager

@@ -15,6 +15,8 @@ public:
 private:
     hg::PZInteger stateBufferingLength = 0;
 
+    hg::PZInteger printBandwidthUsageCountdown = 120;
+
     void _eventUpdate() override;
     void _eventDrawGUI() override;
     void _eventFinalizeFrame() override;

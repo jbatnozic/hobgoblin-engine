@@ -31,7 +31,7 @@ public:
 
     // From RN_NodeInterface:
 
-    void update(RN_UpdateMode mode) override {}
+    RN_Telemetry update(RN_UpdateMode mode) override { return {}; }
 
     bool pollEvent(RN_Event& ev) override {
         return false;
