@@ -2,7 +2,6 @@
 #include <SPeMPE/GameContext/Game_context.hpp>
 #include <SPeMPE/GameObjectFramework/Game_object_bases.hpp>
 #include <SPeMPE/GameObjectFramework/Synchronized_object_registry.hpp>
-#include <SPeMPE/Other/Rpc_receiver_context.hpp>
 
 #include <Hobgoblin/Logging.hpp>
 
@@ -27,68 +26,7 @@ void GetIndicesForComposingToEveryone(const hg::RN_NodeInterface& node, std::vec
         }
     }
 }
-
-RN_DEFINE_RPC(USPEMPE_DeactivateObject, RN_ARGS(SyncId, aSyncId)) {
-    RN_NODE_IN_HANDLER().callIfClient(
-        [=](hg::RN_ClientInterface& client) {
-            RPCReceiverContext rc{client};
-            auto  regId      = rc.netwMgr.getRegistryId();
-            auto& syncObjReg = *reinterpret_cast<detail::SynchronizedObjectRegistry*>(regId.address);
-
-            syncObjReg.deactivateObject(aSyncId, rc.pessimisticLatencyInSteps);
-        });
-
-    RN_NODE_IN_HANDLER().callIfServer(
-        [](hg::RN_ServerInterface&) {
-            throw hg::RN_IllegalMessage("Server received a sync message");
-        });
-}
 } // namespace
-
-SyncDetails::SyncDetails(detail::SynchronizedObjectRegistry& aRegistry)
-    : _registry{&aRegistry}
-{
-}
-
-hg::RN_NodeInterface& SyncDetails::getNode() const {
-    return _registry->getNode();
-}
-
-const std::vector<hg::PZInteger>& SyncDetails::getRecepients() const {
-    return _recepients;
-}
-
-void SyncDetails::filterSyncs(const SyncDetails::FilterPrecidateFunc& aPredicate) {
-    constexpr static bool REMOVE_IF_DO_REMOVE   = true;
-    constexpr static bool REMOVE_IF_DONT_REMOVE = false;
-
-    auto& reg = *_registry;
-    const SyncId forObject = _forObject;
-
-    auto iter = std::remove_if(_recepients.begin(), _recepients.end(),
-                               [&](hg::PZInteger aRecepient) -> bool {
-                                   switch (aPredicate(aRecepient)) {
-                                   case FilterResult::FullSync:
-                                       return REMOVE_IF_DONT_REMOVE;
-
-                                   case FilterResult::Skip:
-                                       return REMOVE_IF_DO_REMOVE;
-
-                                   case FilterResult::Deactivate:
-                                       if (!reg.isObjectDeactivatedForClient(forObject, aRecepient)) {
-                                           reg.setObjectDeactivatedFlagForClient(forObject, aRecepient, true);
-                                           Compose_USPEMPE_DeactivateObject(reg.getNode(), aRecepient, forObject);
-                                       }
-                                       return REMOVE_IF_DO_REMOVE;
-
-                                   default:
-                                       assert(false && "Unreachable");
-                                       break;
-                                   }
-                               });
-
-    _recepients.erase(iter, _recepients.end());
-}
 
 namespace detail {
 
@@ -174,41 +112,6 @@ SynchronizedObjectBase* SynchronizedObjectRegistry::getMapping(SyncId syncId) co
     }
     return nullptr;
 }
-
-#if 0 // Kept for posterity (yes, I know git exists)
-void SynchronizedObjectRegistry::afterRecv(const GameContext& gameContext) {
-#define ROUNDTOPZ(_x_) (static_cast<hg::PZInteger>(std::round(_x_)))
-
-    if (_node->isServer()) {
-        _averageDelay = 0;
-        return;
-    }
-
-    std::chrono::microseconds latency; // Single direction
-    _node->callIfClient(
-        [&](hg::RN_ClientInterface& aClient) {
-            latency = aClient.getServerConnector().getRemoteInfo().meanLatency / 2;
-        });
-
-    const auto delaySteps = ROUNDTOPZ(latency / gameContext.getRuntimeConfig().deltaTime);
-
-    _delays.push_back(delaySteps);
-    if (_delays.size() > 60) {
-        _delays.pop_front();
-    }
-
-    const auto sumOfDelays = std::accumulate(_delays.begin(), _delays.end(), decltype(_delays)::value_type(0));
-
-    const auto newAvgDelay = ROUNDTOPZ(static_cast<double>(sumOfDelays) / _delays.size());
-
-    if (newAvgDelay != _averageDelay) {
-        std::cout << "Average delay changed from " << _averageDelay << " to " << newAvgDelay << '\n';
-        _averageDelay = newAvgDelay;
-    }
-
-#undef ROUNDTOPZ
-}
-#endif 
 
 void SynchronizedObjectRegistry::syncStateUpdates() {
     GetIndicesForComposingToEveryone(*_node, _syncDetails._recepients);

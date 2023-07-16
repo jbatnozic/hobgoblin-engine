@@ -11,8 +11,6 @@
 #include <string>
 #include <utility>
 
-// #include <iostream> // TODO temp.
-
 ///////////////////////////////////////////////////////////////////////////
 // MACROS: GENERAL NAMES                                                 //
 ///////////////////////////////////////////////////////////////////////////
@@ -762,6 +760,7 @@ private:
 
 } // namespace detail
 
+//! Packing mode (behaviour of << operator) for an Autodiff object.
 enum class AutodiffPackMode : std::int8_t {
     //! Pack only members that have been changed.
     PackDiff,
@@ -782,9 +781,23 @@ protected:
     class USPEMPE_ADS_MIRROR_OBJECT_TYPE : public taBases... {};
     using USPEMPE_ADS_BITS_TYPE          = StaticPackableBitset<taBaseCount>;
 
+    /**
+     * Dynamically allocated mirror object that has all the same fields as this.
+     * Used to track which fields were changed.
+     */
     DeepCopyPtr<USPEMPE_ADS_MIRROR_OBJECT_TYPE> USPEMPE_ADS_MIRROR_OBJECT_NAME;
-    USPEMPE_ADS_BITS_TYPE                       USPEMPE_ADS_BITS_NAME;
-    AutodiffPackMode mutable                    USPEMPE_ADS_PACK_MODE_NAME = AutodiffPackMode::Default;
+
+    /**
+     * After an object of this class is extracted from a Packet, this field will be set
+     * (bits corresponding to the extracted fields will be 1s, bits corresponding to the
+     * fields which were not represented in the packet will be 0s).
+     */
+    USPEMPE_ADS_BITS_TYPE USPEMPE_ADS_BITS_NAME;
+
+    /**
+     * Current packing mode (behaviour of << operator).
+     */
+    mutable AutodiffPackMode USPEMPE_ADS_PACK_MODE_NAME = AutodiffPackMode::Default;
 
 public:
     //! Initializes the Mirror (so a diff can be tracked). Only needed on a Master object.
@@ -909,7 +922,6 @@ void AutodiffStateApplyDiff(
     taRest&&... aRest)
 {
     if (aBits.getBit(aDepth)) {
-        // std::cerr << "ApplyDiff: exchanging " << aReal << " with " << aOther << '\n';
         aReal = aOther;
     }
     if constexpr (sizeof...(taRest) > 0) {
@@ -927,6 +939,8 @@ constexpr bool AUTODIFF_STATE_HAS_CHANGE = true;
 
 namespace detail {
 
+//! Checks whether an Autodiff object contains changes.
+//! Returns either `AUTODIFF_STATE_NO_CHANGE` or `AUTODIFF_STATE_HAS_CHANGE`.
 template <class taMember, class... taRest>
 bool AutodiffStateCmp(
     const taMember& aMirror,
