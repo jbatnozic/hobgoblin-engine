@@ -81,6 +81,10 @@ void PlayerCharacter::_eventDraw1() {
     ccomp<MWindow>().getCanvas().draw(circle);
 }
 
+void PlayerCharacter::_eventFinalizeFrame(spe::IfMaster) {
+    _getCurrentState().commit();
+}
+
 SPEMPE_GENERATE_DEFAULT_SYNC_HANDLERS(PlayerCharacter, (CREATE, UPDATE_AD, DESTROY));
 
 void PlayerCharacter::_syncCreateImpl(spe::SyncDetails& aSyncDetails) const {

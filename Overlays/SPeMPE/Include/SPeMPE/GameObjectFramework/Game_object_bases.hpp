@@ -347,14 +347,30 @@ private:
         _ssch.putNewState(SchedulerPair{{}, DummyStatus::deactivated()}, aDelaySteps);
     }
 
+    const taVisibleState& _getLatestState() const {
+        assert(isMasterObject() || !isDeactivated());
+        return _ssch.getLatestState().visibleState;
+    }
+
 public:
     //! Internal implementation, do not call manually!
     void __spempeimpl_applyUpdate(const VisibleState& aNewState, hg::PZInteger aDelaySteps, SyncFlags aFlags) {
+        VisibleState stateToSchedule = [this, &aNewState, aFlags]() {
+            if constexpr (std::is_base_of<detail::AutodiffStateTag, VisibleState>::value) {
+                if (IsDiffAllowed(aFlags)) {
+                    VisibleState state = _getLatestState();
+                    state.applyDiff(aNewState);
+                    return state;
+                }
+            }
+            return aNewState;
+        }();
+
         switch (HasPacemakerPulse(aFlags)) {
         // NORMAL UPDATE
         case false:
             if (!isUsingAlternatingUpdates()) {
-                _ssch.putNewState(SchedulerPair{aNewState, DummyStatus::active()}, aDelaySteps);
+                _ssch.putNewState(SchedulerPair{stateToSchedule, DummyStatus::active()}, aDelaySteps);
             }
             else {
                 if (_deferredState.has_value()) {
@@ -364,9 +380,9 @@ public:
                     _deferredState.reset();
                 }
 
-                _ssch.putNewState(SchedulerPair{aNewState, DummyStatus::active()}, aDelaySteps);
+                _ssch.putNewState(SchedulerPair{stateToSchedule, DummyStatus::active()}, aDelaySteps);
 
-                _deferredState = {aNewState, aDelaySteps};
+                _deferredState = {stateToSchedule, aDelaySteps};
             }
             if (_pacemakerPulse.happened) {
                 // This is in the correct place because the pacemaker 
@@ -378,8 +394,9 @@ public:
         // PACEMAKER UPDATE
         case true:
             if (!isUsingAlternatingUpdates()) {
-                _ssch.putNewState(SchedulerPair{aNewState, DummyStatus::active()}, aDelaySteps);
+                _ssch.putNewState(SchedulerPair{stateToSchedule, DummyStatus::active()}, aDelaySteps);
             }
+            // TODO: else?
             _pacemakerPulse.happened = true;
             _pacemakerPulse.delay = aDelaySteps;
             break;
@@ -566,7 +583,9 @@ template <class taAutodiffState>
 AutodiffPackMode AlignAutodiffState_PreCompose(taAutodiffState& aAutodiffState, SyncDetails& aSyncDetails) {
     const auto packMode = aAutodiffState.getPackMode();
 
-    if (aAutodiffState.cmp() == AUTODIFF_STATE_NO_CHANGE) {
+    // TODO: What about pacemaker?
+
+    if (IsDiffAllowed(aSyncDetails.getFlags()) && aAutodiffState.cmp() == AUTODIFF_STATE_NO_CHANGE) {
         aSyncDetails.filterSyncs([](hg::PZInteger /* aClientIndex */) -> SyncDetails::FilterResult {
             return SyncDetails::FilterResult::Skip;
         });

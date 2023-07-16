@@ -36,14 +36,8 @@ enum class SyncFlags : detail::SyncFlagsUnderlyingType {
     PacemakerPulse = 0x01,
     //! Shows whether it's allowed to send only the diff of this object
     //! since the last cycle.
-    DiffAllowed = 0x02,
+    DiffAllowed = 0x02, // TODO: Invert -> FullState
 };
-
-inline
-bool HasPacemakerPulse(SyncFlags aFlags) {
-    return (static_cast<detail::SyncFlagsUnderlyingType>(aFlags) &
-            static_cast<detail::SyncFlagsUnderlyingType>(SyncFlags::PacemakerPulse)) != 0;
-}
 
 inline
 SyncFlags& operator|=(SyncFlags& aLhs, SyncFlags aRhs) {
@@ -59,6 +53,16 @@ SyncFlags operator&(SyncFlags aLhs, SyncFlags aRhs) {
         static_cast<detail::SyncFlagsUnderlyingType>(aLhs) &
         static_cast<detail::SyncFlagsUnderlyingType>(aRhs)
     );
+}
+
+inline
+bool HasPacemakerPulse(SyncFlags aFlags) {
+    return ((aFlags & SyncFlags::PacemakerPulse) != SyncFlags::None);
+}
+
+inline
+bool IsDiffAllowed(SyncFlags aFlags) {
+    return ((aFlags & SyncFlags::DiffAllowed) != SyncFlags::None);
 }
 
 inline

@@ -226,6 +226,7 @@ void SynchronizedObjectRegistry::syncStateUpdates() {
 
     _syncDetails._flags = (_pacemakerPulseCountdown == 0) ? SyncFlags::PacemakerPulse 
                                                           : SyncFlags::None;
+    _syncDetails._flags |= SyncFlags::DiffAllowed;
 
     for (auto& pair : _mappings) {
         SynchronizedObjectBase* object = pair.second;
@@ -265,11 +266,12 @@ void SynchronizedObjectRegistry::syncStateUpdates() {
 void SynchronizedObjectRegistry::syncCompleteState(hg::PZInteger clientIndex) {
     _syncDetails._recepients.resize(1);
     _syncDetails._recepients[0] = clientIndex;
+    _syncDetails._flags = SyncFlags::None;
 
     for (auto& mapping : _mappings) {
         auto* object = mapping.second;
         object->_syncCreateImpl(_syncDetails);
-        // object->_syncUpdateImpl(_syncDetails); // Seems this is not needed (double updates)
+        object->_syncUpdateImpl(_syncDetails);
         for (auto rec : _syncDetails._recepients) {
             setObjectDeactivatedFlagForClient(mapping.first, rec, false);
         }

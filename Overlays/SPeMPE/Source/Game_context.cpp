@@ -283,13 +283,13 @@ void GameContext::_runImpl(hg::not_null<GameContext*> aContext,
 
         for (int i = 0; i < maxFramesBetweenDisplays; i += 1) {
             if (aMaxSteps > 0 && stepsCovered >= aMaxSteps) {
-                break;
+                break; // TODO: also skip FinalizeFrame in this case
             }
             if ((accumulatorTime < deltaTime)) {
-                break;
+                break; // TODO: also skip FinalizeFrame in this case
             }
 
-            // Run all events except FinalizeFrame (and Draws if headless):
+            // Run all events except FinalizeFrame (and except Draws if headless):
             {
                 hg::util::Stopwatch stopwatch;
                 if (aContext->isHeadless()) {

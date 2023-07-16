@@ -118,6 +118,33 @@ TEST(AutodiffStateTest, UnpackOperator) {
     }
 }
 
+TEST(AutodiffStateTest, ApplyDiff) {
+    TestAutodiff2 ad2;
+    ad2.i = 1000;
+    ad2.c = '!';
+    hg::util::Packet packet;
+
+    {
+        TestAutodiff2 ad2_other;
+        ad2_other.initMirror();
+        ad2_other.i = 1000;
+        ad2_other.c = '!';
+        ad2_other.commit();
+        ad2_other.c = 'D';
+        ad2_other.packDiff(packet);
+    }
+
+    {
+        TestAutodiff2 ad2_other;
+        ad2_other.unpack(packet);
+
+        ad2.applyDiff(ad2_other);
+    }
+
+    EXPECT_EQ(ad2.i, 1000);
+    EXPECT_EQ(ad2.c,  'D');
+}
+
 SPEMPE_DEFINE_AUTODIFF_STATE(TestAutodiff32,
     SPEMPE_MEMBER(std::int32_t,  i0, 0),
     SPEMPE_MEMBER(std::int32_t,  i1, 0),

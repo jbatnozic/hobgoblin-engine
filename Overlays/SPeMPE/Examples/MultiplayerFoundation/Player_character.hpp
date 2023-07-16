@@ -4,10 +4,12 @@
 
 #include <Hobgoblin/Utility/Autopack.hpp>
 
+#include <cstdint>
+
 SPEMPE_DEFINE_AUTODIFF_STATE(PlayerCharacter_VisibleState,
     SPEMPE_MEMBER(float, x, 0.f),
     SPEMPE_MEMBER(float, y, 0.f),
-    SPEMPE_MEMBER(int, owningPlayerIndex, spe::PLAYER_INDEX_UNKNOWN)
+    SPEMPE_MEMBER(std::int32_t, owningPlayerIndex, spe::PLAYER_INDEX_UNKNOWN)
 ) {};
 
 class PlayerCharacter
@@ -24,6 +26,7 @@ private:
     void _eventUpdate(spe::IfMaster) override;
 
     void _eventDraw1() override;
+    void _eventFinalizeFrame(spe::IfMaster) override;
 
     void _syncCreateImpl(spe::SyncDetails& aSyncDetails) const override;
     void _syncUpdateImpl(spe::SyncDetails& aSyncDetails) const override;
