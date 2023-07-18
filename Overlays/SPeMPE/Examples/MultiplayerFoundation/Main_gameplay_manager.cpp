@@ -55,7 +55,7 @@ void MainGameplayManager::_eventFinalizeFrame() {
         const auto telemetry = netMgr.getTelemetry(120);
         HG_LOG_INFO(
             LOG_ID,
-            "Bandwidth usage in the last 120 frame(s): {:6.2f}B UP, {:6.2f}B DOWN.",
+            "Bandwidth usage in the last 120 frame(s): {:6.2f}kB UP, {:6.2f}kB DOWN.",
             static_cast<double>(telemetry.uploadByteCount) / 1024.0,
             static_cast<double>(telemetry.downloadByteCount) / 1024.0
         );

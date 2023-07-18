@@ -20,7 +20,7 @@ using SyncId = std::uint64_t;
 constexpr SyncId SYNC_ID_NEW = 0;
 
 namespace detail {
-class SynchronizedObjectRegistry;
+//! Size is important because SyncFlags gets sent with every update sync RPC.
 using SyncFlagsUnderlyingType = std::uint8_t;
 } // namespace detail
 
@@ -30,25 +30,45 @@ enum class SyncFlags : detail::SyncFlagsUnderlyingType {
     //! the client side. This information is mostly only useful to the
     //! engine itself.
     PacemakerPulse = 0x01,
-    //! Shows whether it's allowed to send only the diff of this object
-    //! since the last cycle.
-    DiffAllowed = 0x02, // TODO: Invert -> FullState
+    //! Shows whether the sync does/will contain the full state of the
+    //! object (if not, only the diff since the last cycle will is/wil 
+    //! be contained).
+    FullState = 0x02,
 };
 
+//! Bitwise OR operator.
+inline
+SyncFlags operator|(SyncFlags aLhs, SyncFlags aRhs) {
+    return static_cast<SyncFlags>(
+        static_cast<detail::SyncFlagsUnderlyingType>(aLhs) | 
+        static_cast<detail::SyncFlagsUnderlyingType>(aRhs)
+    );
+}
+
+//! Bitwise OR assignment operator.
 inline
 SyncFlags& operator|=(SyncFlags& aLhs, SyncFlags aRhs) {
     return aLhs = static_cast<SyncFlags>(
         static_cast<detail::SyncFlagsUnderlyingType>(aLhs) | 
         static_cast<detail::SyncFlagsUnderlyingType>(aRhs)
-        );
+    );
 }
 
+//! Bitwise AND operator.
 inline
 SyncFlags operator&(SyncFlags aLhs, SyncFlags aRhs) {
     return static_cast<SyncFlags>(
         static_cast<detail::SyncFlagsUnderlyingType>(aLhs) &
         static_cast<detail::SyncFlagsUnderlyingType>(aRhs)
-        );
+    );
+}
+
+inline
+SyncFlags& operator&=(SyncFlags& aLhs, SyncFlags aRhs) {
+    return aLhs = static_cast<SyncFlags>(
+        static_cast<detail::SyncFlagsUnderlyingType>(aLhs) &
+        static_cast<detail::SyncFlagsUnderlyingType>(aRhs)
+    );
 }
 
 inline
@@ -57,8 +77,8 @@ bool HasPacemakerPulse(SyncFlags aFlags) {
 }
 
 inline
-bool IsDiffAllowed(SyncFlags aFlags) {
-    return ((aFlags & SyncFlags::DiffAllowed) != SyncFlags::None);
+bool HasFullState(SyncFlags aFlags) {
+    return ((aFlags & SyncFlags::FullState) != SyncFlags::None);
 }
 
 inline
@@ -73,6 +93,10 @@ hg::util::PacketBase& operator>>(hg::util::PacketBase& aPacket, SyncFlags& aFlag
     aFlags = static_cast<SyncFlags>(value);
     return aPacket;
 }
+
+namespace detail {
+class SynchronizedObjectRegistry;
+} // namespace detail
 
 struct SyncDetails {
     //! The node through which the sync messages need to be sent.

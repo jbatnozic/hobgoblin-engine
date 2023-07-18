@@ -127,9 +127,10 @@ void SynchronizedObjectRegistry::syncStateUpdates() {
         _pacemakerPulseCountdown -= 1;
     }
 
-    _syncDetails._flags = (_pacemakerPulseCountdown == 0) ? SyncFlags::PacemakerPulse 
-                                                          : SyncFlags::None;
-    _syncDetails._flags |= SyncFlags::DiffAllowed;
+    _syncDetails._flags = SyncFlags::None;
+    if (_pacemakerPulseCountdown == 0) {
+        _syncDetails._flags |= SyncFlags::PacemakerPulse;
+    }
 
     for (auto& pair : _mappings) {
         SynchronizedObjectBase* object = pair.second;
@@ -169,7 +170,7 @@ void SynchronizedObjectRegistry::syncStateUpdates() {
 void SynchronizedObjectRegistry::syncCompleteState(hg::PZInteger clientIndex) {
     _syncDetails._recepients.resize(1);
     _syncDetails._recepients[0] = clientIndex;
-    _syncDetails._flags = SyncFlags::None;
+    _syncDetails._flags = SyncFlags::FullState;
 
     for (auto& mapping : _mappings) {
         auto* object = mapping.second;
