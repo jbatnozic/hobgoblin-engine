@@ -5,6 +5,7 @@
 
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/RigelNet.hpp>
+#include <Hobgoblin/QAO.hpp>
 #include <Hobgoblin/Utility/No_copy_no_move.hpp>
 #include <Hobgoblin/Utility/Packet.hpp>
 
@@ -30,7 +31,7 @@ class SynchronizedObjectRegistry
     : public hg::util::NonCopyable
     , public hg::util::NonMoveable {
 public:
-    SynchronizedObjectRegistry(hg::RN_NodeInterface& node, hg::PZInteger defaultDelay);
+    SynchronizedObjectRegistry(hg::QAO_Runtime& aQaoRuntime, hg::RN_NodeInterface& node, hg::PZInteger defaultDelay);
 
     void setNode(hg::RN_NodeInterface& node);
     hg::RN_NodeInterface& getNode() const;
@@ -61,6 +62,12 @@ public:
     //! Argument must be an even number!
     void setPacemakerPulsePeriod(hg::PZInteger aPeriod);
 
+    //! Checks the alternating updates flag:
+    //! - true:  objects with alternating updates have synced in this cycle.
+    //! - false: objects with alternating updates have NOT synced in this cycle.
+    //! Note: this is meant to be called during _eventFinalizeFrame().
+    bool getAlternatingUpdatesFlag() const;
+
     ///////////////////////////////////////////////////////////////////////////
     // HELPERS & ACCESSORS                                                   //
     ///////////////////////////////////////////////////////////////////////////
@@ -77,6 +84,7 @@ private:
     std::unordered_set<const SynchronizedObjectBase*> _alreadyUpdatedObjects;
     std::unordered_set<const SynchronizedObjectBase*> _alreadyDestroyedObjects;
 
+    hg::not_null<hg::QAO_Runtime*> _qaoRuntime;
     hg::not_null<hg::RN_NodeInterface*> _node;
     SyncDetails _syncDetails;
 

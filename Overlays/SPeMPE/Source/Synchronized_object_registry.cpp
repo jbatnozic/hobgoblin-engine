@@ -30,9 +30,11 @@ void GetIndicesForComposingToEveryone(const hg::RN_NodeInterface& node, std::vec
 
 namespace detail {
 
-SynchronizedObjectRegistry::SynchronizedObjectRegistry(hg::RN_NodeInterface& node,
+SynchronizedObjectRegistry::SynchronizedObjectRegistry(hg::QAO_Runtime& aQaoRuntime,
+                                                       hg::RN_NodeInterface& node,
                                                        hg::PZInteger defaultDelay)
-    : _node{&node}
+    : _qaoRuntime{&aQaoRuntime}
+    , _node{&node}
     , _syncDetails{*this}
     , _defaultDelay{defaultDelay}
 {
@@ -127,6 +129,7 @@ void SynchronizedObjectRegistry::syncStateUpdates() {
         _pacemakerPulseCountdown -= 1;
     }
 
+    _syncDetails._qaoStepOrdinal = _qaoRuntime->getCurrentStepOrdinal();
     _syncDetails._flags = SyncFlags::None;
     if (_pacemakerPulseCountdown == 0) {
         _syncDetails._flags |= SyncFlags::PacemakerPulse;
@@ -170,6 +173,7 @@ void SynchronizedObjectRegistry::syncStateUpdates() {
 void SynchronizedObjectRegistry::syncCompleteState(hg::PZInteger clientIndex) {
     _syncDetails._recepients.resize(1);
     _syncDetails._recepients[0] = clientIndex;
+    _syncDetails._qaoStepOrdinal = _qaoRuntime->getCurrentStepOrdinal();
     _syncDetails._flags = SyncFlags::FullState;
 
     for (auto& mapping : _mappings) {
@@ -207,6 +211,11 @@ void SynchronizedObjectRegistry::setPacemakerPulsePeriod(hg::PZInteger aPeriod) 
         };
     }
     _pacemakerPulsePeriod = (aPeriod / 2);
+}
+
+bool SynchronizedObjectRegistry::getAlternatingUpdatesFlag() const {
+    // Inverted because... TODO
+    return !_alternatingUpdateFlag;
 }
 
 void SynchronizedObjectRegistry::syncObjectCreate(const SynchronizedObjectBase* object) {

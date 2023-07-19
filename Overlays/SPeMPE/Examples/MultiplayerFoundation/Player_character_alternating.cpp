@@ -1,24 +1,25 @@
 
-#include "Player_character.hpp"
+#include "Player_character_alternating.hpp"
 
-PlayerCharacter::PlayerCharacter(QAO_RuntimeRef aRuntimeRef,
-                                 spe::RegistryId aRegId,
-                                 spe::SyncId aSyncId)
+PlayerCharacterAlt::PlayerCharacterAlt(QAO_RuntimeRef aRuntimeRef,
+                                       spe::RegistryId aRegId,
+                                       spe::SyncId aSyncId)
     : SyncObjSuper{aRuntimeRef, SPEMPE_TYPEID_SELF, PRIORITY_PLAYERAVATAR,
-                   "PlayerCharacter", aRegId, aSyncId}
+                   "PlayerCharacterAlt", aRegId, aSyncId}
 {
     if (isMasterObject()) {
         _getCurrentState().initMirror();
     }
+    _enableAlternatingUpdates();
 }
 
-PlayerCharacter::~PlayerCharacter() {
+PlayerCharacterAlt::~PlayerCharacterAlt() {
     if (isMasterObject()) {
         doSyncDestroy();
     }
 }
 
-void PlayerCharacter::init(int aOwningPlayerIndex, float aX, float aY) {
+void PlayerCharacterAlt::init(int aOwningPlayerIndex, float aX, float aY) {
     assert(isMasterObject());
 
     auto& self = _getCurrentState();
@@ -27,7 +28,7 @@ void PlayerCharacter::init(int aOwningPlayerIndex, float aX, float aY) {
     self.owningPlayerIndex = aOwningPlayerIndex;
 }
 
-void PlayerCharacter::_eventUpdate(spe::IfMaster) {
+void PlayerCharacterAlt::_eventUpdate(spe::IfMaster) {
     if (ctx().getGameState().isPaused) return;
 
     auto& self = _getCurrentState();
@@ -54,7 +55,7 @@ void PlayerCharacter::_eventUpdate(spe::IfMaster) {
     }
 }
 
-void PlayerCharacter::_eventDraw1() {
+void PlayerCharacterAlt::_eventDraw1() {
     if (this->isDeactivated()) return;
 
     #define NUM_COLORS 12
@@ -73,24 +74,34 @@ void PlayerCharacter::_eventDraw1() {
         hg::gr::Color::Aqua,
     };
 
-    const auto& self = _getCurrentState();
+    const auto& self_curr = _getCurrentState();
+    const auto& self_next = _getFollowingState();
 
     sf::CircleShape circle{20.f};
-    circle.setFillColor(COLORS[self.owningPlayerIndex % NUM_COLORS]);
-    circle.setPosition({self.x, self.y});
+    circle.setFillColor(COLORS[self_curr.owningPlayerIndex % NUM_COLORS]);
+    circle.setPosition({
+        (self_curr.x + self_next.x) / 2.f,
+        (self_curr.y + self_next.y) / 2.f
+    });
     ccomp<MWindow>().getCanvas().draw(circle);
 }
 
-SPEMPE_GENERATE_DEFAULT_SYNC_HANDLERS(PlayerCharacter, (CREATE, UPDATE, DESTROY));
-
-void PlayerCharacter::_syncCreateImpl(spe::SyncDetails& aSyncDetails) const {
-    SPEMPE_SYNC_CREATE_DEFAULT_IMPL(PlayerCharacter, aSyncDetails);
+void PlayerCharacterAlt::_eventFinalizeFrame(spe::IfMaster) {
+    if (_didAlternatingUpdatesSync()) {
+        _getCurrentState().commit();
+    }
 }
 
-void PlayerCharacter::_syncUpdateImpl(spe::SyncDetails& aSyncDetails) const {
-    SPEMPE_SYNC_UPDATE_DEFAULT_IMPL(PlayerCharacter, aSyncDetails);
+SPEMPE_GENERATE_DEFAULT_SYNC_HANDLERS(PlayerCharacterAlt, (CREATE, UPDATE, DESTROY));
+
+void PlayerCharacterAlt::_syncCreateImpl(spe::SyncDetails& aSyncDetails) const {
+    SPEMPE_SYNC_CREATE_DEFAULT_IMPL(PlayerCharacterAlt, aSyncDetails);
 }
 
-void PlayerCharacter::_syncDestroyImpl(spe::SyncDetails& aSyncDetails) const {
-    SPEMPE_SYNC_DESTROY_DEFAULT_IMPL(PlayerCharacter, aSyncDetails);
+void PlayerCharacterAlt::_syncUpdateImpl(spe::SyncDetails& aSyncDetails) const {
+    SPEMPE_SYNC_UPDATE_DEFAULT_IMPL(PlayerCharacterAlt, aSyncDetails);
+}
+
+void PlayerCharacterAlt::_syncDestroyImpl(spe::SyncDetails& aSyncDetails) const {
+    SPEMPE_SYNC_DESTROY_DEFAULT_IMPL(PlayerCharacterAlt, aSyncDetails);
 }

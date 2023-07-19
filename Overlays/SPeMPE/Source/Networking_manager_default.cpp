@@ -1,6 +1,7 @@
 
 #include <SPeMPE/Managers/Networking_manager_default.hpp>
 
+#include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Logging.hpp>
 
 #include <algorithm>
@@ -18,7 +19,7 @@ DefaultNetworkingManager::DefaultNetworkingManager(hg::QAO_RuntimeRef aRuntimeRe
                                                    hg::PZInteger aStateBufferingLength)
     : NonstateObject{aRuntimeRef, SPEMPE_TYPEID_SELF, aExecutionPriority, "::jbatnozic::spempe::DefaultNetworkingManager"}
     , _node{hg::RN_ServerFactory::createDummyServer()}
-    , _syncObjReg{*_node, aStateBufferingLength}
+    , _syncObjReg{*aRuntimeRef.ptr() /*TODO*/, *_node, aStateBufferingLength}
 {
 }
 

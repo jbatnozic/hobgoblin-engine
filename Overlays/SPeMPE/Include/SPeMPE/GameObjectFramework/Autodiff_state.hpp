@@ -800,20 +800,22 @@ protected:
     mutable AutodiffPackMode USPEMPE_ADS_PACK_MODE_NAME = AutodiffPackMode::Default;
 
 public:
+    std::int64_t __spempeimpl_diffTimestamp = 999999999999; // TODO Temp.
+
     //! Initializes the Mirror (so a diff can be tracked). Only needed on a Master object.
     void initMirror() {
         USPEMPE_ADS_MIRROR_OBJECT_NAME = {std::make_unique<USPEMPE_ADS_MIRROR_OBJECT_TYPE>()};
     }
 
     //! Forces packing all members on the next operator<< invocation.
-    void setPackMode(AutodiffPackMode aPackMode) {
+    virtual void setPackMode(AutodiffPackMode aPackMode) {
         USPEMPE_ADS_PACK_MODE_NAME = aPackMode;
     }
 
     //! Returns the current packing mode of the object.
     AutodiffPackMode getPackMode() const {
         return USPEMPE_ADS_PACK_MODE_NAME;
-    }
+    }  
 };
 
 class AutodiffStateIllegalStateError : public hg::TracedLogicError {

@@ -90,6 +90,13 @@ void SynchronizedObjectBase::_enableAlternatingUpdates() {
     _setStateSchedulerDefaultDelay(_syncObjReg.getDefaultDelay());
 }
 
+bool SynchronizedObjectBase::_didAlternatingUpdatesSync() const {
+    if (ctx().getQAORuntime().getCurrentEvent() != hg::QAO_Event::FinalizeFrame) {
+        throw hg::TracedLogicError{"_didAlternatingUpdatesSync() may only be called during the FinalizeFrame event."};
+    }
+    return _syncObjReg.getAlternatingUpdatesFlag();
+}
+
 void SynchronizedObjectBase::_eventStartFrame() {
     if (isMasterObject()) {
         _eventStartFrame(IfMaster{});

@@ -28,6 +28,61 @@ RN_DEFINE_RPC(USPEMPE_DeactivateObject, RN_ARGS(SyncId, aSyncId)) {
 }
 } // namespace
 
+//
+// SyncFlags
+//
+
+SyncFlags operator|(SyncFlags aLhs, SyncFlags aRhs) {
+    return static_cast<SyncFlags>(
+        static_cast<detail::SyncFlagsUnderlyingType>(aLhs) | 
+        static_cast<detail::SyncFlagsUnderlyingType>(aRhs)
+    );
+}
+
+SyncFlags& operator|=(SyncFlags& aLhs, SyncFlags aRhs) {
+    return aLhs = static_cast<SyncFlags>(
+        static_cast<detail::SyncFlagsUnderlyingType>(aLhs) | 
+        static_cast<detail::SyncFlagsUnderlyingType>(aRhs)
+     );
+}
+
+SyncFlags operator&(SyncFlags aLhs, SyncFlags aRhs) {
+    return static_cast<SyncFlags>(
+        static_cast<detail::SyncFlagsUnderlyingType>(aLhs) &
+        static_cast<detail::SyncFlagsUnderlyingType>(aRhs)
+     );
+}
+
+SyncFlags& operator&=(SyncFlags& aLhs, SyncFlags aRhs) {
+    return aLhs = static_cast<SyncFlags>(
+        static_cast<detail::SyncFlagsUnderlyingType>(aLhs) &
+        static_cast<detail::SyncFlagsUnderlyingType>(aRhs)
+     );
+}
+
+bool HasPacemakerPulse(SyncFlags aFlags) {
+    return ((aFlags & SyncFlags::PacemakerPulse) != SyncFlags::None);
+}
+
+bool HasFullState(SyncFlags aFlags) {
+    return ((aFlags & SyncFlags::FullState) != SyncFlags::None);
+}
+
+hg::util::PacketBase& operator<<(hg::util::PacketBase& aPacket, SyncFlags aFlags) {
+    return (aPacket << static_cast<detail::SyncFlagsUnderlyingType>(aFlags));
+}
+
+hg::util::PacketBase& operator>>(hg::util::PacketBase& aPacket, SyncFlags& aFlags) {
+    detail::SyncFlagsUnderlyingType value;
+    aPacket >> value;
+    aFlags = static_cast<SyncFlags>(value);
+    return aPacket;
+}
+
+//
+// SyncDetails
+//
+
 SyncDetails::SyncDetails(detail::SynchronizedObjectRegistry& aRegistry)
     : _registry{&aRegistry}
 {
@@ -39,6 +94,10 @@ hg::RN_NodeInterface& SyncDetails::getNode() const {
 
 const std::vector<hg::PZInteger>& SyncDetails::getRecepients() const {
     return _recepients;
+}
+
+std::int64_t SyncDetails::getStepOrdinal() const {
+    return _qaoStepOrdinal;
 }
 
 void SyncDetails::filterSyncs(const SyncDetails::FilterPrecidateFunc& aPredicate) {

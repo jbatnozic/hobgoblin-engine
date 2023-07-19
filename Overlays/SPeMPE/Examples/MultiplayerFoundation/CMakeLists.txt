@@ -4,6 +4,7 @@ add_executable("multiplayer-foundation"
     "Lobby_frontend_manager.cpp"
     "Main_gameplay_manager.cpp"
     "Player_character.cpp"
+    "Player_character_alternating.cpp"
 )
 
 target_link_libraries("multiplayer-foundation"

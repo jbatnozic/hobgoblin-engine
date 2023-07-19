@@ -283,10 +283,10 @@ void GameContext::_runImpl(hg::not_null<GameContext*> aContext,
 
         for (int i = 0; i < maxFramesBetweenDisplays; i += 1) {
             if (aMaxSteps > 0 && stepsCovered >= aMaxSteps) {
-                break; // TODO: also skip FinalizeFrame in this case
+                break; // TODO: also skip FinalizeFrame in this case?
             }
             if ((accumulatorTime < deltaTime)) {
-                break; // TODO: also skip FinalizeFrame in this case
+                break; // TODO: also skip FinalizeFrame in this case?
             }
 
             // Run all events except FinalizeFrame (and except Draws if headless):

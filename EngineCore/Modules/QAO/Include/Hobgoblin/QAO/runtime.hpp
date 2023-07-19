@@ -93,7 +93,8 @@ public:
     // Execution
     void startStep();
     void advanceStep(bool& done, std::int32_t eventFlags = QAO_ALL_EVENT_FLAGS);
-    QAO_Event::Enum getCurrentEvent();
+    QAO_Event::Enum getCurrentEvent() const;
+    std::int64_t getCurrentStepOrdinal() const;
 
     // Other
     PZInteger getObjectCount() const noexcept;

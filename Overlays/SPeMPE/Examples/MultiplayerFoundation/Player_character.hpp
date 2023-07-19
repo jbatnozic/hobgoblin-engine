@@ -20,13 +20,12 @@ public:
 
     ~PlayerCharacter() override;
 
-    void init(int aOwningPlayerIndex);
+    void init(int aOwningPlayerIndex, float aX, float aY);
 
 private:
     void _eventUpdate(spe::IfMaster) override;
 
     void _eventDraw1() override;
-    void _eventFinalizeFrame(spe::IfMaster) override;
 
     void _syncCreateImpl(spe::SyncDetails& aSyncDetails) const override;
     void _syncUpdateImpl(spe::SyncDetails& aSyncDetails) const override;

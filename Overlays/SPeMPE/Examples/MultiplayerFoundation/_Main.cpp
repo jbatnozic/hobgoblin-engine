@@ -3,6 +3,7 @@
 #include "Lobby_frontend_manager.hpp"
 #include "Main_gameplay_manager.hpp"
 #include "Player_character.hpp"
+#include "Player_character_alternating.hpp"
 
 #include <Hobgoblin/Logging.hpp>
 #include <Hobgoblin/Utility/Randomization.hpp>
@@ -58,14 +59,14 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
             spe::WindowManagerInterface::WindowConfig{
                 sf::VideoMode{WINDOW_WIDTH, WINDOW_WIDTH},
                 "SPeMPE Minimal Multiplayer",
-                sf::Style::Fullscreen
+                sf::Style::Default
             },
             spe::WindowManagerInterface::MainRenderTextureConfig{{WINDOW_HEIGHT, WINDOW_HEIGHT}},
             spe::WindowManagerInterface::TimingConfig{
                 FRAMERATE,
                 false,                                           /* Framerate limiter */
                 (aGameMode == GameMode::Server) ? false : true , /* V-Sync */
-                (aGameMode == GameMode::Server) ? true : false   /* Precise timing */
+                (aGameMode == GameMode::Server) ? true : true    /* Precise timing */
             }
         );
 
@@ -218,7 +219,11 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
             auto* p = QAO_PCreate<PlayerCharacter>(context->getQAORuntime(),
                                                    context->getComponent<MNetworking>().getRegistryId(),
                                                    spe::SYNC_ID_NEW);
-            p->init(i);
+            p->init(i, 20.f + i * 40.f, 40.f);
+            auto* pa = QAO_PCreate<PlayerCharacterAlt>(context->getQAORuntime(),
+                                                       context->getComponent<MNetworking>().getRegistryId(),
+                                                       spe::SYNC_ID_NEW);
+            pa->init(i, 20.f + i * 40.f, 80.f);
         }
     }
 

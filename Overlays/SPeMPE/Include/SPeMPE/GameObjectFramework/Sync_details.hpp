@@ -37,62 +37,28 @@ enum class SyncFlags : detail::SyncFlagsUnderlyingType {
 };
 
 //! Bitwise OR operator.
-inline
-SyncFlags operator|(SyncFlags aLhs, SyncFlags aRhs) {
-    return static_cast<SyncFlags>(
-        static_cast<detail::SyncFlagsUnderlyingType>(aLhs) | 
-        static_cast<detail::SyncFlagsUnderlyingType>(aRhs)
-    );
-}
+SyncFlags operator|(SyncFlags aLhs, SyncFlags aRhs);
 
 //! Bitwise OR assignment operator.
-inline
-SyncFlags& operator|=(SyncFlags& aLhs, SyncFlags aRhs) {
-    return aLhs = static_cast<SyncFlags>(
-        static_cast<detail::SyncFlagsUnderlyingType>(aLhs) | 
-        static_cast<detail::SyncFlagsUnderlyingType>(aRhs)
-    );
-}
+SyncFlags& operator|=(SyncFlags& aLhs, SyncFlags aRhs);
 
 //! Bitwise AND operator.
-inline
-SyncFlags operator&(SyncFlags aLhs, SyncFlags aRhs) {
-    return static_cast<SyncFlags>(
-        static_cast<detail::SyncFlagsUnderlyingType>(aLhs) &
-        static_cast<detail::SyncFlagsUnderlyingType>(aRhs)
-    );
-}
+SyncFlags operator&(SyncFlags aLhs, SyncFlags aRhs);
 
-inline
-SyncFlags& operator&=(SyncFlags& aLhs, SyncFlags aRhs) {
-    return aLhs = static_cast<SyncFlags>(
-        static_cast<detail::SyncFlagsUnderlyingType>(aLhs) &
-        static_cast<detail::SyncFlagsUnderlyingType>(aRhs)
-    );
-}
+//! Bitwise AND assignment operator.
+SyncFlags& operator&=(SyncFlags& aLhs, SyncFlags aRhs);
 
-inline
-bool HasPacemakerPulse(SyncFlags aFlags) {
-    return ((aFlags & SyncFlags::PacemakerPulse) != SyncFlags::None);
-}
+//! Returns `true` if the `PacemakerPulse` bit is set in `aFlags`, `false` otherwise.
+bool HasPacemakerPulse(SyncFlags aFlags);
 
-inline
-bool HasFullState(SyncFlags aFlags) {
-    return ((aFlags & SyncFlags::FullState) != SyncFlags::None);
-}
+//! Returns `true` if the `FullState` bit is set in `aFlags`, `false` otherwise.
+bool HasFullState(SyncFlags aFlags);
 
-inline
-hg::util::PacketBase& operator<<(hg::util::PacketBase& aPacket, SyncFlags aFlags) {
-    return (aPacket << static_cast<detail::SyncFlagsUnderlyingType>(aFlags));
-}
+//! Packing operator.
+hg::util::PacketBase& operator<<(hg::util::PacketBase& aPacket, SyncFlags aFlags);
 
-inline
-hg::util::PacketBase& operator>>(hg::util::PacketBase& aPacket, SyncFlags& aFlags) {
-    detail::SyncFlagsUnderlyingType value;
-    aPacket >> value;
-    aFlags = static_cast<SyncFlags>(value);
-    return aPacket;
-}
+//! Unpacking operator.
+hg::util::PacketBase& operator>>(hg::util::PacketBase& aPacket, SyncFlags& aFlags);
 
 namespace detail {
 class SynchronizedObjectRegistry;
@@ -105,6 +71,9 @@ struct SyncDetails {
     //! Vector of client indices of (recepients) to which sync messages
     //! need to be sent.
     const std::vector<hg::PZInteger>& getRecepients() const;
+
+    //! TODO
+    std::int64_t getStepOrdinal() const;
 
     SyncFlags getFlags() {
         return _flags;
@@ -127,6 +96,7 @@ private:
 
     hg::not_null<detail::SynchronizedObjectRegistry*> _registry;
     std::vector<hg::PZInteger> _recepients;
+    std::int64_t _qaoStepOrdinal;
     SyncId _forObject = SYNC_ID_NEW;
     SyncFlags _flags = SyncFlags::None;
 

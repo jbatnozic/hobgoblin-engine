@@ -57,6 +57,7 @@ public:
     // Access stored states:
 
     taState& getCurrentState();
+    taState& getFollowingState();
     taState& getLatestState();
 
     bool isCurrentStateFresh() const;
@@ -293,6 +294,14 @@ void SimpleStateScheduler<taState>::alignToDelay(PZInteger aDelay) {
 template <class taState>
 taState& SimpleStateScheduler<taState>::getCurrentState() {
     return _scheduledStateAt(0);
+}
+
+template <class taState>
+taState& SimpleStateScheduler<taState>::getFollowingState() {
+    if (_individualBufferSize() >= 2 && _bluePos >= 1) {
+        return _scheduledStateAt(1);
+    }
+    return getCurrentState();
 }
 
 template <class taState>
