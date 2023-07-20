@@ -222,10 +222,6 @@ QAO_Event::Enum QAO_Runtime::getCurrentEvent() const {
     return _current_event;
 }
 
-std::int64_t QAO_Runtime::getCurrentStepOrdinal() const {
-    return _step_counter;
-}
-
 // Other
 
 PZInteger QAO_Runtime::getObjectCount() const noexcept {

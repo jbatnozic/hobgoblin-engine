@@ -31,7 +31,7 @@ class SynchronizedObjectRegistry
     : public hg::util::NonCopyable
     , public hg::util::NonMoveable {
 public:
-    SynchronizedObjectRegistry(hg::QAO_Runtime& aQaoRuntime, hg::RN_NodeInterface& node, hg::PZInteger defaultDelay);
+    SynchronizedObjectRegistry(hg::RN_NodeInterface& node, hg::PZInteger defaultDelay);
 
     void setNode(hg::RN_NodeInterface& node);
     hg::RN_NodeInterface& getNode() const;
@@ -84,7 +84,6 @@ private:
     std::unordered_set<const SynchronizedObjectBase*> _alreadyUpdatedObjects;
     std::unordered_set<const SynchronizedObjectBase*> _alreadyDestroyedObjects;
 
-    hg::not_null<hg::QAO_Runtime*> _qaoRuntime;
     hg::not_null<hg::RN_NodeInterface*> _node;
     SyncDetails _syncDetails;
 

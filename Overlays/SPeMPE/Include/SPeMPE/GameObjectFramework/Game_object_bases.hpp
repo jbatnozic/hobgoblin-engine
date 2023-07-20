@@ -20,6 +20,8 @@
 #include <utility>
 #include <vector>
 
+#include <iostream>
+
 #define SPEMPE_TYPEID_SELF (typeid(decltype(*this)))
 
 namespace jbatnozic {
@@ -373,6 +375,8 @@ private:
 public:
     //! Internal implementation, do not call manually!
     void __spempeimpl_applyUpdate(const VisibleState& aNewState, hg::PZInteger aDelaySteps, SyncFlags aFlags) {
+        std::cerr << __FUNCSIG__ << " called\n";
+
         VisibleState stateToSchedule = [this, &aNewState, aFlags]() {
             if constexpr (std::is_base_of<detail::AutodiffStateTag, VisibleState>::value) {
                 if (!HasFullState(aFlags)) {
@@ -608,10 +612,13 @@ AutodiffPackMode AlignAutodiffState_PreCompose(taAutodiffState& aAutodiffState, 
         if (diffAllowed) {
             if (aAutodiffState.cmp() == AUTODIFF_STATE_NO_CHANGE) {
                 auto* timestamp = &(aAutodiffState.__spempeimpl_diffTimestamp);
-                if (*timestamp == aSyncDetails.getStepOrdinal() - 1) {
+                if (*timestamp == aSyncDetails.getStepOrdinal() - 2) { // 2 because alternating...
                     aSyncDetails.filterSyncs([](hg::PZInteger /* aClientIndex */) -> SyncDetails::FilterResult {
                         return SyncDetails::FilterResult::Skip;
                     });
+                }
+                else {
+                    std::cerr << "No change but ordinals mismatch (" << *timestamp << " vs " << aSyncDetails.getStepOrdinal() - 1 << ")\n";
                 }
                 //else {
                     *timestamp = aSyncDetails.getStepOrdinal();

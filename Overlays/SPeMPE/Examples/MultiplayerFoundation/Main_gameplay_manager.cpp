@@ -5,6 +5,8 @@
 
 #include <Hobgoblin/Logging.hpp>
 
+#include <iostream>
+
 namespace {
 constexpr auto LOG_ID = "MainGameplayManager";
 } // namespace
@@ -60,6 +62,8 @@ void MainGameplayManager::_eventFinalizeFrame() {
             static_cast<double>(telemetry.downloadByteCount) / 1024.0
         );
     }
+
+    std::cerr << "========== FRAME ENDS ==========\n";
 }
 
 void MainGameplayManager::onNetworkingEvent(const hg::RN_Event& aEvent) {
