@@ -54,6 +54,10 @@ void PlayerCharacter::_eventUpdate(spe::IfMaster) {
     }
 }
 
+void PlayerCharacter::_eventFinalizeFrame(spe::IfMaster) {
+    _getCurrentState().commit();
+}
+
 void PlayerCharacter::_eventDraw1() {
     if (this->isDeactivated()) return;
 

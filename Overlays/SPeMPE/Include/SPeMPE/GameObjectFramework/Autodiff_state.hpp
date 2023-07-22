@@ -15,11 +15,11 @@
 // MACROS: GENERAL NAMES                                                 //
 ///////////////////////////////////////////////////////////////////////////
 
-#define USPEMPE_ADS_MIRROR_OBJECT_TYPE __spempeimpl_mirror_t
-#define USPEMPE_ADS_MIRROR_OBJECT_NAME __spempeimpl_mirrorObject
-#define USPEMPE_ADS_BITS_TYPE          __spempeimpl_bits_t
-#define USPEMPE_ADS_BITS_NAME          __spempeimpl_bits
-#define USPEMPE_ADS_PACK_MODE_NAME     __spempeimpl_packMode
+#define USPEMPE_ADS_MIRROR_OBJECT_TYPE        __spempeimpl_mirror_t
+#define USPEMPE_ADS_MIRROR_OBJECT_NAME        __spempeimpl_mirrorObject
+#define USPEMPE_ADS_BITS_TYPE                 __spempeimpl_bits_t
+#define USPEMPE_ADS_BITS_NAME                 __spempeimpl_bits
+#define USPEMPE_ADS_NO_CHANGE_STREAK_CNT_NAME __spempeimpl_noChangeStreakCnt
 
 ///////////////////////////////////////////////////////////////////////////
 // MACROS: GENERATING BASES                                              //
@@ -788,34 +788,53 @@ protected:
     DeepCopyPtr<USPEMPE_ADS_MIRROR_OBJECT_TYPE> USPEMPE_ADS_MIRROR_OBJECT_NAME;
 
     /**
+     * Counts the number of commit calls that have happened with no change
+     * compared to the previous commit.
+     */
+    hg::PZInteger USPEMPE_ADS_NO_CHANGE_STREAK_CNT_NAME = 0;
+
+    /**
      * After an object of this class is extracted from a Packet, this field will be set
      * (bits corresponding to the extracted fields will be 1s, bits corresponding to the
      * fields which were not represented in the packet will be 0s).
      */
     USPEMPE_ADS_BITS_TYPE USPEMPE_ADS_BITS_NAME;
 
+private:
     /**
      * Current packing mode (behaviour of << operator).
      */
-    mutable AutodiffPackMode USPEMPE_ADS_PACK_MODE_NAME = AutodiffPackMode::Default;
+    mutable AutodiffPackMode _packMode = AutodiffPackMode::Default;
 
 public:
-    std::int64_t __spempeimpl_diffTimestamp = 999999999999; // TODO Temp.
-
     //! Initializes the Mirror (so a diff can be tracked). Only needed on a Master object.
     void initMirror() {
         USPEMPE_ADS_MIRROR_OBJECT_NAME = {std::make_unique<USPEMPE_ADS_MIRROR_OBJECT_TYPE>()};
     }
 
-    //! Forces packing all members on the next operator<< invocation.
+    //! Forces the given packing mode on all subsequent operator<< invocations.
     virtual void setPackMode(AutodiffPackMode aPackMode) {
-        USPEMPE_ADS_PACK_MODE_NAME = aPackMode;
+        _packMode = aPackMode;
     }
 
     //! Returns the current packing mode of the object.
     AutodiffPackMode getPackMode() const {
-        return USPEMPE_ADS_PACK_MODE_NAME;
-    }  
+        return _packMode;
+    }
+
+    //! Returns the number of consecutive commit calls that have happened with no
+    //! change compared to the previous commit.
+    hg::PZInteger getNoChangeStreakCount() const {
+        return USPEMPE_ADS_NO_CHANGE_STREAK_CNT_NAME;
+    }
+
+    std::string getBits() const {
+        std::string result = "";
+        for (int i = taBaseCount - 1; i >= 0; i--) {
+            result += std::to_string((int)USPEMPE_ADS_BITS_NAME.getBit(i));
+        }
+        return result;
+    }
 };
 
 class AutodiffStateIllegalStateError : public hg::TracedLogicError {
@@ -984,7 +1003,13 @@ bool AutodiffStateCmp(
         \
         void commit() { \
             USPEMPE_ADS_ASSERT_MIRROR_NOT_NULL(); \
-            ::jbatnozic::spempe::detail::AutodiffStateCommit(USPEMPE_ADS_PASS_MEMBER_REFS(USPEMPE_ADS_MIRROR_OBJECT_NAME, __VA_ARGS__)); \
+            if (cmp() == ::jbatnozic::spempe::AUTODIFF_STATE_HAS_CHANGE) { \
+                USPEMPE_ADS_NO_CHANGE_STREAK_CNT_NAME = 0; \
+                ::jbatnozic::spempe::detail::AutodiffStateCommit(USPEMPE_ADS_PASS_MEMBER_REFS(USPEMPE_ADS_MIRROR_OBJECT_NAME, __VA_ARGS__)); \
+            } \
+            else { \
+                USPEMPE_ADS_NO_CHANGE_STREAK_CNT_NAME += 1; \
+            } \
         } \
         void packDiff(::jbatnozic::hobgoblin::util::PacketBase& aPacket) const { \
             USPEMPE_ADS_ASSERT_MIRROR_NOT_NULL(); \
@@ -1015,7 +1040,7 @@ bool AutodiffStateCmp(
         }; \
         friend \
         ::jbatnozic::hobgoblin::util::PacketBase& operator<<(::jbatnozic::hobgoblin::util::PacketBase& aPacket, const Super& aSelf) { \
-            if (aSelf.USPEMPE_ADS_PACK_MODE_NAME == ::jbatnozic::spempe::AutodiffPackMode::PackDiff) { \
+            if (aSelf.getPackMode() == ::jbatnozic::spempe::AutodiffPackMode::PackDiff) { \
                 aSelf.packDiff(aPacket); \
             } else { \
                 aSelf.packAll(aPacket); \

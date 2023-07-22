@@ -5,6 +5,7 @@
 #include <Hobgoblin/Utility/Autopack.hpp>
 
 #include <cstdint>
+#include <ostream>
 
 #if 1
 SPEMPE_DEFINE_AUTODIFF_STATE(PlayerCharacterAlt_VisibleState,
@@ -13,6 +14,11 @@ SPEMPE_DEFINE_AUTODIFF_STATE(PlayerCharacterAlt_VisibleState,
     SPEMPE_MEMBER(std::int32_t, owningPlayerIndex, spe::PLAYER_INDEX_UNKNOWN)
 ) {
     // void setPackMode(spe::AutodiffPackMode) override {}
+
+    friend
+    std::ostream& operator<<(std::ostream& aOstream, const PlayerCharacterAlt_VisibleState& aVS) {
+        return (aOstream << aVS.x << ", " << aVS.y << ", " << aVS.owningPlayerIndex << "(" << aVS.getBits() << ")");
+    }
 };
 #else
 struct PlayerCharacterAlt_VisibleState {

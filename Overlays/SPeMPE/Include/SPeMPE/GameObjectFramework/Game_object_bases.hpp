@@ -5,7 +5,8 @@
 #include <Hobgoblin/RigelNet.hpp>
 #include <Hobgoblin/RigelNet_macros.hpp>
 #include <Hobgoblin/Utility/Dynamic_bitset.hpp>
-#include <Hobgoblin/Utility/State_scheduler_simple.hpp>
+//#include <Hobgoblin/Utility/State_scheduler_simple.hpp>
+#include <Hobgoblin/Utility/State_scheduler_verbose.hpp>
 #include <SPeMPE/GameContext/Game_context.hpp>
 #include <SPeMPE/GameObjectFramework/Autodiff_state.hpp>
 #include <SPeMPE/GameObjectFramework/Synchronized_object_registry.hpp>
@@ -20,6 +21,7 @@
 #include <utility>
 #include <vector>
 
+#include <Hobgoblin/Logging.hpp>
 #include <iostream>
 
 #define SPEMPE_TYPEID_SELF (typeid(decltype(*this)))
@@ -266,16 +268,6 @@ protected:
             return _ssch.getCurrentState().visibleState;
         }
         return followingState.visibleState;
-        //if (_ssch.getDefaultDelay() > 0) {
-        //    const auto iter = _ssch.begin() + 1;
-        //    if (iter->status.isDeactivated) {
-        //        return _ssch.getCurrentState().visibleState;
-        //    }
-        //    return (_ssch.begin() + 1)->visibleState;
-        //}
-        //else {
-        //    return _ssch.getCurrentState().visibleState;
-        //}
     }
 
     const taVisibleState& _getCurrentState() const {
@@ -284,26 +276,11 @@ protected:
     }
 
     const taVisibleState& _getFollowingState() const {
-        assert(isMasterObject() || !isDeactivated());
-        auto& followingState = _ssch.getFollowingState();
-        if (followingState.status.isDeactivated) {
-            return _ssch.getCurrentState().visibleState;
-        }
-        return followingState.visibleState;
-        //assert(isMasterObject() || !isDeactivated());
-        //if (_ssch.getDefaultDelay() > 0) {
-        //    const auto iter = _ssch.begin() + 1;
-        //    if (iter->status.isDeactivated) {
-        //        return _ssch.getCurrentState().visibleState;
-        //    }
-        //    return (_ssch.begin() + 1)->visibleState;
-        //}
-        //else {
-        //    return _ssch.getCurrentState().visibleState;
-        //}
+        return const_cast<SynchronizedObject*>(this)->_getFollowingState();
     }
 
-private:
+//private:
+protected:
     struct DummyStatus {
         bool isDeactivated = true;
 
@@ -319,6 +296,11 @@ private:
     struct SchedulerPair {
         taVisibleState visibleState;
         DummyStatus status;
+
+        friend
+        std::ostream& operator<<(std::ostream& aOstream, const SchedulerPair& aSPair) {
+            return (aOstream << aSPair.visibleState << (aSPair.status.isDeactivated ? " [deactivated]" : " [active]"));
+        }
     };
 
     struct DeferredState {
@@ -344,11 +326,12 @@ private:
             _ssch.alignToDelay(_pacemakerPulse.delay);
             _pacemakerPulse.happened = false;
         }
+        else if (isUsingAlternatingUpdates() && !_ssch.isCurrentStateFresh()) {
+            _ssch.alignToDelay(_pacemakerPulse.delay);
+        }
 
         if (_deferredState.has_value()) {
-            _ssch.putNewState(SchedulerPair{(*_deferredState).state, 
-                              DummyStatus::active()},
-                              (*_deferredState).delay);
+            _ssch.putNewState(SchedulerPair{_deferredState->state, DummyStatus::active()}, _deferredState->delay);
             _deferredState.reset();
         }
 
@@ -375,8 +358,6 @@ private:
 public:
     //! Internal implementation, do not call manually!
     void __spempeimpl_applyUpdate(const VisibleState& aNewState, hg::PZInteger aDelaySteps, SyncFlags aFlags) {
-        std::cerr << __FUNCSIG__ << " called\n";
-
         VisibleState stateToSchedule = [this, &aNewState, aFlags]() {
             if constexpr (std::is_base_of<detail::AutodiffStateTag, VisibleState>::value) {
                 if (!HasFullState(aFlags)) {
@@ -387,6 +368,8 @@ public:
             }
             return aNewState;
         }();
+
+        // std::cout << "@@@ " << _getLatestState() << " + " << aNewState << " = " << stateToSchedule << '\n';
 
         switch (HasPacemakerPulse(aFlags)) {
         // NORMAL UPDATE
@@ -406,11 +389,11 @@ public:
 
                 _deferredState = {stateToSchedule, aDelaySteps};
             }
-            if (_pacemakerPulse.happened) {
+            //if (_pacemakerPulse.happened) {
                 // This is in the correct place because the pacemaker 
                 // pulse actually affects the *following* update.
                 _pacemakerPulse.delay = aDelaySteps;
-            }
+            //}
             break;
 
         // PACEMAKER UPDATE
@@ -418,7 +401,9 @@ public:
             if (!isUsingAlternatingUpdates()) {
                 _ssch.putNewState(SchedulerPair{stateToSchedule, DummyStatus::active()}, aDelaySteps);
             }
-            // TODO: else?
+            else {
+                // When using alternating updates, a pacemaker pulse happens inbetween actual updates
+            }
             _pacemakerPulse.happened = true;
             _pacemakerPulse.delay = aDelaySteps;
             break;
@@ -610,21 +595,20 @@ AutodiffPackMode AlignAutodiffState_PreCompose(taAutodiffState& aAutodiffState, 
         // filter out any recepients nor allow only the diff to be sent.
         const bool diffAllowed = !HasFullState(aSyncDetails.getFlags());
         if (diffAllowed) {
+            aAutodiffState.setPackMode(AutodiffPackMode::PackDiff);
+
             if (aAutodiffState.cmp() == AUTODIFF_STATE_NO_CHANGE) {
-                auto* timestamp = &(aAutodiffState.__spempeimpl_diffTimestamp);
-                if (*timestamp == aSyncDetails.getStepOrdinal() - 2) { // 2 because alternating...
+                if (aAutodiffState.getNoChangeStreakCount() >= 1) {
                     aSyncDetails.filterSyncs([](hg::PZInteger /* aClientIndex */) -> SyncDetails::FilterResult {
                         return SyncDetails::FilterResult::Skip;
                     });
+                    //HG_LOG_INFO("Align", "No change: Skip all. ({})", aAutodiffState.getNoChangeStreakCount());
                 }
                 else {
-                    std::cerr << "No change but ordinals mismatch (" << *timestamp << " vs " << aSyncDetails.getStepOrdinal() - 1 << ")\n";
+                    //HG_LOG_INFO("Align", "No change but streak not long enough ({})", aAutodiffState.getNoChangeStreakCount());
                 }
-                //else {
-                    *timestamp = aSyncDetails.getStepOrdinal();
-                //}
             }
-            aAutodiffState.setPackMode(AutodiffPackMode::PackDiff);
+            //else HG_LOG_INFO("Align", "Change detected. ({})", aAutodiffState.getNoChangeStreakCount());
         }
         else {
             aAutodiffState.setPackMode(AutodiffPackMode::PackAll);
