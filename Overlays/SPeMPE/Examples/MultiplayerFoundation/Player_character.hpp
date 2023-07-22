@@ -17,7 +17,7 @@ SPEMPE_DEFINE_AUTODIFF_STATE(PlayerCharacter_VisibleState,
 
     friend
     std::ostream& operator<<(std::ostream& aOstream, const PlayerCharacter_VisibleState& aVS) {
-        return (aOstream << aVS.x << ", " << aVS.y << ", " << aVS.owningPlayerIndex << "(" << aVS.getBits() << ")");
+        return (aOstream << aVS.x << ", " << aVS.y << ", " << aVS.owningPlayerIndex << "(" << aVS.stringifyDiffBits() << ")");
     }
 };
 #else

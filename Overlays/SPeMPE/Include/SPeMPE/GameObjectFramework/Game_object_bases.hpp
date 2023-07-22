@@ -369,8 +369,6 @@ public:
             return aNewState;
         }();
 
-        // std::cout << "@@@ " << _getLatestState() << " + " << aNewState << " = " << stateToSchedule << '\n';
-
         switch (HasPacemakerPulse(aFlags)) {
         // NORMAL UPDATE
         case false:
@@ -389,6 +387,10 @@ public:
 
                 _deferredState = {stateToSchedule, aDelaySteps};
             }
+            // Save the delay even if the server didn't send the pacemaker pulse:
+            // sometimes dummies with alternating updates can trigger 'pacemaking'
+            // themselves to get out of degenerate states, and then they will need
+            // to know the delay.
             //if (_pacemakerPulse.happened) {
                 // This is in the correct place because the pacemaker 
                 // pulse actually affects the *following* update.
@@ -585,9 +587,10 @@ void DefaultSyncDestroyHandler(hg::RN_NodeInterface& node,
 }
 
 namespace detail {
-//! TODO: explanation/justification
+//! Align the configuration of visible state and of the sync details before sending.
+//! Note: this only does something if the state is an autodiff state.
 template <class taAutodiffState>
-AutodiffPackMode AlignAutodiffState_PreCompose(taAutodiffState& aAutodiffState, SyncDetails& aSyncDetails) {
+AutodiffPackMode AlignState_PreCompose(taAutodiffState& aAutodiffState, SyncDetails& aSyncDetails) {
     if constexpr (std::is_base_of<AutodiffStateTag, taAutodiffState>::value) {
         const auto previousPackMode = aAutodiffState.getPackMode();
 
@@ -597,18 +600,12 @@ AutodiffPackMode AlignAutodiffState_PreCompose(taAutodiffState& aAutodiffState, 
         if (diffAllowed) {
             aAutodiffState.setPackMode(AutodiffPackMode::PackDiff);
 
-            if (aAutodiffState.cmp() == AUTODIFF_STATE_NO_CHANGE) {
-                if (aAutodiffState.getNoChangeStreakCount() >= 1) {
-                    aSyncDetails.filterSyncs([](hg::PZInteger /* aClientIndex */) -> SyncDetails::FilterResult {
-                        return SyncDetails::FilterResult::Skip;
-                    });
-                    //HG_LOG_INFO("Align", "No change: Skip all. ({})", aAutodiffState.getNoChangeStreakCount());
-                }
-                else {
-                    //HG_LOG_INFO("Align", "No change but streak not long enough ({})", aAutodiffState.getNoChangeStreakCount());
-                }
+            if (aAutodiffState.cmp() == AUTODIFF_STATE_NO_CHANGE &&
+                aAutodiffState.getNoChangeStreakCount() >= 1) {
+                aSyncDetails.filterSyncs([](hg::PZInteger /* aClientIndex */) -> SyncDetails::FilterResult {
+                    return SyncDetails::FilterResult::Skip;
+                });
             }
-            //else HG_LOG_INFO("Align", "Change detected. ({})", aAutodiffState.getNoChangeStreakCount());
         }
         else {
             aAutodiffState.setPackMode(AutodiffPackMode::PackAll);
@@ -622,15 +619,21 @@ AutodiffPackMode AlignAutodiffState_PreCompose(taAutodiffState& aAutodiffState, 
     }
 }
 
-//! TODO: explanation/justification
+//! Align the configuration of visible state and of the sync details after sending.
+//! (puts everything back the way it was)
+//! Note: this only does something if the state is an autodiff state.
 template <class taAutodiffState>
-void AlignAutodiffState_PostCompose(taAutodiffState& aAutodiffState, AutodiffPackMode aOldPackMode) {
+void AlignState_PostCompose(taAutodiffState& aAutodiffState, AutodiffPackMode aOldPackMode) {
     if constexpr (std::is_base_of<AutodiffStateTag, taAutodiffState>::value) {
         aAutodiffState.setPackMode(aOldPackMode);
     }
 }
 
-//! TODO: explanation/justification
+//! `_syncUpdateImpl` is a const method, but if the visible state is an autodiff state, we may
+//! need to alter the pack mode. That's why we need to const_cast away the constness from the current
+//! state in order to pass it to AlignState_* functions. This isn't UB because the pack mode variable
+//! inside autopack states is mutable, and because these are const references to non-const objects
+//! anyway.
 template <class T>
 T& StripConstFromRef(const T& aRef) {
     return const_cast<T&>(aRef);
@@ -706,7 +709,7 @@ T& StripConstFromRef(const T& aRef) {
 //! Note: Will properly detect and handle autodiff objects.
 #define SPEMPE_SYNC_UPDATE_DEFAULT_IMPL(_class_name_, _sync_details_) \
     do { \
-        const auto __spempeimpl_oldPackMode = ::jbatnozic::spempe::detail::AlignAutodiffState_PreCompose( \
+        const auto __spempeimpl_oldPackMode = ::jbatnozic::spempe::detail::AlignState_PreCompose( \
             ::jbatnozic::spempe::detail::StripConstFromRef(_getCurrentState()), \
             _sync_details_ \
         ); \
@@ -715,7 +718,7 @@ T& StripConstFromRef(const T& aRef) {
                                              getSyncId(), \
                                              (_sync_details_).getFlags(), \
                                              _getCurrentState()); \
-        ::jbatnozic::spempe::detail::AlignAutodiffState_PostCompose( \
+        ::jbatnozic::spempe::detail::AlignState_PostCompose( \
             ::jbatnozic::spempe::detail::StripConstFromRef(_getCurrentState()), \
             __spempeimpl_oldPackMode \
         ); \

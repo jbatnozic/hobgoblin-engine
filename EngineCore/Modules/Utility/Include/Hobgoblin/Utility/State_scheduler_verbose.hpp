@@ -14,6 +14,7 @@ namespace util {
 //! This class does the same as `SimpleStateScheduler`, but it will log its entire state
 //! before and after any mutating operation. Thus its use is recommended only for debugging
 //! purposes, as it will flood the output with huge amounts of text.
+//! It's required that `taState` supports operator<< to std::ostream.
 template <class taState>
 class VerboseStateScheduler {
 public:

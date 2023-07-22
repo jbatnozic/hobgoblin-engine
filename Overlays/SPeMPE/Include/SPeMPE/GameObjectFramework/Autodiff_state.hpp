@@ -829,10 +829,16 @@ public:
         return USPEMPE_ADS_NO_CHANGE_STREAK_CNT_NAME;
     }
 
-    std::string getBits() const {
-        std::string result = "";
+    //! Returns a string of length X, where X is the number of members in the autodiff
+    //! state. Character [N] will be '1' if the N-th member (counting from 0) holds a
+    //! relevant diff (and not the default value). Otherwise this character will be '0'.
+    //! Note: diff bits are only updated after an autodiff state is unpacked from a
+    //! packet, to reflect which members were actually represented in the packet.
+    std::string stringifyDiffBits() const {
+        std::string result;
+        result.resize(static_cast<std::size_t>(taBaseCount));
         for (int i = taBaseCount - 1; i >= 0; i--) {
-            result += std::to_string((int)USPEMPE_ADS_BITS_NAME.getBit(i));
+            result.at(static_cast<std::size_t>(i)) = (((USPEMPE_ADS_BITS_NAME.getBit(i))) ? '1' : '0');
         }
         return result;
     }
