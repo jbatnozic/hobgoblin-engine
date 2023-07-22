@@ -11,7 +11,9 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace util {
 
-
+//! This class does the same as `SimpleStateScheduler`, but it will log its entire state
+//! before and after any mutating operation. Thus its use is recommended only for debugging
+//! purposes, as it will flood the output with huge amounts of text.
 template <class taState>
 class VerboseStateScheduler {
 public:
@@ -42,9 +44,6 @@ public:
     taState& getLatestState();
 
     bool isCurrentStateFresh() const;
-    PZInteger getBlueStatesCount() const {
-        return _ssch._bluePos;
-    }
 
     const taState& getCurrentState() const;
     const taState& getLatestState() const;
@@ -85,11 +84,13 @@ VerboseStateScheduler<taState>::VerboseStateScheduler(PZInteger aDefaultDelay)
 
 // Main:
 
+//! Helper macro to print the state of a VerboseStateScheduler, do some action,
+//! and then print the state again.
 #define VSC_DO(...) \
     do { \
-        HG_LOG_INFO(LOG_ID, "{} entering; state is: {}", CURRENT_FUNCTION, _printState()); \
+        HG_LOG_DEBUG(LOG_ID, "{} entering; state is: {}", CURRENT_FUNCTION, _printState()); \
         __VA_ARGS__ \
-        HG_LOG_INFO(LOG_ID, "{} exiting; state is: {}", CURRENT_FUNCTION, _printState()); \
+        HG_LOG_DEBUG(LOG_ID, "{} exiting; state is: {}", CURRENT_FUNCTION, _printState()); \
     } while (false)
 
 template <class taState>
@@ -102,7 +103,7 @@ void VerboseStateScheduler<taState>::putNewState(const taState& aNewState, PZInt
     VSC_DO({
         std::ostringstream oss;
         oss << aNewState;
-        HG_LOG_INFO(LOG_ID, "New state: {} Delay: {}", oss.str(), aDelay);
+        HG_LOG_DEBUG(LOG_ID, "New state: {} Delay: {}", oss.str(), aDelay);
         _ssch.putNewState(aNewState, aDelay);
     });
 }

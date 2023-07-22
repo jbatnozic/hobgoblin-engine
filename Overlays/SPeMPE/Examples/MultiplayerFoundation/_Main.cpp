@@ -18,7 +18,7 @@ static constexpr auto LOG_ID = "MultiplayerFoundation";
 // GAME CONFIG                                                           //
 ///////////////////////////////////////////////////////////////////////////
 
-#define WINDOW_WIDTH           1200
+#define WINDOW_WIDTH          1200
 #define WINDOW_HEIGHT          800
 #define FRAMERATE               60
 
@@ -58,7 +58,7 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
         winMgr->setToNormalMode(
             spe::WindowManagerInterface::WindowConfig{
                 sf::VideoMode{WINDOW_WIDTH, WINDOW_HEIGHT},
-                "SPeMPE Minimal Multiplayer",
+                "SPeMPE Multiplayer Foundation",
                 sf::Style::Default
             },
             spe::WindowManagerInterface::MainRenderTextureConfig{{WINDOW_WIDTH, WINDOW_HEIGHT}},

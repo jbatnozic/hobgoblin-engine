@@ -96,8 +96,8 @@ const std::vector<hg::PZInteger>& SyncDetails::getRecepients() const {
     return _recepients;
 }
 
-std::int64_t SyncDetails::getStepOrdinal() const {
-    return _qaoStepOrdinal;
+SyncFlags SyncDetails::getFlags() const {
+    return _flags;
 }
 
 void SyncDetails::filterSyncs(const SyncDetails::FilterPrecidateFunc& aPredicate) {

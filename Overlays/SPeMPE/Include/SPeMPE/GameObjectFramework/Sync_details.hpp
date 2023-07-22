@@ -72,12 +72,7 @@ struct SyncDetails {
     //! need to be sent.
     const std::vector<hg::PZInteger>& getRecepients() const;
 
-    //! TODO
-    std::int64_t getStepOrdinal() const;
-
-    SyncFlags getFlags() {
-        return _flags;
-    }
+    SyncFlags getFlags() const;
 
     enum class FilterResult {
         FullSync,   //! Sync whole state of this object (default behaviour) TODO rename this

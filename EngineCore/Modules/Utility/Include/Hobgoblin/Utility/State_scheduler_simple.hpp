@@ -61,11 +61,9 @@ public:
     taState& getLatestState();
 
     bool isCurrentStateFresh() const;
-    PZInteger getBlueStatesCount() const {
-        return _bluePos;
-    }
 
     const taState& getCurrentState() const;
+    const taState& getFollowingState() const;
     const taState& getLatestState() const;
 
     typename std::vector<taState>::iterator begin();
@@ -319,6 +317,9 @@ taState& SimpleStateScheduler<taState>::getFollowingState() {
 
 template <class taState>
 taState& SimpleStateScheduler<taState>::getLatestState() {
+    // This relies on the fact that, during state scheduling, incoming states
+    // are merely copied over to the buffer for scheduled states, and
+    // _newStatesBufferHand keeps pointing to the latest received state.
     return _newStateAt(_newStatesBufferHand);
 }
 
@@ -329,12 +330,17 @@ bool SimpleStateScheduler<taState>::isCurrentStateFresh() const {
 
 template <class taState>
 const taState& SimpleStateScheduler<taState>::getCurrentState() const {
-    return _scheduledStateAt(0);
+    return const_cast<SimpleStateScheduler&>(SELF).getCurrentState();
+}
+
+template <class taState>
+const taState& SimpleStateScheduler<taState>::getFollowingState() const {
+    return const_cast<SimpleStateScheduler&>(SELF).getFollowingState();
 }
 
 template <class taState>
 const taState& SimpleStateScheduler<taState>::getLatestState() const {
-    return _newStateAt(_newStatesBufferHand);
+    return const_cast<SimpleStateScheduler&>(SELF).getLatestState();
 }
 
 template <class taState>

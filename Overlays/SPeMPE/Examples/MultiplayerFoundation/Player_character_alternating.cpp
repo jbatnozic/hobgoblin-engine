@@ -80,15 +80,6 @@ void PlayerCharacterAlt::_eventDraw1() {
     const auto& self_curr = _getCurrentState();
     const auto& self_next = _getFollowingState();
 
-    if (ccomp<MWindow>().getKeyboardInput().checkPressed(spe::KbKey::LShift)) {
-        HG_LOG_INFO("PlayerALT", "curr_x: {} curr_y: {} next_x: {} next_y: {}", self_curr.x, self_curr.y, self_next.x, self_next.y);
-        std::cout << "    ";
-        for (const auto& state : _ssch) {
-            std::cout << state.visibleState.x << " " << state.visibleState.y << " | ";
-        }
-        std::cout << "(bluecnt: " << _ssch.getBlueStatesCount() << ")\n";
-    }
-
     sf::CircleShape circle{20.f};
     circle.setFillColor(COLORS[self_curr.owningPlayerIndex % NUM_COLORS]);
     circle.setPosition({
@@ -99,12 +90,9 @@ void PlayerCharacterAlt::_eventDraw1() {
 }
 
 void PlayerCharacterAlt::_eventFinalizeFrame(spe::IfMaster) {
-    //HG_LOG_INFO("PlayerALT", "cmp() = {}", _getCurrentState().cmp());
-    //std::cerr << "@@@ X=" << _getCurrentState().x << '\n';
     if (_didAlternatingUpdatesSync()) {
         _getCurrentState().commit();
     }
-    //HG_LOG_INFO("GAME", "========== FRAME ENDS ==========");
 }
 
 SPEMPE_GENERATE_DEFAULT_SYNC_HANDLERS(PlayerCharacterAlt, (CREATE, UPDATE, DESTROY));

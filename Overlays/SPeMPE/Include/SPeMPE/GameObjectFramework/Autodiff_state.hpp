@@ -791,7 +791,7 @@ protected:
      * Counts the number of commit calls that have happened with no change
      * compared to the previous commit.
      */
-    hg::PZInteger USPEMPE_ADS_NO_CHANGE_STREAK_CNT_NAME = 0;
+    std::uint8_t USPEMPE_ADS_NO_CHANGE_STREAK_CNT_NAME = 0;
 
     /**
      * After an object of this class is extracted from a Packet, this field will be set
@@ -823,8 +823,9 @@ public:
     }
 
     //! Returns the number of consecutive commit calls that have happened with no
-    //! change compared to the previous commit.
-    hg::PZInteger getNoChangeStreakCount() const {
+    //! change compared to the previous commit. If the streak is longer than 255
+    //! cycles, 255 will be returned.
+    std::uint8_t getNoChangeStreakCount() const {
         return USPEMPE_ADS_NO_CHANGE_STREAK_CNT_NAME;
     }
 
@@ -933,7 +934,7 @@ void AutodiffStateUnpack(
     }
 }
 
-//! TODO
+//! Applies a diff (contained in `aOther`) to the object `aReal`.
 template <class taBits, class taMember, class... taRest>
 void AutodiffStateApplyDiff(
     const taBits& aBits,
@@ -1008,7 +1009,7 @@ bool AutodiffStateCmp(
                 ::jbatnozic::spempe::detail::AutodiffStateCommit(USPEMPE_ADS_PASS_MEMBER_REFS(USPEMPE_ADS_MIRROR_OBJECT_NAME, __VA_ARGS__)); \
             } \
             else { \
-                USPEMPE_ADS_NO_CHANGE_STREAK_CNT_NAME += 1; \
+                if (USPEMPE_ADS_NO_CHANGE_STREAK_CNT_NAME < 255) { USPEMPE_ADS_NO_CHANGE_STREAK_CNT_NAME++; } \
             } \
         } \
         void packDiff(::jbatnozic::hobgoblin::util::PacketBase& aPacket) const { \
@@ -1051,6 +1052,11 @@ bool AutodiffStateCmp(
     struct _struct_name_ : public USPEMPE_AutodiffState_##_struct_name_##_LowerBase
 
 //! Declare a member field of an autodiff class.
+//! 
+//! Note: Due to how the preprocessor works, none of the parameters may contain
+//! commas. So, if the type is a multi-parameter template, you will have to
+//! typedef it to something, and if the default value is a function call with
+//! multiple parameters, you will have to assign it to a variable or constant first.
 #define SPEMPE_MEMBER(_type_, _name_, _default_value_) _type_, _name_, _default_value_
 
 ///////////////////////////////////////////////////////////////////////////

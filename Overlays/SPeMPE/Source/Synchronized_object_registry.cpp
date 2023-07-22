@@ -127,7 +127,6 @@ void SynchronizedObjectRegistry::syncStateUpdates() {
         _pacemakerPulseCountdown -= 1;
     }
 
-    _syncDetails._qaoStepOrdinal = _node->getUserData<GameContext>()->getCurrentStepOrdinal(); // TODO Temp.
     _syncDetails._flags = SyncFlags::None;
     if (_pacemakerPulseCountdown == 0) {
         _syncDetails._flags |= SyncFlags::PacemakerPulse;
@@ -171,7 +170,6 @@ void SynchronizedObjectRegistry::syncStateUpdates() {
 void SynchronizedObjectRegistry::syncCompleteState(hg::PZInteger clientIndex) {
     _syncDetails._recepients.resize(1);
     _syncDetails._recepients[0] = clientIndex;
-    _syncDetails._qaoStepOrdinal = _node->getUserData<GameContext>()->getCurrentStepOrdinal(); // TODO Temp.
     _syncDetails._flags = SyncFlags::FullState;
 
     for (auto& mapping : _mappings) {
@@ -212,7 +210,8 @@ void SynchronizedObjectRegistry::setPacemakerPulsePeriod(hg::PZInteger aPeriod) 
 }
 
 bool SynchronizedObjectRegistry::getAlternatingUpdatesFlag() const {
-    // Inverted because... TODO
+    // This method is only for use in _eventFinalizeFrame; however by this point
+    // the flag has been read and flipped, so we flip it again before returning.
     return !_alternatingUpdateFlag;
 }
 
