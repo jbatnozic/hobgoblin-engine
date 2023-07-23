@@ -57,11 +57,13 @@ public:
     // Access stored states:
 
     taState& getCurrentState();
+    taState& getFollowingState();
     taState& getLatestState();
 
     bool isCurrentStateFresh() const;
 
     const taState& getCurrentState() const;
+    const taState& getFollowingState() const;
     const taState& getLatestState() const;
 
     typename std::vector<taState>::iterator begin();
@@ -71,6 +73,9 @@ public:
     typename std::vector<taState>::const_iterator cend() const;
 
 private:
+    template <class T>
+    friend class VerboseStateScheduler;
+
     std::vector<taState> _stateBuffer;
 
     PZInteger _defaultDelay; // Individual buffer size = _defaultDelay + 1
@@ -226,6 +231,8 @@ void SimpleStateScheduler<taState>::setDefaultDelay(PZInteger aNewDefaultDelay) 
         return;
     }
 
+    const auto latestState = getLatestState();
+
     // Reduce
     if (aNewDefaultDelay < _defaultDelay) {
         const PZInteger difference = _defaultDelay - aNewDefaultDelay;
@@ -253,17 +260,17 @@ void SimpleStateScheduler<taState>::setDefaultDelay(PZInteger aNewDefaultDelay) 
         // -> A | A | B | C | D || ? | ? | ? | ? | ?
 
         for (PZInteger i = 0; i < difference; i += 1) {
-            _stateBuffer.emplace_back();
-            _stateBuffer.emplace_back();
+             _stateBuffer.emplace_back();
+             _stateBuffer.emplace_back();
         }
-        for (PZInteger i = _individualBufferSize() + difference - 1; i >= difference; i -= 1) {
+        for (PZInteger i = _individualBufferSize() - 1 + difference; i >= difference; i -= 1) {
             _stateBuffer[pztos(i)] = _stateBuffer[pztos(i - difference)];
         }
         for (PZInteger i = 0; i < difference; i += 1) {
             _stateBuffer[pztos(i)] = _stateBuffer[pztos(difference)];
         }
 
-        if (_bluePos != BLUE_POS_NONE) {
+        if (_bluePos >= 0) {
             _bluePos += difference;
         }
     }
@@ -273,6 +280,11 @@ void SimpleStateScheduler<taState>::setDefaultDelay(PZInteger aNewDefaultDelay) 
     _newStatesDelay = 0;
 
     _defaultDelay = aNewDefaultDelay;
+
+    // This is needed as to not spoil `getLatestState()`
+    for (PZInteger i = 0; i < _individualBufferSize(); i += 1) {
+        _newStateAt(i) = latestState;
+    }
 }
 
 template <class taState>
@@ -296,7 +308,18 @@ taState& SimpleStateScheduler<taState>::getCurrentState() {
 }
 
 template <class taState>
+taState& SimpleStateScheduler<taState>::getFollowingState() {
+    if (_individualBufferSize() >= 2 && _bluePos >= 1) {
+        return _scheduledStateAt(1);
+    }
+    return getCurrentState();
+}
+
+template <class taState>
 taState& SimpleStateScheduler<taState>::getLatestState() {
+    // This relies on the fact that, during state scheduling, incoming states
+    // are merely copied over to the buffer for scheduled states, and
+    // _newStatesBufferHand keeps pointing to the latest received state.
     return _newStateAt(_newStatesBufferHand);
 }
 
@@ -307,12 +330,17 @@ bool SimpleStateScheduler<taState>::isCurrentStateFresh() const {
 
 template <class taState>
 const taState& SimpleStateScheduler<taState>::getCurrentState() const {
-    return _scheduledStateAt(0);
+    return const_cast<SimpleStateScheduler&>(SELF).getCurrentState();
+}
+
+template <class taState>
+const taState& SimpleStateScheduler<taState>::getFollowingState() const {
+    return const_cast<SimpleStateScheduler&>(SELF).getFollowingState();
 }
 
 template <class taState>
 const taState& SimpleStateScheduler<taState>::getLatestState() const {
-    return _newStateAt(_newStatesBufferHand);
+    return const_cast<SimpleStateScheduler&>(SELF).getLatestState();
 }
 
 template <class taState>

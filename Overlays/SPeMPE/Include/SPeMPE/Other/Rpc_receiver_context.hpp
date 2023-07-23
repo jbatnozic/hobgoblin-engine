@@ -2,6 +2,7 @@
 #define SPEMPE_OTHER_RPC_RECEIVER_CONTEXT_HPP
 
 #include <SPeMPE/GameContext/Game_context.hpp>
+#include <SPeMPE/GameObjectFramework/Game_object_bases.hpp>
 #include <SPeMPE/Managers/Networking_manager_interface.hpp>
 
 namespace jbatnozic {

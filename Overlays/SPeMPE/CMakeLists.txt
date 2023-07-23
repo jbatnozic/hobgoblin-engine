@@ -17,6 +17,7 @@ set(OVERLAY_SOURCES
   "Source/Networking_manager_default.cpp"
   "Source/Synced_varmap_manager_default.cpp"
   "Source/Synchronized_object_registry.cpp"
+  "Source/Sync_details.cpp"
   "Source/Window_manager_default.cpp"
 )
 
@@ -30,6 +31,7 @@ PUBLIC
   "Hobgoblin.Common"
   "Hobgoblin.Graphics"
   "Hobgoblin.Logging"
+  "Hobgoblin.Math"
   "Hobgoblin.QAO"
   "Hobgoblin.RigelNet"
   "Hobgoblin.RmlUi"
@@ -43,6 +45,7 @@ PUBLIC
 set(OVERLAY_TEST_NAME "${OVERLAY_NAME}.Test")
 
 set(OVERLAY_TEST_SOURCES
+  "Test/Autodiff_state_test.cpp"
   "Test/Default_lobby_backend_manager_test.cpp"
   "Test/Default_synced_varmap_manager_test.cpp"
   "Test/Input_sync_manager_test.cpp"

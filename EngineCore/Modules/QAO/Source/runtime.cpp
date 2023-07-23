@@ -218,7 +218,7 @@ void QAO_Runtime::advanceStep(bool& done, std::int32_t eventFlags) {
     done = true;
 }
 
-QAO_Event::Enum QAO_Runtime::getCurrentEvent() {
+QAO_Event::Enum QAO_Runtime::getCurrentEvent() const {
     return _current_event;
 }
 

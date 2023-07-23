@@ -2,11 +2,14 @@
 #include "Engine.h"
 #include "Lobby_frontend_manager.hpp"
 #include "Main_gameplay_manager.hpp"
-#include "Player_character.hpp"
+
+#include "Player_character_basic.hpp"
+#include "Player_character_autodiff.hpp"
+#include "Player_character_alternating.hpp"
+#include "Player_character_autodiff_alternating.hpp"
 
 #include <Hobgoblin/Logging.hpp>
 #include <Hobgoblin/Utility/Randomization.hpp>
-#include <Hobgoblin/Utility/State_scheduler.hpp>
 
 #include <cstdint>
 #include <iostream>
@@ -17,7 +20,7 @@ static constexpr auto LOG_ID = "MultiplayerFoundation";
 // GAME CONFIG                                                           //
 ///////////////////////////////////////////////////////////////////////////
 
-#define WINDOW_WIDTH           800
+#define WINDOW_WIDTH          1200
 #define WINDOW_HEIGHT          800
 #define FRAMERATE               60
 
@@ -56,11 +59,11 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
     else {
         winMgr->setToNormalMode(
             spe::WindowManagerInterface::WindowConfig{
-                sf::VideoMode{WINDOW_WIDTH, WINDOW_WIDTH},
-                "SPeMPE Minimal Multiplayer",
+                sf::VideoMode{WINDOW_WIDTH, WINDOW_HEIGHT},
+                "SPeMPE Multiplayer Foundation",
                 sf::Style::Default
             },
-            spe::WindowManagerInterface::MainRenderTextureConfig{{WINDOW_HEIGHT, WINDOW_HEIGHT}},
+            spe::WindowManagerInterface::MainRenderTextureConfig{{WINDOW_WIDTH, WINDOW_HEIGHT}},
             spe::WindowManagerInterface::TimingConfig{
                 FRAMERATE,
                 false,                                           /* Framerate limiter */
@@ -215,10 +218,38 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
     if (aGameMode == GameMode::Server) {
         for (hg::PZInteger i = 0; i < aPlayerCount; i += 1) {
             if (i == 0) continue; // host doesn't need a character
-            auto* p = QAO_PCreate<PlayerCharacter>(context->getQAORuntime(),
-                                                   context->getComponent<MNetworking>().getRegistryId(),
-                                                   spe::SYNC_ID_NEW);
-            p->init(i);
+            {
+                auto* p = QAO_PCreate<BasicPlayerCharacter>(
+                    context->getQAORuntime(),
+                    context->getComponent<MNetworking>().getRegistryId(),
+                    spe::SYNC_ID_NEW
+                );
+                p->init(i, 20.f + i * 40.f, 40.f);
+            }
+            {
+                auto* p = QAO_PCreate<AutodiffPlayerCharacter>(
+                    context->getQAORuntime(),
+                    context->getComponent<MNetworking>().getRegistryId(),
+                    spe::SYNC_ID_NEW
+                );
+                p->init(i, 20.f + i * 40.f, 80.f);
+            }
+            {
+                auto* p = QAO_PCreate<AlternatingPlayerCharacter>(
+                    context->getQAORuntime(),
+                    context->getComponent<MNetworking>().getRegistryId(),
+                    spe::SYNC_ID_NEW
+                );
+                p->init(i, 20.f + i * 40.f, 120.f);
+            }
+            {
+                auto* p = QAO_PCreate<AutodiffAlternatingPlayerCharacter>(
+                    context->getQAORuntime(),
+                    context->getComponent<MNetworking>().getRegistryId(),
+                    spe::SYNC_ID_NEW
+                );
+                p->init(i, 20.f + i * 40.f, 160.f);
+            }
         }
     }
 

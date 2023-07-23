@@ -5,8 +5,10 @@
 #include <Hobgoblin/RigelNet.hpp>
 #include <Hobgoblin/RigelNet_macros.hpp>
 #include <Hobgoblin/Utility/Dynamic_bitset.hpp>
-#include <Hobgoblin/Utility/State_scheduler_simple.hpp>
+//#include <Hobgoblin/Utility/State_scheduler_simple.hpp>
+#include <Hobgoblin/Utility/State_scheduler_verbose.hpp>
 #include <SPeMPE/GameContext/Game_context.hpp>
+#include <SPeMPE/GameObjectFramework/Autodiff_state.hpp>
 #include <SPeMPE/GameObjectFramework/Synchronized_object_registry.hpp>
 
 #include <algorithm>
@@ -15,8 +17,12 @@
 #include <cstdint>
 #include <optional>
 #include <typeinfo>
+#include <type_traits>
 #include <utility>
 #include <vector>
+
+#include <Hobgoblin/Logging.hpp>
+#include <iostream>
 
 #define SPEMPE_TYPEID_SELF (typeid(decltype(*this)))
 
@@ -154,6 +160,14 @@ protected:
 
     void _enableAlternatingUpdates();
 
+    //! This method can be called only during _eventFinalizeStep().
+    //! It will return true if objects with alternating updates enabled have
+    //! synced during this cycle.
+    //! Usually this is only useful for objects that use both autodiff states
+    //! and alternating updates, as they will want to commit their autodiff
+    //! states only after a sync.
+    bool _didAlternatingUpdatesSync() const;
+
 private:
     friend class detail::SynchronizedObjectRegistry;
 
@@ -249,16 +263,11 @@ protected:
 
     taVisibleState& _getFollowingState() {
         assert(isMasterObject() || !isDeactivated());
-        if (_ssch.getDefaultDelay() > 0) {
-            const auto iter = _ssch.begin() + 1;
-            if (iter->status.isDeactivated) {
-                return _ssch.getCurrentState().visibleState;
-            }
-            return (_ssch.begin() + 1)->visibleState;
-        }
-        else {
+        auto& followingState = _ssch.getFollowingState();
+        if (followingState.status.isDeactivated) {
             return _ssch.getCurrentState().visibleState;
         }
+        return followingState.visibleState;
     }
 
     const taVisibleState& _getCurrentState() const {
@@ -267,20 +276,11 @@ protected:
     }
 
     const taVisibleState& _getFollowingState() const {
-        assert(isMasterObject() || !isDeactivated());
-        if (_ssch.getDefaultDelay() > 0) {
-            const auto iter = _ssch.begin() + 1;
-            if (iter->status.isDeactivated) {
-                return _ssch.getCurrentState().visibleState;
-            }
-            return (_ssch.begin() + 1)->visibleState;
-        }
-        else {
-            return _ssch.getCurrentState().visibleState;
-        }
+        return const_cast<SynchronizedObject*>(this)->_getFollowingState();
     }
 
-private:
+//private:
+protected:
     struct DummyStatus {
         bool isDeactivated = true;
 
@@ -296,6 +296,11 @@ private:
     struct SchedulerPair {
         taVisibleState visibleState;
         DummyStatus status;
+
+        friend
+        std::ostream& operator<<(std::ostream& aOstream, const SchedulerPair& aSPair) {
+            return (aOstream << aSPair.visibleState << (aSPair.status.isDeactivated ? " [deactivated]" : " [active]"));
+        }
     };
 
     struct DeferredState {
@@ -321,11 +326,18 @@ private:
             _ssch.alignToDelay(_pacemakerPulse.delay);
             _pacemakerPulse.happened = false;
         }
+        // Objects with alternating updates are more sensitive to lag, since they are receiving
+        // half as many updates as other objects. Because of this, they can fall into a degenerate
+        // state where their state scheduler is constantly out of blue states, and then they
+        // receive a double update every other frame, which looks choppy and bad. This gets fixed
+        // when a pacemaker pulse happens, but it can take a while before that happens. So, when
+        // this degenerate state is detected, a pacemaker pulse is immediately applied.
+        else if (isUsingAlternatingUpdates() && !_ssch.isCurrentStateFresh()) {
+            _ssch.alignToDelay(_pacemakerPulse.delay);
+        }
 
         if (_deferredState.has_value()) {
-            _ssch.putNewState(SchedulerPair{(*_deferredState).state, 
-                              DummyStatus::active()},
-                              (*_deferredState).delay);
+            _ssch.putNewState(SchedulerPair{_deferredState->state, DummyStatus::active()}, _deferredState->delay);
             _deferredState.reset();
         }
 
@@ -345,14 +357,29 @@ private:
         _ssch.putNewState(SchedulerPair{{}, DummyStatus::deactivated()}, aDelaySteps);
     }
 
+    const taVisibleState& _getLatestState() const {
+        return _ssch.getLatestState().visibleState;
+    }
+
 public:
     //! Internal implementation, do not call manually!
     void __spempeimpl_applyUpdate(const VisibleState& aNewState, hg::PZInteger aDelaySteps, SyncFlags aFlags) {
+        VisibleState stateToSchedule = [this, &aNewState, aFlags]() {
+            if constexpr (std::is_base_of<detail::AutodiffStateTag, VisibleState>::value) {
+                if (!HasFullState(aFlags)) {
+                    VisibleState state = _getLatestState();
+                    state.applyDiff(aNewState);
+                    return state;
+                }
+            }
+            return aNewState;
+        }();
+
         switch (HasPacemakerPulse(aFlags)) {
         // NORMAL UPDATE
         case false:
             if (!isUsingAlternatingUpdates()) {
-                _ssch.putNewState(SchedulerPair{aNewState, DummyStatus::active()}, aDelaySteps);
+                _ssch.putNewState(SchedulerPair{stateToSchedule, DummyStatus::active()}, aDelaySteps);
             }
             else {
                 if (_deferredState.has_value()) {
@@ -362,21 +389,28 @@ public:
                     _deferredState.reset();
                 }
 
-                _ssch.putNewState(SchedulerPair{aNewState, DummyStatus::active()}, aDelaySteps);
+                _ssch.putNewState(SchedulerPair{stateToSchedule, DummyStatus::active()}, aDelaySteps);
 
-                _deferredState = {aNewState, aDelaySteps};
+                _deferredState = {stateToSchedule, aDelaySteps};
             }
-            if (_pacemakerPulse.happened) {
+            // Save the delay even if the server didn't send the pacemaker pulse:
+            // sometimes dummies with alternating updates can trigger 'pacemaking'
+            // themselves to get out of degenerate states, and then they will need
+            // to know the delay.
+            //if (_pacemakerPulse.happened) {
                 // This is in the correct place because the pacemaker 
                 // pulse actually affects the *following* update.
                 _pacemakerPulse.delay = aDelaySteps;
-            }
+            //}
             break;
 
         // PACEMAKER UPDATE
         case true:
             if (!isUsingAlternatingUpdates()) {
-                _ssch.putNewState(SchedulerPair{aNewState, DummyStatus::active()}, aDelaySteps);
+                _ssch.putNewState(SchedulerPair{stateToSchedule, DummyStatus::active()}, aDelaySteps);
+            }
+            else {
+                // When using alternating updates, a pacemaker pulse happens inbetween actual updates
             }
             _pacemakerPulse.happened = true;
             _pacemakerPulse.delay = aDelaySteps;
@@ -558,6 +592,60 @@ void DefaultSyncDestroyHandler(hg::RN_NodeInterface& node,
         });
 }
 
+namespace detail {
+//! Align the configuration of visible state and of the sync details before sending.
+//! Note: this only does something if the state is an autodiff state.
+template <class taAutodiffState>
+AutodiffPackMode AlignState_PreCompose(taAutodiffState& aAutodiffState, SyncDetails& aSyncDetails) {
+    if constexpr (std::is_base_of<AutodiffStateTag, taAutodiffState>::value) {
+        const auto previousPackMode = aAutodiffState.getPackMode();
+
+        // If a full state sync was requested by the engine, we must not
+        // filter out any recepients nor allow only the diff to be sent.
+        const bool diffAllowed = !HasFullState(aSyncDetails.getFlags());
+        if (diffAllowed) {
+            aAutodiffState.setPackMode(AutodiffPackMode::PackDiff);
+
+            if (aAutodiffState.cmp() == AUTODIFF_STATE_NO_CHANGE &&
+                aAutodiffState.getNoChangeStreakCount() >= 1) {
+                aSyncDetails.filterSyncs([](hg::PZInteger /* aClientIndex */) -> SyncDetails::FilterResult {
+                    return SyncDetails::FilterResult::Skip;
+                });
+            }
+        }
+        else {
+            aAutodiffState.setPackMode(AutodiffPackMode::PackAll);
+        }
+
+        return previousPackMode;
+    }
+    else {
+        // The specific return value doesn't matter here
+        return AutodiffPackMode::Default;
+    }
+}
+
+//! Align the configuration of visible state and of the sync details after sending.
+//! (puts everything back the way it was)
+//! Note: this only does something if the state is an autodiff state.
+template <class taAutodiffState>
+void AlignState_PostCompose(taAutodiffState& aAutodiffState, AutodiffPackMode aOldPackMode) {
+    if constexpr (std::is_base_of<AutodiffStateTag, taAutodiffState>::value) {
+        aAutodiffState.setPackMode(aOldPackMode);
+    }
+}
+
+//! `_syncUpdateImpl` is a const method, but if the visible state is an autodiff state, we may
+//! need to alter the pack mode. That's why we need to const_cast away the constness from the current
+//! state in order to pass it to AlignState_* functions. This isn't UB because the pack mode variable
+//! inside autopack states is mutable, and because these are const references to non-const objects
+//! anyway.
+template <class T>
+T& StripConstFromRef(const T& aRef) {
+    return const_cast<T&>(aRef);
+}
+} // namespace detail
+
 // ===== All macros starting with USPEMPE_ are internal =====
 
 #define USPEMPE_MACRO_EXPAND(_x_) _x_
@@ -624,12 +712,23 @@ void DefaultSyncDestroyHandler(hg::RN_NodeInterface& node,
 
 //! Calls the default sync/UPDATE implementation of a SynchronizedObject
 //! generated by SPEMPE_GENERATE_DEFAULT_SYNC_HANDLERS.
+//! Note: Will properly detect and handle autodiff objects.
 #define SPEMPE_SYNC_UPDATE_DEFAULT_IMPL(_class_name_, _sync_details_) \
-    Compose_USPEMPE_Update##_class_name_((_sync_details_).getNode(), \
-                                         (_sync_details_).getRecepients(), \
-                                         getSyncId(), \
-                                         (_sync_details_).getFlags(), \
-                                         _getCurrentState())
+    do { \
+        const auto __spempeimpl_oldPackMode = ::jbatnozic::spempe::detail::AlignState_PreCompose( \
+            ::jbatnozic::spempe::detail::StripConstFromRef(_getCurrentState()), \
+            _sync_details_ \
+        ); \
+        Compose_USPEMPE_Update##_class_name_((_sync_details_).getNode(), \
+                                             (_sync_details_).getRecepients(), \
+                                             getSyncId(), \
+                                             (_sync_details_).getFlags(), \
+                                             _getCurrentState()); \
+        ::jbatnozic::spempe::detail::AlignState_PostCompose( \
+            ::jbatnozic::spempe::detail::StripConstFromRef(_getCurrentState()), \
+            __spempeimpl_oldPackMode \
+        ); \
+    } while (false)
 
 //! Calls the default sync/DESTROY implementation of a SynchronizedObject
 //! generated by SPEMPE_GENERATE_DEFAULT_SYNC_HANDLERS.

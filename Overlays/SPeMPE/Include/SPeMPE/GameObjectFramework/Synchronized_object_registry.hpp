@@ -1,6 +1,8 @@
 #ifndef SPEMPE_GAME_OBJECT_FRAMEWORK_SYNCHRONIZED_OBJECT_REGISTRY_HPP
 #define SPEMPE_GAME_OBJECT_FRAMEWORK_SYNCHRONIZED_OBJECT_REGISTRY_HPP
 
+#include <SPeMPE/GameObjectFramework/Sync_details.hpp>
+
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/RigelNet.hpp>
 #include <Hobgoblin/Utility/No_copy_no_move.hpp>
@@ -16,86 +18,8 @@ namespace spempe {
 
 namespace hg = ::jbatnozic::hobgoblin;
 
-using SyncId = std::uint64_t;
-constexpr SyncId SYNC_ID_NEW = 0;
-
 struct RegistryId {
     std::intptr_t address;
-};
-
-namespace detail {
-class SynchronizedObjectRegistry;
-using SyncFlagsUnderlyingType = std::uint8_t;
-} // namespace detail
-
-enum class SyncFlags : detail::SyncFlagsUnderlyingType {
-    None = 0x00,
-    // Shows whether this update will be used as a pacemaker pulse on
-    //! the client side. This information is mostly only useful to the
-    //! engine itself.
-    PacemakerPulse = 0x01
-};
-
-inline
-bool HasPacemakerPulse(SyncFlags aFlags) {
-    return (static_cast<detail::SyncFlagsUnderlyingType>(aFlags) &
-            static_cast<detail::SyncFlagsUnderlyingType>(SyncFlags::PacemakerPulse)) != 0;
-}
-
-inline
-SyncFlags& operator|=(SyncFlags& aLhs, const SyncFlags aRhs) {
-    return aLhs = static_cast<SyncFlags>(
-        static_cast<detail::SyncFlagsUnderlyingType>(aLhs) | 
-        static_cast<detail::SyncFlagsUnderlyingType>(aRhs)
-    );
-}
-
-inline
-hg::util::PacketBase& operator<<(hg::util::PacketBase& aPacket, SyncFlags aFlags) {
-    return (aPacket << static_cast<detail::SyncFlagsUnderlyingType>(aFlags));
-}
-
-inline
-hg::util::PacketBase& operator>>(hg::util::PacketBase& aPacket, SyncFlags& aFlags) {
-    detail::SyncFlagsUnderlyingType value;
-    aPacket >> value;
-    aFlags = static_cast<SyncFlags>(value);
-    return aPacket;
-}
-
-struct SyncDetails {
-    //! The node through which the sync messages need to be sent.
-    hg::RN_NodeInterface& getNode() const;
-
-    //! Vector of client indices of (recepients) to which sync messages
-    //! need to be sent.
-    const std::vector<hg::PZInteger>& getRecepients() const;
-
-    SyncFlags getFlags() {
-        return _flags;
-    }
-
-    enum class FilterResult {
-        FullSync,   //! Sync whole state of this object (default behaviour)
-        Skip,       //! Don't send anything during this update (no change)
-        Deactivate  //! Don't send anything and deactivate the remote dummy
-    };
-
-    //! Function object that takes an index of a client as an argument and should
-    //! return whether (and how) to sync an object to this particular client.
-    using FilterPrecidateFunc = std::function<FilterResult(hg::PZInteger)>;
-
-    void filterSyncs(const FilterPrecidateFunc& aPredicate);
-
-private:
-    SyncDetails(detail::SynchronizedObjectRegistry& aRegistry);
-
-    hg::not_null<detail::SynchronizedObjectRegistry*> _registry;
-    std::vector<hg::PZInteger> _recepients;
-    SyncId _forObject = SYNC_ID_NEW;
-    SyncFlags _flags = static_cast<SyncFlags>(0);
-
-    friend class detail::SynchronizedObjectRegistry;
 };
 
 class SynchronizedObjectBase;
@@ -136,6 +60,13 @@ public:
 
     //! Argument must be an even number!
     void setPacemakerPulsePeriod(hg::PZInteger aPeriod);
+
+    //! Checks the alternating updates flag:
+    //! - true:  objects with alternating updates have synced in this cycle.
+    //! - false: objects with alternating updates have NOT synced in this cycle.
+    //! Note: this is meant to be called during _eventFinalizeFrame(), otherwise
+    //! the returned value may not be reliable.
+    bool getAlternatingUpdatesFlag() const;
 
     ///////////////////////////////////////////////////////////////////////////
     // HELPERS & ACCESSORS                                                   //

@@ -142,7 +142,7 @@ public:
 
     //! Returns the ordinal number of the step currently being executed, or of
     //! the last step that was executed if execution was stopped or finished.
-    hg::PZInteger getCurrentStepOrdinal() const;
+    hg::PZInteger getCurrentStepOrdinal() const; // TODO: Change to int64_t
 
     ///////////////////////////////////////////////////////////////////////////
     // CHILD CONTEXT SUPPORT                                                 //

@@ -1,6 +1,7 @@
 
 #include <SPeMPE/Managers/Networking_manager_default.hpp>
 
+#include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Logging.hpp>
 
 #include <algorithm>
