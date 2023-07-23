@@ -5,7 +5,6 @@
 
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/RigelNet.hpp>
-#include <Hobgoblin/QAO.hpp>
 #include <Hobgoblin/Utility/No_copy_no_move.hpp>
 #include <Hobgoblin/Utility/Packet.hpp>
 
@@ -65,7 +64,8 @@ public:
     //! Checks the alternating updates flag:
     //! - true:  objects with alternating updates have synced in this cycle.
     //! - false: objects with alternating updates have NOT synced in this cycle.
-    //! Note: this is meant to be called during _eventFinalizeFrame().
+    //! Note: this is meant to be called during _eventFinalizeFrame(), otherwise
+    //! the returned value may not be reliable.
     bool getAlternatingUpdatesFlag() const;
 
     ///////////////////////////////////////////////////////////////////////////

@@ -326,6 +326,12 @@ protected:
             _ssch.alignToDelay(_pacemakerPulse.delay);
             _pacemakerPulse.happened = false;
         }
+        // Objects with alternating updates are more sensitive to lag, since they are receiving
+        // half as many updates as other objects. Because of this, they can fall into a degenerate
+        // state where their state scheduler is constantly out of blue states, and then they
+        // receive a double update every other frame, which looks choppy and bad. This gets fixed
+        // when a pacemaker pulse happens, but it can take a while before that happens. So, when
+        // this degenerate state is detected, a pacemaker pulse is immediately applied.
         else if (isUsingAlternatingUpdates() && !_ssch.isCurrentStateFresh()) {
             _ssch.alignToDelay(_pacemakerPulse.delay);
         }

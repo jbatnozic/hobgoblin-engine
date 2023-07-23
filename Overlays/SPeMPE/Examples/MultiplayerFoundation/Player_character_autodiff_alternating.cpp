@@ -1,25 +1,28 @@
 
-#include "Player_character_alternating.hpp"
+#include "Player_character_autodiff_alternating.hpp"
 
 #include <Hobgoblin/Logging.hpp>
 #include <iostream>
 
-AlternatingPlayerCharacter::AlternatingPlayerCharacter(QAO_RuntimeRef aRuntimeRef,
-                                                       spe::RegistryId aRegId,
-                                                       spe::SyncId aSyncId)
+AutodiffAlternatingPlayerCharacter::AutodiffAlternatingPlayerCharacter(QAO_RuntimeRef aRuntimeRef,
+                                                                       spe::RegistryId aRegId,
+                                                                       spe::SyncId aSyncId)
     : SyncObjSuper{aRuntimeRef, SPEMPE_TYPEID_SELF, PRIORITY_PLAYERAVATAR,
-                   "AlternatingCharacterAlt", aRegId, aSyncId}
+                   "AutodiffAlternatingPlayerCharacter", aRegId, aSyncId}
 {
+    if (isMasterObject()) {
+        _getCurrentState().initMirror();
+    }
     _enableAlternatingUpdates();
 }
 
-AlternatingPlayerCharacter::~AlternatingPlayerCharacter() {
+AutodiffAlternatingPlayerCharacter::~AutodiffAlternatingPlayerCharacter() {
     if (isMasterObject()) {
         doSyncDestroy();
     }
 }
 
-void AlternatingPlayerCharacter::init(int aOwningPlayerIndex, float aX, float aY) {
+void AutodiffAlternatingPlayerCharacter::init(int aOwningPlayerIndex, float aX, float aY) {
     assert(isMasterObject());
 
     auto& self = _getCurrentState();
@@ -28,7 +31,7 @@ void AlternatingPlayerCharacter::init(int aOwningPlayerIndex, float aX, float aY
     self.owningPlayerIndex = aOwningPlayerIndex;
 }
 
-void AlternatingPlayerCharacter::_eventUpdate(spe::IfMaster) {
+void AutodiffAlternatingPlayerCharacter::_eventUpdate(spe::IfMaster) {
     if (ctx().getGameState().isPaused) return;
 
     auto& self = _getCurrentState();
@@ -55,7 +58,7 @@ void AlternatingPlayerCharacter::_eventUpdate(spe::IfMaster) {
     }
 }
 
-void AlternatingPlayerCharacter::_eventDraw1() {
+void AutodiffAlternatingPlayerCharacter::_eventDraw1() {
     if (this->isDeactivated()) return;
 
     #define NUM_COLORS 12
@@ -86,16 +89,22 @@ void AlternatingPlayerCharacter::_eventDraw1() {
     ccomp<MWindow>().getCanvas().draw(circle);
 }
 
-SPEMPE_GENERATE_DEFAULT_SYNC_HANDLERS(AlternatingPlayerCharacter, (CREATE, UPDATE, DESTROY));
-
-void AlternatingPlayerCharacter::_syncCreateImpl(spe::SyncDetails& aSyncDetails) const {
-    SPEMPE_SYNC_CREATE_DEFAULT_IMPL(AlternatingPlayerCharacter, aSyncDetails);
+void AutodiffAlternatingPlayerCharacter::_eventFinalizeFrame(spe::IfMaster) {
+    if (_didAlternatingUpdatesSync()) {
+        _getCurrentState().commit();
+    }
 }
 
-void AlternatingPlayerCharacter::_syncUpdateImpl(spe::SyncDetails& aSyncDetails) const {
-    SPEMPE_SYNC_UPDATE_DEFAULT_IMPL(AlternatingPlayerCharacter, aSyncDetails);
+SPEMPE_GENERATE_DEFAULT_SYNC_HANDLERS(AutodiffAlternatingPlayerCharacter, (CREATE, UPDATE, DESTROY));
+
+void AutodiffAlternatingPlayerCharacter::_syncCreateImpl(spe::SyncDetails& aSyncDetails) const {
+    SPEMPE_SYNC_CREATE_DEFAULT_IMPL(AutodiffAlternatingPlayerCharacter, aSyncDetails);
 }
 
-void AlternatingPlayerCharacter::_syncDestroyImpl(spe::SyncDetails& aSyncDetails) const {
-    SPEMPE_SYNC_DESTROY_DEFAULT_IMPL(AlternatingPlayerCharacter, aSyncDetails);
+void AutodiffAlternatingPlayerCharacter::_syncUpdateImpl(spe::SyncDetails& aSyncDetails) const {
+    SPEMPE_SYNC_UPDATE_DEFAULT_IMPL(AutodiffAlternatingPlayerCharacter, aSyncDetails);
+}
+
+void AutodiffAlternatingPlayerCharacter::_syncDestroyImpl(spe::SyncDetails& aSyncDetails) const {
+    SPEMPE_SYNC_DESTROY_DEFAULT_IMPL(AutodiffAlternatingPlayerCharacter, aSyncDetails);
 }

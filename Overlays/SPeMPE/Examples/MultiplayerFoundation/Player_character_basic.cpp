@@ -1,25 +1,21 @@
 
-#include "Player_character_alternating.hpp"
+#include "Player_character_basic.hpp"
 
-#include <Hobgoblin/Logging.hpp>
-#include <iostream>
-
-AlternatingPlayerCharacter::AlternatingPlayerCharacter(QAO_RuntimeRef aRuntimeRef,
-                                                       spe::RegistryId aRegId,
-                                                       spe::SyncId aSyncId)
+BasicPlayerCharacter::BasicPlayerCharacter(QAO_RuntimeRef aRuntimeRef,
+                                           spe::RegistryId aRegId,
+                                           spe::SyncId aSyncId)
     : SyncObjSuper{aRuntimeRef, SPEMPE_TYPEID_SELF, PRIORITY_PLAYERAVATAR,
-                   "AlternatingCharacterAlt", aRegId, aSyncId}
+                   "BasicPlayerCharacter", aRegId, aSyncId}
 {
-    _enableAlternatingUpdates();
 }
 
-AlternatingPlayerCharacter::~AlternatingPlayerCharacter() {
+BasicPlayerCharacter::~BasicPlayerCharacter() {
     if (isMasterObject()) {
         doSyncDestroy();
     }
 }
 
-void AlternatingPlayerCharacter::init(int aOwningPlayerIndex, float aX, float aY) {
+void BasicPlayerCharacter::init(int aOwningPlayerIndex, float aX, float aY) {
     assert(isMasterObject());
 
     auto& self = _getCurrentState();
@@ -28,7 +24,7 @@ void AlternatingPlayerCharacter::init(int aOwningPlayerIndex, float aX, float aY
     self.owningPlayerIndex = aOwningPlayerIndex;
 }
 
-void AlternatingPlayerCharacter::_eventUpdate(spe::IfMaster) {
+void BasicPlayerCharacter::_eventUpdate(spe::IfMaster) {
     if (ctx().getGameState().isPaused) return;
 
     auto& self = _getCurrentState();
@@ -55,7 +51,7 @@ void AlternatingPlayerCharacter::_eventUpdate(spe::IfMaster) {
     }
 }
 
-void AlternatingPlayerCharacter::_eventDraw1() {
+void BasicPlayerCharacter::_eventDraw1() {
     if (this->isDeactivated()) return;
 
     #define NUM_COLORS 12
@@ -74,28 +70,24 @@ void AlternatingPlayerCharacter::_eventDraw1() {
         hg::gr::Color::Aqua,
     };
 
-    const auto& self_curr = _getCurrentState();
-    const auto& self_next = _getFollowingState();
+    const auto& self = _getCurrentState();
 
     sf::CircleShape circle{20.f};
-    circle.setFillColor(COLORS[self_curr.owningPlayerIndex % NUM_COLORS]);
-    circle.setPosition({
-        (self_curr.x + self_next.x) / 2.f,
-        (self_curr.y + self_next.y) / 2.f
-    });
+    circle.setFillColor(COLORS[self.owningPlayerIndex % NUM_COLORS]);
+    circle.setPosition({self.x, self.y});
     ccomp<MWindow>().getCanvas().draw(circle);
 }
 
-SPEMPE_GENERATE_DEFAULT_SYNC_HANDLERS(AlternatingPlayerCharacter, (CREATE, UPDATE, DESTROY));
+SPEMPE_GENERATE_DEFAULT_SYNC_HANDLERS(BasicPlayerCharacter, (CREATE, UPDATE, DESTROY));
 
-void AlternatingPlayerCharacter::_syncCreateImpl(spe::SyncDetails& aSyncDetails) const {
-    SPEMPE_SYNC_CREATE_DEFAULT_IMPL(AlternatingPlayerCharacter, aSyncDetails);
+void BasicPlayerCharacter::_syncCreateImpl(spe::SyncDetails& aSyncDetails) const {
+    SPEMPE_SYNC_CREATE_DEFAULT_IMPL(BasicPlayerCharacter, aSyncDetails);
 }
 
-void AlternatingPlayerCharacter::_syncUpdateImpl(spe::SyncDetails& aSyncDetails) const {
-    SPEMPE_SYNC_UPDATE_DEFAULT_IMPL(AlternatingPlayerCharacter, aSyncDetails);
+void BasicPlayerCharacter::_syncUpdateImpl(spe::SyncDetails& aSyncDetails) const {
+    SPEMPE_SYNC_UPDATE_DEFAULT_IMPL(BasicPlayerCharacter, aSyncDetails);
 }
 
-void AlternatingPlayerCharacter::_syncDestroyImpl(spe::SyncDetails& aSyncDetails) const {
-    SPEMPE_SYNC_DESTROY_DEFAULT_IMPL(AlternatingPlayerCharacter, aSyncDetails);
+void BasicPlayerCharacter::_syncDestroyImpl(spe::SyncDetails& aSyncDetails) const {
+    SPEMPE_SYNC_DESTROY_DEFAULT_IMPL(BasicPlayerCharacter, aSyncDetails);
 }

@@ -25,7 +25,6 @@ void Autopack(PacketBase& packet, ArgsHead&& argsHead, ArgsRest&&... argsRest) {
     Autopack(packet, std::forward<ArgsRest>(argsRest)...);
 }
 
-
 template <class ...NoArgs>
 typename std::enable_if_t<sizeof...(NoArgs) == 0, void>  Autounpack(PacketBase& packet) {
     // Do nothing

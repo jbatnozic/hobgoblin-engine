@@ -6,24 +6,24 @@
 
 #include <cstdint>
 
-struct AlternatingPlayerCharacter_VisibleState {
+struct BasicPlayerCharacter_VisibleState {
     float x = 0.f, y = 0.f;
     std::int32_t owningPlayerIndex = spe::PLAYER_INDEX_UNKNOWN;
 
-    HG_ENABLE_AUTOPACK(AlternatingPlayerCharacter_VisibleState, x, y, owningPlayerIndex);
+    HG_ENABLE_AUTOPACK(BasicPlayerCharacter_VisibleState, x, y, owningPlayerIndex);
 };
 
 /**
- * Implementation of a synchronized object with alternating updates optimization enabled.
- * (the updates are sent every other frame, and then the clients interpolates)
+ * The most basic implementation of a synchronized object, without any particular
+ * optimizations as far as bandwidth usage goes.
  */
-class AlternatingPlayerCharacter
-    : public spe::SynchronizedObject<AlternatingPlayerCharacter_VisibleState>
+class BasicPlayerCharacter
+    : public spe::SynchronizedObject<BasicPlayerCharacter_VisibleState>
 {
 public:
-    AlternatingPlayerCharacter(QAO_RuntimeRef aRuntimeRef, spe::RegistryId aRegId, spe::SyncId aSyncId);
+    BasicPlayerCharacter(QAO_RuntimeRef aRuntimeRef, spe::RegistryId aRegId, spe::SyncId aSyncId);
 
-    ~AlternatingPlayerCharacter() override;
+    ~BasicPlayerCharacter() override;
 
     void init(int aOwningPlayerIndex, float aX, float aY);
 
