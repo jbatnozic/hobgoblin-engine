@@ -1,6 +1,10 @@
 
 #include <SPeMPE/Managers/Synced_varmap_manager_default.hpp>
-#include <SPeMPE/Other/Rpc_receiver_context.hpp>
+#include <SPeMPE/Managers/Networking_manager_interface.hpp>
+#include <SPeMPE/Utility/Rpc_receiver_context_template.hpp>
+
+#include <Hobgoblin/RigelNet.hpp>
+#include <Hobgoblin/RigelNet_macros.hpp>
 
 #include <Hobgoblin/Common.hpp>
 
@@ -36,15 +40,15 @@ constexpr char TYPE_TAG_STRING = 'S';
 RN_DEFINE_RPC(USPEMPE_DefaultSyncedVarmapManager_SetValues, RN_ARGS(hobgoblin::util::Packet&, aPacket)) {
     RN_NODE_IN_HANDLER().callIfServer(
         [&](RN_ServerInterface& aServer) {
-            const RPCReceiverContext rc{aServer};
+            const auto rc = SPEMPE_GET_RPC_RECEIVER_CONTEXT(aServer);
             auto& svmMgr = dynamic_cast<DefaultSyncedVarmapManager&>(
                 rc.gameContext.getComponent<SyncedVarmapManagerInterface>()
-                );
+            );
             USPEMPE_DefaultSyncedVarmapManager_SetValues(svmMgr, aPacket);
         });
     RN_NODE_IN_HANDLER().callIfClient(
         [&](RN_ClientInterface& aClient) {
-            const RPCReceiverContext rc{aClient};
+            const auto rc = SPEMPE_GET_RPC_RECEIVER_CONTEXT(aClient);
             auto& svmMgr = dynamic_cast<DefaultSyncedVarmapManager&>(
                 rc.gameContext.getComponent<SyncedVarmapManagerInterface>()
             );
@@ -55,7 +59,7 @@ RN_DEFINE_RPC(USPEMPE_DefaultSyncedVarmapManager_SetValues, RN_ARGS(hobgoblin::u
 RN_DEFINE_RPC(USPEMPE_DefaultSyncedVarmapManager_RequestToSet, RN_ARGS(hobgoblin::util::Packet&, aPacket)) {
     RN_NODE_IN_HANDLER().callIfServer(
         [&](RN_ServerInterface& aServer) {
-            const RPCReceiverContext rc{aServer};
+            const auto rc = SPEMPE_GET_RPC_RECEIVER_CONTEXT(aServer);
             auto& svmMgr = dynamic_cast<DefaultSyncedVarmapManager&>(
                 rc.gameContext.getComponent<SyncedVarmapManagerInterface>()
             );
@@ -63,7 +67,7 @@ RN_DEFINE_RPC(USPEMPE_DefaultSyncedVarmapManager_RequestToSet, RN_ARGS(hobgoblin
         });
     RN_NODE_IN_HANDLER().callIfClient(
         [&](RN_ClientInterface& aClient) {
-            const RPCReceiverContext rc{aClient};
+            const auto rc = SPEMPE_GET_RPC_RECEIVER_CONTEXT(aClient);
             auto& svmMgr = dynamic_cast<DefaultSyncedVarmapManager&>(
                 rc.gameContext.getComponent<SyncedVarmapManagerInterface>()
             );

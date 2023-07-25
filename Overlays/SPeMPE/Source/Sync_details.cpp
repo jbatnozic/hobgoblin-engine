@@ -1,11 +1,13 @@
 
-#include <SPeMPE/Other/Rpc_receiver_context.hpp>
 #include <SPeMPE/GameObjectFramework/Sync_details.hpp>
 #include <SPeMPE/GameObjectFramework/Synchronized_object_registry.hpp>
-#include <SPeMPE/Other/Rpc_receiver_context.hpp>
+#include <SPeMPE/Managers/Networking_manager_interface.hpp>
+#include <SPeMPE/Utility/Rpc_receiver_context_template.hpp>
 
 #include <Hobgoblin/RigelNet.hpp>
 #include <Hobgoblin/RigelNet_macros.hpp>
+
+#include <algorithm>
 
 namespace jbatnozic {
 namespace spempe {
@@ -14,7 +16,7 @@ namespace {
 RN_DEFINE_RPC(USPEMPE_DeactivateObject, RN_ARGS(SyncId, aSyncId)) {
     RN_NODE_IN_HANDLER().callIfClient(
         [=](hg::RN_ClientInterface& client) {
-        RPCReceiverContext rc{client};
+        const auto rc    = SPEMPE_GET_RPC_RECEIVER_CONTEXT(client);
         auto  regId      = rc.netwMgr.getRegistryId();
         auto& syncObjReg = *reinterpret_cast<detail::SynchronizedObjectRegistry*>(regId.address);
 

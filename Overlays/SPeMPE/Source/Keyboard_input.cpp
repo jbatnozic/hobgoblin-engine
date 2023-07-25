@@ -1,5 +1,5 @@
 
-#include <SPeMPE/Other/Keyboard_input.hpp>
+#include <SPeMPE/Utility/Keyboard_input.hpp>
 
 #include <Hobgoblin/Common.hpp>
 #include <SFML/Window.hpp>

@@ -1,5 +1,5 @@
 
-#include <SPeMPE/Other/Mouse_input.hpp>
+#include <SPeMPE/Utility/Mouse_input.hpp>
 
 #include <utility>
 

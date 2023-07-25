@@ -9,9 +9,10 @@
 #include <Hobgoblin/Format.hpp>
 #include <Hobgoblin/Logging.hpp>
 #include <Hobgoblin/RigelNet_macros.hpp>
-#include <SPeMPE/Managers/Networking_manager_interface.hpp>
 #include <SPeMPE/Managers/Synced_varmap_manager_interface.hpp>
 #include <SPeMPE/Managers/Window_manager_interface.hpp>
+#include <SPeMPE/Managers/Networking_manager_interface.hpp>
+#include <SPeMPE/Utility/Rpc_receiver_context_template.hpp>
 #include <SFML/Graphics.hpp>
 
 namespace jbatnozic {

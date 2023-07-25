@@ -3,6 +3,7 @@
 
 #include <SPeMPE/Managers/Lobby_backend_manager_interface.hpp>
 #include <SPeMPE/Managers/Networking_manager_interface.hpp>
+#include <SPeMPE/Utility/Rpc_receiver_context_template.hpp>
 
 #include <Hobgoblin/Logging.hpp>
 #include <Hobgoblin/Utility/Hash.hpp>
