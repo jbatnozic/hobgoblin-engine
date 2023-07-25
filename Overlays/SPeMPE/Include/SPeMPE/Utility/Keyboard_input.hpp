@@ -1,5 +1,5 @@
-#ifndef SPEMPE_OTHER_KEYBOARD_INPUT_HPP
-#define SPEMPE_OTHER_KEYBOARD_INPUT_HPP
+#ifndef SPEMPE_UTILITY_KEYBOARD_INPUT_HPP
+#define SPEMPE_UTILITY_KEYBOARD_INPUT_HPP
 
 #include <Hobgoblin/Common.hpp>
 #include <SFML/System/String.hpp>
@@ -226,4 +226,4 @@ private:
 } // namespace spempe
 } // namespace jbatnozic
 
-#endif // !SPEMPE_OTHER_KEYBOARD_INPUT_HPP
+#endif // !SPEMPE_UTILITY_KEYBOARD_INPUT_HPP

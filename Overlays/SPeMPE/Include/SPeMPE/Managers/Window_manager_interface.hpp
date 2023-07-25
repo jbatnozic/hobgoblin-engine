@@ -7,8 +7,8 @@
 #include <SFML/Window.hpp>
 
 #include <SPeMPE/GameContext/Context_components.hpp>
-#include <SPeMPE/Other/Keyboard_input.hpp>
-#include <SPeMPE/Other/Mouse_input.hpp>
+#include <SPeMPE/Utility/Keyboard_input.hpp>
+#include <SPeMPE/Utility/Mouse_input.hpp>
 
 namespace jbatnozic {
 namespace spempe {

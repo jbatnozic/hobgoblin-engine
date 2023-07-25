@@ -10,6 +10,7 @@
 // Game object framework
 
 #include <SPeMPE/GameObjectFramework/Autodiff_state.hpp>
+#include <SPeMPE/GameObjectFramework/Default_sync_impl.hpp>
 #include <SPeMPE/GameObjectFramework/Game_object_bases.hpp>
 #include <SPeMPE/GameObjectFramework/Synchronized_object_registry.hpp>
 #include <SPeMPE/GameObjectFramework/Sync_details.hpp>
@@ -31,8 +32,9 @@
 
 // Other
 
-#include <SPeMPE/Other/Keyboard_input.hpp>
-#include <SPeMPE/Other/Mouse_input.hpp>
-#include <SPeMPE/Other/Rpc_receiver_context.hpp>
+#include <SPeMPE/Utility/Keyboard_input.hpp>
+#include <SPeMPE/Utility/Mouse_input.hpp>
+#include <SPeMPE/Utility/Rpc_receiver_context_template.hpp>
+#include <SPeMPE/Utility/Rpc_receiver_context_user.hpp>
 
 #endif // !SPEMPE_SPEMPE_HPP

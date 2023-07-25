@@ -5,6 +5,8 @@
 #include <Hobgoblin/Logging.hpp>
 #include <Hobgoblin/RigelNet_macros.hpp>
 #include <SPeMPE/GameObjectFramework/Game_object_bases.hpp>
+#include <SPeMPE/Managers/Networking_manager_interface.hpp>
+#include <SPeMPE/Utility/Rpc_receiver_context_template.hpp>
 
 #include <cassert>
 
