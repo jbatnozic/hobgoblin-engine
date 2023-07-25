@@ -34,7 +34,11 @@ void cpCleanUpAndDelete(cpBody* body) { // TODO To .cpp file
 
 inline
 void cpCleanUpAndDelete(cpConstraint* constraint) { // TODO To .cpp file 
-    assert(0 && "Not implemented");
+    cpSpace* space = cpConstraintGetSpace(constraint);
+    if (space) {
+        cpSpaceRemoveConstraint(space, constraint);
+    }
+    cpConstraintFree(constraint);
 }
 
 inline
@@ -69,5 +73,8 @@ using cpSpaceUPtr = std::unique_ptr<cpSpace, detail::cpSpaceDeleter>;
 
 } // namespace cp
 HOBGOBLIN_NAMESPACE_END
+
+#include <Hobgoblin/Private/Pmacro_undef.hpp>
+#include <Hobgoblin/Private/Short_namespace.hpp>
 
 #endif // !UHOBGOBLIN_CHIPMUNKPHYSICS_MEMORY_MGMT_HPP

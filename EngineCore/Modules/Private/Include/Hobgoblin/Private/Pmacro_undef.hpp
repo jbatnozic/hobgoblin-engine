@@ -33,3 +33,5 @@
 #undef NO_MOVE
 #undef NO_OP
 #undef SELF
+
+#undef T_ENABLE_IF
