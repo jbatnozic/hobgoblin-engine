@@ -6,8 +6,6 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace rn {
 
-int i = HOBGOBLIN_RN_ZEROTIER_SUPPORT;
-
 } // namespace rn
 HOBGOBLIN_NAMESPACE_END
 

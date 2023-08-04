@@ -1,5 +1,8 @@
 # ===== COMPONENT SETUP =====
 
+find_package(sfml CONFIG REQUIRED)
+find_package(ztcpp CONFIG REQUIRED)
+
 set(COMPONENT_NAME "Hobgoblin.RigelNet")
 
 # ===== GATHER SOURCES ======
@@ -29,6 +32,6 @@ PUBLIC
   "Hobgoblin.Common"
   "Hobgoblin.Preprocessor"
   "Hobgoblin.Utility"
-  "CONAN_PKG::sfml"
-  "CONAN_PKG::ztcpp"
+  "sfml::sfml"
+  "ztcpp::ztcpp"
 )

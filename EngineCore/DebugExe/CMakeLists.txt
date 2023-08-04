@@ -1,4 +1,6 @@
 
+find_package(sfml CONFIG REQUIRED)
+
 add_executable("Hobgoblin.DebugExe"
   "Source/RcssPreprocessorMain.cpp"
 )
@@ -13,6 +15,6 @@ PUBLIC
   "Hobgoblin.Math"
   "Hobgoblin.Utility"
   "Hobgoblin.RmlUi"
-  "CONAN_PKG::sfml"
-  # "CONAN_PKG::ztcpp"
+  "sfml::sfml"
+  # "ztcpp::ztcpp"
 )

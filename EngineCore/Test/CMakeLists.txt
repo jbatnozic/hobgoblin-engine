@@ -1,5 +1,7 @@
 # ===== COMPONENT SETUP =====
 
+find_package(gtest CONFIG REQUIRED)
+
 set(COMPONENT_NAME "Hobgoblin.Test")
 
 # ===== GATHER SOURCES ======
@@ -28,5 +30,5 @@ PUBLIC
   "Hobgoblin.QAO"
   "Hobgoblin.RigelNet"
   "Hobgoblin.Utility"
-  "CONAN_PKG::gtest"
+  "gtest::gtest"
 )

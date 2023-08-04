@@ -1,5 +1,8 @@
 # ===== OVERLAY SETUP =====
 
+find_package(sfml CONFIG REQUIRED)
+find_package(ztcpp CONFIG REQUIRED)
+
 set(OVERLAY_NAME "SPeMPE")
 
 # ===== GATHER SOURCES ======
@@ -36,11 +39,13 @@ PUBLIC
   "Hobgoblin.RigelNet"
   "Hobgoblin.RmlUi"
   "Hobgoblin.Utility"
-  "CONAN_PKG::sfml"
-  "CONAN_PKG::ztcpp"
+  "sfml::sfml"
+  "ztcpp::ztcpp"
 )
 
 # ===== BUILD TESTS =====
+
+find_package(gtest CONFIG REQUIRED)
 
 set(OVERLAY_TEST_NAME "${OVERLAY_NAME}.Test")
 
@@ -58,7 +63,7 @@ add_executable(${OVERLAY_TEST_NAME} ${OVERLAY_TEST_SOURCES})
 target_link_libraries(${OVERLAY_TEST_NAME}
 PUBLIC
   "${OVERLAY_NAME}"
-  "CONAN_PKG::gtest"
+  "gtest::gtest"
 )
 
 # ===== BUILD EXAMPLES =====

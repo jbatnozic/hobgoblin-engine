@@ -1,6 +1,8 @@
 #ifndef UHOBGOBLIN_RN_VIRTUAL_NETWORK_PROVIDERS_HPP
 #define UHOBGOBLIN_RN_VIRTUAL_NETWORK_PROVIDERS_HPP
 
+#if 0 // Virtual network providers not supported for now
+
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 #include <memory>
@@ -48,5 +50,7 @@ std::unique_ptr<RN_VirtualNetworkProviderInterface> RN_StartVirtualNetworkProvid
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
+
+#endif
 
 #endif // !UHOBGOBLIN_RN_VIRTUAL_NETWORK_PROVIDERS_HPP

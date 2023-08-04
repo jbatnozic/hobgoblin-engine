@@ -1,5 +1,7 @@
 # ===== COMPONENT SETUP =====
 
+find_package(sfml CONFIG REQUIRED)
+
 set(COMPONENT_NAME "Hobgoblin.ColDetect")
 
 # ===== GATHER SOURCES ======
@@ -18,5 +20,5 @@ PUBLIC
   "Hobgoblin.Private"
   "Hobgoblin.Common"
   "Hobgoblin.Utility"
-  "CONAN_PKG::sfml"
+  "sfml::sfml"
 )
