@@ -54,5 +54,4 @@ target_link_libraries(${COMPONENT_NAME}
 PUBLIC
   "Hobgoblin.Private"
   "Hobgoblin.Utility"
-  "sfml::sfml"
 )
