@@ -1,6 +1,6 @@
 # ===== COMPONENT SETUP =====
 
-find_package(gtest CONFIG REQUIRED)
+find_package(GTest CONFIG REQUIRED)
 
 set(COMPONENT_NAME "Hobgoblin.Test")
 

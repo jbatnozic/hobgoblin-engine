@@ -2,7 +2,7 @@
 
 find_package(GLEW CONFIG REQUIRED)
 find_package(rmlui CONFIG REQUIRED)
-find_package(sfml CONFIG REQUIRED)
+find_package(SFML CONFIG REQUIRED)
 
 set(COMPONENT_NAME "Hobgoblin.RmlUi")
 

@@ -1,6 +1,6 @@
 # ===== OVERLAY SETUP =====
 
-find_package(sfml CONFIG REQUIRED)
+find_package(SFML CONFIG REQUIRED)
 find_package(ztcpp CONFIG REQUIRED)
 
 set(OVERLAY_NAME "SPeMPE")
@@ -45,7 +45,7 @@ PUBLIC
 
 # ===== BUILD TESTS =====
 
-find_package(gtest CONFIG REQUIRED)
+find_package(GTest CONFIG REQUIRED)
 
 set(OVERLAY_TEST_NAME "${OVERLAY_NAME}.Test")
 

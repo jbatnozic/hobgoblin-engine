@@ -6,6 +6,7 @@
 #include <SPeMPE/GameContext/Game_context.hpp>
 
 #include <chrono>
+#include <cmath>
 
 namespace jbatnozic {
 namespace spempe {

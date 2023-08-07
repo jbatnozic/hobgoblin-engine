@@ -1,6 +1,6 @@
 # ===== COMPONENT SETUP =====
 
-find_package(sfml CONFIG REQUIRED)
+find_package(SFML CONFIG REQUIRED)
 
 set(COMPONENT_NAME "Hobgoblin.Graphics")
 

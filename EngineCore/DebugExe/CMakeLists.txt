@@ -1,5 +1,5 @@
 
-find_package(sfml CONFIG REQUIRED)
+find_package(SFML CONFIG REQUIRED)
 
 add_executable("Hobgoblin.DebugExe"
   "Source/RcssPreprocessorMain.cpp"

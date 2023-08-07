@@ -68,7 +68,7 @@ class HobgoblinConan(ConanFile):
         # Private
         self.requires("glew/2.2.0")
         self.requires("gtest/1.10.0")
-        self.requires("ztcpp/3.0.0@jbatnozic/stable")
+        self.requires("ztcpp/3.0.1@jbatnozic/stable")
         
         # Overrides (transitive dependencies)
         self.requires("freetype/2.11.1", override=True)
