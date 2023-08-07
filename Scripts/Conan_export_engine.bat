@@ -1,1 +1,1 @@
-conan export .. @jbatnozic/stable
+conan export .. --user jbatnozic --channel stable

@@ -20,12 +20,10 @@ class HobgoblinTestConan(ConanFile):
             if (len(libdirs) > 0 and (sep in libdirs[0])):
                 copy(self, "*.dll",   dep.cpp_info.libdirs[0], self.build_folder)
                 copy(self, "*.dylib", dep.cpp_info.libdirs[0], self.build_folder)
-                copy(self, "*.so",    dep.cpp_info.libdirs[0], self.build_folder)
             bindirs = dep.cpp_info.bindirs
             if (len(bindirs) > 0 and (sep in bindirs[0])):
                 copy(self, "*.dll",   dep.cpp_info.bindirs[0], self.build_folder)
                 copy(self, "*.dylib", dep.cpp_info.bindirs[0], self.build_folder)
-                copy(self, "*.so",    dep.cpp_info.bindirs[0], self.build_folder)
             
     def build(self):
         cmake = CMake(self)
