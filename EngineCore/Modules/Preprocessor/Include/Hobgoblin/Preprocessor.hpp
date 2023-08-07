@@ -72,7 +72,7 @@
 // If not using MSVC, we just hope the used compiler supports __VA_OPT__ ...
 
 #define HG_PP_COUNT_ARGS(...) \
-    UHOBGOBLIN_HG_PP_COUNT_ARGS_FINAL(0 __VA_OPT__(,) __VA_ARGS__, \
+    UHOBGOBLIN_PP_COUNT_ARGS_FINAL(0 __VA_OPT__(,) __VA_ARGS__, \
        100, 99, 98, 97, 96, 95, 94, 93, 92, 91, \
         90, 89, 88, 87, 86, 85, 84, 83, 82, 81, \
         80, 79, 78, 77, 76, 75, 74, 73, 72, 71, \

@@ -30,10 +30,10 @@ public:
 Color AddColors(Color c1, Color c2);
 Color MultiplyColors(Color c1, Color c2);
 
-inline
-Color BlendColors(Color src, Color dst, int blendMode) {
-    // TODO
-}
+// inline
+// Color BlendColors(Color src, Color dst, int blendMode) {
+//     // TODO
+// }
 
 } // namespace gr
 HOBGOBLIN_NAMESPACE_END

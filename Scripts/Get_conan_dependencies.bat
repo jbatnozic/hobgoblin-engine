@@ -1,13 +1,10 @@
 @ECHO OFF 
 
-SET SFML_COMMITHASH=8ec114832c0069125f51a87bd5c5adf4632742e5
-SET SFML_VERSION=2.5.1
+SET LIBZT_COMMITHASH=5eb65b8aab761b6937be64736eff310cfa5d51e5
+SET LIBZT_VERSION=3.0.1
 
-SET LIBZT_COMMITHASH=e083e4daaf78d0c7a72d8ba009a5d35359769c5d
-SET LIBZT_VERSION=2.2.0
-
-SET ZTCPP_COMMITHASH=af8f1bda92fcc121d36ab16d68676f461fc24404
-SET ZTCPP_VERSION=2.2.0
+SET ZTCPP_COMMITHASH=a7031bf268ac008f997aced92e13450f7297db3e
+SET ZTCPP_VERSION=3.0.1
 
 ECHO "Looking for git..."
 where git
@@ -26,25 +23,26 @@ ECHO "All required tools found!"
 MKDIR Build.Temp
 CD Build.Temp
 
-ECHO "Getting SFML..."
-git clone https://github.com/bincrafters/conan-sfml.git
-CD conan-sfml
-git checkout %SFML_COMMITHASH%
-conan export . %SFML_VERSION%@jbatnozic/stable
-CD ..
-
 ECHO "Getting libzt..."
 git clone https://github.com/jbatnozic/libzt-conan
-CD libzt-conan
+CD libzt-conan\Conan2.x
 git checkout %LIBZT_COMMITHASH%
-conan export . %LIBZT_VERSION%@jbatnozic/stable
-CD ..
+conan export . --version %LIBZT_VERSION% --user jbatnozic --channel stable
+IF %ERRORLEVEL% EQU 0 GOTO exportedlibzt
+CD ..\..
+EXIT /b 1
+:exportedlibzt
+CD ..\..
 
 ECHO "Getting ZTCpp..."
 git clone https://github.com/jbatnozic/ztcpp
 CD ztcpp
 git checkout %ZTCPP_COMMITHASH%
-conan export . %ZTCPP_VERSION%@jbatnozic/stable
+conan export . --version %ZTCPP_VERSION% --user jbatnozic --channel stable
+IF %ERRORLEVEL% EQU 0 GOTO exportedztcpp
+CD ..
+EXIT /b 1
+:exportedztcpp
 CD ..
 
 ECHO "All required Conan recipes exported!"

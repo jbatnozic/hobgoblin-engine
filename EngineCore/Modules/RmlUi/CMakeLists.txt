@@ -1,5 +1,9 @@
 # ===== COMPONENT SETUP =====
 
+find_package(GLEW CONFIG REQUIRED)
+find_package(rmlui CONFIG REQUIRED)
+find_package(SFML CONFIG REQUIRED)
+
 set(COMPONENT_NAME "Hobgoblin.RmlUi")
 
 # ===== GATHER SOURCES ======
@@ -23,7 +27,7 @@ PUBLIC
   "Hobgoblin.Common"
   "Hobgoblin.Logging"
   "Hobgoblin.Graphics"
-  "CONAN_PKG::glew"
-  "CONAN_PKG::rmlui"
-  "CONAN_PKG::sfml"
+  "GLEW::GLEW"
+  "rmlui::rmlui"
+  "sfml::sfml"
 )

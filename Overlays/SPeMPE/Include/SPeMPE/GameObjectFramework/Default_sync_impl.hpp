@@ -7,6 +7,7 @@
 #include <SPeMPE/GameContext/Game_context.hpp>
 #include <SPeMPE/GameObjectFramework/Autodiff_state.hpp>
 #include <SPeMPE/GameObjectFramework/Synchronized_object_registry.hpp>
+#include <SPeMPE/Managers/Networking_manager_interface.hpp>
 #include <SPeMPE/Utility/Rpc_receiver_context_template.hpp>
 
 #include <type_traits>

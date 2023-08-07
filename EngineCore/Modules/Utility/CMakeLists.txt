@@ -1,5 +1,7 @@
 # ===== COMPONENT SETUP =====
 
+find_package(SFML CONFIG REQUIRED)
+
 set(COMPONENT_NAME "Hobgoblin.Utility")
 
 # ===== GATHER SOURCES ======
@@ -21,5 +23,5 @@ target_link_libraries(${COMPONENT_NAME}
 PUBLIC
   "Hobgoblin.Private"
   "Hobgoblin.Common"
-  "CONAN_PKG::sfml"
+  "sfml::sfml"
 )

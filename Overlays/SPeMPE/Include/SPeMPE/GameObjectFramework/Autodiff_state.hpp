@@ -7,6 +7,7 @@
 #include <Hobgoblin/Utility/Packet.hpp>
 
 #include <cstdint>
+#include <cstring>
 #include <memory>
 #include <string>
 #include <utility>
@@ -684,7 +685,7 @@ public:
     }
 
     void clearAll() {
-        std::memset(_bytes, 0x00, BYTE_COUNT);
+        memset(_bytes, 0x00, BYTE_COUNT);
     }
 
     friend hg::util::PacketBase& operator<<(hg::util::PacketBase& aPacket, const StaticPackableBitset& aBitset) {
