@@ -10,7 +10,7 @@ namespace detail {
 
 void Drawable_DrawOntoCanvas(const Drawable& aDrawable, 
                              Canvas& aCanvas, 
-                             const sf::RenderStates& aStates) {
+                             const RenderStates& aStates) {
     aDrawable._draw(aCanvas, aStates);
 }
 

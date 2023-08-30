@@ -1,6 +1,6 @@
-
 #include <Hobgoblin/Graphics/Draw_batcher.hpp>
 
+#include <cassert>
 #include <typeinfo>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
@@ -11,8 +11,9 @@ namespace gr {
 // VERTICES ALWAYS COUNTER-CLOCKWISE!
 
 namespace {
-void AppendSpriteToVertexArray(const sf::Sprite& aSprite, sf::VertexArray& aVertexArray) {
-    sf::Vertex vert[4]; // top-left, top-right, bottom-right, bottom-left
+void AppendSpriteToVertexArray(const Sprite& aSprite, VertexArray& aVertexArray) {
+#if 0
+    Vertex vert[4]; // top-left, top-right, bottom-right, bottom-left
 
     const auto transform = aSprite.getTransform();
 
@@ -35,16 +36,17 @@ void AppendSpriteToVertexArray(const sf::Sprite& aSprite, sf::VertexArray& aVert
     for (const auto& v : vert) {
         aVertexArray.append(v);
     }
+#endif
 }
 
-bool operator==(const sf::RenderStates& aStates1, const sf::RenderStates& aStates2) {
-    return (aStates1.texture == aStates2.texture &&
+bool operator==(const RenderStates& aStates1, const RenderStates& aStates2) {
+    return (aStates1.texture   == aStates2.texture   &&
             aStates1.blendMode == aStates2.blendMode &&
             aStates1.transform == aStates2.transform &&
-            aStates1.shader == aStates2.shader);
+            aStates1.shader    == aStates2.shader);
 }
 
-bool operator!=(const sf::RenderStates& aStates1, const sf::RenderStates& aStates2) {
+bool operator!=(const RenderStates& aStates1, const RenderStates& aStates2) {
     return (!(aStates1 == aStates2));
 }
 } // namespace
@@ -54,14 +56,40 @@ DrawBatcher::DrawBatcher(Canvas& aCanvas)
 {
 }
 
-void DrawBatcher::draw(const Drawable& aDrawable,
-                       const sf::RenderStates& aStates) {
-    detail::Drawable_DrawOntoCanvas(aDrawable, SELF, aStates);
-}
+//void DrawBatcher::draw(const Drawable& aDrawable,
+//                       const RenderStates& aStates) {
+//    detail::Drawable_DrawOntoCanvas(aDrawable, SELF, aStates);
+//}
 
-void DrawBatcher::draw(const sf::Drawable& aDrawable,
-                       const sf::RenderStates& aStates) {
+void DrawBatcher::draw(const Drawable& aDrawable,
+                       const RenderStates& aStates) {
+#if 0
     // Enable batching for sprites and shapes
+
+    const auto batchingType = aDrawable.getBatchingType();
+    switch (batchingType) {
+    case Drawable::BatchingType::VertexBuffer:
+        assert(typeid(aDrawable) == typeid(VertexBuffer));
+        // TODO - this branch should never happen
+        break;
+
+    case Drawable::BatchingType::VertexArray:
+        assert(typeid(aDrawable) == typeid(VertexArray));
+        // TODO
+        break;
+
+    case Drawable::BatchingType::Sprite:
+        assert(typeid(aDrawable) == typeid(Sprite));
+        _drawSprite(static_cast<const Sprite&>(aDrawable), aStates);
+        break;
+
+    case Drawable::BatchingType::Aggregate:
+        detail::Drawable_DrawOntoCanvas(aDrawable, SELF, aStates);
+        break;
+
+    case Drawable::BatchingType::Custom:
+        break;
+    }
 
     // Check if it's a sprite
     if (typeid(aDrawable) == typeid(sf::Sprite)) {
@@ -111,12 +139,13 @@ void DrawBatcher::draw(const sf::Drawable& aDrawable,
     // Otherwise...
     _flush();
     _canvas.draw(aDrawable, aStates);
+#endif
 }
 
-void DrawBatcher::draw(const sf::Vertex* aVertices,
-                       std::size_t aVertexCount,
-                       sf::PrimitiveType aType,
-                       const sf::RenderStates& aStates) {
+void DrawBatcher::draw(const Vertex* aVertices,
+                       PZInteger aVertexCount,
+                       PrimitiveType aType,
+                       const RenderStates& aStates) {
     switch (_status) {
     default:
         _flush();
@@ -144,17 +173,17 @@ void DrawBatcher::draw(const sf::Vertex* aVertices,
     }
 }
 
-void DrawBatcher::draw(const sf::VertexBuffer& aVertexBuffer,
-                       const sf::RenderStates& aStates) {
+void DrawBatcher::draw(const VertexBuffer& aVertexBuffer,
+                       const RenderStates& aStates) {
     // Always draw vertex buffers individually
     _flush();
     _canvas.draw(aVertexBuffer, aStates);
 }
 
-void DrawBatcher::draw(const sf::VertexBuffer& aVertexBuffer,
-                       std::size_t aFirstVertex,
-                       std::size_t aVertexCount,
-                       const sf::RenderStates& aStates) {
+void DrawBatcher::draw(const VertexBuffer& aVertexBuffer,
+                       PZInteger aFirstVertex,
+                       PZInteger aVertexCount,
+                       const RenderStates& aStates) {
     // Always draw vertex buffers individually
     _flush();
     _canvas.draw(aVertexBuffer, aFirstVertex, aVertexCount, aStates);
@@ -188,15 +217,16 @@ void DrawBatcher::_flush() {
     _status = Status::Empty;
 }
 
-void DrawBatcher::_prepForBatchingSprites(const sf::RenderStates& aStates, const sf::Texture* aTexture) {
-    _vertexArray.setPrimitiveType(sf::PrimitiveType::Quads);
+void DrawBatcher::_prepForBatchingSprites(const RenderStates& aStates, const Texture* aTexture) {
+    // Quads only supported on desktop, for mobile should use 2 triangles...
+    _vertexArray.setPrimitiveType(PrimitiveType::Triangles);
     _renderStates = aStates;
     _texture = aTexture;
 
     _status = Status::BatchingSprites;
 }
 
-void DrawBatcher::_prepForBatchingVertices(const sf::RenderStates& aStates, sf::PrimitiveType aType) {
+void DrawBatcher::_prepForBatchingVertices(const RenderStates& aStates, PrimitiveType aType) {
     _vertexArray.setPrimitiveType(aType);
     _renderStates = aStates;
 

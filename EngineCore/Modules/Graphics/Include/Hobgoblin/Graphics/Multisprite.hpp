@@ -1,5 +1,6 @@
 #ifndef UHOBGOBLIN_GR_MULTISPRITE_HPP
 #define UHOBGOBLIN_GR_MULTISPRITE_HPP
+#if 0
 
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Graphics/Color.hpp>
@@ -189,4 +190,5 @@ HOBGOBLIN_NAMESPACE_END
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
+#endif
 #endif // !UHOBGOBLIN_GR_MULTISPRITE_HPP

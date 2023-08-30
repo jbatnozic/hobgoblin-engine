@@ -128,15 +128,15 @@ private:
         Compose_Destroy##_class_name_(node, rec, getSyncId()); \
     }
 
-template <class T, class TCtx>
-void CannonicalCreateImpl(hg::RN_NodeInterface& node, SyncId syncId, typename T::VisibleState& state) {
+template <class taArithmetic, class TCtx>
+void CannonicalCreateImpl(hg::RN_NodeInterface& node, SyncId syncId, typename taArithmetic::VisibleState& state) {
     node.callIfClient(
         [&](hg::RN_ClientInterface& client) {
             auto& ctx = *client.getUserData<TCtx>();
             auto& runtime = ctx.getQaoRuntime();
             auto& syncObjReg = ctx.getSyncObjReg();
 
-            hg::QAO_PCreate<T>(&runtime, syncObjReg, syncId, state);
+            hg::QAO_PCreate<taArithmetic>(&runtime, syncObjReg, syncId, state);
         });
 
     node.callIfServer(
@@ -145,14 +145,14 @@ void CannonicalCreateImpl(hg::RN_NodeInterface& node, SyncId syncId, typename T:
         });
 }
 
-template <class T, class TCtx>
-void CannonicalUpdateImpl(hg::RN_NodeInterface& node, SyncId syncId, typename T::VisibleState& state) {
+template <class taArithmetic, class TCtx>
+void CannonicalUpdateImpl(hg::RN_NodeInterface& node, SyncId syncId, typename taArithmetic::VisibleState& state) {
     node.callIfClient(
         [&](hg::RN_ClientInterface& client) {
             auto& ctx = *client.getUserData<TCtx>();
             auto& runtime = ctx.getQaoRuntime();
             auto& syncObjReg = ctx.getSyncObjReg();
-            auto& object = *static_cast<T*>(syncObjReg.getMapping(syncId));
+            auto& object = *static_cast<taArithmetic*>(syncObjReg.getMapping(syncId));
           
             const auto latency = client.getServerConnector().getRemoteInfo().meanLatency;
             using TIME = std::remove_cv_t<decltype(latency)>;
@@ -168,14 +168,14 @@ void CannonicalUpdateImpl(hg::RN_NodeInterface& node, SyncId syncId, typename T:
         });
 }
 
-template <class T, class TCtx>
+template <class taArithmetic, class TCtx>
 void CannonicalDestroyImpl(hg::RN_NodeInterface& node, SyncId syncId) {
     node.callIfClient(
         [&](hg::RN_ClientInterface& client) {
             auto& ctx = *client.getUserData<TCtx>();
             auto& runtime = ctx.getQaoRuntime();
             auto& syncObjReg = ctx.getSyncObjReg();
-            auto* object = static_cast<T*>(syncObjReg.getMapping(syncId));
+            auto* object = static_cast<taArithmetic*>(syncObjReg.getMapping(syncId));
 
             const auto latency = client.getServerConnector().getRemoteInfo().meanLatency;
             using TIME = std::remove_cv_t<decltype(latency)>;

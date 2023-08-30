@@ -12,8 +12,8 @@ namespace {
 using hg::math::Clamp;
 using hg::math::Sqr;
 
-template <class T>
-T Dist_(T x1, T y1, T x2, T y2) {
+template <class taArithmetic>
+taArithmetic Dist_(taArithmetic x1, taArithmetic y1, taArithmetic x2, taArithmetic y2) {
      return std::sqrt(Sqr(x2 - x1) + Sqr(y2 - y1));
 }
 

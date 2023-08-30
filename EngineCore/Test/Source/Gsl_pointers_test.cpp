@@ -57,56 +57,56 @@ struct Unrelated
 };
 
 // stand-in for a user-defined ref-counted class
-template <typename T>
+template <typename taArithmetic>
 struct RefCounted
 {
-    RefCounted(T* p) : p_(p) {}
-    operator T* () { return p_; }
-    T* p_;
+    RefCounted(taArithmetic* p) : p_(p) {}
+    operator taArithmetic* () { return p_; }
+    taArithmetic* p_;
 };
 
 // user defined smart pointer with comparison operators returning non bool value
-template <typename T>
+template <typename taArithmetic>
 struct CustomPtr
 {
-    CustomPtr(T* p) : p_(p) {}
-    operator T* () { return p_; }
+    CustomPtr(taArithmetic* p) : p_(p) {}
+    operator taArithmetic* () { return p_; }
     bool operator!=(std::nullptr_t) const { return p_ != nullptr; }
-    T* p_ = nullptr;
+    taArithmetic* p_ = nullptr;
 };
 
-template <typename T, typename U>
-std::string operator==(CustomPtr<T> const& lhs, CustomPtr<U> const& rhs)
+template <typename taArithmetic, typename U>
+std::string operator==(CustomPtr<taArithmetic> const& lhs, CustomPtr<U> const& rhs)
 {
     return reinterpret_cast<const void*>(lhs.p_) == reinterpret_cast<const void*>(rhs.p_) ? "true" : "false";
 }
 
-template <typename T, typename U>
-std::string operator!=(CustomPtr<T> const& lhs, CustomPtr<U> const& rhs)
+template <typename taArithmetic, typename U>
+std::string operator!=(CustomPtr<taArithmetic> const& lhs, CustomPtr<U> const& rhs)
 {
     return reinterpret_cast<const void*>(lhs.p_) != reinterpret_cast<const void*>(rhs.p_) ? "true" : "false";
 }
 
-template <typename T, typename U>
-std::string operator<(CustomPtr<T> const& lhs, CustomPtr<U> const& rhs)
+template <typename taArithmetic, typename U>
+std::string operator<(CustomPtr<taArithmetic> const& lhs, CustomPtr<U> const& rhs)
 {
     return reinterpret_cast<const void*>(lhs.p_) < reinterpret_cast<const void*>(rhs.p_) ? "true" : "false";
 }
 
-template <typename T, typename U>
-std::string operator>(CustomPtr<T> const& lhs, CustomPtr<U> const& rhs)
+template <typename taArithmetic, typename U>
+std::string operator>(CustomPtr<taArithmetic> const& lhs, CustomPtr<U> const& rhs)
 {
     return reinterpret_cast<const void*>(lhs.p_) > reinterpret_cast<const void*>(rhs.p_) ? "true" : "false";
 }
 
-template <typename T, typename U>
-std::string operator<=(CustomPtr<T> const& lhs, CustomPtr<U> const& rhs)
+template <typename taArithmetic, typename U>
+std::string operator<=(CustomPtr<taArithmetic> const& lhs, CustomPtr<U> const& rhs)
 {
     return reinterpret_cast<const void*>(lhs.p_) <= reinterpret_cast<const void*>(rhs.p_) ? "true" : "false";
 }
 
-template <typename T, typename U>
-std::string operator>=(CustomPtr<T> const& lhs, CustomPtr<U> const& rhs)
+template <typename taArithmetic, typename U>
+std::string operator>=(CustomPtr<taArithmetic> const& lhs, CustomPtr<U> const& rhs)
 {
     return reinterpret_cast<const void*>(lhs.p_) >= reinterpret_cast<const void*>(rhs.p_) ? "true" : "false";
 }
@@ -260,10 +260,10 @@ TEST(notnull_tests, TestNotNullConstructors)
     }
 }
 
-template <typename T>
-void ostream_helper(T v)
+template <typename taArithmetic>
+void ostream_helper(taArithmetic v)
 {
-    not_null<T*> p(&v);
+    not_null<taArithmetic*> p(&v);
     {
         std::ostringstream os;
         std::ostringstream ref;

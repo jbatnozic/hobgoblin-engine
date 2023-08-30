@@ -30,16 +30,16 @@ spempe::KbInputTracker& GetKeyboardInput(spempe::GameContext& ctx);
 GameplayManager& GetGameplayManager(spempe::GameContext& ctx);
 spempe::NetworkingManager& GetNetworkingManager(spempe::GameContext& ctx);
 cpSpace* GetPhysicsSpace(spempe::GameContext& ctx);
-template <class T>
-const hg::gr::Multisprite& GetSprite(spempe::GameContext& ctx, T&& val) {
-    if constexpr (std::is_integral_v<std::remove_cv_t<std::remove_reference_t<T>>>) {
-        return ctx.getResourceConfig().spriteLoader->getSprite(static_cast<hg::PZInteger>(std::forward<T>(val)));
+template <class taArithmetic>
+const hg::gr::Multisprite& GetSprite(spempe::GameContext& ctx, taArithmetic&& val) {
+    if constexpr (std::is_integral_v<std::remove_cv_t<std::remove_reference_t<taArithmetic>>>) {
+        return ctx.getResourceConfig().spriteLoader->getSprite(static_cast<hg::PZInteger>(std::forward<taArithmetic>(val)));
     }
-    else if constexpr (std::is_enum_v<std::remove_cv_t<std::remove_reference_t<T>>>) {
-        return ctx.getResourceConfig().spriteLoader->getSprite(static_cast<hg::PZInteger>(std::forward<T>(val)));
+    else if constexpr (std::is_enum_v<std::remove_cv_t<std::remove_reference_t<taArithmetic>>>) {
+        return ctx.getResourceConfig().spriteLoader->getSprite(static_cast<hg::PZInteger>(std::forward<taArithmetic>(val)));
     }
     else {
-        return ctx.getResourceConfig().spriteLoader->getSprite(std::forward<T>(val));
+        return ctx.getResourceConfig().spriteLoader->getSprite(std::forward<taArithmetic>(val));
     }
 }
 spempe::WindowManager& GetWindowManager(spempe::GameContext& ctx);
@@ -64,8 +64,8 @@ spempe::WindowManager& GetWindowManager(spempe::GameContext& ctx);
     GameplayManager& ctx(ContextTagGameplayManager) const { return GetGameplayManager(ctx()); } \
     spempe::NetworkingManager& ctx(ContextTagNetworkingManager) const { return GetNetworkingManager(ctx()); } \
     cpSpace* ctx(ContextTagPhysicsSpace) const { return GetPhysicsSpace(ctx()); } \
-    template <class T> \
-    const hg::gr::Multisprite& ctx(ContextTagSprite, T&& val) const { return GetSprite(ctx(), std::forward<T>(val)); } \
+    template <class taArithmetic> \
+    const hg::gr::Multisprite& ctx(ContextTagSprite, taArithmetic&& val) const { return GetSprite(ctx(), std::forward<taArithmetic>(val)); } \
     spempe::WindowManager& ctx(ContextTagWindowManager) const { return GetWindowManager(ctx()); } \
 
 #endif // !TYPHON_FRAMEWORK_EXTENSIONS_HPP

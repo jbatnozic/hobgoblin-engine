@@ -112,7 +112,7 @@ Rml::Input::KeyIdentifier HobgoblinBackend::translateKey(sf::Keyboard::Key aKey)
     case sf::Keyboard::S:
         return Rml::Input::KI_S;
 
-    case sf::Keyboard::T:
+    case sf::Keyboard::taArithmetic:
         return Rml::Input::KI_T;
 
     case sf::Keyboard::U:
