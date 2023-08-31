@@ -13,6 +13,7 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
+#if 0
 namespace {
 class SfRenderTargetAdapter : public sf::RenderTarget {
 public:
@@ -189,6 +190,15 @@ void RenderTarget::resetGLStates() {
 void RenderTarget::initialize() {
     SELF_IMPL->initialize();
 }
+
+void* RenderTarget::_getSFMLImpl() {
+    return SELF_IMPL;
+}
+
+const void* RenderTarget::_getSFMLImpl() const {
+    return SELF_CIMPL;
+}
+#endif
 
 } // namespace gr
 HOBGOBLIN_NAMESPACE_END

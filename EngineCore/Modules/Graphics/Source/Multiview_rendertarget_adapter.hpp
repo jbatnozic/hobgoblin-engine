@@ -17,7 +17,7 @@ namespace gr {
 
 //! Adapts a sf::RenderTarget to the Canvas interface while also
 //! providing support for using multiple Views at the same time.
-class MultiViewRenderTargetAdapter : public Canvas {
+class MultiViewRenderTargetAdapter final : public Canvas {
 public:
     MultiViewRenderTargetAdapter(sf::RenderTarget& aRenderTarget);
 
@@ -46,6 +46,10 @@ public:
               const RenderStates& aStates = RenderStates::DEFAULT) override;
 
     void flush() override;
+
+    sf::RenderTarget& getSFMLRenderTarget() {
+        return _renderTarget;
+    }
 
 private:
     using Views = std::vector<View>;

@@ -53,7 +53,7 @@ public:
 class Texture;
 
 //! \brief Base class for textured shapes with outline.
-class Shape : public Drawable, public Transformable, private detail::ShapePolymorphismAdapter {
+class Shape : public Drawable, /*public Transformable,*/ private detail::ShapePolymorphismAdapter {
 public:
     //! \brief Virtual destructor
     virtual ~Shape();

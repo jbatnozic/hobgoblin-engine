@@ -61,6 +61,7 @@ void MultiViewRenderTargetAdapter::draw(const Drawable& aDrawable,
         if (view.isEnabled()) {
             _renderTarget.setView(ToSf(view));
             // _renderTarget.draw(ToSf(aDrawable), ToSf(aStates)); TODO
+            aDrawable._draw(SELF, aStates);
         }
     }
 }

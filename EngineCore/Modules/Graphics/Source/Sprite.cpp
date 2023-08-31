@@ -4,7 +4,12 @@
 #include <SFML/Graphics/Sprite.hpp>
 #include <Hobgoblin/Graphics/Texture.hpp>
 
+#include "Draw_bridge.hpp"
 #include "SFML_conversions.hpp"
+
+#include <cassert>
+
+#include <SFML/Graphics/Texture.hpp>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
@@ -19,11 +24,17 @@ constexpr auto IMPL_ALIGN = alignof(ImplType);
 #define  SELF_IMPL (IMPLOF(SELF))
 #define SELF_CIMPL (CIMPLOF(SELF))
 
+std::unique_ptr<sf::Texture> g_Texture;
+
 Sprite::Sprite() {
     static_assert(STORAGE_SIZE  == IMPL_SIZE,  "Sprite::STORAGE_SIZE is inadequate.");
     static_assert(STORAGE_ALIGN == IMPL_ALIGN, "Sprite::STORAGE_ALIGN is inadequate.");
 
     new (&_storage) ImplType();
+
+    g_Texture = std::make_unique<sf::Texture>();
+    g_Texture->loadFromFile("C:\\Users\\Jovan-PC\\Desktop\\Screenshot_1.png");
+    SELF_IMPL->setTexture(*g_Texture);
 }
 
 Sprite::~Sprite() {
@@ -80,7 +91,11 @@ math::Rectangle<float> Sprite::getGlobalBounds() const {
 }
 
 void Sprite::_draw(Canvas& aCanvas, const RenderStates& aStates) const {
-    // TODO
+    const auto drawingWasSuccessful = 
+        Draw(aCanvas, [this, &aStates](sf::RenderTarget& aSfRenderTarget) {
+            aSfRenderTarget.draw(*CIMPLOF(*this), ToSf(aStates));
+        });
+    assert(drawingWasSuccessful);
 }
 
 Drawable::BatchingType Sprite::getBatchingType() const {

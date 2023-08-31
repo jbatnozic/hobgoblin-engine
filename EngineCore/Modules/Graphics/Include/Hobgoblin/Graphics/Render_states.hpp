@@ -36,83 +36,55 @@ namespace gr {
 class Shader;
 class Texture;
 
-////////////////////////////////////////////////////////////
-/// \brief Define the states used for drawing to a RenderTarget
-///
-////////////////////////////////////////////////////////////
+//! \brief Define the states used for drawing to a Canvas.
 class RenderStates {
 public:
-
-    ////////////////////////////////////////////////////////////
-    /// \brief Default constructor
-    ///
-    /// Constructing a default set of render states is equivalent
-    /// to using sf::RenderStates::Default.
-    /// The default set defines:
-    /// \li the BlendAlpha blend mode
-    /// \li the identity transform
-    /// \li a null texture
-    /// \li a null shader
-    ///
-    ////////////////////////////////////////////////////////////
+    //! \brief Default constructor
+    //!
+    //! Constructing a default set of render states is equivalent
+    //! to using sf::RenderStates::Default.
+    //! The default set defines:
+    //! \li the BlendAlpha blend mode
+    //! \li the identity transform
+    //! \li a null texture
+    //! \li a null shader
     RenderStates();
 
-    ////////////////////////////////////////////////////////////
-    /// \brief Construct a default set of render states with a custom blend mode
-    ///
-    /// \param aBlendMode Blend mode to use.
-    ///
-    ////////////////////////////////////////////////////////////
+    //! \brief Construct a default set of render states with a custom blend mode
+    //!
+    //! \param aBlendMode Blend mode to use.
     RenderStates(const BlendMode& aBlendMode);
 
-    ////////////////////////////////////////////////////////////
-    /// \brief Construct a default set of render states with a custom transform
-    ///
-    /// \param aTransform Transform to use.
-    ///
-    ////////////////////////////////////////////////////////////
+    //! \brief Construct a default set of render states with a custom transform
+    //!
+    //! \param aTransform Transform to use.
     RenderStates(const Transform& aTransform);
 
-    ////////////////////////////////////////////////////////////
-    /// \brief Construct a default set of render states with a custom texture
-    ///
-    /// \param aTexture Texture to use.
-    ///
-    ////////////////////////////////////////////////////////////
+    //! \brief Construct a default set of render states with a custom texture
+    //!
+    //! \param aTexture Texture to use.
     RenderStates(const Texture* aTexture);
 
-    ////////////////////////////////////////////////////////////
-    /// \brief Construct a default set of render states with a custom shader
-    ///
-    /// \param aShader Shader to use.
-    ///
-    ////////////////////////////////////////////////////////////
+    //! \brief Construct a default set of render states with a custom shader
+    //!
+    //! \param aShader Shader to use.
     RenderStates(const Shader* aShader);
 
-    ////////////////////////////////////////////////////////////
-    /// \brief Construct a set of render states with all its attributes
-    ///
-    /// \param aBlendMode Blend mode to use.
-    /// \param aTransform Transform to use.
-    /// \param aTexture   Texture to use.
-    /// \param aShader    Shader to use.
-    ///
-    ////////////////////////////////////////////////////////////
+    //! \brief Construct a set of render states with all its attributes
+    //!
+    //! \param aBlendMode Blend mode to use.
+    //! \param aTransform Transform to use.
+    //! \param aTexture   Texture to use.
+    //! \param aShader    Shader to use.
     RenderStates(const Texture* aTexture, const Shader* aShader,
                  const Transform& aTransform, const BlendMode& aBlendMode);
-
-    ////////////////////////////////////////////////////////////
-    // Static member data
-    ////////////////////////////////////////////////////////////
+    
     static const RenderStates DEFAULT; //!< Special instance holding the default render states
-
-    ////////////////////////////////////////////////////////////
-    // Member data
-    ////////////////////////////////////////////////////////////
-    const Texture* texture;   //!< Texture
-    const Shader*  shader;    //!< Shader
-    Transform      transform; //!< Transform
-    BlendMode      blendMode; //!< Blending mode
+    
+    const Texture* texture = nullptr;
+    const Shader*  shader = nullptr;
+    Transform      transform{};
+    BlendMode      blendMode = BLEND_ALPHA;
 };
 
 } // namespace gr

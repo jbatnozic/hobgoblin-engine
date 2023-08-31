@@ -140,6 +140,10 @@ public:
     //! \return Bounding rectangle of the vertex array
     math::Rectangle<float> getBounds() const;
 
+    BatchingType getBatchingType() const {
+        return BatchingType::VertexArray;
+    }
+
 private:
     //! \brief Draw the vertex array to a render target
     //!

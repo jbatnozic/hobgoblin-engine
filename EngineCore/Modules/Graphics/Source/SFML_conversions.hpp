@@ -9,6 +9,7 @@
 #include <Hobgoblin/Graphics/Context_settings.hpp>
 #include <Hobgoblin/Graphics/Primitive_type.hpp>
 #include <Hobgoblin/Graphics/Render_states.hpp>
+#include <Hobgoblin/Graphics/Render_target.hpp>
 #include <Hobgoblin/Graphics/Sprite.hpp>
 #include <Hobgoblin/Graphics/Texture.hpp>
 #include <Hobgoblin/Graphics/Transform.hpp>
@@ -25,6 +26,7 @@
 #include <SFML/Window/ContextSettings.hpp>
 #include <SFML/Graphics/PrimitiveType.hpp>
 #include <SFML/Graphics/RenderStates.hpp>
+#include <SFML/Graphics/RenderTarget.hpp>
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/Graphics/Transform.hpp>
@@ -95,7 +97,7 @@ sf::PrimitiveType ToSf(PrimitiveType aType);
 
 // RenderStates
 
-const sf::RenderStates& ToSf(const RenderStates& aRenderStates);
+sf::RenderStates ToSf(const RenderStates& aRenderStates);
 
 // Sprite
 
@@ -249,7 +251,7 @@ sf::PrimitiveType ToSf(PrimitiveType aType) {
 // RenderStates
 
 inline
-const sf::RenderStates& ToSf(const RenderStates& aRenderStates) {
+sf::RenderStates ToSf(const RenderStates& aRenderStates) {
     sf::RenderStates rs;
     // TODO: other fields
     rs.transform = ToSf(aRenderStates.transform);

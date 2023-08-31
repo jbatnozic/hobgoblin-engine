@@ -61,7 +61,12 @@ constexpr auto IMPL_ALIGN = alignof(ImplType);
 #define SELF_CIMPL (CIMPLOF(SELF))
 
 Shader::Shader() {
+#ifdef _MSC_VER
+    // WTF, Intellisense
+    static_assert(STORAGE_SIZE  >= IMPL_SIZE,  "Shader::STORAGE_SIZE is too small.");
+#else
     static_assert(STORAGE_SIZE  == IMPL_SIZE,  "Shader::STORAGE_SIZE is inadequate.");
+#endif
     static_assert(STORAGE_ALIGN == IMPL_ALIGN, "Shader::STORAGE_ALIGN is inadequate.");
 
     new (&_storage) ImplType();

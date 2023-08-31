@@ -61,7 +61,7 @@ public:
     //! \param width  Width of the image
     //! \param height Height of the image
     //! \param color  Fill color
-    void create(PZInteger width, PZInteger height, const Color& color = Color(0, 0, 0));
+    void create(PZInteger aWidth, PZInteger aHeight, const Color& aColor = Color(0, 0, 0));
 
     //! \brief Create the image from an array of pixels
     //!
@@ -73,7 +73,7 @@ public:
     //! \param width  Width of the image
     //! \param height Height of the image
     //! \param pixels Array of pixels to copy to the image
-    void create(PZInteger width, PZInteger height, const std::uint8_t* pixels);
+    void create(PZInteger aWidth, PZInteger aHeight, const std::uint8_t* aPixels);
 
     //! \brief Load the image from a file on disk
     //!
@@ -87,7 +87,7 @@ public:
     //! \return True if loading was successful
     //!
     //! \see loadFromMemory, loadFromStream, saveToFile
-    bool loadFromFile(const std::string& filename);
+    bool loadFromFile(const std::string& aFilename);
 
     //! \brief Load the image from a file in memory
     //!
@@ -102,7 +102,7 @@ public:
     //! \return True if loading was successful
     //!
     //! \see loadFromFile, loadFromStream
-    bool loadFromMemory(const void* data, std::size_t size);
+    bool loadFromMemory(const void* aData, std::size_t aSize);
 
     //! \brief Load the image from a custom stream
     //!
@@ -116,7 +116,7 @@ public:
     //! \return True if loading was successful
     //!
     //! \see loadFromFile, loadFromMemory
-    bool loadFromStream(InputStream& stream);
+    // bool loadFromStream(InputStream& aStream); TODO
 
     //! \brief Save the image to a file on disk
     //!
@@ -130,7 +130,7 @@ public:
     //! \return True if saving was successful
     //!
     //! \see create, loadFromFile, loadFromMemory
-    bool saveToFile(const std::string& filename) const;
+    bool saveToFile(const std::string& aFilename) const;
 
     //! \brief Return the size (width and height) of the image
     //!
@@ -145,7 +145,7 @@ public:
     //!
     //! \param color Color to make transparent
     //! \param alpha Alpha value to assign to transparent pixels
-    void createMaskFromColor(const Color& color, std::uint8_t alpha = 0);
+    void createMaskFromColor(const Color& aColor, std::uint8_t aAlpha = 0);
 
     //! \brief Copy pixels from another image onto this one
     //!
@@ -165,11 +165,11 @@ public:
     //! \param sourceRect Sub-rectangle of the source image to copy
     //! \param applyAlpha Should the copy take into account the source transparency?
     void copy(
-        const Image& source,
-        PZInteger destX,
-        PZInteger destY,
-        const math::Rectangle<PZInteger>& sourceRect = {0, 0, 0, 0}, 
-        bool applyAlpha = false
+        const Image& aSource,
+        PZInteger aDestX,
+        PZInteger aDestY,
+        const math::Rectangle<PZInteger>& aSourceRect = {0, 0, 0, 0}, 
+        bool aApplyAlpha = false
     );
 
     //! \brief Change the color of a pixel
@@ -183,7 +183,7 @@ public:
     //! \param color New color of the pixel
     //!
     //! \see getPixel
-    void setPixel(PZInteger x, PZInteger y, const Color& color);
+    void setPixel(PZInteger aX, PZInteger aY, const Color& aColor);
 
     //! \brief Get the color of a pixel
     //!
@@ -197,7 +197,7 @@ public:
     //! \return Color of the pixel at coordinates (x, y)
     //!
     //! \see setPixel
-    Color getPixel(PZInteger x, PZInteger y) const;
+    Color getPixel(PZInteger aX, PZInteger aY) const;
 
     //! \brief Get a read-only pointer to the array of pixels
     //!

@@ -12,6 +12,11 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
+enum class CanvasType {
+    Proxy,
+    SFML
+};
+
 //! Abstracts an object (such as a window or a texture) that can be drawn onto.
 class Canvas {
 public:
@@ -37,6 +42,12 @@ public:
     //! be deferred until later. Calling flush() will make sure that every draw()
     //! call thus far is resolved.
     virtual void flush() = 0;
+
+private:
+    virtual void getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) {
+        aType = CanvasType::Proxy;
+        aRenderingBackend = nullptr;
+    }
 };
 
 } // namespace gr

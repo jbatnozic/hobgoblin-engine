@@ -44,24 +44,12 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
-namespace detail {
-class GraphicsImplAccessor;
-
-class RenderTargetPolymorphismAdapter {
-public:
-    virtual ~RenderTargetPolymorphismAdapter() = default;
-    virtual math::Vector2pz getSize() const = 0;
-};
-} // namespace detail
-
 class Drawable;
 class VertexBuffer;
 
-
-//! \brief Base class for all render targets (window, texture, ...)
-class RenderTarget : public Canvas, NO_COPY, private detail::RenderTargetPolymorphismAdapter {
-public://! \brief Destructor
-    virtual ~RenderTarget();
+class RenderTarget : public Canvas {
+public:
+    virtual ~RenderTarget() = default;
 
     //! \brief Clear the entire target with a single color
     //!
@@ -69,10 +57,10 @@ public://! \brief Destructor
     //! to clear the previous contents of the target.
     //!
     //! \param color Fill color to use to clear the render target
-    void clear(const Color& aColor = COLOR_BLACK);
+    virtual void clear(const Color& aColor = COLOR_BLACK) = 0;
 
     //! TODO
-    void setViewCount(PZInteger aViewCount);
+    virtual void setViewCount(PZInteger aViewCount) = 0;
 
     //! \brief Change the current active view
     //!
@@ -91,10 +79,10 @@ public://! \brief Destructor
     //! \param aViewIdx TODO
     //!
     //! \see getView, getDefaultView
-    void setView(const View& aView, PZInteger aViewIdx = 0);
+    virtual void setView(const View& aView, PZInteger aViewIdx = 0) = 0;
 
     //! TODO
-    PZInteger getViewCount() const;
+    virtual PZInteger getViewCount() const = 0;
 
     //! \brief Get the view currently in use in the render target
     //!
@@ -103,10 +91,10 @@ public://! \brief Destructor
     //! \return The view object that is currently used
     //!
     //! \see setView, getDefaultView
-    const View& getView(PZInteger aViewIdx = 0) const;
+    virtual const View& getView(PZInteger aViewIdx = 0) const = 0;
 
     //! TODO
-    View& getView(PZInteger aViewIdx = 0);
+    virtual View& getView(PZInteger aViewIdx = 0) = 0;
 
     //! \brief Get the default view of the render target
     //!
@@ -116,7 +104,7 @@ public://! \brief Destructor
     //! \return The default view of the render target
     //!
     //! \see setView, getView
-    View getDefaultView() const;
+    virtual View getDefaultView() const = 0;
 
     //! \brief Get the viewport of a view, applied to this render target
     //!
@@ -128,11 +116,11 @@ public://! \brief Destructor
     //! \param view The view for which we want to compute the viewport
     //!
     //! \return Viewport rectangle, expressed in pixels
-    math::Rectangle<PZInteger> getViewport(const View& aView) const;
+    virtual math::Rectangle<PZInteger> getViewport(const View& aView) const = 0;
 
     //! TODO
-    math::Rectangle<PZInteger> getViewport(PZInteger aViewIdx) const;
-    
+    virtual math::Rectangle<PZInteger> getViewport(PZInteger aViewIdx) const = 0;
+
     //! \brief Convert a point from target coordinates to world
     //!        coordinates, using the current view
     //!
@@ -144,11 +132,12 @@ public://! \brief Destructor
     //! \endcode
     //!
     //! \param point Pixel to convert
+    //! \param aViewIdx TODO
     //!
     //! \return The converted point, in "world" coordinates
     //!
     //! \see mapCoordsToPixel
-    math::Vector2f mapPixelToCoords(const math::Vector2i& aPoint) const;
+    virtual math::Vector2f mapPixelToCoords(const math::Vector2i& aPoint, PZInteger aViewIdx = 0) const = 0;
 
     //! \brief Convert a point from target coordinates to world coordinates
     //!
@@ -176,27 +165,7 @@ public://! \brief Destructor
     //! \return The converted point, in "world" units
     //!
     //! \see mapCoordsToPixel
-    math::Vector2f mapPixelToCoords(const math::Vector2i& aPoint, const View& aView) const;
-
-    //! TODO
-    math::Vector2f mapPixelToCoords(const math::Vector2i& aPoint, PZInteger aViewIdx) const;
-
-    //! \brief Convert a point from world coordinates to target
-    //!        coordinates, using the current view
-    //!
-    //! This function is an overload of the mapCoordsToPixel
-    //! function that implicitly uses the current view.
-    //! It is equivalent to:
-    //! \code
-    //! target.mapCoordsToPixel(point, target.getView());
-    //! \endcode
-    //!
-    //! \param point Point to convert
-    //!
-    //! \return The converted point, in target coordinates (pixels)
-    //!
-    //! \see mapPixelToCoords
-    math::Vector2i mapCoordsToPixel(const math::Vector2f& aPoint) const;
+    virtual math::Vector2f mapPixelToCoords(const math::Vector2i& aPoint, const View& aView) const = 0;
 
     //! \brief Convert a point from world coordinates to target coordinates
     //!
@@ -220,49 +189,25 @@ public://! \brief Destructor
     //! \return The converted point, in target coordinates (pixels)
     //!
     //! \see mapPixelToCoords
-    math::Vector2i mapCoordsToPixel(const math::Vector2f& point, const View& view) const;
+    virtual math::Vector2i mapCoordsToPixel(const math::Vector2f& point, const View& view) const = 0;
 
-    //! TODO
-    math::Vector2i mapCoordsToPixel(const math::Vector2f& point, PZInteger aViewIdx) const;
-
-    //! \brief Draw a drawable object to the render target
+    //! \brief Convert a point from world coordinates to target
+    //!        coordinates, using the current view
     //!
-    //! \param drawable Object to draw
-    //! \param states   Render states to use for drawing
-    void draw(const Drawable& aDrawable,
-              const RenderStates& aStates = RenderStates::DEFAULT) override;
-
-    //! \brief Draw primitives defined by an array of vertices
+    //! This function is an overload of the mapCoordsToPixel
+    //! function that implicitly uses the current view.
+    //! It is equivalent to:
+    //! \code
+    //! target.mapCoordsToPixel(point, target.getView());
+    //! \endcode
     //!
-    //! \param vertices    Pointer to the vertices
-    //! \param vertexCount Number of vertices in the array
-    //! \param type        Type of primitives to draw
-    //! \param states      Render states to use for drawing
-    void draw(const Vertex* aVertices,
-              PZInteger aVertexCount,
-              PrimitiveType aPrimitiveType,
-              const RenderStates& aStates = RenderStates::DEFAULT) override;
-
-    //! \brief Draw primitives defined by a vertex buffer
+    //! \param point Point to convert
+    //! \param aViewIdx TODO
     //!
-    //! \param vertexBuffer Vertex buffer
-    //! \param states       Render states to use for drawing
-    void draw(const VertexBuffer& aVertexBuffer,
-              const RenderStates& aStates = RenderStates::DEFAULT) override;
-
-    //! \brief Draw primitives defined by a vertex buffer
+    //! \return The converted point, in target coordinates (pixels)
     //!
-    //! \param vertexBuffer Vertex buffer
-    //! \param firstVertex  Index of the first vertex to render
-    //! \param vertexCount  Number of vertices to render
-    //! \param states       Render states to use for drawing
-    void draw(const VertexBuffer& aVertexBuffer,
-              PZInteger aFirstVertex,
-              PZInteger aVertexCount,
-              const RenderStates& aStates = RenderStates::DEFAULT) override;
-
-    //! TODO
-    void flush() override;
+    //! \see mapPixelToCoords
+    virtual math::Vector2i mapCoordsToPixel(const math::Vector2f& point, PZInteger aViewIdx = 0) const = 0;
 
     //! \brief Return the size of the rendering region of the target
     //!
@@ -286,7 +231,7 @@ public://! \brief Destructor
     //! \param active True to activate, false to deactivate
     //!
     //! \return True if operation was successful, false otherwise
-    virtual bool setActive(bool aActive = true);
+    virtual bool setActive(bool aActive = true) = 0;
 
     //! \brief Save the current OpenGL render states and matrices
     //!
@@ -317,7 +262,7 @@ public://! \brief Destructor
     //! function if you do so.
     //!
     //! \see popGLStates
-    void pushGLStates();
+    virtual void pushGLStates() = 0;
 
     //! \brief Restore the previously saved OpenGL render states and matrices
     //!
@@ -325,7 +270,7 @@ public://! \brief Destructor
     //! description of these functions.
     //!
     //! \see pushGLStates
-    void popGLStates();
+    virtual void popGLStates() = 0;
 
     //! \brief Reset the internal OpenGL states so that the target is ready for drawing
     //!
@@ -345,33 +290,7 @@ public://! \brief Destructor
     //! glPopAttrib(...);
     //! // OpenGL code here...
     //! \endcode
-    void resetGLStates();
-
-protected:
-    //! \brief Default constructor
-    RenderTarget();
-
-    //! \brief Performs the common initialization step after creation
-    //!
-    //! The derived classes must call this function after the
-    //! target is created and ready for drawing.
-    void initialize();
-
-private:
-    friend class detail::GraphicsImplAccessor;
-
-    void* _getSFMLImpl();
-    const void* _getSFMLImpl() const;
-
-    static constexpr std::size_t STORAGE_SIZE  = 488;
-    static constexpr std::size_t STORAGE_ALIGN = 8;
-    std::aligned_storage<STORAGE_SIZE, STORAGE_ALIGN>::type _storage;
-
-    // Multiview adapter:
-
-    static constexpr std::size_t MVA_STORAGE_SIZE  = 208;
-    static constexpr std::size_t MVA_STORAGE_ALIGN = 8;
-    std::aligned_storage<MVA_STORAGE_SIZE, MVA_STORAGE_ALIGN>::type _mvaStorage;
+    virtual void resetGLStates() = 0;
 };
 
 } // namespace gr

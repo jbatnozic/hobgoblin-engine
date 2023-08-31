@@ -1,15 +1,42 @@
 #include <Hobgoblin/Graphics/Window.hpp>
 
-#include <SFML/Window/Window.hpp>
+#include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/Window/Event.hpp>
 
 #include "SFML_conversions.hpp"
+
+#include <utility>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
-using ImplType = sf::Window;
+namespace {
+// TODO: explain!
+class SfRenderWindowAdapter : public sf::RenderWindow {
+public:
+    template <class ...taArgs>
+    SfRenderWindowAdapter(detail::WindowPolymorphismAdapter& aWindowPolyAdapter, taArgs&&... aArgs)
+        : RenderWindow{std::forward<taArgs>(aArgs)...}
+        , _windowPolyAdapter{aWindowPolyAdapter}
+    {
+    }
+
+    void onCreate() override {
+        _windowPolyAdapter.onCreate();
+    }
+
+    void onResize() override {
+        _windowPolyAdapter.onResize();
+    }
+
+private:
+    detail::WindowPolymorphismAdapter& _windowPolyAdapter;
+};
+} // namespace
+
+using ImplType = SfRenderWindowAdapter;
 constexpr auto IMPL_SIZE  = sizeof(ImplType);
 constexpr auto IMPL_ALIGN = alignof(ImplType);
 #define  IMPLOF(_obj_) (reinterpret_cast<ImplType*>(&((_obj_)._storage)))
@@ -21,15 +48,15 @@ Window::Window() {
     static_assert(STORAGE_SIZE  == IMPL_SIZE,  "Window::STORAGE_SIZE is inadequate.");
     static_assert(STORAGE_ALIGN == IMPL_ALIGN, "Window::STORAGE_ALIGN is inadequate.");
 
-    new (&_storage) ImplType();
+    new (&_storage) ImplType(SELF);
 }
 
 Window::Window(VideoMode aMode, const std::string& aTitle, WindowStyle aStyle, const ContextSettings& aSettings) {
-    new (&_storage) ImplType(ToSf(aMode), aTitle, ToSf(aStyle), ToSf(aSettings));
+    new (&_storage) ImplType(SELF, ToSf(aMode), aTitle, ToSf(aStyle), ToSf(aSettings));
 }
 
 Window::Window(WindowHandle aHandle, const ContextSettings& aSettings) {
-    new (&_storage) ImplType(aHandle, ToSf(aSettings)); 
+    new (&_storage) ImplType(SELF, aHandle, ToSf(aSettings)); 
 }
 
 Window::~Window() {
@@ -58,7 +85,8 @@ ContextSettings Window::getSettings() const {
 
 bool Window::pollEvent(Event& aEvent) {
     // TODO
-    return false;
+    sf::Event ev;
+    return SELF_IMPL->pollEvent(ev);
 }
 
 bool Window::waitEvent(Event& aEvent) {
@@ -126,8 +154,8 @@ void Window::setJoystickThreshold(float aThreshold) {
     SELF_IMPL->setJoystickThreshold(aThreshold);
 }
 
-bool Window::setActive(bool aActive) const {
-    return SELF_CIMPL->setActive(aActive);
+bool Window::setActive(bool aActive) {
+    return SELF_IMPL->setActive(aActive);
 }
 
 void Window::requestFocus() {
@@ -146,12 +174,20 @@ WindowHandle Window::getSystemHandle() const {
     return SELF_CIMPL->getSystemHandle();
 }
 
+void Window::onCreate() {
+    // Nothing to do
+}
+
+void Window::onResize() {
+    // Nothing to do
+}
+
 void* Window::_getSFMLImpl() {
-    return SELF_IMPL;
+    return static_cast<sf::RenderWindow*>(SELF_IMPL);
 }
 
 const void* Window::_getSFMLImpl() const {
-    return SELF_CIMPL;
+    return static_cast<const sf::RenderWindow*>(SELF_CIMPL);
 }
 
 } // namespace gr

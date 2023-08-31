@@ -50,10 +50,12 @@ public:
     virtual void create(VideoMode mode, const std::string& title, WindowStyle style = WindowStyle::Default, const ContextSettings& settings = ContextSettings()) = 0;
     virtual void create(WindowHandle handle, const ContextSettings& settings = ContextSettings()) = 0;
     virtual void close() = 0;
+    virtual void onCreate() = 0;
+    virtual void onResize() = 0;
 };
 } // namespace detail
 
-class Event;
+class Event {};
 
 //! \brief Window that serves as a target for OpenGL rendering.
 class Window : NO_COPY, private detail::WindowPolymorphismAdapter {
@@ -362,7 +364,7 @@ public:
     //! \param active True to activate, false to deactivate
     //!
     //! \return True if operation was successful, false otherwise
-    bool setActive(bool active = true) const;
+    bool setActive(bool active = true);
 
     //! \brief Request the current window to be made the active
     //!        foreground window
@@ -405,14 +407,28 @@ public:
     //! \return System handle of the window
     WindowHandle getSystemHandle() const;
 
+protected:
+    //! \brief Function called after the window has been created
+    //!
+    //! This function is called so that derived classes can
+    //! perform their own specific initialization as soon as
+    //! the window is created.
+    void onCreate() override;
+
+    //! \brief Function called after the window has been resized
+    //!
+    //! This function is called so that derived classes can
+    //! perform custom actions when the size of the window changes.
+    void onResize() override;
+
 private:
     friend class detail::GraphicsImplAccessor;
 
     void* _getSFMLImpl();
     const void* _getSFMLImpl() const;
 
-    static constexpr std::size_t STORAGE_SIZE  = 48;
-    static constexpr std::size_t STORAGE_ALIGN =  8;
+    static constexpr std::size_t STORAGE_SIZE  = 544;
+    static constexpr std::size_t STORAGE_ALIGN =   8;
     std::aligned_storage<STORAGE_SIZE, STORAGE_ALIGN>::type _storage;
 };
 

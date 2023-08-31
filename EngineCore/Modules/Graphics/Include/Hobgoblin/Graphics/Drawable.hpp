@@ -10,10 +10,6 @@ class Canvas;
 class Drawable;
 class RenderStates;
 
-namespace detail {
-void Drawable_DrawOntoCanvas(const Drawable&, Canvas&, const RenderStates&);
-} // namespace detail
-
 class Drawable {
 public:
     enum class BatchingType {
@@ -34,13 +30,12 @@ public:
 
     virtual ~Drawable() = default;
 
-    virtual BatchingType getBatchingType() const;
-
-protected:
-    virtual void _draw(Canvas& aCanvas, const RenderStates& aStates) const = 0;
+    virtual BatchingType getBatchingType() const = 0;
 
 private:
-    friend void detail::Drawable_DrawOntoCanvas(const Drawable&, Canvas&, const RenderStates&);
+    virtual void _draw(Canvas& aCanvas, const RenderStates& aStates) const = 0;
+
+    friend class MultiViewRenderTargetAdapter;
 };
 
 } // namespace gr

@@ -28,7 +28,9 @@ public:
   )
       : r{aRed}, g{aGreen}, b{aBlue}, a{aAlpha} {}
 
-  std::uint32_t toInt() const;
+  constexpr std::uint32_t toInt() const {
+      return static_cast<std::uint32_t>((r << 24) | (g << 16) | (b << 8) | a);
+  }
 
   std::uint8_t r = 0;
   std::uint8_t g = 0;
@@ -36,10 +38,15 @@ public:
   std::uint8_t a = 255;
 };
 
-bool operator==(Color aLhs, Color aRhs);
+inline
+constexpr bool operator==(Color aLhs, Color aRhs) {
+    return aLhs.r == aRhs.r &&
+           aLhs.g == aRhs.g &&
+           aLhs.b == aRhs.b &&
+           aLhs.a == aRhs.a;
+}
 
 #define XMACRO(_name_, _hexcode_) constexpr Color COLOR_##_name_{_hexcode_};
-// TODO: missing transparent colour
 #include <Hobgoblin/Graphics/Private/Xmacro_html_colors.hpp>
 #undef  XMACRO
 

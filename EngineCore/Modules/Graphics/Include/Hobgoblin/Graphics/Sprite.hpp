@@ -17,7 +17,7 @@ class Texture;
 
 //! \brief Drawable representation of a texture, with its
 //!        own transformations, color, etc.
-class Sprite final : public Drawable, public Transformable {
+class Sprite final : public Drawable/*, public Transformable*/ {
 public:
     //! \brief Default constructor
     //!
