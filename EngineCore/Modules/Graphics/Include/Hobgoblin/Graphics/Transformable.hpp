@@ -25,10 +25,7 @@
 #define UHOBGOBLIN_GRAPHICS_TRANSFORMABLE_HPP
 
 #include <Hobgoblin/Graphics/Transform.hpp>
-#include <Hobgoblin/Math/Core.hpp>
-
-#include <cstddef>
-#include <type_traits>
+#include <Hobgoblin/Math/Vector.hpp>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
@@ -42,11 +39,8 @@ class GraphicsImplAccessor;
 //! \brief Decomposed transform defined by a position, a rotation and a scale
 class Transformable {
 public:
-    //! \brief Default constructor
-    Transformable();
-  
     //! \brief Virtual destructor
-    virtual ~Transformable();
+    virtual ~Transformable() = default;
 
     //! \brief set the position of the object
     //!
@@ -58,7 +52,7 @@ public:
     //! \param aY Y coordinate of the new position.
     //!
     //! \see move, getPosition
-    void setPosition(float aX, float aY);
+    virtual void setPosition(float aX, float aY) = 0;
   
     //! \brief set the position of the object
     //!
@@ -69,7 +63,7 @@ public:
     //! \param aPosition New position.
     //!
     //! \see move, getPosition
-    void setPosition(const math::Vector2f& aPosition);
+    virtual void setPosition(const math::Vector2f& aPosition) = 0;
 
     //! \brief set the orientation of the object
     //!
@@ -80,7 +74,7 @@ public:
     //! \param aAngle New rotation, in degrees.
     //!
     //! \see rotate, getRotation
-    void setRotation(float aAngle);
+    virtual void setRotation(float aAngle) = 0; // TODO: to math::Angle
 
     //! \brief set the scale factors of the object
     //!
@@ -92,7 +86,7 @@ public:
     //! \param aFactorY New vertical scale factor.
     //!
     //! \see scale, getScale
-    void setScale(float aFactorX, float aFactorY);
+    virtual void setScale(float aFactorX, float aFactorY) = 0;
 
     //! \brief set the scale factors of the object
     //!
@@ -103,8 +97,7 @@ public:
     //! \param aFactors New scale factors.
     //!
     //! \see scale, getScale
-    void setScale(const math::Vector2f& aFactors);
-
+    virtual void setScale(const math::Vector2f& aFactors) = 0;
     
     //! \brief set the local origin of the object
     //!
@@ -119,7 +112,7 @@ public:
     //! \param aY Y coordinate of the new origin.
     //!
     //! \see getOrigin
-    void setOrigin(float aX, float aY);
+    virtual void setOrigin(float aX, float aY) = 0;
 
     //! \brief set the local origin of the object
     //!
@@ -133,14 +126,14 @@ public:
     //! \param aOrigin New origin
     //!
     //! \see getOrigin
-    void setOrigin(const math::Vector2f& aOrigin);
+    virtual void setOrigin(const math::Vector2f& aOrigin) = 0;
 
     //! \brief get the position of the object
     //!
     //! \return Current position.
     //!
     //! \see setPosition
-    const math::Vector2f& getPosition() const;
+    virtual math::Vector2f getPosition() const = 0;
     
     //! \brief get the orientation of the object
     //!
@@ -149,21 +142,21 @@ public:
     //! \return Current rotation, in degrees.
     //!
     //! \see setRotation
-    float getRotation() const;
+    virtual float getRotation() const = 0;
 
     //! \brief get the current scale of the object
     //!
     //! \return Current scale factors.
     //!
     //! \see setScale
-    const math::Vector2f& getScale() const;
+    virtual math::Vector2f getScale() const = 0;
     
     //! \brief get the local origin of the object
     //!
     //! \return Current origin.
     //!
     //! \see setOrigin
-    const math::Vector2f& getOrigin() const;
+    virtual math::Vector2f getOrigin() const = 0;
 
     //! \brief Move the object by a given offset
     //!
@@ -179,7 +172,7 @@ public:
     //! \param aOffsetY Y offset.
     //!
     //! \see setPosition
-    void move(float aOffsetX, float aOffsetY);
+    virtual void move(float aOffsetX, float aOffsetY) = 0;
 
     //! \brief Move the object by a given offset
     //!
@@ -193,7 +186,7 @@ public:
     //! \param aOffset Offset.
     //!
     //! \see setPosition
-    void move(const math::Vector2f& aOffset);
+    virtual void move(const math::Vector2f& aOffset) = 0;
 
     //! \brief Rotate the object
     //!
@@ -205,7 +198,7 @@ public:
     //! \endcode
     //!
     //! \param aAngle Angle of rotation, in degrees.
-    void rotate(float aAngle);
+    virtual void rotate(float aAngle) = 0; // TODO: to math::Angle
 
     //! \brief Scale the object
     //!
@@ -221,7 +214,7 @@ public:
     //! \param aFactorY Vertical scale factor.
     //!
     //! \see setScale
-    void scale(float aFactorX, float aFactorY);
+    virtual void scale(float aFactorX, float aFactorY) = 0;
 
     //! \brief Scale the object
     //!
@@ -236,31 +229,21 @@ public:
     //! \param aFactor Scale factors.
     //!
     //! \see setScale
-    void scale(const math::Vector2f& aFactor);
+    virtual void scale(const math::Vector2f& aFactor) = 0;
 
     //! \brief get the combined transform of the object
     //!
     //! \return Transform combining the position/rotation/scale/origin of the object
     //!
     //! \see getInverseTransform
-    const Transform& getTransform() const;
+    virtual Transform getTransform() const = 0;
 
     //! \brief get the inverse of the combined transform of the object
     //!
     //! \return Inverse of the combined transformations applied to the object
     //!
     //! \see getTransform
-    const Transform& getInverseTransform() const;
-
-private:
-    friend class detail::GraphicsImplAccessor;
-
-    void* _getSFMLImpl();
-    const void* _getSFMLImpl() const;
-
-    static constexpr ::std::size_t STORAGE_SIZE  = 64;
-    static constexpr ::std::size_t STORAGE_ALIGN = 4;
-    ::std::aligned_storage<STORAGE_SIZE, STORAGE_ALIGN>::type _storage;
+    virtual Transform getInverseTransform() const = 0;
 };
 
 } // namespace gr

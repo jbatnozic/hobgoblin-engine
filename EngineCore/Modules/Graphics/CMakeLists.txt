@@ -15,6 +15,7 @@ set(COMPONENT_SOURCES
   "Source/SFML_conversions.hpp"
 
   "Source/Builtin_fonts.cpp"
+  "Source/Circle_shape.cpp"
   "Source/Cursor.cpp"
   "Source/Draw_batcher.cpp"
   "Source/Image.cpp"
@@ -31,12 +32,10 @@ set(COMPONENT_SOURCES
   "Source/Texture_packing.cpp"
   "Source/Tga_export.cpp"
   "Source/Transform.cpp"
-  # "Source/Transformable.cpp"
   "Source/Vertex_array.cpp"
   "Source/Vertex_buffer.cpp"
   "Source/Video_mode.cpp"
   "Source/View.cpp"
-  # "Source/Views.cpp"
   "Source/Window.cpp"
 )
 

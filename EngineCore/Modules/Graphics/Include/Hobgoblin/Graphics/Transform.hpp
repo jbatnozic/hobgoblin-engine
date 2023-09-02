@@ -191,7 +191,7 @@ public:
     //! \return Reference to *this
     //!
     //! \see translate, scale
-    Transform& rotate(float aAngle);
+    Transform& rotate(float aAngle); // TODO: to math::Angle
 
     //! \brief Combine the current transform with a rotation
     //!
@@ -214,7 +214,7 @@ public:
     //! \return Reference to *this
     //!
     //! \see translate, scale
-    Transform& rotate(float aAngle, float aCenterX, float aCenterY);
+    Transform& rotate(float aAngle, float aCenterX, float aCenterY); // TODO: to math::Angle
 
     //! \brief Combine the current transform with a rotation
     //!
@@ -236,7 +236,7 @@ public:
     //! \return Reference to *this
     //!
     //! \see translate, scale
-    Transform& rotate(float aAngle, const math::Vector2f& aCenter);
+    Transform& rotate(float aAngle, const math::Vector2f& aCenter); // TODO: to math::Angle
 
     //! \brief Combine the current transform with a scaling
     //!

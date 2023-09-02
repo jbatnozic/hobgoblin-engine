@@ -3,6 +3,8 @@
 
 #include <SFML/Graphics/VertexBuffer.hpp>
 
+#include <new>
+
 #include "SFML_conversions.hpp"
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>

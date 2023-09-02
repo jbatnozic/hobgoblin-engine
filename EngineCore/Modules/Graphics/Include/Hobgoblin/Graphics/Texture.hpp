@@ -25,6 +25,7 @@
 #ifndef UHOBGOBLIN_GRAPHICS_TEXTURE_HPP
 #define UHOBGOBLIN_GRAPHICS_TEXTURE_HPP
 
+#include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Graphics/OpenGL_handle.hpp>
 #include <Hobgoblin/Graphics/Image.hpp>
 #include <Hobgoblin/Math/Rectangle.hpp>
@@ -106,7 +107,7 @@ public:
     //! \return True if loading was successful
     //!
     //! \see loadFromMemory, loadFromStream, loadFromImage
-    bool loadFromFile(const std::string& aFilename, const math::Rectangle<int>& aArea = {});
+    bool loadFromFile(const UnicodeString& aFilename, const math::Rectangle<int>& aArea = {});
 
     //! \brief Load the texture from a file in memory
     //!

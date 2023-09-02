@@ -90,7 +90,9 @@ public:
     //! \return True if the window use sRGB encoding, false otherwise
     virtual bool isSrgb() const;
 
-    // RENDER TARGET INTERFACE
+    ///////////////////////////////////////////////////////////////////////////
+    // RENDER TARGET                                                         //
+    ///////////////////////////////////////////////////////////////////////////
 
     // TODO: see which overriden methods should be final
 
@@ -168,6 +170,8 @@ private:
     static constexpr std::size_t MVA_STORAGE_SIZE  = 208;
     static constexpr std::size_t MVA_STORAGE_ALIGN = 8;
     std::aligned_storage<MVA_STORAGE_SIZE, MVA_STORAGE_ALIGN>::type _mvaStorage;
+
+    void getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) override;
 };
 
 } // namespace gr

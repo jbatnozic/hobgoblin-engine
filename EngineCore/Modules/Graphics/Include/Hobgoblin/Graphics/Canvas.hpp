@@ -12,9 +12,13 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
+namespace detail {
+class CanvasAccessor;
+} // namespace detail
+
 enum class CanvasType {
-    Proxy,
-    SFML
+    Proxy, //!< Rendering backend is another Canvas (TODO: is this actually needed?)
+    SFML   //!< Rendering backend is sf::RenderTarget
 };
 
 //! Abstracts an object (such as a window or a texture) that can be drawn onto.
@@ -44,10 +48,9 @@ public:
     virtual void flush() = 0;
 
 private:
-    virtual void getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) {
-        aType = CanvasType::Proxy;
-        aRenderingBackend = nullptr;
-    }
+    virtual void getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) = 0;
+
+    friend class detail::CanvasAccessor;
 };
 
 } // namespace gr

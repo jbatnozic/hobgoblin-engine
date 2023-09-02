@@ -2,6 +2,8 @@
 
 #include <SFML/Window/Cursor.hpp>
 
+#include <new>
+
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_BEGIN

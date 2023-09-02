@@ -3,6 +3,7 @@
 
 // Hobgoblin
 
+#include <Hobgoblin/Math/Rectangle.hpp>
 #include <Hobgoblin/Math/Vector.hpp>
 #include <Hobgoblin/Graphics/Blend_mode.hpp>
 #include <Hobgoblin/Graphics/Color.hpp>
@@ -20,6 +21,7 @@
 
 // SFML
 
+#include <SFML/Graphics/Rect.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Graphics/BlendMode.hpp>
 #include <SFML/Graphics/Color.hpp>
@@ -66,6 +68,16 @@ typename sf::Vector2<taArithmetic> ToSf(const typename math::Vector2<taArithmeti
 template <class taArithmetic>
 typename math::Vector2<taArithmetic> ToHg(const typename sf::Vector2<taArithmetic>& aVector) {
     return {aVector.x, aVector.y};
+}
+
+template <class taArithmetic>
+typename sf::Rect<taArithmetic> ToSf(const typename math::Rectangle<taArithmetic>& aRect) {
+    return {aRect.getLeft(), aRect.getTop(), aRect.w, aRect.h};
+}
+
+template <class taArithmetic>
+typename math::Rectangle<taArithmetic> ToHg(const typename sf::Rect<taArithmetic>& aRect) {
+    return {aRect.left, aRect.top, aRect.width, aRect.height};
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -285,6 +297,15 @@ sf::Texture::CoordinateType ToSf(Texture::CoordinateType aCoordType) {
 }
 
 // Transform
+
+inline
+Transform ToHg(const sf::Transform& aTransform) {
+    // TODO: Improve efficiency of this function (private ctor??)
+    Transform result;
+    auto& sfTransform = detail::GraphicsImplAccessor::getImplOf<sf::Transform>(result);
+    sfTransform = aTransform;
+    return result;
+}
 
 inline
 const sf::Transform& ToSf(const Transform& aTransform) {

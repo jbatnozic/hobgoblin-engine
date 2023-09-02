@@ -7,6 +7,7 @@
 #include <new>
 #include <utility>
 
+#include "Draw_bridge.hpp"
 #include "SFML_conversions.hpp"
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
@@ -130,9 +131,97 @@ math::Rectangle<float> Shape::getGlobalBounds() const {
     };
 }
 
-void Shape::update() {
+void Shape::_update() {
     SELF_IMPL->update();
 }
+
+///////////////////////////////////////////////////////////////////////////
+// DRAWABLE                                                              //
+///////////////////////////////////////////////////////////////////////////
+
+Drawable::BatchingType Shape::getBatchingType() const {
+    return BatchingType::Custom; // TODO: could maybe be optimized to draw in terms of VertexArray?
+}
+
+///////////////////////////////////////////////////////////////////////////
+// TRANSFORMABLE                                                         //
+///////////////////////////////////////////////////////////////////////////
+
+void Shape::setPosition(float aX, float aY) {
+    SELF_IMPL->setPosition(aX, aY);
+}
+
+void Shape::setPosition(const math::Vector2f& aPosition) {
+    SELF_IMPL->setPosition(ToSf(aPosition));
+}
+
+void Shape::setRotation(float aAngle) {
+    SELF_IMPL->setRotation(aAngle);
+}
+
+void Shape::setScale(float aFactorX, float aFactorY) {
+    SELF_IMPL->setScale(aFactorX, aFactorY);
+}
+
+void Shape::setScale(const math::Vector2f& aFactors) {
+    SELF_IMPL->setScale(ToSf(aFactors));
+}
+
+void Shape::setOrigin(float aX, float aY) {
+    SELF_IMPL->setOrigin(aX, aY);
+}
+
+void Shape::setOrigin(const math::Vector2f& aOrigin) {
+    SELF_IMPL->setOrigin(ToSf(aOrigin));
+}
+
+math::Vector2f Shape::getPosition() const {
+    return ToHg(SELF_CIMPL->getPosition());
+}
+
+float Shape::getRotation() const {
+    return SELF_CIMPL->getRotation();
+}
+
+math::Vector2f Shape::getScale() const {
+    return ToHg(SELF_CIMPL->getScale());
+}
+
+math::Vector2f Shape::getOrigin() const {
+    return ToHg(SELF_CIMPL->getOrigin());
+}
+
+void Shape::move(float aOffsetX, float aOffsetY) {
+    SELF_IMPL->move(aOffsetX, aOffsetY);
+}
+
+void Shape::move(const math::Vector2f& aOffset) {
+    SELF_IMPL->move(ToSf(aOffset));
+}
+
+void Shape::rotate(float aAngle) {
+    SELF_IMPL->rotate(aAngle);
+}
+
+void Shape::scale(float aFactorX, float aFactorY) {
+    SELF_IMPL->scale(aFactorX, aFactorY);
+}
+
+void Shape::scale(const math::Vector2f& aFactor) {
+    SELF_IMPL->scale(ToSf(aFactor));
+}
+
+Transform Shape::getTransform() const {
+    return ToHg(SELF_CIMPL->getTransform());
+}
+
+Transform Shape::getInverseTransform() const {
+    return ToHg(SELF_CIMPL->getInverseTransform());
+}
+
+///////////////////////////////////////////////////////////////////////////
+// PRIVATE                                                               //
+///////////////////////////////////////////////////////////////////////////
 
 void* Shape::_getSFMLImpl() {
     return SELF_IMPL;
@@ -140,6 +229,14 @@ void* Shape::_getSFMLImpl() {
 
 const void* Shape::_getSFMLImpl() const {
     return SELF_CIMPL;
+}
+
+void Shape::_draw(Canvas& aCanvas, const RenderStates& aStates) const {
+    const auto drawingWasSuccessful = 
+        Draw(aCanvas, [this, &aStates](sf::RenderTarget& aSfRenderTarget) {
+        aSfRenderTarget.draw(*CIMPLOF(*this), ToSf(aStates));
+    });
+    assert(drawingWasSuccessful);
 }
 
 } // namespace gr

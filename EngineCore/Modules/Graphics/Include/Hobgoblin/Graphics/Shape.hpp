@@ -53,7 +53,7 @@ public:
 class Texture;
 
 //! \brief Base class for textured shapes with outline.
-class Shape : public Drawable, /*public Transformable,*/ private detail::ShapePolymorphismAdapter {
+class Shape : public Drawable, public Transformable, private detail::ShapePolymorphismAdapter {
 public:
     //! \brief Virtual destructor
     virtual ~Shape();
@@ -212,6 +212,54 @@ public:
     //! \return Global bounding rectangle of the entity
     math::Rectangle<float> getGlobalBounds() const;
 
+    ///////////////////////////////////////////////////////////////////////////
+    // DRAWABLE                                                              //
+    ///////////////////////////////////////////////////////////////////////////
+
+    BatchingType getBatchingType() const override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    // TRANSFORMABLE                                                         //
+    ///////////////////////////////////////////////////////////////////////////
+
+    // TODO: see which overriden methods should be final
+
+    void setPosition(float aX, float aY) override;
+
+    void setPosition(const math::Vector2f& aPosition) override;
+
+    void setRotation(float aAngle) override;
+
+    void setScale(float aFactorX, float aFactorY) override;
+
+    void setScale(const math::Vector2f& aFactors) override;
+
+    void setOrigin(float aX, float aY) override;
+
+    void setOrigin(const math::Vector2f& aOrigin) override;
+
+    math::Vector2f getPosition() const override;
+
+    float getRotation() const override;
+
+    math::Vector2f getScale() const override;
+
+    math::Vector2f getOrigin() const override;
+
+    void move(float aOffsetX, float aOffsetY) override;
+
+    void move(const math::Vector2f& aOffset) override;
+
+    void rotate(float aAngle) override;
+
+    void scale(float aFactorX, float aFactorY) override;
+
+    void scale(const math::Vector2f& aFactor) override;
+
+    Transform getTransform() const override;
+
+    Transform getInverseTransform() const override;
+
 protected:
     //! \brief Default constructor
     Shape();
@@ -221,7 +269,7 @@ protected:
     //! This function must be called by the derived class everytime
     //! the shape's points change (i.e. the result of either
     //! getPointCount or getPoint is different).
-    void update();
+    void _update();
 
 private:
     // friend class GraphicsImplAccessor;
@@ -234,6 +282,8 @@ private:
 
     const Texture* _texture;
     std::aligned_storage<STORAGE_SIZE, STORAGE_ALIGN>::type _storage;
+
+    void _draw(Canvas& aCanvas, const RenderStates& aStates) const override;
 };
 
 } // namespace gr

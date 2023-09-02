@@ -2,6 +2,8 @@
 
 #include <SFML/Graphics/VertexArray.hpp>
 
+#include <new>
+
 #include "SFML_conversions.hpp"
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>

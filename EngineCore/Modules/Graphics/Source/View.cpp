@@ -4,6 +4,8 @@
 
 #include <new>
 
+#include "SFML_conversions.hpp"
+
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_BEGIN
@@ -22,12 +24,12 @@ View::View() {
     new (&_storage) ImplType();
 }
 
-View::View(const math::Rectangle<float>& rectangle) {
-    // TODO
+View::View(const math::Rectangle<float>& aRectangle) {
+    new (&_storage) ImplType(ToSf(aRectangle));
 }
 
-View::View(const math::Vector2f& center, const math::Vector2f& size) {
-    // TODO
+View::View(const math::Vector2f& aCenter, const math::Vector2f& aSize) {
+    new (&_storage) ImplType(ToSf(aCenter), ToSf(aSize));
 }
 
 View::~View() {

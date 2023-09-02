@@ -7,6 +7,7 @@
 
 #include <cstring>
 #include <iostream>
+#include <new>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
@@ -82,6 +83,11 @@ void RenderWindow::draw(const VertexBuffer& aVertexBuffer,
 
 void RenderWindow::flush() {
     GetMVA()->flush();
+}
+
+void RenderWindow::getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) {
+    aType = CanvasType::Proxy;
+    aRenderingBackend = GetMVA();
 }
 
 void RenderWindow::clear(const Color& aColor) {

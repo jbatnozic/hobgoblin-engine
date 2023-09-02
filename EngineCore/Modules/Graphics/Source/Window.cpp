@@ -3,9 +3,10 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Window/Event.hpp>
 
-#include "SFML_conversions.hpp"
-
+#include <new>
 #include <utility>
+
+#include "SFML_conversions.hpp"
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 

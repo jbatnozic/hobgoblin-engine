@@ -8,8 +8,7 @@
 #include "SFML_conversions.hpp"
 
 #include <cassert>
-
-#include <SFML/Graphics/Texture.hpp>
+#include <new>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
@@ -24,34 +23,30 @@ constexpr auto IMPL_ALIGN = alignof(ImplType);
 #define  SELF_IMPL (IMPLOF(SELF))
 #define SELF_CIMPL (CIMPLOF(SELF))
 
-std::unique_ptr<sf::Texture> g_Texture;
-
 Sprite::Sprite() {
     static_assert(STORAGE_SIZE  == IMPL_SIZE,  "Sprite::STORAGE_SIZE is inadequate.");
     static_assert(STORAGE_ALIGN == IMPL_ALIGN, "Sprite::STORAGE_ALIGN is inadequate.");
 
     new (&_storage) ImplType();
+}
 
-    g_Texture = std::make_unique<sf::Texture>();
-    g_Texture->loadFromFile("C:\\Users\\Jovan-PC\\Desktop\\Screenshot_1.png");
-    SELF_IMPL->setTexture(*g_Texture);
+Sprite::Sprite(const Texture& aTexture) {
+    new (&_storage) ImplType(ToSf(aTexture));
+    _texture = &aTexture;
+}
+
+Sprite::Sprite(const Texture& aTexture, const math::Rectangle<int>& aRectangle) {
+    new (&_storage) ImplType(ToSf(aTexture), {aRectangle.getLeft(), aRectangle.getTop(), aRectangle.w, aRectangle.h});
+    _texture = &aTexture;
 }
 
 Sprite::~Sprite() {
     SELF_IMPL->~ImplType();
 }
 
-Sprite::Sprite(const Texture& aTexture) {
-    // TODO
-}
-
-Sprite::Sprite(const Texture& aTexture, const math::Rectangle<int>& aRectangle) {
-    // TODO
-}
-
 void Sprite::setTexture(const Texture& aTexture, bool aResetRect) {
     _texture = &aTexture;
-    // SELF_IMPL->setTexture(ToSf(aTexture), aResetRect); TODO
+    SELF_IMPL->setTexture(ToSf(aTexture), aResetRect);
 }
 
 void Sprite::setTextureRect(const math::Rectangle<int>& aRectangle) {
@@ -101,6 +96,86 @@ void Sprite::_draw(Canvas& aCanvas, const RenderStates& aStates) const {
 Drawable::BatchingType Sprite::getBatchingType() const {
     return Drawable::BatchingType::Sprite;
 }
+
+///////////////////////////////////////////////////////////////////////////
+// TRANSFORMABLE                                                         //
+///////////////////////////////////////////////////////////////////////////
+
+void Sprite::setPosition(float aX, float aY) {
+    SELF_IMPL->setPosition(aX, aY);
+}
+
+void Sprite::setPosition(const math::Vector2f& aPosition) {
+    SELF_IMPL->setPosition(ToSf(aPosition));
+}
+
+void Sprite::setRotation(float aAngle) {
+    SELF_IMPL->setRotation(aAngle);
+}
+
+void Sprite::setScale(float aFactorX, float aFactorY) {
+    SELF_IMPL->setScale(aFactorX, aFactorY);
+}
+
+void Sprite::setScale(const math::Vector2f& aFactors) {
+    SELF_IMPL->setScale(ToSf(aFactors));
+}
+
+void Sprite::setOrigin(float aX, float aY) {
+    SELF_IMPL->setOrigin(aX, aY);
+}
+
+void Sprite::setOrigin(const math::Vector2f& aOrigin) {
+    SELF_IMPL->setOrigin(ToSf(aOrigin));
+}
+
+math::Vector2f Sprite::getPosition() const {
+    return ToHg(SELF_CIMPL->getPosition());
+}
+
+float Sprite::getRotation() const {
+    return SELF_CIMPL->getRotation();
+}
+
+math::Vector2f Sprite::getScale() const {
+    return ToHg(SELF_CIMPL->getScale());
+}
+
+math::Vector2f Sprite::getOrigin() const {
+    return ToHg(SELF_CIMPL->getOrigin());
+}
+
+void Sprite::move(float aOffsetX, float aOffsetY) {
+    SELF_IMPL->move(aOffsetX, aOffsetY);
+}
+
+void Sprite::move(const math::Vector2f& aOffset) {
+    SELF_IMPL->move(ToSf(aOffset));
+}
+
+void Sprite::rotate(float aAngle) {
+    SELF_IMPL->rotate(aAngle);
+}
+
+void Sprite::scale(float aFactorX, float aFactorY) {
+    SELF_IMPL->scale(aFactorX, aFactorY);
+}
+
+void Sprite::scale(const math::Vector2f& aFactor) {
+    SELF_IMPL->scale(ToSf(aFactor));
+}
+
+Transform Sprite::getTransform() const {
+    return ToHg(SELF_CIMPL->getTransform());
+}
+
+Transform Sprite::getInverseTransform() const {
+    return ToHg(SELF_CIMPL->getInverseTransform());
+}
+
+///////////////////////////////////////////////////////////////////////////
+// SPRITE - PRIVATE                                                      //
+///////////////////////////////////////////////////////////////////////////
 
 void* Sprite::_getSFMLImpl() {
     return SELF_IMPL;

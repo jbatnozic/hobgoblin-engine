@@ -13,10 +13,11 @@
 
 // NEW
 #include <Hobgoblin/Graphics/Blend_mode.hpp>
-#include <Hobgoblin/Graphics/Context_settings.hpp>
-#include <Hobgoblin/Graphics/Cursor.hpp>
+#include <Hobgoblin/Graphics/Circle_shape.hpp>
+#include <Hobgoblin/Graphics/Context_settings.hpp> // -> window ??????????
+#include <Hobgoblin/Graphics/Cursor.hpp> // -> window
 #include <Hobgoblin/Graphics/Image.hpp>
-#include <Hobgoblin/Graphics/OpenGL_handle.hpp>
+#include <Hobgoblin/Graphics/OpenGL_handle.hpp> // -> window ??????????
 #include <Hobgoblin/Graphics/Primitive_type.hpp>
 #include <Hobgoblin/Graphics/Render_target.hpp>
 #include <Hobgoblin/Graphics/Render_window.hpp>
@@ -29,10 +30,10 @@
 #include <Hobgoblin/Graphics/Vertex.hpp>
 #include <Hobgoblin/Graphics/Vertex_array.hpp>
 #include <Hobgoblin/Graphics/Vertex_buffer.hpp>
-#include <Hobgoblin/Graphics/Video_mode.hpp>
+#include <Hobgoblin/Graphics/Video_mode.hpp> // -> window
 #include <Hobgoblin/Graphics/View.hpp>
-#include <Hobgoblin/Graphics/Window.hpp>
-#include <Hobgoblin/Graphics/Window_handle.hpp>
-#include <Hobgoblin/Graphics/Window_style.hpp>
+#include <Hobgoblin/Graphics/Window.hpp> // -> window
+#include <Hobgoblin/Graphics/Window_handle.hpp> // -> window
+#include <Hobgoblin/Graphics/Window_style.hpp> // -> window
 
 #endif // !UHOBGOBLIN_GRAPHICS_HPP

@@ -7,6 +7,7 @@
 
 #include "Multiview_rendertarget_adapter.hpp"
 
+#include <cassert>
 #include <typeinfo>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
@@ -14,15 +15,35 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
-template <class taCallable>
-bool Draw(Canvas& aCanvas, const taCallable&& aCallable) {
-    if (typeid(aCanvas) == typeid(MultiViewRenderTargetAdapter)) {
-        aCallable(static_cast<MultiViewRenderTargetAdapter&>(aCanvas).getSFMLRenderTarget());
-        return true;
+namespace detail {
+class CanvasAccessor {
+public:
+    static CanvasType getCanvasDetails(Canvas& aCanvas, void*& aRenderingBackend) {
+        CanvasType type;
+        aCanvas.getCanvasDetails(type, aRenderingBackend);
+        return type;
     }
-    return false;
-}
+};
+} // namespace detail
 
+template <class taCallable>
+bool Draw(Canvas& aCanvas, taCallable&& aCallable) {
+    void* renderingBackend;
+    const auto canvasType = detail::CanvasAccessor::getCanvasDetails(aCanvas, renderingBackend);
+    assert(renderingBackend != nullptr);
+
+    switch (canvasType) {
+    case CanvasType::Proxy:
+        return Draw(*static_cast<Canvas*>(renderingBackend), std::forward<taCallable>(aCallable));
+
+    case CanvasType::SFML:
+        aCallable(*static_cast<sf::RenderTarget*>(renderingBackend));
+        return true;
+
+    default:
+        HARD_ASSERT(false && "Invalid CanvasType value.");
+    }
+}
 
 } // namespace gr
 HOBGOBLIN_NAMESPACE_END

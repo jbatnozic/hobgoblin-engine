@@ -17,7 +17,7 @@ class Texture;
 
 //! \brief Drawable representation of a texture, with its
 //!        own transformations, color, etc.
-class Sprite final : public Drawable/*, public Transformable*/ {
+class Sprite final : public Drawable, public Transformable {
 public:
     //! \brief Default constructor
     //!
@@ -129,6 +129,48 @@ public:
     //!
     //! \return Global bounding rectangle of the entity
     math::Rectangle<float> getGlobalBounds() const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    // TRANSFORMABLE                                                         //
+    ///////////////////////////////////////////////////////////////////////////
+
+    // TODO: see which overriden methods should be final
+
+    void setPosition(float aX, float aY) override;
+
+    void setPosition(const math::Vector2f& aPosition) override;
+
+    void setRotation(float aAngle) override;
+
+    void setScale(float aFactorX, float aFactorY) override;
+
+    void setScale(const math::Vector2f& aFactors) override;
+
+    void setOrigin(float aX, float aY) override;
+
+    void setOrigin(const math::Vector2f& aOrigin) override;
+
+    math::Vector2f getPosition() const override;
+
+    float getRotation() const override;
+
+    math::Vector2f getScale() const override;
+
+    math::Vector2f getOrigin() const override;
+
+    void move(float aOffsetX, float aOffsetY) override;
+
+    void move(const math::Vector2f& aOffset) override;
+
+    void rotate(float aAngle) override;
+
+    void scale(float aFactorX, float aFactorY) override;
+
+    void scale(const math::Vector2f& aFactor) override;
+
+    Transform getTransform() const override;
+
+    Transform getInverseTransform() const override;
 
 protected:
     void _draw(Canvas& aCanvas, const RenderStates& aStates) const override;

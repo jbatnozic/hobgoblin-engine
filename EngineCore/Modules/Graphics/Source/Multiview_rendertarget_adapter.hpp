@@ -61,6 +61,11 @@ private:
     View* addressOfFirstView();
 
     const View* addressOfFirstView() const;
+
+    void getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) override {
+        aType = CanvasType::SFML;
+        aRenderingBackend = &_renderTarget;
+    }
 };
 
 } // namespace gr

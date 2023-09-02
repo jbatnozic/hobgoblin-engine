@@ -4,6 +4,8 @@
 
 #include "SFML_conversions.hpp"
 
+#include <new>
+
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_BEGIN
@@ -36,14 +38,13 @@ bool Texture::create(PZInteger aWidth, PZInteger aHeight) {
     return SELF_IMPL->create(static_cast<unsigned>(aWidth), static_cast<unsigned>(aHeight));
 }
 
-bool Texture::loadFromFile(const std::string& aFilename, const math::Rectangle<int>& aArea) {
-    // TODO
-    return false;
+bool Texture::loadFromFile(const UnicodeString& aFilename, const math::Rectangle<int>& aArea) {
+    // TODO - will almost certainly fail if a non-ascii string is given
+    return SELF_IMPL->loadFromFile(aFilename, {aArea.getLeft(), aArea.getTop(), aArea.w, aArea.h});
 }
 
 bool Texture::loadFromMemory(const void* aData, PZInteger aSize, const math::Rectangle<int>& aArea) {
-    // TODO
-    return false;
+    return SELF_IMPL->loadFromMemory(aData, static_cast<std::size_t>(aSize), {aArea.getLeft(), aArea.getTop(), aArea.w, aArea.h});
 }
 
 // bool Texture::loadFromStream(InputStream& stream, const math::Rectangle<int>& aArea) {} TODO

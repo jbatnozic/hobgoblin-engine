@@ -32,6 +32,12 @@ public:
       return static_cast<std::uint32_t>((r << 24) | (g << 16) | (b << 8) | a);
   }
 
+  constexpr Color withAlpha(std::uint8_t aAlpha) const {
+      Color result = SELF;
+      result.a = aAlpha;
+      return result;
+  }
+
   std::uint8_t r = 0;
   std::uint8_t g = 0;
   std::uint8_t b = 0;
