@@ -22,8 +22,8 @@
 //
 ////////////////////////////////////////////////////////////
 
-#ifndef UHOBGOBLIN_GRAPHICS_CURSOR_HPP
-#define UHOBGOBLIN_GRAPHICS_CURSOR_HPP
+#ifndef UHOBGOBLIN_WINDOW_CURSOR_HPP
+#define UHOBGOBLIN_WINDOW_CURSOR_HPP
 
 #include <Hobgoblin/Math/Vector.hpp>
 #include <Hobgoblin/Utility/No_copy_no_move.hpp>
@@ -34,7 +34,7 @@
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_BEGIN
-namespace gr {
+namespace win {
 
 namespace detail {
 class GraphicsImplAccessor;
@@ -150,13 +150,13 @@ private:
     std::aligned_storage<STORAGE_SIZE, STORAGE_ALIGN>::type _storage;
 };
 
-} // namespace gr
+} // namespace win
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
-#endif // !UHOBGOBLIN_GRAPHICS_CURSOR_HPP
+#endif // !UHOBGOBLIN_WINDOW_CURSOR_HPP
 
 ////////////////////////////////////////////////////////////
 /// \class sf::Cursor

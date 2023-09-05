@@ -22,15 +22,15 @@
 //
 ////////////////////////////////////////////////////////////
 
-#ifndef UHOBGOBLIN_GRAPHICS_CONTEXT_SETTINGS_HPP
-#define UHOBGOBLIN_GRAPHICS_CONTEXT_SETTINGS_HPP
+#ifndef UHOBGOBLIN_WINDOW_CONTEXT_SETTINGS_HPP
+#define UHOBGOBLIN_WINDOW_CONTEXT_SETTINGS_HPP
 
 #include <Hobgoblin/Common.hpp>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_BEGIN
-namespace gr {
+namespace win {
 
 //! \brief Structure defining the settings of the OpenGL context attached to a window.
 struct ContextSettings {
@@ -93,13 +93,13 @@ ContextSettings::Attribute operator&(ContextSettings::Attribute aLhs, ContextSet
     );
 }
 
-} // namespace gr
+} // namespace win
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
-#endif // !UHOBGOBLIN_GRAPHICS_CONTEXT_SETTINGS_HPP
+#endif // !UHOBGOBLIN_WINDOW_CONTEXT_SETTINGS_HPP
 
 ////////////////////////////////////////////////////////////
 /// \class sf::ContextSettings

@@ -1,5 +1,5 @@
-#ifndef HOBGOBLIN_GRAPHICS_WINDOW_HANDLE_HPP
-#define HOBGOBLIN_GRAPHICS_WINDOW_HANDLE_HPP
+#ifndef UHOBGOBLIN_WINDOW_WINDOW_HANDLE_HPP
+#define UHOBGOBLIN_WINDOW_WINDOW_HANDLE_HPP
 
 // TODO: This leaks SFML headers!
 #include <SFML/Window/WindowHandle.hpp>
@@ -7,15 +7,15 @@
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_BEGIN
-namespace gr {
+namespace win {
 
 using WindowHandle = sf::WindowHandle;
 
-} // namespace gr
+} // namespace win
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
-#endif // !HOBGOBLIN_GRAPHICS_WINDOW_HANDLE_HPP
+#endif // !UHOBGOBLIN_WINDOW_WINDOW_HANDLE_HPP
 

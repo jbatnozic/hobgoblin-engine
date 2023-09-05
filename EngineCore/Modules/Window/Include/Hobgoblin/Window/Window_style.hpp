@@ -1,10 +1,10 @@
-#ifndef HOBGOBLIN_GRAPHICS_WINDOW_STYLE_HPP
-#define HOBGOBLIN_GRAPHICS_WINDOW_STYLE_HPP
+#ifndef UHOBGOBLIN_WINDOW_WINDOW_STYLE_HPP
+#define UHOBGOBLIN_WINDOW_WINDOW_STYLE_HPP
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_BEGIN
-namespace gr {
+namespace win {
 
 enum class WindowStyle : int {
     None       = 0,      ///< No border / title bar (this flag and all others are mutually exclusive)
@@ -37,10 +37,10 @@ WindowStyle operator^(WindowStyle aLhs, WindowStyle aRhs) {
     );
 }
 
-} // namespace gr
+} // namespace win
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
-#endif // !HOBGOBLIN_GRAPHICS_WINDOW_STYLE_HPP
+#endif // !UHOBGOBLIN_WINDOW_WINDOW_STYLE_HPP

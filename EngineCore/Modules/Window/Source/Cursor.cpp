@@ -1,4 +1,4 @@
-#include <Hobgoblin/Graphics/Cursor.hpp>
+#include <Hobgoblin/Window/Cursor.hpp>
 
 #include <SFML/Window/Cursor.hpp>
 
@@ -7,7 +7,7 @@
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_BEGIN
-namespace gr {
+namespace win {
 
 using ImplType = sf::Cursor;
 constexpr auto IMPL_SIZE  = sizeof(ImplType);
@@ -49,7 +49,7 @@ const void* Cursor::_getSFMLImpl() const {
     return SELF_CIMPL;
 }
 
-} // namespace gr
+} // namespace win
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>

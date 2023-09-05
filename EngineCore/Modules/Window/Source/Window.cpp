@@ -1,4 +1,4 @@
-#include <Hobgoblin/Graphics/Window.hpp>
+#include <Hobgoblin/Window/Window.hpp>
 
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Window/Event.hpp>
@@ -11,7 +11,7 @@
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_BEGIN
-namespace gr {
+namespace win {
 
 namespace {
 // TODO: explain!
@@ -100,7 +100,7 @@ math::Vector2i Window::getPosition() const {
 }
 
 void Window::setPosition(const math::Vector2i& aPosition) {
-    // TODO
+    SELF_IMPL->setPosition(ToSf(aPosition));
 }
 
 math::Vector2pz Window::getSize() const {
@@ -191,7 +191,7 @@ const void* Window::_getSFMLImpl() const {
     return static_cast<const sf::RenderWindow*>(SELF_CIMPL);
 }
 
-} // namespace gr
+} // namespace win
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>

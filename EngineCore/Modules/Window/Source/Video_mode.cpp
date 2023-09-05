@@ -1,5 +1,5 @@
 
-#include <Hobgoblin/Graphics/Video_mode.hpp>
+#include <Hobgoblin/Window/Video_mode.hpp>
 
 #include <SFML/Window/VideoMode.hpp>
 
@@ -8,7 +8,7 @@
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_BEGIN
-namespace gr {
+namespace win {
 
 VideoMode::VideoMode() 
     : width{0}
@@ -86,7 +86,7 @@ bool operator>=(const VideoMode& aLhs, const VideoMode& aRhs) {
     return !(aLhs < aRhs);
 }
 
-} // namespace gr
+} // namespace win
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>

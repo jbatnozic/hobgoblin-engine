@@ -22,8 +22,8 @@
 //
 ////////////////////////////////////////////////////////////
 
-#ifndef UHOBGOBLIN_GRAPHICS_VIDEOMODE_HPP
-#define UHOBGOBLIN_GRAPHICS_VIDEOMODE_HPP
+#ifndef UHOBGOBLIN_WINDOW_VIDEO_MODE_HPP
+#define UHOBGOBLIN_WINDOW_VIDEO_MODE_HPP
 
 #include <Hobgoblin/Common.hpp>
 
@@ -32,7 +32,7 @@
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_BEGIN
-namespace gr {
+namespace win {
 
 //! \brief VideoMode defines a video mode (width, height, bpp).
 class VideoMode {
@@ -135,13 +135,13 @@ bool operator<=(const VideoMode& left, const VideoMode& right);
 //! \return True if \a left is greater or equal than \a right
 bool operator>=(const VideoMode& left, const VideoMode& right);
 
-} // namespace gr
+} // namespace win
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
-#endif // UHOBGOBLIN_GRAPHICS_VIDEOMODE_HPP
+#endif // UHOBGOBLIN_WINDOW_VIDEO_MODE_HPP
 
 ////////////////////////////////////////////////////////////
 /// \class sf::VideoMode

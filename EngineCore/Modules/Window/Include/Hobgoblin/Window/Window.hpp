@@ -22,14 +22,14 @@
 //
 ////////////////////////////////////////////////////////////
 
-#ifndef UHOBGOBLIN_GRAPHICS_WINDOW_HPP
-#define UHOBGOBLIN_GRAPHICS_WINDOW_HPP
+#ifndef UHOBGOBLIN_WINDOW_WINDOW_HPP
+#define UHOBGOBLIN_WINDOW_WINDOW_HPP
 
-#include <Hobgoblin/Graphics/Cursor.hpp>
-#include <Hobgoblin/Graphics/Context_settings.hpp>
-#include <Hobgoblin/Graphics/Video_mode.hpp>
-#include <Hobgoblin/Graphics/Window_handle.hpp>
-#include <Hobgoblin/Graphics/Window_style.hpp>
+#include <Hobgoblin/Window/Cursor.hpp>
+#include <Hobgoblin/Window/Context_settings.hpp>
+#include <Hobgoblin/Window/Video_mode.hpp>
+#include <Hobgoblin/Window/Window_handle.hpp>
+#include <Hobgoblin/Window/Window_style.hpp>
 #include <Hobgoblin/Math/Vector.hpp>
 #include <Hobgoblin/Utility/No_copy_no_move.hpp>
 
@@ -39,7 +39,7 @@
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_BEGIN
-namespace gr {
+namespace win {
 
 namespace detail {
 class GraphicsImplAccessor;
@@ -432,13 +432,13 @@ private:
     std::aligned_storage<STORAGE_SIZE, STORAGE_ALIGN>::type _storage;
 };
 
-} // namespace gr
+} // namespace win
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
-#endif // !UHOBGOBLIN_GRAPHICS_WINDOW_HPP
+#endif // !UHOBGOBLIN_WINDOW_WINDOW_HPP
 
 ////////////////////////////////////////////////////////////
 /// \class sf::Window

@@ -16,7 +16,6 @@ set(COMPONENT_SOURCES
 
   "Source/Builtin_fonts.cpp"
   "Source/Circle_shape.cpp"
-  "Source/Cursor.cpp"
   "Source/Draw_batcher.cpp"
   "Source/Image.cpp"
   # "Source/Multisprite.cpp"
@@ -34,9 +33,7 @@ set(COMPONENT_SOURCES
   "Source/Transform.cpp"
   "Source/Vertex_array.cpp"
   "Source/Vertex_buffer.cpp"
-  "Source/Video_mode.cpp"
   "Source/View.cpp"
-  "Source/Window.cpp"
 )
 
 # ===== TARGET SETUP =====
