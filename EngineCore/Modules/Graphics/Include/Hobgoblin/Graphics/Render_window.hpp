@@ -26,8 +26,8 @@
 #define UHOBGOBLIN_GRAPHICS_RENDER_WINDOW_HPP
 
 #include <Hobgoblin/Graphics/Render_target.hpp>
-#include <Hobgoblin/Graphics/Window.hpp>
 #include <Hobgoblin/Math/Vector.hpp>
+#include <Hobgoblin/Window/Window.hpp>
 
 #include <string>
 
@@ -37,7 +37,7 @@ HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
   
 //! \brief Window that can serve as a target for 2D drawing.
-class RenderWindow : public Window, public RenderTarget {
+class RenderWindow : public win::Window, public RenderTarget {
 public:
     //! \brief Default constructor
     //!
@@ -61,7 +61,12 @@ public:
     //! \param title    Title of the window
     //! \param style    %Window style, a bitwise OR combination of sf::Style enumerators
     //! \param settings Additional settings for the underlying OpenGL context
-    RenderWindow(VideoMode aMode, const std::string& aTitle, WindowStyle aStyle = WindowStyle::Default, const ContextSettings& aSettings = ContextSettings{});
+    RenderWindow(
+        win::VideoMode aMode,
+        const std::string& aTitle,
+        win::WindowStyle aStyle = win::WindowStyle::Default,
+        const win::ContextSettings& aSettings = win::ContextSettings{}
+    );
 
     //! \brief Construct the window from an existing control
     //!
@@ -76,7 +81,10 @@ public:
     //! \param handle   Platform-specific handle of the control (\a HWND on
     //!                 Windows, \a %Window on Linux/FreeBSD, \a NSWindow on OS X)
     //! \param settings Additional settings for the underlying OpenGL context
-    explicit RenderWindow(WindowHandle aHandle, const ContextSettings& aSettings = ContextSettings{});
+    explicit RenderWindow(
+        win::WindowHandle aHandle,
+        const win::ContextSettings& aSettings = win::ContextSettings{}
+    );
 
     //! \brief Destructor
     //!

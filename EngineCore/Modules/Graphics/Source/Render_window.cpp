@@ -15,7 +15,7 @@ HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
 #define GetSfRenderWindow(_cv_) \
-    (&detail::GraphicsImplAccessor::getImplOf<_cv_ sf::RenderWindow>(static_cast<_cv_ Window&>(SELF)))
+    (&detail::GraphicsImplAccessor::getImplOf<_cv_ sf::RenderWindow>(static_cast<_cv_ win::Window&>(SELF)))
 
 #define GetMVA(_cv_) \
     (reinterpret_cast<_cv_ MultiViewRenderTargetAdapter*>(&_mvaStorage))
@@ -27,13 +27,18 @@ RenderWindow::RenderWindow() {
     new (&_mvaStorage) MultiViewRenderTargetAdapter(*GetSfRenderWindow());
 }
 
-RenderWindow::RenderWindow(VideoMode aMode, const std::string& aTitle, WindowStyle aStyle, const ContextSettings& aSettings)
+RenderWindow::RenderWindow(
+    win::VideoMode aMode,
+    const std::string& aTitle,
+    win::WindowStyle aStyle,
+    const win::ContextSettings& aSettings
+)
     : RenderWindow()
 {
     Window::create(aMode, aTitle, aStyle, aSettings);
 }
 
-RenderWindow::RenderWindow(WindowHandle aHandle, const ContextSettings& aSettings)
+RenderWindow::RenderWindow(win::WindowHandle aHandle, const win::ContextSettings& aSettings)
     : RenderWindow()
 {
     Window::create(aHandle, aSettings);

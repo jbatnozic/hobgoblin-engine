@@ -40,11 +40,16 @@
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_BEGIN
+
+namespace gr {
+namespace detail {
+class GraphicsImplAccessor;
+} // namespace detail
+} // namespace gr
+
 namespace win {
 
 namespace detail {
-class GraphicsImplAccessor;
-
 class WindowPolymorphismAdapter {
 public:
     virtual ~WindowPolymorphismAdapter() = default;
@@ -421,7 +426,7 @@ protected:
     void onResize() override;
 
 private:
-    friend class detail::GraphicsImplAccessor;
+    friend class gr::detail::GraphicsImplAccessor;
 
     void* _getSFMLImpl();
     const void* _getSFMLImpl() const;

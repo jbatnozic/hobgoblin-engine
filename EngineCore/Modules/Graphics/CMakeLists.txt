@@ -20,6 +20,7 @@ set(COMPONENT_SOURCES
   "Source/Image.cpp"
   # "Source/Multisprite.cpp"
   "Source/Multiview_rendertarget_adapter.cpp"
+  "Source/Rectangle_shape.cpp"
   "Source/Render_states.cpp"
   "Source/Render_target.cpp"
   "Source/Render_window.cpp"
@@ -47,6 +48,7 @@ PUBLIC
   "Hobgoblin.Common"
   "Hobgoblin.Math"
   "Hobgoblin.Utility"
+  "Hobgoblin.Window"
   "sfml::sfml"
 )
 

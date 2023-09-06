@@ -7,7 +7,6 @@
 #include <Hobgoblin/Math/Vector.hpp>
 #include <Hobgoblin/Graphics/Blend_mode.hpp>
 #include <Hobgoblin/Graphics/Color.hpp>
-#include <Hobgoblin/Graphics/Context_settings.hpp>
 #include <Hobgoblin/Graphics/Primitive_type.hpp>
 #include <Hobgoblin/Graphics/Render_states.hpp>
 #include <Hobgoblin/Graphics/Render_target.hpp>
@@ -15,9 +14,7 @@
 #include <Hobgoblin/Graphics/Texture.hpp>
 #include <Hobgoblin/Graphics/Transform.hpp>
 #include <Hobgoblin/Graphics/Vertex_buffer.hpp>
-#include <Hobgoblin/Graphics/Video_mode.hpp>
 #include <Hobgoblin/Graphics/View.hpp>
-#include <Hobgoblin/Graphics/Window_style.hpp>
 
 // SFML
 
@@ -25,7 +22,6 @@
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Graphics/BlendMode.hpp>
 #include <SFML/Graphics/Color.hpp>
-#include <SFML/Window/ContextSettings.hpp>
 #include <SFML/Graphics/PrimitiveType.hpp>
 #include <SFML/Graphics/RenderStates.hpp>
 #include <SFML/Graphics/RenderTarget.hpp>
@@ -33,9 +29,7 @@
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/Graphics/Transform.hpp>
 #include <SFML/Graphics/VertexBuffer.hpp>
-#include <SFML/Window/VideoMode.hpp>
 #include <SFML/Graphics/View.hpp>
-#include <SFML/Window/WindowStyle.hpp>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
@@ -94,14 +88,6 @@ sf::BlendMode ToSf(BlendMode aBlendMode);
 Color ToHg(sf::Color aColor);
 sf::Color ToSf(Color aColor);
 
-// ContextSettings
-
-ContextSettings::Attribute ToHg(sf::ContextSettings::Attribute aAttribute);
-unsigned ToSf(ContextSettings::Attribute aAttribute);
-
-ContextSettings ToHg(const sf::ContextSettings& aSettings);
-sf::ContextSettings ToSf(const ContextSettings& aSettings);
-
 // PrimitiveType
 
 PrimitiveType ToHg(sf::PrimitiveType aType);
@@ -130,19 +116,10 @@ const sf::Transform& ToSf(const Transform& aTransform);
 VertexBuffer::Usage ToHg(sf::VertexBuffer::Usage aUsage);
 sf::VertexBuffer::Usage ToSf(VertexBuffer::Usage aUsage);
 
-// VideoMode
-
-VideoMode ToHg(const sf::VideoMode& aVideoMode);
-sf::VideoMode ToSf(const VideoMode& aVideoMode);
-
 // View
 
 View ToHg(const sf::View& aView);
 const sf::View& ToSf(const View& aView);
-
-// WindowStyle
-
-int ToSf(WindowStyle aStyle);
 
 ///////////////////////////////////////////////////////////////////////////
 // INLINE DEFINITIONS                                                    //
@@ -170,62 +147,6 @@ Color ToHg(sf::Color aColor) {
 inline
 sf::Color ToSf(Color aColor) {
     return sf::Color{aColor.toInt()};
-}
-
-// ContextSettings
-
-inline
-ContextSettings::Attribute ToHg(sf::ContextSettings::Attribute aAttribute) {
-    if (aAttribute == sf::ContextSettings::Default) {
-        return ContextSettings::Attribute::Default;
-    }
-
-    auto result = static_cast<ContextSettings::Attribute>(0);
-
-    if ((aAttribute & sf::ContextSettings::Core)  != 0) result = result | ContextSettings::Attribute::Core;
-    if ((aAttribute & sf::ContextSettings::Debug) != 0) result = result | ContextSettings::Attribute::Debug;
-
-    return result;
-}
-
-inline
-unsigned ToSf(ContextSettings::Attribute aAttribute) {
-    if (aAttribute == ContextSettings::Attribute::Default) {
-        return sf::ContextSettings::Default;
-    }
-
-    unsigned result = 0;
-
-    if ((aAttribute & ContextSettings::Attribute::Core)  != static_cast<ContextSettings::Attribute>(0)) result |= sf::ContextSettings::Core;
-    if ((aAttribute & ContextSettings::Attribute::Debug) != static_cast<ContextSettings::Attribute>(0)) result |= sf::ContextSettings::Debug;
-
-    return result;
-}
-
-inline
-ContextSettings ToHg(const sf::ContextSettings& aSettings) {
-    return ContextSettings{
-        static_cast<PZInteger>(aSettings.depthBits),
-        static_cast<PZInteger>(aSettings.stencilBits),
-        static_cast<PZInteger>(aSettings.antialiasingLevel),
-        static_cast<PZInteger>(aSettings.majorVersion),
-        static_cast<PZInteger>(aSettings.minorVersion),
-        ToHg(static_cast<sf::ContextSettings::Attribute>(aSettings.attributeFlags)),
-        aSettings.sRgbCapable
-    };
-}
-
-inline
-sf::ContextSettings ToSf(const ContextSettings& aSettings) {
-    return sf::ContextSettings{
-        static_cast<unsigned>(aSettings.depthBits),
-        static_cast<unsigned>(aSettings.stencilBits),
-        static_cast<unsigned>(aSettings.antialiasingLevel),
-        static_cast<unsigned>(aSettings.majorVersion),
-        static_cast<unsigned>(aSettings.minorVersion),
-        ToSf(aSettings.attributeFlags),
-        aSettings.sRgbCapable
-    };
 }
 
 // PrimitiveType
@@ -337,26 +258,6 @@ sf::VertexBuffer::Usage ToSf(VertexBuffer::Usage aUsage) {
     }
 }
 
-// VideoMode
-
-inline
-VideoMode ToHg(const sf::VideoMode& aVideoMode) {
-    return {
-        static_cast<PZInteger>(aVideoMode.width),
-        static_cast<PZInteger>(aVideoMode.height),
-        static_cast<PZInteger>(aVideoMode.bitsPerPixel)
-    };
-}
-
-inline
-sf::VideoMode ToSf(const VideoMode& aVideoMode) {
-    return {
-        static_cast<unsigned>(aVideoMode.width),
-        static_cast<unsigned>(aVideoMode.height),
-        static_cast<unsigned>(aVideoMode.bitsPerPixel)
-    };
-}
-
 // View
 
 inline
@@ -371,25 +272,6 @@ inline
 const sf::View& ToSf(const View& aView) {
     const auto& sfView = detail::GraphicsImplAccessor::getImplOf<sf::View>(aView);
     return sfView;
-}
-
-// WindowStyle
-
-inline
-int ToSf(WindowStyle aStyle) {
-    if (aStyle == WindowStyle::None) {
-        return sf::Style::None;
-    }
-
-    int result = 0;
-
-    if ((aStyle & WindowStyle::Titlebar)   != WindowStyle::None) result |= sf::Style::Titlebar;
-    if ((aStyle & WindowStyle::Resize)     != WindowStyle::None) result |= sf::Style::Resize;
-    if ((aStyle & WindowStyle::Close)      != WindowStyle::None) result |= sf::Style::Close;
-    if ((aStyle & WindowStyle::Fullscreen) != WindowStyle::None) result |= sf::Style::Fullscreen;
-    if ((aStyle & WindowStyle::Default)    != WindowStyle::None) result |= sf::Style::Default;
-
-    return result;
 }
 
 } // namespace gr

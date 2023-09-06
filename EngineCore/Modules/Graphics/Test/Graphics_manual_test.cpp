@@ -8,9 +8,8 @@
 
 int main(int argc, char* argv[]) {
     hg::gr::RenderWindow window{};
-    window.create(hg::gr::VideoMode{400, 400}, "Window");
-    //window.setFramerateLimit(60);
-    window.setVerticalSyncEnabled(true);
+    window.create(hg::win::VideoMode{400, 400}, "Window");
+    window.setFramerateLimit(60);
 
     {
         window.setViewCount(2);
@@ -35,13 +34,24 @@ int main(int argc, char* argv[]) {
     circle.setPosition(200.f, 200.f);
     circle.setFillColor(hg::gr::COLOR_DARK_ORANGE.withAlpha(125));
 
+    hg::gr::RectangleShape rect{{64.f, 64.f}};
+    rect.setPosition(0.f, 0.f);
+    rect.setFillColor(hg::gr::COLOR_CHARTREUSE.withAlpha(125));
+
     while (window.isOpen()) {
-        hg::gr::Event ev;
-        while (window.pollEvent(ev)) {}
+        hg::win::Event ev;
+        while (window.pollEvent(ev)) {
+            ev.visit(
+                [&window](hg::win::Event::Closed) {
+                    window.close();
+                }
+            );
+        }
 
         window.clear(hg::gr::COLOR_BLACK);
         window.draw(sprite);
         window.draw(circle);
+        window.draw(rect);
         window.display();
 
         sprite.setRotation(sprite.getRotation() + 1.0);
