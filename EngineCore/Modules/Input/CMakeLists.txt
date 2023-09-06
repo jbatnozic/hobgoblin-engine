@@ -9,6 +9,7 @@ set(COMPONENT_NAME "Hobgoblin.Input")
 set(COMPONENT_SOURCES
   "Source/SFML_conversions.hpp"
 
+  "Source/Conversions.cpp"
   "Source/Universal_input_enumeration.cpp"
 )
 

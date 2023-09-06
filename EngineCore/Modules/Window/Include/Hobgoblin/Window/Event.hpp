@@ -2,6 +2,7 @@
 #define UHOBGOBLIN_WINDOW_EVENT_HPP
 
 #include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/Input.hpp>
 #include <Hobgoblin/Utility/Visitor.hpp>
 
 #include <cstdint>
@@ -16,234 +17,186 @@ namespace win {
 
 struct Event {
 
-    //! TODO
+    //! The window was closed.
     struct Closed {};
 
-    //! TODO
+    //! The window gained focus.
     struct GainedFocus {};
 
-    //! TODO
+    //! The window lost focus.
     struct LostFocus {};
 
-    /*
-        JoystickButtonPressed,  //!< A joystick button was pressed (data in event.joystickButton)
-        JoystickButtonReleased, //!< A joystick button was released (data in event.joystickButton)
-        JoystickConnected,      //!< A joystick was connected (data in event.joystickConnect)
-        JoystickDisconnected,   //!< A joystick was disconnected (data in event.joystickConnect)
-        JoystickMoved,          //!< The joystick moved along an axis (data in event.joystickMove)
-    */
+#if 0
+    // Note: Maybe call these classes Controller-something?
 
-    //! TODO
+    //! A joystick button was pressed.
+    struct JoystickButtonPressed {
+        // TODO
+    };
+
+    //! A joystick button was released.
+    struct JoystickButtonReleased {
+        // TODO
+    };
+
+    //! A joystick was connected.
+    struct JoystickConnected {
+        // TODO
+    };
+
+    //! A joystick was disconnected.
+    struct JoystickDisconnected {
+        // TODO
+    };
+
+    //! A joystick moved along an axis.
+    struct JoystickMoved {
+        // TODO
+    };
+#endif
+
+    //! A key was pressed on the keyboard.
     struct KeyPressed {
-        Keyboard::Key code;          //!< Code of the key that has been pressed
-        Keyboard::Scancode scancode; //!< Physical code of the key that has been pressed
-        bool alt;                    //!< Is the Alt key pressed?
-        bool control;                //!< Is the Control key pressed?
-        bool shift;                  //!< Is the Shift key pressed?
-        bool system;                 //!< Is the System key pressed?
+        in::VirtualKeyboardKey  virtualKey;  //!< Virtual code of the key that was pressed
+        in::PhysicalKeyboardKey physicalKey; //!< Physical code of the key that was pressed
+        bool alt;                            //!< Is the Alt key pressed?
+        bool control;                        //!< Is the Control key pressed?
+        bool shift;                          //!< Is the Shift key pressed?
+        bool system;                         //!< Is the System key pressed?
     };
 
-    //! TODO
+    //! A key was released on the keyboard.
     struct KeyReleased {
-        Keyboard::Key code;          //!< Code of the key that has been pressed
-        Keyboard::Scancode scancode; //!< Physical code of the key that has been pressed
-        bool alt;                    //!< Is the Alt key pressed?
-        bool control;                //!< Is the Control key pressed?
-        bool shift;                  //!< Is the Shift key pressed?
-        bool system;                 //!< Is the System key pressed?
+        in::VirtualKeyboardKey  virtualKey;  //!< Virtual code of the key that was released
+        in::PhysicalKeyboardKey physicalKey; //!< Physical code of the key that was released
+        bool alt;                            //!< Is the Alt key pressed?
+        bool control;                        //!< Is the Control key pressed?
+        bool shift;                          //!< Is the Shift key pressed?
+        bool system;                         //!< Is the System key pressed?
     };
 
-    //! TODO
+    //! A mouse button was pressed.
     struct MouseButtonPressed {
-        // TODO
+        in::MouseButton button; //!< Code of the button that has been pressed
+        int x;                  //!< X position of the mouse pointer, relative to the left of the owner window
+        int y;                  //!< Y position of the mouse pointer, relative to the top of the owner window
     };
 
-    //! TODO
+    //! A mouse button was released.
     struct MouseButtonReleased {
-        // TODO
+        in::MouseButton button; //!< Code of the button that has been pressed
+        int x;                  //!< X position of the mouse pointer, relative to the left of the owner window
+        int y;                  //!< Y position of the mouse pointer, relative to the top of the owner window
     };
 
-    //! TODO
+    //! The mouse cursor entered the area of the window.
     struct MouseEntered {};
 
-    //! TODO
+    //! The mouse cursor left the area of the window.
     struct MouseLeft {};
 
-    //! TODO
+    //! The mouse cursor moved.
     struct MouseMoved {
-        // TODO
+        int x; //!< X position of the mouse pointer, relative to the left of the owner window
+        int y; //!< Y position of the mouse pointer, relative to the top of the owner window
     };
 
-    //! TODO
+#if 0
+    //! The mouse wheel was scrolled.
     struct MouseWheelScrolled {
         // TODO
     };
+#endif
 
-    //! TODO
+    //! The window was resized.
     struct Resized {
         PZInteger width;  //!< New width, in pixels
         PZInteger height; //!< New height, in pixels
     };
 
 #if 0
-    //! TODO
+    //! A sensor value changed.
     struct SensorChanged {
-        Sensor::Type type; //!< Type of the sensor
-        float x;           //!< Current value of the sensor on X axis
-        float y;           //!< Current value of the sensor on Y axis
-        float z;           //!< Current value of the sensor on Z axis
+        // TODO
     };
 #endif
 
-    //! TODO
+    //! A character was entered.
     struct TextEntered {
         std::uint32_t unicode; //!< UTF-32 Unicode value of the character
     };
 
+#if 0
+    //! A touch event began.
     struct TouchBegan {
         // TODO
     };
 
+    //! A touch event ended.
     struct TouchEnded {
-
+        // TODO
     };
 
+    //! A touch moved.
     struct TouchMoved {
-
+        // TODO
     };
-
-    ////////////////////////////////////////////////////////////
-    /// \brief Mouse move event parameters (MouseMoved)
-    ///
-    ////////////////////////////////////////////////////////////
-    struct MouseMoveEvent
-    {
-        int x; //!< X position of the mouse pointer, relative to the left of the owner window
-        int y; //!< Y position of the mouse pointer, relative to the top of the owner window
-    };
-
-    ////////////////////////////////////////////////////////////
-    /// \brief Mouse buttons events parameters
-    ///        (MouseButtonPressed, MouseButtonReleased)
-    ///
-    ////////////////////////////////////////////////////////////
-    struct MouseButtonEvent
-    {
-        Mouse::Button button; //!< Code of the button that has been pressed
-        int           x;      //!< X position of the mouse pointer, relative to the left of the owner window
-        int           y;      //!< Y position of the mouse pointer, relative to the top of the owner window
-    };
-
-    ////////////////////////////////////////////////////////////
-    /// \brief Mouse wheel events parameters (MouseWheelMoved)
-    ///
-    /// \deprecated This event is deprecated and potentially inaccurate.
-    ///             Use MouseWheelScrollEvent instead.
-    ///
-    ////////////////////////////////////////////////////////////
-    struct MouseWheelEvent
-    {
-        int delta; //!< Number of ticks the wheel has moved (positive is up, negative is down)
-        int x;     //!< X position of the mouse pointer, relative to the left of the owner window
-        int y;     //!< Y position of the mouse pointer, relative to the top of the owner window
-    };
-
-    ////////////////////////////////////////////////////////////
-    /// \brief Mouse wheel events parameters (MouseWheelScrolled)
-    ///
-    ////////////////////////////////////////////////////////////
-    struct MouseWheelScrollEvent
-    {
-        Mouse::Wheel wheel; //!< Which wheel (for mice with multiple ones)
-        float        delta; //!< Wheel offset (positive is up/left, negative is down/right). High-precision mice may use non-integral offsets.
-        int          x;     //!< X position of the mouse pointer, relative to the left of the owner window
-        int          y;     //!< Y position of the mouse pointer, relative to the top of the owner window
-    };
-
-    ////////////////////////////////////////////////////////////
-    /// \brief Joystick connection events parameters
-    ///        (JoystickConnected, JoystickDisconnected)
-    ///
-    ////////////////////////////////////////////////////////////
-    struct JoystickConnectEvent
-    {
-        unsigned int joystickId; //!< Index of the joystick (in range [0 .. Joystick::Count - 1])
-    };
-
-    ////////////////////////////////////////////////////////////
-    /// \brief Joystick axis move event parameters (JoystickMoved)
-    ///
-    ////////////////////////////////////////////////////////////
-    struct JoystickMoveEvent
-    {
-        unsigned int   joystickId; //!< Index of the joystick (in range [0 .. Joystick::Count - 1])
-        Joystick::Axis axis;       //!< Axis on which the joystick moved
-        float          position;   //!< New position on the axis (in range [-100 .. 100])
-    };
-
-    ////////////////////////////////////////////////////////////
-    /// \brief Joystick buttons events parameters
-    ///        (JoystickButtonPressed, JoystickButtonReleased)
-    ///
-    ////////////////////////////////////////////////////////////
-    struct JoystickButtonEvent
-    {
-        unsigned int joystickId; //!< Index of the joystick (in range [0 .. Joystick::Count - 1])
-        unsigned int button;     //!< Index of the button that has been pressed (in range [0 .. Joystick::ButtonCount - 1])
-    };
-
-    //! \brief Touch events parameters (TouchBegan, TouchMoved, TouchEnded).
-    struct TouchEvent {
-        PZInteger finger; //!< Index of the finger in case of multi-touch events
-        int x;            //!< X position of the touch, relative to the left of the owner window
-        int y;            //!< Y position of the touch, relative to the top of the owner window
-    };
-
+#endif
 
     using EventVariant = std::variant<
-        BadPassphrase,
-        ConnectAttemptFailed,
-        Connected,
-        Disconnected>;
+        std::monostate,
+        Closed,
+        GainedFocus,
+        LostFocus,
+        KeyPressed,
+        KeyReleased,
+        MouseButtonPressed,
+        MouseButtonReleased,
+        MouseEntered,
+        MouseLeft,
+        MouseMoved,
+        Resized,
+        TextEntered
+    >;
 
-    RN_Event() = default;
+    Event() = default;
 
     template <class T>
-    RN_Event(T&& arg)
+    Event(T&& arg)
         : eventVariant{std::forward<T>(arg)}
     {
     }
 
     std::optional<EventVariant> eventVariant;
 
-    template <class ...Callables>
-    void visit(Callables&&... callables) {
+    template <class ...taCallables>
+    void visit(taCallables&&... aCallables) {
         std::visit(
-            util::MakeVisitor([](const auto&) {}, std::forward<Callables>(callables)...),
+            util::MakeVisitor([](const auto&) {}, std::forward<taCallables>(aCallables)...),
             eventVariant.value()
         );
     }
 
-    template <class ...Callables>
-    void visit(Callables&&... callables) const {
+    template <class ...taCallables>
+    void visit(taCallables&&... aCallables) const {
         std::visit(
-            util::MakeVisitor([](const auto&) {}, std::forward<Callables>(callables)...),
+            util::MakeVisitor([](const auto&) {}, std::forward<taCallables>(aCallables)...),
             eventVariant.value()
         );
     }
 
     //! Unlike visit, a call to strictVisit will not compile unless a
     //! matching callable is provided for each event type.
-    template <class ...Callables>
-    void strictVisit(Callables&&... callables) {
-        std::visit(util::MakeVisitor(std::forward<Callables>(callables)...), eventVariant.value());
+    template <class ...taCallables>
+    void strictVisit(taCallables&&... aCallables) {
+        std::visit(util::MakeVisitor(std::forward<taCallables>(aCallables)...), eventVariant.value());
     }
 
     //! Unlike visit, a call to strictVisit will not compile unless a
     //! matching callable is provided for each event type.
-    template <class ...Callables>
-    void strictVisit(Callables&&... callables) const {
-        std::visit(util::MakeVisitor(std::forward<Callables>(callables)...), eventVariant.value());
+    template <class ...taCallables>
+    void strictVisit(taCallables&&... aCallables) const {
+        std::visit(util::MakeVisitor(std::forward<taCallables>(aCallables)...), eventVariant.value());
     }
 };
 

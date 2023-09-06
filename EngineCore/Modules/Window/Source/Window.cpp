@@ -6,6 +6,7 @@
 #include <new>
 #include <utility>
 
+#include "Event_conversion.hpp"
 #include "SFML_conversions.hpp"
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
@@ -14,7 +15,9 @@ HOBGOBLIN_NAMESPACE_BEGIN
 namespace win {
 
 namespace {
-// TODO: explain!
+// Event for a regular Window, we must inherit from sf::RenderWindow,
+// so that hg::RenderWindow would work properly with its inheritance
+// structure.
 class SfRenderWindowAdapter : public sf::RenderWindow {
 public:
     template <class ...taArgs>
@@ -85,14 +88,21 @@ ContextSettings Window::getSettings() const {
 }
 
 bool Window::pollEvent(Event& aEvent) {
-    // TODO
     sf::Event ev;
-    return SELF_IMPL->pollEvent(ev);
+    const bool success = SELF_IMPL->pollEvent(ev);
+    if (success) {
+        aEvent = ToHg(ev);
+    }
+    return success;
 }
 
 bool Window::waitEvent(Event& aEvent) {
-    // TODO
-    return false;
+    sf::Event ev;
+    const bool success = SELF_IMPL->waitEvent(ev);
+    if (success) {
+        aEvent = ToHg(ev);
+    }
+    return success;
 }
 
 math::Vector2i Window::getPosition() const {
@@ -147,8 +157,8 @@ void Window::setKeyRepeatEnabled(bool aEnabled) {
     SELF_IMPL->setKeyRepeatEnabled(aEnabled);
 }
 
-void Window::setFramerateLimit(unsigned int limit) {
-    // TODO
+void Window::setFramerateLimit(PZInteger aLimit) {
+    SELF_IMPL->setFramerateLimit(static_cast<unsigned>(aLimit));
 }
 
 void Window::setJoystickThreshold(float aThreshold) {

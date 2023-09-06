@@ -26,6 +26,7 @@
 #define UHOBGOBLIN_WINDOW_WINDOW_HPP
 
 #include <Hobgoblin/Window/Cursor.hpp>
+#include <Hobgoblin/Window/Event.hpp>
 #include <Hobgoblin/Window/Context_settings.hpp>
 #include <Hobgoblin/Window/Video_mode.hpp>
 #include <Hobgoblin/Window/Window_handle.hpp>
@@ -54,8 +55,6 @@ public:
     virtual void onResize() = 0;
 };
 } // namespace detail
-
-class Event {};
 
 //! \brief Window that serves as a target for OpenGL rendering.
 class Window : NO_COPY, private detail::WindowPolymorphismAdapter {
@@ -339,7 +338,7 @@ public:
     //! requesting 60).
     //!
     //! \param limit Framerate limit, in frames per seconds (use 0 to disable limit)
-    void setFramerateLimit(unsigned int limit);
+    void setFramerateLimit(PZInteger aLimit);
 
     //! \brief Change the joystick threshold
     //!

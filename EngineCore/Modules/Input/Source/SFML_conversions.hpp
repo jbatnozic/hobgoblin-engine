@@ -123,7 +123,7 @@ UniversalInputEnum ToHgVirtualKeyboardKey(sf::Keyboard::Key aKey) {
 }
 
 inline
-UniversalInputEnum ToHgVirtualKeyboardKey(sf::Keyboard::Scan::Scancode aScancode) {
+UniversalInputEnum ToHgPhysicalKeyboardKey(sf::Keyboard::Scan::Scancode aScancode) {
     switch (aScancode) {
     case sf::Keyboard::Scan::Unknown: return PK_UNKNOWN;
         case sf::Keyboard::Scan::A: return PK_A;
@@ -287,10 +287,6 @@ UniversalInputEnum ToHgMouseButton(sf::Mouse::Button aValue) {
     case sf::Mouse::XButton2: return MB_EXTRA_2;
     default: return MB_UNKNOWN;
     }
-}
-
-inline
-UniversalInputEnum ToHgMouseWheel(sf::Mouse::Wheel aValue) {
 }
 
 // Hobgoblin -> SFML
@@ -562,10 +558,15 @@ sf::Keyboard::Scan::Scancode ToSfScancode(UniversalInputEnum aValue) {
 
 inline
 sf::Mouse::Button ToSfMouseButton(UniversalInputEnum aValue) {
-}
-
-inline
-sf::Mouse::Wheel ToSfMouseWheel(UniversalInputEnum aValue) {
+    switch (aValue) {
+    case MB_LEFT: return sf::Mouse::Left;
+    case MB_RIGHT: return sf::Mouse::Right;
+    case MB_MIDDLE: return sf::Mouse::Middle;
+    case MB_EXTRA_1: return sf::Mouse::XButton1;
+    case MB_EXTRA_2: return sf::Mouse::XButton2;
+    default:
+        HARD_ASSERT(false && "Not implemented");
+    }
 }
 
 } // namespace in

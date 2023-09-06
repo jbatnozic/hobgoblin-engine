@@ -7,6 +7,7 @@ set(COMPONENT_NAME "Hobgoblin.Window")
 # ===== GATHER SOURCES ======
 
 set(COMPONENT_SOURCES
+  "Source/Event_conversion.hpp"
   "Source/SFML_conversions.hpp"
 
   "Source/Cursor.cpp"
@@ -25,6 +26,7 @@ PUBLIC
   "Hobgoblin.Common"
   "Hobgoblin.Math"
   "Hobgoblin.Utility"
+  "Hobgoblin.Input"
   "sfml::sfml"
 )
 
