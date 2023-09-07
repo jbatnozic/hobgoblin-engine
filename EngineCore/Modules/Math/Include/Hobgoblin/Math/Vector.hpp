@@ -64,21 +64,6 @@ struct Vector4 {
     {
     }
 
-#if 0
-    ////////////////////////////////////////////////////////////
-    /// \brief Construct float vector implicitly from color
-    ///
-    /// \param color Color instance. Is normalized to [0, 1]
-    ///              for floats, and left as-is for ints.
-    ///
-    ////////////////////////////////////////////////////////////
-    Vector4(const Color& color)
-        // uninitialized
-    {
-        copyVector(color, *this);
-    }
-#endif
-
     taArithmetic x; //!< 1st component (X) of the 4D vector.
     taArithmetic y; //!< 2nd component (Y) of the 4D vector.
     taArithmetic z; //!< 3rd component (Z) of the 4D vector.

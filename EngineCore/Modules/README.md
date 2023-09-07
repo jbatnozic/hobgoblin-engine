@@ -14,6 +14,7 @@ Basic types and definitions needed by all other modules:
 within Hobgoblin, with some type-safety extensions included.
 - **ColDetect:** Facilities for efficient broad-phase and narrow-phase 2D collision detection. (NOTE: Narrow-phase not
 yet implemented)
+- **Config:** TODO
 - **Graphics:** Various utilities for rendering stuff on-screen, loading sprites, packing them onto textures etc.
 - **Math:** Math stuff - geometry, trigonometry, vectors, quadratic equations etc.
 - **QAO:** Event-driven framework for managing game objects.

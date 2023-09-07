@@ -21,14 +21,29 @@ taArithmetic Sqr(taArithmetic value) {
     return value * value;
 }
 
-template <class taArithmetic>
-taArithmetic EuclideanDist(const Vector2<taArithmetic>& p1, const Vector2<taArithmetic>& p2) {
-    return std::sqrt(Sqr(p2.x - p1.x) + Sqr(p2.y - p1.y));
+//! Calculates the Euclidean distance between 2 points (aOrigin and aTarget).
+template <class taOriginVector, class taTargetVector>
+auto EuclideanDist(const taOriginVector& aOrigin, const taTargetVector& aTarget) -> decltype(aOrigin.x) {
+    static_assert(std::is_same<decltype(aOrigin.x), decltype(aOrigin.y)>::value &&
+                  std::is_same<decltype(aTarget.x), decltype(aTarget.y)>::value &&
+                  std::is_same<decltype(aOrigin.x), decltype(aTarget.y)>::value, 
+                  "x and y values of both vectors must all be of the same type");
+
+    const auto xDiff = aTarget.x - aOrigin.x;
+    const auto yDiff = aTarget.y - aOrigin.y;
+    return std::sqrt(Sqr(xDiff) + Sqr(yDiff));
 }
 
-template <class taArithmetic>
-constexpr typename std::enable_if_t<std::is_integral_v<taArithmetic>, taArithmetic> IntegralCeilDiv(taArithmetic dividend, taArithmetic divisor) {
-    return dividend / divisor - ((-(dividend % divisor)) >> (sizeof(taArithmetic) * CHAR_BIT - 1));
+//! Calculates the Euclidean distance between 2 points - (aOriginX, aOriginY) and (aTargetX, aTargetY).
+template <class taReal>
+taReal EuclideanDist(taReal aOriginX, taReal aOriginY, taReal aTargetX, taReal aTargetY) {
+    return EuclideanDist(Vector2<taReal>{aOriginX, aOriginY}, Vector2<taReal>{aTargetX, aTargetY});
+}
+
+//! Calculates (divident / divisor), rounding UP.
+template <class T>
+constexpr typename std::enable_if_t<std::is_integral_v<T>, T> IntegralCeilDiv(T dividend, T divisor) {
+    return dividend / divisor - ((-(dividend % divisor)) >> (sizeof(T) * CHAR_BIT - 1));
 }
 
 // Solves a quadratic equation

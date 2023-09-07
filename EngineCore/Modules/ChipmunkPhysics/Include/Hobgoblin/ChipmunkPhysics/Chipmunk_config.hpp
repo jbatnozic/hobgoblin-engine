@@ -4,8 +4,8 @@
 #include <Hobgoblin/Utility/Any_ptr.hpp>
 
 #define CP_BOOL_TYPE bool 
-#define cpTrue true
-#define cpFalse false
+#define cpTrue       true
+#define cpFalse      false
 
 #define CP_DATA_POINTER_TYPE ::jbatnozic::hobgoblin::util::AnyPtr
 

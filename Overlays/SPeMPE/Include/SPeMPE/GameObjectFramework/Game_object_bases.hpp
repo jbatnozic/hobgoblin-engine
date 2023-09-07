@@ -126,7 +126,7 @@ protected:
 
     virtual void _eventStartFrame(IfDummy)    {}
     virtual void _eventPreUpdate(IfDummy)     {}
-    virtual void _eventUpdate(IfDummy)         ; // This one is special!
+    virtual void _eventUpdate(IfDummy)        {}
     virtual void _eventPostUpdate(IfDummy)    {}
     virtual void _eventDraw1(IfDummy)         {}
     virtual void _eventDraw2(IfDummy)         {}
@@ -146,7 +146,7 @@ protected:
     void _eventFinalizeFrame() override;
 
     // Misc.
-    bool _willDieAfterUpdate() const;
+    bool _willUpdateDeleteThis() const;
 
     void _enableAlternatingUpdates();
 
@@ -189,12 +189,13 @@ private:
 /*
 Note:
     If an object drived from SynchronizedObject (below), and transitively from
-    SynchronizedObjectBase overrides either _eventUpdate() or eventUpdate(IfDummy),
-    note that the dummy object won't behave properly unless you call the following
-    code at the start of its eventUpdate:
+    SynchronizedObjectBase overrides _eventUpdate() (but not IfMaster/IfDummy overloads),
+    the dummy object won't behave properly unless you call the following code at the start
+    of its _eventUpdate() implementation:
+    
     if (!isMasterObject()) {
-        const bool endOfLifetime = _willDieAfterUpdate();
-        SynchronizedObjectBase::eventUpdate(IfDummy);
+        const bool endOfLifetime = _willUpdateDeleteThis();
+        SynchronizedObjectBase::eventUpdate();
         if (endOfLifetime) return;
     }
 
@@ -203,9 +204,9 @@ Note:
 
 #define SPEMPE_SYNCOBJ_BEGIN_EVENT_UPDATE_OVERRIDE() \
     do { if (!SynchronizedObjectBase::isMasterObject()) { \
-        const bool endOfLifetime_ = SynchronizedObjectBase::_willDieAfterUpdate(); \
-        SynchronizedObjectBase::_eventUpdate(::jbatnozic::spempe::IfDummy{}); \
-        if (endOfLifetime_) { return; } \
+        const bool USPEMPE_endOfLifetime = SynchronizedObjectBase::_willUpdateDeleteThis(); \
+        SynchronizedObjectBase::_eventUpdate(); \
+        if (USPEMPE_endOfLifetime) return; \
     } } while (false)
 
 //! Objects which are essential to the game's state, so they are both saved when
