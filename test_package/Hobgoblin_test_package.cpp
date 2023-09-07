@@ -1,6 +1,7 @@
 #include <Hobgoblin/ChipmunkPhysics.hpp>
 #include <Hobgoblin/ColDetect.hpp>
 #include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/Config.hpp>
 #include <Hobgoblin/Format.hpp>
 #include <Hobgoblin/Graphics.hpp>
 #include <Hobgoblin/Math.hpp>
@@ -27,6 +28,10 @@ int main() {
         }
         catch (...) {
         }
+    }
+    // Config
+    {
+        HGConfig hgconf{"[[Section1]]"};
     }
     // Format
     {

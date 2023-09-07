@@ -46,7 +46,14 @@ bool SynchronizedObjectBase::isUsingAlternatingUpdates() const noexcept {
 }
 
 void SynchronizedObjectBase::__spempeimpl_destroySelfIn(int aStepCount) {
-    _deathCounter = (aStepCount > 0) ? aStepCount : 0;
+    if (aStepCount <= 0) {
+        _deathCounter = 0;
+        return;
+    }
+
+    if (aStepCount < _deathCounter) {
+        _deathCounter = aStepCount;
+    }
 }
 
 void SynchronizedObjectBase::doSyncCreate() const {
@@ -70,18 +77,7 @@ void SynchronizedObjectBase::doSyncDestroy() const {
     _syncObjReg.syncObjectDestroy(this);
 }
 
-void SynchronizedObjectBase::_eventUpdate(IfDummy) {
-    _advanceDummyAndScheduleNewStates();
-
-    if (_deathCounter > 0) {
-        _deathCounter -= 1;
-    }
-    else if (_deathCounter == 0) {
-        hg::QAO_PDestroy(this);
-    }
-}
-
-bool SynchronizedObjectBase::_willDieAfterUpdate() const {
+bool SynchronizedObjectBase::_willUpdateDeleteThis() const {
     return (_deathCounter == 0);
 }
 
@@ -120,6 +116,16 @@ void SynchronizedObjectBase::_eventUpdate() {
         _eventUpdate(IfMaster{});
     }
     else {
+        _advanceDummyAndScheduleNewStates();
+
+        if (_deathCounter > 0) {
+            _deathCounter -= 1;
+        }
+        else if (_deathCounter == 0) {
+            QAO_PDestroy(this);
+            return;
+        }
+
         _eventUpdate(IfDummy{});
     }
 }

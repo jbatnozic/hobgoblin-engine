@@ -11,6 +11,7 @@ add_subdirectory("Utility")
 
 add_subdirectory("ChipmunkPhysics")
 add_subdirectory("ColDetect")
+add_subdirectory("Config")
 add_subdirectory("Graphics")
 add_subdirectory("Math")
 add_subdirectory("QAO")

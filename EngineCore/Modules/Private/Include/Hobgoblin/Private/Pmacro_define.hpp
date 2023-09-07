@@ -54,3 +54,6 @@
 #define NO_MOVE public util::NonMoveable
 #define NO_OP() (void)0
 #define SELF (*this)
+
+// SFINAE:
+#define T_ENABLE_IF(...) typename std::enable_if<__VA_ARGS__, bool>::type = true

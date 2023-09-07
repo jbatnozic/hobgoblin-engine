@@ -31,6 +31,7 @@ class HobgoblinConan(ConanFile):
         "ChipmunkPhysics",
         "ColDetect",
         "Common",
+        "Config",
         "Format",
         "Graphics",
         "Logging",
@@ -159,6 +160,8 @@ class HobgoblinConan(ConanFile):
             "Hobgoblin.QAO",             # TODO Should be optional
             "Hobgoblin.RigelNet",        # TODO Should be optional
             "Hobgoblin.RmlUi",           # TODO Should be optional
+            "Hobgoblin.Config",          # TODO Should be optional
+
             "Hobgoblin.Utility",
             "Hobgoblin.Logging",
             "Hobgoblin.Common",
