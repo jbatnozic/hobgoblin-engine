@@ -3,9 +3,8 @@
 
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Graphics/Canvas.hpp>
+#include <Hobgoblin/Graphics/Render_target.hpp>
 #include <Hobgoblin/Graphics/View.hpp>
-
-#include <SFML/Graphics/RenderTarget.hpp>
 
 #include <variant>
 #include <vector>
@@ -15,11 +14,10 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
-//! Adapts a sf::RenderTarget to the Canvas interface while also
-//! providing support for using multiple Views at the same time.
+//! TODO
 class MultiViewRenderTargetAdapter final : public Canvas {
 public:
-    MultiViewRenderTargetAdapter(sf::RenderTarget& aRenderTarget);
+    MultiViewRenderTargetAdapter(RenderTarget& aRenderTarget);
 
     void setViewCount(PZInteger aViewCount);
 
@@ -47,14 +45,10 @@ public:
 
     void flush() override;
 
-    sf::RenderTarget& getSFMLRenderTarget() {
-        return _renderTarget;
-    }
-
 private:
     using Views = std::vector<View>;
 
-    sf::RenderTarget& _renderTarget;
+    RenderTarget& _renderTarget;
     std::variant<View, Views> _views;
     PZInteger _viewCount;
 
@@ -63,8 +57,8 @@ private:
     const View* addressOfFirstView() const;
 
     void getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) override {
-        aType = CanvasType::SFML;
-        aRenderingBackend = &_renderTarget;
+        aType = CanvasType::Proxy;
+        aRenderingBackend = static_cast<Canvas*>(&_renderTarget);
     }
 };
 

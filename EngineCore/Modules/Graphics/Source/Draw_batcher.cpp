@@ -160,14 +160,14 @@ void DrawBatcher::draw(const Vertex* aVertices,
         }
         else {
             // If batches are not compatible, flush and start a new batch
-            if (aStates != _renderStates || _vertexArray.getPrimitiveType() != aType) {
+            if (aStates != _renderStates || _vertexArray.primitiveType != aType) {
                 _flush();
                 _prepForBatchingVertices(aStates, aType);
             }
         }
 
         for (std::size_t i = 0; i < aVertexCount; i += 1) {
-            _vertexArray.append(aVertices[i]);
+            _vertexArray.vertices.push_back(aVertices[i]);
         }
         break;
     }
@@ -202,12 +202,12 @@ void DrawBatcher::_flush() {
     case Status::BatchingSprites:
         _renderStates.texture = _texture;
         _canvas.draw(_vertexArray, _renderStates);
-        _vertexArray.clear();
+        _vertexArray.vertices.clear();
         break;
 
     case Status::BatchingVertices:
         _canvas.draw(_vertexArray, _renderStates);
-        _vertexArray.clear();
+        _vertexArray.vertices.clear();
         break;
 
     default:
@@ -219,7 +219,7 @@ void DrawBatcher::_flush() {
 
 void DrawBatcher::_prepForBatchingSprites(const RenderStates& aStates, const Texture* aTexture) {
     // Quads only supported on desktop, for mobile should use 2 triangles...
-    _vertexArray.setPrimitiveType(PrimitiveType::Triangles);
+    _vertexArray.primitiveType = PrimitiveType::Triangles;
     _renderStates = aStates;
     _texture = aTexture;
 
@@ -227,7 +227,7 @@ void DrawBatcher::_prepForBatchingSprites(const RenderStates& aStates, const Tex
 }
 
 void DrawBatcher::_prepForBatchingVertices(const RenderStates& aStates, PrimitiveType aType) {
-    _vertexArray.setPrimitiveType(aType);
+    _vertexArray.primitiveType = aType;
     _renderStates = aStates;
 
     _status = Status::BatchingVertices;

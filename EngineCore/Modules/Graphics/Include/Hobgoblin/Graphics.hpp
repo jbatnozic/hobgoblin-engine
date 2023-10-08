@@ -9,7 +9,7 @@
 #include <Hobgoblin/Graphics/Drawable.hpp>
 #include <Hobgoblin/Graphics/Draw_batcher.hpp>
 #include <Hobgoblin/Graphics/Image.hpp>
-//#include <Hobgoblin/Graphics/Multisprite.hpp>
+#include <Hobgoblin/Graphics/Multisprite.hpp>
 #include <Hobgoblin/Graphics/OpenGL_handle.hpp> // -> window ??????????
 #include <Hobgoblin/Graphics/Primitive_type.hpp>
 #include <Hobgoblin/Graphics/Rectangle_shape.hpp>
@@ -23,8 +23,10 @@
 #include <Hobgoblin/Graphics/Text.hpp>
 #include <Hobgoblin/Graphics/Texture.hpp>
 #include <Hobgoblin/Graphics/Texture_packing.hpp>
+#include <Hobgoblin/Graphics/Texture_rect.hpp>
 #include <Hobgoblin/Graphics/Transform.hpp>
 #include <Hobgoblin/Graphics/Transformable.hpp>
+#include <Hobgoblin/Graphics/Transformable_data.hpp>
 #include <Hobgoblin/Graphics/Vertex.hpp>
 #include <Hobgoblin/Graphics/Vertex_array.hpp>
 #include <Hobgoblin/Graphics/Vertex_buffer.hpp>

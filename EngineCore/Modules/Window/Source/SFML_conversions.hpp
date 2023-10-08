@@ -5,6 +5,7 @@
 
 #include <Hobgoblin/Math/Vector.hpp>
 #include <Hobgoblin/Window/Context_settings.hpp>
+#include <Hobgoblin/Window/Cursor.hpp>
 #include <Hobgoblin/Window/Video_mode.hpp>
 #include <Hobgoblin/Window/Window_style.hpp>
 
@@ -12,6 +13,7 @@
 
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Window/ContextSettings.hpp>
+#include <SFML/Window/Cursor.hpp>
 #include <SFML/Window/VideoMode.hpp>
 #include <SFML/Window/WindowStyle.hpp>
 
@@ -59,6 +61,10 @@ unsigned ToSf(ContextSettings::Attribute aAttribute);
 
 ContextSettings ToHg(const sf::ContextSettings& aSettings);
 sf::ContextSettings ToSf(const ContextSettings& aSettings);
+
+// Cursor
+
+sf::Cursor::Type ToSf(Cursor::Type aType);
 
 // VideoMode
 
@@ -127,6 +133,55 @@ sf::ContextSettings ToSf(const ContextSettings& aSettings) {
         ToSf(aSettings.attributeFlags),
         aSettings.sRgbCapable
     };
+}
+
+// Cursor
+
+inline
+sf::Cursor::Type ToSf(Cursor::Type aType) {
+    switch (aType) {
+    case Cursor::Type::Arrow:
+        return sf::Cursor::Arrow;
+
+    case Cursor::Type::ArrowWait:
+        return sf::Cursor::ArrowWait;
+
+    case Cursor::Type::Wait:
+        return sf::Cursor::Wait;
+
+    case Cursor::Type::Text:
+        return sf::Cursor::Text;
+
+    case Cursor::Type::Hand:
+        return sf::Cursor::Hand;
+
+    case Cursor::Type::SizeHorizontal:
+        return sf::Cursor::SizeHorizontal;
+
+    case Cursor::Type::SizeVertical:
+        return sf::Cursor::SizeVertical;
+
+    case Cursor::Type::SizeTopLeftBottomRight:
+        return sf::Cursor::SizeTopLeftBottomRight;
+
+    case Cursor::Type::SizeBottomLeftTopRight:
+        return sf::Cursor::SizeBottomLeftTopRight;
+
+    case Cursor::Type::SizeAll:
+        return sf::Cursor::SizeAll;
+
+    case Cursor::Type::Cross:
+        return sf::Cursor::Cross;
+
+    case Cursor::Type::Help:
+        return sf::Cursor::Help;
+
+    case Cursor::Type::NotAllowed:      
+        return sf::Cursor::NotAllowed;
+
+    default:
+        HARD_ASSERT(false && "Invalid hg::gr::Cursor::Type value.");
+   }
 }
 
 // VideoMode

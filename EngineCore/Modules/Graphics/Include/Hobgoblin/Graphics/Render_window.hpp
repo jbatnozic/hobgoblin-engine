@@ -126,7 +126,9 @@ public:
 
     void setViewCount(PZInteger aViewCount) override;
 
-    void setView(const View& aView, PZInteger aViewIdx = 0) override;
+    void setView(const View& aView) override;
+
+    void setView(PZInteger aViewIdx, const View& aView) override;
 
     PZInteger getViewCount() const override;
 
@@ -173,8 +175,12 @@ protected:
     virtual void onResize();
 
 private:
-    // Multiview adapter:
+    // SFML RenderTarget adapter:
+    static constexpr std::size_t SRTA_STORAGE_SIZE  = 16;
+    static constexpr std::size_t SRTA_STORAGE_ALIGN =  8;
+    std::aligned_storage<SRTA_STORAGE_SIZE, SRTA_STORAGE_ALIGN>::type _srtaStorage;
 
+    // Multiview adapter:
     static constexpr std::size_t MVA_STORAGE_SIZE  = 208;
     static constexpr std::size_t MVA_STORAGE_ALIGN = 8;
     std::aligned_storage<MVA_STORAGE_SIZE, MVA_STORAGE_ALIGN>::type _mvaStorage;

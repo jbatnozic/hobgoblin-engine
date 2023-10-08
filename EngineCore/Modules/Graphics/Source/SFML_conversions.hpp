@@ -10,8 +10,10 @@
 #include <Hobgoblin/Graphics/Primitive_type.hpp>
 #include <Hobgoblin/Graphics/Render_states.hpp>
 #include <Hobgoblin/Graphics/Render_target.hpp>
+#include <Hobgoblin/Graphics/Shader.hpp>
 #include <Hobgoblin/Graphics/Sprite.hpp>
 #include <Hobgoblin/Graphics/Texture.hpp>
+#include <Hobgoblin/Graphics/Texture_rect.hpp>
 #include <Hobgoblin/Graphics/Transform.hpp>
 #include <Hobgoblin/Graphics/Vertex_buffer.hpp>
 #include <Hobgoblin/Graphics/View.hpp>
@@ -25,6 +27,7 @@
 #include <SFML/Graphics/PrimitiveType.hpp>
 #include <SFML/Graphics/RenderStates.hpp>
 #include <SFML/Graphics/RenderTarget.hpp>
+#include <SFML/Graphics/Shader.hpp>
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/Graphics/Transform.hpp>
@@ -107,6 +110,10 @@ const sf::Texture& ToSf(const Texture& aTexture);
 
 sf::Texture::CoordinateType ToSf(Texture::CoordinateType aCoordType);
 
+// TextureRect
+
+sf::IntRect ConvertTextureRect(TextureRect aTextureRect);
+
 // Transform
 
 const sf::Transform& ToSf(const Transform& aTransform);
@@ -186,8 +193,14 @@ sf::PrimitiveType ToSf(PrimitiveType aType) {
 inline
 sf::RenderStates ToSf(const RenderStates& aRenderStates) {
     sf::RenderStates rs;
-    // TODO: other fields
+
+    rs.blendMode = ToSf(aRenderStates.blendMode);
     rs.transform = ToSf(aRenderStates.transform);
+    rs.texture   = (aRenderStates.texture != nullptr) ? &detail::GraphicsImplAccessor::getImplOf<sf::Texture>(*aRenderStates.texture)
+                                                      : nullptr;
+    rs.shader    = (aRenderStates.shader != nullptr) ? &detail::GraphicsImplAccessor::getImplOf<sf::Shader>(*aRenderStates.shader)
+                                                     : nullptr;
+    
     return rs;
 }
 
@@ -214,6 +227,18 @@ sf::Texture::CoordinateType ToSf(Texture::CoordinateType aCoordType) {
     case Texture::CoordinateType::Pixels: return sf::Texture::Pixels;
     default:
         HARD_ASSERT(false && "Invalid hg::gr::Texture::CoordinateType value.");
+    };
+}
+
+// TextureRect
+
+inline
+sf::IntRect ConvertTextureRect(TextureRect aTextureRect) {
+    return {
+        static_cast<int>(aTextureRect.getLeft()),
+        static_cast<int>(aTextureRect.getTop()),
+        static_cast<int>(aTextureRect.w),
+        static_cast<int>(aTextureRect.h)
     };
 }
 

@@ -241,7 +241,7 @@ enum UniversalInputEnum {
     PK_F14,          //!< The F14 key
     PK_F15,          //!< The F15 key
 
-    // 'Weird' physical keys:
+    // Uncommon physical keys:
 
     PK_F16,                  //!< The F16 key
     PK_F17,                  //!< The F17 key
@@ -290,7 +290,7 @@ enum UniversalInputEnum {
 
 #define HG_MOUSEBUTTON_FIRST ::jbatnozic::hobgoblin::in::MB_LEFT
 
-    MB_UNKNOWN, //!< 
+    MB_UNKNOWN, //!< Unhandled mouse button
     MB_LEFT,    //!< The left mouse button
     MB_RIGHT,   //!< The right mouse button
     MB_MIDDLE,  //!< The middle (wheel) mouse button
@@ -305,8 +305,8 @@ enum UniversalInputEnum {
 
     MW_VERTICAL_UP,     //!< The vertical mouse wheel
     MW_VERTICAL_DOWN,   //!< The vertical mouse wheel
-    MB_HORIZONTAL_UP,   //!< The vertical mouse wheel
-    MB_HORIZONTAL_DOWN, //!< The vertical mouse wheel
+    MW_HORIZONTAL_UP,   //!< The vertical mouse wheel
+    MW_HORIZONTAL_DOWN, //!< The vertical mouse wheel
 
     ///////////////////////////////////////////////////////////////////////////
     // TO DO                                                                 //

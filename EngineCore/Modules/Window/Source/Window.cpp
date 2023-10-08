@@ -122,15 +122,15 @@ math::Vector2pz Window::getSize() const {
 }
 
 void Window::setSize(const math::Vector2pz& aSize) {
-    // TODO
+    SELF_IMPL->setSize({static_cast<unsigned>(aSize.x), static_cast<unsigned>(aSize.y)});
 }
 
 void Window::setTitle(const std::string& aTitle) {
-    // TODO
+    SELF_IMPL->setTitle(aTitle);
 }
 
-void Window::setIcon(unsigned int aWidth, unsigned int aHeight, const std::uint8_t* aPixels) {
-    // TODO
+void Window::setIcon(PZInteger aWidth, PZInteger aHeight, const std::uint8_t* aPixels) {
+    SELF_IMPL->setIcon(static_cast<unsigned>(aWidth), static_cast<unsigned>(aHeight), aPixels);
 }
 
 void Window::setVisible(bool aVisible) {

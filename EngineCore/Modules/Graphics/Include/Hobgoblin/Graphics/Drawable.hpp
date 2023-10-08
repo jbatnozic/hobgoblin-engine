@@ -35,7 +35,7 @@ public:
 private:
     virtual void _draw(Canvas& aCanvas, const RenderStates& aStates) const = 0;
 
-    friend class MultiViewRenderTargetAdapter;
+    friend class SfmlRenderTargetAdapter;
 };
 
 } // namespace gr

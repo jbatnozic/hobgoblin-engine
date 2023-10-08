@@ -155,8 +155,8 @@ void Shape::setPosition(const math::Vector2f& aPosition) {
     SELF_IMPL->setPosition(ToSf(aPosition));
 }
 
-void Shape::setRotation(float aAngle) {
-    SELF_IMPL->setRotation(aAngle);
+void Shape::setRotation(math::AngleF aAngle) {
+    SELF_IMPL->setRotation(-aAngle.asDeg());
 }
 
 void Shape::setScale(float aFactorX, float aFactorY) {
@@ -179,8 +179,8 @@ math::Vector2f Shape::getPosition() const {
     return ToHg(SELF_CIMPL->getPosition());
 }
 
-float Shape::getRotation() const {
-    return SELF_CIMPL->getRotation();
+math::AngleF Shape::getRotation() const {
+    return math::AngleF::fromDegrees(-(SELF_CIMPL->getRotation()));
 }
 
 math::Vector2f Shape::getScale() const {
@@ -199,8 +199,8 @@ void Shape::move(const math::Vector2f& aOffset) {
     SELF_IMPL->move(ToSf(aOffset));
 }
 
-void Shape::rotate(float aAngle) {
-    SELF_IMPL->rotate(aAngle);
+void Shape::rotate(math::AngleF aAngle) {
+    SELF_IMPL->rotate(-aAngle.asDeg());
 }
 
 void Shape::scale(float aFactorX, float aFactorY) {

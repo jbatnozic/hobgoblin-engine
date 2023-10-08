@@ -10,9 +10,9 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
-MultiViewRenderTargetAdapter::MultiViewRenderTargetAdapter(sf::RenderTarget& aRenderTarget)
+MultiViewRenderTargetAdapter::MultiViewRenderTargetAdapter(RenderTarget& aRenderTarget)
     : _renderTarget{aRenderTarget}
-    , _views{ToHg(_renderTarget.getDefaultView())}
+    , _views{_renderTarget.getDefaultView()}
     , _viewCount{1}
 {
 }
@@ -59,8 +59,8 @@ void MultiViewRenderTargetAdapter::draw(const Drawable& aDrawable,
     for (PZInteger i = 0; i < _viewCount; i += 1) {
         const auto& view = getView(i);
         if (view.isEnabled()) {
-            _renderTarget.setView(ToSf(view));
-            aDrawable._draw(SELF, aStates);
+            _renderTarget.setView(view);
+            _renderTarget.draw(aDrawable, aStates);
         }
     }
 }
@@ -72,12 +72,12 @@ void MultiViewRenderTargetAdapter::draw(const Vertex* aVertices,
     for (PZInteger i = 0; i < _viewCount; i += 1) {
         const auto& view = getView(i);
         if (view.isEnabled()) {
-            _renderTarget.setView(ToSf(view));
+            _renderTarget.setView(view);
             _renderTarget.draw(
-                reinterpret_cast<const sf::Vertex*>(aVertices),
-                pztos(aVertexCount),
-                ToSf(aPrimitiveType),
-                ToSf(aStates)
+                aVertices,
+                aVertexCount,
+                aPrimitiveType,
+                aStates
             );
         }
     }
@@ -88,8 +88,8 @@ void MultiViewRenderTargetAdapter::draw(const VertexBuffer& aVertexBuffer,
     for (PZInteger i = 0; i < _viewCount; i += 1) {
         const auto& view = getView(i);
         if (view.isEnabled()) {
-            _renderTarget.setView(ToSf(view));
-            // _renderTarget.draw(ToSf(aVertexBuffer), ToSf(aStates)); TODO
+            _renderTarget.setView(view);
+            _renderTarget.draw(aVertexBuffer, aStates);
         }
     }
 }
@@ -101,13 +101,15 @@ void MultiViewRenderTargetAdapter::draw(const VertexBuffer& aVertexBuffer,
     for (PZInteger i = 0; i < _viewCount; i += 1) {
         const auto& view = getView(i);
         if (view.isEnabled()) {
-            _renderTarget.setView(ToSf(view));
-            // _renderTarget.draw(ToSf(aVertexBuffer), pztos(aFirstVertex), pztos(aVertexCount), ToSf(aStates)); TODO
+            _renderTarget.setView(view);
+            _renderTarget.draw(aVertexBuffer, aFirstVertex, aVertexCount, aStates);
         }
     }
 }
 
-void MultiViewRenderTargetAdapter::flush() { /* Do nothing; there is no batching in SFML. */ }
+void MultiViewRenderTargetAdapter::flush() {
+    _renderTarget.flush();
+}
 
 View* MultiViewRenderTargetAdapter::addressOfFirstView() {
     if (_viewCount > 1) {

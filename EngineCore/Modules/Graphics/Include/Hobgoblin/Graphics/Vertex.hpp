@@ -38,6 +38,7 @@ class GraphicsImplAccessor;
 } // namespace detail
 
 //! A vertex defines a point with color and texture coordinates.
+//! TODO: add constexpr to stuff
 class Vertex {
 public:
 
@@ -45,7 +46,7 @@ public:
     /// \brief Default constructor
     ///
     ////////////////////////////////////////////////////////////
-    Vertex();
+    Vertex() = default;
 
     ////////////////////////////////////////////////////////////
     /// \brief Construct the vertex from its position
@@ -55,7 +56,7 @@ public:
     /// \param aPosition Vertex position.
     ///
     ////////////////////////////////////////////////////////////
-    Vertex(const math::Vector2f& aPosition);
+    Vertex(const math::Vector2f& aPosition) : position{aPosition} {}
 
     ////////////////////////////////////////////////////////////
     /// \brief Construct the vertex from its position and color
@@ -66,7 +67,8 @@ public:
     /// \param aColor    Vertex color.
     ///
     ////////////////////////////////////////////////////////////
-    Vertex(const math::Vector2f& aPosition, const Color& aColor);
+    Vertex(const math::Vector2f& aPosition, const Color& aColor)
+        : position{aPosition}, color{aColor} {}
 
     ////////////////////////////////////////////////////////////
     /// \brief Construct the vertex from its position and texture coordinates
@@ -92,9 +94,9 @@ public:
     ////////////////////////////////////////////////////////////
     // Member data
     ////////////////////////////////////////////////////////////
-    math::Vector2f  position;  //!< 2D position of the vertex
-    math::Vector2f  texCoords; //!< Coordinates of the texture's pixel to map to the vertex
-    Color           color;     //!< Color of the vertex
+    math::Vector2f  position{0.f, 0.f};  //!< 2D position of the vertex
+    Color           color{COLOR_WHITE};  //!< Color of the vertex
+    math::Vector2f  texCoords{0.f, 0.f}; //!< Coordinates of the texture's pixel to map to the vertex
 };
 
 // TODO: write test to make sure Vertex is bitwise compatible with SFML Vertex

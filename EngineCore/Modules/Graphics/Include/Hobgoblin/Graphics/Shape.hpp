@@ -28,6 +28,7 @@
 #include <Hobgoblin/Graphics/Color.hpp>
 #include <Hobgoblin/Graphics/Drawable.hpp>
 #include <Hobgoblin/Graphics/Transformable.hpp>
+#include <Hobgoblin/Math/Angle.hpp>
 #include <Hobgoblin/Math/Rectangle.hpp>
 #include <Hobgoblin/Math/Vector.hpp>
 
@@ -228,7 +229,7 @@ public:
 
     void setPosition(const math::Vector2f& aPosition) override;
 
-    void setRotation(float aAngle) override;
+    void setRotation(math::AngleF aAngle) override;
 
     void setScale(float aFactorX, float aFactorY) override;
 
@@ -240,7 +241,7 @@ public:
 
     math::Vector2f getPosition() const override;
 
-    float getRotation() const override;
+    math::AngleF getRotation() const override;
 
     math::Vector2f getScale() const override;
 
@@ -250,7 +251,7 @@ public:
 
     void move(const math::Vector2f& aOffset) override;
 
-    void rotate(float aAngle) override;
+    void rotate(math::AngleF aAngle) override;
 
     void scale(float aFactorX, float aFactorY) override;
 

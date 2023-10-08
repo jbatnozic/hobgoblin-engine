@@ -70,7 +70,7 @@ Event ToHg(const sf::Event& aEvent) {
             break;
 
 #if 0
-        case sf::Event::MouseWheelScrolled:
+        case sf::Event::MouseWheelScrolled: // TODO
 #endif
 
 
@@ -111,17 +111,17 @@ Event ToHg(const sf::Event& aEvent) {
             return {Event::MouseLeft{}};
 
 #if 0
-        case sf::Event::JoystickButtonPressed:
-        case sf::Event::JoystickButtonReleased:
-        case sf::Event::JoystickMoved:
-        case sf::Event::JoystickConnected:
-        case sf::Event::JoystickDisconnected:
+        case sf::Event::JoystickButtonPressed: // TODO
+        case sf::Event::JoystickButtonReleased: // TODO
+        case sf::Event::JoystickMoved: // TODO
+        case sf::Event::JoystickConnected: // TODO
+        case sf::Event::JoystickDisconnected: // TODO
 
-        case sf::Event::TouchBegan:
-        case sf::Event::TouchMoved:
-        case sf::Event::TouchEnded:
+        case sf::Event::TouchBegan: // TODO
+        case sf::Event::TouchMoved: // TODO
+        case sf::Event::TouchEnded: // TODO
 
-        case sf::Event::SensorChanged:
+        case sf::Event::SensorChanged: // TODO
 #endif
 
         default: NO_OP();

@@ -26,6 +26,7 @@
 #define UHOBGOBLIN_GRAPHICS_TRANSFORM_HPP
 
 #include <Hobgoblin/Math/Rectangle.hpp>
+#include <Hobgoblin/Math/Angle.hpp>
 #include <Hobgoblin/Math/Vector.hpp>
 
 #include <type_traits>
@@ -85,7 +86,7 @@ public:
     //! is returned.
     //!
     //! \return A new transform which is the inverse of self
-    // Transform getInverse() const; TODO
+    Transform getInverse() const;
 
     //! \brief Transform a 2D point
     //!
@@ -191,7 +192,7 @@ public:
     //! \return Reference to *this
     //!
     //! \see translate, scale
-    Transform& rotate(float aAngle); // TODO: to math::Angle
+    Transform& rotate(math::AngleF aAngle);
 
     //! \brief Combine the current transform with a rotation
     //!
@@ -214,7 +215,7 @@ public:
     //! \return Reference to *this
     //!
     //! \see translate, scale
-    Transform& rotate(float aAngle, float aCenterX, float aCenterY); // TODO: to math::Angle
+    Transform& rotate(math::AngleF aAngle, float aCenterX, float aCenterY);
 
     //! \brief Combine the current transform with a rotation
     //!
@@ -236,7 +237,7 @@ public:
     //! \return Reference to *this
     //!
     //! \see translate, scale
-    Transform& rotate(float aAngle, const math::Vector2f& aCenter); // TODO: to math::Angle
+    Transform& rotate(math::AngleF aAngle, const math::Vector2f& aCenter);
 
     //! \brief Combine the current transform with a scaling
     //!

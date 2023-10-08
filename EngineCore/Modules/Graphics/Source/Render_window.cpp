@@ -4,6 +4,7 @@
 
 #include "Multiview_rendertarget_adapter.hpp"
 #include "SFML_conversions.hpp"
+#include "SFML_rendertarget_adapter.hpp"
 
 #include <cstring>
 #include <iostream>
@@ -17,14 +18,20 @@ namespace gr {
 #define GetSfRenderWindow(_cv_) \
     (&detail::GraphicsImplAccessor::getImplOf<_cv_ sf::RenderWindow>(static_cast<_cv_ win::Window&>(SELF)))
 
+#define GetSRTA(_cv_) \
+    (reinterpret_cast<_cv_ SfmlRenderTargetAdapter*>(&_srtaStorage))
+
 #define GetMVA(_cv_) \
     (reinterpret_cast<_cv_ MultiViewRenderTargetAdapter*>(&_mvaStorage))
 
 RenderWindow::RenderWindow() {
     static_assert(MVA_STORAGE_SIZE  == sizeof(MultiViewRenderTargetAdapter),  "RenderWindow::MVA_STORAGE_SIZE is inadequate.");
     static_assert(MVA_STORAGE_ALIGN == alignof(MultiViewRenderTargetAdapter), "RenderWindow::MVA_STORAGE_ALIGN is inadequate.");
+    static_assert(SRTA_STORAGE_SIZE  == sizeof(SfmlRenderTargetAdapter),      "RenderWindow::SRTA_STORAGE_SIZE is inadequate.");
+    static_assert(SRTA_STORAGE_ALIGN == alignof(SfmlRenderTargetAdapter),     "RenderWindow::SRTA_STORAGE_ALIGN is inadequate.");
 
-    new (&_mvaStorage) MultiViewRenderTargetAdapter(*GetSfRenderWindow());
+    new (&_srtaStorage) SfmlRenderTargetAdapter(*GetSfRenderWindow());
+    new (&_mvaStorage) MultiViewRenderTargetAdapter(*GetSRTA());
 }
 
 RenderWindow::RenderWindow(
@@ -45,6 +52,7 @@ RenderWindow::RenderWindow(win::WindowHandle aHandle, const win::ContextSettings
 }
 
 RenderWindow::~RenderWindow() {
+    GetSRTA()->~SfmlRenderTargetAdapter();
     GetMVA()->~MultiViewRenderTargetAdapter();
 }
 
@@ -92,18 +100,22 @@ void RenderWindow::flush() {
 
 void RenderWindow::getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) {
     aType = CanvasType::Proxy;
-    aRenderingBackend = GetMVA();
+    aRenderingBackend = static_cast<Canvas*>(GetMVA());
 }
 
 void RenderWindow::clear(const Color& aColor) {
-    GetSfRenderWindow()->clear(ToSf(aColor));
+    GetSRTA()->clear(aColor);
 }
 
 void RenderWindow::setViewCount(PZInteger aViewCount) {
     GetMVA()->setViewCount(aViewCount);
 }
 
-void RenderWindow::setView(const View& aView, PZInteger aViewIdx) {
+void RenderWindow::setView(const View& aView) {
+    GetMVA()->getView(0) = aView;
+}
+
+void RenderWindow::setView(PZInteger aViewIdx, const View& aView) {
     GetMVA()->getView(aViewIdx) = aView;
 }
 
@@ -120,22 +132,15 @@ View& RenderWindow::getView(PZInteger aViewIdx) {
 }
 
 View RenderWindow::getDefaultView() const {
-    return ToHg(GetSfRenderWindow(const)->getDefaultView());
+    return GetSRTA(const)->getDefaultView();
 }
 
 math::Rectangle<PZInteger> RenderWindow::getViewport(const View& aView) const {
-    const auto viewport = GetSfRenderWindow(const)->getViewport(ToSf(aView));
-    return {
-        viewport.left,
-        viewport.top,
-        viewport.width,
-        viewport.height
-    };
+    return GetSRTA(const)->getViewport(aView);
 }
 
 math::Rectangle<PZInteger> RenderWindow::getViewport(PZInteger aViewIdx) const {
-    // TODO
-    return {};
+    return GetSRTA(const)->getViewport(getView(aViewIdx));
 }
 
 math::Vector2f RenderWindow::mapPixelToCoords(const math::Vector2i& aPoint, const View& aView) const {
@@ -159,24 +164,23 @@ math::Vector2i RenderWindow::mapCoordsToPixel(const math::Vector2f& point, PZInt
 }
 
 math::Vector2pz RenderWindow::getSize() const {
-    // TODO
-    return {};
+    return GetSRTA(const)->getSize();
 }
 
 bool RenderWindow::setActive(bool aActive) {
-    return GetSfRenderWindow()->setActive(aActive);
+    return GetSRTA()->setActive(aActive);
 }
 
 void RenderWindow::pushGLStates() {
-    GetSfRenderWindow()->pushGLStates();
+    GetSRTA()->pushGLStates();
 }
 
 void RenderWindow::popGLStates() {
-    GetSfRenderWindow()->popGLStates();
+    GetSRTA()->popGLStates();
 }
 
 void RenderWindow::resetGLStates() {
-    GetSfRenderWindow()->resetGLStates();
+    GetSRTA()->resetGLStates();
 }
 
 } // namespace gr

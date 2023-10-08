@@ -25,6 +25,7 @@
 #define UHOBGOBLIN_GRAPHICS_TRANSFORMABLE_HPP
 
 #include <Hobgoblin/Graphics/Transform.hpp>
+#include <Hobgoblin/Math/Angle.hpp>
 #include <Hobgoblin/Math/Vector.hpp>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
@@ -74,7 +75,7 @@ public:
     //! \param aAngle New rotation, in degrees.
     //!
     //! \see rotate, getRotation
-    virtual void setRotation(float aAngle) = 0; // TODO: to math::Angle
+    virtual void setRotation(math::AngleF aAngle) = 0; // TODO: to math::Angle
 
     //! \brief set the scale factors of the object
     //!
@@ -142,7 +143,7 @@ public:
     //! \return Current rotation, in degrees.
     //!
     //! \see setRotation
-    virtual float getRotation() const = 0;
+    virtual math::AngleF getRotation() const = 0;
 
     //! \brief get the current scale of the object
     //!
@@ -198,7 +199,7 @@ public:
     //! \endcode
     //!
     //! \param aAngle Angle of rotation, in degrees.
-    virtual void rotate(float aAngle) = 0; // TODO: to math::Angle
+    virtual void rotate(math::AngleF aAngle) = 0;
 
     //! \brief Scale the object
     //!

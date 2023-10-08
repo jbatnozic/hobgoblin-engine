@@ -84,9 +84,12 @@ public:
     //!
     //! \param mode     Video mode to use (defines the width, height and depth of the rendering area of the window)
     //! \param title    Title of the window
-    //! \param style    %Window style, a bitwise OR combination of sf::Style enumerators
+    //! \param style    Window style, a bitwise OR combination of sf::Style enumerators
     //! \param settings Additional settings for the underlying OpenGL context
-    Window(VideoMode mode, const std::string& title, WindowStyle style = WindowStyle::Default, const ContextSettings& settings = ContextSettings());
+    Window(VideoMode aMode,
+           const std::string& aTitle,
+           WindowStyle aStyle = WindowStyle::Default,
+           const ContextSettings& aSettings = ContextSettings());
 
     //! \brief Construct the window from an existing control
     //!
@@ -99,7 +102,7 @@ public:
     //!
     //! \param handle   Platform-specific handle of the control
     //! \param settings Additional settings for the underlying OpenGL context
-    explicit Window(WindowHandle handle, const ContextSettings& settings = ContextSettings());
+    explicit Window(WindowHandle aHandle, const ContextSettings& aSettings = ContextSettings());
 
     //! \brief Destructor
     //!
@@ -120,7 +123,10 @@ public:
     //! \param title    Title of the window
     //! \param style    %Window style, a bitwise OR combination of sf::Style enumerators
     //! \param settings Additional settings for the underlying OpenGL context
-    virtual void create(VideoMode mode, const std::string& title, WindowStyle style = WindowStyle::Default, const ContextSettings& settings = ContextSettings()) override;
+    virtual void create(VideoMode aMode,
+                        const std::string& aTitle,
+                        WindowStyle aStyle = WindowStyle::Default,
+                        const ContextSettings& aSettings = ContextSettings()) override;
 
     //! \brief Create (or recreate) the window from an existing control
     //!
@@ -134,7 +140,7 @@ public:
     //!
     //! \param handle   Platform-specific handle of the control
     //! \param settings Additional settings for the underlying OpenGL context
-    virtual void create(WindowHandle handle, const ContextSettings& settings = ContextSettings()) override;
+    virtual void create(WindowHandle aHandle, const ContextSettings& aSettings = ContextSettings()) override;
 
     //! \brief Close the window and destroy all the attached resources
     //!
@@ -226,7 +232,7 @@ public:
     //! \param position New position, in pixels
     //!
     //! \see getPosition
-    void setPosition(const math::Vector2i& position);
+    void setPosition(const math::Vector2i& aPosition);
 
     //! \brief Get the size of the rendering region of the window
     //!
@@ -243,14 +249,14 @@ public:
     //! \param size New size, in pixels
     //!
     //! \see getSize
-    void setSize(const math::Vector2pz& size);
+    void setSize(const math::Vector2pz& aSize);
 
     //! \brief Change the title of the window
     //!
     //! \param title New title
     //!
     //! \see setIcon
-    void setTitle(const std::string& title);
+    void setTitle(const std::string& aTitle);
 
     //! \brief Change the window's icon
     //!
@@ -266,14 +272,14 @@ public:
     //!               source alive after calling this function.
     //!
     //! \see setTitle
-    void setIcon(unsigned int width, unsigned int height, const std::uint8_t* pixels);
+    void setIcon(PZInteger aWidth, PZInteger aHeight, const std::uint8_t* aPixels);
 
     //! \brief Show or hide the window
     //!
     //! The window is shown by default.
     //!
     //! \param visible True to show the window, false to hide it
-    void setVisible(bool visible);
+    void setVisible(bool aVisible);
 
     //! \brief Enable or disable vertical synchronization
     //!
@@ -285,14 +291,14 @@ public:
     //! Vertical synchronization is disabled by default.
     //!
     //! \param enabled True to enable v-sync, false to deactivate it
-    void setVerticalSyncEnabled(bool enabled);
+    void setVerticalSyncEnabled(bool aEnabled);
 
     //! \brief Show or hide the mouse cursor
     //!
     //! The mouse cursor is visible by default.
     //!
     //! \param visible True to show the mouse cursor, false to hide it
-    void setMouseCursorVisible(bool visible);
+    void setMouseCursorVisible(bool aVisible);
 
     //! \brief Grab or release the mouse cursor
     //!
@@ -302,7 +308,7 @@ public:
     //! focus.
     //!
     //! \param grabbed True to enable, false to disable
-    void setMouseCursorGrabbed(bool grabbed);
+    void setMouseCursorGrabbed(bool aGrabbed);
 
     //! \brief Set the displayed cursor to a native system cursor
     //!
@@ -318,7 +324,7 @@ public:
     //!
     //! \see sf::Cursor::loadFromSystem
     //! \see sf::Cursor::loadFromPixels
-    void setMouseCursor(const Cursor& cursor);
+    void setMouseCursor(const Cursor& aCursor);
 
     //! \brief Enable or disable automatic key-repeat
     //!
@@ -329,7 +335,7 @@ public:
     //! Key repeat is enabled by default.
     //!
     //! \param enabled True to enable, false to disable
-    void setKeyRepeatEnabled(bool enabled);
+    void setKeyRepeatEnabled(bool aEnabled);
 
     //! \brief Limit the framerate to a maximum fixed frequency
     //!
@@ -353,7 +359,7 @@ public:
     //! The threshold value is 0.1 by default.
     //!
     //! \param threshold New threshold, in the range [0, 100]
-    void setJoystickThreshold(float threshold);
+    void setJoystickThreshold(float aThreshold);
 
     //! \brief Activate or deactivate the window as the current target
     //!        for OpenGL rendering
@@ -368,7 +374,7 @@ public:
     //! \param active True to activate, false to deactivate
     //!
     //! \return True if operation was successful, false otherwise
-    bool setActive(bool active = true);
+    bool setActive(bool aActive = true);
 
     //! \brief Request the current window to be made the active
     //!        foreground window

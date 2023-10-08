@@ -79,7 +79,9 @@ public:
     //! \param aViewIdx TODO
     //!
     //! \see getView, getDefaultView
-    virtual void setView(const View& aView, PZInteger aViewIdx = 0) = 0;
+    virtual void setView(const View& aView) = 0;
+
+    virtual void setView(PZInteger aViewIdx, const View& aView) = 0;
 
     //! TODO
     virtual PZInteger getViewCount() const = 0;

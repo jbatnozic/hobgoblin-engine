@@ -1,8 +1,8 @@
 
 #include <Hobgoblin/Graphics/Sprite.hpp>
 
-#include <SFML/Graphics/Sprite.hpp>
 #include <Hobgoblin/Graphics/Texture.hpp>
+#include <SFML/Graphics/Sprite.hpp>
 
 #include "Draw_bridge.hpp"
 #include "SFML_conversions.hpp"
@@ -35,8 +35,8 @@ Sprite::Sprite(const Texture& aTexture) {
     _texture = &aTexture;
 }
 
-Sprite::Sprite(const Texture& aTexture, const math::Rectangle<int>& aRectangle) {
-    new (&_storage) ImplType(ToSf(aTexture), {aRectangle.getLeft(), aRectangle.getTop(), aRectangle.w, aRectangle.h});
+Sprite::Sprite(const Texture& aTexture, TextureRect aTextureRect) {
+    new (&_storage) ImplType(ToSf(aTexture), ConvertTextureRect(aTextureRect));
     _texture = &aTexture;
 }
 
@@ -49,13 +49,8 @@ void Sprite::setTexture(const Texture& aTexture, bool aResetRect) {
     SELF_IMPL->setTexture(ToSf(aTexture), aResetRect);
 }
 
-void Sprite::setTextureRect(const math::Rectangle<int>& aRectangle) {
-    SELF_IMPL->setTextureRect({
-        aRectangle.getLeft(),
-        aRectangle.getTop(),
-        aRectangle.w,
-        aRectangle.h
-    });
+void Sprite::setTextureRect(TextureRect aTextureRect) {
+    SELF_IMPL->setTextureRect(ConvertTextureRect(aTextureRect));
 }
 
 void Sprite::setColor(const Color& aColor) {
@@ -109,8 +104,8 @@ void Sprite::setPosition(const math::Vector2f& aPosition) {
     SELF_IMPL->setPosition(ToSf(aPosition));
 }
 
-void Sprite::setRotation(float aAngle) {
-    SELF_IMPL->setRotation(aAngle);
+void Sprite::setRotation(math::AngleF aAngle) {
+    SELF_IMPL->setRotation(-aAngle.asDeg());
 }
 
 void Sprite::setScale(float aFactorX, float aFactorY) {
@@ -133,8 +128,8 @@ math::Vector2f Sprite::getPosition() const {
     return ToHg(SELF_CIMPL->getPosition());
 }
 
-float Sprite::getRotation() const {
-    return SELF_CIMPL->getRotation();
+math::AngleF Sprite::getRotation() const {
+    return math::AngleF::fromDegrees(-(SELF_CIMPL->getRotation()));
 }
 
 math::Vector2f Sprite::getScale() const {
@@ -153,8 +148,8 @@ void Sprite::move(const math::Vector2f& aOffset) {
     SELF_IMPL->move(ToSf(aOffset));
 }
 
-void Sprite::rotate(float aAngle) {
-    SELF_IMPL->rotate(aAngle);
+void Sprite::rotate(math::AngleF aAngle) {
+    SELF_IMPL->rotate(-aAngle.asDeg());
 }
 
 void Sprite::scale(float aFactorX, float aFactorY) {
@@ -189,7 +184,7 @@ const void* Sprite::_getSFMLImpl() const {
 // SPRITE BLUEPRINT                                                      //
 ///////////////////////////////////////////////////////////////////////////
 
-SpriteBlueprint::SpriteBlueprint(const Texture& aTexture, const math::Rectangle<int>& aTextureRect)
+SpriteBlueprint::SpriteBlueprint(const Texture& aTexture, TextureRect aTextureRect)
     : _texture{aTexture}
     , _textureRect{aTextureRect}
 {

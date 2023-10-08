@@ -14,6 +14,8 @@ template <class taArithmetic>
 class Rectangle {
     static_assert(std::is_arithmetic_v<taArithmetic>, "Class template Rectangle must be instantiated with an arithmetic type");
 public:
+    using ValueType = taArithmetic;
+
     //! X-coordinate of the top-left corner of the rectanlge.
     taArithmetic x;
     //! Y-coordinate of the top-left corner of the rectanlge.

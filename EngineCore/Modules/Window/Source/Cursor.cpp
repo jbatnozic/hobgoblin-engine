@@ -4,6 +4,8 @@
 
 #include <new>
 
+#include "SFML_conversions.hpp"
+
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_BEGIN
@@ -37,8 +39,7 @@ bool Cursor::loadFromPixels(const std::uint8_t* aPixels, math::Vector2pz aSize, 
 }
 
 bool Cursor::loadFromSystem(Type aType) {
-    // TODO
-    return false;
+    return SELF_IMPL->loadFromSystem(ToSf(aType));
 }
 
 void* Cursor::_getSFMLImpl() {

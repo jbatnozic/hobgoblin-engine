@@ -40,7 +40,9 @@ const float* Transform::getMatrix() const {
     return SELF_CIMPL->getMatrix();
 }
 
-// Transform Transform::getInverse() const {} TODO
+Transform Transform::getInverse() const {
+    return ToHg(SELF_CIMPL->getInverse());
+}
 
 math::Vector2f Transform::transformPoint(float aX, float aY) const {
     const auto vec = SELF_CIMPL->transformPoint(aX, aY);
@@ -82,18 +84,18 @@ Transform& Transform::translate(const math::Vector2f& aOffset) {
     return SELF;
 }
 
-Transform& Transform::rotate(float aAngle) {
-    SELF_IMPL->rotate(aAngle);
+Transform& Transform::rotate(math::AngleF aAngle) {
+    SELF_IMPL->rotate(-aAngle.asDeg());
     return SELF;
 }
 
-Transform& Transform::rotate(float aAngle, float aCenterX, float aCenterY) {
-    SELF_IMPL->rotate(aAngle, aCenterX, aCenterY);
+Transform& Transform::rotate(math::AngleF aAngle, float aCenterX, float aCenterY) {
+    SELF_IMPL->rotate(-aAngle.asDeg(), aCenterX, aCenterY);
     return SELF;
 }
 
-Transform& Transform::rotate(float aAngle, const math::Vector2f& aCenter) {
-    SELF_IMPL->rotate(aAngle, {aCenter.x, aCenter.y});
+Transform& Transform::rotate(math::AngleF aAngle, const math::Vector2f& aCenter) {
+    SELF_IMPL->rotate(-aAngle.asDeg(), {aCenter.x, aCenter.y});
     return SELF;
 }
 

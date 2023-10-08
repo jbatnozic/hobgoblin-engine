@@ -3,8 +3,11 @@
 
 #include <Hobgoblin/Graphics/Color.hpp>
 #include <Hobgoblin/Graphics/Drawable.hpp>
+#include <Hobgoblin/Graphics/Texture_rect.hpp>
 #include <Hobgoblin/Graphics/Transformable.hpp>
+#include <Hobgoblin/Math/Angle.hpp>
 #include <Hobgoblin/Math/Rectangle.hpp>
+#include <Hobgoblin/Math/Vector.hpp>
 
 #include <type_traits>
 
@@ -40,7 +43,7 @@ public:
     //! \param rectangle Sub-rectangle of the texture to assign to the sprite
     //!
     //! \see setTexture, setTextureRect
-    Sprite(const Texture& aTexture, const math::Rectangle<int>& aRectangle);
+    Sprite(const Texture& aTexture, TextureRect aTextureRect);
 
     //! \brief Change the source texture of the sprite
     //!
@@ -69,7 +72,7 @@ public:
     //! \param rectangle Rectangle defining the region of the texture to display
     //!
     //! \see getTextureRect, setTexture
-    void setTextureRect(const math::Rectangle<int>& aRectangle);
+    void setTextureRect(TextureRect aTextureRect);
 
     //! \brief Set the global color of the sprite
     //!
@@ -140,7 +143,7 @@ public:
 
     void setPosition(const math::Vector2f& aPosition) override;
 
-    void setRotation(float aAngle) override;
+    void setRotation(math::AngleF aAngle) override;
 
     void setScale(float aFactorX, float aFactorY) override;
 
@@ -152,7 +155,7 @@ public:
 
     math::Vector2f getPosition() const override;
 
-    float getRotation() const override;
+    math::AngleF getRotation() const override;
 
     math::Vector2f getScale() const override;
 
@@ -162,7 +165,7 @@ public:
 
     void move(const math::Vector2f& aOffset) override;
 
-    void rotate(float aAngle) override;
+    void rotate(math::AngleF aAngle) override;
 
     void scale(float aFactorX, float aFactorY) override;
 
@@ -191,14 +194,14 @@ private:
 
 class SpriteBlueprint {
 public:
-    SpriteBlueprint(const Texture& aTexture, const math::Rectangle<int>& aTextureRect);
+    SpriteBlueprint(const Texture& aTexture, TextureRect aTextureRect);
 
     //! Constructs a Sprite from the blueprint.
     Sprite spr() const;
 
 private:
     const Texture& _texture;
-    math::Rectangle<int> _textureRect;
+    TextureRect _textureRect;
 };
 
 } // namespace gr

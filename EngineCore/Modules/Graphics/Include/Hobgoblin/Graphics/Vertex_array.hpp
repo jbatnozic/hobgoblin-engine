@@ -32,12 +32,14 @@
 #include <Hobgoblin/Math/Rectangle.hpp>
 
 #include <type_traits>
+#include <vector>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
+#if 0
 namespace detail {
 class GraphicsImplAccessor;
 } // namespace detail
@@ -160,6 +162,30 @@ private:
     static constexpr std::size_t STORAGE_SIZE  = 48;
     static constexpr std::size_t STORAGE_ALIGN =  8;
     std::aligned_storage<STORAGE_SIZE, STORAGE_ALIGN>::type _storage;
+};
+#endif
+
+class VertexArray : public Drawable {
+public:
+    //! Vector of individual vertices.
+    std::vector<Vertex> vertices;
+
+    //! The type of primitives to draw. This field defines how the 
+    //! vertices must be interpreted when it's time to draw them.
+    PrimitiveType primitiveType;
+
+    //! \brief Compute the bounding rectangle of the vertex array
+    //!
+    //! This function returns the minimal axis-aligned rectangle
+    //! that contains all the vertices of the array.
+    //!
+    //! \return Bounding rectangle of the vertex array
+    math::Rectangle<float> calculateBounds() const;
+
+    BatchingType getBatchingType() const override;
+
+private:
+    void _draw(Canvas& aCanvas, const RenderStates& aStates) const override;
 };
 
 } // namespace gr
