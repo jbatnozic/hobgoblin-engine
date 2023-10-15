@@ -4,6 +4,7 @@
 #include <SFML/Graphics/Shader.hpp>
 
 #include <new>
+#include <utility>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 

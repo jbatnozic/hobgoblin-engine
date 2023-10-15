@@ -19,6 +19,7 @@ SfmlRenderTargetAdapter::SfmlRenderTargetAdapter(sf::RenderTarget& aRenderTarget
 // RENDERTARGET                                                          //
 ///////////////////////////////////////////////////////////////////////////
 
+// TODO(should abort)
 #define FORBIDDEN() (throw TracedLogicError{"Forbidden to call method " CURRENT_FUNCTION})
 
 void SfmlRenderTargetAdapter::clear(const Color& aColor) {
@@ -73,16 +74,16 @@ math::Vector2f SfmlRenderTargetAdapter::mapPixelToCoords(const math::Vector2i& a
 }
 
 math::Vector2f SfmlRenderTargetAdapter::mapPixelToCoords(const math::Vector2i& aPoint, const View& aView) const {
-    // TODO
-    return {};
+    const auto pt = _renderTarget.mapPixelToCoords(ToSf(aPoint), ToSf(aView));
+    return ToHg(pt);
 }
 
-math::Vector2i SfmlRenderTargetAdapter::mapCoordsToPixel(const math::Vector2f& point, const View& view) const {
-    // TODO
-    return {};
+math::Vector2i SfmlRenderTargetAdapter::mapCoordsToPixel(const math::Vector2f& aPoint, const View& aView) const {
+    const auto pt = _renderTarget.mapCoordsToPixel(ToSf(aPoint), ToSf(aView));
+    return ToHg(pt);
 }
 
-math::Vector2i SfmlRenderTargetAdapter::mapCoordsToPixel(const math::Vector2f& point, PZInteger aViewIdx) const {
+math::Vector2i SfmlRenderTargetAdapter::mapCoordsToPixel(const math::Vector2f& aPoint, PZInteger aViewIdx) const {
     FORBIDDEN();
 }
 

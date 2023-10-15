@@ -63,6 +63,8 @@ public:
               float a10, float a11, float a12,
               float a20, float a21, float a22);
 
+    // TODO(copy/move ctors/op)
+
     //! \brief Destructor
     ~Transform();
 

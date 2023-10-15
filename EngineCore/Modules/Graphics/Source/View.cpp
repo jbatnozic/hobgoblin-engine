@@ -3,6 +3,7 @@
 #include <SFML/Graphics/View.hpp>
 
 #include <new>
+#include <utility>
 
 #include "SFML_conversions.hpp"
 
@@ -14,14 +15,38 @@ namespace gr {
 using ImplType = sf::View;
 constexpr auto IMPL_SIZE  = sizeof(ImplType);
 constexpr auto IMPL_ALIGN = alignof(ImplType);
-#define  IMPL (reinterpret_cast<ImplType*>(&_storage))
-#define CIMPL (reinterpret_cast<const ImplType*>(&_storage))
+#define  IMPLOF(_obj_) (reinterpret_cast<ImplType*>(&((_obj_)._storage)))
+#define CIMPLOF(_obj_) (reinterpret_cast<const ImplType*>(&((_obj_)._storage)))
+#define  SELF_IMPL (IMPLOF(SELF))
+#define SELF_CIMPL (CIMPLOF(SELF))
 
 View::View() {
     static_assert(STORAGE_SIZE  == IMPL_SIZE,  "View::STORAGE_SIZE is inadequate.");
     static_assert(STORAGE_ALIGN == IMPL_ALIGN, "View::STORAGE_ALIGN is inadequate.");
 
     new (&_storage) ImplType();
+}
+
+View::View(const View& aOther) {
+    new (&_storage) ImplType(*CIMPLOF(aOther));
+}
+
+View& View::operator=(const View& aOther) {
+    if (this != &aOther) {
+        *SELF_IMPL = *CIMPLOF(aOther);
+    }
+    return SELF;
+}
+
+View::View(View&& aOther) {
+    new (&_storage) ImplType(std::move(*IMPLOF(aOther)));
+}
+
+View& View::operator=(View&& aOther) {
+    if (this != &aOther) {
+        *SELF_IMPL = std::move(*IMPLOF(aOther));
+    }
+    return SELF;
 }
 
 View::View(const math::Rectangle<float>& aRectangle) {
@@ -41,27 +66,27 @@ void View::setEnabled(bool aEnabled) {
 }
 
 void View::setCenter(float aX, float aY) {
-    IMPL->setCenter(aX, aY);
+    SELF_IMPL->setCenter(aX, aY);
 }
 
 void View::setCenter(const math::Vector2f& aCenter) {
-    IMPL->setCenter(aCenter.x, aCenter.y);
+    SELF_IMPL->setCenter(aCenter.x, aCenter.y);
 }
 
 void View::setSize(float aWidth, float aHeight) {
-    IMPL->setSize(aWidth, aHeight);
+    SELF_IMPL->setSize(aWidth, aHeight);
 }
 
 void View::setSize(const math::Vector2f& aSize) {
-    IMPL->setSize(aSize.x, aSize.y);
+    SELF_IMPL->setSize(aSize.x, aSize.y);
 }
 
 void View::setRotation(float aAngle) {
-    IMPL->setRotation(aAngle);
+    SELF_IMPL->setRotation(aAngle);
 }
 
 void View::setViewport(const math::Rectangle<float>& aViewport) {
-    IMPL->setViewport({
+    SELF_IMPL->setViewport({
         aViewport.getLeft(),
         aViewport.getTop(),
         aViewport.w,
@@ -78,38 +103,38 @@ bool View::isEnabled() const {
 }
 
 const math::Vector2f& View::getCenter() const {
-    const auto center = CIMPL->getCenter();
+    const auto center = SELF_CIMPL->getCenter();
     return {center.x, center.y};
 }
 
 const math::Vector2f& View::getSize() const {
-    const auto size = CIMPL->getSize();
+    const auto size = SELF_CIMPL->getSize();
     return {size.x, size.y};
 }
 
 float View::getRotation() const {
-    return CIMPL->getRotation();
+    return SELF_CIMPL->getRotation();
 }
 
 const math::Rectangle<float> View::getViewport() const {
-    const auto viewport = CIMPL->getViewport();
+    const auto viewport = SELF_CIMPL->getViewport();
     return {viewport.top, viewport.left, viewport.width, viewport.height};
 }
 
 void View::move(float aOffsetX, float aOffsetY) {
-    IMPL->move(aOffsetX, aOffsetY);
+    SELF_IMPL->move(aOffsetX, aOffsetY);
 }
 
 void View::move(const math::Vector2f& aOffset) {
-    IMPL->move(aOffset.x, aOffset.y);
+    SELF_IMPL->move(aOffset.x, aOffset.y);
 }
 
 void View::rotate(float aAngle) {
-    IMPL->rotate(aAngle);
+    SELF_IMPL->rotate(aAngle);
 }
 
 void View::zoom(float aFactor) {
-    IMPL->zoom(aFactor);
+    SELF_IMPL->zoom(aFactor);
 }
 
 //const Transform& View::getTransform() const {
@@ -121,11 +146,11 @@ void View::zoom(float aFactor) {
 //}
 
 void* View::_getSFMLImpl() {
-    return IMPL;
+    return SELF_IMPL;
 }
 
 const void* View::_getSFMLImpl() const {
-    return CIMPL;
+    return SELF_CIMPL;
 }
 
 } // namespace gr

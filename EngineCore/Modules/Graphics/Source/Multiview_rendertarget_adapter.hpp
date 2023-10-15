@@ -14,7 +14,7 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
-//! TODO
+//! TODO(add description)
 class MultiViewRenderTargetAdapter final : public Canvas {
 public:
     MultiViewRenderTargetAdapter(RenderTarget& aRenderTarget);

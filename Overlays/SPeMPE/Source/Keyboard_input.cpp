@@ -37,7 +37,7 @@ struct KeyMapping {
         spempeToSfKeyMapping[static_cast<unsigned>(KbKey::Q)]         = sf::Keyboard::Q;
         spempeToSfKeyMapping[static_cast<unsigned>(KbKey::R)]         = sf::Keyboard::R;
         spempeToSfKeyMapping[static_cast<unsigned>(KbKey::S)]         = sf::Keyboard::S;
-        spempeToSfKeyMapping[static_cast<unsigned>(KbKey::taArithmetic)]         = sf::Keyboard::taArithmetic;
+        spempeToSfKeyMapping[static_cast<unsigned>(KbKey::T)]         = sf::Keyboard::T;
         spempeToSfKeyMapping[static_cast<unsigned>(KbKey::U)]         = sf::Keyboard::U;
         spempeToSfKeyMapping[static_cast<unsigned>(KbKey::V)]         = sf::Keyboard::V;
         spempeToSfKeyMapping[static_cast<unsigned>(KbKey::W)]         = sf::Keyboard::W;
@@ -139,7 +139,7 @@ struct KeyMapping {
         sfToSpempeKeyMapping[sf::Keyboard::Q]         = KbKey::Q;
         sfToSpempeKeyMapping[sf::Keyboard::R]         = KbKey::R;
         sfToSpempeKeyMapping[sf::Keyboard::S]         = KbKey::S;
-        sfToSpempeKeyMapping[sf::Keyboard::taArithmetic]         = KbKey::taArithmetic;
+        sfToSpempeKeyMapping[sf::Keyboard::T]         = KbKey::T;
         sfToSpempeKeyMapping[sf::Keyboard::U]         = KbKey::U;
         sfToSpempeKeyMapping[sf::Keyboard::V]         = KbKey::V;
         sfToSpempeKeyMapping[sf::Keyboard::W]         = KbKey::W;
@@ -241,7 +241,7 @@ struct KeyMapping {
         keyToStringMapping[KbKey::Q]         = "Q";
         keyToStringMapping[KbKey::R]         = "R";
         keyToStringMapping[KbKey::S]         = "S";
-        keyToStringMapping[KbKey::taArithmetic]         = "T";
+        keyToStringMapping[KbKey::T]         = "T";
         keyToStringMapping[KbKey::U]         = "U";
         keyToStringMapping[KbKey::V]         = "V";
         keyToStringMapping[KbKey::W]         = "W";

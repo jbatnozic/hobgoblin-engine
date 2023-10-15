@@ -28,7 +28,6 @@
 #include <SFML/Graphics/Glsl.hpp>
 
 #include <Hobgoblin/Math/Vector.hpp>
-#include <Hobgoblin/Utility/No_copy_no_move.hpp>
 
 #include <string>
 #include <type_traits>
@@ -65,7 +64,7 @@ struct Mat4 {}; // TODO
 } // namespace Glsl
 
 //! \brief Shader class (vertex, geometry and fragment)
-class Shader : NO_COPY {
+class Shader {
 public:    
     //! \brief Types of shaders
     enum Type {
@@ -89,6 +88,12 @@ public:
     //!
     //! This constructor creates an invalid shader.
     Shader();
+
+    Shader(const Shader& aOther) = delete; // TODO(enable when sfml supports it)
+    Shader& operator=(const Shader& aOther) = delete; // TODO(enable when sfml supports it)
+
+    Shader(Shader&& aOther) = delete; // TODO(enable when sfml supports it, or use unique_ptr internally)
+    Shader& operator=(Shader&& aOther) = delete; // TODO(enable when sfml supports it, or use unique_ptr internally)
 
     //! \brief Destructor
     ~Shader();

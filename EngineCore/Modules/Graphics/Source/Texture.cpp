@@ -38,18 +38,18 @@ bool Texture::create(PZInteger aWidth, PZInteger aHeight) {
     return SELF_IMPL->create(static_cast<unsigned>(aWidth), static_cast<unsigned>(aHeight));
 }
 
-bool Texture::loadFromFile(const UnicodeString& aFilename, const math::Rectangle<int>& aArea) {
-    // TODO - will almost certainly fail if a non-ascii string is given
-    return SELF_IMPL->loadFromFile(aFilename, {aArea.getLeft(), aArea.getTop(), aArea.w, aArea.h});
+bool Texture::loadFromFile(const std::filesystem::path& aPath, TextureRect aArea) {
+    return SELF_IMPL->loadFromFile(FilesystemPathToSfPath(aPath),
+                                   {aArea.getLeft(), aArea.getTop(), aArea.w, aArea.h});
 }
 
-bool Texture::loadFromMemory(const void* aData, PZInteger aSize, const math::Rectangle<int>& aArea) {
+bool Texture::loadFromMemory(const void* aData, PZInteger aSize, TextureRect aArea) {
     return SELF_IMPL->loadFromMemory(aData, static_cast<std::size_t>(aSize), {aArea.getLeft(), aArea.getTop(), aArea.w, aArea.h});
 }
 
 // bool Texture::loadFromStream(InputStream& stream, const math::Rectangle<int>& aArea) {} TODO
 
-bool Texture::loadFromImage(const Image& aImage, const const math::Rectangle<int>& aArea) {
+bool Texture::loadFromImage(const Image& aImage, TextureRect aArea) {
     // TODO
     return false;
 }
@@ -95,10 +95,16 @@ void Texture::update(const Texture& aTexture, PZInteger aX, PZInteger aY) {
     SELF_IMPL->update(*CIMPLOF(aTexture), static_cast<unsigned>(aX), static_cast<unsigned>(aY));
 }
 
-//void Texture::update(const Image& aImage) {} TODO
-//
-//void Texture::update(const Image& aImage, unsigned int aX, unsigned int aY) {} TODO
-//
+void Texture::update(const Image& aImage) {
+    const auto& sfImage = detail::GraphicsImplAccessor::getImplOf<sf::Image>(aImage);
+    SELF_IMPL->update(sfImage);
+}
+
+void Texture::update(const Image& aImage, PZInteger aX, PZInteger aY) {
+    const auto& sfImage = detail::GraphicsImplAccessor::getImplOf<sf::Image>(aImage);
+    SELF_IMPL->update(sfImage, static_cast<unsigned>(aX), static_cast<unsigned>(aY));
+}
+
 //void Texture::update(const Window& Window) {} TODO
 //
 //void Texture::update(const Window& aWindow, PZInteger aX, PZInteger aY) {} TODO

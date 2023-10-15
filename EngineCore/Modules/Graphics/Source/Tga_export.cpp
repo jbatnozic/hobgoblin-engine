@@ -6,7 +6,7 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
-void ExportTextureToTgaFile(const sf::Texture& aTexture, const std::string& aFilePath) {
+void ExportTextureToTgaFile(const Texture& aTexture, const std::string& aFilePath) {
 	const auto image = aTexture.copyToImage();
 	image.saveToFile(aFilePath);
 }

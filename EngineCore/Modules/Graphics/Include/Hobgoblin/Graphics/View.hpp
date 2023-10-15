@@ -47,17 +47,25 @@ public:
     //!
     //! This constructor creates a default view of (0, 0, 1000, 1000)
     View();
+
+    View(const View& aOther);
+    View& operator=(const View& aOther);
+
+    View(View&& aOther);
+    View& operator=(View&& aOther);
     
     //! \brief Construct the view from a rectangle
     //!
     //! \param rectangle Rectangle defining the zone to display
-    explicit View(const math::Rectangle<float>& rectangle);
+    explicit View(const math::Rectangle<float>& aRectangle);
 
     //! \brief Construct the view from its center and size
     //!
     //! \param center Center of the zone to display
     //! \param size   Size of zone to display
-    View(const math::Vector2f& center, const math::Vector2f& size);
+    View(const math::Vector2f& aCenter, const math::Vector2f& aSize);
+
+    // TODO(copy/move ctors/op)
 
     //! \brief Destructor.
     ~View();
@@ -71,14 +79,14 @@ public:
     //! \param y Y coordinate of the new center
     //!
     //! \see setSize, getCenter
-    void setCenter(float x, float y);
+    void setCenter(float aX, float aY);
 
     //! \brief Set the center of the view
     //!
     //! \param center New center
     //!
     //! \see setSize, getCenter
-    void setCenter(const math::Vector2f& center);
+    void setCenter(const math::Vector2f& aCenter);
 
     //! \brief Set the size of the view
     //!
@@ -86,14 +94,14 @@ public:
     //! \param height New height of the view
     //!
     //! \see setCenter, getCenter
-    void setSize(float width, float height);
+    void setSize(float aWidth, float aHeight);
 
     //! \brief Set the size of the view
     //!
     //! \param size New size
     //!
     //! \see setCenter, getCenter
-    void setSize(const math::Vector2f& size);
+    void setSize(const math::Vector2f& aSize);
 
     //! \brief Set the orientation of the view
     //!
@@ -102,7 +110,7 @@ public:
     //! \param angle New angle, in degrees
     //!
     //! \see getRotation
-    void setRotation(float angle);
+    void setRotation(float aAngle);
 
     //! \brief Set the target viewport
     //!
@@ -116,7 +124,7 @@ public:
     //! \param viewport New viewport rectangle
     //!
     //! \see getViewport
-    void setViewport(const math::Rectangle<float>& viewport);
+    void setViewport(const math::Rectangle<float>& aViewport);
 
     //! \brief Reset the view to the given rectangle
     //!
@@ -125,7 +133,7 @@ public:
     //! \param rectangle Rectangle defining the zone to display
     //!
     //! \see setCenter, setSize, setRotation
-    void reset(const math::Rectangle<float>& rectangle);
+    void reset(const math::Rectangle<float>& aRectangle);
 
     //! \brief Checks whether the view is enabled or not.
     bool isEnabled() const;
@@ -164,21 +172,21 @@ public:
     //! \param offsetY Y coordinate of the move offset
     //!
     //! \see setCenter, rotate, zoom
-    void move(float offsetX, float offsetY);
+    void move(float aOffsetX, float aOffsetY);
 
     //! \brief Move the view relatively to its current position
     //!
     //! \param offset Move offset
     //!
     //! \see setCenter, rotate, zoom
-    void move(const math::Vector2f& offset);
+    void move(const math::Vector2f& aOffset);
 
     //! \brief Rotate the view relatively to its current orientation
     //!
     //! \param angle Angle to rotate, in degrees
     //!
     //! \see setRotation, move, zoom
-    void rotate(float angle);
+    void rotate(float aAngle);
 
     //! \brief Resize the view rectangle relatively to its current size
     //!
@@ -192,7 +200,7 @@ public:
     //! \param factor Zoom factor to apply
     //!
     //! \see setSize, move, rotate
-    void zoom(float factor);
+    void zoom(float aFactor);
 
     //! \brief Get the projection transform of the view
     //!

@@ -26,6 +26,7 @@ public:
 };
 } // namespace detail
 
+//! It BRIDGES the DRAW calls :D
 template <class taCallable>
 bool Draw(Canvas& aCanvas, taCallable&& aCallable) {
     void* renderingBackend;

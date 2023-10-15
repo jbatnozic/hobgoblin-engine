@@ -34,6 +34,8 @@
 #include <SFML/Graphics/VertexBuffer.hpp>
 #include <SFML/Graphics/View.hpp>
 
+#include <filesystem>
+
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_BEGIN
@@ -75,6 +77,15 @@ typename sf::Rect<taArithmetic> ToSf(const typename math::Rectangle<taArithmetic
 template <class taArithmetic>
 typename math::Rectangle<taArithmetic> ToHg(const typename sf::Rect<taArithmetic>& aRect) {
     return {aRect.left, aRect.top, aRect.width, aRect.height};
+}
+
+///////////////////////////////////////////////////////////////////////////
+// FILSYSTEM                                                             //
+///////////////////////////////////////////////////////////////////////////
+
+inline
+std::string FilesystemPathToSfPath(const std::filesystem::path& aPath) {
+    return aPath.u8string();
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -135,13 +146,85 @@ const sf::View& ToSf(const View& aView);
 // BlendMode
 
 inline
+BlendMode::Factor ToHg(sf::BlendMode::Factor aFactor) {
+    switch (aFactor) {
+    case sf::BlendMode::Zero: return BlendMode::Factor::Zero;
+    case sf::BlendMode::One: return BlendMode::Factor::One;
+    case sf::BlendMode::SrcColor: return BlendMode::Factor::SrcColor;
+    case sf::BlendMode::OneMinusSrcColor: return BlendMode::Factor::OneMinusSrcColor;
+    case sf::BlendMode::DstColor: return BlendMode::Factor::DstColor;
+    case sf::BlendMode::OneMinusDstColor: return BlendMode::Factor::OneMinusDstColor;
+    case sf::BlendMode::SrcAlpha: return BlendMode::Factor::SrcAlpha;
+    case sf::BlendMode::OneMinusSrcAlpha: return BlendMode::Factor::OneMinusSrcAlpha;
+    case sf::BlendMode::DstAlpha: return BlendMode::Factor::DstAlpha;
+    case sf::BlendMode::OneMinusDstAlpha: return BlendMode::Factor::OneMinusDstAlpha;
+    default:
+        HARD_ASSERT(false && "Invalid sf::BlendMode::Factor value.");
+    }
+}
+
+inline
+BlendMode::Equation ToHg(sf::BlendMode::Equation aEquation) {
+    switch (aEquation) {
+    case sf::BlendMode::Add: return BlendMode::Equation::Add;
+    case sf::BlendMode::Subtract: return BlendMode::Equation::Subtract;
+    case sf::BlendMode::ReverseSubtract: return BlendMode::Equation::ReverseSubtract;
+    default:
+        HARD_ASSERT(false && "Invalid sf::BlendMode::Equation value.");
+    }
+}
+
+inline
 BlendMode ToHg(sf::BlendMode aBlendMode) {
-    return {}; // TODO
+    return {
+        ToHg(aBlendMode.colorSrcFactor),
+        ToHg(aBlendMode.colorDstFactor),
+        ToHg(aBlendMode.colorEquation),
+        ToHg(aBlendMode.alphaSrcFactor),
+        ToHg(aBlendMode.alphaDstFactor),
+        ToHg(aBlendMode.alphaEquation)
+    };
+}
+
+inline
+sf::BlendMode::Factor ToSf(BlendMode::Factor aFactor) {
+    switch (aFactor) {
+    case BlendMode::Factor::Zero: return sf::BlendMode::Zero;
+    case BlendMode::Factor::One: return sf::BlendMode::One;
+    case BlendMode::Factor::SrcColor: return sf::BlendMode::SrcColor;
+    case BlendMode::Factor::OneMinusSrcColor: return sf::BlendMode::OneMinusSrcColor;
+    case BlendMode::Factor::DstColor: return sf::BlendMode::DstColor;
+    case BlendMode::Factor::OneMinusDstColor: return sf::BlendMode::OneMinusDstColor;
+    case BlendMode::Factor::SrcAlpha: return sf::BlendMode::SrcAlpha;
+    case BlendMode::Factor::OneMinusSrcAlpha: return sf::BlendMode::OneMinusSrcAlpha;
+    case BlendMode::Factor::DstAlpha: return sf::BlendMode::DstAlpha;
+    case BlendMode::Factor::OneMinusDstAlpha: return sf::BlendMode::OneMinusDstAlpha;
+    default:
+        HARD_ASSERT(false && "Invalid hg::gr::BlendMode::Factor value.");
+    }
+}
+
+inline
+sf::BlendMode::Equation ToSf(BlendMode::Equation aEquation) {
+    switch (aEquation) {
+    case BlendMode::Equation::Add: return sf::BlendMode::Add;
+    case BlendMode::Equation::Subtract: return sf::BlendMode::Subtract;
+    case BlendMode::Equation::ReverseSubtract: return sf::BlendMode::ReverseSubtract;
+    default:
+        HARD_ASSERT(false && "Invalid hg::gr::BlendMode::Equation value.");
+    }
 }
 
 inline
 sf::BlendMode ToSf(BlendMode aBlendMode) {
-    return {}; // TODO
+    return {
+        ToSf(aBlendMode.colorSrcFactor),
+        ToSf(aBlendMode.colorDstFactor),
+        ToSf(aBlendMode.colorEquation),
+        ToSf(aBlendMode.alphaSrcFactor),
+        ToSf(aBlendMode.alphaDstFactor),
+        ToSf(aBlendMode.alphaEquation)
+    };
 }
 
 // Color

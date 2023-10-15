@@ -9,6 +9,7 @@
 #include <Hobgoblin/Graphics/Transform.hpp>
 #include <Hobgoblin/Graphics/Transformable.hpp>
 #include <Hobgoblin/Graphics/Transformable_data.hpp>
+#include <Hobgoblin/Graphics/Vertex.hpp>
 #include <Hobgoblin/Math/Rectangle.hpp>
 
 #include <variant>
@@ -44,18 +45,35 @@ public:
     // SUBSPRITES                                                            //
     ///////////////////////////////////////////////////////////////////////////
 
-    PZInteger getSubspriteCount() const;
-
-    PZInteger getCurrentSubspriteIndex() const;
-
-    void selectSubsprite(PZInteger aSubspriteIndex);
-
-    void advanceSubsprite(PZInteger aSubspriteCount);
-
     void addSubsprite(TextureRect aTextureRect);
 
     void removeSubsprite(PZInteger aSubspriteIndex);
 
+    //! Returns the number of subsprites in the multisprite.
+    PZInteger getSubspriteCount() const;
+
+    //! Returns the value of the underlying subsprite selector.
+    float getSubspriteSelector() const;
+
+    //! Returns the index of the subsprite that's currently considered active
+    //! based on the selector's value (see `getSubspriteSelector`). As the
+    //! selector is a floating-point value, there are some extra considerations:
+    //! - If the selector is not a whole number, it will be rounded down.
+    //! - If the selector is out of bounds [0..subsprite_count], it will be brought
+    //!   back into bounds by modulo arithmetic.
+    //! 
+    //! If the multisprite has no subsprites, this method will throw.
+    PZInteger getCurrentSubspriteIndex() const;
+
+    void selectSubsprite(int aSelectorValue);
+
+    void selectSubsprite(float aSelectorValue);
+
+    void advanceSubsprite(int aSelectorOffset);
+
+    void advanceSubsprite(float aSelectorOffset);
+
+    //! Returns a single subsprite as a standalone `Sprite` object.
     Sprite extractSubsprite(PZInteger aSubspriteIndex) const;
 
     ///////////////////////////////////////////////////////////////////////////
@@ -159,11 +177,10 @@ private:
     std::variant<Subsprite, std::vector<Subsprite>> _subsprites;
 
     PZInteger _subspriteCount = 0;
-    PZInteger _selectedSubsprite = 0;
+    float _subspriteSelector = 0.f;
     Color _color = COLOR_WHITE;
 
     Subsprite* _firstSubspritePtr();
-
     const Subsprite* _firstSubspritePtr() const;
 };
 
@@ -174,73 +191,6 @@ Multisprite::Multisprite(const Texture& aTexture, const taRects& aTextureRects)
     for (const auto& rect : aTextureRects) {
         addSubsprite(rect);
     }
-}
-
-class MultispriteBlueprint {
-public:
-    ///////////////////////////////////////////////////////////////////////////
-    // CONSTRUCTORS                                                          //
-    ///////////////////////////////////////////////////////////////////////////
-
-    // Construct with single subsprite
-    MultispriteBlueprint(const Texture& aTexture, TextureRect aTextureRect);
-
-    // Construct with one or more subsprites
-    template <class taRects>
-    MultispriteBlueprint(const Texture& aTexture, const taRects& aTextureRects);
-
-    ///////////////////////////////////////////////////////////////////////////
-    // COPIES & MOVES                                                        //
-    ///////////////////////////////////////////////////////////////////////////
-
-    MultispriteBlueprint(const MultispriteBlueprint& aOther);
-
-    MultispriteBlueprint& operator=(const MultispriteBlueprint& aOther);
-
-    MultispriteBlueprint(MultispriteBlueprint&& aOther);
-
-    MultispriteBlueprint& operator=(MultispriteBlueprint&& aOther);
-
-    ///////////////////////////////////////////////////////////////////////////
-    // GETTERS                                                               //
-    ///////////////////////////////////////////////////////////////////////////
-
-    //! Returns number of contained subsprites.
-    PZInteger getSubspriteCount() const;
-
-    //! Make a regular Sprite from a single subsprite from within the blueprint.
-    Sprite subspr(PZInteger aSubspriteIndex) const;
-
-    //! Make a complete Multisprite from the whole blueprint.
-    Multisprite multispr() const;
-
-private:
-    const Texture* _texture;
-
-    std::variant<TextureRect, std::vector<TextureRect>> _textureRects;
-
-    PZInteger _subspriteCount;
-};
-
-template <class taRects>
-MultispriteBlueprint::MultispriteBlueprint(const Texture& aTexture, const taRects& aTextureRects)
-    : _texture{&aTexture}
-    , _subspriteCount{stopz(aTextureRects.size())}
-{
-    if (_subspriteCount > 1) {
-        _textureRects = std::vector<TextureRect>{};
-        for (const auto& rect : aTextureRects) {
-            std::get<std::vector<TextureRect>>(_textureRects).push_back(rect);
-        }
-        return;
-    }
-
-    if (_subspriteCount == 1) {
-        _textureRects = *(aTextureRects.begin());
-        return;
-    }
-
-    throw TracedLogicError{"MultispriteBlueprint - Must be constructed with at least 1 subsprite!"};
 }
 
 } // namespace gr

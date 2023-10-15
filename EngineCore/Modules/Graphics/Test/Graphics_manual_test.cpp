@@ -97,17 +97,24 @@ void TestDrawingMultisprites() {
 
     auto multisprite = blueprint.multispr();
 
+    double theta = 0.0;
     while (window.isOpen()) {
+        theta += 0.01;
+
         hg::win::Event ev;
         while (window.pollEvent(ev)) {
             CloseWindowIfCloseClickedOrEnterPressed(window, ev);
         }
 
         window.clear(gr::COLOR_BLACK);
+        multisprite.setScale(
+            static_cast<float>(0.5 + std::abs(std::sin(theta) / 2.0)),
+            static_cast<float>(0.5 + std::abs(std::sin(theta) / 2.0))
+        );
         window.draw(multisprite);
         window.display();
 
-        multisprite.advanceSubsprite(1);
+        multisprite.advanceSubsprite(0.05f);
     }
 }
 
@@ -142,10 +149,43 @@ void TestDrawingVertexArrays() {
     }
 }
 
+void TestSpriteLoader() {
+    gr::SpriteLoader loader;
+    loader.startTexture(2048, 2048)
+        ->addSprite("mons", "C:/Users/Jovan-PC/Desktop/Mons.png")
+        ->addSprite("troidco", "C:/Users/Jovan-PC/Desktop/Troidco.png")
+        ->finalize(gr::TexturePackingHeuristic::BestAreaFit);
+
+    gr::RenderWindow window{};
+    window.create(hg::win::VideoMode{800, 800}, "Window");
+    window.setFramerateLimit(60);
+
+    window.setView(gr::View{{512.f, 512.f}, {1024, 1024}});
+    window.getView().setViewport({0.f, 0.f, 1.f, 1.f});
+    window.getView().setEnabled(true);
+
+    auto monsSpr = loader.getMultiBlueprint("mons").multispr();
+    auto troidcoSpr = loader.getMultiBlueprint("troidco").multispr();
+    troidcoSpr.move(200.f, 200.f);
+
+    while (window.isOpen()) {
+        hg::win::Event ev;
+        while (window.pollEvent(ev)) {
+            CloseWindowIfCloseClickedOrEnterPressed(window, ev);
+        }
+
+        window.clear(gr::COLOR_BLACK);
+        window.draw(monsSpr);
+        window.draw(troidcoSpr);
+        window.display();
+    }
+}
+
 const std::vector<void(*)()> TESTS = {
     &TestDrawingShapesAndSprites,
     &TestDrawingMultisprites,
-    &TestDrawingVertexArrays
+    &TestDrawingVertexArrays,
+    &TestSpriteLoader
 };
 
 } // namespace

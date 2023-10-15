@@ -10,6 +10,7 @@
 #include <Hobgoblin/Graphics/Draw_batcher.hpp>
 #include <Hobgoblin/Graphics/Image.hpp>
 #include <Hobgoblin/Graphics/Multisprite.hpp>
+#include <Hobgoblin/Graphics/Multisprite_blueprint.hpp>
 #include <Hobgoblin/Graphics/OpenGL_handle.hpp> // -> window ??????????
 #include <Hobgoblin/Graphics/Primitive_type.hpp>
 #include <Hobgoblin/Graphics/Rectangle_shape.hpp>

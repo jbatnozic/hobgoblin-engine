@@ -27,6 +27,8 @@ public:
     //! Creates an empty sprite with no source texture.
     Sprite();
 
+    // TODO(copy/move ctors/op)
+
     //! TODO
     ~Sprite();
 
@@ -190,18 +192,6 @@ private:
     std::aligned_storage<STORAGE_SIZE, STORAGE_ALIGN>::type _storage;
 
     const Texture* _texture = nullptr;
-};
-
-class SpriteBlueprint {
-public:
-    SpriteBlueprint(const Texture& aTexture, TextureRect aTextureRect);
-
-    //! Constructs a Sprite from the blueprint.
-    Sprite spr() const;
-
-private:
-    const Texture& _texture;
-    TextureRect _textureRect;
 };
 
 } // namespace gr

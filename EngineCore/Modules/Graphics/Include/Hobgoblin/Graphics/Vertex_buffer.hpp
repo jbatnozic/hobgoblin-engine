@@ -94,6 +94,8 @@ public:
     //! \param aCopy instance to copy
     VertexBuffer(const VertexBuffer& aCopy);
 
+    // TODO(copy/move ctors/op)
+
     //! \brief Destructor
     ~VertexBuffer();
 

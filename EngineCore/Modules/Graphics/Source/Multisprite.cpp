@@ -31,24 +31,16 @@ Multisprite::Multisprite(const Texture& aTexture, TextureRect aTextureRect)
 }
 
 Multisprite::BatchingType Multisprite::getBatchingType() const {
-    return BatchingType::Custom; // TODO
+    return BatchingType::Custom; // TODO - enable batching!
 }
 
 const Texture& Multisprite::getTexture() const {
     return _texture;
 }
 
-PZInteger Multisprite::getSubspriteCount() const {
-    return _subspriteCount;
-}
-
-void Multisprite::selectSubsprite(PZInteger aSubspriteIndex) {
-    _selectedSubsprite = aSubspriteIndex;
-}
-
-void Multisprite::advanceSubsprite(PZInteger aSubspriteCount) {
-    _selectedSubsprite = (_selectedSubsprite + aSubspriteCount) % _subspriteCount;
-}
+///////////////////////////////////////////////////////////////////////////
+// SUBSPRITES                                                            //
+///////////////////////////////////////////////////////////////////////////
 
 void Multisprite::addSubsprite(TextureRect aTextureRect) {
     if (_subspriteCount == 0) {
@@ -91,6 +83,56 @@ void Multisprite::removeSubsprite(PZInteger aSubspriteIndex) {
     }
 }
 
+PZInteger Multisprite::getSubspriteCount() const {
+    return _subspriteCount;
+}
+
+float Multisprite::getSubspriteSelector() const {
+    return _subspriteSelector;
+}
+
+PZInteger Multisprite::getCurrentSubspriteIndex() const {
+    if (_subspriteCount == 0) {
+        throw TracedLogicError{"Multisprite - No subsprites have been added!"};
+    }
+
+    float temp = _subspriteSelector;
+    while (temp < 0.f) {
+        temp += static_cast<float>(_subspriteCount);
+    }
+    return ToPz(std::trunc(temp)) % _subspriteCount;
+}
+
+void Multisprite::selectSubsprite(int aSubspriteIndex) {
+    _subspriteSelector = static_cast<float>(aSubspriteIndex);
+}
+
+void Multisprite::selectSubsprite(float aSubspriteIndex) {
+    _subspriteSelector = aSubspriteIndex;
+}
+
+void Multisprite::advanceSubsprite(int aSubspriteCount) {
+    _subspriteSelector += static_cast<float>(aSubspriteCount);
+}
+
+void Multisprite::advanceSubsprite(float aSubspriteCount) {
+    _subspriteSelector += aSubspriteCount;
+}
+
+Sprite Multisprite::extractSubsprite(PZInteger aSubspriteIndex) const {
+    if (aSubspriteIndex < 0 || aSubspriteIndex >= _subspriteCount) {
+        throw TracedLogicError{"Multisprite - Subsprite index out of bounds!"};
+    }
+
+    const auto& subsprite = *(_firstSubspritePtr() + aSubspriteIndex);
+
+    return Sprite{_texture, subsprite.textureRect};
+}
+
+///////////////////////////////////////////////////////////////////////////
+// COLOUR                                                                //
+///////////////////////////////////////////////////////////////////////////
+
 void Multisprite::setColor(Color aColor) {
     _color = aColor;
 }
@@ -98,6 +140,10 @@ void Multisprite::setColor(Color aColor) {
 Color Multisprite::getColor() const {
     return _color;
 }
+
+///////////////////////////////////////////////////////////////////////////
+// BOUNDS                                                                //
+///////////////////////////////////////////////////////////////////////////
 
 math::Rectangle<float> Multisprite::getLocalBounds(PZInteger aSubspriteIndex) const {
     if (aSubspriteIndex < 0 || aSubspriteIndex >= _subspriteCount) {
@@ -108,11 +154,13 @@ math::Rectangle<float> Multisprite::getLocalBounds(PZInteger aSubspriteIndex) co
 }
 
 math::Rectangle<float> Multisprite::getLocalBounds() const {
-    if (_selectedSubsprite < 0 || _selectedSubsprite >= _subspriteCount) {
-        throw TracedLogicError{"Multisprite - Selected subsprite index out of bounds!"};
+    math::Rectangle<float> rect; // default-initializes to all zeros
+
+    if (_subspriteCount > 0) {
+        rect = _firstSubspritePtr()[getCurrentSubspriteIndex()].getLocalBounds();
     }
 
-    return _firstSubspritePtr()[_selectedSubsprite].getLocalBounds();
+    return rect;
 }
 
 math::Rectangle<float> Multisprite::getGlobalBounds(PZInteger aSubspriteIndex) const {
@@ -126,13 +174,13 @@ math::Rectangle<float> Multisprite::getGlobalBounds(PZInteger aSubspriteIndex) c
 }
 
 math::Rectangle<float> Multisprite::getGlobalBounds() const {
-    if (_selectedSubsprite < 0 || _selectedSubsprite >= _subspriteCount) {
-        throw TracedLogicError{"Multisprite - Selected subsprite index out of bounds!"};
+    math::Rectangle<float> rect; // default-initializes to all zeros
+
+    if (_subspriteCount > 0) {
+        rect = _firstSubspritePtr()[getCurrentSubspriteIndex()].getLocalBounds();
     }
 
-    return getTransform().transformRect(
-        _firstSubspritePtr()[_selectedSubsprite].getLocalBounds()
-    );
+    return getTransform().transformRect(rect);
 }
 
 bool Multisprite::isNormalized() const {
@@ -151,84 +199,6 @@ bool Multisprite::areAllSubspritesOfSameSize() const {
     return isNormalized();
 }
 
-void Multisprite::_draw(Canvas& aCanvas, const RenderStates& aStates) const {
-    if (_subspriteCount == 0) {
-        return;
-    }
-
-    if (_selectedSubsprite < 0 || _selectedSubsprite >= _subspriteCount) {
-        throw TracedLogicError{"Multisprite - Selected subsprite index out of bounds!"};
-    }
-
-    const auto& subspr = *(_firstSubspritePtr() + _selectedSubsprite);
-
-    // Prepare vertices
-    Vertex vertices[4];
-    std::memcpy(vertices, subspr.vertices, sizeof(Vertex) * 4);
-    vertices[0].color = vertices[1].color = vertices[2].color = vertices[3].color = _color;
-
-    // Prepare render states
-    RenderStates statesCopy{aStates};
-    statesCopy.transform *= getTransform();
-    statesCopy.texture = &_texture;
-
-    aCanvas.draw(vertices, 4, PrimitiveType::TriangleStrip, statesCopy);
-}
-
-Multisprite::Subsprite* Multisprite::_firstSubspritePtr() {
-    if (_subspriteCount <= 1) {
-        return std::addressof(std::get<Subsprite>(_subsprites));
-    }
-    else {
-        return std::get<std::vector<Subsprite>>(_subsprites).data();
-    }
-}
-
-const Multisprite::Subsprite* Multisprite::_firstSubspritePtr() const {
-    if (_subspriteCount <= 1) {
-        return std::addressof(std::get<Subsprite>(_subsprites));
-    }
-    else {
-        return std::get<std::vector<Subsprite>>(_subsprites).data();
-    }
-}
-
-Multisprite::Subsprite::Subsprite(TextureRect aTextureRect)
-    : textureRect{aTextureRect}
-{
-    // World positions
-    {
-        const auto bounds = getLocalBounds();
-
-        vertices[0].position = math::Vector2f{0.f, 0.f};
-        vertices[1].position = math::Vector2f{0.f, bounds.h};
-        vertices[2].position = math::Vector2f{bounds.w, 0.f};
-        vertices[3].position = math::Vector2f{bounds.w, bounds.h};
-    }
-
-    // Texture positions
-    {
-        const float left   = static_cast<float>(aTextureRect.getLeft());
-        const float right  = static_cast<float>(aTextureRect.getRight());
-        const float top    = static_cast<float>(aTextureRect.getTop());
-        const float bottom = static_cast<float>(aTextureRect.getBottom());
-
-        vertices[0].texCoords = math::Vector2f{left, top};
-        vertices[1].texCoords = math::Vector2f{left, bottom};
-        vertices[2].texCoords = math::Vector2f{right, top};
-        vertices[3].texCoords = math::Vector2f{right, bottom};
-    }
-}
-
-math::Rectangle<float> Multisprite::Subsprite::getLocalBounds() const {
-    return {
-        0.f,
-        0.f,
-        static_cast<float>(std::abs(textureRect.w)),
-        static_cast<float>(std::abs(textureRect.h))
-    };
-}
-
 ///////////////////////////////////////////////////////////////////////////
 // TRANSFORMABLE                                                         //
 ///////////////////////////////////////////////////////////////////////////
@@ -238,7 +208,7 @@ void Multisprite::setPosition(float aX, float aY) {
 }
 
 void Multisprite::setPosition(const math::Vector2f& aPosition) {
-    // TODO
+    _transformableData.setPosition(aPosition);
 }
 
 void Multisprite::setRotation(math::AngleF aAngle) {
@@ -306,74 +276,85 @@ Transform Multisprite::getInverseTransform() const {
 }
 
 ///////////////////////////////////////////////////////////////////////////
-// MULTISPRITE BLUEPRINT                                                 //
+// SUBSPRITE                                                             //
 ///////////////////////////////////////////////////////////////////////////
 
-    // Construct with single subsprite
-MultispriteBlueprint::MultispriteBlueprint(const Texture& aTexture, TextureRect aTextureRect)
-    : _texture{&aTexture}
-    , _textureRects{aTextureRect}
-    , _subspriteCount{1}
+Multisprite::Subsprite::Subsprite(TextureRect aTextureRect)
+    : textureRect{aTextureRect}
 {
-}
+    // World positions
+    {
+        const auto bounds = getLocalBounds();
 
-MultispriteBlueprint::MultispriteBlueprint(const MultispriteBlueprint& aOther)
-    : _texture{aOther._texture}
-    , _textureRects{aOther._textureRects}
-    , _subspriteCount{aOther._subspriteCount}
-{
-}
-
-MultispriteBlueprint& MultispriteBlueprint::operator=(const MultispriteBlueprint& aOther) {
-    if (this != &aOther) {
-        SELF._texture = aOther._texture;
-        SELF._textureRects = aOther._textureRects;
-        SELF._subspriteCount = aOther._subspriteCount;
-    }
-    return SELF;
-}
-
-MultispriteBlueprint::MultispriteBlueprint(MultispriteBlueprint&& aOther)
-    : _texture{aOther._texture}
-    , _textureRects{std::move(aOther._textureRects)}
-    , _subspriteCount{aOther._subspriteCount}
-{
-}
-
-MultispriteBlueprint& MultispriteBlueprint::operator=(MultispriteBlueprint&& aOther) {
-    if (this != &aOther) {
-        SELF._texture = aOther._texture;
-        SELF._textureRects = std::move(aOther._textureRects);
-        SELF._subspriteCount = aOther._subspriteCount;
-    }
-    return SELF;
-}
-
-PZInteger MultispriteBlueprint::getSubspriteCount() const {
-    return _subspriteCount;
-}
-
-Sprite MultispriteBlueprint::subspr(PZInteger aSubspriteIndex) const {
-    if (aSubspriteIndex >= _subspriteCount) {
-        throw TracedLogicError{"MultispriteBlueprint - Subsprite index out of bounds!"};
+        vertices[0].position = math::Vector2f{0.f, 0.f};
+        vertices[1].position = math::Vector2f{0.f, bounds.h};
+        vertices[2].position = math::Vector2f{bounds.w, 0.f};
+        vertices[3].position = math::Vector2f{bounds.w, bounds.h};
     }
 
-    if (_subspriteCount > 1) {
-        return Sprite{
-            *_texture, 
-            std::get<std::vector<TextureRect>>(_textureRects).at(pztos(aSubspriteIndex))
-        };
-    }
+    // Texture positions
+    {
+        const float left   = static_cast<float>(aTextureRect.getLeft());
+        const float right  = static_cast<float>(aTextureRect.getRight());
+        const float top    = static_cast<float>(aTextureRect.getTop());
+        const float bottom = static_cast<float>(aTextureRect.getBottom());
 
-    return Sprite{*_texture, std::get<TextureRect>(_textureRects)};
+        vertices[0].texCoords = math::Vector2f{left, top};
+        vertices[1].texCoords = math::Vector2f{left, bottom};
+        vertices[2].texCoords = math::Vector2f{right, top};
+        vertices[3].texCoords = math::Vector2f{right, bottom};
+    }
 }
 
-Multisprite MultispriteBlueprint::multispr() const {
-    if (_subspriteCount > 1) {
-        return Multisprite{*_texture, std::get<std::vector<TextureRect>>(_textureRects)};
+math::Rectangle<float> Multisprite::Subsprite::getLocalBounds() const {
+    return {
+        0.f,
+        0.f,
+        static_cast<float>(std::abs(textureRect.w)),
+        static_cast<float>(std::abs(textureRect.h))
+    };
+}
+
+///////////////////////////////////////////////////////////////////////////
+// PROTECTED/PRIVATE                                                     //
+///////////////////////////////////////////////////////////////////////////
+
+void Multisprite::_draw(Canvas& aCanvas, const RenderStates& aStates) const {
+    if (_subspriteCount == 0) {
+        return;
     }
 
-    return Multisprite{*_texture, std::get<TextureRect>(_textureRects)};
+    const auto& subspr = *(_firstSubspritePtr() + getCurrentSubspriteIndex());
+
+    // Prepare vertices
+    Vertex vertices[4];
+    std::memcpy(vertices, subspr.vertices, sizeof(Vertex) * 4);
+    vertices[0].color = vertices[1].color = vertices[2].color = vertices[3].color = _color;
+
+    // Prepare render states
+    RenderStates statesCopy{aStates};
+    statesCopy.transform *= getTransform();
+    statesCopy.texture = &_texture;
+
+    aCanvas.draw(vertices, 4, PrimitiveType::TriangleStrip, statesCopy);
+}
+
+Multisprite::Subsprite* Multisprite::_firstSubspritePtr() {
+    if (_subspriteCount <= 1) {
+        return std::addressof(std::get<Subsprite>(_subsprites));
+    }
+    else {
+        return std::get<std::vector<Subsprite>>(_subsprites).data();
+    }
+}
+
+const Multisprite::Subsprite* Multisprite::_firstSubspritePtr() const {
+    if (_subspriteCount <= 1) {
+        return std::addressof(std::get<Subsprite>(_subsprites));
+    }
+    else {
+        return std::get<std::vector<Subsprite>>(_subsprites).data();
+    }
 }
 
 } // namespace gr

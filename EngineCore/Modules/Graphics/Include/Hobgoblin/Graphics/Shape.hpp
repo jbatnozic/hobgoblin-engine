@@ -56,6 +56,14 @@ class Texture;
 //! \brief Base class for textured shapes with outline.
 class Shape : public Drawable, public Transformable, private detail::ShapePolymorphismAdapter {
 public:
+    Shape();
+
+    Shape(const Shape& aOther);
+    Shape& operator=(const Shape& aOther);
+
+    Shape(Shape&& aOther);
+    Shape& operator=(Shape&& aOther);
+
     //! \brief Virtual destructor
     virtual ~Shape();
 

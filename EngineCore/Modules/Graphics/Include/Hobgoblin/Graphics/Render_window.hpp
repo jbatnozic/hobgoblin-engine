@@ -45,6 +45,12 @@ public:
     //! use the other constructors or call create() to do so.
     RenderWindow();
 
+    RenderWindow(const RenderWindow& aOther) = delete;
+    RenderWindow& operator=(const RenderWindow& aOther) = delete;
+
+    RenderWindow(RenderWindow&& aOther) = delete;
+    RenderWindow& operator=(RenderWindow&& aOther) = delete;
+
     //! \brief Construct a new window
     //!
     //! This constructor creates the window with the size and pixel

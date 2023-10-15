@@ -144,23 +144,19 @@ math::Rectangle<PZInteger> RenderWindow::getViewport(PZInteger aViewIdx) const {
 }
 
 math::Vector2f RenderWindow::mapPixelToCoords(const math::Vector2i& aPoint, const View& aView) const {
-    // TODO
-    return {};
+    return GetSRTA(const)->mapPixelToCoords(aPoint, aView);
 }
 
 math::Vector2f RenderWindow::mapPixelToCoords(const math::Vector2i& aPoint, PZInteger aViewIdx) const {
-    // TODO
-    return {};
+    return GetSRTA(const)->mapPixelToCoords(aPoint, getView(aViewIdx));
 }
 
-math::Vector2i RenderWindow::mapCoordsToPixel(const math::Vector2f& point, const View& view) const {
-    // TODO
-    return {};
+math::Vector2i RenderWindow::mapCoordsToPixel(const math::Vector2f& aPoint, const View& aView) const {
+    return GetSRTA(const)->mapCoordsToPixel(aPoint, aView);
 }
 
-math::Vector2i RenderWindow::mapCoordsToPixel(const math::Vector2f& point, PZInteger aViewIdx) const {
-    // TODO
-    return {};
+math::Vector2i RenderWindow::mapCoordsToPixel(const math::Vector2f& aPoint, PZInteger aViewIdx) const {
+    return GetSRTA(const)->mapCoordsToPixel(aPoint, getView(aViewIdx));
 }
 
 math::Vector2pz RenderWindow::getSize() const {

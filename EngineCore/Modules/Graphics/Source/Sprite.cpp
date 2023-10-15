@@ -180,20 +180,6 @@ const void* Sprite::_getSFMLImpl() const {
     return SELF_CIMPL;
 }
 
-///////////////////////////////////////////////////////////////////////////
-// SPRITE BLUEPRINT                                                      //
-///////////////////////////////////////////////////////////////////////////
-
-SpriteBlueprint::SpriteBlueprint(const Texture& aTexture, TextureRect aTextureRect)
-    : _texture{aTexture}
-    , _textureRect{aTextureRect}
-{
-}
-
-Sprite SpriteBlueprint::spr() const {
-    return Sprite{_texture, _textureRect};
-}
-
 } // namespace gr
 HOBGOBLIN_NAMESPACE_END
 

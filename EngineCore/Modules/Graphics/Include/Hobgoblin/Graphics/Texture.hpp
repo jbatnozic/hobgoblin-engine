@@ -28,10 +28,12 @@
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Graphics/OpenGL_handle.hpp>
 #include <Hobgoblin/Graphics/Image.hpp>
+#include <Hobgoblin/Graphics/Texture_rect.hpp>
 #include <Hobgoblin/Math/Rectangle.hpp>
 #include <Hobgoblin/Math/Vector.hpp>
 
 #include <cstdint>
+#include <filesystem>
 #include <type_traits>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
@@ -67,6 +69,8 @@ public:
     //!
     //! \param aOther instance to copy
     Texture(const Texture& aOther);
+
+    // TODO(copy/move ctors/op)
 
     //! \brief Destructor
     ~Texture();
@@ -107,7 +111,7 @@ public:
     //! \return True if loading was successful
     //!
     //! \see loadFromMemory, loadFromStream, loadFromImage
-    bool loadFromFile(const UnicodeString& aFilename, const math::Rectangle<int>& aArea = {});
+    bool loadFromFile(const std::filesystem::path& aPath, TextureRect aArea = {});
 
     //! \brief Load the texture from a file in memory
     //!
@@ -136,7 +140,7 @@ public:
     //! \return True if loading was successful
     //!
     //! \see loadFromFile, loadFromStream, loadFromImage
-    bool loadFromMemory(const void* aData, PZInteger aSize, const math::Rectangle<int>& aArea = {});
+    bool loadFromMemory(const void* aData, PZInteger aSize, TextureRect aArea = {});
 
     //! \brief Load the texture from a custom stream
     //!
@@ -185,7 +189,7 @@ public:
     //! \return True if loading was successful
     //!
     //! \see loadFromFile, loadFromMemory
-    bool loadFromImage(const Image& aImage, const const math::Rectangle<int>& aArea = {});
+    bool loadFromImage(const Image& aImage, TextureRect aArea = {});
 
     //! \brief Return the size of the texture
     //!
@@ -290,7 +294,7 @@ public:
     //! previously created.
     //!
     //! \param image Image to copy to the texture
-    // void update(const Image& aImage); TODO
+    void update(const Image& aImage);
 
     //! \brief Update a part of the texture from an image
     //!
@@ -304,7 +308,7 @@ public:
     //! \param image Image to copy to the texture
     //! \param x     X offset in the texture where to copy the source image
     //! \param y     Y offset in the texture where to copy the source image
-    // void update(const Image& aImage, unsigned int aX, unsigned int aY); TODO
+    void update(const Image& aImage, PZInteger aX, PZInteger aY);
 
     //! \brief Update the texture from the contents of a window
     //!

@@ -30,6 +30,7 @@
 #include <Hobgoblin/Math/Vector.hpp>
 
 #include <cstdint>
+#include <filesystem>
 #include <string>
 #include <type_traits>
 
@@ -52,7 +53,12 @@ public:
     //! Creates an empty image.
     Image();
 
-    
+    Image(const Image& aOther);
+    Image& operator=(const Image& aOther);
+
+    Image(Image&& aOther) noexcept;
+    Image& operator=(Image&& aOther) noexcept;
+
     //! \brief Destructor
     ~Image();
 
@@ -87,7 +93,7 @@ public:
     //! \return True if loading was successful
     //!
     //! \see loadFromMemory, loadFromStream, saveToFile
-    bool loadFromFile(const std::string& aFilename);
+    bool loadFromFile(const std::filesystem::path& aPath);
 
     //! \brief Load the image from a file in memory
     //!
@@ -130,7 +136,7 @@ public:
     //! \return True if saving was successful
     //!
     //! \see create, loadFromFile, loadFromMemory
-    bool saveToFile(const std::string& aFilename) const;
+    bool saveToFile(const std::filesystem::path& aPath) const;
 
     //! \brief Return the size (width and height) of the image
     //!

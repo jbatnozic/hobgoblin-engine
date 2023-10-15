@@ -1,7 +1,10 @@
 
 #include <Hobgoblin/Graphics/Shape.hpp>
 
+#include <Hobgoblin/Common.hpp>
+
 #include <SFML/Graphics/Shape.hpp>
+#include <SFML/Graphics/Texture.hpp>
 
 #include <functional>
 #include <new>
@@ -19,16 +22,16 @@ namespace {
 class SfShapeAdapter : public sf::Shape {
 public:
     SfShapeAdapter(detail::ShapePolymorphismAdapter& aShapePolyAdapter)
-        : _shapePolyAdapter{aShapePolyAdapter}
+        : _shapePolyAdapter{&aShapePolyAdapter}
     {
     }
 
     std::size_t getPointCount() const override {
-        return pztos(_shapePolyAdapter.getPointCount());
+        return pztos(_shapePolyAdapter->getPointCount());
     }
 
     sf::Vector2f getPoint(std::size_t aIndex) const override {
-        const auto point = _shapePolyAdapter.getPoint(stopz(aIndex));
+        const auto point = _shapePolyAdapter->getPoint(stopz(aIndex));
         return {point.x, point.y};
     }
 
@@ -37,7 +40,9 @@ public:
     }
 
 private:
-    detail::ShapePolymorphismAdapter& _shapePolyAdapter;
+    friend class ::jbatnozic::hobgoblin::gr::Shape;
+
+    not_null<detail::ShapePolymorphismAdapter*> _shapePolyAdapter;
 };
 } // namespace
 
@@ -56,12 +61,44 @@ Shape::Shape() {
     new (&_storage) ImplType(SELF);
 }
 
+Shape::Shape(const Shape& aOther) {
+    new (&_storage) ImplType(*CIMPLOF(aOther));
+    SELF_IMPL->_shapePolyAdapter = this;
+}
+
+Shape& Shape::operator=(const Shape& aOther) {
+    if (this != &aOther) {
+        *SELF_IMPL = *CIMPLOF(aOther);
+        SELF_IMPL->_shapePolyAdapter = this;
+    }
+    return SELF;
+}
+
+Shape::Shape(Shape&& aOther) {
+    new (&_storage) ImplType(std::move(*IMPLOF(aOther)));
+    SELF_IMPL->_shapePolyAdapter = this;
+}
+
+Shape& Shape::operator=(Shape&& aOther) {
+    if (this != &aOther) {
+        *SELF_IMPL = std::move(*IMPLOF(aOther));
+        SELF_IMPL->_shapePolyAdapter = this;
+    }
+    return SELF;
+}
+
 Shape::~Shape() {
     SELF_IMPL->~SfShapeAdapter();
 }
 
 void Shape::setTexture(const Texture* aTexture, bool aResetRect) {
-    // TODO
+    if (aTexture == nullptr) {
+        SELF_IMPL->setTexture(nullptr, aResetRect);
+    }
+    else {
+        const auto& sfTexture = detail::GraphicsImplAccessor::getImplOf<sf::Texture>(*aTexture);
+        SELF_IMPL->setTexture(&sfTexture, aResetRect);
+    }
 }
 
 void Shape::setTextureRect(const math::Rectangle<PZInteger>& aRect) {

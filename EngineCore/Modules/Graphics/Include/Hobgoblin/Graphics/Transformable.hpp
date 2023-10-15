@@ -33,10 +33,6 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
-namespace detail {
-class GraphicsImplAccessor;
-} // namespace detail
-
 //! \brief Decomposed transform defined by a position, a rotation and a scale
 class Transformable {
 public:
@@ -75,7 +71,7 @@ public:
     //! \param aAngle New rotation, in degrees.
     //!
     //! \see rotate, getRotation
-    virtual void setRotation(math::AngleF aAngle) = 0; // TODO: to math::Angle
+    virtual void setRotation(math::AngleF aAngle) = 0;
 
     //! \brief set the scale factors of the object
     //!

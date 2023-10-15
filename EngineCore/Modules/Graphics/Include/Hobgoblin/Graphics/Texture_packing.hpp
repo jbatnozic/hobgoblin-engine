@@ -2,8 +2,9 @@
 #define UHOBGOBLIN_GR_TEXTURE_PACKING_HPP
 
 #include <Hobgoblin/Common.hpp>
-#include <Hobgoblin/Utility/Rectangle.hpp>
-#include <SFML/Graphics.hpp>
+#include <Hobgoblin/Graphics/Image.hpp>
+#include <Hobgoblin/Graphics/Texture.hpp>
+#include <Hobgoblin/Graphics/Texture_rect.hpp>
 
 #include <vector>
 
@@ -25,10 +26,10 @@ public:
 	using TracedRuntimeError::TracedRuntimeError;
 };
 
-std::vector<util::Rectangle<PZInteger>> PackTexture(sf::Texture& texture, 
-													const std::vector<sf::Image*>& images,
-                                                    TexturePackingHeuristic heuristic, 
-													float* occupancy = nullptr);
+std::vector<TextureRect> PackTexture(Texture& texture, 
+									 const std::vector<Image*>& images,
+                                     TexturePackingHeuristic heuristic, 
+									 float* occupancy = nullptr);
 
 } // namespace gr
 HOBGOBLIN_NAMESPACE_END
