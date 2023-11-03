@@ -26,6 +26,7 @@
 
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Graphics/Color.hpp>
+#include <Hobgoblin/Graphics/Texture_rect.hpp>
 #include <Hobgoblin/Math/Rectangle.hpp>
 #include <Hobgoblin/Math/Vector.hpp>
 
@@ -93,7 +94,7 @@ public:
     //! \return True if loading was successful
     //!
     //! \see loadFromMemory, loadFromStream, saveToFile
-    bool loadFromFile(const std::filesystem::path& aPath);
+    void loadFromFile(const std::filesystem::path& aPath);
 
     //! \brief Load the image from a file in memory
     //!
@@ -108,7 +109,7 @@ public:
     //! \return True if loading was successful
     //!
     //! \see loadFromFile, loadFromStream
-    bool loadFromMemory(const void* aData, std::size_t aSize);
+    void loadFromMemory(const void* aData, std::size_t aSize);
 
     //! \brief Load the image from a custom stream
     //!
@@ -122,7 +123,7 @@ public:
     //! \return True if loading was successful
     //!
     //! \see loadFromFile, loadFromMemory
-    // bool loadFromStream(InputStream& aStream); TODO
+    // void loadFromStream(InputStream& aStream); TODO(streams)
 
     //! \brief Save the image to a file on disk
     //!
@@ -136,7 +137,7 @@ public:
     //! \return True if saving was successful
     //!
     //! \see create, loadFromFile, loadFromMemory
-    bool saveToFile(const std::filesystem::path& aPath) const;
+    void saveToFile(const std::filesystem::path& aPath) const;
 
     //! \brief Return the size (width and height) of the image
     //!
@@ -174,7 +175,7 @@ public:
         const Image& aSource,
         PZInteger aDestX,
         PZInteger aDestY,
-        const math::Rectangle<PZInteger>& aSourceRect = {0, 0, 0, 0}, 
+        TextureRect aSourceRect = {0, 0, 0, 0}, 
         bool aApplyAlpha = false
     );
 

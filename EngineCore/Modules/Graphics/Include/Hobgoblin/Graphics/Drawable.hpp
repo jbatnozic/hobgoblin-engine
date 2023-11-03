@@ -35,6 +35,7 @@ public:
 private:
     virtual void _draw(Canvas& aCanvas, const RenderStates& aStates) const = 0;
 
+    friend class DrawBatcher;
     friend class SfmlRenderTargetAdapter;
 };
 

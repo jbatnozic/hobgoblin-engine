@@ -59,7 +59,16 @@ public:
     //! \param color Fill color to use to clear the render target
     virtual void clear(const Color& aColor = COLOR_BLACK) = 0;
 
-    //! TODO
+    //! \brief Sets the number of views that can be used by this render target.
+    //! 
+    //! All the views start as active and with the default dimensions.
+    //! Keep in mind that every draw() call done with this render target will be 
+    //! automatically repeated for every active view, so always deactive the views
+    //! that you're not using.
+    //! 
+    //! \param aViewCount Number of views.
+    //! 
+    //! \see setView, getView
     virtual void setViewCount(PZInteger aViewCount) = 0;
 
     //! \brief Change the current active view
@@ -83,7 +92,7 @@ public:
 
     virtual void setView(PZInteger aViewIdx, const View& aView) = 0;
 
-    //! TODO
+    //! \return The number of views used by this render target.
     virtual PZInteger getViewCount() const = 0;
 
     //! \brief Get the view currently in use in the render target
@@ -233,7 +242,7 @@ public:
     //! \param active True to activate, false to deactivate
     //!
     //! \return True if operation was successful, false otherwise
-    virtual bool setActive(bool aActive = true) = 0;
+    virtual [[nodiscard]] bool setActive(bool aActive = true) = 0;  // TODO(bool->exc)
 
     //! \brief Save the current OpenGL render states and matrices
     //!
@@ -293,6 +302,11 @@ public:
     //! // OpenGL code here...
     //! \endcode
     virtual void resetGLStates() = 0;
+
+    //! \brief Tell if the render target will use sRGB encoding when drawing on it
+    //!
+    //! \return True if the render target use sRGB encoding, false otherwise
+    virtual bool isSrgb() const = 0;
 };
 
 } // namespace gr

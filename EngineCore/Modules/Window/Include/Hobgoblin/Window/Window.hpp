@@ -35,6 +35,7 @@
 #include <Hobgoblin/Utility/No_copy_no_move.hpp>
 
 #include <cstdint>
+#include <memory>
 #include <string>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
@@ -103,6 +104,9 @@ public:
     //! \param handle   Platform-specific handle of the control
     //! \param settings Additional settings for the underlying OpenGL context
     explicit Window(WindowHandle aHandle, const ContextSettings& aSettings = ContextSettings());
+
+    Window(Window&& aOther);
+    Window& operator=(Window&& aOther);
 
     //! \brief Destructor
     //!
@@ -437,9 +441,8 @@ private:
     void* _getSFMLImpl();
     const void* _getSFMLImpl() const;
 
-    static constexpr std::size_t STORAGE_SIZE  = 544;
-    static constexpr std::size_t STORAGE_ALIGN =   8;
-    std::aligned_storage<STORAGE_SIZE, STORAGE_ALIGN>::type _storage;
+    class Impl;
+    std::unique_ptr<Impl> _impl;
 };
 
 } // namespace win

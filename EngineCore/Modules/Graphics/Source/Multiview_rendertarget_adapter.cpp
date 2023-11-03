@@ -11,10 +11,14 @@ HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
 MultiViewRenderTargetAdapter::MultiViewRenderTargetAdapter(RenderTarget& aRenderTarget)
-    : _renderTarget{aRenderTarget}
-    , _views{_renderTarget.getDefaultView()}
+    : _renderTarget{&aRenderTarget}
+    , _views{_renderTarget->getDefaultView()}
     , _viewCount{1}
 {
+}
+
+void MultiViewRenderTargetAdapter::setRenderTarget(RenderTarget& aRenderTarget) {
+    _renderTarget = &aRenderTarget;
 }
 
 void MultiViewRenderTargetAdapter::setViewCount(PZInteger aViewCount) {
@@ -59,8 +63,8 @@ void MultiViewRenderTargetAdapter::draw(const Drawable& aDrawable,
     for (PZInteger i = 0; i < _viewCount; i += 1) {
         const auto& view = getView(i);
         if (view.isEnabled()) {
-            _renderTarget.setView(view);
-            _renderTarget.draw(aDrawable, aStates);
+            _renderTarget->setView(view);
+            _renderTarget->draw(aDrawable, aStates);
         }
     }
 }
@@ -72,8 +76,8 @@ void MultiViewRenderTargetAdapter::draw(const Vertex* aVertices,
     for (PZInteger i = 0; i < _viewCount; i += 1) {
         const auto& view = getView(i);
         if (view.isEnabled()) {
-            _renderTarget.setView(view);
-            _renderTarget.draw(
+            _renderTarget->setView(view);
+            _renderTarget->draw(
                 aVertices,
                 aVertexCount,
                 aPrimitiveType,
@@ -88,8 +92,8 @@ void MultiViewRenderTargetAdapter::draw(const VertexBuffer& aVertexBuffer,
     for (PZInteger i = 0; i < _viewCount; i += 1) {
         const auto& view = getView(i);
         if (view.isEnabled()) {
-            _renderTarget.setView(view);
-            _renderTarget.draw(aVertexBuffer, aStates);
+            _renderTarget->setView(view);
+            _renderTarget->draw(aVertexBuffer, aStates);
         }
     }
 }
@@ -101,14 +105,14 @@ void MultiViewRenderTargetAdapter::draw(const VertexBuffer& aVertexBuffer,
     for (PZInteger i = 0; i < _viewCount; i += 1) {
         const auto& view = getView(i);
         if (view.isEnabled()) {
-            _renderTarget.setView(view);
-            _renderTarget.draw(aVertexBuffer, aFirstVertex, aVertexCount, aStates);
+            _renderTarget->setView(view);
+            _renderTarget->draw(aVertexBuffer, aFirstVertex, aVertexCount, aStates);
         }
     }
 }
 
 void MultiViewRenderTargetAdapter::flush() {
-    _renderTarget.flush();
+    _renderTarget->flush();
 }
 
 View* MultiViewRenderTargetAdapter::addressOfFirstView() {

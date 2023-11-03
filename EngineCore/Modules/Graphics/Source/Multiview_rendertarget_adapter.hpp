@@ -19,6 +19,10 @@ class MultiViewRenderTargetAdapter final : public Canvas {
 public:
     MultiViewRenderTargetAdapter(RenderTarget& aRenderTarget);
 
+    MultiViewRenderTargetAdapter(MultiViewRenderTargetAdapter&& aOther) = default;
+
+    void setRenderTarget(RenderTarget& aRenderTarget);
+
     void setViewCount(PZInteger aViewCount);
 
     PZInteger getViewCount() const noexcept;
@@ -45,21 +49,20 @@ public:
 
     void flush() override;
 
+    void getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) override {
+        _renderTarget->getCanvasDetails(aType, aRenderingBackend);
+    }
+
 private:
     using Views = std::vector<View>;
 
-    RenderTarget& _renderTarget;
+    RenderTarget* _renderTarget;
     std::variant<View, Views> _views;
     PZInteger _viewCount;
 
     View* addressOfFirstView();
 
     const View* addressOfFirstView() const;
-
-    void getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) override {
-        aType = CanvasType::Proxy;
-        aRenderingBackend = static_cast<Canvas*>(&_renderTarget);
-    }
 };
 
 } // namespace gr

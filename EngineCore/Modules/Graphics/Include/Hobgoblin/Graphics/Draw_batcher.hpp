@@ -34,6 +34,8 @@ public:
 
     void flush() override;
 
+    void getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) override;
+
 private:
     enum class Status {
         Empty,
@@ -54,8 +56,8 @@ private:
     void _prepForBatchingSprites(const RenderStates& aStates, const Texture* aTexture);
     void _prepForBatchingVertices(const RenderStates& aStates, PrimitiveType aType);
 
-    void _drawVertexArray();
-    void _drawSprite(const Sprite& aSprite, const RenderStates&);
+    void _drawVertexArray(const VertexArray& aVertexArray, const RenderStates& aStates);
+    void _drawSprite(const Sprite& aSprite, const RenderStates& aStates);
 };
 
 } // namespace gr

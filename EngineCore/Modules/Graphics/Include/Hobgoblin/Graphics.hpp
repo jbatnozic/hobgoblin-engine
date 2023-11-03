@@ -11,11 +11,12 @@
 #include <Hobgoblin/Graphics/Image.hpp>
 #include <Hobgoblin/Graphics/Multisprite.hpp>
 #include <Hobgoblin/Graphics/Multisprite_blueprint.hpp>
-#include <Hobgoblin/Graphics/OpenGL_handle.hpp> // -> window ??????????
+#include <Hobgoblin/Graphics/OpenGL_handle.hpp> // TODO(-> window ??????????)
 #include <Hobgoblin/Graphics/Primitive_type.hpp>
 #include <Hobgoblin/Graphics/Rectangle_shape.hpp>
 #include <Hobgoblin/Graphics/Render_states.hpp>
 #include <Hobgoblin/Graphics/Render_target.hpp>
+#include <Hobgoblin/Graphics/Render_texture.hpp>
 #include <Hobgoblin/Graphics/Render_window.hpp>
 #include <Hobgoblin/Graphics/Shader.hpp>
 #include <Hobgoblin/Graphics/Shape.hpp>

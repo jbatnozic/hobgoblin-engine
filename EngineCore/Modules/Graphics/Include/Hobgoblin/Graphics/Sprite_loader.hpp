@@ -149,9 +149,9 @@ public:
 
     void removeTexture(Texture& aTexture);
 
-    const SpriteBlueprint& getBlueprint(SpriteIdNumerical aSpriteId) const;
+    SpriteBlueprint getBlueprint(SpriteIdNumerical aSpriteId) const;
 
-    const SpriteBlueprint& getBlueprint(const SpriteIdTextual& aSpriteId) const;
+    SpriteBlueprint getBlueprint(const SpriteIdTextual& aSpriteId) const;
 
     const MultispriteBlueprint& getMultiBlueprint(SpriteIdNumerical aSpriteId) const;
 
@@ -160,7 +160,7 @@ public:
     //! Deletes all texture and sprite blueprint data from the loader,
     //! returning it to its initial state. Be careful not to keep using
     //! any sprites or sprite blueprints which you previously got from
-    //! this loader, which will not reference deallocated textures.
+    //! this loader, which will now reference deallocated textures.
     void clear();
 
 private:

@@ -7,6 +7,7 @@
 #include <utility>
 
 #include "SFML_conversions.hpp"
+#include "SFML_err.hpp"
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
@@ -22,7 +23,7 @@ constexpr auto IMPL_ALIGN = alignof(ImplType);
 #define SELF_CIMPL (CIMPLOF(SELF))
 
 Image::Image() {
-    static_assert(STORAGE_SIZE == IMPL_SIZE,   "Image::STORAGE_SIZE is inadequate.");
+    static_assert(STORAGE_SIZE  >= IMPL_SIZE,   "Image::STORAGE_SIZE is inadequate."); // TODO(size)
     static_assert(STORAGE_ALIGN == IMPL_ALIGN, "Image::STORAGE_ALIGN is inadequate.");
 
     new (&_storage) ImplType();
@@ -70,16 +71,28 @@ void Image::create(PZInteger aWidth, PZInteger aHeight, const std::uint8_t* aPix
     );
 }
 
-bool Image::loadFromFile(const std::filesystem::path& aPath) {
-    return SELF_IMPL->loadFromFile(FilesystemPathToSfPath(aPath));
+void Image::loadFromFile(const std::filesystem::path& aPath) {
+    SFMLErrorCatcher sfErr;
+    if (!SELF_IMPL->loadFromFile(FilesystemPathToSfPath(aPath))) {
+        // TODO throw IOError
+        throw TracedRuntimeError{sfErr.getErrorMessage()};
+    }
 }
 
-bool Image::loadFromMemory(const void* aData, std::size_t aSize) {
-    return SELF_IMPL->loadFromMemory(aData, aSize);
+void Image::loadFromMemory(const void* aData, std::size_t aSize) {
+    SFMLErrorCatcher sfErr;
+    if (!SELF_IMPL->loadFromMemory(aData, aSize)) {
+        // TODO throw IOError
+        throw TracedRuntimeError{sfErr.getErrorMessage()};
+    }
 }
 
-bool Image::saveToFile(const std::filesystem::path& aPath) const {
-    return SELF_CIMPL->saveToFile(FilesystemPathToSfPath(aPath));
+void Image::saveToFile(const std::filesystem::path& aPath) const {
+    SFMLErrorCatcher sfErr;
+    if (!SELF_CIMPL->saveToFile(FilesystemPathToSfPath(aPath))) {
+        // TODO throw IOError
+        throw TracedRuntimeError{sfErr.getErrorMessage()};
+    }
 }
 
 math::Vector2pz Image::getSize() const {
@@ -95,13 +108,23 @@ void Image::createMaskFromColor(const Color& aColor, std::uint8_t aAlpha) {
 }
 
 void Image::copy(
-    const Image& source,
-    PZInteger destX,
-    PZInteger destY,
-    const math::Rectangle<PZInteger>& sourceRect,
-    bool applyAlpha
+    const Image& aSource,
+    PZInteger aDestX,
+    PZInteger aDestY,
+    TextureRect aSourceRect,
+    bool aApplyAlpha
 ) {
-    // TODO
+    const auto& sfSourceImage = detail::GraphicsImplAccessor::getImplOf<sf::Image>(aSource);
+    SELF_IMPL->copy(sfSourceImage,
+                    static_cast<unsigned>(aDestX),
+                    static_cast<unsigned>(aDestY),
+                    {
+                        static_cast<int>(aSourceRect.x),
+                        static_cast<int>(aSourceRect.y),
+                        static_cast<int>(aSourceRect.w),
+                        static_cast<int>(aSourceRect.h)
+                    },
+                    aApplyAlpha);
 }
 
 void Image::setPixel(PZInteger aX, PZInteger aY, const Color& aColor) {

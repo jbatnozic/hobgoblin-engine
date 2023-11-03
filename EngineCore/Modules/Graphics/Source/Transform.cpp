@@ -32,6 +32,28 @@ Transform::Transform(float a00, float a01, float a02,
     new (&_storage) ImplType(a00, a01, a02, a10, a11, a12, a20, a21, a22);
 }
 
+Transform::Transform(const Transform& aOther) {
+    new (&_storage) ImplType(*CIMPLOF(aOther));
+}
+
+Transform& Transform::operator=(const Transform& aOther) {
+    if (this != &aOther) {
+        *SELF_IMPL = *CIMPLOF(aOther);
+    }
+    return SELF;
+}
+
+Transform::Transform(Transform&& aOther) noexcept {
+    new (&_storage) ImplType(std::move(*IMPLOF(aOther)));
+}
+
+Transform& Transform::operator=(Transform&& aOther) noexcept {
+    if (this != &aOther) {
+        *SELF_IMPL = std::move(*IMPLOF(aOther));
+    }
+    return SELF;
+}
+
 Transform::~Transform() {
     SELF_IMPL->~ImplType();
 }
@@ -119,7 +141,7 @@ Transform& Transform::scale(const math::Vector2f& aFactors, const math::Vector2f
     return SELF;
 }
 
-static const Transform Identity; // TODO
+static const Transform IDENTITY;
 
 void* Transform::_getSFMLImpl() {
     return SELF_IMPL;
@@ -140,8 +162,7 @@ Transform& operator*=(Transform& aLhs, const Transform& aRhs) {
 }
 
 math::Vector2f operator*(const Transform& aLhs, const math::Vector2f& aRhs) {
-    // TODO
-    return {};
+    return ToHg(aLhs.transformPoint(aRhs));
 }
 
 bool operator==(const Transform& aLhs, const Transform& aRhs) {

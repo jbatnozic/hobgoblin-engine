@@ -15,28 +15,15 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
-namespace detail {
-class CanvasAccessor {
-public:
-    static CanvasType getCanvasDetails(Canvas& aCanvas, void*& aRenderingBackend) {
-        CanvasType type;
-        aCanvas.getCanvasDetails(type, aRenderingBackend);
-        return type;
-    }
-};
-} // namespace detail
-
 //! It BRIDGES the DRAW calls :D
 template <class taCallable>
 bool Draw(Canvas& aCanvas, taCallable&& aCallable) {
+    CanvasType canvasType;
     void* renderingBackend;
-    const auto canvasType = detail::CanvasAccessor::getCanvasDetails(aCanvas, renderingBackend);
+    aCanvas.getCanvasDetails(canvasType, renderingBackend);
     assert(renderingBackend != nullptr);
 
     switch (canvasType) {
-    case CanvasType::Proxy:
-        return Draw(*static_cast<Canvas*>(renderingBackend), std::forward<taCallable>(aCallable));
-
     case CanvasType::SFML:
         aCallable(*static_cast<sf::RenderTarget*>(renderingBackend));
         return true;

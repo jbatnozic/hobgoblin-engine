@@ -6,6 +6,7 @@
 #include <cassert>
 
 #include "SFML_conversions.hpp"
+#include "SFML_err.hpp"
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
@@ -27,9 +28,7 @@ public:
 		: _loader{aSpriteLoader}
 	{
 		_texture = std::make_unique<Texture>();
-		if (!_texture->create(aTextureWidth, aTextureHeight)) {
-			// TODO(error)
-		}
+		_texture->create(aTextureWidth, aTextureHeight);
 	}
 
 	not_null<TextureBuilder*> addSprite(SpriteIdNumerical aSpriteId,
@@ -246,9 +245,7 @@ private:
 
 	static Image _loadImage(const std::filesystem::path& aPath) {
 		Image image;
-		if (!image.loadFromFile(FilesystemPathToSfPath(aPath))) {
-			throw TracedRuntimeError{std::string{"TextureBuilder - Could not load image at "} /*+ aFilePath.c_str()*/};
-		}
+		image.loadFromFile(FilesystemPathToSfPath(aPath));
 		return image;
 	}
 };
@@ -274,7 +271,7 @@ void SpriteLoader::removeTexture(Texture& aTextureToRemove) {
 	_textures.erase(iter, _textures.end());
 }
 
-const SpriteBlueprint& SpriteLoader::getBlueprint(SpriteIdNumerical aSpriteId) const {
+SpriteBlueprint SpriteLoader::getBlueprint(SpriteIdNumerical aSpriteId) const {
 	const auto iter = _indexedBlueprints.find(aSpriteId);
 	if (iter == _indexedBlueprints.end()) {
 		throw TracedRuntimeError{"SpriteLoader - No blueprint with this ID was found!"};
@@ -283,7 +280,7 @@ const SpriteBlueprint& SpriteLoader::getBlueprint(SpriteIdNumerical aSpriteId) c
 	return iter->second.extractBlueprint(0);
 }
 
-const SpriteBlueprint& SpriteLoader::getBlueprint(const SpriteIdTextual& aSpriteId) const {
+SpriteBlueprint SpriteLoader::getBlueprint(const SpriteIdTextual& aSpriteId) const {
 	const auto iter = _mappedBlueprints.find(aSpriteId);
 	if (iter == _mappedBlueprints.end()) {
 		throw TracedRuntimeError{"SpriteLoader - No blueprint with this ID was found!"};

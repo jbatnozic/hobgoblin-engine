@@ -22,14 +22,18 @@ class Texture;
 //!        own transformations, color, etc.
 class Sprite final : public Drawable, public Transformable {
 public:
-    //! \brief Default constructor
+    //! \brief Default constructor.
     //!
     //! Creates an empty sprite with no source texture.
     Sprite();
 
-    // TODO(copy/move ctors/op)
+    //! \brief Copy constructor.
+    Sprite(const Sprite& aOther);
 
-    //! TODO
+    //! \brief Copy assignment operator.
+    Sprite& operator=(const Sprite& aOther);
+
+    //! Destructor.
     ~Sprite();
 
     //! \brief Construct the sprite from a source texture
@@ -46,6 +50,8 @@ public:
     //!
     //! \see setTexture, setTextureRect
     Sprite(const Texture& aTexture, TextureRect aTextureRect);
+
+    Transform getInverseTransform() const override final;
 
     //! \brief Change the source texture of the sprite
     //!
@@ -104,14 +110,14 @@ public:
     //! \return Texture rectangle of the sprite
     //!
     //! \see setTextureRect
-    const math::Rectangle<int>& getTextureRect() const;
+    TextureRect getTextureRect() const;
 
     //! \brief Get the global color of the sprite
     //!
     //! \return Global color of the sprite
     //!
     //! \see setColor
-    const Color& getColor() const;
+    Color getColor() const;
 
     //! \brief Get the local bounding rectangle of the entity
     //!
@@ -138,8 +144,6 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     // TRANSFORMABLE                                                         //
     ///////////////////////////////////////////////////////////////////////////
-
-    // TODO: see which overriden methods should be final
 
     void setPosition(float aX, float aY) override;
 
@@ -174,8 +178,6 @@ public:
     void scale(const math::Vector2f& aFactor) override;
 
     Transform getTransform() const override;
-
-    Transform getInverseTransform() const override;
 
 protected:
     void _draw(Canvas& aCanvas, const RenderStates& aStates) const override;

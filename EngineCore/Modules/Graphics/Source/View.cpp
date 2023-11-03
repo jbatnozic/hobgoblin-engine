@@ -38,11 +38,11 @@ View& View::operator=(const View& aOther) {
     return SELF;
 }
 
-View::View(View&& aOther) {
+View::View(View&& aOther) noexcept {
     new (&_storage) ImplType(std::move(*IMPLOF(aOther)));
 }
 
-View& View::operator=(View&& aOther) {
+View& View::operator=(View&& aOther) noexcept {
     if (this != &aOther) {
         *SELF_IMPL = std::move(*IMPLOF(aOther));
     }
@@ -58,7 +58,7 @@ View::View(const math::Vector2f& aCenter, const math::Vector2f& aSize) {
 }
 
 View::~View() {
-    IMPL->~ImplType();
+    SELF_IMPL->~ImplType();
 }
 
 void View::setEnabled(bool aEnabled) {
@@ -95,19 +95,19 @@ void View::setViewport(const math::Rectangle<float>& aViewport) {
 }
 
 void View::reset(const math::Rectangle<float>& aRectangle) {
-    // TODO
+    SELF_IMPL->reset(ToSf(aRectangle));
 }
 
 bool View::isEnabled() const {
     return _enabled;
 }
 
-const math::Vector2f& View::getCenter() const {
+math::Vector2f View::getCenter() const {
     const auto center = SELF_CIMPL->getCenter();
     return {center.x, center.y};
 }
 
-const math::Vector2f& View::getSize() const {
+math::Vector2f View::getSize() const {
     const auto size = SELF_CIMPL->getSize();
     return {size.x, size.y};
 }
@@ -137,13 +137,13 @@ void View::zoom(float aFactor) {
     SELF_IMPL->zoom(aFactor);
 }
 
-//const Transform& View::getTransform() const {
-//    // TODO
-//}
-//
-//const Transform& View::getInverseTransform() const {
-//    // TODO
-//}
+Transform View::getTransform() const {
+    return ToHg(SELF_CIMPL->getTransform());
+}
+
+Transform View::getInverseTransform() const {
+    return ToHg(SELF_CIMPL->getInverseTransform());
+}
 
 void* View::_getSFMLImpl() {
     return SELF_IMPL;

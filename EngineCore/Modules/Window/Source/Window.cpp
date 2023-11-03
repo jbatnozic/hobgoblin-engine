@@ -15,7 +15,7 @@ HOBGOBLIN_NAMESPACE_BEGIN
 namespace win {
 
 namespace {
-// Event for a regular Window, we must inherit from sf::RenderWindow,
+// Even for a regular Window, we must inherit from sf::RenderWindow,
 // so that hg::RenderWindow would work properly with its inheritance
 // structure.
 class SfRenderWindowAdapter : public sf::RenderWindow {
@@ -40,32 +40,56 @@ private:
 };
 } // namespace
 
-using ImplType = SfRenderWindowAdapter;
-constexpr auto IMPL_SIZE  = sizeof(ImplType);
-constexpr auto IMPL_ALIGN = alignof(ImplType);
-#define  IMPLOF(_obj_) (reinterpret_cast<ImplType*>(&((_obj_)._storage)))
-#define CIMPLOF(_obj_) (reinterpret_cast<const ImplType*>(&((_obj_)._storage)))
+class Window::Impl {
+public:
+    template <class ...taArgs>
+    Impl(detail::WindowPolymorphismAdapter& aWindowPolyAdapter, taArgs&&... aArgs)
+        : adapter{aWindowPolyAdapter, std::forward<taArgs>(aArgs)...}
+    {
+    }
+
+    SfRenderWindowAdapter adapter;
+};
+
+#define  IMPLOF(_obj_) (&((_obj_)._impl->adapter))
+#define CIMPLOF(_obj_) (&((_obj_)._impl->adapter))
 #define  SELF_IMPL (IMPLOF(SELF))
 #define SELF_CIMPL (CIMPLOF(SELF))
 
-Window::Window() {
-    static_assert(STORAGE_SIZE  == IMPL_SIZE,  "Window::STORAGE_SIZE is inadequate.");
-    static_assert(STORAGE_ALIGN == IMPL_ALIGN, "Window::STORAGE_ALIGN is inadequate.");
-
-    new (&_storage) ImplType(SELF);
+Window::Window()
+    : _impl{std::make_unique<Impl>(static_cast<detail::WindowPolymorphismAdapter&>(SELF))}
+{
 }
 
-Window::Window(VideoMode aMode, const std::string& aTitle, WindowStyle aStyle, const ContextSettings& aSettings) {
-    new (&_storage) ImplType(SELF, ToSf(aMode), aTitle, ToSf(aStyle), ToSf(aSettings));
+Window::Window(VideoMode aMode, const std::string& aTitle, WindowStyle aStyle, const ContextSettings& aSettings)
+    : _impl{std::make_unique<Impl>(static_cast<detail::WindowPolymorphismAdapter&>(SELF),
+                                   ToSf(aMode),
+                                   aTitle,
+                                   ToSf(aStyle),
+                                   ToSf(aSettings))}
+{
 }
 
-Window::Window(WindowHandle aHandle, const ContextSettings& aSettings) {
-    new (&_storage) ImplType(SELF, aHandle, ToSf(aSettings)); 
+Window::Window(WindowHandle aHandle, const ContextSettings& aSettings)
+    : _impl{std::make_unique<Impl>(static_cast<detail::WindowPolymorphismAdapter&>(SELF),
+                                   aHandle,
+                                   ToSf(aSettings))}
+{
 }
 
-Window::~Window() {
-    SELF_IMPL->~ImplType();
+Window::Window(Window&& aOther)
+    : _impl{std::move(aOther._impl)}
+{
 }
+
+Window& Window::operator=(Window&& aOther) {
+    if (this != &aOther) {
+        _impl = std::move(aOther._impl);
+    }
+    return SELF;
+}
+
+Window::~Window() = default;
 
 void Window::create(VideoMode aMode, const std::string& aTitle, WindowStyle aStyle, const ContextSettings& aSettings) {
     SELF_IMPL->create(ToSf(aMode), aTitle, ToSf(aStyle), ToSf(aSettings));

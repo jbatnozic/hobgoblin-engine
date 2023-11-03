@@ -22,6 +22,8 @@ namespace gr {
 
 class Multisprite : public Drawable, public Transformable {
 public:
+    // TODO: add default ctor
+
     //!
     Multisprite(const Texture& aTexture);
 
@@ -33,7 +35,7 @@ public:
     template <class taRectCollection>
     Multisprite(const Texture& aTexture, const taRectCollection& aTextureRects);
 
-    BatchingType getBatchingType() const override;
+    BatchingType getBatchingType() const override final;
 
     ///////////////////////////////////////////////////////////////////////////
     // TEXTURE                                                               //
@@ -118,8 +120,6 @@ public:
     // TRANSFORMABLE                                                         //
     ///////////////////////////////////////////////////////////////////////////
 
-    // TODO: see which overriden methods should be final
-
     void setPosition(float aX, float aY) override;
 
     void setPosition(const math::Vector2f& aPosition) override;
@@ -168,7 +168,7 @@ private:
         Subsprite() = default;
         explicit Subsprite(TextureRect aTextureRect);
 
-        Vertex      vertices[4];
+        Vertex      vertices[6];
         TextureRect textureRect;
 
         math::Rectangle<float> getLocalBounds() const;

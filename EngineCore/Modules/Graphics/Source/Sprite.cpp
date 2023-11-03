@@ -30,6 +30,17 @@ Sprite::Sprite() {
     new (&_storage) ImplType();
 }
 
+Sprite::Sprite(const Sprite& aOther) {
+    new (&_storage) ImplType(*CIMPLOF(aOther));
+}
+
+Sprite& Sprite::operator=(const Sprite& aOther) {
+    if (this != &aOther) {
+        *SELF_IMPL = *CIMPLOF(aOther);
+    }
+    return SELF;
+}
+
 Sprite::Sprite(const Texture& aTexture) {
     new (&_storage) ImplType(ToSf(aTexture));
     _texture = &aTexture;
@@ -61,12 +72,17 @@ const Texture* Sprite::getTexture() const {
     return _texture;
 }
 
-const math::Rectangle<int>& Sprite::getTextureRect() const {
+TextureRect Sprite::getTextureRect() const {
     const auto rect = SELF_CIMPL->getTextureRect();
-    return {rect.left, rect.top, rect.width, rect.height};
+    return {
+        static_cast<std::uint16_t>(rect.left),
+        static_cast<std::uint16_t>(rect.top),
+        static_cast<std::uint16_t>(rect.width),
+        static_cast<std::uint16_t>(rect.height)
+    };
 }
 
-const Color& Sprite::getColor() const {
+Color Sprite::getColor() const {
     return ToHg(SELF_CIMPL->getColor());
 }
 

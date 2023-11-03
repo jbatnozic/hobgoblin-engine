@@ -9,6 +9,7 @@
 #include <cstring>
 #include <iostream>
 #include <new>
+#include <utility>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
@@ -40,15 +41,47 @@ RenderWindow::RenderWindow(
     win::WindowStyle aStyle,
     const win::ContextSettings& aSettings
 )
-    : RenderWindow()
+    : RenderWindow{}
 {
     Window::create(aMode, aTitle, aStyle, aSettings);
 }
 
 RenderWindow::RenderWindow(win::WindowHandle aHandle, const win::ContextSettings& aSettings)
-    : RenderWindow()
+    : RenderWindow{}
 {
     Window::create(aHandle, aSettings);
+}
+
+RenderWindow::RenderWindow(RenderWindow&& aOther)
+    : Window{std::move(aOther)}
+{
+    // Replace SfmlRenderTargetAdapter
+    new (&_srtaStorage) SfmlRenderTargetAdapter(*GetSfRenderWindow());
+
+    // Replace MultiViewRenderTargetAdapter
+    auto* otherMvaStoragePtr = &(aOther._mvaStorage);
+    auto* otherMvaPtr = reinterpret_cast<MultiViewRenderTargetAdapter*>(otherMvaStoragePtr);
+    new (&_mvaStorage) MultiViewRenderTargetAdapter(std::move(*otherMvaPtr));
+    GetMVA()->setRenderTarget(*GetSRTA());
+}
+
+RenderWindow& RenderWindow::operator=(RenderWindow&& aOther) {
+    if (this != &aOther) {
+        // Replace Window
+        static_cast<Window&>(SELF) = std::move(static_cast<Window&>(aOther));
+
+        // Replace SfmlRenderTargetAdapter
+        GetSRTA()->~SfmlRenderTargetAdapter();
+        new (&_srtaStorage) SfmlRenderTargetAdapter(*GetSfRenderWindow());
+
+        // Replace MultiViewRenderTargetAdapter
+        GetMVA()->~MultiViewRenderTargetAdapter();
+        auto* otherMvaStoragePtr = &(aOther._mvaStorage);
+        auto* otherMvaPtr = reinterpret_cast<SfmlRenderTargetAdapter*>(otherMvaStoragePtr);
+        new (&_mvaStorage) MultiViewRenderTargetAdapter(std::move(*otherMvaPtr));
+        GetMVA()->setRenderTarget(*GetSRTA());
+    }
+    return SELF;
 }
 
 RenderWindow::~RenderWindow() {
@@ -99,8 +132,7 @@ void RenderWindow::flush() {
 }
 
 void RenderWindow::getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) {
-    aType = CanvasType::Proxy;
-    aRenderingBackend = static_cast<Canvas*>(GetMVA());
+    GetMVA()->getCanvasDetails(aType, aRenderingBackend);
 }
 
 void RenderWindow::clear(const Color& aColor) {

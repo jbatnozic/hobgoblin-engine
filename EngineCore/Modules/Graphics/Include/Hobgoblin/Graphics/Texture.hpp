@@ -31,6 +31,7 @@
 #include <Hobgoblin/Graphics/Texture_rect.hpp>
 #include <Hobgoblin/Math/Rectangle.hpp>
 #include <Hobgoblin/Math/Vector.hpp>
+#include <Hobgoblin/Window/Window.hpp>
 
 #include <cstdint>
 #include <filesystem>
@@ -70,7 +71,11 @@ public:
     //! \param aOther instance to copy
     Texture(const Texture& aOther);
 
-    // TODO(copy/move ctors/op)
+    Texture& operator=(const Texture& aOther);
+
+    Texture(Texture&& aOther);
+
+    Texture& operator=(Texture&& aOther);
 
     //! \brief Destructor
     ~Texture();
@@ -83,7 +88,7 @@ public:
     //! \param height Height of the texture
     //!
     //! \return True if creation was successful
-    bool create(PZInteger aWidth, PZInteger aHeight);
+    void create(PZInteger aWidth, PZInteger aHeight);
 
     //! \brief Load the texture from a file on disk
     //!
@@ -111,7 +116,7 @@ public:
     //! \return True if loading was successful
     //!
     //! \see loadFromMemory, loadFromStream, loadFromImage
-    bool loadFromFile(const std::filesystem::path& aPath, TextureRect aArea = {});
+    void loadFromFile(const std::filesystem::path& aPath, TextureRect aArea = {});
 
     //! \brief Load the texture from a file in memory
     //!
@@ -140,7 +145,7 @@ public:
     //! \return True if loading was successful
     //!
     //! \see loadFromFile, loadFromStream, loadFromImage
-    bool loadFromMemory(const void* aData, PZInteger aSize, TextureRect aArea = {});
+    void loadFromMemory(const void* aData, PZInteger aSize, TextureRect aArea = {});
 
     //! \brief Load the texture from a custom stream
     //!
@@ -168,7 +173,7 @@ public:
     //! \return True if loading was successful
     //!
     //! \see loadFromFile, loadFromMemory, loadFromImage
-    // bool loadFromStream(InputStream& stream, const math::Rectangle<int>& aArea = {}); TODO
+    // void loadFromStream(InputStream& stream, const math::Rectangle<int>& aArea = {}); TODO(streams) // TODO(bool->exc)
 
     //! \brief Load the texture from an image
     //!
@@ -189,7 +194,7 @@ public:
     //! \return True if loading was successful
     //!
     //! \see loadFromFile, loadFromMemory
-    bool loadFromImage(const Image& aImage, TextureRect aArea = {});
+    void loadFromImage(const Image& aImage, TextureRect aArea = {});
 
     //! \brief Return the size of the texture
     //!
@@ -325,7 +330,7 @@ public:
     //! was not previously created.
     //!
     //! \param window Window to copy to the texture
-    // void update(const Window& Window); TODO
+    void update(const win::Window& aWindow);
 
     //! \brief Update a part of the texture from the contents of a window
     //!
@@ -339,7 +344,7 @@ public:
     //! \param window Window to copy to the texture
     //! \param x      X offset in the texture where to copy the source window
     //! \param y      Y offset in the texture where to copy the source window
-    // void update(const Window& aWindow, PZInteger aX, PZInteger aY); TODO
+    void update(const win::Window& aWindow, PZInteger aX, PZInteger aY);
 
     //! \brief Enable or disable the smooth filter
     //!
@@ -438,14 +443,7 @@ public:
     //! regenerate it.
     //!
     //! \return True if mipmap generation was successful, false if unsuccessful
-    bool generateMipmap();
-
-    //! \brief Overload of assignment operator
-    //!
-    //! \param right Instance to assign
-    //!
-    //! \return Reference to self
-    Texture& operator=(const Texture& aRhs);
+    void generateMipmap();
 
     //! \brief Swap the contents of this texture with those of another
     //!
@@ -502,6 +500,9 @@ public:
 
 private:
     friend class detail::GraphicsImplAccessor;
+    friend class RenderTexture;
+
+    Texture(void* sfTexture);
 
     void* _getSFMLImpl();
     const void* _getSFMLImpl() const;
@@ -509,6 +510,8 @@ private:
     static constexpr ::std::size_t STORAGE_SIZE  = 40;
     static constexpr ::std::size_t STORAGE_ALIGN =  8;
     ::std::aligned_storage<STORAGE_SIZE, STORAGE_ALIGN>::type _storage;
+
+    bool _isProxy = false;
 };
 
 } // namespace gr

@@ -63,7 +63,11 @@ public:
               float a10, float a11, float a12,
               float a20, float a21, float a22);
 
-    // TODO(copy/move ctors/op)
+    Transform(const Transform& aOther);
+    Transform& operator=(const Transform& aOther);
+
+    Transform(Transform&& aOther) noexcept;
+    Transform& operator=(Transform&& aOther) noexcept;
 
     //! \brief Destructor
     ~Transform();
@@ -320,7 +324,7 @@ public:
     //! \see translate, rotate
     Transform& scale(const math::Vector2f& aFactors, const math::Vector2f& aCenter);
     
-    static const Transform Identity; //!< The identity transform (does nothing)
+    static const Transform IDENTITY; //!< The identity transform (does nothing)
 
 private:
     friend class detail::GraphicsImplAccessor;

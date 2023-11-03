@@ -51,8 +51,8 @@ public:
     View(const View& aOther);
     View& operator=(const View& aOther);
 
-    View(View&& aOther);
-    View& operator=(View&& aOther);
+    View(View&& aOther) noexcept;
+    View& operator=(View&& aOther) noexcept;
     
     //! \brief Construct the view from a rectangle
     //!
@@ -143,14 +143,14 @@ public:
     //! \return Center of the view
     //!
     //! \see getSize, setCenter
-    const math::Vector2f& getCenter() const;
+    math::Vector2f getCenter() const;
 
     //! \brief Get the size of the view
     //!
     //! \return Size of the view
     //!
     //! \see getCenter, setSize
-    const math::Vector2f& getSize() const;
+    math::Vector2f getSize() const;
 
     //! \brief Get the current orientation of the view
     //!
@@ -209,7 +209,7 @@ public:
     //! \return Projection transform defining the view
     //!
     //! \see getInverseTransform
-    // const Transform& getTransform() const; TODO
+    Transform getTransform() const;
 
     //! \brief Get the inverse projection transform of the view
     //!
@@ -218,7 +218,7 @@ public:
     //! \return Inverse of the projection transform defining the view
     //!
     //! \see getTransform
-    // const Transform& getInverseTransform() const; TODO
+    Transform getInverseTransform() const;
 
 private:
     friend class detail::GraphicsImplAccessor;

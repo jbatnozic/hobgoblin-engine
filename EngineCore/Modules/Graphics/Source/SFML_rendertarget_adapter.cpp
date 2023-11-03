@@ -19,7 +19,7 @@ SfmlRenderTargetAdapter::SfmlRenderTargetAdapter(sf::RenderTarget& aRenderTarget
 // RENDERTARGET                                                          //
 ///////////////////////////////////////////////////////////////////////////
 
-// TODO(should abort)
+// TODO(throw 'unreachable code reached')
 #define FORBIDDEN() (throw TracedLogicError{"Forbidden to call method " CURRENT_FUNCTION})
 
 void SfmlRenderTargetAdapter::clear(const Color& aColor) {
@@ -109,6 +109,10 @@ void SfmlRenderTargetAdapter::popGLStates() {
 
 void SfmlRenderTargetAdapter::resetGLStates() {
     _renderTarget.resetGLStates();
+}
+
+bool SfmlRenderTargetAdapter::isSrgb() const {
+    return _renderTarget.isSrgb();
 }
 
 ///////////////////////////////////////////////////////////////////////////

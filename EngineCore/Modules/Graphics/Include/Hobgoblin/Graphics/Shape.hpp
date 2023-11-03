@@ -56,8 +56,6 @@ class Texture;
 //! \brief Base class for textured shapes with outline.
 class Shape : public Drawable, public Transformable, private detail::ShapePolymorphismAdapter {
 public:
-    Shape();
-
     Shape(const Shape& aOther);
     Shape& operator=(const Shape& aOther);
 
@@ -225,13 +223,11 @@ public:
     // DRAWABLE                                                              //
     ///////////////////////////////////////////////////////////////////////////
 
-    BatchingType getBatchingType() const override;
+    BatchingType getBatchingType() const override final;
 
     ///////////////////////////////////////////////////////////////////////////
     // TRANSFORMABLE                                                         //
     ///////////////////////////////////////////////////////////////////////////
-
-    // TODO: see which overriden methods should be final
 
     void setPosition(float aX, float aY) override;
 

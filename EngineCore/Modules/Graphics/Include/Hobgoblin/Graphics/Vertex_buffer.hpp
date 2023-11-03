@@ -112,7 +112,7 @@ public:
     //! \param aVertexCount Number of vertices worth of memory to allocate
     //!
     //! \return True if creation was successful
-    bool create(PZInteger aVertexCount);
+    bool create(PZInteger aVertexCount); // TODO(bool->exc)
 
     //! \brief Return the vertex count
     //!
@@ -134,7 +134,7 @@ public:
     //! \param aVertices Array of vertices to copy to the buffer
     //!
     //! \return True if the update was successful
-    bool update(const Vertex* aVertices);
+    bool update(const Vertex* aVertices); // TODO(bool->exc)
 
     //! \brief Update a part of the buffer from an array of vertices
     //!
@@ -164,14 +164,14 @@ public:
     //! \param aOffset      Offset in the buffer to copy to
     //!
     //! \return True if the update was successful
-    bool update(const Vertex* aVertices, PZInteger aVertexCount, PZInteger aOffset);
+    bool update(const Vertex* aVertices, PZInteger aVertexCount, PZInteger aOffset); // TODO(bool->exc)
 
     //! \brief Copy the contents of another buffer into this buffer
     //!
     //! \param aVertexBuffer Vertex buffer whose contents to copy into this vertex buffer
     //!
     //! \return True if the copy was successful
-    bool update(const VertexBuffer& aVertexBuffer);
+    bool update(const VertexBuffer& aVertexBuffer); // TODO(bool->exc)
 
     //! \brief Overload of assignment operator
     //!

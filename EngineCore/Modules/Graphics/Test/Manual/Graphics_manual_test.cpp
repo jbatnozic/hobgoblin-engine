@@ -2,22 +2,43 @@
 #define HOBGOBLIN_SHORT_NAMESPACE
 #include <Hobgoblin/Graphics.hpp>
 
+#include <cassert>
 #include <chrono>
 #include <functional>
+#include <memory>
 #include <thread>
 #include <iostream>
 #include <vector>
 
 namespace gr = hg::gr;
+namespace math = hg::math;
 
 namespace {
 
 constexpr auto SAMPLE_SPRITE_FILE_PATH = "C:\\Users\\Jovan-PC\\Desktop\\Screenshot_1.png";
 
+///////////////////////////////////////////////////////////////////////////
+// HELPERS                                                               //
+///////////////////////////////////////////////////////////////////////////
+
+gr::RenderWindow CreateSimpleRenderWindowForTesting(const math::Vector2pz& aSize) {
+    auto window = gr::RenderWindow{};
+    window.create(hg::win::VideoMode{aSize.x, aSize.y}, "Window");
+    window.setFramerateLimit(30);
+
+    const auto xf = static_cast<float>(aSize.x);
+    const auto yf = static_cast<float>(aSize.y);
+    window.setView(gr::View{{xf / 2.f, yf / 2.f}, {xf, yf}});
+    window.getView().setViewport({0.f, 0.f, 1.f, 1.f});
+    window.getView().setEnabled(true);
+
+    return window;
+}
+
 void CloseWindowIfCloseClickedOrEnterPressed(hg::win::Window& aWindow, const hg::win::Event& aEvent) {
     aEvent.visit(
         [&aWindow](hg::win::Event::Closed) {
-        aWindow.close();
+            aWindow.close();
         },
         [&aWindow](hg::win::Event::KeyPressed aEvent) {
             if (aEvent.physicalKey == hg::in::PK_ENTER) {
@@ -25,6 +46,21 @@ void CloseWindowIfCloseClickedOrEnterPressed(hg::win::Window& aWindow, const hg:
             }
         }
     );
+}
+
+///////////////////////////////////////////////////////////////////////////
+// TESTS                                                                 //
+///////////////////////////////////////////////////////////////////////////
+
+void TestLoadingTextureFromNonexistentFile() {
+    gr::Texture texture;
+    try {
+        texture.loadFromFile("this/path/does/not/exist.png");
+    }
+    catch (const hg::TracedException& ex) {
+        std::cerr << ex.what() << '\n';
+        ex.printStackTrace(std::cerr);
+    }
 }
 
 void TestDrawingShapesAndSprites() {
@@ -36,7 +72,7 @@ void TestDrawingShapesAndSprites() {
         window.setViewCount(2);
 
         window.setView(0, gr::View{{100.f, 200.f}, {200, 400}});
-        window.getView(0).setViewport({0.f, 0.f, 0.5f, 1.f}); // left size
+        window.getView(0).setViewport({0.f, 0.f, 0.5f, 1.f}); // left side
         window.getView(0).setEnabled(true);
 
         window.setView(1, gr::View{{300.f, 200.f}, {200, 400}});
@@ -118,6 +154,55 @@ void TestDrawingMultisprites() {
     }
 }
 
+void TestRenderTextures() {
+    auto window = CreateSimpleRenderWindowForTesting({512, 512});
+
+    gr::RenderTexture rt;
+    rt.create({1024, 1024});
+
+    {
+        rt.setViewCount(2);
+
+        rt.setView(0, gr::View{{256.f, 512.f}, {512.f, 1024.f}});
+        rt.getView(0).setViewport({0.5f, 0.f, 0.5f, 1.f}); // right side
+        rt.getView(0).setEnabled(true);
+
+        rt.setView(1, gr::View{{768.f, 512.f}, {512.f, 1024.f}});
+        rt.getView(1).setViewport({0.f, 0.f, 0.5f, 1.f}); // left side
+        rt.getView(1).setEnabled(true);
+    }
+
+    gr::CircleShape circle{32.f};
+    circle.setFillColor(gr::COLOR_YELLOW);
+    circle.setOrigin({32.f, 32.f});
+
+    double theta = 0.0;
+    while (window.isOpen()) {
+        theta += 0.03;
+
+        hg::win::Event ev;
+        while (window.pollEvent(ev)) {
+            CloseWindowIfCloseClickedOrEnterPressed(window, ev);
+        }
+
+        window.clear(gr::COLOR_BLACK);
+
+        rt.clear(gr::COLOR_MAROON);
+        circle.setPosition({
+            static_cast<float>(512.0 + std::cos(theta) * 400.0),
+            static_cast<float>(512.0 - std::sin(theta) * 400.0)
+        });
+        rt.draw(circle);
+
+        rt.display();
+        gr::Sprite sprite{rt.getTexture()};
+        sprite.setScale({0.5f, 0.5f});
+        window.draw(sprite);
+
+        window.display();
+    }
+}
+
 void TestDrawingVertexArrays() {
     gr::RenderWindow window{};
     window.create(hg::win::VideoMode{400, 400}, "Window");
@@ -181,11 +266,45 @@ void TestSpriteLoader() {
     }
 }
 
+void TestBatching() {
+    gr::SpriteLoader loader;
+    loader.startTexture(1024, 1024)
+        ->addSprite("screenie", SAMPLE_SPRITE_FILE_PATH)
+        ->finalize(gr::TexturePackingHeuristic::BestAreaFit);
+    
+    auto window = CreateSimpleRenderWindowForTesting({800, 800});
+    gr::DrawBatcher batcher{window};
+
+    auto screenie = loader.getMultiBlueprint("screenie").multispr();
+
+    while (window.isOpen()) {
+        hg::win::Event ev;
+        while (window.pollEvent(ev)) {
+            CloseWindowIfCloseClickedOrEnterPressed(window, ev);
+        }
+
+        window.clear(gr::COLOR_BLACK);
+
+        {
+            for (hg::PZInteger i = 0; i < 50; i += 1) {
+                screenie.setPosition(i * 5.f, i * 5.f);
+                batcher.draw(screenie);
+            }
+            batcher.flush();
+        }
+
+        window.display();
+    }
+}
+
 const std::vector<void(*)()> TESTS = {
+    &TestLoadingTextureFromNonexistentFile,
     &TestDrawingShapesAndSprites,
     &TestDrawingMultisprites,
+    &TestRenderTextures,
     &TestDrawingVertexArrays,
-    &TestSpriteLoader
+    &TestSpriteLoader,
+    &TestBatching,
 };
 
 } // namespace

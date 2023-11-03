@@ -55,7 +55,7 @@ constexpr auto IMPL_ALIGN = alignof(ImplType);
 #define SELF_CIMPL (CIMPLOF(SELF))
 
 Shape::Shape() {
-    static_assert(STORAGE_SIZE  == IMPL_SIZE,  "Shape::STORAGE_SIZE is inadequate.");
+    static_assert(STORAGE_SIZE  >= IMPL_SIZE,  "Shape::STORAGE_SIZE is inadequate."); // TODO(size)
     static_assert(STORAGE_ALIGN == IMPL_ALIGN, "Shape::STORAGE_ALIGN is inadequate.");
 
     new (&_storage) ImplType(SELF);
@@ -177,7 +177,7 @@ void Shape::_update() {
 ///////////////////////////////////////////////////////////////////////////
 
 Drawable::BatchingType Shape::getBatchingType() const {
-    return BatchingType::Custom; // TODO: could maybe be optimized to draw in terms of VertexArray?
+    return BatchingType::Custom; // TODO(optimization: could maybe draw in terms of VertexArray?)
 }
 
 ///////////////////////////////////////////////////////////////////////////

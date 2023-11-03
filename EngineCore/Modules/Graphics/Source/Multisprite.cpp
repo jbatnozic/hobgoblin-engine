@@ -31,7 +31,7 @@ Multisprite::Multisprite(const Texture& aTexture, TextureRect aTextureRect)
 }
 
 Multisprite::BatchingType Multisprite::getBatchingType() const {
-    return BatchingType::Custom; // TODO - enable batching!
+    return BatchingType::Aggregate;
 }
 
 const Texture& Multisprite::getTexture() const {
@@ -279,6 +279,9 @@ Transform Multisprite::getInverseTransform() const {
 // SUBSPRITE                                                             //
 ///////////////////////////////////////////////////////////////////////////
 
+// FIRST: top-left, top-right, bottom-left
+//  THEN: top-right, bottom-right, bottom-left
+
 Multisprite::Subsprite::Subsprite(TextureRect aTextureRect)
     : textureRect{aTextureRect}
 {
@@ -287,9 +290,11 @@ Multisprite::Subsprite::Subsprite(TextureRect aTextureRect)
         const auto bounds = getLocalBounds();
 
         vertices[0].position = math::Vector2f{0.f, 0.f};
-        vertices[1].position = math::Vector2f{0.f, bounds.h};
-        vertices[2].position = math::Vector2f{bounds.w, 0.f};
-        vertices[3].position = math::Vector2f{bounds.w, bounds.h};
+        vertices[1].position = math::Vector2f{bounds.w, 0.f};
+        vertices[2].position = math::Vector2f{0.f, bounds.h};
+        vertices[3].position = math::Vector2f{bounds.w, 0.f};
+        vertices[4].position = math::Vector2f{bounds.w, bounds.h};
+        vertices[5].position = math::Vector2f{0.f, bounds.h};
     }
 
     // Texture positions
@@ -300,9 +305,11 @@ Multisprite::Subsprite::Subsprite(TextureRect aTextureRect)
         const float bottom = static_cast<float>(aTextureRect.getBottom());
 
         vertices[0].texCoords = math::Vector2f{left, top};
-        vertices[1].texCoords = math::Vector2f{left, bottom};
-        vertices[2].texCoords = math::Vector2f{right, top};
-        vertices[3].texCoords = math::Vector2f{right, bottom};
+        vertices[1].texCoords = math::Vector2f{right, top};
+        vertices[2].texCoords = math::Vector2f{left, bottom};
+        vertices[3].texCoords = math::Vector2f{right, top};
+        vertices[4].texCoords = math::Vector2f{right, bottom};
+        vertices[5].texCoords = math::Vector2f{left, bottom};
     }
 }
 
@@ -327,16 +334,22 @@ void Multisprite::_draw(Canvas& aCanvas, const RenderStates& aStates) const {
     const auto& subspr = *(_firstSubspritePtr() + getCurrentSubspriteIndex());
 
     // Prepare vertices
-    Vertex vertices[4];
-    std::memcpy(vertices, subspr.vertices, sizeof(Vertex) * 4);
-    vertices[0].color = vertices[1].color = vertices[2].color = vertices[3].color = _color;
+    static constexpr PZInteger VERTEXT_COUNT = 6;
+    Vertex vertices[VERTEXT_COUNT];
+    std::memcpy(vertices, subspr.vertices, sizeof(Vertex) * VERTEXT_COUNT);
+
+    const auto transform = getTransform();
+    for (auto& vertex : vertices) {
+        vertex.color = _color;
+        vertex.position = transform.transformPoint(vertex.position);
+    }
 
     // Prepare render states
     RenderStates statesCopy{aStates};
-    statesCopy.transform *= getTransform();
+    //statesCopy.transform *= getTransform();
     statesCopy.texture = &_texture;
 
-    aCanvas.draw(vertices, 4, PrimitiveType::TriangleStrip, statesCopy);
+    aCanvas.draw(vertices, VERTEXT_COUNT, PrimitiveType::Triangles, statesCopy);
 }
 
 Multisprite::Subsprite* Multisprite::_firstSubspritePtr() {

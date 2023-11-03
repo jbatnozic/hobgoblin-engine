@@ -114,7 +114,7 @@ public:
     //! \return True if loading succeeded, false if it failed
     //!
     //! \see loadFromMemory, loadFromStream
-    bool loadFromFile(const std::string& aFilename, Type aType);
+    bool loadFromFile(const std::string& aFilename, Type aType); // TODO(bool->exc)
 
     //! \brief Load both the vertex and fragment shaders from files
     //!
@@ -132,7 +132,7 @@ public:
     //! \return True if loading succeeded, false if it failed
     //!
     //! \see loadFromMemory, loadFromStream
-    bool loadFromFile(const std::string& aVertexShaderFilename, const std::string& aFragmentShaderFilename);
+    bool loadFromFile(const std::string& aVertexShaderFilename, const std::string& aFragmentShaderFilename); // TODO(bool->exc)
 
     //! \brief Load the vertex, geometry and fragment shaders from files
     //!
@@ -151,7 +151,7 @@ public:
     //! \return True if loading succeeded, false if it failed
     //!
     //! \see loadFromMemory, loadFromStream
-    bool loadFromFile(const std::string& aVertexShaderFilename, const std::string& aGeometryShaderFilename, const std::string& aFragmentShaderFilename);
+    bool loadFromFile(const std::string& aVertexShaderFilename, const std::string& aGeometryShaderFilename, const std::string& aFragmentShaderFilename); // TODO(bool->exc)
 
     //! \brief Load the vertex, geometry or fragment shader from a source code in memory
     //!
@@ -168,7 +168,7 @@ public:
     //! \return True if loading succeeded, false if it failed
     //!
     //! \see loadFromFile, loadFromStream
-    bool loadFromMemory(const std::string& aShader, Type aType);
+    bool loadFromMemory(const std::string& aShader, Type aType); // TODO(bool->exc)
 
     //! \brief Load both the vertex and fragment shaders from source codes in memory
     //!
@@ -186,7 +186,7 @@ public:
     //! \return True if loading succeeded, false if it failed
     //!
     //! \see loadFromFile, loadFromStream
-    bool loadFromMemory(const std::string& aVertexShader, const std::string& aFragmentShader);
+    bool loadFromMemory(const std::string& aVertexShader, const std::string& aFragmentShader); // TODO(bool->exc)
 
     //! \brief Load the vertex, geometry and fragment shaders from source codes in memory
     //!
@@ -205,7 +205,7 @@ public:
     //! \return True if loading succeeded, false if it failed
     //!
     //! \see loadFromFile, loadFromStream
-    bool loadFromMemory(const std::string& aVertexShader, const std::string& aGeometryShader, const std::string& aFragmentShader);
+    bool loadFromMemory(const std::string& aVertexShader, const std::string& aGeometryShader, const std::string& aFragmentShader); // TODO(bool->exc)
 
     //! \brief Load the vertex, geometry or fragment shader from a custom stream
     //!
@@ -222,7 +222,7 @@ public:
     //! \return True if loading succeeded, false if it failed
     //!
     //! \see loadFromFile, loadFromMemory
-    // bool loadFromStream(InputStream& aStream, Type aType); TODO
+    // bool loadFromStream(InputStream& aStream, Type aType); TODO(streams) // TODO(bool->exc)
 
     //! \brief Load both the vertex and fragment shaders from custom streams
     //!
@@ -240,7 +240,7 @@ public:
     //! \return True if loading succeeded, false if it failed
     //!
     //! \see loadFromFile, loadFromMemory
-    // bool loadFromStream(InputStream& aVertexShaderStream, InputStream& aFragmentShaderStream); TODO
+    // bool loadFromStream(InputStream& aVertexShaderStream, InputStream& aFragmentShaderStream); TODO(streams) // TODO(bool->exc)
 
     //! \brief Load the vertex, geometry and fragment shaders from custom streams
     //!
@@ -259,7 +259,7 @@ public:
     //! \return True if loading succeeded, false if it failed
     //!
     //! \see loadFromFile, loadFromMemory
-    // bool loadFromStream(InputStream& aVertexShaderStream, InputStream& aGeometryShaderStream, InputStream& aFragmentShaderStream); TODO
+    // bool loadFromStream(InputStream& aVertexShaderStream, InputStream& aGeometryShaderStream, InputStream& aFragmentShaderStream); TODO(streams)  // TODO(bool->exc)
 
     //! \brief Specify value for \p float uniform
     //!

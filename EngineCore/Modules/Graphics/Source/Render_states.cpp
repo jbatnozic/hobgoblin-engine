@@ -8,17 +8,7 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
-// TODO Fix
-const RenderStates RenderStates::DEFAULT(
-    BlendMode(
-        BlendMode::Factor::SrcAlpha,
-        BlendMode::Factor::OneMinusSrcAlpha,
-        BlendMode::Equation::Add,
-        BlendMode::Factor::One,
-        BlendMode::Factor::OneMinusSrcAlpha,
-        BlendMode::Equation::Add
-    )
-);
+const RenderStates RenderStates::DEFAULT{BlendMode{}};
 
 RenderStates::RenderStates() = default;
 

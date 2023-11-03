@@ -17,6 +17,7 @@
 #include <Hobgoblin/Graphics/Transform.hpp>
 #include <Hobgoblin/Graphics/Vertex_buffer.hpp>
 #include <Hobgoblin/Graphics/View.hpp>
+#include <Hobgoblin/Window/Context_settings.hpp>
 
 // SFML
 
@@ -33,6 +34,7 @@
 #include <SFML/Graphics/Transform.hpp>
 #include <SFML/Graphics/VertexBuffer.hpp>
 #include <SFML/Graphics/View.hpp>
+#include <SFML/Window/ContextSettings.hpp>
 
 #include <filesystem>
 
@@ -101,6 +103,16 @@ sf::BlendMode ToSf(BlendMode aBlendMode);
 
 Color ToHg(sf::Color aColor);
 sf::Color ToSf(Color aColor);
+
+// ContextSettings
+
+using win::ContextSettings;
+
+ContextSettings::Attribute ToHg(sf::ContextSettings::Attribute aAttribute);
+unsigned ToSf(ContextSettings::Attribute aAttribute);
+
+ContextSettings ToHg(const sf::ContextSettings& aSettings);
+sf::ContextSettings ToSf(const ContextSettings& aSettings);
 
 // PrimitiveType
 
@@ -239,6 +251,62 @@ sf::Color ToSf(Color aColor) {
     return sf::Color{aColor.toInt()};
 }
 
+// ContextSettings
+
+inline
+ContextSettings::Attribute ToHg(sf::ContextSettings::Attribute aAttribute) {
+    if (aAttribute == sf::ContextSettings::Default) {
+        return ContextSettings::Attribute::Default;
+    }
+
+    auto result = static_cast<ContextSettings::Attribute>(0);
+
+    if ((aAttribute & sf::ContextSettings::Core)  != 0) result = result | ContextSettings::Attribute::Core;
+    if ((aAttribute & sf::ContextSettings::Debug) != 0) result = result | ContextSettings::Attribute::Debug;
+
+    return result;
+}
+
+inline
+unsigned ToSf(ContextSettings::Attribute aAttribute) {
+    if (aAttribute == ContextSettings::Attribute::Default) {
+        return sf::ContextSettings::Default;
+    }
+
+    unsigned result = 0;
+
+    if ((aAttribute & ContextSettings::Attribute::Core)  != static_cast<ContextSettings::Attribute>(0)) result |= sf::ContextSettings::Core;
+    if ((aAttribute & ContextSettings::Attribute::Debug) != static_cast<ContextSettings::Attribute>(0)) result |= sf::ContextSettings::Debug;
+
+    return result;
+}
+
+inline
+ContextSettings ToHg(const sf::ContextSettings& aSettings) {
+    return ContextSettings{
+        static_cast<PZInteger>(aSettings.depthBits),
+        static_cast<PZInteger>(aSettings.stencilBits),
+        static_cast<PZInteger>(aSettings.antialiasingLevel),
+        static_cast<PZInteger>(aSettings.majorVersion),
+        static_cast<PZInteger>(aSettings.minorVersion),
+        ToHg(static_cast<sf::ContextSettings::Attribute>(aSettings.attributeFlags)),
+        aSettings.sRgbCapable
+    };
+}
+
+inline
+sf::ContextSettings ToSf(const ContextSettings& aSettings) {
+    return sf::ContextSettings{
+        static_cast<unsigned>(aSettings.depthBits),
+        static_cast<unsigned>(aSettings.stencilBits),
+        static_cast<unsigned>(aSettings.antialiasingLevel),
+        static_cast<unsigned>(aSettings.majorVersion),
+        static_cast<unsigned>(aSettings.minorVersion),
+        ToSf(aSettings.attributeFlags),
+        aSettings.sRgbCapable
+    };
+}
+
 // PrimitiveType
 
 // NOTE: MSVC is too stupid to optimize these switch/case convertors (while clang and gcc can do it).
@@ -329,7 +397,7 @@ sf::IntRect ConvertTextureRect(TextureRect aTextureRect) {
 
 inline
 Transform ToHg(const sf::Transform& aTransform) {
-    // TODO: Improve efficiency of this function (private ctor??)
+    // TODO(optimization: Improve efficiency of this function (private ctor??))
     Transform result;
     auto& sfTransform = detail::GraphicsImplAccessor::getImplOf<sf::Transform>(result);
     sfTransform = aTransform;

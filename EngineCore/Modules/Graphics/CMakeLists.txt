@@ -14,6 +14,7 @@ set(COMPONENT_SOURCES
   "Source/Multiview_rendertarget_adapter.cpp"
   "Source/Multiview_rendertarget_adapter.hpp"
   "Source/SFML_conversions.hpp"
+  "Source/SFML_err.hpp"
   "Source/SFML_rendertarget_adapter.cpp"
   "Source/SFML_rendertarget_adapter.hpp"
 
@@ -25,6 +26,7 @@ set(COMPONENT_SOURCES
   "Source/Multisprite_blueprint.cpp"
   "Source/Rectangle_shape.cpp"
   "Source/Render_states.cpp"
+  "Source/Render_texture.cpp"
   "Source/Render_window.cpp"
   "Source/Shader.cpp"
   "Source/Shape.cpp"

@@ -48,8 +48,8 @@ public:
     RenderWindow(const RenderWindow& aOther) = delete;
     RenderWindow& operator=(const RenderWindow& aOther) = delete;
 
-    RenderWindow(RenderWindow&& aOther) = delete;
-    RenderWindow& operator=(RenderWindow&& aOther) = delete;
+    RenderWindow(RenderWindow&& aOther);
+    RenderWindow& operator=(RenderWindow&& aOther);
 
     //! \brief Construct a new window
     //!
