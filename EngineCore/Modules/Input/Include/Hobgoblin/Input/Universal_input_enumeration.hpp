@@ -353,8 +353,10 @@ constexpr bool IsMouseWheel(int aValue) {
     return aValue >= HG_INPUT_MOUSEWHEEL_FIRST && aValue <= HG_INPUT_MOUSEWHEEL_LAST;
 }
 
+//! TODO(add description)
 std::optional<UniversalInputEnum> StringToInput(const std::string& aString);
 
+//! TODO(add description)
 std::optional<std::string> InputToString(UniversalInputEnum aValue);
 
 } // namespace in

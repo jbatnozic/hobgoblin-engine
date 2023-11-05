@@ -1,3 +1,5 @@
+// Umbrella header for the Input module.
+
 #include <Hobgoblin/Input/Input_processing.hpp>
 #include <Hobgoblin/Input/Mouse_button.hpp>
 #include <Hobgoblin/Input/Mouse_wheel.hpp>
