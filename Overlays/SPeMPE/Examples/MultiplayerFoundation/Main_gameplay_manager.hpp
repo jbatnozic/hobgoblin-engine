@@ -18,8 +18,11 @@ private:
     hg::PZInteger printBandwidthUsageCountdown = 120;
 
     void _eventUpdate() override;
+    void _eventDraw1() override;
     void _eventDrawGUI() override;
     void _eventFinalizeFrame() override;
 
     void onNetworkingEvent(const RN_Event& aEvent) override;
+
+    float x = 0;
 };

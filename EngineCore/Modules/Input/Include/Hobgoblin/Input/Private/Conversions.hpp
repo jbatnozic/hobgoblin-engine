@@ -9,6 +9,8 @@ HOBGOBLIN_NAMESPACE_BEGIN
 namespace in {
 namespace detail {
 
+// NOTE: These function are needed by the Window module to convert SFML events.
+
 //! Converts a value of `sf::Keyboard::Key` into a value that can be cast
 //! into `UniversalInputEnum` (will have one of the VK_* values).
 //! For internal engine use only.
@@ -23,6 +25,11 @@ std::int32_t SfKeyboardScancodeToInputEnum(std::int32_t aValue);
 //! into `UniversalInputEnum` (will have one of the MB_* values).
 //! For internal engine use only.
 std::int32_t SfMouseButtonToInputEnum(std::int32_t aValue);
+
+//! Converts a value of `sf::Mouse::Wheel` into a value that can be cast
+//! into `UniversalInputEnum` (will have one of the MW_* values).
+//! For internal engine use only.
+std::int32_t SfMouseWheelToInputEnum(std::int32_t aValue);
 
 } // namespace detail
 } // namespace in

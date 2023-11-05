@@ -225,6 +225,11 @@ const void* Window::_getSFMLImpl() const {
     return static_cast<const sf::RenderWindow*>(SELF_CIMPL);
 }
 
+math::Vector2i GetMousePositionRelativeToWindow(const Window& aWindow) {
+    const auto& sfWindow = detail::WindowImplAccessor::getImplOf<sf::RenderWindow>(aWindow);
+    return sf::Mouse::getPosition(sfWindow);
+}
+
 } // namespace win
 HOBGOBLIN_NAMESPACE_END
 

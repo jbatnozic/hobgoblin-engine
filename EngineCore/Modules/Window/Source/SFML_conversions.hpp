@@ -25,13 +25,13 @@ namespace win {
 namespace detail {
 class WindowImplAccessor {
 public:
-    template <class taSFMLImpl, class taGraphicsClass>
-    static taSFMLImpl& getImplOf(taGraphicsClass& aGraphicsObject) {
-        return *static_cast<taSFMLImpl*>(aGraphicsObject._getSFMLImpl());
+    template <class taSFMLImpl, class taWindowClass>
+    static taSFMLImpl& getImplOf(taWindowClass& aWindowObject) {
+        return *static_cast<taSFMLImpl*>(aWindowObject._getSFMLImpl());
     }
-    template <class taSFMLImpl, class taGraphicsClass>
-    static const taSFMLImpl& getImplOf(const taGraphicsClass& aGraphicsObject) {
-        return *static_cast<const taSFMLImpl*>(aGraphicsObject._getSFMLImpl());
+    template <class taSFMLImpl, class taWindowClass>
+    static const taSFMLImpl& getImplOf(const taWindowClass& aWindowObject) {
+        return *static_cast<const taSFMLImpl*>(aWindowObject._getSFMLImpl());
     }
 };
 } // namespace detail

@@ -10,7 +10,10 @@ set(COMPONENT_SOURCES
   "Source/SFML_conversions.hpp"
 
   "Source/Conversions.cpp"
+  "Source/Mouse_button.cpp"
+  "Source/Physical_keyboard_key.cpp"
   "Source/Universal_input_enumeration.cpp"
+  "Source/Virtual_keyboard_key.cpp"
 )
 
 # ===== TARGET SETUP =====

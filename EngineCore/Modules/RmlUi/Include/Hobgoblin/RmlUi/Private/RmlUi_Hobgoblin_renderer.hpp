@@ -1,9 +1,9 @@
-#ifndef UHOBGOBLIN_RMLUI_PRIVATE_RMLUI_SFML_RENDERER_HPP
-#define UHOBGOBLIN_RMLUI_PRIVATE_RMLUI_SFML_RENDERER_HPP
+#ifndef UHOBGOBLIN_RMLUI_PRIVATE_RMLUI_HOBGOBLIN_RENDERER_HPP
+#define UHOBGOBLIN_RMLUI_PRIVATE_RMLUI_HOBGOBLIN_RENDERER_HPP
 
 #include <RmlUi/Core/RenderInterface.h>
-#include <SFML/Graphics.hpp>
 
+#include <Hobgoblin/Graphics.hpp>
 #include <Hobgoblin/RmlUi/Context_driver.hpp>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
@@ -11,16 +11,15 @@ HOBGOBLIN_NAMESPACE_BEGIN
 namespace rml {
 namespace detail {
 
-class RmlUiSFMLRenderer : public Rml::RenderInterface
-{
+class RmlUiHobgoblinRenderer : public Rml::RenderInterface {
 public:
-    RmlUiSFMLRenderer() = default;
+    RmlUiHobgoblinRenderer() = default;
 
     //! Sets the render target
-    void setRenderTarget(SizedRenderTarget* aRenderTarget);
+    void setRenderTarget(gr::RenderTarget* aRenderTarget);
 
     //! Returns the currently render target
-    SizedRenderTarget* getRenderTarget() const;
+    gr::RenderTarget* getRenderTarget() const;
 
     ///////////////////////////////////////////////////////////////////////////
     // INHERITED FROM RML::RENDERINTERFACE                                   //
@@ -61,7 +60,7 @@ public:
 private:
     void _initViewport();
 
-    SizedRenderTarget* _renderTarget = nullptr;
+    gr::RenderTarget* _renderTarget = nullptr;
 };
 
 } // namespace detail
@@ -70,4 +69,4 @@ HOBGOBLIN_NAMESPACE_END
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
-#endif // !UHOBGOBLIN_RMLUI_PRIVATE_RMLUI_SFML_RENDERER_HPP
+#endif // !UHOBGOBLIN_RMLUI_PRIVATE_RMLUI_HOBGOBLIN_RENDERER_HPP

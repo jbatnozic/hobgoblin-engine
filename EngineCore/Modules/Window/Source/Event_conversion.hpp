@@ -69,10 +69,17 @@ Event ToHg(const sf::Event& aEvent) {
             // Deprecated
             break;
 
-#if 0
-        case sf::Event::MouseWheelScrolled: // TODO
-#endif
-
+        case sf::Event::MouseWheelScrolled:
+        {
+            Event::MouseWheelScrolled data;
+            data.wheel = in::MouseWheel{
+                static_cast<in::UniversalInputEnum>(in::detail::SfMouseWheelToInputEnum(aEvent.mouseWheelScroll.wheel))
+            };
+            data.delta = aEvent.mouseWheelScroll.delta;
+            data.x = aEvent.mouseWheelScroll.x;
+            data.y = aEvent.mouseWheelScroll.y;
+            return {data};
+        }
 
         case sf::Event::MouseButtonPressed:
         {
@@ -124,7 +131,7 @@ Event ToHg(const sf::Event& aEvent) {
         case sf::Event::SensorChanged: // TODO
 #endif
 
-        default: NO_OP();
+        default: return {Event::Unknown{}};
     }
 }
 

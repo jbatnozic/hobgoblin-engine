@@ -16,6 +16,8 @@ HOBGOBLIN_NAMESPACE_BEGIN
 namespace win {
 
 struct Event {
+    //! An unknown/unhandled event.
+    using Unknown = std::monostate;
 
     //! The window was closed.
     struct Closed {};
@@ -101,12 +103,13 @@ struct Event {
         int y; //!< Y position of the mouse pointer, relative to the top of the owner window
     };
 
-#if 0
     //! The mouse wheel was scrolled.
     struct MouseWheelScrolled {
-        // TODO
+        in::MouseWheel wheel; //!< Which wheel (for mice with multiple ones).
+        float delta;          //!< Wheel offset (positive is up/left, negative is down/right). High-precision mice may use non-integral offsets.
+        int x;                //!< X position of the mouse pointer, relative to the left of the owner window.
+        int y;                //!< Y position of the mouse pointer, relative to the top of the owner window.
     };
-#endif
 
     //! The window was resized.
     struct Resized {
@@ -144,7 +147,7 @@ struct Event {
 #endif
 
     using EventVariant = std::variant<
-        std::monostate,
+        Unknown,
         Closed,
         GainedFocus,
         LostFocus,
@@ -155,6 +158,7 @@ struct Event {
         MouseEntered,
         MouseLeft,
         MouseMoved,
+        MouseWheelScrolled,
         Resized,
         TextEntered
     >;

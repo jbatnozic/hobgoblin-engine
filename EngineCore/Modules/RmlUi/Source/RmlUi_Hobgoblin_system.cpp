@@ -1,7 +1,8 @@
 
-#include <Hobgoblin/RmlUi/Private/RmlUi_SFML_system.hpp>
+#include <Hobgoblin/RmlUi/Private/RmlUi_Hobgoblin_system.hpp>
 
 #include <Hobgoblin/Logging.hpp>
+#include <SFML/Window.hpp>
 
 #include <string>
 
@@ -11,16 +12,17 @@ namespace rml {
 namespace detail {
 
 namespace {
-constexpr auto LOG_ID = "RmlUiSFMLSystem";
+constexpr auto LOG_ID = "RmlUiHobgoblinSystem";
 } // namespace
 
-RmlUiSFMLSystem::~RmlUiSFMLSystem() = default;
+RmlUiHobgoblinSystem::~RmlUiHobgoblinSystem() = default;
 
-double RmlUiSFMLSystem::GetElapsedTime() {
-    return _clock.getElapsedTime().asSeconds();
+double RmlUiHobgoblinSystem::GetElapsedTime() {
+    const double nanosecondsPerSecond = 1'000'000'000.0;
+    return _clock.getElapsedTime<std::chrono::nanoseconds>().count() / nanosecondsPerSecond;
 }
 
-bool RmlUiSFMLSystem::LogMessage(Rml::Log::Type aType, const Rml::String& aMessage) {
+bool RmlUiHobgoblinSystem::LogMessage(Rml::Log::Type aType, const Rml::String& aMessage) {
     switch (aType) {
         case Rml::Log::LT_ERROR:
             HG_LOG_ERROR(LOG_ID, "{}", aMessage);
@@ -52,13 +54,13 @@ bool RmlUiSFMLSystem::LogMessage(Rml::Log::Type aType, const Rml::String& aMessa
     return true;
 }
 
-void RmlUiSFMLSystem::SetClipboardText(const Rml::String& aText) {
+void RmlUiHobgoblinSystem::SetClipboardText(const Rml::String& aText) {
     sf::Clipboard::setString(
         sf::String::fromUtf8(aText.begin(), aText.end())
     );
 }
 
-void RmlUiSFMLSystem::GetClipboardText(Rml::String& aText) {
+void RmlUiHobgoblinSystem::GetClipboardText(Rml::String& aText) {
     const auto utf8string = sf::Clipboard::getString().toUtf8();
     const auto length = utf8string.size();
     aText.clear();

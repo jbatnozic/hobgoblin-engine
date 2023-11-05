@@ -18,7 +18,7 @@ enum UniversalInputEnum {
     // VIRTUAL KEYBOARD KEYS                                                 //
     ///////////////////////////////////////////////////////////////////////////
 
-#define HG_VIRTUALKEY_FIRST ::jbatnozic::hobgoblin::in::VK_A
+#define HG_INPUT_VIRTUALKEY_FIRST ::jbatnozic::hobgoblin::in::VK_A
 
     VK_UNKNOWN,      //!< Unhandled key
     VK_A,            //!< The A key
@@ -123,13 +123,13 @@ enum UniversalInputEnum {
     VK_F14,          //!< The F14 key
     VK_F15,          //!< The F15 key
 
-#define HG_VIRTUALKEY_LAST ::jbatnozic::hobgoblin::in::VK_F15
+#define HG_INPUT_VIRTUALKEY_LAST ::jbatnozic::hobgoblin::in::VK_F15
 
     ///////////////////////////////////////////////////////////////////////////
     // PHYSICAL KEYBOARD KEYS                                                //
     ///////////////////////////////////////////////////////////////////////////
 
-#define HG_PHYSICALKEY_FIRST ::jbatnozic::hobgoblin::in::PK_A
+#define HG_INPUT_PHYSICALKEY_FIRST ::jbatnozic::hobgoblin::in::PK_A
 
     PK_UNKNOWN,      //!< Unhandled key
     PK_A,            //!< The A key
@@ -282,13 +282,13 @@ enum UniversalInputEnum {
     PK_LAUNCH_MAIL,          //!< Keyboard Launch Mail key
     PK_LAUNCH_MEDIA_SELECT,  //!< Keyboard Launch Media Select key
 
-#define HG_PHYSICALKEY_LAST ::jbatnozic::hobgoblin::in::PK_LAUNCH_MEDIA_SELECT
+#define HG_INPUT_PHYSICALKEY_LAST ::jbatnozic::hobgoblin::in::PK_LAUNCH_MEDIA_SELECT
 
     ///////////////////////////////////////////////////////////////////////////
     // MOUSE BUTTONS                                                         //
     ///////////////////////////////////////////////////////////////////////////
 
-#define HG_MOUSEBUTTON_FIRST ::jbatnozic::hobgoblin::in::MB_LEFT
+#define HG_INPUT_MOUSEBUTTON_FIRST ::jbatnozic::hobgoblin::in::MB_LEFT
 
     MB_UNKNOWN, //!< Unhandled mouse button
     MB_LEFT,    //!< The left mouse button
@@ -297,16 +297,19 @@ enum UniversalInputEnum {
     MB_EXTRA_1, //!< The first extra mouse button
     MB_EXTRA_2, //!< The second extra mouse button
 
-#define HG_MOUSEBUTTON_LAST ::jbatnozic::hobgoblin::in::MB_EXTRA_2
+#define HG_INPUT_MOUSEBUTTON_LAST ::jbatnozic::hobgoblin::in::MB_EXTRA_2
 
     ///////////////////////////////////////////////////////////////////////////
     // MOUSE WHEELS                                                          //
     ///////////////////////////////////////////////////////////////////////////
 
-    MW_VERTICAL_UP,     //!< The vertical mouse wheel
-    MW_VERTICAL_DOWN,   //!< The vertical mouse wheel
-    MW_HORIZONTAL_UP,   //!< The vertical mouse wheel
-    MW_HORIZONTAL_DOWN, //!< The vertical mouse wheel
+#define HG_INPUT_MOUSEWHEEL_FIRST ::jbatnozic::hobgoblin::in::MW_VERTICAL
+
+    MW_UNKNOWN,    //!< Unhandled mouse wheel
+    MW_VERTICAL,   //!< The vertical mouse wheel
+    MW_HORIZONTAL, //!< The vertical mouse wheel
+
+#define HG_INPUT_MOUSEWHEEL_LAST ::jbatnozic::hobgoblin::in::MW_HORIZONTAL
 
     ///////////////////////////////////////////////////////////////////////////
     // TO DO                                                                 //
@@ -316,125 +319,43 @@ enum UniversalInputEnum {
         // - joystick/controller
 
     ///////////////////////////////////////////////////////////////////////////
-    // COUNT                                                                 //
+    // COUNTER                                                               //
     ///////////////////////////////////////////////////////////////////////////
 
-    ENUM_COUNT
+    UNIVERSAL_INPUT_ENUM_COUNT //!< Number of enum elements. Always keep last.
 };
 
 //! Checks whether a value can be mapped to a virtual keyboard key.
 //! Returns `true` for all VK_* values of the `UniversalInputEnum` EXCEPT
 //! for `VK_UNKNOWN`.
 constexpr bool IsVirtualKeyboardKey(int aValue) {
-    return aValue >= HG_VIRTUALKEY_FIRST && aValue <= HG_VIRTUALKEY_LAST;
+    return aValue >= HG_INPUT_VIRTUALKEY_FIRST && aValue <= HG_INPUT_VIRTUALKEY_LAST;
 }
 
 //! Checks whether a value can be mapped to a physical keyboard key.
 //! Returns `true` for all PK_* values of the `UniversalInputEnum` EXCEPT
 //! for `PK_UNKNOWN`.
 constexpr bool IsPhysicalKeyboardKey(int aValue) {
-    return aValue >= HG_PHYSICALKEY_FIRST && aValue <= HG_PHYSICALKEY_LAST;
+    return aValue >= HG_INPUT_PHYSICALKEY_FIRST && aValue <= HG_INPUT_PHYSICALKEY_LAST;
 }
 
 //! Checks whether a value can be mapped to a mouse button.
 //! Returns `true` for all MB_* values of the `UniversalInputEnum` EXCEPT
 //! for `MB_UNKNOWN`.
 constexpr bool IsMouseButton(int aValue) {
-    return aValue >= HG_MOUSEBUTTON_FIRST && aValue <= HG_MOUSEBUTTON_LAST;
+    return aValue >= HG_INPUT_MOUSEBUTTON_FIRST && aValue <= HG_INPUT_MOUSEBUTTON_LAST;
+}
+
+//! Checks whether a value can be mapped to a mouse wheel.
+//! Returns `true` for all MW_* values of the `UniversalInputEnum` EXCEPT
+//! for `MW_UNKNOWN`.
+constexpr bool IsMouseWheel(int aValue) {
+    return aValue >= HG_INPUT_MOUSEWHEEL_FIRST && aValue <= HG_INPUT_MOUSEWHEEL_LAST;
 }
 
 std::optional<UniversalInputEnum> StringToInput(const std::string& aString);
 
 std::optional<std::string> InputToString(UniversalInputEnum aValue);
-
-//! Class used to represent a virtual keyboard key in a type-safe way.
-class VirtualKeyboardKey {
-public:
-     VirtualKeyboardKey() = default;
-
-    constexpr VirtualKeyboardKey(UniversalInputEnum aValue)
-        : _value{aValue}
-    {
-        HARD_ASSERT(IsVirtualKeyboardKey(aValue));
-    }
-
-    constexpr UniversalInputEnum val() const {
-        return _value;
-    }
-
-    constexpr operator UniversalInputEnum() const {
-        return _value;
-    }
-
-private:
-    UniversalInputEnum _value = VK_UNKNOWN;
-};
-
-//! Returns `true` if the given virtual key is currently pressed,
-//! and `false` otherwise. (checks the state of the keyboard directly)
-bool CheckPressedVK(VirtualKeyboardKey aKey);
-
-std::optional<VirtualKeyboardKey> DetectPressedVK();
-
-//! Class used to represent a physical keyboard key in a type-safe way.
-class PhysicalKeyboardKey {
-public:
-    PhysicalKeyboardKey() = default;
-
-    constexpr PhysicalKeyboardKey(UniversalInputEnum aValue)
-        : _value{aValue}
-    {
-        HARD_ASSERT(IsPhysicalKeyboardKey(aValue));
-    }
-
-    constexpr UniversalInputEnum val() const {
-        return _value;
-    }
-
-    constexpr operator UniversalInputEnum() const {
-        return _value;
-    }
-
-private:
-    UniversalInputEnum _value = PK_UNKNOWN;
-};
-
-bool CheckPressedPK(PhysicalKeyboardKey aKey);
-
-std::optional<PhysicalKeyboardKey> DetectPressedPK();
-
-//! TODO
-VirtualKeyboardKey Localize(PhysicalKeyboardKey aKey);
-
-//! TODO
-PhysicalKeyboardKey Delocalize(VirtualKeyboardKey aKey);
-
-//! Class used to represent a mouse button in a type-safe way.
-class MouseButton {
-public:
-    MouseButton() = default;
-
-    constexpr MouseButton(UniversalInputEnum aValue)
-        : _value{aValue}
-    {
-        HARD_ASSERT(IsMouseButton(aValue));
-    }
-
-    constexpr UniversalInputEnum val() const {
-        return _value;
-    }
-
-    constexpr operator UniversalInputEnum() const {
-        return _value;
-    }
-
-private:
-    UniversalInputEnum _value = MB_UNKNOWN;
-};
-
-bool CheckPressedMB(MouseButton aKey);
-
-std::optional<MouseButton> DetectPressedMB();
 
 } // namespace in
 HOBGOBLIN_NAMESPACE_END

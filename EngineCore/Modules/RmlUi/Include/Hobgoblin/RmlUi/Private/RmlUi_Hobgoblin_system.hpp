@@ -1,19 +1,17 @@
-#ifndef UHOBGOBLIN_RMLUI_PRIVATE_RMLUI_SFML_SYSTEM_HPP
-#define UHOBGOBLIN_RMLUI_PRIVATE_RMLUI_SFML_SYSTEM_HPP
+#ifndef UHOBGOBLIN_RMLUI_PRIVATE_RMLUI_HOBGOBLIN_SYSTEM_HPP
+#define UHOBGOBLIN_RMLUI_PRIVATE_RMLUI_HOBGOBLIN_SYSTEM_HPP
 
 #include <RmlUi/Core/SystemInterface.h>
-#include <SFML/Window.hpp>
-#include <SFML/System.hpp>
+#include <Hobgoblin/Utility/Time_utils.hpp>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace rml {
 namespace detail {
 
-class RmlUiSFMLSystem : public Rml::SystemInterface
-{
+class RmlUiHobgoblinSystem : public Rml::SystemInterface {
 public:
-    ~RmlUiSFMLSystem() override;
+    ~RmlUiHobgoblinSystem() override;
 
     double GetElapsedTime() override;
 
@@ -24,7 +22,7 @@ public:
     void GetClipboardText(Rml::String& aText) override;
 
 private:
-    sf::Clock _clock;
+    util::Stopwatch _clock;
 };
 
 } // namespace detail
@@ -33,4 +31,4 @@ HOBGOBLIN_NAMESPACE_END
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
-#endif // !UHOBGOBLIN_RMLUI_PRIVATE_RMLUI_SFML_SYSTEM_HPP
+#endif // !UHOBGOBLIN_RMLUI_PRIVATE_RMLUI_HOBGOBLIN_SYSTEM_HPP

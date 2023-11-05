@@ -51,6 +51,7 @@ class GraphicsImplAccessor;
 namespace win {
 
 namespace detail {
+class WindowImplAccessor;
 class WindowPolymorphismAdapter {
 public:
     virtual ~WindowPolymorphismAdapter() = default;
@@ -437,6 +438,7 @@ protected:
 
 private:
     friend class gr::detail::GraphicsImplAccessor;
+    friend class detail::WindowImplAccessor;
 
     void* _getSFMLImpl();
     const void* _getSFMLImpl() const;
@@ -444,6 +446,8 @@ private:
     class Impl;
     std::unique_ptr<Impl> _impl;
 };
+
+math::Vector2i GetMousePositionRelativeToWindow(const Window& aWindow);
 
 } // namespace win
 HOBGOBLIN_NAMESPACE_END

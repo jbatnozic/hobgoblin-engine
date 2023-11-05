@@ -11,9 +11,9 @@ set(COMPONENT_NAME "Hobgoblin.RmlUi")
 set(COMPONENT_SOURCES
     "Source/Context_driver.cpp"
     "Source/Hobgoblin_backend.cpp"
+    "Source/RmlUi_Hobgoblin_renderer.cpp"
+    "Source/RmlUi_Hobgoblin_system.cpp"
     "Source/RmlUi_preprocessing.cpp"
-    "Source/RmlUi_SFML_renderer.cpp"
-    "Source/RmlUi_SFML_system.cpp"
 )
 
 # ===== TARGET SETUP =====
@@ -25,8 +25,10 @@ target_link_libraries(${COMPONENT_NAME}
 PUBLIC
   "Hobgoblin.Private"
   "Hobgoblin.Common"
+  "Hobgoblin.Input"
   "Hobgoblin.Logging"
   "Hobgoblin.Graphics"
+  "Hobgoblin.Window"
   "GLEW::GLEW"
   "rmlui::rmlui"
   "sfml::sfml"

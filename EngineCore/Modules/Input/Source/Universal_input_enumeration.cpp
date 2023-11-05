@@ -78,34 +78,6 @@ std::optional<std::string> InputToString(UniversalInputEnum aValue) {
     return g_valueMap.valueToString(aValue);
 }
 
-bool CheckPressedVK(VirtualKeyboardKey aKey) {
-    return sf::Keyboard::isKeyPressed((sf::Keyboard::Key)ToSfKeyboardKey(aKey));
-}
-
-std::optional<VirtualKeyboardKey> DetectPressedVK() {
-    for (int i = HG_VIRTUALKEY_FIRST; i <= HG_VIRTUALKEY_LAST; i += 1) {
-        const auto key = VirtualKeyboardKey{static_cast<UniversalInputEnum>(i)};
-        if (CheckPressedVK(key)) {
-            return key;
-        }
-    }
-    return {};
-}
-
-bool CheckPressedPK(PhysicalKeyboardKey aKey) {
-    return sf::Keyboard::isKeyPressed((sf::Keyboard::Scancode)ToSfScancode(aKey));
-}
-
-std::optional<PhysicalKeyboardKey> DetectPressedPK() {
-    for (int i = HG_PHYSICALKEY_FIRST; i <= HG_PHYSICALKEY_LAST; i += 1) {
-        const auto key = PhysicalKeyboardKey{static_cast<UniversalInputEnum>(i)};
-        if (CheckPressedPK(key)) {
-            return key;
-        }
-    }
-    return {};
-}
-
 } // namespace in
 HOBGOBLIN_NAMESPACE_END
 

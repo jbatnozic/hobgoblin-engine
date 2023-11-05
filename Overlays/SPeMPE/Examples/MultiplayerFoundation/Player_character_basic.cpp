@@ -56,23 +56,23 @@ void BasicPlayerCharacter::_eventDraw1() {
 
     #define NUM_COLORS 12
     static const hg::gr::Color COLORS[NUM_COLORS] = {
-        hg::gr::Color::Red,
-        hg::gr::Color::Green,
-        hg::gr::Color::Yellow,
-        hg::gr::Color::Blue,
-        hg::gr::Color::Orange,
-        hg::gr::Color::Purple,
-        hg::gr::Color::Teal,
-        hg::gr::Color::Brown,
-        hg::gr::Color::Fuchsia,
-        hg::gr::Color::Grey,
-        hg::gr::Color::White,
-        hg::gr::Color::Aqua,
+        hg::gr::COLOR_RED,
+        hg::gr::COLOR_GREEN,
+        hg::gr::COLOR_YELLOW,
+        hg::gr::COLOR_BLUE,
+        hg::gr::COLOR_ORANGE,
+        hg::gr::COLOR_PURPLE,
+        hg::gr::COLOR_TEAL,
+        hg::gr::COLOR_BROWN,
+        hg::gr::COLOR_FUCHSIA,
+        hg::gr::COLOR_GREY,
+        hg::gr::COLOR_WHITE,
+        hg::gr::COLOR_AQUA,
     };
 
     const auto& self = _getCurrentState();
 
-    sf::CircleShape circle{20.f};
+    hg::gr::CircleShape circle{20.f};
     circle.setFillColor(COLORS[self.owningPlayerIndex % NUM_COLORS]);
     circle.setPosition({self.x, self.y});
     ccomp<MWindow>().getCanvas().draw(circle);

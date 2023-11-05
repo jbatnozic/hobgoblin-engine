@@ -277,7 +277,7 @@ public:
         }
 
         auto& winMgr = CCOMP<MWindow>();
-        if (winMgr.getKeyboardInput().checkPressed(spe::KbKey::L, spe::KbInput::Mode::Edge)) {
+        if (winMgr.getInput().checkPressed(hg::in::PK_L, spe::WindowFrameInputView::Mode::Edge)) {
             _documentVisible = !_documentVisible;
             if (_documentVisible) {
                 _document->Show();

@@ -289,6 +289,15 @@ UniversalInputEnum ToHgMouseButton(sf::Mouse::Button aValue) {
     }
 }
 
+inline
+UniversalInputEnum ToHgMouseWheel(sf::Mouse::Wheel aValue) {
+    switch (aValue) {
+    case sf::Mouse::VerticalWheel: return MW_VERTICAL;
+    case sf::Mouse::HorizontalWheel: return MW_HORIZONTAL;
+    default: return MW_UNKNOWN;
+    }
+}
+
 // Hobgoblin -> SFML
 
 inline

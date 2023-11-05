@@ -21,6 +21,10 @@ std::int32_t SfMouseButtonToInputEnum(std::int32_t aValue) {
     return (std::int32_t)ToHgMouseButton(static_cast<sf::Mouse::Button>(aValue));
 }
 
+std::int32_t SfMouseWheelToInputEnum(std::int32_t aValue) {
+    return (std::int32_t)ToHgMouseWheel(static_cast<sf::Mouse::Wheel>(aValue));
+}
+
 } // namespace detail
 } // namespace in
 HOBGOBLIN_NAMESPACE_END

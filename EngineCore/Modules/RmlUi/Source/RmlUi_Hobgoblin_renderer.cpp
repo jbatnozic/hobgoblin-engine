@@ -1,5 +1,5 @@
 
-#include <Hobgoblin/RmlUi/Private/RmlUi_SFML_renderer.hpp>
+#include <Hobgoblin/RmlUi/Private/RmlUi_Hobgoblin_renderer.hpp>
 
 #include <RmlUi/Core.h>
 
@@ -10,11 +10,11 @@ HOBGOBLIN_NAMESPACE_BEGIN
 namespace rml {
 namespace detail {
 
-void RmlUiSFMLRenderer::setRenderTarget(SizedRenderTarget* aRenderTarget) {
+void RmlUiHobgoblinRenderer::setRenderTarget(gr::RenderTarget* aRenderTarget) {
     _renderTarget = aRenderTarget;
 }
 
-SizedRenderTarget* RmlUiSFMLRenderer::getRenderTarget() const {
+gr::RenderTarget* RmlUiHobgoblinRenderer::getRenderTarget() const {
     return _renderTarget;
 }
 
@@ -22,7 +22,7 @@ SizedRenderTarget* RmlUiSFMLRenderer::getRenderTarget() const {
 // INHERITED FROM RML::RENDERINTERFACE                                   //
 ///////////////////////////////////////////////////////////////////////////
 
-void RmlUiSFMLRenderer::RenderGeometry(
+void RmlUiHobgoblinRenderer::RenderGeometry(
     Rml::Vertex* aVertices,
     int aVerticesCount,
     int* aIndices,
@@ -35,7 +35,7 @@ void RmlUiSFMLRenderer::RenderGeometry(
     if (!_renderTarget) {
         return;
     }
-    (*_renderTarget)->pushGLStates();
+    _renderTarget->pushGLStates();
     _initViewport();
 
     glTranslatef(aTranslation.x, aTranslation.y, 0);
@@ -58,7 +58,7 @@ void RmlUiSFMLRenderer::RenderGeometry(
 
     glDrawElements(GL_TRIANGLES, aIndicesCount, GL_UNSIGNED_INT, aIndices);
 
-    (*_renderTarget)->popGLStates();
+    _renderTarget->popGLStates();
 #else
     if (!_renderTarget) {
         return;
@@ -111,21 +111,21 @@ void RmlUiSFMLRenderer::RenderGeometry(
 
 }
 
-Rml::CompiledGeometryHandle RmlUiSFMLRenderer::CompileGeometry(Rml::Vertex*, int, int*, int, const Rml::TextureHandle) {
+Rml::CompiledGeometryHandle RmlUiHobgoblinRenderer::CompileGeometry(Rml::Vertex*, int, int*, int, const Rml::TextureHandle) {
     return reinterpret_cast<Rml::CompiledGeometryHandle>(nullptr);
 }
 
-void RmlUiSFMLRenderer::RenderCompiledGeometry(Rml::CompiledGeometryHandle, const Rml::Vector2f&) {
+void RmlUiHobgoblinRenderer::RenderCompiledGeometry(Rml::CompiledGeometryHandle, const Rml::Vector2f&) {
     RMLUI_ASSERT(false);
 }
 
-void RmlUiSFMLRenderer::ReleaseCompiledGeometry(Rml::CompiledGeometryHandle) {
+void RmlUiHobgoblinRenderer::ReleaseCompiledGeometry(Rml::CompiledGeometryHandle) {
     RMLUI_ASSERT(false);
 }
 
-bool RmlUiSFMLRenderer::LoadTexture(Rml::TextureHandle& texture_handle,
-                                    Rml::Vector2i& texture_dimensions,
-                                    const Rml::String& source) {
+bool RmlUiHobgoblinRenderer::LoadTexture(Rml::TextureHandle& texture_handle,
+                                         Rml::Vector2i& texture_dimensions,
+                                         const Rml::String& source) {
     Rml::FileInterface* file_interface = Rml::GetFileInterface();
     Rml::FileHandle file_handle = file_interface->Open(source);
     if (!file_handle)
@@ -156,9 +156,9 @@ bool RmlUiSFMLRenderer::LoadTexture(Rml::TextureHandle& texture_handle,
     return true;
 }
 
-bool RmlUiSFMLRenderer::GenerateTexture(Rml::TextureHandle& texture_handle,
-                                        const Rml::byte* source,
-                                        const Rml::Vector2i& source_dimensions) {
+bool RmlUiHobgoblinRenderer::GenerateTexture(Rml::TextureHandle& texture_handle,
+                                             const Rml::byte* source,
+                                             const Rml::Vector2i& source_dimensions) {
     sf::Texture* texture = new sf::Texture();
 
     if (!texture->create(source_dimensions.x, source_dimensions.y)) {
@@ -172,11 +172,11 @@ bool RmlUiSFMLRenderer::GenerateTexture(Rml::TextureHandle& texture_handle,
     return true;
 }
 
-void RmlUiSFMLRenderer::ReleaseTexture(Rml::TextureHandle texture_handle) {
+void RmlUiHobgoblinRenderer::ReleaseTexture(Rml::TextureHandle texture_handle) {
     delete (reinterpret_cast<sf::Texture*>(texture_handle));
 }
 
-void RmlUiSFMLRenderer::EnableScissorRegion(bool aEnable) {
+void RmlUiHobgoblinRenderer::EnableScissorRegion(bool aEnable) {
     if (aEnable) {
         glEnable(GL_SCISSOR_TEST);
     }
@@ -185,18 +185,18 @@ void RmlUiSFMLRenderer::EnableScissorRegion(bool aEnable) {
     }
 }
 
-void RmlUiSFMLRenderer::SetScissorRegion(int x, int y, int width, int height) {
+void RmlUiHobgoblinRenderer::SetScissorRegion(int x, int y, int width, int height) {
     if (!_renderTarget) {
         return;
     }
-    glScissor(x, (*_renderTarget)->getSize().y - (y + height), width, height);
+    glScissor(x, _renderTarget->getSize().y - (y + height), width, height);
 }
 
 ///////////////////////////////////////////////////////////////////////////
 // PRIVATE                                                               //
 ///////////////////////////////////////////////////////////////////////////
 
-void RmlUiSFMLRenderer::_initViewport() {
+void RmlUiHobgoblinRenderer::_initViewport() {
     if (!_renderTarget) {
         return;
     }
