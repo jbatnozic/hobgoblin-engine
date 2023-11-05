@@ -1,8 +1,8 @@
 #ifndef UTIL_PERIODIC_COUNTER_HPP
 #define UTIL_PERIODIC_COUNTER_HPP
 
-template <class taArithmetic>
-bool CountPeriodic(taArithmetic* counterVariable, taArithmetic period, bool predicate) {
+template <class T>
+bool CountPeriodic(T* counterVariable, T period, bool predicate) {
     if (!predicate) {
         (*counterVariable) = 0;
         return false;

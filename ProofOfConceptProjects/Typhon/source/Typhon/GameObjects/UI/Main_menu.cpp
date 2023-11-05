@@ -25,8 +25,8 @@ extern NodeInfo localNode;
 
 namespace {
 
-template <class taArithmetic>
-taArithmetic InputPrompt(const std::string& name, taArithmetic defaultValue) {
+template <class T>
+T InputPrompt(const std::string& name, T defaultValue) {
     std::cout << "Input " << name << " (press Enter for default - " << defaultValue << "): ";
     std::string temp;
     std::getline(std::cin, temp);
@@ -36,7 +36,7 @@ taArithmetic InputPrompt(const std::string& name, taArithmetic defaultValue) {
     else {
         std::stringstream ss;
         ss << temp;
-        taArithmetic t;
+        T t;
         ss >> t;
         return t;
     }

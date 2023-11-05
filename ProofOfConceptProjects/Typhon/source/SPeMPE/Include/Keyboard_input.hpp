@@ -31,7 +31,7 @@ enum class KbKey {
     Q = sf::Keyboard::Q,         ///< The Q key
     R = sf::Keyboard::R,         ///< The R key
     S = sf::Keyboard::S,         ///< The S key
-    taArithmetic = sf::Keyboard::taArithmetic,         ///< The T key
+    T = sf::Keyboard::T,         ///< The T key
     U = sf::Keyboard::U,         ///< The U key
     V = sf::Keyboard::V,         ///< The V key
     W = sf::Keyboard::W,         ///< The W key
