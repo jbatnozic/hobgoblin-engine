@@ -31,8 +31,8 @@ public:
 		_texture->create(aTextureWidth, aTextureHeight);
 	}
 
-	not_null<TextureBuilder*> addSprite(SpriteIdNumerical aSpriteId,
-										const std::filesystem::path& aFilePath) override {
+	NotNull<TextureBuilder*> addSprite(SpriteIdNumerical aSpriteId,
+                                       const std::filesystem::path& aFilePath) override {
 		_assertNotFinalized();
 
 		if (_indexedRequests.find(aSpriteId) != _indexedRequests.end()) {
@@ -49,9 +49,9 @@ public:
 		return this;
 	}
 
-	not_null<TextureBuilder*> addSubsprite(SpriteIdNumerical aSpriteId,
-										   PZInteger aSubspriteIndex,
-										   const std::filesystem::path& aFilePath) override {
+	NotNull<TextureBuilder*> addSubsprite(SpriteIdNumerical aSpriteId,
+										  PZInteger aSubspriteIndex,
+										  const std::filesystem::path& aFilePath) override {
 		_assertNotFinalized();
 
 		auto image = _loadImage(aFilePath);
@@ -74,8 +74,8 @@ public:
 		return this;
 	}
 
-	not_null<TextureBuilder*> addSubsprite(SpriteIdNumerical aSpriteId,
-										   const std::filesystem::path& aFilePath) override {
+	NotNull<TextureBuilder*> addSubsprite(SpriteIdNumerical aSpriteId,
+                                          const std::filesystem::path& aFilePath) override {
 		_assertNotFinalized();
 
 		auto image = _loadImage(aFilePath);
@@ -88,8 +88,8 @@ public:
 		return this;
 	}
 
-	not_null<TextureBuilder*> addSprite(const SpriteIdTextual& aSpriteId,
-										const std::filesystem::path& aFilePath) override {
+	NotNull<TextureBuilder*> addSprite(const SpriteIdTextual& aSpriteId,
+                                       const std::filesystem::path& aFilePath) override {
 		_assertNotFinalized();
 
 		if (_mappedRequests.find(aSpriteId) != _mappedRequests.end()) {
@@ -106,9 +106,9 @@ public:
 		return this;
 	}
 
-	not_null<TextureBuilder*> addSubsprite(const SpriteIdTextual& aSpriteId,
-										   PZInteger aSubspriteIndex,
-										   const std::filesystem::path& aFilePath) override {
+	NotNull<TextureBuilder*> addSubsprite(const SpriteIdTextual& aSpriteId,
+                                          PZInteger aSubspriteIndex,
+                                          const std::filesystem::path& aFilePath) override {
 		_assertNotFinalized();
 
 		auto image = _loadImage(aFilePath);
@@ -131,8 +131,8 @@ public:
 		return this;
 	}
 
-	not_null<TextureBuilder*> addSubsprite(const SpriteIdTextual& aSpriteId,
-										   const std::filesystem::path& aFilePath) override {
+	NotNull<TextureBuilder*> addSubsprite(const SpriteIdTextual& aSpriteId,
+										  const std::filesystem::path& aFilePath) override {
 		_assertNotFinalized();
 
 		auto image = _loadImage(aFilePath);
@@ -256,8 +256,8 @@ private:
 // SPRITE LOADER                                                         //
 ///////////////////////////////////////////////////////////////////////////
 
-std::unique_ptr<SpriteLoader::TextureBuilder>
-SpriteLoader::startTexture(PZInteger aWidth, PZInteger aHeight) {
+std::unique_ptr<SpriteLoader::TextureBuilder> SpriteLoader::startTexture(PZInteger aWidth,
+																		 PZInteger aHeight) {
 	return std::make_unique<detail::TextureBuilderImpl>(SELF, aWidth, aHeight);
 }
 

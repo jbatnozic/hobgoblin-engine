@@ -2,6 +2,7 @@
 #define SPEMPE_GAME_CONTEXT_GAME_CONTEXT_HPP
 
 #include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/GSL/HG_adapters.hpp>
 #include <Hobgoblin/QAO.hpp>
 
 #include <SPeMPE/GameContext/Context_components.hpp>
@@ -210,9 +211,9 @@ private:
     std::thread _childContextThread;
     int _childContextReturnValue = 0;
 
-    static void _runImpl(hg::not_null<GameContext*> aContext,
+    static void _runImpl(hg::NotNull<GameContext*> aContext,
                          int aMaxSteps,
-                         hg::not_null<int*> aReturnValue);
+                         hg::NotNull<int*> aReturnValue);
 };
 
 template <class taComponent>

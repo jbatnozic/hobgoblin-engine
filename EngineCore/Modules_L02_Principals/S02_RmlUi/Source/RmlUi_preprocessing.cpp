@@ -299,7 +299,7 @@ void PreprocessRcssFile(const std::string& aFilePath) {
                 if (!spritesheetBegan) {
                     FAIL("A 'spritesheet_begin' must come before any 'sprite' definitions!");
                 }
-                const auto result = ProcessSpriteCommand(lineInfo, containingFolder, *srcResult->texBuilder);
+                const auto result = ProcessSpriteCommand(lineInfo, containingFolder, *(srcResult->texBuilder));
                 outputLines.push_back(lineInfo.leadingWhitespace + "sprite: %%{" + result.name + "}");
             }
             // ???

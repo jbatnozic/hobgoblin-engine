@@ -31,17 +31,25 @@ target_include_directories(${OVERLAY_NAME} PUBLIC "Include/")
 
 target_link_libraries(${OVERLAY_NAME}
 PUBLIC
-  "Hobgoblin.Common"
-  "Hobgoblin.Graphics"
-  "Hobgoblin.Input"
-  "Hobgoblin.Logging"
-  "Hobgoblin.Math"
-  "Hobgoblin.QAO"
-  "Hobgoblin.RigelNet"
-  "Hobgoblin.RmlUi"
-  "Hobgoblin.Utility"
-  "sfml::sfml"
-  "ztcpp::ztcpp"
+    # Foundation
+    "Hobgoblin.GSL"
+    "Hobgoblin.Logging"
+
+    # Utilities
+    "Hobgoblin.Common"
+    "Hobgoblin.Math"
+    "Hobgoblin.Utility"
+
+    # Principal
+    "Hobgoblin.Input"
+    "Hobgoblin.QAO"
+    "Hobgoblin.RigelNet"
+    "Hobgoblin.RmlUi"
+    "Hobgoblin.Graphics"
+    
+    # External
+    "sfml::sfml"
+    "ztcpp::ztcpp"
 )
 
 # ===== BUILD TESTS =====

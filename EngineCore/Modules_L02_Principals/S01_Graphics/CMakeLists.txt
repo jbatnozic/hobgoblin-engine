@@ -52,6 +52,7 @@ target_link_libraries(${COMPONENT_NAME}
 PUBLIC
     # Foundation
     "Hobgoblin_L00_S00_PDef"
+    "Hobgoblin_L00_S01_GSL"
     "Hobgoblin_L00_S03_Logging"
 
     # Utilities

@@ -2,6 +2,7 @@
 #define SPEMPE_UTILITY_WINDOW_FRAME_INPUT_VIEW_HPP
 
 #include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/GSL/HG_adapters.hpp>
 #include <Hobgoblin/Input/Universal_input_enumeration.hpp>
 #include <Hobgoblin/Math/Vector.hpp>
 
@@ -91,7 +92,7 @@ public:
 private:
     friend class detail::WindowInputTracker;
 
-    explicit WindowFrameInputView(hg::not_null<const detail::WindowInputTracker*> aTracker);
+    explicit WindowFrameInputView(hg::NotNull<const detail::WindowInputTracker*> aTracker);
 
     const detail::WindowInputTracker& _tracker;
 };

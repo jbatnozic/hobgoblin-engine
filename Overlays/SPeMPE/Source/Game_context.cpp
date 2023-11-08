@@ -251,9 +251,9 @@ using std::chrono::duration_cast;
 
 } // namespace
 
-void GameContext::_runImpl(hg::not_null<GameContext*> aContext,
+void GameContext::_runImpl(hg::NotNull<GameContext*> aContext,
                            int aMaxSteps,
-                           hg::not_null<int*> aReturnValue) {
+                           hg::NotNull<int*> aReturnValue) {
     if (aMaxSteps == 0) {
         return;
     }

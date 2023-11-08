@@ -70,5 +70,6 @@ HG_DYNAPI void HGCALL FuncLogImpl(Severity aSeverity, const char* aLogId, const 
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
+#include <Hobgoblin/Private/Short_namespace.hpp>
 
 #endif // !UHOBGOBLIN_LOGGING_IMPL_HPP

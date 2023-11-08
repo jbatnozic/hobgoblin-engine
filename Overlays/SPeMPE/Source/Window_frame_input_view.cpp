@@ -6,7 +6,7 @@
 namespace jbatnozic {
 namespace spempe {
 
-WindowFrameInputView::WindowFrameInputView(hg::not_null<const detail::WindowInputTracker*> aTracker)
+WindowFrameInputView::WindowFrameInputView(hg::NotNull<const detail::WindowInputTracker*> aTracker)
     : _tracker{*aTracker}
 {
 }

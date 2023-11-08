@@ -5,7 +5,6 @@ set(COMPONENT_NAME "Hobgoblin.Common")
 # ===== GATHER SOURCES ======
 
 set(COMPONENT_SOURCES
-  "Source/Gsl_pointers.cpp"
   "Source/Traced_exceptions.cpp"
 )
 
