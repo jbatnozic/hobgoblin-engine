@@ -1,6 +1,6 @@
-
 #include <Hobgoblin/Graphics/Draw_batcher.hpp>
 
+#include <cassert>
 #include <typeinfo>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
@@ -8,43 +8,50 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
-// VERTICES ALWAYS COUNTER-CLOCKWISE!
+// VERTICES ALWAYS CLOCKWISE!
 
 namespace {
-void AppendSpriteToVertexArray(const sf::Sprite& aSprite, sf::VertexArray& aVertexArray) {
-    sf::Vertex vert[4]; // top-left, top-right, bottom-right, bottom-left
+void AppendSpriteToVertexArray(const Sprite& aSprite, VertexArray& aVertexArray) {
+    Vertex vert[6]; // FIRST: top-left, top-right, bottom-left
+                    //  THEN: top-right, bottom-right, bottom-left
 
     const auto transform = aSprite.getTransform();
 
     const auto lb = aSprite.getLocalBounds();
 
-    vert[0].position = transform * sf::Vector2f{lb.left,            lb.top};
-    vert[1].position = transform * sf::Vector2f{lb.left + lb.width, lb.top};
-    vert[2].position = transform * sf::Vector2f{lb.left + lb.width, lb.top + lb.height};
-    vert[3].position = transform * sf::Vector2f{lb.left,            lb.top + lb.height};
+    vert[0].position = transform * math::Vector2f{lb.x,        lb.y};
+    vert[1].position = transform * math::Vector2f{lb.x + lb.w, lb.y};
+    vert[2].position = transform * math::Vector2f{lb.x,        lb.y + lb.h};
+    vert[3].position = transform * math::Vector2f{lb.x + lb.w, lb.y};
+    vert[4].position = transform * math::Vector2f{lb.x + lb.w, lb.y + lb.h};
+    vert[5].position = transform * math::Vector2f{lb.x,        lb.y + lb.h};
 
     const auto tr = aSprite.getTextureRect();
 
-    vert[0].texCoords = {(float)tr.left, (float)tr.top};
-    vert[1].texCoords = {(float)tr.left + (float)tr.width, (float)tr.top};
-    vert[2].texCoords = {(float)tr.left + (float)tr.width, (float)tr.top + (float)tr.height};
-    vert[3].texCoords = {(float)tr.left, (float)tr.top + (float)tr.height};
+    vert[0].texCoords = {(float)tr.x,               (float)tr.y};
+    vert[1].texCoords = {(float)tr.x + (float)tr.w, (float)tr.y};
+    vert[2].texCoords = {(float)tr.x,               (float)tr.y + (float)tr.h};
+    vert[3].texCoords = {(float)tr.x + (float)tr.w, (float)tr.y};
+    vert[4].texCoords = {(float)tr.x + (float)tr.w, (float)tr.y + (float)tr.h};
+    vert[5].texCoords = {(float)tr.x,               (float)tr.y + (float)tr.h};
 
-    vert[0].color = vert[1].color = vert[2].color = vert[3].color = aSprite.getColor();
+    vert[0].color = vert[1].color = vert[2].color = 
+    vert[3].color = vert[4].color = vert[5].color = aSprite.getColor();
 
+    aVertexArray.vertices.reserve(aVertexArray.vertices.size() + 6);
     for (const auto& v : vert) {
-        aVertexArray.append(v);
+        aVertexArray.vertices.push_back(v);
     }
 }
 
-bool operator==(const sf::RenderStates& aStates1, const sf::RenderStates& aStates2) {
-    return (aStates1.texture == aStates2.texture &&
+bool operator==(const RenderStates& aStates1, const RenderStates& aStates2) {
+    return (aStates1.texture   == aStates2.texture   &&
             aStates1.blendMode == aStates2.blendMode &&
             aStates1.transform == aStates2.transform &&
-            aStates1.shader == aStates2.shader);
+            aStates1.shader    == aStates2.shader);
 }
 
-bool operator!=(const sf::RenderStates& aStates1, const sf::RenderStates& aStates2) {
+bool operator!=(const RenderStates& aStates1, const RenderStates& aStates2) {
     return (!(aStates1 == aStates2));
 }
 } // namespace
@@ -55,68 +62,41 @@ DrawBatcher::DrawBatcher(Canvas& aCanvas)
 }
 
 void DrawBatcher::draw(const Drawable& aDrawable,
-                       const sf::RenderStates& aStates) {
-    detail::Drawable_DrawOntoCanvas(aDrawable, SELF, aStates);
+                       const RenderStates& aStates) {
+    const auto batchingType = aDrawable.getBatchingType();
+    switch (batchingType) {
+    case Drawable::BatchingType::VertexBuffer:
+        // TODO - this branch should never happen
+        break;
+
+    case Drawable::BatchingType::VertexArray:
+        assert(typeid(aDrawable) == typeid(VertexArray));
+        _drawVertexArray(static_cast<const VertexArray&>(aDrawable), aStates);
+        break;
+
+    case Drawable::BatchingType::Sprite:
+        assert(typeid(aDrawable) == typeid(Sprite));
+        _drawSprite(static_cast<const Sprite&>(aDrawable), aStates);
+        break;
+
+    case Drawable::BatchingType::Aggregate:
+        aDrawable._draw(SELF, aStates);
+        break;
+
+    case Drawable::BatchingType::Custom:
+        _flush();
+        aDrawable._draw(SELF, aStates);
+        break;
+
+    default:
+        HARD_ASSERT(false && "Invalid batching type encountered.");
+    }
 }
 
-void DrawBatcher::draw(const sf::Drawable& aDrawable,
-                       const sf::RenderStates& aStates) {
-    // Enable batching for sprites and shapes
-
-    // Check if it's a sprite
-    if (typeid(aDrawable) == typeid(sf::Sprite)) {
-        const auto& sprite = static_cast<const sf::Sprite&>(aDrawable);
-
-        switch (_status) {
-        default:
-            _flush();
-            SWITCH_FALLTHROUGH;
-
-        case Status::Empty:
-            SWITCH_FALLTHROUGH;
-
-        case Status::BatchingSprites:
-            if (_status == Status::Empty) {
-                _prepForBatchingSprites(aStates, sprite.getTexture());
-            }
-            else {
-                // If batches are not compatible, flush and start a new batch
-                if (aStates != _renderStates || sprite.getTexture() != _texture) {
-                    _flush();
-                    _prepForBatchingSprites(aStates, sprite.getTexture());
-                }
-            }
-
-            AppendSpriteToVertexArray(sprite, _vertexArray);
-            break;
-        }
-
-        return;
-    }
-
-    // Check if it's a vertex array
-    if (typeid(aDrawable) == typeid(sf::Sprite)) {
-        const auto vertexArray = static_cast<const sf::VertexArray&>(aDrawable);
-
-        this->draw(
-            std::addressof(vertexArray[0u]),
-            vertexArray.getVertexCount(),
-            vertexArray.getPrimitiveType(),
-            aStates
-        );
-
-        return;
-    }
-
-    // Otherwise...
-    _flush();
-    _canvas.draw(aDrawable, aStates);
-}
-
-void DrawBatcher::draw(const sf::Vertex* aVertices,
-                       std::size_t aVertexCount,
-                       sf::PrimitiveType aType,
-                       const sf::RenderStates& aStates) {
+void DrawBatcher::draw(const Vertex* aVertices,
+                       PZInteger aVertexCount,
+                       PrimitiveType aType,
+                       const RenderStates& aStates) {
     switch (_status) {
     default:
         _flush();
@@ -131,30 +111,30 @@ void DrawBatcher::draw(const sf::Vertex* aVertices,
         }
         else {
             // If batches are not compatible, flush and start a new batch
-            if (aStates != _renderStates || _vertexArray.getPrimitiveType() != aType) {
+            if (_vertexArray.primitiveType != aType || aStates != _renderStates) {
                 _flush();
                 _prepForBatchingVertices(aStates, aType);
             }
         }
 
-        for (std::size_t i = 0; i < aVertexCount; i += 1) {
-            _vertexArray.append(aVertices[i]);
+        for (PZInteger i = 0; i < aVertexCount; i += 1) {
+            _vertexArray.vertices.push_back(aVertices[pztos(i)]);
         }
         break;
     }
 }
 
-void DrawBatcher::draw(const sf::VertexBuffer& aVertexBuffer,
-                       const sf::RenderStates& aStates) {
+void DrawBatcher::draw(const VertexBuffer& aVertexBuffer,
+                       const RenderStates& aStates) {
     // Always draw vertex buffers individually
     _flush();
     _canvas.draw(aVertexBuffer, aStates);
 }
 
-void DrawBatcher::draw(const sf::VertexBuffer& aVertexBuffer,
-                       std::size_t aFirstVertex,
-                       std::size_t aVertexCount,
-                       const sf::RenderStates& aStates) {
+void DrawBatcher::draw(const VertexBuffer& aVertexBuffer,
+                       PZInteger aFirstVertex,
+                       PZInteger aVertexCount,
+                       const RenderStates& aStates) {
     // Always draw vertex buffers individually
     _flush();
     _canvas.draw(aVertexBuffer, aFirstVertex, aVertexCount, aStates);
@@ -165,6 +145,10 @@ void DrawBatcher::flush() {
     _canvas.flush();
 }
 
+void DrawBatcher::getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) {
+    _canvas.getCanvasDetails(aType, aRenderingBackend);
+}
+
 void DrawBatcher::_flush() {
     switch (_status) {
     case Status::Empty:
@@ -173,12 +157,12 @@ void DrawBatcher::_flush() {
     case Status::BatchingSprites:
         _renderStates.texture = _texture;
         _canvas.draw(_vertexArray, _renderStates);
-        _vertexArray.clear();
+        _vertexArray.vertices.clear();
         break;
 
     case Status::BatchingVertices:
         _canvas.draw(_vertexArray, _renderStates);
-        _vertexArray.clear();
+        _vertexArray.vertices.clear();
         break;
 
     default:
@@ -188,19 +172,54 @@ void DrawBatcher::_flush() {
     _status = Status::Empty;
 }
 
-void DrawBatcher::_prepForBatchingSprites(const sf::RenderStates& aStates, const sf::Texture* aTexture) {
-    _vertexArray.setPrimitiveType(sf::PrimitiveType::Quads);
+void DrawBatcher::_prepForBatchingSprites(const RenderStates& aStates, const Texture* aTexture) {
+    _vertexArray.primitiveType = PrimitiveType::Triangles;
     _renderStates = aStates;
     _texture = aTexture;
 
     _status = Status::BatchingSprites;
 }
 
-void DrawBatcher::_prepForBatchingVertices(const sf::RenderStates& aStates, sf::PrimitiveType aType) {
-    _vertexArray.setPrimitiveType(aType);
+void DrawBatcher::_prepForBatchingVertices(const RenderStates& aStates, PrimitiveType aType) {
+    _vertexArray.primitiveType = aType;
     _renderStates = aStates;
 
     _status = Status::BatchingVertices;
+}
+
+void DrawBatcher::_drawVertexArray(const VertexArray& aVertexArray, const RenderStates& aStates) {
+    this->draw(
+        aVertexArray.vertices.data(),
+        stopz(aVertexArray.vertices.size()),
+        aVertexArray.primitiveType,
+        aStates
+    );
+}
+
+void DrawBatcher::_drawSprite(const Sprite& aSprite, const RenderStates& aStates) {
+    switch (_status) {
+    default:
+        _flush();
+        SWITCH_FALLTHROUGH;
+
+    case Status::Empty:
+        SWITCH_FALLTHROUGH;
+
+    case Status::BatchingSprites:
+        if (_status == Status::Empty) {
+            _prepForBatchingSprites(aStates, aSprite.getTexture());
+        }
+        else {
+            // If batches are not compatible, flush and start a new batch
+            if (aSprite.getTexture() != _texture || aStates != _renderStates) {
+                _flush();
+                _prepForBatchingSprites(aStates, aSprite.getTexture());
+            }
+        }
+
+        AppendSpriteToVertexArray(aSprite, _vertexArray);
+        break;
+    }
 }
 
 } // namespace gr

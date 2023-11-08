@@ -1,7 +1,7 @@
 #ifndef UHOBGOBLIN_MATH_ANGLE_HPP
 #define UHOBGOBLIN_MATH_ANGLE_HPP
 
-#include <Hobgoblin/Math/Core.hpp>
+#include <Hobgoblin/Math/Vector.hpp>
 
 #include <cmath>
 #include <type_traits>
@@ -249,6 +249,18 @@ public:
         return Angle::fromRad(offsetValue - (floor(offsetValue / width) * width)) + aRangeLow;
     }
 
+    constexpr Real sin() const {
+        return std::sin(_angleInRadians);
+    }
+
+    constexpr Real cos() const {
+        return std::cos(_angleInRadians);
+    }
+
+    constexpr Real tan() const {
+        return std::tan(_angleInRadians);
+    }
+
 private:
     constexpr explicit Angle(Real angleInRadians) noexcept
         : _angleInRadians{angleInRadians} 
@@ -332,6 +344,7 @@ AngleF operator "" _deg(long double aAngleInDegrees) {
 }
 } // namespace angle_literals_f
 
+
 //! Rotates a vector by a scalar angle (expressed in radians).
 //! Note: This function operates in the Hobgoblin coordinate system, where the X axis grows
 //! from left to right, and the Y axis grown from up to down.
@@ -379,6 +392,7 @@ template <class taVector, class taAngle,
 taVector RotateVector(const taVector& aVector, taAngle aAngle) {
     return RotateVector<taVector, typename taAngle::Real>(aVector, aAngle.asRad());
 }
+
 
 } // namespace math
 HOBGOBLIN_NAMESPACE_END

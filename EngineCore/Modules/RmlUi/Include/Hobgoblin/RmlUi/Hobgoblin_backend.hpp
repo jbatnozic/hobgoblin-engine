@@ -2,7 +2,8 @@
 #define UHOBGOBLIN_RMLUI_HOBGOBLIN_BACKEND_HPP
 
 #include <RmlUi/Core.h>
-#include <SFML/Window.hpp>
+#include <Hobgoblin/Input/Virtual_keyboard_key.hpp>
+#include <Hobgoblin/Window.hpp>
 
 #include <memory>
 
@@ -11,8 +12,8 @@ HOBGOBLIN_NAMESPACE_BEGIN
 namespace rml {
 
 namespace detail {
-class RmlUiSFMLSystem;
-class RmlUiSFMLRenderer;
+class RmlUiHobgoblinSystem;
+class RmlUiHobgoblinRenderer;
 } // namespace detail
 
 class ContextDriver;
@@ -26,8 +27,11 @@ public:
 
     static std::unique_ptr<BackendLifecycleGuard> initialize();
 
-    //! Convenience function to convert from a SFML key to RmlUi key.
-    static Rml::Input::KeyIdentifier translateKey(sf::Keyboard::Key aKey);
+    //! Convenience function to convert from a Hobgoblin.Input key to RmlUi key.
+    static Rml::Input::KeyIdentifier translateKey(in::VirtualKeyboardKey aKey);
+
+    //! Convenience function to convert from a Hobgoblin.Input mouse button to RmlUi button.
+    static int translateButton(in::MouseButton aButton);
 
     //! Convenience function to get the current state of modifier keys (ctrl,
     //! alt, shift) in RmlUi format.
@@ -36,8 +40,8 @@ public:
 private:
     friend class ContextDriver;
 
-    static detail::RmlUiSFMLSystem* getSystem();
-    static detail::RmlUiSFMLRenderer* getRenderer();
+    static detail::RmlUiHobgoblinSystem* getSystem();
+    static detail::RmlUiHobgoblinRenderer* getRenderer();
 };
 
 } // namespace rml

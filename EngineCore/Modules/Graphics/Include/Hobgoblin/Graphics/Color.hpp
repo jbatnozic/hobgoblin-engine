@@ -1,39 +1,60 @@
-#ifndef UHOBGOBLIN_GR_COLOR_HPP
-#define UHOBGOBLIN_GR_COLOR_HPP
+#ifndef UHOBGOBLIN_GRAPHICS_COLOR_HPP
+#define UHOBGOBLIN_GRAPHICS_COLOR_HPP
 
-#include <SFML/Graphics/Color.hpp>
+#include <cstdint>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
-struct Color : public sf::Color {
+class Color {
 public:
-    using sf::Color::Color;
+  constexpr Color() = default;
 
-    Color(sf::Color other) {
-        SELF.r = other.r;
-        SELF.g = other.g;
-        SELF.b = other.b;
-        SELF.a = other.a;
-    }
+  //! Bits 31..24 = Red, Bits 23..16 = Green, Bits 15..8 = Blue, 7..0 = Alpha
+  constexpr explicit Color(std::uint32_t aColor)
+      : r{(aColor >> 24) & 0xFF}
+      , g{(aColor >> 16) & 0xFF}
+      , b{(aColor >>  8) & 0xFF}
+      , a{(aColor >>  0) & 0xFF}
+  {}
 
-    static const Color Transparent;
+  constexpr Color(
+    std::uint8_t aRed,
+    std::uint8_t aGreen,
+    std::uint8_t aBlue,
+    std::uint8_t aAlpha = 255
+  )
+      : r{aRed}, g{aGreen}, b{aBlue}, a{aAlpha} {}
 
-#define XMACRO(_name_, _hexcode_) static const Color _name_ ;
-#include <Hobgoblin/Graphics/Private/Xmacro_html_colors.hpp>
-#undef  XMACRO
+  constexpr std::uint32_t toInt() const {
+      return static_cast<std::uint32_t>((r << 24) | (g << 16) | (b << 8) | a);
+  }
+
+  constexpr Color withAlpha(std::uint8_t aAlpha) const {
+      Color result = SELF;
+      result.a = aAlpha;
+      return result;
+  }
+
+  std::uint8_t r = 0;
+  std::uint8_t g = 0;
+  std::uint8_t b = 0;
+  std::uint8_t a = 255;
 };
 
-// TODO These functions aren't exactly correct
-Color AddColors(Color c1, Color c2);
-Color MultiplyColors(Color c1, Color c2);
+inline
+constexpr bool operator==(Color aLhs, Color aRhs) {
+    return aLhs.r == aRhs.r &&
+           aLhs.g == aRhs.g &&
+           aLhs.b == aRhs.b &&
+           aLhs.a == aRhs.a;
+}
 
-// inline
-// Color BlendColors(Color src, Color dst, int blendMode) {
-//     // TODO
-// }
+#define XMACRO(_name_, _hexcode_) constexpr Color COLOR_##_name_{_hexcode_};
+#include <Hobgoblin/Graphics/Private/Xmacro_html_colors.hpp>
+#undef  XMACRO
 
 } // namespace gr
 HOBGOBLIN_NAMESPACE_END
@@ -41,4 +62,4 @@ HOBGOBLIN_NAMESPACE_END
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
-#endif // !UHOBGOBLIN_GR_COLOR_HPP
+#endif // !UHOBGOBLIN_GRAPHICS_COLOR_HPP

@@ -3,8 +3,8 @@
 
 #include <RmlUi/Core.h>
 
-#include <Hobgoblin/RmlUi/Private/RmlUi_SFML_renderer.hpp>
-#include <Hobgoblin/RmlUi/Private/RmlUi_SFML_system.hpp>
+#include <Hobgoblin/RmlUi/Private/RmlUi_Hobgoblin_renderer.hpp>
+#include <Hobgoblin/RmlUi/Private/RmlUi_Hobgoblin_system.hpp>
 
 #include <mutex>
 #include <stdexcept>
@@ -17,16 +17,16 @@ namespace {
 std::mutex gBackendMutex;
 int gBackendUseCount;
 
-std::unique_ptr<detail::RmlUiSFMLSystem>   gSystem;
-std::unique_ptr<detail::RmlUiSFMLRenderer> gRenderer;
+std::unique_ptr<detail::RmlUiHobgoblinSystem>   gSystem;
+std::unique_ptr<detail::RmlUiHobgoblinRenderer> gRenderer;
 } // namespace
 
 std::unique_ptr<HobgoblinBackend::BackendLifecycleGuard> HobgoblinBackend::initialize() {
     std::lock_guard lock{gBackendMutex};
 
     if (gBackendUseCount == 0) {
-        gSystem = std::make_unique<detail::RmlUiSFMLSystem>();
-        gRenderer = std::make_unique<detail::RmlUiSFMLRenderer>();
+        gSystem = std::make_unique<detail::RmlUiHobgoblinSystem>();
+        gRenderer = std::make_unique<detail::RmlUiHobgoblinRenderer>();
 
         Rml::SetSystemInterface(gSystem.get());
         Rml::SetRenderInterface(gRenderer.get());
@@ -53,255 +53,256 @@ HobgoblinBackend::BackendLifecycleGuard::~BackendLifecycleGuard() {
     }
 }
 
-Rml::Input::KeyIdentifier HobgoblinBackend::translateKey(sf::Keyboard::Key aKey) {
-    switch (aKey) {
-    case sf::Keyboard::A:
+Rml::Input::KeyIdentifier HobgoblinBackend::translateKey(in::VirtualKeyboardKey aKey) {
+    const in::UniversalInputEnum e = aKey;
+    switch (e) {
+    case in::VK_A:
         return Rml::Input::KI_A;
 
-    case sf::Keyboard::B:
+    case in::VK_B:
         return Rml::Input::KI_B;
 
-    case sf::Keyboard::C:
+    case in::VK_C:
         return Rml::Input::KI_C;
 
-    case sf::Keyboard::D:
+    case in::VK_D:
         return Rml::Input::KI_D;
 
-    case sf::Keyboard::E:
+    case in::VK_E:
         return Rml::Input::KI_E;
 
-    case sf::Keyboard::F:
+    case in::VK_F:
         return Rml::Input::KI_F;
 
-    case sf::Keyboard::G:
+    case in::VK_G:
         return Rml::Input::KI_G;
 
-    case sf::Keyboard::H:
+    case in::VK_H:
         return Rml::Input::KI_H;
 
-    case sf::Keyboard::I:
+    case in::VK_I:
         return Rml::Input::KI_I;
 
-    case sf::Keyboard::J:
+    case in::VK_J:
         return Rml::Input::KI_J;
 
-    case sf::Keyboard::K:
+    case in::VK_K:
         return Rml::Input::KI_K;
 
-    case sf::Keyboard::L:
+    case in::VK_L:
         return Rml::Input::KI_L;
 
-    case sf::Keyboard::M:
+    case in::VK_M:
         return Rml::Input::KI_M;
 
-    case sf::Keyboard::N:
+    case in::VK_N:
         return Rml::Input::KI_N;
 
-    case sf::Keyboard::O:
+    case in::VK_O:
         return Rml::Input::KI_O;
 
-    case sf::Keyboard::P:
+    case in::VK_P:
         return Rml::Input::KI_P;
 
-    case sf::Keyboard::Q:
+    case in::VK_Q:
         return Rml::Input::KI_Q;
 
-    case sf::Keyboard::R:
+    case in::VK_R:
         return Rml::Input::KI_R;
 
-    case sf::Keyboard::S:
+    case in::VK_S:
         return Rml::Input::KI_S;
 
-    case sf::Keyboard::T:
+    case in::VK_T:
         return Rml::Input::KI_T;
 
-    case sf::Keyboard::U:
+    case in::VK_U:
         return Rml::Input::KI_U;
 
-    case sf::Keyboard::V:
+    case in::VK_V:
         return Rml::Input::KI_V;
 
-    case sf::Keyboard::W:
+    case in::VK_W:
         return Rml::Input::KI_W;
 
-    case sf::Keyboard::X:
+    case in::VK_X:
         return Rml::Input::KI_X;
 
-    case sf::Keyboard::Y:
+    case in::VK_Y:
         return Rml::Input::KI_Y;
 
-    case sf::Keyboard::Z:
+    case in::VK_Z:
         return Rml::Input::KI_Z;
 
-    case sf::Keyboard::Num0:
+    case in::VK_NUM_0:
         return Rml::Input::KI_0;
 
-    case sf::Keyboard::Num1:
+    case in::VK_NUM_1:
         return Rml::Input::KI_1;
 
-    case sf::Keyboard::Num2:
+    case in::VK_NUM_2:
         return Rml::Input::KI_2;
 
-    case sf::Keyboard::Num3:
+    case in::VK_NUM_3:
         return Rml::Input::KI_3;
 
-    case sf::Keyboard::Num4:
+    case in::VK_NUM_4:
         return Rml::Input::KI_4;
 
-    case sf::Keyboard::Num5:
+    case in::VK_NUM_5:
         return Rml::Input::KI_5;
 
-    case sf::Keyboard::Num6:
+    case in::VK_NUM_6:
         return Rml::Input::KI_6;
 
-    case sf::Keyboard::Num7:
+    case in::VK_NUM_7:
         return Rml::Input::KI_7;
 
-    case sf::Keyboard::Num8:
+    case in::VK_NUM_8:
         return Rml::Input::KI_8;
 
-    case sf::Keyboard::Num9:
+    case in::VK_NUM_9:
         return Rml::Input::KI_9;
 
-    case sf::Keyboard::Numpad0:
+    case in::VK_NUMPAD_0:
         return Rml::Input::KI_NUMPAD0;
 
-    case sf::Keyboard::Numpad1:
+    case in::VK_NUMPAD_1:
         return Rml::Input::KI_NUMPAD1;
 
-    case sf::Keyboard::Numpad2:
+    case in::VK_NUMPAD_2:
         return Rml::Input::KI_NUMPAD2;
 
-    case sf::Keyboard::Numpad3:
+    case in::VK_NUMPAD_3:
         return Rml::Input::KI_NUMPAD3;
 
-    case sf::Keyboard::Numpad4:
+    case in::VK_NUMPAD_4:
         return Rml::Input::KI_NUMPAD4;
 
-    case sf::Keyboard::Numpad5:
+    case in::VK_NUMPAD_5:
         return Rml::Input::KI_NUMPAD5;
 
-    case sf::Keyboard::Numpad6:
+    case in::VK_NUMPAD_6:
         return Rml::Input::KI_NUMPAD6;
 
-    case sf::Keyboard::Numpad7:
+    case in::VK_NUMPAD_7:
         return Rml::Input::KI_NUMPAD7;
 
-    case sf::Keyboard::Numpad8:
+    case in::VK_NUMPAD_8:
         return Rml::Input::KI_NUMPAD8;
 
-    case sf::Keyboard::Numpad9:
+    case in::VK_NUMPAD_9:
         return Rml::Input::KI_NUMPAD9;
 
-    case sf::Keyboard::Left:
+    case in::VK_LEFT:
         return Rml::Input::KI_LEFT;
 
-    case sf::Keyboard::Right:
+    case in::VK_RIGHT:
         return Rml::Input::KI_RIGHT;
 
-    case sf::Keyboard::Up:
+    case in::VK_UP:
         return Rml::Input::KI_UP;
 
-    case sf::Keyboard::Down:
+    case in::VK_DOWN:
         return Rml::Input::KI_DOWN;
 
-    case sf::Keyboard::Add:
+    case in::VK_ADD:
         return Rml::Input::KI_ADD;
 
-    case sf::Keyboard::BackSpace:
+    case in::VK_BACKSPACE:
         return Rml::Input::KI_BACK;
 
-    case sf::Keyboard::Delete:
+    case in::VK_DELETE:
         return Rml::Input::KI_DELETE;
 
-    case sf::Keyboard::Divide:
+    case in::VK_DIVIDE:
         return Rml::Input::KI_DIVIDE;
 
-    case sf::Keyboard::End:
+    case in::VK_END:
         return Rml::Input::KI_END;
 
-    case sf::Keyboard::Escape:
+    case in::VK_ESCAPE:
         return Rml::Input::KI_ESCAPE;
 
-    case sf::Keyboard::F1:
+    case in::VK_F1:
         return Rml::Input::KI_F1;
 
-    case sf::Keyboard::F2:
+    case in::VK_F2:
         return Rml::Input::KI_F2;
 
-    case sf::Keyboard::F3:
+    case in::VK_F3:
         return Rml::Input::KI_F3;
 
-    case sf::Keyboard::F4:
+    case in::VK_F4:
         return Rml::Input::KI_F4;
 
-    case sf::Keyboard::F5:
+    case in::VK_F5:
         return Rml::Input::KI_F5;
 
-    case sf::Keyboard::F6:
+    case in::VK_F6:
         return Rml::Input::KI_F6;
 
-    case sf::Keyboard::F7:
+    case in::VK_F7:
         return Rml::Input::KI_F7;
 
-    case sf::Keyboard::F8:
+    case in::VK_F8:
         return Rml::Input::KI_F8;
 
-    case sf::Keyboard::F9:
+    case in::VK_F9:
         return Rml::Input::KI_F9;
 
-    case sf::Keyboard::F10:
+    case in::VK_F10:
         return Rml::Input::KI_F10;
 
-    case sf::Keyboard::F11:
+    case in::VK_F11:
         return Rml::Input::KI_F11;
 
-    case sf::Keyboard::F12:
+    case in::VK_F12:
         return Rml::Input::KI_F12;
 
-    case sf::Keyboard::F13:
+    case in::VK_F13:
         return Rml::Input::KI_F13;
 
-    case sf::Keyboard::F14:
+    case in::VK_F14:
         return Rml::Input::KI_F14;
 
-    case sf::Keyboard::F15:
+    case in::VK_F15:
         return Rml::Input::KI_F15;
 
-    case sf::Keyboard::Home:
+    case in::VK_HOME:
         return Rml::Input::KI_HOME;
 
-    case sf::Keyboard::Insert:
+    case in::VK_INSERT:
         return Rml::Input::KI_INSERT;
 
-    case sf::Keyboard::LControl:
+    case in::VK_LCONTROL:
         return Rml::Input::KI_LCONTROL;
 
-    case sf::Keyboard::LShift:
+    case in::VK_LSHIFT:
         return Rml::Input::KI_LSHIFT;
 
-    case sf::Keyboard::Multiply:
+    case in::VK_MULTIPLY:
         return Rml::Input::KI_MULTIPLY;
 
-    case sf::Keyboard::Pause:
+    case in::VK_PAUSE:
         return Rml::Input::KI_PAUSE;
 
-    case sf::Keyboard::RControl:
+    case in::VK_RCONTROL:
         return Rml::Input::KI_RCONTROL;
 
-    case sf::Keyboard::Return:
+    case in::VK_ENTER:
         return Rml::Input::KI_RETURN;
 
-    case sf::Keyboard::RShift:
+    case in::VK_RSHIFT:
         return Rml::Input::KI_RSHIFT;
 
-    case sf::Keyboard::Space:
+    case in::VK_SPACE:
         return Rml::Input::KI_SPACE;
 
-    case sf::Keyboard::Subtract:
+    case in::VK_SUBTRACT:
         return Rml::Input::KI_SUBTRACT;
 
-    case sf::Keyboard::Tab:
+    case in::VK_TAB:
         return Rml::Input::KI_TAB;
 
     default:
@@ -311,21 +312,25 @@ Rml::Input::KeyIdentifier HobgoblinBackend::translateKey(sf::Keyboard::Key aKey)
     return Rml::Input::KI_UNKNOWN;
 }
 
+int HobgoblinBackend::translateButton(in::MouseButton aButton) {
+    return static_cast<int>(aButton.val()) - static_cast<int>(HG_INPUT_MOUSEBUTTON_FIRST);
+}
+
 int HobgoblinBackend::getKeyModifiers() {
     int modifiers = 0;
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) ||
-        sf::Keyboard::isKeyPressed(sf::Keyboard::RShift)) {
+    if (in::CheckPressedVK(in::VK_LSHIFT) ||
+        in::CheckPressedVK(in::VK_RSHIFT)) {
         modifiers |= Rml::Input::KM_SHIFT;
     }
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) ||
-        sf::Keyboard::isKeyPressed(sf::Keyboard::RControl)) {
+    if (in::CheckPressedVK(in::VK_LCONTROL) ||
+        in::CheckPressedVK(in::VK_RCONTROL)) {
         modifiers |= Rml::Input::KM_CTRL;
     }
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::LAlt) ||
-        sf::Keyboard::isKeyPressed(sf::Keyboard::RAlt)) {
+    if (in::CheckPressedVK(in::VK_LALT) ||
+        in::CheckPressedVK(in::VK_RALT)) {
         modifiers |= Rml::Input::KM_ALT;
     }
 
@@ -336,12 +341,12 @@ int HobgoblinBackend::getKeyModifiers() {
 // PRIVATE                                                               //
 ///////////////////////////////////////////////////////////////////////////
 
-detail::RmlUiSFMLSystem* HobgoblinBackend::getSystem() {
+detail::RmlUiHobgoblinSystem* HobgoblinBackend::getSystem() {
     std::lock_guard lock{gBackendMutex};
     return gSystem.get();
 }
 
-detail::RmlUiSFMLRenderer* HobgoblinBackend::getRenderer() {
+detail::RmlUiHobgoblinRenderer* HobgoblinBackend::getRenderer() {
     std::lock_guard lock{gBackendMutex};
     return gRenderer.get();
 }

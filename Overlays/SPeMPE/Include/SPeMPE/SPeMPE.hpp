@@ -32,9 +32,9 @@
 
 // Other
 
-#include <SPeMPE/Utility/Keyboard_input.hpp>
-#include <SPeMPE/Utility/Mouse_input.hpp>
 #include <SPeMPE/Utility/Rpc_receiver_context_template.hpp>
 #include <SPeMPE/Utility/Rpc_receiver_context_user.hpp>
+#include <SPeMPE/Utility/Window_frame_input_view.hpp>
+#include <SPeMPE/Utility/Window_input_tracker.hpp>
 
 #endif // !SPEMPE_SPEMPE_HPP

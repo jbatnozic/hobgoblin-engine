@@ -2,6 +2,10 @@
 #include <SPeMPE/Managers/Window_manager_default.hpp>
 
 #include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/Window.hpp>
+#include <Hobgoblin/Math/Vector.hpp>
+
+#include <iostream>
 
 #define HARD_ASSERT(_expr_) do { if (!(_expr_)) { \
         throw ::jbatnozic::hobgoblin::TracedLogicError{#_expr_}; \
@@ -14,17 +18,15 @@ DefaultWindowManager::DefaultWindowManager(hg::QAO_RuntimeRef aRuntimeRef,
                                            int aExecutionPriority)
     : NonstateObject{aRuntimeRef, SPEMPE_TYPEID_SELF, aExecutionPriority, "::jbatnozic::spempe::DefaultWindowManager"}
     , _window{}
-    , _windowToCanvasAdapter{}
     , _windowDrawBatcher{}
     , _mainRenderTexture{}
-    , _mainRenderTextureViewAdapter{}
     , _mainRenderTextureDrawBatcher{}
     , _rmlUiContextDriver{}
-    , _mouseInputTracker{
-        [this](hg::PZInteger aViewIndex) -> sf::Vector2f {
+    , _inputTracker{
+        [this](hg::PZInteger aViewIndex) -> hg::math::Vector2f {
             return _getViewRelativeMousePos(aViewIndex);
         },
-        [this]() -> sf::Vector2i {
+        [this]() -> hg::math::Vector2i {
             return _getWindowRelativeMousePos();
         }}
 {
@@ -40,10 +42,8 @@ void DefaultWindowManager::setToHeadlessMode(const TimingConfig& aTimingConfig) 
     _headless = true;
 
     _mainRenderTextureDrawBatcher.reset();
-    _mainRenderTextureViewAdapter.reset();
     _mainRenderTexture.reset();
     _windowDrawBatcher.reset();
-    _windowToCanvasAdapter.reset();
     _window.reset();
 
     // Set timing parameters:
@@ -66,35 +66,36 @@ void DefaultWindowManager::setToNormalMode(const WindowConfig& aWindowConfig,
 
     // Create main render texture:
     _mainRenderTexture.emplace();
-    _mainRenderTexture->create(aMainRenderTextureConfig.size.x,
-                               aMainRenderTextureConfig.size.y,
+    _mainRenderTexture->create(aMainRenderTextureConfig.size,
                                aMainRenderTextureConfig.openGlContextSettings);
     _mainRenderTexture->setSmooth(aMainRenderTextureConfig.smooth);
 
     // Create adapters:
-    _windowToCanvasAdapter.emplace(*_window);
-    _windowDrawBatcher.emplace(*_windowToCanvasAdapter);
-    _mainRenderTextureViewAdapter.emplace(*_mainRenderTexture);
-    _mainRenderTextureDrawBatcher.emplace(*_mainRenderTextureViewAdapter);
+    _windowDrawBatcher.emplace(*_window);
+    _mainRenderTextureDrawBatcher.emplace(*_mainRenderTexture);
 
     // Create GUI:
     _rmlUiBackendLifecycleGuard = hg::rml::HobgoblinBackend::initialize();
     _rmlUiContextDriver.emplace("DefaultWindowManager::RmlContext", *_window);
 
-    // Create default view:
+    // Create default view: TODO(do we still need this?)
     const auto w = static_cast<float>(aMainRenderTextureConfig.size.x);
     const auto h = static_cast<float>(aMainRenderTextureConfig.size.y);
 
-    _mainRenderTextureViewAdapter->setViewCount(1);
-    _mainRenderTextureViewAdapter->getView(0).setSize({w, h});
-    _mainRenderTextureViewAdapter->getView(0).setCenter({w * 0.5f, h * 0.5f});
-    _mainRenderTextureViewAdapter->getView(0).setViewport({0.f, 0.f, 1.f, 1.f});
+    _mainRenderTexture->setViewCount(1);
+    _mainRenderTexture->getView(0).setSize({w, h});
+    _mainRenderTexture->getView(0).setCenter({w * 0.5f, h * 0.5f});
+    _mainRenderTexture->getView(0).setViewport({0.f, 0.f, 1.f, 1.f});
 
     // Set timing parameters:
     _deltaTime = std::chrono::microseconds{1'000'000 / aTimingConfig.targetFramerate};
     _window->setFramerateLimit(aTimingConfig.framerateLimiter ? aTimingConfig.targetFramerate : 0);
     _window->setVerticalSyncEnabled(aTimingConfig.verticalSync);
     _preciseTiming = aTimingConfig.preciseTiming;
+
+    // TODO(temp.)
+    hg::math::Rectangle<float> visibleArea{0.f, 0.f, 1920.f, 1024.f};
+    _window->setView(hg::gr::View(visibleArea));
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -127,22 +128,22 @@ void DefaultWindowManager::setMainRenderTextureDrawPosition(DrawPosition aDrawPo
 
 void DefaultWindowManager::setViewCount(hg::PZInteger aViewCount) {
     HARD_ASSERT(!_headless);
-    _mainRenderTextureViewAdapter->setViewCount(aViewCount);
+    _mainRenderTexture->setViewCount(aViewCount);
 }
 
 hg::PZInteger DefaultWindowManager::getViewCount() const {
     HARD_ASSERT(!_headless);
-    return _mainRenderTextureViewAdapter->getViewCount();
+    return _mainRenderTexture->getViewCount();
 }
 
-sf::View& DefaultWindowManager::getView(hg::PZInteger aViewIndex) {
+hg::gr::View& DefaultWindowManager::getView(hg::PZInteger aViewIndex) {
     HARD_ASSERT(!_headless);
-    return _mainRenderTextureViewAdapter->getView(aViewIndex);
+    return _mainRenderTexture->getView(aViewIndex);
 }
 
-const sf::View& DefaultWindowManager::getView(hg::PZInteger aViewIndex) const {
+const hg::gr::View& DefaultWindowManager::getView(hg::PZInteger aViewIndex) const {
     HARD_ASSERT(!_headless);
-    return _mainRenderTextureViewAdapter->getView(aViewIndex);
+    return _mainRenderTexture->getView(aViewIndex);
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -158,20 +159,8 @@ Rml::Context& DefaultWindowManager::getGUIContext() {
 // KEYBOARD & MOUSE INPUT                                                //
 ///////////////////////////////////////////////////////////////////////////
 
-KbInput DefaultWindowManager::getKeyboardInput() const {
-    return _kbInputTracker.getInput();
-}
-
-KbInputMutator DefaultWindowManager::getKeyboardInputMutator() {
-    return _kbInputTracker.getMutator();
-}
-
-MouseInput DefaultWindowManager::getMouseInput() const {
-    return _mouseInputTracker.getInput();
-}
-
-MouseInputMutator DefaultWindowManager::getMouseInputMutator() {
-    return _mouseInputTracker.getMutator();
+WindowFrameInputView DefaultWindowManager::getInput() const {
+    return _inputTracker.getInputView();
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -180,13 +169,13 @@ MouseInputMutator DefaultWindowManager::getMouseInputMutator() {
 
 void DefaultWindowManager::_eventPostUpdate() {
     if (!_headless) {
-        _mainRenderTexture->clear(hg::gr::Color::Black); // TODO Parametrize colour
+        _mainRenderTexture->clear(hg::gr::COLOR_DARK_GRAY); // TODO Parametrize colour
     }
 }
 
 void DefaultWindowManager::_eventDraw2() {
     if (!_headless) {
-        _window->clear(sf::Color::Black); // TODO Parametrize colour
+        _window->clear(hg::gr::COLOR_BLACK); // TODO Parametrize colour
         _drawMainRenderTexture();
     }
 }
@@ -205,8 +194,8 @@ void DefaultWindowManager::_eventFinalizeFrame() {
 DefaultWindowManager::MainRenderTexturePositioningData DefaultWindowManager::_getMainRenderTexturePositioningData() const {
     MainRenderTexturePositioningData result;
 
-    const sf::Vector2u mrtSize = _mainRenderTexture->getSize();
-    const sf::Vector2u winSize = _window->getSize();
+    const auto mrtSize = _mainRenderTexture->getSize();
+    const auto winSize = _window->getSize();
 
     switch (_mainRenderTextureDrawPos) {
     case DrawPosition::None:
@@ -265,7 +254,7 @@ DefaultWindowManager::MainRenderTexturePositioningData DefaultWindowManager::_ge
 void DefaultWindowManager::_drawMainRenderTexture() {
     _mainRenderTextureDrawBatcher->flush();
     _mainRenderTexture->display();
-    sf::Sprite mrtSprite{_mainRenderTexture->getTexture()};
+    hg::gr::Sprite mrtSprite{&_mainRenderTexture->getTexture()};
 
     const auto mrtPositioning = _getMainRenderTexturePositioningData();
 
@@ -282,51 +271,31 @@ void DefaultWindowManager::_finalizeFrameByDisplayingWindow() {
     _rmlUiContextDriver->render();
     _window->display();
 
-    _kbInputTracker.prepForEvents();
-    _mouseInputTracker.prepForEvents();
+    _inputTracker.prepForEvents();
 
-    sf::Event ev;
+    hg::win::Event ev;
     while (_window->pollEvent(ev)) {
         const auto rmlUiDidConsumeEvent = _rmlUiContextDriver->processEvent(ev);
         if (rmlUiDidConsumeEvent) {
             continue;
         }
 
-        switch (ev.type) {
-        case sf::Event::Closed:
-            // TODO
-            break;
+        _inputTracker.eventOccurred(ev);
 
-        case sf::Event::Resized:
-            {
-                sf::FloatRect visibleArea(0.f,
-                                          0.f,
-                                          static_cast<float>(ev.size.width),
-                                          static_cast<float>(ev.size.height));
-                _window->setView(sf::View(visibleArea));
+        ev.visit(
+            [this](const hg::win::Event::Closed& aEventData) {
+                // TODO
+            },
+            [this](const hg::win::Event::Resized& aEventData) {
+                hg::math::Rectangle<float> visibleArea{
+                    0.f,
+                    0.f,
+                    static_cast<float>(aEventData.width),
+                    static_cast<float>(aEventData.height)
+                };
+                _window->setView(hg::gr::View(visibleArea));
             }
-            break;
-
-        case sf::Event::TextEntered:
-            _kbInputTracker.textEventOccurred(ev);
-            break;
-
-        case sf::Event::KeyPressed:
-        case sf::Event::KeyReleased:
-            _kbInputTracker.keyEventOccurred(ev);
-            break;
-
-        case sf::Event::MouseWheelScrolled:
-        case sf::Event::MouseButtonPressed:
-        case sf::Event::MouseButtonReleased:
-        case sf::Event::MouseMoved:
-        case sf::Event::MouseEntered:
-        case sf::Event::MouseLeft:
-            _mouseInputTracker.buttonEventOccurred(ev);
-            break;
-
-        default: (void)0;
-        }
+        );
     }
 
     if (_preciseTiming) {
@@ -355,15 +324,15 @@ sf::Vector2f DefaultWindowManager::_getViewRelativeMousePos(hobgoblin::PZInteger
     }
 
     const auto mrtPositioning = _getMainRenderTexturePositioningData();
-    const auto pixelPos = sf::Mouse::getPosition(*_window);
+    const auto pixelPos = hg::win::GetMousePositionRelativeToWindow(*_window);
 
-    auto windowPos = _window->mapPixelToCoords(pixelPos);
+    auto windowPos = _window->mapPixelToCoords(pixelPos, _window->getDefaultView()); // TODO(is default view correct?)
     windowPos.x = (windowPos.x - mrtPositioning.position.x) / mrtPositioning.scale.x + mrtPositioning.origin.x;
     windowPos.y = (windowPos.y - mrtPositioning.position.y) / mrtPositioning.scale.y + mrtPositioning.origin.y;
 
     const sf::Vector2i windowPosI = {static_cast<int>(windowPos.x), static_cast<int>(windowPos.y)};
 
-    return _mainRenderTexture->mapPixelToCoords(windowPosI, _mainRenderTextureViewAdapter->getView(aViewIndex));
+    return _mainRenderTexture->mapPixelToCoords(windowPosI, aViewIndex);
 }
 
 sf::Vector2i DefaultWindowManager::_getWindowRelativeMousePos() const {
@@ -371,7 +340,7 @@ sf::Vector2i DefaultWindowManager::_getWindowRelativeMousePos() const {
         return {0, 0};
     }
 
-    return sf::Mouse::getPosition(*_window);
+    return hg::win::GetMousePositionRelativeToWindow(*_window);
 }
 
 } // namespace spempe

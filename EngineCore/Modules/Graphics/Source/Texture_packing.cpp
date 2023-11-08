@@ -20,36 +20,38 @@ rbp::MaxRectsBinPack::FreeRectChoiceHeuristic ConvertHeuristic(TexturePackingHeu
 	case TexturePackingHeuristic::BottomLeftRule:   return rbp::MaxRectsBinPack::RectBottomLeftRule;
 	case TexturePackingHeuristic::ContactPointRule: return rbp::MaxRectsBinPack::RectContactPointRule;
 	default:
-		assert(0 && "Unreachable");
+		assert(false && "Unreachable");
 	}
 }
 
 } // namespace
 
-std::vector<util::Rectangle<PZInteger>> PackTexture(sf::Texture& texture, const std::vector<sf::Image*>& images,
-													TexturePackingHeuristic heuristic, float* occupancy) {
+std::vector<TextureRect> PackTexture(Texture& texture, 
+									 const std::vector<Image*>& images,
+									 TexturePackingHeuristic heuristic, 
+									 float* occupancy) {
 	// Create texture packer:
-	auto textureSize = texture.getSize();
-	rbp::MaxRectsBinPack packer{static_cast<int>(textureSize.x), static_cast<int>(textureSize.y)};
+	const auto textureSize = texture.getSize();
+	rbp::MaxRectsBinPack packer{textureSize.x, textureSize.y};
 
 	// Get sizes of images to pack:
 	std::vector<rbp::RectSize> imageSizes;
-	for (auto image : images) {
-		auto imageSize = image->getSize();
-		imageSizes.push_back(rbp::RectSize{static_cast<int>(imageSize.x), static_cast<int>(imageSize.y)});
+	for (const auto* image : images) {
+		const auto imageSize = image->getSize();
+		imageSizes.push_back(rbp::RectSize{imageSize.x, imageSize.y});
 	}
 
 	// Run packing algorithm:
-	std::vector<rbp::Rect> results = packer.Insert(imageSizes, false, ConvertHeuristic(heuristic));
-	std::vector<util::Rectangle<PZInteger>> rv;
-	rv.reserve(images.size());
+	const std::vector<rbp::Rect> results = packer.Insert(imageSizes, false, ConvertHeuristic(heuristic));
 
+	std::vector<TextureRect> textureRects;
+	textureRects.reserve(images.size());
 	for (std::size_t i = 0; i < images.size(); i += 1) {
-		auto& image = *images[i];
-		auto& rect = results[i];
+		const auto& image = *images[i];
+		const auto& rect = results[i];
 
-		texture.update(image, static_cast<unsigned>(rect.x), static_cast<unsigned>(rect.y));
-		rv.emplace_back(rect.x, rect.y, rect.width, rect.height);
+		texture.update(image, rect.x, rect.y);
+		textureRects.emplace_back(rect.x, rect.y, rect.width, rect.height);
 	}
 
 	// Output values:
@@ -57,7 +59,7 @@ std::vector<util::Rectangle<PZInteger>> PackTexture(sf::Texture& texture, const 
 		*occupancy = packer.Occupancy();
 	}
 
-	return rv;
+	return textureRects;
 }
 
 } // namespace gr

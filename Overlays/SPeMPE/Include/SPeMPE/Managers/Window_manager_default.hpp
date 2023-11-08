@@ -4,13 +4,13 @@
 #include <Hobgoblin/Graphics.hpp>
 #include <Hobgoblin/RmlUi.hpp>
 #include <Hobgoblin/Utility/Time_utils.hpp>
-#include <SFML/Graphics.hpp>
-#include <SFML/Window.hpp>
+#include <Hobgoblin/Graphics.hpp>
+#include <Hobgoblin/Window.hpp>
 
 #include <SPeMPE/GameObjectFramework/Game_object_bases.hpp>
 #include <SPeMPE/Managers/Window_manager_interface.hpp>
-#include <SPeMPE/Utility/Keyboard_input.hpp>
-#include <SPeMPE/Utility/Mouse_input.hpp>
+#include <SPeMPE/Utility/Window_frame_input_view.hpp>
+#include <SPeMPE/Utility/Window_input_tracker.hpp>
 
 #include <chrono>
 #include <optional>
@@ -57,9 +57,9 @@ public:
 
     hg::PZInteger getViewCount() const override;
 
-    sf::View& getView(hg::PZInteger aViewIndex = 0) override;
+    hg::gr::View& getView(hg::PZInteger aViewIndex = 0) override;
 
-    const sf::View& getView(hg::PZInteger aViewIndex = 0) const override;
+    const hg::gr::View& getView(hg::PZInteger aViewIndex = 0) const override;
 
     ///////////////////////////////////////////////////////////////////////////
     // GUI                                                                   //
@@ -68,16 +68,10 @@ public:
     Rml::Context& getGUIContext() override;
 
     ///////////////////////////////////////////////////////////////////////////
-    // KEYBOARD & MOUSE INPUT                                                //
+    // INPUT                                                                 //
     ///////////////////////////////////////////////////////////////////////////
     
-    KbInput getKeyboardInput() const override;
-
-    KbInputMutator getKeyboardInputMutator() override;
-    
-    MouseInput getMouseInput() const override;
-
-    MouseInputMutator getMouseInputMutator() override;
+    WindowFrameInputView getInput() const override;
 
 private:
     struct MainRenderTexturePositioningData {
@@ -94,26 +88,21 @@ private:
     hg::util::Stopwatch _frameDurationStopwatch;
 
     // Window management:
-    std::optional<sf::RenderWindow> _window;
-
-    // Graphics & drawing:
-    std::optional<hg::gr::CanvasAdapter> _windowToCanvasAdapter;
+    std::optional<hg::gr::RenderWindow> _window;
     std::optional<hg::gr::DrawBatcher> _windowDrawBatcher;
-    std::optional<sf::RenderTexture> _mainRenderTexture;
+
+    // Main render texture:
+    std::optional<hg::gr::RenderTexture> _mainRenderTexture;
+    std::optional<hg::gr::DrawBatcher> _mainRenderTextureDrawBatcher;
 
     DrawPosition _mainRenderTextureDrawPos = DrawPosition::Fit;
-
-    // Views:
-    std::optional<hg::gr::MultiViewRenderTargetAdapter> _mainRenderTextureViewAdapter;
-    std::optional<hg::gr::DrawBatcher> _mainRenderTextureDrawBatcher;
 
     // GUI:
     std::unique_ptr<hg::rml::HobgoblinBackend::BackendLifecycleGuard> _rmlUiBackendLifecycleGuard;
     std::optional<hg::rml::ContextDriver> _rmlUiContextDriver;
 
-    // Keyboard & mouse input:
-    KbInputTracker _kbInputTracker;
-    MouseInputTracker _mouseInputTracker;
+    // Input:
+    detail::WindowInputTracker _inputTracker;
 
     void _eventPostUpdate() override;
     void _eventDraw2() override;

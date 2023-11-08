@@ -10,16 +10,37 @@ set(COMPONENT_SOURCES
   "Source/MaxRectsBinPack/Max_rects_bin_pack.cpp"
   "Source/MaxRectsBinPack/Rbp_rect.cpp"
 
+  "Source/Draw_bridge.hpp"
+  "Source/Multiview_rendertarget_adapter.cpp"
+  "Source/Multiview_rendertarget_adapter.hpp"
+  "Source/SFML_conversions.hpp"
+  "Source/SFML_err.hpp"
+  "Source/SFML_rendertarget_adapter.cpp"
+  "Source/SFML_rendertarget_adapter.hpp"
+
   "Source/Builtin_fonts.cpp"
-  "Source/Color.cpp"
+  "Source/Circle_shape.cpp"
   "Source/Draw_batcher.cpp"
-  "Source/Drawable.cpp"
+  "Source/Image.cpp"
   "Source/Multisprite.cpp"
-  "Source/Sprite_loader.cpp"
+  "Source/Multisprite_blueprint.cpp"
+  "Source/Rectangle_shape.cpp"
+  "Source/Render_states.cpp"
+  "Source/Render_texture.cpp"
+  "Source/Render_window.cpp"
+  "Source/Shader.cpp"
+  "Source/Shape.cpp"
   "Source/Sprite.cpp"
+  "Source/Sprite_blueprint.cpp"
+  "Source/Sprite_loader.cpp"
+  "Source/Texture.cpp"
   "Source/Texture_packing.cpp"
   "Source/Tga_export.cpp"
-  "Source/Views.cpp"
+  "Source/Transform.cpp"
+  "Source/Transformable_data.cpp"
+  "Source/Vertex_array.cpp"
+  "Source/Vertex_buffer.cpp"
+  "Source/View.cpp"
 )
 
 # ===== TARGET SETUP =====
@@ -31,6 +52,11 @@ target_link_libraries(${COMPONENT_NAME}
 PUBLIC
   "Hobgoblin.Private"
   "Hobgoblin.Common"
+  "Hobgoblin.Math"
   "Hobgoblin.Utility"
+  "Hobgoblin.Window"
+  "Hobgoblin.Logging"
   "sfml::sfml"
 )
+
+add_subdirectory("Test")

@@ -2,8 +2,10 @@
 #define UHOBGOBLIN_GR_DRAW_BATCHER_HPP
 
 #include <Hobgoblin/Graphics/Canvas.hpp>
-
-#include <SFML/Graphics.hpp>
+#include <Hobgoblin/Graphics/Primitive_type.hpp>
+#include <Hobgoblin/Graphics/Render_states.hpp>
+#include <Hobgoblin/Graphics/Sprite.hpp>
+#include <Hobgoblin/Graphics/Vertex_array.hpp>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
@@ -15,25 +17,24 @@ public:
     explicit DrawBatcher(Canvas& aCanvas);
 
     void draw(const Drawable& aDrawable,
-              const sf::RenderStates& aStates = sf::RenderStates::Default) override;
+              const RenderStates& aStates = RenderStates::DEFAULT) override;
 
-    void draw(const sf::Drawable& drawable,
-              const sf::RenderStates& states = sf::RenderStates::Default) override;
+    void draw(const Vertex* aVertices, 
+              PZInteger aVertexCount, 
+              PrimitiveType aType,
+              const RenderStates& aStates = RenderStates::DEFAULT) override;
 
-    void draw(const sf::Vertex* vertices, 
-              std::size_t vertexCount, 
-              sf::PrimitiveType type,
-              const sf::RenderStates& states = sf::RenderStates::Default) override;
+    void draw(const VertexBuffer& aVertexBuffer,
+              const RenderStates& aStates = RenderStates::DEFAULT) override;
 
-    void draw(const sf::VertexBuffer& vertexBuffer,
-              const sf::RenderStates& states = sf::RenderStates::Default) override;
-
-    void draw(const sf::VertexBuffer& vertexBuffer, 
-              std::size_t firstVertex, 
-              std::size_t vertexCount,
-              const sf::RenderStates& states = sf::RenderStates::Default) override;
+    void draw(const VertexBuffer& aVertexBuffer, 
+              PZInteger aFirstVertex, 
+              PZInteger aVertexCount,
+              const RenderStates& aStates = RenderStates::DEFAULT) override;
 
     void flush() override;
+
+    void getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) override;
 
 private:
     enum class Status {
@@ -46,15 +47,17 @@ private:
 
     Status _status = Status::Empty;
 
-    sf::RenderStates _renderStates;
-    sf::VertexArray _vertexArray;
-    const sf::Texture* _texture = nullptr;
+    RenderStates _renderStates;
+    VertexArray _vertexArray;
+    const Texture* _texture = nullptr;
 
     void _flush();
 
-    void _prepForBatchingSprites(const sf::RenderStates& aStates, const sf::Texture* aTexture);
+    void _prepForBatchingSprites(const RenderStates& aStates, const Texture* aTexture);
+    void _prepForBatchingVertices(const RenderStates& aStates, PrimitiveType aType);
 
-    void _prepForBatchingVertices(const sf::RenderStates& aStates, sf::PrimitiveType aType);
+    void _drawVertexArray(const VertexArray& aVertexArray, const RenderStates& aStates);
+    void _drawSprite(const Sprite& aSprite, const RenderStates& aStates);
 };
 
 } // namespace gr

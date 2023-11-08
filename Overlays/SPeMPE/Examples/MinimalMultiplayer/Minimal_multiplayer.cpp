@@ -1,6 +1,10 @@
+#include <Hobgoblin/Input.hpp>
 #include <Hobgoblin/Logging.hpp>
+#include <Hobgoblin/Graphics.hpp>
 #include <Hobgoblin/Utility/Autopack.hpp>
 #include <Hobgoblin/Utility/State_scheduler.hpp>
+#include <Hobgoblin/Window.hpp>
+
 #include <SPeMPE/SPeMPE.hpp>
 
 #include <algorithm>
@@ -124,8 +128,8 @@ private:
 
         const auto& self = _getCurrentState();
         
-        sf::CircleShape circle{20.f};
-        circle.setFillColor(hg::gr::Color::Red);
+        hg::gr::CircleShape circle{20.f};
+        circle.setFillColor(hg::gr::COLOR_RED);
         circle.setPosition({self.x, self.y});
         ccomp<MWindow>().getCanvas().draw(circle);
     }
@@ -144,10 +148,10 @@ void PlayerAvatar::_syncCreateImpl(spe::SyncDetails& aSyncDetails) const {
 void PlayerAvatar::_syncUpdateImpl(spe::SyncDetails& aSyncDetails) const {
     aSyncDetails.filterSyncs(
         [](hg::PZInteger aRecepient) -> spe::SyncDetails::FilterResult {
-            if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+            if (hg::in::CheckPressedMB(hg::in::MB_LEFT)) {
                 return spe::SyncDetails::FilterResult::Skip;
             }
-            if (sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
+            if (hg::in::CheckPressedMB(hg::in::MB_RIGHT)) {
                 return spe::SyncDetails::FilterResult::Deactivate;
             }
             return spe::SyncDetails::FilterResult::FullSync;
@@ -230,8 +234,8 @@ private:
         const float x = (self1.x + self2.x) * 0.5f;
         const float y = (self1.y + self2.y) * 0.5f;
 
-        sf::CircleShape circle{20.f};
-        circle.setFillColor(hg::gr::Color::Green);
+        hg::gr::CircleShape circle{20.f};
+        circle.setFillColor(hg::gr::COLOR_GREEN);
         circle.setPosition({x, y});
         ccomp<MWindow>().getCanvas().draw(circle);
     }
@@ -250,10 +254,10 @@ void SinclaireAvatar::_syncCreateImpl(spe::SyncDetails& aSyncDetails) const {
 void SinclaireAvatar::_syncUpdateImpl(spe::SyncDetails& aSyncDetails) const {
     aSyncDetails.filterSyncs(
         [](hg::PZInteger aRecepient) -> spe::SyncDetails::FilterResult {
-            if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+            if (hg::in::CheckPressedMB(hg::in::MB_LEFT)) {
                 return spe::SyncDetails::FilterResult::Skip;
             }
-            if (sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
+            if (hg::in::CheckPressedMB(hg::in::MB_RIGHT)) {
                 return spe::SyncDetails::FilterResult::Deactivate;
             }
             return spe::SyncDetails::FilterResult::FullSync;
@@ -305,6 +309,7 @@ private:
     void _eventUpdate() override;
 
     void _eventDrawGUI() override {
+#if 0 // TODO(enable when hg::gr::Text is implemented)
         sf::Text text;
         text.setFont(
             hg::gr::BuiltInFonts::getFont(
@@ -326,11 +331,12 @@ private:
         text.setPosition(40.f, 40.f);
 
         ccomp<MWindow>().getCanvas().draw(text);
+#endif
     }
 
     void _eventFinalizeFrame() override {
-        const auto kbInput = ccomp<MWindow>().getKeyboardInput();
-        if (kbInput.checkPressed(spe::KbKey::Escape, spe::KbInput::Mode::Direct)) {
+        const auto input = ccomp<MWindow>().getInput();
+        if (input.checkPressed(hg::in::VK_ESCAPE, spe::WindowFrameInputView::Mode::Direct)) {
             // Stopping the context will delete:
             // - All objects owned by the QAO runtime (in undefined order)
             // - Then, all ContextComponents owned by the context (in reverse order of insertion)
@@ -371,13 +377,13 @@ void GameplayManager::_eventUpdate() {
     if (!ctx().isPrivileged() &&
         ccomp<MNetworking>().getClient().getServerConnector().getStatus() == RN_ConnectorStatus::Connected) {
 
-        const auto kbInput = ccomp<MWindow>().getKeyboardInput();
+        const auto input = ccomp<MWindow>().getInput();
         PlayerControls controls{
-            kbInput.checkPressed(spe::KbKey::A),
-            kbInput.checkPressed(spe::KbKey::D),
-            kbInput.checkPressed(spe::KbKey::W),
-            kbInput.checkPressed(spe::KbKey::S),
-            kbInput.checkPressed(spe::KbKey::Space, spe::KbInput::Mode::Edge)
+            input.checkPressed(hg::in::PK_A),
+            input.checkPressed(hg::in::PK_D),
+            input.checkPressed(hg::in::PK_W),
+            input.checkPressed(hg::in::PK_S),
+            input.checkPressed(hg::in::PK_SPACE, spe::WindowFrameInputView::Mode::Edge)
         };
 
         spe::InputSyncManagerWrapper wrapper{ccomp<MInput>()};
@@ -469,9 +475,9 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
     else {
         winMgr->setToNormalMode(
             spe::WindowManagerInterface::WindowConfig{
-                sf::VideoMode{WINDOW_WIDTH, WINDOW_WIDTH},
+                hg::win::VideoMode{WINDOW_WIDTH, WINDOW_WIDTH},
                 "SPeMPE Minimal Multiplayer",
-                sf::Style::Default
+                hg::win::WindowStyle::Default
             },
             spe::WindowManagerInterface::MainRenderTextureConfig{{WINDOW_HEIGHT, WINDOW_HEIGHT}},
             spe::WindowManagerInterface::TimingConfig{
@@ -493,7 +499,8 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
         netMgr->setToServerMode(
             RN_Protocol::UDP,
             "minimal-multiplayer",
-            aPlayerCount,
+            aPlayerCount - 1, // -1 because player 0 is the host itself
+                              // (even if it doesn't participate in the game)
             1024,
             RN_NetworkingStack::Default
         );
@@ -501,8 +508,6 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
         server.setTimeoutLimit(std::chrono::seconds{5});
         server.setRetransmitPredicate(&MyRetransmitPredicate);
         server.start(aLocalPort);
-        server.resize(aPlayerCount - 1); // -1 because player 0 is the host itself
-                                         // (even if it doesn't participate in the game)
 
         std::printf("Server started on port %d for up to %d clients.\n", (int)server.getLocalPort(), aPlayerCount - 1);
     }

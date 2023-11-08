@@ -40,8 +40,8 @@ void MainGameplayManager::_eventDrawGUI() {
 }
 
 void MainGameplayManager::_eventFinalizeFrame() {
-    const auto kbInput = ccomp<MWindow>().getKeyboardInput();
-    if (kbInput.checkPressed(spe::KbKey::F9, spe::KbInput::Mode::Direct)) {
+    const auto input = ccomp<MWindow>().getInput();
+    if (input.checkPressed(hg::in::PK_F9, spe::WindowFrameInputView::Mode::Direct)) {
         // Stopping the context will delete:
         // - All objects owned by the QAO runtime (in undefined order)
         // - Then, all ContextComponents owned by the context (in reverse order of insertion)
@@ -91,13 +91,13 @@ void MainGameplayManager::_eventUpdate() {
         const int MAX_BUFFERING_LENGTH = 10;
         bool sync = false;
 
-        if (winMgr.getKeyboardInput().checkPressed(spe::KbKey::Add,
-                                                   spe::KbInput::Mode::Direct)) {
+        if (winMgr.getInput().checkPressed(hg::in::PK_NUMPAD_PLUS,
+                                           spe::WindowFrameInputView::Mode::Direct)) {
             stateBufferingLength = (stateBufferingLength + 1) % (MAX_BUFFERING_LENGTH + 1);
             sync = true;
         }
-        if (winMgr.getKeyboardInput().checkPressed(spe::KbKey::Subtract,
-                                                   spe::KbInput::Mode::Direct)) {
+        if (winMgr.getInput().checkPressed(hg::in::PK_NUMPAD_MINUS,
+                                           spe::WindowFrameInputView::Mode::Direct)) {
             stateBufferingLength = (stateBufferingLength + MAX_BUFFERING_LENGTH) % (MAX_BUFFERING_LENGTH + 1);
             sync = true;
         }
@@ -117,13 +117,13 @@ void MainGameplayManager::_eventUpdate() {
     if (!ctx().isPrivileged()) {
         auto& client = ccomp<MNetworking>().getClient();
         if (client.getServerConnector().getStatus() == RN_ConnectorStatus::Connected) {
-            const auto kbInput = ccomp<MWindow>().getKeyboardInput();
+            const auto input = ccomp<MWindow>().getInput();
             PlayerControls controls{
-                kbInput.checkPressed(spe::KbKey::A),
-                kbInput.checkPressed(spe::KbKey::D),
-                kbInput.checkPressed(spe::KbKey::W),
-                kbInput.checkPressed(spe::KbKey::S),
-                kbInput.checkPressed(spe::KbKey::Space, spe::KbInput::Mode::Edge)
+                input.checkPressed(hg::in::PK_A),
+                input.checkPressed(hg::in::PK_D),
+                input.checkPressed(hg::in::PK_W),
+                input.checkPressed(hg::in::PK_S),
+                input.checkPressed(hg::in::PK_SPACE, spe::WindowFrameInputView::Mode::Edge)
             };
 
             spe::InputSyncManagerWrapper wrapper{ccomp<MInput>()};

@@ -16,7 +16,8 @@ public:
 };
 
 //! TODO(add description)
-void PreprocessRcssFile(const std::string& aFilePath);
+//! TODO(use filesystem::path)
+void PreprocessRcssFile(const std::string& aFilePath); 
 
 } // namespace rml
 HOBGOBLIN_NAMESPACE_END

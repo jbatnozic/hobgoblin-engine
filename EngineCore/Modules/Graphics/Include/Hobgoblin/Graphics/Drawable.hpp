@@ -1,33 +1,42 @@
 #ifndef UHOBGOBLIN_GR_DRAWABLE_HPP
 #define UHOBGOBLIN_GR_DRAWABLE_HPP
 
-#include <SFML/Graphics.hpp>
-
 #include <Hobgoblin/Private/Pmacro_define.hpp>
-
-namespace sf {
-class RenderStates;
-} // namespace sf
 
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
 class Canvas;
 class Drawable;
-
-namespace detail {
-void Drawable_DrawOntoCanvas(const Drawable&, Canvas&, const sf::RenderStates&);
-} // namespace detail
+class RenderStates;
 
 class Drawable {
 public:
+    enum class BatchingType {
+        //! Object is a hg::gr::Vertex buffer.
+        VertexBuffer,
+        //! Object is a hg::gr::VertexArray.
+        VertexArray,
+        //! Object is a hg::gr::Sprite.
+        Sprite,
+        //! Object is a custom type whose _draw() method comes down to drawing
+        //! one or more basic drawables (VertexBuffer, VertexArray or Sprite).
+        Aggregate,
+        //! Object is a custom type that doesn't implement its _draw() method
+        //! through basic drawables (one possibility is that it calls OpenGL
+        //! functions directly). Batching is not supported for these objects.
+        Custom
+    };
+
     virtual ~Drawable() = default;
 
-protected:
-    virtual void _draw(Canvas& aCanvas, const sf::RenderStates& aStates) const = 0;
+    virtual BatchingType getBatchingType() const = 0;
 
 private:
-    friend void detail::Drawable_DrawOntoCanvas(const Drawable&, Canvas&, const sf::RenderStates&);
+    virtual void _draw(Canvas& aCanvas, const RenderStates& aStates) const = 0;
+
+    friend class DrawBatcher;
+    friend class SfmlRenderTargetAdapter;
 };
 
 } // namespace gr

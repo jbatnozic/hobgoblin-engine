@@ -1,7 +1,7 @@
 #ifndef UHOBGOBLIN_GR_TGA_EXPORT_HPP
 #define UHOBGOBLIN_GR_TGA_EXPORT_HPP
 
-#include <SFML/Graphics.hpp>
+#include <Hobgoblin/Graphics/Texture.hpp>
 
 #include <string>
 
@@ -10,7 +10,7 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
-void ExportTextureToTgaFile(const sf::Texture& aTexture, const std::string& aFilePath);
+void ExportTextureToTgaFile(const Texture& aTexture, const std::string& aFilePath);
 
 } // namespace gr
 HOBGOBLIN_NAMESPACE_END

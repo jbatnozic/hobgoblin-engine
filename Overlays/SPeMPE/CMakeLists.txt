@@ -14,13 +14,13 @@ set(OVERLAY_SOURCES
   "Source/Game_context_verification.cpp"
   "Source/Game_object_bases.cpp"
   "Source/Input_sync_manager_default.cpp"
-  "Source/Keyboard_input.cpp"
   "Source/Lobby_backend_manager_default.cpp"
-  "Source/Mouse_input.cpp"
   "Source/Networking_manager_default.cpp"
   "Source/Synced_varmap_manager_default.cpp"
   "Source/Synchronized_object_registry.cpp"
   "Source/Sync_details.cpp"
+  "Source/Window_frame_input_view.cpp"
+  "Source/Window_input_tracker.cpp"
   "Source/Window_manager_default.cpp"
 )
 
@@ -33,6 +33,7 @@ target_link_libraries(${OVERLAY_NAME}
 PUBLIC
   "Hobgoblin.Common"
   "Hobgoblin.Graphics"
+  "Hobgoblin.Input"
   "Hobgoblin.Logging"
   "Hobgoblin.Math"
   "Hobgoblin.QAO"
@@ -54,7 +55,7 @@ set(OVERLAY_TEST_SOURCES
   "Test/Default_lobby_backend_manager_test.cpp"
   "Test/Default_synced_varmap_manager_test.cpp"
   "Test/Input_sync_manager_test.cpp"
-  "Test/Keyboard_input_test.cpp"
+  # "Test/Keyboard_input_test.cpp"
   "Test/SPeMPE_test.cpp"
 )
 

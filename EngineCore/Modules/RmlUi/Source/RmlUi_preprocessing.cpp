@@ -131,7 +131,7 @@ void ForEachLineInFileDo(const std::string& aFilePath,
 }
 
 struct SrcResult {
-    gr::TextureBuilder texBuilder;
+    std::unique_ptr<gr::SpriteLoader::TextureBuilder> texBuilder;
     std::string path;
 };
 
@@ -178,7 +178,7 @@ struct SpriteResult {
 // %%fp:sprite: -n <name> -f <path>
 SpriteResult ProcessSpriteCommand(LineInfo& aLineInfo,
                                   const std::string& aContainingFolder,
-                                  gr::TextureBuilder& aTexBuilder) {
+                                  gr::SpriteLoader::TextureBuilder& aTexBuilder) {
     if (aLineInfo.commandArgs.size() != 4) {
         FAIL("Wrong format for 'sprite' definition - use \"-n <name> -f <path>\"");
     }
@@ -206,18 +206,15 @@ SpriteResult ProcessSpriteCommand(LineInfo& aLineInfo,
         FAIL("Wrong format for 'sprite' definition - use \"-n <name> -f <path>\"");
     }
 
-    aTexBuilder.addFromFile(name, 0, aContainingFolder + path);
+    aTexBuilder.addSubsprite(name, 0, aContainingFolder + path);
 
     return {std::move(name)};
 }
 
 void ProcessSpritesheetEndCommand(SrcResult& aSrcResult,
                                   const std::string& aContainingFolder) {
-    const auto* texture = aSrcResult.texBuilder.build(gr::TexturePackingHeuristic::BestAreaFit); // TODO hardcoded heuristic
-    if (!texture) {
-        FAIL("All the listen sprites could not fit into required dimensions!");
-    }
-    gr::ExportTextureToTgaFile(*texture, aContainingFolder + aSrcResult.path);
+    const auto& texture = aSrcResult.texBuilder->finalize(gr::TexturePackingHeuristic::BestAreaFit); // TODO hardcoded heuristic
+    gr::ExportTextureToTgaFile(texture, aContainingFolder + aSrcResult.path);
 }
 
 std::string GetContainingFolder(std::string aPath) {
@@ -302,7 +299,7 @@ void PreprocessRcssFile(const std::string& aFilePath) {
                 if (!spritesheetBegan) {
                     FAIL("A 'spritesheet_begin' must come before any 'sprite' definitions!");
                 }
-                const auto result = ProcessSpriteCommand(lineInfo, containingFolder, srcResult->texBuilder);
+                const auto result = ProcessSpriteCommand(lineInfo, containingFolder, *srcResult->texBuilder);
                 outputLines.push_back(lineInfo.leadingWhitespace + "sprite: %%{" + result.name + "}");
             }
             // ???
@@ -326,7 +323,7 @@ void PreprocessRcssFile(const std::string& aFilePath) {
             std::smatch smatch;
             // If line contains an incomplete sprite declaration, fill it in here:
             if (std::regex_match(line, smatch, spriteIdRegex)) {
-                const auto sprite = loader.getBlueprint(smatch[2]).subspr(0);
+                const auto sprite = loader.getBlueprint(smatch[2]).spr();
                 const auto coords = sprite.getTextureRect();
 
                 // format: x y width height
@@ -334,10 +331,10 @@ void PreprocessRcssFile(const std::string& aFilePath) {
                     << smatch[1] // leading whitespace
                     << smatch[2] // sprite name
                     << ": "
-                    << coords.left << "px "
-                    << coords.top << "px "
-                    << coords.width << "px "
-                    << coords.height << "px;"
+                    << coords.x << "px "
+                    << coords.y << "px "
+                    << coords.w << "px "
+                    << coords.h << "px;"
                     << '\n';
             }
             // Otherwise, just output the original line unchanged:

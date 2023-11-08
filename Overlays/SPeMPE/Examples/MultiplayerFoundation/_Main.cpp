@@ -10,6 +10,7 @@
 
 #include <Hobgoblin/Logging.hpp>
 #include <Hobgoblin/Utility/Randomization.hpp>
+#include <Hobgoblin/Window.hpp>
 
 #include <cstdint>
 #include <iostream>
@@ -59,16 +60,16 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
     else {
         winMgr->setToNormalMode(
             spe::WindowManagerInterface::WindowConfig{
-                sf::VideoMode{WINDOW_WIDTH, WINDOW_HEIGHT},
+                hg::win::VideoMode{WINDOW_WIDTH, WINDOW_HEIGHT},
                 "SPeMPE Multiplayer Foundation",
-                sf::Style::Default
+                hg::win::WindowStyle::Fullscreen
             },
             spe::WindowManagerInterface::MainRenderTextureConfig{{WINDOW_WIDTH, WINDOW_HEIGHT}},
             spe::WindowManagerInterface::TimingConfig{
                 FRAMERATE,
                 false,                                           /* Framerate limiter */
                 (aGameMode == GameMode::Server) ? false : true , /* V-Sync */
-                (aGameMode == GameMode::Server) ? true : true    /* Precise timing */
+                (aGameMode == GameMode::Server) ? true : false   /* Precise timing */
             }
         );
 

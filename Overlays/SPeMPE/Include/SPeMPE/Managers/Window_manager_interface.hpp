@@ -3,12 +3,12 @@
 
 #include <Hobgoblin/Graphics.hpp>
 #include <Hobgoblin/RmlUi.hpp>
-#include <SFML/Graphics.hpp>
-#include <SFML/Window.hpp>
+#include <Hobgoblin/Graphics.hpp>
+#include <Hobgoblin/Window.hpp>
 
 #include <SPeMPE/GameContext/Context_components.hpp>
-#include <SPeMPE/Utility/Keyboard_input.hpp>
-#include <SPeMPE/Utility/Mouse_input.hpp>
+#include <SPeMPE/Utility/Window_frame_input_view.hpp>
+#include <SPeMPE/Utility/Window_input_tracker.hpp>
 
 namespace jbatnozic {
 namespace spempe {
@@ -27,25 +27,25 @@ public:
     };
 
     struct WindowConfig {
-        WindowConfig(const sf::VideoMode& aVideoMode,
-                     const sf::String& aTitle,
-                     sf::Uint32 aStyle = sf::Style::Default,
-                     const sf::ContextSettings& aOpenGlContextSettings = sf::ContextSettings{});
+        WindowConfig(const hg::win::VideoMode& aVideoMode,
+                     const hg::UnicodeString& aTitle,
+                     hg::win::WindowStyle aStyle = hg::win::WindowStyle::Default,
+                     const hg::win::ContextSettings& aOpenGlContextSettings = hg::win::ContextSettings{});
 
-        sf::VideoMode videoMode;
-        sf::String title;
-        sf::Uint32 style;
-        sf::ContextSettings openGlContextSettings;
+        hg::win::VideoMode videoMode;
+        hg::UnicodeString title;
+        hg::win::WindowStyle style;
+        hg::win::ContextSettings openGlContextSettings;
     };
 
     struct MainRenderTextureConfig {
-        MainRenderTextureConfig(const sf::Vector2u& aSize,
+        MainRenderTextureConfig(const hg::math::Vector2pz& aSize,
                                 const bool aSmooth = true,
-                                const sf::ContextSettings& aOpenGlContextSettings = sf::ContextSettings{});
+                                const hg::win::ContextSettings& aOpenGlContextSettings = hg::win::ContextSettings{});
 
-        sf::Vector2u size;
+        hg::math::Vector2pz size;
         bool smooth;
-        sf::ContextSettings openGlContextSettings;
+        hg::win::ContextSettings openGlContextSettings;
     };
 
     struct TimingConfig {
@@ -115,9 +115,9 @@ public:
 
     virtual hg::PZInteger getViewCount() const = 0;
 
-    virtual sf::View& getView(hg::PZInteger aViewIndex = 0) = 0;
+    virtual hg::gr::View& getView(hg::PZInteger aViewIndex = 0) = 0;
 
-    virtual const sf::View& getView(hg::PZInteger aViewIndex = 0) const = 0;
+    virtual const hg::gr::View& getView(hg::PZInteger aViewIndex = 0) const = 0;
 
     ///////////////////////////////////////////////////////////////////////////
     // GUI                                                                   //
@@ -129,13 +129,7 @@ public:
     // KEYBOARD & MOUSE INPUT                                                //
     ///////////////////////////////////////////////////////////////////////////
 
-    virtual KbInput getKeyboardInput() const = 0;
-
-    virtual KbInputMutator getKeyboardInputMutator() = 0;
-
-    virtual MouseInput getMouseInput() const = 0;
-
-    virtual MouseInputMutator getMouseInputMutator() = 0;
+    virtual WindowFrameInputView getInput() const = 0;
 
 private:
     SPEMPE_CTXCOMP_TAG("jbatnozic::spempe::WindowManagerInterface");
@@ -143,10 +137,10 @@ private:
 
 inline
 WindowManagerInterface::WindowConfig::WindowConfig(
-    const sf::VideoMode& aVideoMode,
-    const sf::String& aTitle,
-    sf::Uint32 aStyle,
-    const sf::ContextSettings& aOpenGlContextSettings) 
+    const hg::win::VideoMode& aVideoMode,
+    const hg::UnicodeString& aTitle,
+    hg::win::WindowStyle aStyle,
+    const hg::win::ContextSettings& aOpenGlContextSettings) 
     : videoMode{aVideoMode}
     , title{aTitle}
     , style{aStyle}
@@ -156,9 +150,9 @@ WindowManagerInterface::WindowConfig::WindowConfig(
 
 inline
 WindowManagerInterface::MainRenderTextureConfig::MainRenderTextureConfig(
-    const sf::Vector2u& aSize,
+    const hg::math::Vector2pz& aSize,
     const bool aSmooth,
-    const sf::ContextSettings& aOpenGlContextSettings)
+    const hg::win::ContextSettings& aOpenGlContextSettings)
     : size{aSize}
     , smooth{aSmooth}
     , openGlContextSettings{aOpenGlContextSettings}
