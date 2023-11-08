@@ -53,12 +53,12 @@ void MainGameplayManager::_eventFinalizeFrame() {
         printBandwidthUsageCountdown = 120;
         auto& netMgr = ccomp<MNetworking>();
         const auto telemetry = netMgr.getTelemetry(120);
-        //HG_LOG_INFO(
-        //    LOG_ID,
-        //    "Bandwidth usage in the last 120 frame(s): {:6.2f}kB UP, {:6.2f}kB DOWN.",
-        //    static_cast<double>(telemetry.uploadByteCount) / 1024.0,
-        //    static_cast<double>(telemetry.downloadByteCount) / 1024.0
-        //);
+        HG_LOG_INFO(
+            LOG_ID,
+            "Bandwidth usage in the last 120 frame(s): {:6.2f}kB UP, {:6.2f}kB DOWN.",
+            static_cast<double>(telemetry.uploadByteCount) / 1024.0,
+            static_cast<double>(telemetry.downloadByteCount) / 1024.0
+        );
     }
 }
 
@@ -134,15 +134,4 @@ void MainGameplayManager::_eventUpdate() {
             wrapper.triggerEvent(CTRLNAME_JUMP, controls.jump);
         }
     }
-}
-
-void MainGameplayManager::_eventDraw1() {
-    x += 10.f;
-    if (x >= 1000.f) x = 0.f;
-
-    hg::gr::CircleShape circle{32.0, 20};
-    circle.setPosition({x, 0.f});
-    circle.setFillColor(hg::gr::COLOR_PURPLE);
-
-    ccomp<MWindow>().getCanvas().draw(circle);
 }

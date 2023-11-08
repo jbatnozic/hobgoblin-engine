@@ -6,6 +6,7 @@
 
 #include "Draw_bridge.hpp"
 #include "SFML_conversions.hpp"
+#include "SFML_vertices.hpp"
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
@@ -30,7 +31,7 @@ sf::VertexArray ConvertToSf(const VertexArray& aVertexArray) {
 } // namespace
 
 math::Rectangle<float> VertexArray::calculateBounds() const {
-    const auto sfVertexArray = ConvertToSf(SELF);
+    const auto sfVertexArray = ConvertToSf(SELF); // TODO(optimization: copy/paste sfml algo for this)
     return ToHg(sfVertexArray.getBounds());
 }
 
@@ -39,11 +40,17 @@ Drawable::BatchingType VertexArray::getBatchingType() const {
 }
 
 void VertexArray::_draw(Canvas& aCanvas, const RenderStates& aStates) const {
-    const auto sfVertexArray = ConvertToSf(SELF);
+    SFMLVertices sfVertices{vertices.data(), vertices.size()};
+    const auto sfPrimitiveType = ToSf(primitiveType);
 
     const auto drawingWasSuccessful = 
-        Draw(aCanvas, [&sfVertexArray, &aStates](sf::RenderTarget& aSfRenderTarget) {
-            aSfRenderTarget.draw(sfVertexArray, ToSf(aStates));
+        Draw(aCanvas, [&sfVertices, sfPrimitiveType, &aStates](sf::RenderTarget& aSfRenderTarget) {
+            aSfRenderTarget.draw(
+                sfVertices.getVertices(),
+                sfVertices.getVertexCount(),
+                sfPrimitiveType,
+                ToSf(aStates)
+            );
         });
     assert(drawingWasSuccessful);
 }

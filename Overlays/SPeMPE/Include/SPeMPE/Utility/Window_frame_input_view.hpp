@@ -17,7 +17,9 @@ namespace detail {
 class WindowInputTracker;
 } // namespace detail
 
-// TODO(add description)
+//! View into the current state of the input captured by a window.
+//! (note: input is captured and tracked between 2 frames by a WindowManager's
+//! internal input tracker, and this class is only a view into that state.)
 class WindowFrameInputView {
 public:
     enum class Mode { // TODO(make standalone so we don't have to type WindowFrameInputView every time)

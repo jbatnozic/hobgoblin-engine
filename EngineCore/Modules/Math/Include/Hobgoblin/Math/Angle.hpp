@@ -249,6 +249,18 @@ public:
         return Angle::fromRad(offsetValue - (floor(offsetValue / width) * width)) + aRangeLow;
     }
 
+    constexpr Real sin() const {
+        return std::sin(_angleInRadians);
+    }
+
+    constexpr Real cos() const {
+        return std::cos(_angleInRadians);
+    }
+
+    constexpr Real tan() const {
+        return std::tan(_angleInRadians);
+    }
+
 private:
     constexpr explicit Angle(Real angleInRadians) noexcept
         : _angleInRadians{angleInRadians} 

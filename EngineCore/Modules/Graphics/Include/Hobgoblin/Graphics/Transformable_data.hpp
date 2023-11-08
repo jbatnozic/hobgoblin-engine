@@ -9,6 +9,8 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
+//! Easy and convenient way to calculate transforms for classes
+//! which need to implement the `Transformable` interface.
 class TransformableData {
 public:
     void setPosition(float aX, float aY);

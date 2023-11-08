@@ -55,7 +55,10 @@ class WindowImplAccessor;
 class WindowPolymorphismAdapter {
 public:
     virtual ~WindowPolymorphismAdapter() = default;
-    virtual void create(VideoMode mode, const std::string& title, WindowStyle style = WindowStyle::Default, const ContextSettings& settings = ContextSettings()) = 0;
+    virtual void create(VideoMode mode,
+                        const std::string& title,
+                        WindowStyle style = WindowStyle::Default,
+                        const ContextSettings& settings = ContextSettings()) = 0;
     virtual void create(WindowHandle handle, const ContextSettings& settings = ContextSettings()) = 0;
     virtual void close() = 0;
     virtual void onCreate() = 0;
@@ -106,7 +109,10 @@ public:
     //! \param settings Additional settings for the underlying OpenGL context
     explicit Window(WindowHandle aHandle, const ContextSettings& aSettings = ContextSettings());
 
+    //! \brief Move constructor.
     Window(Window&& aOther);
+
+    //! \brief Move assignment operator.
     Window& operator=(Window&& aOther);
 
     //! \brief Destructor

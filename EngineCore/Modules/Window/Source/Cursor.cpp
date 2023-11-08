@@ -26,6 +26,17 @@ Cursor::Cursor() {
     new (&_storage) ImplType();
 }
 
+#if 0 // TODO(enable when SFML supports it)
+Cursor::Cursor(Cursor&& aOther) {
+    auto& sfCursor = detail::WindowImplAccessor::getImplOf<sf::Cursor>(aOther);
+    new (&_storage) ImplType(std::move(*sfCursor));
+}
+
+Cursor& Cursor::operator=(Cursor&& aOther) {
+
+}
+#endif
+
 Cursor::~Cursor() {
     SELF_IMPL->~ImplType();
 }

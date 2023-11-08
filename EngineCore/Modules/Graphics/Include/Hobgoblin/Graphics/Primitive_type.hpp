@@ -30,15 +30,11 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
-////////////////////////////////////////////////////////////
-/// \ingroup graphics
-/// \brief Types of primitives that a sf::VertexArray can render
-///
-/// Points and lines have no area, therefore their thickness
-/// will always be 1 pixel, regardless the current transform
-/// and view.
-///
-////////////////////////////////////////////////////////////
+//! \brief Types of primitives that a sf::VertexArray can render
+//!
+//! Points and lines have no area, therefore their thickness
+//! will always be 1 pixel, regardless the current transform
+//! and view.
 enum class PrimitiveType {
     Points,        //!< List of individual points
     Lines,         //!< List of individual lines

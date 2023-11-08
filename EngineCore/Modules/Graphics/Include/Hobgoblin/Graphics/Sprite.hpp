@@ -16,6 +16,10 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
+namespace detail {
+class GraphicsImplAccessor;
+} // namespace detail
+
 class Texture;
 
 //! \brief Drawable representation of a texture, with its
@@ -41,7 +45,7 @@ public:
     //! \param texture Source texture
     //!
     //! \see setTexture
-    explicit Sprite(const Texture& aTexture);
+    explicit Sprite(const Texture* aTexture);
 
     //! \brief Construct the sprite from a sub-rectangle of a source texture
     //!
@@ -49,7 +53,7 @@ public:
     //! \param rectangle Sub-rectangle of the texture to assign to the sprite
     //!
     //! \see setTexture, setTextureRect
-    Sprite(const Texture& aTexture, TextureRect aTextureRect);
+    Sprite(const Texture* aTexture, TextureRect aTextureRect);
 
     Transform getInverseTransform() const override final;
 
@@ -69,7 +73,7 @@ public:
     //! \param resetRect Should the texture rect be reset to the size of the new texture?
     //!
     //! \see getTexture, setTextureRect
-    void setTexture(const Texture& aTexture, bool aResetRect = false);
+    void setTexture(const Texture* aTexture, bool aResetRect = false);
 
     //! \brief Set the sub-rectangle of the texture that the sprite will display
     //!

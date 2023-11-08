@@ -29,8 +29,7 @@ PZInteger RectangleShape::getPointCount() const {
 }
 
 math::Vector2f RectangleShape::getPoint(PZInteger aIndex) const {
-    switch (aIndex)
-    {
+    switch (aIndex) {
         default:
         case 0: return math::Vector2f{0.f, 0.f};
         case 1: return math::Vector2f{_size.x, 0.f};

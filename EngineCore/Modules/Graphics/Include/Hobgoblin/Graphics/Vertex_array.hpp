@@ -39,7 +39,8 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
-//! TODO(description)
+//! Wrapper for a dynamic array (vector) of vertices joined with a primitive type.
+//! Together they define a set of one or more 2D primitives.
 class VertexArray : public Drawable {
 public:
     //! Vector of individual vertices.

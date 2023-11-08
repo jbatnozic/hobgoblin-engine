@@ -37,7 +37,7 @@ HOBGOBLIN_NAMESPACE_BEGIN
 namespace win {
 
 namespace detail {
-class GraphicsImplAccessor;
+class WindowImplAccessor;
 } // namespace detail
 
 //! \brief Cursor defines the appearance of a system cursor.
@@ -48,21 +48,21 @@ public:
     //! Refer to the following table to determine which cursor
     //! is available on which platform.
     //!
-    //!  Type                               | Linux | Mac OS X | Windows  |
-    //! ------------------------------------|:-----:|:--------:|:--------:|
-    //!  sf::Cursor::Arrow                  |  yes  |    yes   |   yes    |
-    //!  sf::Cursor::ArrowWait              |  no   |    no    |   yes    |
-    //!  sf::Cursor::Wait                   |  yes  |    no    |   yes    |
-    //!  sf::Cursor::Text                   |  yes  |    yes   |   yes    |
-    //!  sf::Cursor::Hand                   |  yes  |    yes   |   yes    |
-    //!  sf::Cursor::SizeHorizontal         |  yes  |    yes   |   yes    |
-    //!  sf::Cursor::SizeVertical           |  yes  |    yes   |   yes    |
-    //!  sf::Cursor::SizeTopLeftBottomRight |  no   |    yes*  |   yes    |
-    //!  sf::Cursor::SizeBottomLeftTopRight |  no   |    yes*  |   yes    |
-    //!  sf::Cursor::SizeAll                |  yes  |    no    |   yes    |
-    //!  sf::Cursor::Cross                  |  yes  |    yes   |   yes    |
-    //!  sf::Cursor::Help                   |  yes  |    yes*  |   yes    |
-    //!  sf::Cursor::NotAllowed             |  yes  |    yes   |   yes    |
+    //!  Type                         | Linux | Mac OS X | Windows  |
+    //! ------------------------------|:-----:|:--------:|:--------:|
+    //!  Type::Arrow                  |  yes  |    yes   |   yes    |
+    //!  Type::ArrowWait              |  no   |    no    |   yes    |
+    //!  Type::Wait                   |  yes  |    no    |   yes    |
+    //!  Type::Text                   |  yes  |    yes   |   yes    |
+    //!  Type::Hand                   |  yes  |    yes   |   yes    |
+    //!  Type::SizeHorizontal         |  yes  |    yes   |   yes    |
+    //!  Type::SizeVertical           |  yes  |    yes   |   yes    |
+    //!  Type::SizeTopLeftBottomRight |  no   |    yes*  |   yes    |
+    //!  Type::SizeBottomLeftTopRight |  no   |    yes*  |   yes    |
+    //!  Type::SizeAll                |  yes  |    no    |   yes    |
+    //!  Type::Cross                  |  yes  |    yes   |   yes    |
+    //!  Type::Help                   |  yes  |    yes*  |   yes    |
+    //!  Type::NotAllowed             |  yes  |    yes   |   yes    |
     //!
     //!  * These cursor types are undocumented so may not
     //!    be available on all versions, but have been tested on 10.13
@@ -91,7 +91,10 @@ public:
     //! is called and successfully created a cursor.
     Cursor();
 
-    
+    Cursor(Cursor&& aOther) = delete; // TODO(enable when SFML supports it)
+
+    Cursor& operator=(Cursor&& aOther) = delete; // TODO(enable when SFML supports it)
+
     //! \brief Destructor
     //!
     //! This destructor releases the system resources
@@ -140,7 +143,7 @@ public:
     bool loadFromSystem(Type aType);
 
 private:
-    friend class detail::GraphicsImplAccessor;
+    friend class detail::WindowImplAccessor;
 
     void* _getSFMLImpl();
     const void* _getSFMLImpl() const;

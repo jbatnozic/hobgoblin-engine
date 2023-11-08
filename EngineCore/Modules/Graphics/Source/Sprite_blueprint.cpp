@@ -13,7 +13,7 @@ SpriteBlueprint::SpriteBlueprint(const Texture& aTexture, TextureRect aTextureRe
 }
 
 Sprite SpriteBlueprint::spr() const {
-    return Sprite{_texture, _textureRect};
+    return Sprite{&_texture, _textureRect};
 }
 
 } // namespace gr

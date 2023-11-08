@@ -128,6 +128,8 @@ public:
 
     void flush() override;
 
+    void getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) override;
+
     void clear(const Color& aColor = COLOR_BLACK) override;
 
     void setViewCount(PZInteger aViewCount) override;
@@ -190,8 +192,6 @@ private:
     static constexpr std::size_t MVA_STORAGE_SIZE  = 208;
     static constexpr std::size_t MVA_STORAGE_ALIGN = 8;
     std::aligned_storage<MVA_STORAGE_SIZE, MVA_STORAGE_ALIGN>::type _mvaStorage;
-
-    void getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) override;
 };
 
 } // namespace gr

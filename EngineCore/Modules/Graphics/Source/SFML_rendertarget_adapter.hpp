@@ -15,7 +15,7 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
-//! Adapts a sf::RenderTarget to the Canvas interface.
+//! Adapts a sf::RenderTarget to the hg::gr::RenderTarget interface.
 //! NO multiview support!
 class SfmlRenderTargetAdapter final : public RenderTarget {
 public:
@@ -24,6 +24,26 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     // RENDERTARGET                                                          //
     ///////////////////////////////////////////////////////////////////////////
+
+    void draw(const Drawable& aDrawable,
+              const RenderStates& aStates = RenderStates::DEFAULT) override;
+
+    void draw(const Vertex* aVertices,
+              PZInteger aVertexCount,
+              PrimitiveType aPrimitiveType,
+              const RenderStates& aStates = RenderStates::DEFAULT) override;
+
+    void draw(const VertexBuffer& aVertexBuffer,
+              const RenderStates& aStates = RenderStates::DEFAULT) override;
+
+    void draw(const VertexBuffer& aVertexBuffer,
+              PZInteger aFirstVertex,
+              PZInteger aVertexCount,
+              const RenderStates& aStates = RenderStates::DEFAULT) override;
+
+    void getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) override;
+
+    void flush() override;
 
     void clear(const Color& aColor = COLOR_BLACK) override;
 
@@ -66,28 +86,6 @@ public:
     bool isSrgb() const override;
 
     ///////////////////////////////////////////////////////////////////////////
-    // CANVAS                                                                //
-    ///////////////////////////////////////////////////////////////////////////
-
-    void draw(const Drawable& aDrawable,
-              const RenderStates& aStates = RenderStates::DEFAULT) override;
-
-    void draw(const Vertex* aVertices,
-              PZInteger aVertexCount,
-              PrimitiveType aPrimitiveType,
-              const RenderStates& aStates = RenderStates::DEFAULT) override;
-
-    void draw(const VertexBuffer& aVertexBuffer,
-              const RenderStates& aStates = RenderStates::DEFAULT) override;
-
-    void draw(const VertexBuffer& aVertexBuffer,
-              PZInteger aFirstVertex,
-              PZInteger aVertexCount,
-              const RenderStates& aStates = RenderStates::DEFAULT) override;
-
-    void flush() override;
-
-    ///////////////////////////////////////////////////////////////////////////
     // OTHER                                                                 //
     ///////////////////////////////////////////////////////////////////////////
 
@@ -97,11 +95,6 @@ public:
 
 private:
     sf::RenderTarget& _renderTarget;
-
-    void getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) override {
-        aType = CanvasType::SFML;
-        aRenderingBackend = &_renderTarget;
-    }
 };
 
 } // namespace gr

@@ -56,10 +56,11 @@ Sprite MultispriteBlueprint::subspr(PZInteger aSubspriteIndex) const {
 
 Multisprite MultispriteBlueprint::multispr() const {
     if (_subspriteCount > 1) {
-        return Multisprite{*_texture, std::get<std::vector<TextureRect>>(_textureRects)};
+        const auto& subsprites = std::get<std::vector<TextureRect>>(_textureRects);
+        return Multisprite{_texture, subsprites.begin(), subsprites.end()};
     }
 
-    return Multisprite{*_texture, std::get<TextureRect>(_textureRects)};
+    return Multisprite{_texture, std::get<TextureRect>(_textureRects)};
 }
 
 SpriteBlueprint MultispriteBlueprint::extractBlueprint(PZInteger aSubspriteIndex) const {

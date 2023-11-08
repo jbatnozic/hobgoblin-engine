@@ -4,6 +4,7 @@
 #include <Hobgoblin/Common.hpp>
 
 #include "SFML_conversions.hpp"
+#include "SFML_vertices.hpp"
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
@@ -18,6 +19,46 @@ SfmlRenderTargetAdapter::SfmlRenderTargetAdapter(sf::RenderTarget& aRenderTarget
 ///////////////////////////////////////////////////////////////////////////
 // RENDERTARGET                                                          //
 ///////////////////////////////////////////////////////////////////////////
+
+void SfmlRenderTargetAdapter::draw(const Drawable& aDrawable,
+                                   const RenderStates& aStates) {
+    aDrawable._draw(SELF, aStates);
+}
+
+void SfmlRenderTargetAdapter::draw(const Vertex* aVertices,
+                                   PZInteger aVertexCount,
+                                   PrimitiveType aPrimitiveType,
+                                   const RenderStates& aStates) {
+    SFMLVertices sfVertices{aVertices, pztos(aVertexCount)};
+
+    _renderTarget.draw(
+        sfVertices.getVertices(),
+        sfVertices.getVertexCount(),
+        ToSf(aPrimitiveType),
+        ToSf(aStates)
+    );
+}
+
+void SfmlRenderTargetAdapter::draw(const VertexBuffer& aVertexBuffer,
+                                   const RenderStates& aStates) {
+    // TODO
+}
+
+void SfmlRenderTargetAdapter::draw(const VertexBuffer& aVertexBuffer,
+                                   PZInteger aFirstVertex,
+                                   PZInteger aVertexCount,
+                                   const RenderStates& aStates) {
+    // TODO
+}
+
+void SfmlRenderTargetAdapter::flush() {
+    /* Nothing to do (there is no batching in SFML). */
+}
+
+void SfmlRenderTargetAdapter::getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) {
+    aType = CanvasType::SFML;
+    aRenderingBackend = &_renderTarget;
+}
 
 // TODO(throw 'unreachable code reached')
 #define FORBIDDEN() (throw TracedLogicError{"Forbidden to call method " CURRENT_FUNCTION})
@@ -113,43 +154,6 @@ void SfmlRenderTargetAdapter::resetGLStates() {
 
 bool SfmlRenderTargetAdapter::isSrgb() const {
     return _renderTarget.isSrgb();
-}
-
-///////////////////////////////////////////////////////////////////////////
-// CANVAS                                                                //
-///////////////////////////////////////////////////////////////////////////
-
-void SfmlRenderTargetAdapter::draw(const Drawable& aDrawable,
-                                   const RenderStates& aStates) {
-    aDrawable._draw(SELF, aStates);
-}
-
-void SfmlRenderTargetAdapter::draw(const Vertex* aVertices,
-                                   PZInteger aVertexCount,
-                                   PrimitiveType aPrimitiveType,
-                                   const RenderStates& aStates) {
-    _renderTarget.draw(
-        reinterpret_cast<const sf::Vertex*>(aVertices), // TODO: dangerous!!!
-        pztos(aVertexCount),
-        ToSf(aPrimitiveType),
-        ToSf(aStates)
-    );
-}
-
-void SfmlRenderTargetAdapter::draw(const VertexBuffer& aVertexBuffer,
-                                   const RenderStates& aStates) {
-    // TODO
-}
-
-void SfmlRenderTargetAdapter::draw(const VertexBuffer& aVertexBuffer,
-                                   PZInteger aFirstVertex,
-                                   PZInteger aVertexCount,
-                                   const RenderStates& aStates) {
-    // TODO
-}
-
-void SfmlRenderTargetAdapter::flush() {
-    /* Nothing to do (there is no batching in SFML). */
 }
 
 } // namespace gr

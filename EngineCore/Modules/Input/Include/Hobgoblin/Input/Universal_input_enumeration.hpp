@@ -11,7 +11,7 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace in {
 
-//! TODO
+//! Universal enumeration of all possible user inputs.
 enum UniversalInputEnum {
 
     ///////////////////////////////////////////////////////////////////////////

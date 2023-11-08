@@ -22,16 +22,8 @@ constexpr auto SAMPLE_SPRITE_FILE_PATH = "C:\\Users\\Jovan-PC\\Desktop\\Screensh
 ///////////////////////////////////////////////////////////////////////////
 
 gr::RenderWindow CreateSimpleRenderWindowForTesting(const math::Vector2pz& aSize) {
-    auto window = gr::RenderWindow{};
-    window.create(hg::win::VideoMode{aSize.x, aSize.y}, "Window");
+    auto window = gr::RenderWindow{hg::win::VideoMode{aSize.x, aSize.y}, "Window"};
     window.setFramerateLimit(30);
-
-    const auto xf = static_cast<float>(aSize.x);
-    const auto yf = static_cast<float>(aSize.y);
-    window.setView(gr::View{{xf / 2.f, yf / 2.f}, {xf, yf}});
-    window.getView().setViewport({0.f, 0.f, 1.f, 1.f});
-    window.getView().setEnabled(true);
-
     return window;
 }
 
@@ -83,7 +75,7 @@ void TestDrawingShapesAndSprites() {
     gr::Texture texture;
     texture.loadFromFile(SAMPLE_SPRITE_FILE_PATH);
 
-    gr::Sprite sprite{texture};
+    gr::Sprite sprite{&texture};
     sprite.setPosition(200.f, 200.f);
 
     gr::CircleShape circle{64.f};
@@ -195,7 +187,7 @@ void TestRenderTextures() {
         rt.draw(circle);
 
         rt.display();
-        gr::Sprite sprite{rt.getTexture()};
+        gr::Sprite sprite{&rt.getTexture()};
         sprite.setScale({0.5f, 0.5f});
         window.draw(sprite);
 
@@ -298,13 +290,13 @@ void TestBatching() {
 }
 
 const std::vector<void(*)()> TESTS = {
-    &TestLoadingTextureFromNonexistentFile,
-    &TestDrawingShapesAndSprites,
-    &TestDrawingMultisprites,
+    //&TestLoadingTextureFromNonexistentFile,
+    //&TestDrawingShapesAndSprites,
+    //&TestDrawingMultisprites,
     &TestRenderTextures,
-    &TestDrawingVertexArrays,
-    &TestSpriteLoader,
-    &TestBatching,
+    //&TestDrawingVertexArrays,
+    //&TestSpriteLoader,
+    //&TestBatching,
 };
 
 } // namespace

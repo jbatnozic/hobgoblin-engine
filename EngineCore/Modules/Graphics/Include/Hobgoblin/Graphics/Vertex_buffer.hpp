@@ -26,6 +26,7 @@
 #define UHOBGOBLIN_GRAPHCIS_VERTEXBUFFER_HPP
 
 #include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/Graphics/OpenGL_handle.hpp>
 #include <Hobgoblin/Graphics/Primitive_type.hpp>
 #include <Hobgoblin/Graphics/Drawable.hpp>
 
@@ -44,6 +45,7 @@ class GraphicsImplAccessor;
 class RenderTarget;
 class Vertex;
 
+// TODO(vertex buffers are unfinished and untested)
 //! \brief Vertex buffer storage for one or more 2D primitives.
 class VertexBuffer : public Drawable {
 public:
@@ -192,7 +194,7 @@ public:
     //! or implement a temporary workaround until a bug is fixed.
     //!
     //! \return OpenGL handle of the vertex buffer or 0 if not yet created
-    unsigned int getNativeHandle() const;
+    OpenGLHandle getNativeHandle() const;
 
     //! \brief Set the type of primitives to draw
     //!

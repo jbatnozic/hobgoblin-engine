@@ -38,7 +38,7 @@ class GraphicsImplAccessor;
 } // namespace detail
 
 //! A vertex defines a point with color and texture coordinates.
-//! TODO: add constexpr to stuff
+//! TODO: add constexpr to stuff when math::Vector2 supports it
 class Vertex {
 public:
 
@@ -46,7 +46,7 @@ public:
     /// \brief Default constructor
     ///
     ////////////////////////////////////////////////////////////
-    Vertex() = default;
+    /*constexpr*/ Vertex() = default;
 
     ////////////////////////////////////////////////////////////
     /// \brief Construct the vertex from its position
@@ -56,7 +56,7 @@ public:
     /// \param aPosition Vertex position.
     ///
     ////////////////////////////////////////////////////////////
-    Vertex(const math::Vector2f& aPosition) : position{aPosition} {}
+    /*constexpr*/ Vertex(const math::Vector2f& aPosition) : position{aPosition} {}
 
     ////////////////////////////////////////////////////////////
     /// \brief Construct the vertex from its position and color
@@ -67,7 +67,7 @@ public:
     /// \param aColor    Vertex color.
     ///
     ////////////////////////////////////////////////////////////
-    Vertex(const math::Vector2f& aPosition, const Color& aColor)
+    /*constexpr*/ Vertex(const math::Vector2f& aPosition, const Color& aColor)
         : position{aPosition}, color{aColor} {}
 
     ////////////////////////////////////////////////////////////
@@ -79,7 +79,8 @@ public:
     /// \param aTexCoords Vertex texture coordinates.
     ///
     ////////////////////////////////////////////////////////////
-    Vertex(const math::Vector2f& aPosition, const math::Vector2f& aTexCoords);
+    /*constexpr*/ Vertex(const math::Vector2f& aPosition, const math::Vector2f& aTexCoords)
+        : position{aPosition}, texCoords{aTexCoords} {}
 
     ////////////////////////////////////////////////////////////
     /// \brief Construct the vertex from its position, color and texture coordinates
@@ -89,7 +90,8 @@ public:
     /// \param aTexCoords Vertex texture coordinates.
     ///
     ////////////////////////////////////////////////////////////
-    Vertex(const math::Vector2f& aPosition, const Color& aColor, const math::Vector2f& aTexCoords);
+    /*constexpr*/ Vertex(const math::Vector2f& aPosition, const Color& aColor, const math::Vector2f& aTexCoords)
+        : position{aPosition}, color{aColor}, texCoords{aTexCoords} {}
 
     ////////////////////////////////////////////////////////////
     // Member data
@@ -98,8 +100,6 @@ public:
     Color           color{COLOR_WHITE};  //!< Color of the vertex
     math::Vector2f  texCoords{0.f, 0.f}; //!< Coordinates of the texture's pixel to map to the vertex
 };
-
-// TODO: write test to make sure Vertex is bitwise compatible with SFML Vertex
 
 } // namespace gr
 HOBGOBLIN_NAMESPACE_END

@@ -22,18 +22,30 @@ namespace gr {
 
 class Multisprite : public Drawable, public Transformable {
 public:
-    // TODO: add default ctor
+    //! Default-constructs the multisprite.
+    //! Note that the multisprite won't be visible when drawn until it's given
+    //! a non-null texture (see `setTexture`) and at least 1 subsprite (see
+    //! `addSubsprite`).
+    Multisprite();
 
     //!
-    Multisprite(const Texture& aTexture);
+    explicit Multisprite(const Texture* aTexture);
 
     //! Constructs a multisprite with a single subsprite.
-    Multisprite(const Texture& aTexture, TextureRect aTextureRect);
+    Multisprite(const Texture* aTexture, TextureRect aTextureRect);
 
     //! Constructs a multisprite with one or more subsprite from a collection of
     //! texture rects.
-    template <class taRectCollection>
-    Multisprite(const Texture& aTexture, const taRectCollection& aTextureRects);
+    template <class taRectsBeginIterator, class taRectsEndIterator>
+    Multisprite(const Texture* aTexture, 
+                taRectsBeginIterator aTextureRectsBeginIterator,
+                taRectsEndIterator aTextureRectsEndIterator);
+
+    //! Copy constructor.
+    Multisprite(const Multisprite& aOther) = default;
+
+    //! Copy assignment operator.
+    Multisprite& operator=(const Multisprite& aOther) = default;
 
     BatchingType getBatchingType() const override final;
 
@@ -41,7 +53,9 @@ public:
     // TEXTURE                                                               //
     ///////////////////////////////////////////////////////////////////////////
 
-    const Texture& getTexture() const;
+    void setTexture(const Texture* aTexture);
+
+    const Texture* getTexture() const;
 
     ///////////////////////////////////////////////////////////////////////////
     // SUBSPRITES                                                            //
@@ -160,7 +174,7 @@ protected:
     void _draw(Canvas& aCanvas, const RenderStates& aStates) const override;
 
 private:
-    const Texture& _texture;
+    const Texture* _texture;
 
     TransformableData _transformableData;
 
@@ -184,11 +198,14 @@ private:
     const Subsprite* _firstSubspritePtr() const;
 };
 
-template <class taRects>
-Multisprite::Multisprite(const Texture& aTexture, const taRects& aTextureRects)
+template <class taRectsBeginIterator, class taRectsEndIterator>
+Multisprite::Multisprite(const Texture* aTexture, 
+                         taRectsBeginIterator aTextureRectsBeginIterator,
+                         taRectsEndIterator aTextureRectsEndIterator)
     : _texture{aTexture}
 {
-    for (const auto& rect : aTextureRects) {
+    for (auto iter = aTextureRectsBeginIterator; iter != aTextureRectsEndIterator; iter = std::next(iter)) {
+        const auto& rect = *iter;
         addSubsprite(rect);
     }
 }

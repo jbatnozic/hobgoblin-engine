@@ -44,12 +44,23 @@ RenderWindow::RenderWindow(
     : RenderWindow{}
 {
     Window::create(aMode, aTitle, aStyle, aSettings);
+
+    auto& view = getView(0);
+    view.setSize({static_cast<float>(aMode.width), static_cast<float>(aMode.height)});
+    view.setCenter({static_cast<float>(aMode.width) / 2.f, static_cast<float>(aMode.height) / 2.f});
+    view.setViewport({0.f, 0.f, 1.f, 1.f});
 }
 
 RenderWindow::RenderWindow(win::WindowHandle aHandle, const win::ContextSettings& aSettings)
     : RenderWindow{}
 {
     Window::create(aHandle, aSettings);
+
+    auto& view = getView(0);
+    const auto& size = getSize();
+    view.setSize({static_cast<float>(size.x), static_cast<float>(size.y)});
+    view.setCenter({static_cast<float>(size.x) / 2.f, static_cast<float>(size.y) / 2.f});
+    view.setViewport({0.f, 0.f, 1.f, 1.f});
 }
 
 RenderWindow::RenderWindow(RenderWindow&& aOther)

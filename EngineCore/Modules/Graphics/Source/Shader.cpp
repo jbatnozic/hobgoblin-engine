@@ -3,6 +3,7 @@
 
 #include <SFML/Graphics/Shader.hpp>
 
+#include <cstddef>
 #include <new>
 #include <utility>
 

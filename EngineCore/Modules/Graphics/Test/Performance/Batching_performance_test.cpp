@@ -90,6 +90,8 @@ private:
 
 } // namespace
 
+#define SECONDS 20
+
 int main(int argc, char* argv[]) {
     Tester tester{{800, 800}, 3000};
 
@@ -102,13 +104,14 @@ int main(int argc, char* argv[]) {
         std::chrono::microseconds totalTime{0};
         hg::PZInteger iterationCount = 0;
         hg::util::Stopwatch timer;
-        while (window.isOpen() && timer.getElapsedTime() < std::chrono::seconds{10}) {
+        while (window.isOpen() && timer.getElapsedTime() < std::chrono::seconds{SECONDS}) {
             iterationCount += 1;
 
             sf::Event ev;
             while (window.pollEvent(ev)) {
-                if (ev.type == sf::Event::Closed)
+                if (ev.type == sf::Event::Closed) {
                     window.close();
+                }
             }
 
             hg::util::Stopwatch stopwatch;
@@ -119,15 +122,15 @@ int main(int argc, char* argv[]) {
             
             const auto elapsedTime = stopwatch.getElapsedTime<std::chrono::microseconds>();
             totalTime += elapsedTime;
-            //std::cout << "Time for frame: " 
-            //          << elapsedTime.count() / 1000.0
-            //          << "ms; average time: "
-            //          << totalTime.count() / iterationCount / 1000.0
-            //          << "ms.\n";
+            std::cout << "Time for frame: " 
+                      << elapsedTime.count() / 1000.0
+                      << "ms; average time: "
+                      << totalTime.count() / iterationCount / 1000.0
+                      << "ms.\n";
 
             //std::this_thread::sleep_for(std::chrono::milliseconds{20});
         }
-        std::cout << "SFML: Finished iterations in 10 seconds = " << iterationCount << '\n';
+        std::cout << "SFML: Finished iterations in " << SECONDS << " seconds = " << iterationCount << '\n';
     }
 
     // HG
@@ -135,10 +138,6 @@ int main(int argc, char* argv[]) {
         gr::RenderWindow window{hg::win::VideoMode{800, 800}, "PerformanceTest: Hobgoblin"};
         //window.setFramerateLimit(300);
         //window.setVerticalSyncEnabled(true);
-
-        window.setView(gr::View{{400.f, 400.f}, {800, 800}}); // TODO(weird that this doesn't happen by default)
-        window.getView().setViewport({0.f, 0.f, 1.f, 1.f});
-        window.getView().setEnabled(true);
 
         gr::DrawBatcher batcher{window};
 
@@ -167,15 +166,15 @@ int main(int argc, char* argv[]) {
             
             const auto elapsedTime = stopwatch.getElapsedTime<std::chrono::microseconds>();
             totalTime += elapsedTime;
-            //std::cout << "Time for frame: "
-            //          << elapsedTime.count() / 1000.0
-            //          << "ms; average time: "
-            //          << totalTime.count() / iterationCount / 1000.0
-            //          << "ms.\n";
+            std::cout << "Time for frame: "
+                      << elapsedTime.count() / 1000.0
+                      << "ms; average time: "
+                      << totalTime.count() / iterationCount / 1000.0
+                      << "ms.\n";
 
             //std::this_thread::sleep_for(std::chrono::milliseconds{20});
         }
-        std::cout << "Hobgoblin: Finished iterations in 10 seconds = " << iterationCount << '\n';
+        std::cout << "Hobgoblin: Finished iterations in " << SECONDS << " seconds = " << iterationCount << '\n';
     }
 
     return EXIT_SUCCESS;

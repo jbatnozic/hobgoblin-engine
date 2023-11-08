@@ -23,6 +23,8 @@ constexpr auto IMPL_ALIGN = alignof(ImplType);
 #define  SELF_IMPL (IMPLOF(SELF))
 #define SELF_CIMPL (CIMPLOF(SELF))
 
+static const sf::Texture* DUMMY_SFML_TEXTURE = reinterpret_cast<const sf::Texture*>(0x12345678);
+
 Sprite::Sprite() {
     static_assert(STORAGE_SIZE  == IMPL_SIZE,  "Sprite::STORAGE_SIZE is inadequate.");
     static_assert(STORAGE_ALIGN == IMPL_ALIGN, "Sprite::STORAGE_ALIGN is inadequate.");
@@ -41,23 +43,39 @@ Sprite& Sprite::operator=(const Sprite& aOther) {
     return SELF;
 }
 
-Sprite::Sprite(const Texture& aTexture) {
-    new (&_storage) ImplType(ToSf(aTexture));
-    _texture = &aTexture;
+Sprite::Sprite(const Texture* aTexture) {
+    if (aTexture) {
+        new (&_storage) ImplType(ToSf(*aTexture));
+    }
+    else {
+        new (&_storage) ImplType();
+    }
+    _texture = aTexture;
 }
 
-Sprite::Sprite(const Texture& aTexture, TextureRect aTextureRect) {
-    new (&_storage) ImplType(ToSf(aTexture), ConvertTextureRect(aTextureRect));
-    _texture = &aTexture;
+Sprite::Sprite(const Texture* aTexture, TextureRect aTextureRect) {
+    if (aTexture) {
+        new (&_storage) ImplType(ToSf(*aTexture), ConvertTextureRect(aTextureRect));
+    }
+    else {
+        new (&_storage) ImplType(*DUMMY_SFML_TEXTURE, ConvertTextureRect(aTextureRect));
+    }
+    _texture = aTexture;
 }
 
 Sprite::~Sprite() {
     SELF_IMPL->~ImplType();
 }
 
-void Sprite::setTexture(const Texture& aTexture, bool aResetRect) {
-    _texture = &aTexture;
-    SELF_IMPL->setTexture(ToSf(aTexture), aResetRect);
+void Sprite::setTexture(const Texture* aTexture, bool aResetRect) {
+    if (aTexture) {
+        SELF_IMPL->setTexture(ToSf(*aTexture), aResetRect);
+    }
+    else {
+        HARD_ASSERT(!aResetRect && "Cannot infer size from null texture!");
+        SELF_IMPL->setTexture(*DUMMY_SFML_TEXTURE, aResetRect);
+    }
+    _texture = aTexture;
 }
 
 void Sprite::setTextureRect(TextureRect aTextureRect) {
@@ -97,6 +115,10 @@ math::Rectangle<float> Sprite::getGlobalBounds() const {
 }
 
 void Sprite::_draw(Canvas& aCanvas, const RenderStates& aStates) const {
+    if (_texture == nullptr) {
+        return;
+    }
+
     const auto drawingWasSuccessful = 
         Draw(aCanvas, [this, &aStates](sf::RenderTarget& aSfRenderTarget) {
             aSfRenderTarget.draw(*CIMPLOF(*this), ToSf(aStates));

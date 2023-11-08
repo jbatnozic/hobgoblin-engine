@@ -8,10 +8,11 @@
 #include <Hobgoblin/Graphics/Color.hpp>
 #include <Hobgoblin/Graphics/Drawable.hpp>
 #include <Hobgoblin/Graphics/Draw_batcher.hpp>
+#include <Hobgoblin/Graphics/Font.hpp>
 #include <Hobgoblin/Graphics/Image.hpp>
 #include <Hobgoblin/Graphics/Multisprite.hpp>
 #include <Hobgoblin/Graphics/Multisprite_blueprint.hpp>
-#include <Hobgoblin/Graphics/OpenGL_handle.hpp> // TODO(-> window ??????????)
+#include <Hobgoblin/Graphics/OpenGL_handle.hpp>
 #include <Hobgoblin/Graphics/Primitive_type.hpp>
 #include <Hobgoblin/Graphics/Rectangle_shape.hpp>
 #include <Hobgoblin/Graphics/Render_states.hpp>

@@ -41,8 +41,6 @@ HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
 namespace detail {
-class GraphicsImplAccessor;
-
 class ShapePolymorphismAdapter {
 public:
     virtual ~ShapePolymorphismAdapter() = default;
@@ -277,8 +275,6 @@ protected:
     void _update();
 
 private:
-    // friend class GraphicsImplAccessor;
-
     void* _getSFMLImpl();
     const void* _getSFMLImpl() const;
 

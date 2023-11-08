@@ -19,12 +19,12 @@ namespace gr {
 // MULTISPRITE                                                           //
 ///////////////////////////////////////////////////////////////////////////
 
-Multisprite::Multisprite(const Texture& aTexture)
+Multisprite::Multisprite(const Texture* aTexture)
     : _texture{aTexture}
 {
 }
 
-Multisprite::Multisprite(const Texture& aTexture, TextureRect aTextureRect)
+Multisprite::Multisprite(const Texture* aTexture, TextureRect aTextureRect)
     : _texture{aTexture}
 {
     addSubsprite(aTextureRect);
@@ -34,7 +34,11 @@ Multisprite::BatchingType Multisprite::getBatchingType() const {
     return BatchingType::Aggregate;
 }
 
-const Texture& Multisprite::getTexture() const {
+void Multisprite::setTexture(const Texture* aTexture) {
+    _texture = aTexture;
+}
+
+const Texture* Multisprite::getTexture() const {
     return _texture;
 }
 
@@ -327,7 +331,7 @@ math::Rectangle<float> Multisprite::Subsprite::getLocalBounds() const {
 ///////////////////////////////////////////////////////////////////////////
 
 void Multisprite::_draw(Canvas& aCanvas, const RenderStates& aStates) const {
-    if (_subspriteCount == 0) {
+    if (_subspriteCount == 0 || _texture == nullptr) {
         return;
     }
 
@@ -346,8 +350,7 @@ void Multisprite::_draw(Canvas& aCanvas, const RenderStates& aStates) const {
 
     // Prepare render states
     RenderStates statesCopy{aStates};
-    //statesCopy.transform *= getTransform();
-    statesCopy.texture = &_texture;
+    statesCopy.texture = _texture;
 
     aCanvas.draw(vertices, VERTEXT_COUNT, PrimitiveType::Triangles, statesCopy);
 }

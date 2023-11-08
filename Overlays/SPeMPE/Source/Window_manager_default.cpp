@@ -254,7 +254,7 @@ DefaultWindowManager::MainRenderTexturePositioningData DefaultWindowManager::_ge
 void DefaultWindowManager::_drawMainRenderTexture() {
     _mainRenderTextureDrawBatcher->flush();
     _mainRenderTexture->display();
-    hg::gr::Sprite mrtSprite{_mainRenderTexture->getTexture()};
+    hg::gr::Sprite mrtSprite{&_mainRenderTexture->getTexture()};
 
     const auto mrtPositioning = _getMainRenderTexturePositioningData();
 

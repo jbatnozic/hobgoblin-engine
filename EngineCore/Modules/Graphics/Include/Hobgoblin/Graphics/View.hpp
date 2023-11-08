@@ -48,10 +48,16 @@ public:
     //! This constructor creates a default view of (0, 0, 1000, 1000)
     View();
 
+    //! \brief Copy constructor
     View(const View& aOther);
+
+    //! \brief Copy assignment operator
     View& operator=(const View& aOther);
 
+    //! \brief Move constructor
     View(View&& aOther) noexcept;
+
+    //! \brief Move assignment operator
     View& operator=(View&& aOther) noexcept;
     
     //! \brief Construct the view from a rectangle
@@ -64,8 +70,6 @@ public:
     //! \param center Center of the zone to display
     //! \param size   Size of zone to display
     View(const math::Vector2f& aCenter, const math::Vector2f& aSize);
-
-    // TODO(copy/move ctors/op)
 
     //! \brief Destructor.
     ~View();
