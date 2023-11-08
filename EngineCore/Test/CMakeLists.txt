@@ -11,7 +11,6 @@ set(COMPONENT_SOURCES
 
   # "Source/ColDetect_test.cpp" TODO
   "Source/Format_test.cpp"
-  "Source/Gsl_pointers_test.cpp"
   "Source/Hg_config_test.cpp"
   "Source/Math_test.cpp"
   "Source/gtest_main.cpp"
@@ -28,12 +27,19 @@ add_executable(${COMPONENT_NAME} ${COMPONENT_SOURCES})
 
 target_link_libraries(${COMPONENT_NAME}
 PUBLIC
-  "Hobgoblin.Common"
-  "Hobgoblin.Format"
-  "Hobgoblin.Config"
-  "Hobgoblin.Math"
-  "Hobgoblin.QAO"
-  "Hobgoblin.RigelNet"
-  "Hobgoblin.Utility"
-  "gtest::gtest"
+    # Foundation
+    "Hobgoblin.Format"
+
+    # Utilities
+    "Hobgoblin.Common"
+    "Hobgoblin.Math"
+    "Hobgoblin.Utility"
+
+    # Principals
+    "Hobgoblin.HGConfig"
+    "Hobgoblin.QAO"
+    "Hobgoblin.RigelNet"
+  
+    # External
+    "gtest::gtest"
 )
