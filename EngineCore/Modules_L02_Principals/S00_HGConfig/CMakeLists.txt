@@ -18,6 +18,7 @@ PUBLIC
     # Foundation
     "Hobgoblin_L00_S00_PDef"
     "Hobgoblin_L00_S01_Format"
+    "Hobgoblin_L00_S02_HGExcept"
 
     # Utilities
     "Hobgoblin_L01_S00_Common"

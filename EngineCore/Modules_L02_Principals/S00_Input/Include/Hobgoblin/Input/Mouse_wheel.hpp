@@ -2,6 +2,7 @@
 #define UHOBGOBLIN_INPUT_MOUSE_WHEEL_HPP
 
 #include <Hobgoblin/Input/Universal_input_enumeration.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 
 #include <optional>
 
@@ -18,7 +19,7 @@ public:
     constexpr MouseWheel(UniversalInputEnum aValue)
         : _value{aValue}
     {
-        HARD_ASSERT(IsMouseWheel(aValue));
+        HG_VALIDATE_ARGUMENT(IsMouseWheel(aValue), "{} is not a valid MouseWheel value.", (int)aValue);
     }
 
     constexpr UniversalInputEnum val() const {

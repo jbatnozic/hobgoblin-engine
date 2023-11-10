@@ -15,6 +15,7 @@ public:
     using TracedLogicError::TracedLogicError;
 };
 
+// TODO ***************** RENAME TO _VALIDATE_ *******************
 //! Use this macro to verify that the flags (privileged/headless/networking) of a spempe::GameContext
 //! object match with the expectations of your other objects. If the flags don't match, an instance
 //! of InconsistentGameContextError will be thrown.

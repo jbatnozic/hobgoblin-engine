@@ -2,6 +2,7 @@
 #define UHOBGOBLIN_INPUT_PHYSICAL_KEYBOARD_KEY_HPP
 
 #include <Hobgoblin/Input/Universal_input_enumeration.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 
 #include <optional>
 
@@ -18,7 +19,7 @@ public:
     constexpr PhysicalKeyboardKey(UniversalInputEnum aValue)
         : _value{aValue}
     {
-        HARD_ASSERT(IsPhysicalKeyboardKey(aValue));
+        HG_VALIDATE_ARGUMENT(IsPhysicalKeyboardKey(aValue), "{} is not a valid PhysicalKeyboardKey value.", (int)aValue);
     }
 
     constexpr UniversalInputEnum val() const {

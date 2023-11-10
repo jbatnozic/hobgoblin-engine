@@ -2,6 +2,7 @@
 #define UHOBGOBLIN_INPUT_MOUSE_BUTTON_HPP
 
 #include <Hobgoblin/Input/Universal_input_enumeration.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 
 #include <optional>
 
@@ -18,7 +19,7 @@ public:
     constexpr MouseButton(UniversalInputEnum aValue)
         : _value{aValue}
     {
-        HARD_ASSERT(IsMouseButton(aValue));
+        HG_VALIDATE_ARGUMENT(IsMouseButton(aValue), "{} is not a valid MouseButton value.", (int)aValue);
     }
 
     constexpr UniversalInputEnum val() const {

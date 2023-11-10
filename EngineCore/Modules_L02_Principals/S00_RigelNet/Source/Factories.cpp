@@ -1,6 +1,7 @@
 
 #include <Hobgoblin/RigelNet/Factories.hpp>
 #include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 
 #include "Udp_client_impl.hpp"
 #include "Udp_server_impl.hpp"
@@ -42,7 +43,7 @@ public:
     ///////////////////////////////////////////////////////////////////////////
 
     const RN_ConnectorInterface& getClientConnector(PZInteger clientIndex) const override {
-        throw TracedLogicError("Dummy Server doesn't have any client connectors");
+        HG_UNREACHABLE("Dummy Server doesn't have any client connectors");
         return *reinterpret_cast<RN_ConnectorInterface*>(0x12345678);
     }
 
@@ -116,7 +117,7 @@ std::unique_ptr<RN_ServerInterface> RN_ServerFactory::createServer(RN_Protocol a
                                                                    RN_NetworkingStack aNetworkingStack) {
     switch (aProtocol) {
     case RN_Protocol::TCP:
-        throw TracedException("TCP not implemented!");
+        HG_NOT_IMPLEMENTED("TCP is not currently supported by RigelNet.");
         break;
 
     case RN_Protocol::UDP:
@@ -127,7 +128,7 @@ std::unique_ptr<RN_ServerInterface> RN_ServerFactory::createServer(RN_Protocol a
         break;
     }
 
-    assert(false && "Unreachable");
+    HG_UNREACHABLE();
     return nullptr;
 }
 
@@ -147,7 +148,7 @@ std::unique_ptr<RN_ClientInterface> RN_ClientFactory::createClient(RN_Protocol a
                                                                    RN_NetworkingStack aNetworkingStack) {
     switch (aProtocol) {
     case RN_Protocol::TCP:
-        throw TracedException("TCP not implemented!");
+        HG_NOT_IMPLEMENTED("TCP is not currently supported by RigelNet.");
         break;
 
     case RN_Protocol::UDP:
@@ -158,11 +159,12 @@ std::unique_ptr<RN_ClientInterface> RN_ClientFactory::createClient(RN_Protocol a
         break;
     }
 
-    assert(false && "Unreachable");
+    HG_UNREACHABLE();
     return nullptr;
 }
 
 std::unique_ptr<RN_ClientInterface> RN_ClientFactory::createDummyClient() {
+    HG_NOT_IMPLEMENTED("Creating cummy clients not currently supported by RigelNet.");
     return nullptr; // TODO
 }
 

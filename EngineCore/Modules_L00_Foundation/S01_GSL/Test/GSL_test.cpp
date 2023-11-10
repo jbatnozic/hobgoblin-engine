@@ -6,12 +6,12 @@
 #include <memory>
 
 // This is just to check that it compiles.
-TEST(HobgoblhinGSLTest, DISABLED_NotNullTest) {
+TEST(HobgoblinGSLTest, DISABLED_NotNullTest) {
     void* null = nullptr;
     hg::NotNull<void*> nn{null};
 }
 
 // This is just to check that it compiles.
-TEST(HobgoblhinGSLTest, DISABLED_NotNullWithUniquePtr) {
+TEST(HobgoblinGSLTest, DISABLED_NotNullWithUniquePtr) {
     hg::NotNull<std::unique_ptr<int>> nn{std::make_unique<int>(123)};
 }

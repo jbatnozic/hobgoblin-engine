@@ -1,12 +1,13 @@
-# ===== COMPONENT SETUP =====
+
+project("Hobgoblin.Input")
 
 find_package(SFML CONFIG REQUIRED)
 
-set(COMPONENT_NAME "Hobgoblin.Input")
-
-# ===== GATHER SOURCES ======
-
 set(COMPONENT_SOURCES
+)
+
+add_library(${PROJECT_NAME}
+STATIC
   "Source/SFML_conversions.hpp"
 
   "Source/Conversions.cpp"
@@ -16,15 +17,13 @@ set(COMPONENT_SOURCES
   "Source/Virtual_keyboard_key.cpp"
 )
 
-# ===== TARGET SETUP =====
+target_include_directories(${PROJECT_NAME} PUBLIC "Include/")
 
-add_library(${COMPONENT_NAME} STATIC ${COMPONENT_SOURCES})
-target_include_directories(${COMPONENT_NAME} PUBLIC "Include/")
-
-target_link_libraries(${COMPONENT_NAME}
+target_link_libraries(${PROJECT_NAME}
 PUBLIC
     # Foundation
     "Hobgoblin_L00_S00_PDef"
+    "Hobgoblin_L00_S02_HGExcept"
 
     # Utilities
     "Hobgoblin_L01_S00_Common"
@@ -33,6 +32,6 @@ PUBLIC
     "sfml::sfml"
 )
 
-add_library("Hobgoblin_L02_S00_Input" ALIAS ${COMPONENT_NAME})
+add_library("Hobgoblin_L02_S00_Input" ALIAS ${PROJECT_NAME})
 
 add_subdirectory("Test")

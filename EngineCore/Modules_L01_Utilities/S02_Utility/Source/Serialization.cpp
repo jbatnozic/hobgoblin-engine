@@ -1,5 +1,4 @@
 
-#include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Utility/Serialization.hpp>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
@@ -17,7 +16,7 @@ GlobalSerializableRegistry& GlobalSerializableRegistry::getInstance() {
 void GlobalSerializableRegistry::registerClass(std::string tag, DeserializeMethod createFunc) {
     auto iter = _deserializeMethods.find(tag); 
     if (iter != _deserializeMethods.end()) {
-        throw TracedLogicError("Serializable with tag " + tag + " was already registered!");
+        HG_THROW_TRACED(DeserializationError, 0, "Serializable with tag {} was already registered.", tag);
     }
 
     _deserializeMethods.emplace(std::make_pair(std::move(tag), createFunc));
@@ -27,7 +26,7 @@ void GlobalSerializableRegistry::registerClass(std::string tag, DeserializeMetho
 DeserializeMethod GlobalSerializableRegistry::getDeserializeMethod(const std::string& tag) const {
     auto iter = _deserializeMethods.find(tag);
     if (iter == _deserializeMethods.end()) {
-        throw TracedLogicError("No serializable with tag " + tag + " was registered!");
+        HG_THROW_TRACED(TracedLogicError, 0, "No serializable with tag {} was registered.", tag);
     }
 
     return (*iter).second;

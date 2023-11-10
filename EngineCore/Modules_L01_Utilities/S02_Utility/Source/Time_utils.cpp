@@ -1,7 +1,7 @@
 
 #include <Hobgoblin/Utility/Time_utils.hpp>
 
-#include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Utility/Semaphore.hpp>
 
 #include <cassert>
@@ -71,7 +71,7 @@ void PreciseSleep(milliseconds timeToSleep) {
                                  reinterpret_cast<DWORD_PTR>(&sem),
                                  TIME_CALLBACK_FUNCTION);
     if (mmresult == NULL) {
-        throw TracedRuntimeError{"Windows Multimedia timer could not be initialized"};
+        HG_THROW_TRACED(TracedRuntimeError, 0, "Windows Multimedia timer could not be initialized.");
     }
     sem.wait();
 }

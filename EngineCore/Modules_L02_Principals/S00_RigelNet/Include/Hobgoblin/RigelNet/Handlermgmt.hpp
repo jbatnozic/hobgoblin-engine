@@ -1,7 +1,7 @@
 #ifndef UHOBGOBLIN_RN_HANDLERMGMT_HPP
 #define UHOBGOBLIN_RN_HANDLERMGMT_HPP
 
-#include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 
 #include <cstdint>
 #include <unordered_map>

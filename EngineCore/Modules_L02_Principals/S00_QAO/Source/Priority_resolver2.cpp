@@ -1,5 +1,5 @@
 
-#include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/QAO/Priority_resolver2.hpp>
 
 #include <cassert>
@@ -72,7 +72,7 @@ void QAO_PriorityResolver2::resolveAll() {
     // Verify & populate output:
     for (auto& definitionIter : _definitions) {
         if (!definitionIter.second.priorityAssigned()) {
-            throw TracedLogicError("Cannot resolve priorities - impossible situation requested");
+            HG_THROW_TRACED(TracedLogicError, 0, "Cannot resolve priorities - impossible situation requested.");
         }
 
         int* categoryPriorityPtr = definitionIter.first;
