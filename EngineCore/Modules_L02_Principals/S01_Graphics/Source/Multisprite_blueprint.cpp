@@ -1,5 +1,6 @@
 
 #include <Hobgoblin/Graphics/Multisprite_blueprint.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
@@ -64,9 +65,7 @@ Multisprite MultispriteBlueprint::multispr() const {
 }
 
 SpriteBlueprint MultispriteBlueprint::extractBlueprint(PZInteger aSubspriteIndex) const {
-    if (aSubspriteIndex >= _subspriteCount) {
-        throw TracedLogicError{"MultispriteBlueprint - Subsprite index out of bounds!"};
-    }
+    HG_VALIDATE_ARGUMENT(aSubspriteIndex < _subspriteCount, "Subsprite index out of bounds.");
 
     if (_subspriteCount > 1) {
         return SpriteBlueprint{

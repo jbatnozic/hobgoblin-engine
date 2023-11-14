@@ -1,6 +1,7 @@
 #ifndef SPEMPE_GAME_CONTEXT_GAME_CONTEXT_HPP
 #define SPEMPE_GAME_CONTEXT_GAME_CONTEXT_HPP
 
+#include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/GSL/HG_adapters.hpp>
 #include <Hobgoblin/QAO.hpp>
@@ -223,9 +224,8 @@ void GameContext::attachComponent(taComponent& aComponent) {
 
 template <class taComponent>
 void GameContext::attachAndOwnComponent(std::unique_ptr<taComponent> aComponent) {
-    if (!aComponent) {
-        throw hg::TracedLogicError{"Cannot attach null component"};
-    }
+    HG_VALIDATE_ARGUMENT(aComponent != nullptr, "Cannot attach null component.");
+
     _components.attachComponent(*aComponent);
     _ownedComponents.push_back(std::move(aComponent));
 }
@@ -244,6 +244,6 @@ taComponent* GameContext::getComponentPtr() const {
 } // namespace jbatnozic
 
 // Convenience #include
-#include <SPeMPE/GameContext/Game_context_verification.hpp>
+#include <SPeMPE/GameContext/Game_context_flag_validation.hpp>
 
 #endif // !SPEMPE_GAME_CONTEXT_GAME_CONTEXT_HPP

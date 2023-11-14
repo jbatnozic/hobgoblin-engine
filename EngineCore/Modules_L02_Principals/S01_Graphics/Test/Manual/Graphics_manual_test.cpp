@@ -50,8 +50,7 @@ void TestLoadingTextureFromNonexistentFile() {
         texture.loadFromFile("this/path/does/not/exist.png");
     }
     catch (const hg::TracedException& ex) {
-        std::cerr << ex.what() << '\n';
-        ex.printStackTrace(std::cerr);
+        std::cerr << ex.getFormattedDescription() << '\n';
     }
 }
 
@@ -290,13 +289,13 @@ void TestBatching() {
 }
 
 const std::vector<void(*)()> TESTS = {
-    //&TestLoadingTextureFromNonexistentFile,
-    //&TestDrawingShapesAndSprites,
-    //&TestDrawingMultisprites,
+    &TestLoadingTextureFromNonexistentFile,
+    &TestDrawingShapesAndSprites,
+    &TestDrawingMultisprites,
     &TestRenderTextures,
-    //&TestDrawingVertexArrays,
-    //&TestSpriteLoader,
-    //&TestBatching,
+    &TestDrawingVertexArrays,
+    &TestSpriteLoader,
+    &TestBatching,
 };
 
 } // namespace

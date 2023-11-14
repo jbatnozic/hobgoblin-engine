@@ -15,7 +15,7 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace rml {
 
-#define FAIL(_msg_) throw PreprocessingError{_msg_}
+#define FAIL(_msg_) HG_THROW_TRACED(PreprocessingError, 0, _msg_)
 
 namespace {
 struct LineInfo {

@@ -11,7 +11,7 @@ set(OVERLAY_SOURCES
   "Source/Authorization_manager_default.cpp"
   "Source/Context_components.cpp"
   "Source/Game_context.cpp"
-  "Source/Game_context_verification.cpp"
+  "Source/Game_context_flag_validation.cpp"
   "Source/Game_object_bases.cpp"
   "Source/Input_sync_manager_default.cpp"
   "Source/Lobby_backend_manager_default.cpp"
@@ -33,6 +33,7 @@ target_link_libraries(${OVERLAY_NAME}
 PUBLIC
     # Foundation
     "Hobgoblin.GSL"
+    "Hobgoblin.HGExcept"
     "Hobgoblin.Logging"
 
     # Utilities

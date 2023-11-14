@@ -1,6 +1,7 @@
 
 #include <SPeMPE/Managers/Networking_manager_default.hpp>
 
+#include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Logging.hpp>
 
@@ -34,7 +35,7 @@ void DefaultNetworkingManager::setToServerMode(hg::RN_Protocol aProtocol,
                                                hg::RN_NetworkingStack aNetworkingStack) {
     assert(_mode == Mode::Uninitialized);
 
-    SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(ctx(), privileged==true, networking==true);
+    SPEMPE_VALIDATE_GAME_CONTEXT_FLAGS(ctx(), privileged==true, networking==true);
     _localClientIndex = CLIENT_INDEX_LOCAL;
     _node = hg::RN_ServerFactory::createServer(
         aProtocol,
@@ -56,7 +57,7 @@ void DefaultNetworkingManager::setToClientMode(hg::RN_Protocol aProtocol,
                                                hg::RN_NetworkingStack aNetworkingStack) {
     assert(_mode == Mode::Uninitialized);
 
-    SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(ctx(), privileged==false, networking==true);
+    SPEMPE_VALIDATE_GAME_CONTEXT_FLAGS(ctx(), privileged==false, networking==true);
     _localClientIndex = CLIENT_INDEX_UNKNOWN;
     _node = hg::RN_ClientFactory::createClient(
         aProtocol,
@@ -171,7 +172,9 @@ void DefaultNetworkingManager::setTelemetryCycleLimit(hg::PZInteger aCycleLimit)
 
 hg::RN_Telemetry DefaultNetworkingManager::getTelemetry(hg::PZInteger aCycleCount) const {
     if (aCycleCount > hg::stopz(_telemetry.size())) {
-        throw hg::TracedLogicError{"getTelemetry - aCycleCount must not be greater than the telemetry cycle limit"};
+        HG_THROW_TRACED(hg::TracedLogicError, 0,
+                        "aCycleCount ({}) must not be greater than the telemetry cycle limit ({}).",
+                        aCycleCount, _telemetry.size());
     }
 
     hg::RN_Telemetry result;

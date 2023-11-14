@@ -1,7 +1,7 @@
 #ifndef UHOBGOBLIN_RMLUI_RMLUI_PREPROCESSING_HPP
 #define UHOBGOBLIN_RMLUI_RMLUI_PREPROCESSING_HPP
 
-#include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 
 #include <string>
 

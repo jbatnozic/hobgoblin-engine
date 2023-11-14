@@ -2,6 +2,7 @@
 #define UHOBGOBLIN_GRAPHICS_MULTISPRITE_BLUEPRINT_HPP
 
 #include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Graphics/Sprite.hpp>
 #include <Hobgoblin/Graphics/Sprite_blueprint.hpp>
 #include <Hobgoblin/Graphics/Multisprite.hpp>
@@ -82,7 +83,7 @@ MultispriteBlueprint::MultispriteBlueprint(const Texture& aTexture, const taRect
         return;
     }
 
-    throw TracedLogicError{"MultispriteBlueprint - Must be constructed with at least 1 subsprite!"};
+    HG_THROW_TRACED(InvalidArgumentError, 0, "MultispriteBlueprint must be constructed with at least 1 subsprite.");
 }
 
 } // namespace gr

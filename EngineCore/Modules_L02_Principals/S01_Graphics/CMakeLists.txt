@@ -53,6 +53,7 @@ PUBLIC
     # Foundation
     "Hobgoblin_L00_S00_PDef"
     "Hobgoblin_L00_S01_GSL"
+    "Hobgoblin_L00_S02_HGExcept"
     "Hobgoblin_L00_S03_Logging"
 
     # Utilities

@@ -1,4 +1,5 @@
 #include <Hobgoblin/Graphics/Draw_batcher.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 
 #include <cassert>
 #include <typeinfo>
@@ -89,7 +90,7 @@ void DrawBatcher::draw(const Drawable& aDrawable,
         break;
 
     default:
-        HARD_ASSERT(false && "Invalid batching type encountered.");
+        HG_UNREACHABLE("Invalid batching type encountered ({}).", (int)batchingType);
     }
 }
 

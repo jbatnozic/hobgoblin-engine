@@ -1,6 +1,8 @@
 
 #include <SPeMPE/Utility/Window_input_tracker.hpp>
 
+#include <Hobgoblin/HGExcept.hpp>
+
 #include <utility>
 
 namespace jbatnozic {
@@ -113,7 +115,7 @@ bool WindowInputTracker::checkPressed(hg::in::UniversalInputEnum aKeyOrButton, M
         return false;
 
     default:
-        throw hobgoblin::TracedLogicError{"Invalid mode passed!"};
+        HG_UNREACHABLE("Invalid mode ({}) passed.", (int)aMode);
     }
 }
 
@@ -142,7 +144,7 @@ bool WindowInputTracker::checkReleased(hg::in::UniversalInputEnum aKeyOrButton, 
         return false;
 
     default:
-        throw hobgoblin::TracedLogicError{"Invalid mode passed!"};
+        HG_UNREACHABLE("Invalid mode ({}) passed.", (int)aMode);
     }
 }
 

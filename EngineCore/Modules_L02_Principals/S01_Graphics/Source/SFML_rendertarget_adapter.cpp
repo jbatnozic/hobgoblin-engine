@@ -1,7 +1,7 @@
 
 #include "SFML_rendertarget_adapter.hpp"
 
-#include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 
 #include "SFML_conversions.hpp"
 #include "SFML_vertices.hpp"
@@ -60,15 +60,12 @@ void SfmlRenderTargetAdapter::getCanvasDetails(CanvasType& aType, void*& aRender
     aRenderingBackend = &_renderTarget;
 }
 
-// TODO(throw 'unreachable code reached')
-#define FORBIDDEN() (throw TracedLogicError{"Forbidden to call method " CURRENT_FUNCTION})
-
 void SfmlRenderTargetAdapter::clear(const Color& aColor) {
     _renderTarget.clear(ToSf(aColor));
 }
 
 void SfmlRenderTargetAdapter::setViewCount(PZInteger aViewCount) {
-    FORBIDDEN();
+    HG_UNREACHABLE("Forbidden to call method.");
 }
 
 void SfmlRenderTargetAdapter::setView(const View& aView) {
@@ -76,19 +73,19 @@ void SfmlRenderTargetAdapter::setView(const View& aView) {
 }
 
 void SfmlRenderTargetAdapter::setView(PZInteger aViewIdx, const View& aView) {
-    FORBIDDEN();
+    HG_UNREACHABLE("Forbidden to call method.");
 }
 
 PZInteger SfmlRenderTargetAdapter::getViewCount() const {
-    FORBIDDEN();
+    HG_UNREACHABLE("Forbidden to call method.");
 }
 
 const View& SfmlRenderTargetAdapter::getView(PZInteger aViewIdx) const {
-    FORBIDDEN();
+    HG_UNREACHABLE("Forbidden to call method.");
 }
 
 View& SfmlRenderTargetAdapter::getView(PZInteger aViewIdx) {
-    FORBIDDEN();
+    HG_UNREACHABLE("Forbidden to call method.");
 }
 
 View SfmlRenderTargetAdapter::getDefaultView() const {
@@ -107,11 +104,11 @@ math::Rectangle<PZInteger> SfmlRenderTargetAdapter::getViewport(const View& aVie
 }
 
 math::Rectangle<PZInteger> SfmlRenderTargetAdapter::getViewport(PZInteger aViewIdx) const {
-    FORBIDDEN();
+    HG_UNREACHABLE("Forbidden to call method.");
 }
 
 math::Vector2f SfmlRenderTargetAdapter::mapPixelToCoords(const math::Vector2i& aPoint, PZInteger aViewIdx) const {
-    FORBIDDEN();
+    HG_UNREACHABLE("Forbidden to call method.");
 }
 
 math::Vector2f SfmlRenderTargetAdapter::mapPixelToCoords(const math::Vector2i& aPoint, const View& aView) const {
@@ -125,7 +122,7 @@ math::Vector2i SfmlRenderTargetAdapter::mapCoordsToPixel(const math::Vector2f& a
 }
 
 math::Vector2i SfmlRenderTargetAdapter::mapCoordsToPixel(const math::Vector2f& aPoint, PZInteger aViewIdx) const {
-    FORBIDDEN();
+    HG_UNREACHABLE("Forbidden to call method.");
 }
 
 math::Vector2pz SfmlRenderTargetAdapter::getSize() const {

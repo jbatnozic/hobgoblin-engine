@@ -130,7 +130,7 @@ void HandleDataMessages(util::Packet& receivedPacket,
         const auto handlerId = receivedPacket.extractOrThrow<detail::RN_HandlerId>();
         auto handlerFunc = detail::RN_GlobalHandlerMapper::getInstance().handlerWithId(handlerId);
         if (handlerFunc == nullptr) {
-            HG_THROW_TRACED(RN_IllegalMessage, 0, "Requested handler '{}' does not exist.", handlerId);
+            throw RN_IllegalMessage{"Requested handler does not exist."};
         }
         (*handlerFunc)(node);
     }
@@ -465,7 +465,7 @@ void RN_UdpConnectorImpl::handleDataMessages(RN_NodeInterface& node,
         _resetAll();
     }
     catch (RN_IllegalMessage& ex) {
-        _eventFactory.createDisconnected(RN_Event::Disconnected::Reason::Error, ex.getDescription());
+        _eventFactory.createDisconnected(RN_Event::Disconnected::Reason::Error, ex.what());
         _resetAll();
     }
 
@@ -802,7 +802,7 @@ void RN_UdpConnectorImpl::_tryToAssembleFragmentedPacketAtHead() {
 
         default:
             // This isn't supposed to happen
-            HG_THROW_TRACED(RN_IllegalMessage, 0, "Impossible to assemble fragmented packet.");
+            throw RN_IllegalMessage{"Impossible to assemble fragmented packet."};
         }
     }
 BREAK_FOR:

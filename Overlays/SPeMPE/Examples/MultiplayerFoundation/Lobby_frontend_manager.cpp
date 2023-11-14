@@ -214,12 +214,12 @@ public:
     }
 
     void setToHeadlessHostMode() {
-        SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(CTX(), headless==true);
+        SPEMPE_VALIDATE_GAME_CONTEXT_FLAGS(CTX(), headless==true);
         _mode = Mode::HeadlessHost;
     }
 
     void setToClientMode(const std::string& aName, const std::string& aUniqueId) {
-        SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(CTX(), headless==false);
+        SPEMPE_VALIDATE_GAME_CONTEXT_FLAGS(CTX(), headless==false);
         _mode = Mode::Client;
 
         {

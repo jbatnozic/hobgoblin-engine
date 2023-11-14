@@ -1,9 +1,8 @@
 #ifndef UHOBGOBLIN_RN_HANDLERMGMT_HPP
 #define UHOBGOBLIN_RN_HANDLERMGMT_HPP
 
-#include <Hobgoblin/HGExcept.hpp>
-
 #include <cstdint>
+#include <stdexcept>
 #include <unordered_map>
 #include <vector>
 
@@ -71,9 +70,9 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 
-class RN_IllegalMessage : public TracedRuntimeError {
+class RN_IllegalMessage : public std::exception {
 public:
-    using TracedRuntimeError::TracedRuntimeError;
+    using exception::exception;
 };
 
 } // namespace rn

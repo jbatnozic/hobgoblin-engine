@@ -1,6 +1,7 @@
 #ifndef UHOBGOBLIN_GRAPHICS_DRAW_BRIDGE_HPP
 #define UHOBGOBLIN_GRAPHICS_DRAW_BRIDGE_HPP
 
+#include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Graphics/Canvas.hpp>
 #include <Hobgoblin/Graphics/Drawable.hpp>
 #include <Hobgoblin/Graphics/View.hpp>
@@ -29,7 +30,7 @@ bool Draw(Canvas& aCanvas, taCallable&& aCallable) {
         return true;
 
     default:
-        HARD_ASSERT(false && "Invalid CanvasType value.");
+        HG_THROW_TRACED(InvalidArgumentError, 0, "Invalid CanvasType value ({}).", (int)canvasType);
     }
 }
 

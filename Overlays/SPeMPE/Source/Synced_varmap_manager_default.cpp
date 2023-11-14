@@ -3,6 +3,7 @@
 #include <SPeMPE/Managers/Networking_manager_interface.hpp>
 #include <SPeMPE/Utility/Rpc_receiver_context_template.hpp>
 
+#include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/RigelNet.hpp>
 #include <Hobgoblin/RigelNet_macros.hpp>
 
@@ -95,13 +96,13 @@ DefaultSyncedVarmapManager::~DefaultSyncedVarmapManager() {
 
 void DefaultSyncedVarmapManager::setToMode(Mode aMode) {
     if (_mode != Mode::Uninitialized) {
-        throw hobgoblin::NotImplementedError{}; // TODO
+        HG_NOT_IMPLEMENTED();
     }
 
     if (aMode == Mode::Host) {
-        SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(ctx(), privileged==true, networking=true);
+        SPEMPE_VALIDATE_GAME_CONTEXT_FLAGS(ctx(), privileged==true, networking=true);
     } else if (aMode == Mode::Client) {
-        SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(ctx(), privileged==false, networking=true);
+        SPEMPE_VALIDATE_GAME_CONTEXT_FLAGS(ctx(), privileged==false, networking=true);
     }
 
     _mode = aMode;
@@ -169,7 +170,7 @@ auto DefaultSyncedVarmapManager::getString(const std::string& aKey) const -> std
 
 void DefaultSyncedVarmapManager::setInt64(const std::string& aKey, std::int64_t aValue) {
     if (_mode != Mode::Host) {
-        throw hg::TracedLogicError{"DefaultSyncedVarmapManager - Can only set values while in Host mode!"};
+        HG_THROW_TRACED(hg::TracedLogicError, 0, "Can only set values while in Host mode.");
     }
 
     const auto iter = _int64Values.find(aKey);
@@ -187,7 +188,7 @@ void DefaultSyncedVarmapManager::setInt64(const std::string& aKey, std::int64_t 
 
 void DefaultSyncedVarmapManager::setDouble(const std::string& aKey, double aValue) {
     if (_mode != Mode::Host) {
-        throw hg::TracedLogicError{ "DefaultSyncedVarmapManager - Can only set values while in Host mode!" };
+        HG_THROW_TRACED(hg::TracedLogicError, 0, "Can only set values while in Host mode.");
     }
 
     const auto iter = _doubleValues.find(aKey);
@@ -205,7 +206,7 @@ void DefaultSyncedVarmapManager::setDouble(const std::string& aKey, double aValu
 
 void DefaultSyncedVarmapManager::setString(const std::string& aKey, const std::string& aValue) {
     if (_mode != Mode::Host) {
-        throw hg::TracedLogicError{ "DefaultSyncedVarmapManager - Can only set values while in Host mode!" };
+        HG_THROW_TRACED(hg::TracedLogicError, 0, "Can only set values while in Host mode.");
     }
 
     const auto iter = _stringValues.find(aKey);
@@ -227,9 +228,7 @@ void DefaultSyncedVarmapManager::setString(const std::string& aKey, const std::s
 
 void DefaultSyncedVarmapManager::requestToSetInt64(const std::string& aKey, std::int64_t aValue) {
     if (_mode != Mode::Client) {
-        throw hg::TracedLogicError{
-            "DefaultSyncedVarmapManager - Can only request to set while in Client mode!"
-        };
+        HG_THROW_TRACED(hg::TracedLogicError, 0, "Can only request to set values while in Client mode.");
     }
 
     hobgoblin::util::Packet packet;
@@ -243,9 +242,7 @@ void DefaultSyncedVarmapManager::requestToSetInt64(const std::string& aKey, std:
 
 void DefaultSyncedVarmapManager::requestToSetDouble(const std::string& aKey, double aValue) {
     if (_mode != Mode::Client) {
-        throw hg::TracedLogicError{
-            "DefaultSyncedVarmapManager - Can only request to set while in Client mode!"
-        };
+        HG_THROW_TRACED(hg::TracedLogicError, 0, "Can only request to set values while in Client mode.");
     }
 
     hobgoblin::util::Packet packet;
@@ -259,9 +256,7 @@ void DefaultSyncedVarmapManager::requestToSetDouble(const std::string& aKey, dou
 
 void DefaultSyncedVarmapManager::requestToSetString(const std::string& aKey, const std::string& aValue) {
     if (_mode != Mode::Client) {
-        throw hg::TracedLogicError{
-            "DefaultSyncedVarmapManager - Can only request to set while in Client mode!"
-        };
+        HG_THROW_TRACED(hg::TracedLogicError, 0, "Can only request to set values while in Client mode.");
     }
 
     hobgoblin::util::Packet packet;
@@ -281,9 +276,7 @@ void DefaultSyncedVarmapManager::int64SetClientWritePermission(const std::string
                                                                hg::PZInteger aPlayerIndex,
                                                                bool aAllowed) {
     if (_mode != Mode::Host) {
-        throw hg::TracedLogicError{
-            "DefaultSyncedVarmapManager - Can only set permissions while in Host mode!"
-        };
+        HG_THROW_TRACED(hg::TracedLogicError, 0, "Can only set permissions while in Host mode.");
     }
 
     auto& perms = _int64Values[aKey].permissions;
@@ -299,9 +292,7 @@ void DefaultSyncedVarmapManager::doubleSetClientWritePermission(const std::strin
                                                                 hg::PZInteger aPlayerIndex,
                                                                 bool aAllowed) {
     if (_mode != Mode::Host) {
-        throw hg::TracedLogicError{
-            "DefaultSyncedVarmapManager - Can only set permissions while in Host mode!"
-        };
+        HG_THROW_TRACED(hg::TracedLogicError, 0, "Can only set permissions while in Host mode.");
     }
 
     auto& perms = _doubleValues[aKey].permissions;
@@ -317,9 +308,7 @@ void DefaultSyncedVarmapManager::stringSetClientWritePermission(const std::strin
                                                                 hg::PZInteger aPlayerIndex,
                                                                 bool aAllowed) {
     if (_mode != Mode::Host) {
-        throw hg::TracedLogicError{
-            "DefaultSyncedVarmapManager - Can only set permissions while in Host mode!"
-        };
+        HG_THROW_TRACED(hg::TracedLogicError, 0, "Can only set permissions while in Host mode.");
     }
 
     auto& perms = _stringValues[aKey].permissions;
@@ -384,9 +373,8 @@ void DefaultSyncedVarmapManager::_unpackValues(hobgoblin::util::Packet& aPacket)
             break;
 
         default:
-            throw hobgoblin::TracedRuntimeError{
-                "DefaultSyncedVarmapManager - Unknown type tag encountered while unpacking!"
-            };
+            HG_THROW_TRACED(hobgoblin::TracedRuntimeError, 0,
+                            "Unknown type tag ({}) encountered while unpacking.", (int)type);
         }
     }
 }

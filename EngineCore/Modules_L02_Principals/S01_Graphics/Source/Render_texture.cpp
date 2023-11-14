@@ -1,4 +1,5 @@
 #include <Hobgoblin/Graphics/Render_texture.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 
 #include <SFML/Graphics/RenderTexture.hpp>
 
@@ -81,7 +82,7 @@ void RenderTexture::create(const math::Vector2pz& aSize,
     if (!SELF_IMPL->create(static_cast<unsigned>(aSize.x),
                            static_cast<unsigned>(aSize.y),
                            ToSf(aSettings))) {
-        throw TracedRuntimeError{sfErr.getErrorMessage()}; // TODO(maybe use a better exception type?)
+        HG_THROW_TRACED(TracedRuntimeError, 0, sfErr.getErrorMessage());
     }
 }
 
@@ -108,7 +109,7 @@ bool RenderTexture::isRepeated() const {
 void RenderTexture::generateMipmap() {
     SFMLErrorCatcher sfErr;
     if (!SELF_IMPL->generateMipmap()) {
-        throw TracedRuntimeError{sfErr.getErrorMessage()}; // TODO(maybe use a better exception type?)
+        HG_THROW_TRACED(TracedRuntimeError, 0, sfErr.getErrorMessage());
     }
 }
 

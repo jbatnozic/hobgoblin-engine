@@ -6,7 +6,6 @@ add_executable(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
 PUBLIC
-  "Hobgoblin.Private"
   "Hobgoblin.Common"
   "Hobgoblin.Graphics"
   "Hobgoblin.Math"

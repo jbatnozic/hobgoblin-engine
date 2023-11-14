@@ -3,6 +3,8 @@
 
 // Hobgoblin
 
+#include <Hobgoblin/HGExcept.hpp>
+
 #include <Hobgoblin/Math/Vector.hpp>
 #include <Hobgoblin/Window/Context_settings.hpp>
 #include <Hobgoblin/Window/Cursor.hpp>
@@ -180,7 +182,7 @@ sf::Cursor::Type ToSf(Cursor::Type aType) {
         return sf::Cursor::NotAllowed;
 
     default:
-        HARD_ASSERT(false && "Invalid hg::gr::Cursor::Type value.");
+        HG_UNREACHABLE("Invalid hg::gr::Cursor::Type value ({}).", (int)aType);
    }
 }
 

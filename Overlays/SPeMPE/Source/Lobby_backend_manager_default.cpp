@@ -7,6 +7,7 @@
 #include <utility>
 
 #include <Hobgoblin/Format.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Logging.hpp>
 #include <Hobgoblin/RigelNet_macros.hpp>
 #include <SPeMPE/Managers/Synced_varmap_manager_interface.hpp>
@@ -211,7 +212,7 @@ DefaultLobbyBackendManager::DefaultLobbyBackendManager(hg::QAO_RuntimeRef aRunti
 DefaultLobbyBackendManager::~DefaultLobbyBackendManager() = default;
 
 void DefaultLobbyBackendManager::setToHostMode(hobgoblin::PZInteger aLobbySize) {
-    SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(ctx(), privileged==true, networking==true);
+    SPEMPE_VALIDATE_GAME_CONTEXT_FLAGS(ctx(), privileged==true, networking==true);
 
     _mode = Mode::Host;
     
@@ -239,7 +240,7 @@ void DefaultLobbyBackendManager::setToHostMode(hobgoblin::PZInteger aLobbySize) 
 }
 
 void DefaultLobbyBackendManager::setToClientMode(hobgoblin::PZInteger aLobbySize) {
-    SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(ctx(), privileged==false, networking==true);
+    SPEMPE_VALIDATE_GAME_CONTEXT_FLAGS(ctx(), privileged==false, networking==true);
 
     _mode = Mode::Client;
     resize(aLobbySize);
@@ -255,8 +256,8 @@ DefaultLobbyBackendManager::Mode DefaultLobbyBackendManager::getMode() const {
 
 int DefaultLobbyBackendManager::clientIdxToPlayerIdx(int aClientIdx) const {
     if (_mode != Mode::Host) {
-        throw hg::TracedLogicError("DefaultLobbyBackendManager::clientIdxToPlayerIdx can only "
-                                   "be called while in Host mode!");
+        HG_THROW_TRACED(hg::TracedLogicError, 0,
+                        "This method can only be called while in Host mode!");
     }
 
     const auto iter = _clientIdxToPlayerIdxMapping.find(aClientIdx);
@@ -269,8 +270,8 @@ int DefaultLobbyBackendManager::clientIdxToPlayerIdx(int aClientIdx) const {
 
 int DefaultLobbyBackendManager::playerIdxToClientIdx(hg::PZInteger aPlayerIdx) const {
     if (_mode != Mode::Host) {
-        throw hg::TracedLogicError("DefaultLobbyBackendManager::playerIdxToClientIdx can only "
-                                   "be called while in Host mode!");
+        HG_THROW_TRACED(hg::TracedLogicError, 0,
+                        "This method can only be called while in Host mode!");
     }
 
     return _lockedIn.at(hg::pztos(aPlayerIdx)).clientIndex;
@@ -278,8 +279,8 @@ int DefaultLobbyBackendManager::playerIdxToClientIdx(hg::PZInteger aPlayerIdx) c
 
 int DefaultLobbyBackendManager::clientIdxOfPlayerInPendingSlot(hobgoblin::PZInteger aSlotIndex) const {
     if (_mode != Mode::Host) {
-        throw hg::TracedLogicError("DefaultLobbyBackendManager::clientIdxOfPlayerInPendingSlot "
-                                   "can only be called while in Host mode!");
+        HG_THROW_TRACED(hg::TracedLogicError, 0,
+                        "This method can only be called while in Host mode!");
     }
 
     return _desired.at(hg::pztos(aSlotIndex)).clientIndex;
@@ -287,12 +288,12 @@ int DefaultLobbyBackendManager::clientIdxOfPlayerInPendingSlot(hobgoblin::PZInte
 
 void DefaultLobbyBackendManager::beginSwap(hobgoblin::PZInteger aSlotIndex1, hobgoblin::PZInteger aSlotIndex2) {
     if (_mode != Mode::Host) {
-        throw hg::TracedLogicError("DefaultLobbyBackendManager::beginSwap can only "
-                                   "be called while in Host mode!");
+        HG_THROW_TRACED(hg::TracedLogicError, 0,
+                        "This method can only be called while in Host mode!");
     }
-    if (aSlotIndex1 >= _getSize() || aSlotIndex2 >= _getSize()) {
-        throw hg::TracedLogicError("DefaultLobbyBackendManager::beginSwap - passed indices out of bounds!");
-    }
+    HG_VALIDATE_ARGUMENT(aSlotIndex1 < _getSize(), "aSlotIndex1 ({}) out of bounds.", aSlotIndex1);
+    HG_VALIDATE_ARGUMENT(aSlotIndex2 < _getSize(), "aSlotIndex2 ({}) out of bounds.", aSlotIndex2);
+
     if (aSlotIndex1 == aSlotIndex2) {
         return;
     }
@@ -307,8 +308,8 @@ void DefaultLobbyBackendManager::beginSwap(hobgoblin::PZInteger aSlotIndex1, hob
 
 bool DefaultLobbyBackendManager::lockInPendingChanges() {
     if (_mode != Mode::Host) {
-        throw hg::TracedLogicError("DefaultLobbyBackendManager::lockInPendingChanges can only "
-                                   "be called while in Host mode!");
+        HG_THROW_TRACED(hg::TracedLogicError, 0,
+                        "This method can only be called while in Host mode!");
     }
 
     if (_lockedIn == _desired) {
@@ -346,8 +347,8 @@ bool DefaultLobbyBackendManager::lockInPendingChanges() {
 
 bool DefaultLobbyBackendManager::resetPendingChanges() {
     if (_mode != Mode::Host) {
-        throw hg::TracedLogicError("DefaultLobbyBackendManager::resetPendingChanges can only "
-                                   "be called while in Host mode!");
+        HG_THROW_TRACED(hg::TracedLogicError, 0,
+                        "This method can only be called while in Host mode!");
     }
 
     HG_LOG_WARN(LOG_ID, "Skipping lobby reset because it is not yet implemented.");
@@ -373,8 +374,8 @@ bool DefaultLobbyBackendManager::resetPendingChanges() {
 
 void DefaultLobbyBackendManager::uploadLocalInfo() const {
     if (_mode != Mode::Client) {
-        throw hg::TracedLogicError("DefaultLobbyBackendManager::uploadLocalInfo can only "
-                                   "be called while in Client mode!");
+        HG_THROW_TRACED(hg::TracedLogicError, 0,
+                        "This method can only be called while in Client mode!");
     }
 
     auto& netMgr = ccomp<NetworkingManagerInterface>();
@@ -493,9 +494,7 @@ hg::PZInteger DefaultLobbyBackendManager::getSize() const {
 }
 
 void DefaultLobbyBackendManager::resize(hobgoblin::PZInteger aNewLobbySize) {
-    if (aNewLobbySize < 1) {
-        throw hg::TracedLogicError("DefaultLobbyBackendManager::resize - aNewLobbySize must be at least 1!");
-    }
+    HG_VALIDATE_ARGUMENT(aNewLobbySize >= 1, "aNewLobbySize must be at least 1.");
 
     _lockedIn.resize(hg::pztos(aNewLobbySize));
     _desired.resize(hg::pztos(aNewLobbySize));
@@ -699,7 +698,7 @@ hg::PZInteger DefaultLobbyBackendManager::_findOptimalPositionForClient(const RN
     }
 
     if (currentBest.pos < 0) {
-        throw hg::TracedRuntimeError("No slot available for new client!");
+        HG_THROW_TRACED(hg::TracedRuntimeError, 0, "No slot available for new client!");
     }
 
     return currentBest.pos;

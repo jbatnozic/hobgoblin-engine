@@ -3,6 +3,8 @@
 
 // Hobgoblin
 
+#include <Hobgoblin/HGExcept.hpp>
+
 #include <Hobgoblin/Math/Rectangle.hpp>
 #include <Hobgoblin/Math/Vector.hpp>
 #include <Hobgoblin/Graphics/Blend_mode.hpp>
@@ -171,7 +173,7 @@ BlendMode::Factor ToHg(sf::BlendMode::Factor aFactor) {
     case sf::BlendMode::DstAlpha: return BlendMode::Factor::DstAlpha;
     case sf::BlendMode::OneMinusDstAlpha: return BlendMode::Factor::OneMinusDstAlpha;
     default:
-        HARD_ASSERT(false && "Invalid sf::BlendMode::Factor value.");
+        HG_UNREACHABLE("Invalid sf::BlendMode::Factor value ({}).", (int)aFactor);
     }
 }
 
@@ -182,7 +184,7 @@ BlendMode::Equation ToHg(sf::BlendMode::Equation aEquation) {
     case sf::BlendMode::Subtract: return BlendMode::Equation::Subtract;
     case sf::BlendMode::ReverseSubtract: return BlendMode::Equation::ReverseSubtract;
     default:
-        HARD_ASSERT(false && "Invalid sf::BlendMode::Equation value.");
+        HG_UNREACHABLE("Invalid sf::BlendMode::Equation value ({}).", (int)aEquation);
     }
 }
 
@@ -212,7 +214,7 @@ sf::BlendMode::Factor ToSf(BlendMode::Factor aFactor) {
     case BlendMode::Factor::DstAlpha: return sf::BlendMode::DstAlpha;
     case BlendMode::Factor::OneMinusDstAlpha: return sf::BlendMode::OneMinusDstAlpha;
     default:
-        HARD_ASSERT(false && "Invalid hg::gr::BlendMode::Factor value.");
+        HG_UNREACHABLE("Invalid hg::gr::BlendMode::Factor value ({}).", (int)aFactor);
     }
 }
 
@@ -223,7 +225,7 @@ sf::BlendMode::Equation ToSf(BlendMode::Equation aEquation) {
     case BlendMode::Equation::Subtract: return sf::BlendMode::Subtract;
     case BlendMode::Equation::ReverseSubtract: return sf::BlendMode::ReverseSubtract;
     default:
-        HARD_ASSERT(false && "Invalid hg::gr::BlendMode::Equation value.");
+        HG_UNREACHABLE("Invalid hg::gr::BlendMode::Equation value ({}).", (int)aEquation);
     }
 }
 
@@ -321,7 +323,7 @@ PrimitiveType ToHg(sf::PrimitiveType aType) {
     case sf::TriangleStrip: return PrimitiveType::TriangleStrip;
     case sf::TriangleFan:   return PrimitiveType::TriangleFan;
     default:
-        HARD_ASSERT(false && "Invalid sf::PrimitiveType value.");
+        HG_UNREACHABLE("Invalid sf::PrimitiveType value ({}).", (int)aType);
     }
 }
 
@@ -335,7 +337,7 @@ sf::PrimitiveType ToSf(PrimitiveType aType) {
     case PrimitiveType::TriangleStrip: return sf::TriangleStrip;
     case PrimitiveType::TriangleFan:   return sf::TriangleFan;
     default:
-        HARD_ASSERT(false && "Invalid hg::gr::PrimitiveType value.");
+        HG_UNREACHABLE("Invalid hg::gr::PrimitiveType value ({}).", (int)aType);
     }
 }
 
@@ -377,7 +379,7 @@ sf::Texture::CoordinateType ToSf(Texture::CoordinateType aCoordType) {
     case Texture::CoordinateType::Normalized: return sf::Texture::Normalized;
     case Texture::CoordinateType::Pixels: return sf::Texture::Pixels;
     default:
-        HARD_ASSERT(false && "Invalid hg::gr::Texture::CoordinateType value.");
+        HG_UNREACHABLE("Invalid hg::gr::Texture::CoordinateType value ({}).", (int)aCoordType);
     };
 }
 
@@ -419,7 +421,7 @@ VertexBuffer::Usage ToHg(sf::VertexBuffer::Usage aUsage) {
     case sf::VertexBuffer::Dynamic: return VertexBuffer::Usage::Dynamic;
     case sf::VertexBuffer::Static:  return VertexBuffer::Usage::Static;
     default:
-        HARD_ASSERT(false && "Invalid sf::VertexBuffer::Usage value.");
+        HG_UNREACHABLE("Invalid sf::VertexBuffer::Usage value ({}).", (int)aUsage);
     }
 }
 
@@ -430,7 +432,7 @@ sf::VertexBuffer::Usage ToSf(VertexBuffer::Usage aUsage) {
     case VertexBuffer::Usage::Dynamic: return sf::VertexBuffer::Dynamic;
     case VertexBuffer::Usage::Static:  return sf::VertexBuffer::Static;
     default:
-        HARD_ASSERT(false && "Invalid hg::gr::VertexBuffer::Usage value.");
+        HG_UNREACHABLE("Invalid hg::gr::VertexBuffer::Usage value ({}).", (int)aUsage);
     }
 }
 
