@@ -94,6 +94,7 @@ public:
     using TracedLogicError::TracedLogicError;
 };
 
+//! TODO(add description)
 #define HG_VALIDATE_ARGUMENT(_expr_, ...) \
     do { if (!(_expr_)) {  \
         HG_THROW_TRACED_C(::jbatnozic::hobgoblin::InvalidArgumentError, \
@@ -108,6 +109,7 @@ public:
     using TracedLogicError::TracedLogicError;
 };
 
+//! TODO(add description)
 #define HG_VALIDATE_PRECONDITION(_expr_) \
     do { if (!(_expr_)) {  \
         HG_THROW_TRACED_C(::jbatnozic::hobgoblin::PreconditionNotMetError, \

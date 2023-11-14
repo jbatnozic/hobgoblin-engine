@@ -30,10 +30,6 @@ static void CaptureStackTrace(std::vector<std::string>& target) {
 
     int counter = 0;
     for (i = 0; i < frames; i++) {
-        if (i < 2) {
-            continue; // to skip TracedException constructor and CaptureStackTrace
-        }
-
         SymFromAddr(process, (DWORD64)(stack[i]), 0, symbol);
 
         std::ostringstream oss;

@@ -12,7 +12,9 @@
 
 HOBGOBLIN_NAMESPACE_BEGIN
 
-//! TODO
+//! A generic base exception type that's meant to capture much more
+//! information about the place it was thrown from than the standard
+//! `std::exception`.
 class TracedException : public std::exception {
 public:
     //! Constructs the TracedException.
@@ -57,16 +59,22 @@ public:
     //! at runtime.
     const std::vector<std::string>& getStackTrace() const noexcept;
 
-    //!
+    //! Returns a verbose single-line description of the exception, which will include
+    //! all available information (type, file and line of throwing, message, code etc.),
+    //! except the stack trace.
     const std::string& getDescription() const noexcept;
 
-    //!
+    //! Returns a nicely formatted multi-line description of the exception, which will include
+    //! all available information (type, file and line of throwing, message, code etc.),
+    //! except the stack trace.
     std::string getFormattedDescription() const noexcept;
 
-    //!
+    //! Returns a nicely formatted multi-line description of the exception, which will include
+    //! all available information (type, file and line of throwing, message, code etc.),
+    //! including the stack trace.
     std::string getFullFormattedDescription() const noexcept;
 
-    //!
+    //! Same as `getDescription()`, provided with compatibility with `std::exception`.
     const char* what() const noexcept override;
 
 private:
@@ -83,12 +91,56 @@ private:
 
 #include <Hobgoblin/HGExcept/Private/Throw_traced_macros.inl>
 
-//! TODO(add desc.)
-//! (TYPE, CODE, (optional)MESSAGE/FORMAT, (optional)FURTHER ARGS)
+//! Use this macro to throw a `TracedException` or a derived exception type
+//! with the same constructor parameters.
+//! 
+//! This macro can be used in three forms:
+//!  1. HG_THROW_TRACED(<type>, <error-code>);
+//!     (in this case the error message of the thrown exception will be '<no message provided>'.)
+//! 
+//!     For example: HG_THROW_TRACED(TracedLogicError, 1);
+//! 
+//!  2. HG_THROW_TRACED(<type>, <error-code>, <message>);
+//!     (<message> must be a `std::string` or convertible to it.)
+//! 
+//!     For example: HG_THROW_TRACED(TracedLogicError, 1, "Some error description.");
+//! 
+//!  3. HG_THROW_TRACED(<type>, <error-code>, <format-string>, <arg0>, <arg1>, ...);
+//!     (<format-string> must be a string literal and a valid format string (as per Hobgoblin/Format))
+//! 
+//!     For example: HG_THROW_TRACED(TracedLogicError, 1, "Expected {} but got {}.", aA, aB);
+//! 
+//! In all cases, the macro expands into a throw expression, with aType, aFunc,
+//! aFile and aLineNumber parameters already filled in.
 #define HG_THROW_TRACED(_type_, _code_, ...) \
     UHOBGOBLIN_THROW_TRACED_MIDDLE(_type_, _code_, "", HG_PP_COUNT_ARGS(__VA_ARGS__), __VA_ARGS__)
 
-//! Same as `HG_THROW_TRACED` but with a comment.
+//! Use this macro to throw a `TracedException` or a derived exception type
+//! with the same constructor parameters.
+//! The difference between this macro and `HG_THROW_TRACED` is that with this one
+//! you can also provide a comment about the error (see aComment parameter of
+//! `TracedException` constructor).
+//! 
+//! This macro can be used in three forms:
+//!  1. HG_THROW_TRACED(<type>, <error-code>, <comment>);
+//!     (in this case the error message of the thrown exception will be '<no message provided>'.)
+//! 
+//!     For example: HG_THROW_TRACED(TracedLogicError, 1);
+//! 
+//!  2. HG_THROW_TRACED(<type>, <error-code>, <comment>, <message>);
+//!     (<message> must be a `std::string` or convertible to it.)
+//! 
+//!     For example: HG_THROW_TRACED(TracedLogicError, 1, "Some error description.");
+//! 
+//!  3. HG_THROW_TRACED(<type>, <error-code>, <comment>, <format-string>, <arg0>, <arg1>, ...);
+//!     (<format-string> must be a string literal and a valid format string (as per Hobgoblin/Format))
+//! 
+//!     For example: HG_THROW_TRACED(TracedLogicError, 1, "Expected {} but got {}.", aA, aB);
+//! 
+//! In all cases, <comment> must be a `std::string` or convertible to it.
+//! 
+//! In all cases, the macro expands into a throw expression, with aType, aFunc,
+//! aFile and aLineNumber parameters already filled in.
 #define HG_THROW_TRACED_C(_type_, _code_, _comment_, ...) \
     UHOBGOBLIN_THROW_TRACED_MIDDLE(_type_, _code_, _comment_, HG_PP_COUNT_ARGS(__VA_ARGS__), __VA_ARGS__)
 
