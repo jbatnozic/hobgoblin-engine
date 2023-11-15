@@ -27,8 +27,6 @@
 
 #undef CURRENT_FUNCTION_STR
 
-#undef HARD_ASSERT
-
 #undef NO_COPY
 #undef NO_MOVE
 #undef NO_OP

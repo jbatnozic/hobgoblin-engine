@@ -1,5 +1,6 @@
 
 #include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/QAO/base.hpp>
 #include <Hobgoblin/Utility/Passkey.hpp>
 
@@ -31,7 +32,7 @@ QAO_Base::QAO_Base(QAO_RuntimeRef runtimeRef, const std::type_info& typeInfo, ut
 {
     packet >> _instanceName >> _context.id >> _execution_priority;
     if (!packet) {
-        throw TracedRuntimeError("Deserialization failed");
+        HG_THROW_TRACED(TracedRuntimeError, 0, "Deserialization failed.");
     }
 
     QAO_Runtime* runtime = runtimeRef.ptr();

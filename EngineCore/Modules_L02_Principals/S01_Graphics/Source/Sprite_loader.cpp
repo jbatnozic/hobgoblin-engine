@@ -31,12 +31,12 @@ public:
 		_texture->create(aTextureWidth, aTextureHeight);
 	}
 
-	not_null<TextureBuilder*> addSprite(SpriteIdNumerical aSpriteId,
-										const std::filesystem::path& aFilePath) override {
+	NotNull<TextureBuilder*> addSprite(SpriteIdNumerical aSpriteId,
+                                       const std::filesystem::path& aFilePath) override {
 		_assertNotFinalized();
 
 		if (_indexedRequests.find(aSpriteId) != _indexedRequests.end()) {
-			throw TracedLogicError{"TODO"}; // TODO
+			HG_THROW_TRACED(TracedLogicError, 0, "Sprite with this ID ({}) already exists!", aSpriteId);
 		}
 
 		auto image = _loadImage(aFilePath);
@@ -49,9 +49,9 @@ public:
 		return this;
 	}
 
-	not_null<TextureBuilder*> addSubsprite(SpriteIdNumerical aSpriteId,
-										   PZInteger aSubspriteIndex,
-										   const std::filesystem::path& aFilePath) override {
+	NotNull<TextureBuilder*> addSubsprite(SpriteIdNumerical aSpriteId,
+										  PZInteger aSubspriteIndex,
+										  const std::filesystem::path& aFilePath) override {
 		_assertNotFinalized();
 
 		auto image = _loadImage(aFilePath);
@@ -74,8 +74,8 @@ public:
 		return this;
 	}
 
-	not_null<TextureBuilder*> addSubsprite(SpriteIdNumerical aSpriteId,
-										   const std::filesystem::path& aFilePath) override {
+	NotNull<TextureBuilder*> addSubsprite(SpriteIdNumerical aSpriteId,
+                                          const std::filesystem::path& aFilePath) override {
 		_assertNotFinalized();
 
 		auto image = _loadImage(aFilePath);
@@ -88,12 +88,12 @@ public:
 		return this;
 	}
 
-	not_null<TextureBuilder*> addSprite(const SpriteIdTextual& aSpriteId,
-										const std::filesystem::path& aFilePath) override {
+	NotNull<TextureBuilder*> addSprite(const SpriteIdTextual& aSpriteId,
+                                       const std::filesystem::path& aFilePath) override {
 		_assertNotFinalized();
 
 		if (_mappedRequests.find(aSpriteId) != _mappedRequests.end()) {
-			throw TracedLogicError{"TODO"};
+			HG_THROW_TRACED(TracedLogicError, 0, "Sprite with this ID ({}) already exists!", aSpriteId);
 		}
 
 		auto image = _loadImage(aFilePath);
@@ -106,9 +106,9 @@ public:
 		return this;
 	}
 
-	not_null<TextureBuilder*> addSubsprite(const SpriteIdTextual& aSpriteId,
-										   PZInteger aSubspriteIndex,
-										   const std::filesystem::path& aFilePath) override {
+	NotNull<TextureBuilder*> addSubsprite(const SpriteIdTextual& aSpriteId,
+                                          PZInteger aSubspriteIndex,
+                                          const std::filesystem::path& aFilePath) override {
 		_assertNotFinalized();
 
 		auto image = _loadImage(aFilePath);
@@ -131,8 +131,8 @@ public:
 		return this;
 	}
 
-	not_null<TextureBuilder*> addSubsprite(const SpriteIdTextual& aSpriteId,
-										   const std::filesystem::path& aFilePath) override {
+	NotNull<TextureBuilder*> addSubsprite(const SpriteIdTextual& aSpriteId,
+										  const std::filesystem::path& aFilePath) override {
 		_assertNotFinalized();
 
 		auto image = _loadImage(aFilePath);
@@ -238,9 +238,7 @@ private:
 	bool _finalized = false;
 
 	void _assertNotFinalized() const {
-		if (_finalized) {
-			throw TracedLogicError("SpriteBuilder - Texture already built and finalized!"); // TODO
-		}
+		HG_HARD_ASSERT(!_finalized);
 	}
 
 	static Image _loadImage(const std::filesystem::path& aPath) {
@@ -256,8 +254,8 @@ private:
 // SPRITE LOADER                                                         //
 ///////////////////////////////////////////////////////////////////////////
 
-std::unique_ptr<SpriteLoader::TextureBuilder>
-SpriteLoader::startTexture(PZInteger aWidth, PZInteger aHeight) {
+std::unique_ptr<SpriteLoader::TextureBuilder> SpriteLoader::startTexture(PZInteger aWidth,
+																		 PZInteger aHeight) {
 	return std::make_unique<detail::TextureBuilderImpl>(SELF, aWidth, aHeight);
 }
 
@@ -274,7 +272,7 @@ void SpriteLoader::removeTexture(Texture& aTextureToRemove) {
 SpriteBlueprint SpriteLoader::getBlueprint(SpriteIdNumerical aSpriteId) const {
 	const auto iter = _indexedBlueprints.find(aSpriteId);
 	if (iter == _indexedBlueprints.end()) {
-		throw TracedRuntimeError{"SpriteLoader - No blueprint with this ID was found!"};
+		HG_THROW_TRACED(TracedRuntimeError, 0, "No blueprint with this ID ({}) was found!", aSpriteId);
 	}
 
 	return iter->second.extractBlueprint(0);
@@ -283,7 +281,7 @@ SpriteBlueprint SpriteLoader::getBlueprint(SpriteIdNumerical aSpriteId) const {
 SpriteBlueprint SpriteLoader::getBlueprint(const SpriteIdTextual& aSpriteId) const {
 	const auto iter = _mappedBlueprints.find(aSpriteId);
 	if (iter == _mappedBlueprints.end()) {
-		throw TracedRuntimeError{"SpriteLoader - No blueprint with this ID was found!"};
+		HG_THROW_TRACED(TracedRuntimeError, 0, "No blueprint with this ID ({}) was found!", aSpriteId);
 	}
 
 	return iter->second.extractBlueprint(0);
@@ -292,7 +290,7 @@ SpriteBlueprint SpriteLoader::getBlueprint(const SpriteIdTextual& aSpriteId) con
 const MultispriteBlueprint& SpriteLoader::getMultiBlueprint(SpriteIdNumerical aSpriteId) const {
 	const auto iter = _indexedBlueprints.find(aSpriteId);
 	if (iter == _indexedBlueprints.end()) {
-		throw TracedRuntimeError{"SpriteLoader - No blueprint with this ID was found!"};
+		HG_THROW_TRACED(TracedRuntimeError, 0, "No blueprint with this ID ({}) was found!", aSpriteId);
 	}
 
 	return iter->second;
@@ -301,7 +299,7 @@ const MultispriteBlueprint& SpriteLoader::getMultiBlueprint(SpriteIdNumerical aS
 const MultispriteBlueprint& SpriteLoader::getMultiBlueprint(const SpriteIdTextual& aSpriteId) const {
 	const auto iter = _mappedBlueprints.find(aSpriteId);
 	if (iter == _mappedBlueprints.end()) {
-		throw TracedRuntimeError{"SpriteLoader - No blueprint with this ID was found!"};
+		HG_THROW_TRACED(TracedRuntimeError, 0, "No blueprint with this ID ({}) was found!", aSpriteId);
 	}
 
 	return iter->second;
@@ -316,7 +314,7 @@ void SpriteLoader::clear() {
 void SpriteLoader::_pushBlueprint(SpriteIdNumerical aSpriteId, MultispriteBlueprint aBlueprint) {
 	const auto iter = _indexedBlueprints.find(aSpriteId);
 	if (iter != _indexedBlueprints.end()) {
-		throw TracedRuntimeError{"SpriteLoader - Blueprint for sprite with this ID already exists!"};
+		HG_THROW_TRACED(TracedRuntimeError, 0, "Blueprint for sprite with this ID ({}) already exists!", aSpriteId);
 	}
 
 	_indexedBlueprints.emplace(aSpriteId, std::move(aBlueprint));
@@ -325,7 +323,7 @@ void SpriteLoader::_pushBlueprint(SpriteIdNumerical aSpriteId, MultispriteBluepr
 void SpriteLoader::_pushBlueprint(const SpriteIdTextual& aSpriteId, MultispriteBlueprint aBlueprint) {
 	const auto iter = _mappedBlueprints.find(aSpriteId);
 	if (iter != _mappedBlueprints.end()) {
-		throw TracedRuntimeError{"SpriteLoader - Blueprint for sprite with this ID already exists!"};
+		HG_THROW_TRACED(TracedRuntimeError, 0, "Blueprint for sprite with this ID ({}) already exists!", aSpriteId);
 	}
 
 	_mappedBlueprints.emplace(aSpriteId, std::move(aBlueprint));

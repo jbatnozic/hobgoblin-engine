@@ -2,6 +2,7 @@
 #include <Hobgoblin/Graphics/Canvas.hpp>
 #include <Hobgoblin/Graphics/Multisprite.hpp>
 #include <Hobgoblin/Graphics/Vertex.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Math/Vector.hpp>
 
 #include <cassert>
@@ -64,9 +65,8 @@ void Multisprite::addSubsprite(TextureRect aTextureRect) {
 }
 
 void Multisprite::removeSubsprite(PZInteger aSubspriteIndex) {
-    if (aSubspriteIndex < 0 || aSubspriteIndex >= _subspriteCount) {
-        throw TracedLogicError{"Multisprite - Subsprite index out of bounds!"};
-    }
+    HG_VALIDATE_ARGUMENT(aSubspriteIndex >= 0 && aSubspriteIndex < _subspriteCount,
+                         "Subsprite index ({}) out of bounds.", aSubspriteIndex);
 
     if (_subspriteCount > 2) {
         auto& vec = std::get<std::vector<Subsprite>>(_subsprites);
@@ -96,9 +96,7 @@ float Multisprite::getSubspriteSelector() const {
 }
 
 PZInteger Multisprite::getCurrentSubspriteIndex() const {
-    if (_subspriteCount == 0) {
-        throw TracedLogicError{"Multisprite - No subsprites have been added!"};
-    }
+    HG_VALIDATE_PRECONDITION(_subspriteCount > 0);
 
     float temp = _subspriteSelector;
     while (temp < 0.f) {
@@ -124,9 +122,8 @@ void Multisprite::advanceSubsprite(float aSubspriteCount) {
 }
 
 Sprite Multisprite::extractSubsprite(PZInteger aSubspriteIndex) const {
-    if (aSubspriteIndex < 0 || aSubspriteIndex >= _subspriteCount) {
-        throw TracedLogicError{"Multisprite - Subsprite index out of bounds!"};
-    }
+    HG_VALIDATE_ARGUMENT(aSubspriteIndex >= 0 && aSubspriteIndex < _subspriteCount,
+                         "Subsprite index ({}) out of bounds.", aSubspriteIndex);
 
     const auto& subsprite = *(_firstSubspritePtr() + aSubspriteIndex);
 
@@ -150,9 +147,8 @@ Color Multisprite::getColor() const {
 ///////////////////////////////////////////////////////////////////////////
 
 math::Rectangle<float> Multisprite::getLocalBounds(PZInteger aSubspriteIndex) const {
-    if (aSubspriteIndex < 0 || aSubspriteIndex >= _subspriteCount) {
-        throw TracedLogicError{"Multisprite - Subsprite index out of bounds!"};
-    }
+    HG_VALIDATE_ARGUMENT(aSubspriteIndex >= 0 && aSubspriteIndex < _subspriteCount,
+                         "Subsprite index ({}) out of bounds.", aSubspriteIndex);
 
     return _firstSubspritePtr()[aSubspriteIndex].getLocalBounds();
 }
@@ -168,9 +164,8 @@ math::Rectangle<float> Multisprite::getLocalBounds() const {
 }
 
 math::Rectangle<float> Multisprite::getGlobalBounds(PZInteger aSubspriteIndex) const {
-    if (aSubspriteIndex < 0 || aSubspriteIndex >= _subspriteCount) {
-        throw TracedLogicError{"Multisprite - Subsprite index out of bounds!"};
-    }
+    HG_VALIDATE_ARGUMENT(aSubspriteIndex >= 0 && aSubspriteIndex < _subspriteCount,
+                         "Subsprite index ({}) out of bounds.", aSubspriteIndex);
 
     return getTransform().transformRect(
         _firstSubspritePtr()[aSubspriteIndex].getLocalBounds()

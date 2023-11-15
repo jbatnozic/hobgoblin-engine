@@ -1,7 +1,7 @@
 #ifndef UHOBGOBLIN_UTIL_PACKET_HPP
 #define UHOBGOBLIN_UTIL_PACKET_HPP
 
-#include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 #include <SFML/Network/Packet.hpp>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
@@ -60,9 +60,9 @@ public:
     //! Opposite of above
     friend PacketBase& operator>>(PacketBase& dstPacket, Packet& srcPacket);
 
-    class ReadError : public TracedException {
+    class ReadError : public TracedRuntimeError {
     public:
-        using TracedException::TracedException;
+        using TracedRuntimeError::TracedRuntimeError;
     };
 };
 
@@ -77,7 +77,7 @@ template <class T>
 T Packet::extractOrThrow() {
     T value;
     if (!(SELF >> value)) {
-        throw ReadError{"Bad read from Packet"};
+        HG_THROW_TRACED(ReadError, 0, "Bad read from Packet");
     }
     return value;
 }

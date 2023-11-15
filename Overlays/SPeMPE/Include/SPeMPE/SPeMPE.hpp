@@ -5,7 +5,7 @@
 
 #include <SPeMPE/GameContext/Context_components.hpp>
 #include <SPeMPE/GameContext/Game_context.hpp>
-#include <SPeMPE/GameContext/Game_context_verification.hpp>
+#include <SPeMPE/GameContext/Game_context_flag_validation.hpp>
 
 // Game object framework
 

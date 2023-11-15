@@ -2,6 +2,7 @@
 #include "Udp_server_impl.hpp"
 
 #include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 
 #include <cassert>
 #include <utility>
@@ -49,7 +50,7 @@ RN_UdpServerImpl::~RN_UdpServerImpl() {
 ///////////////////////////////////////////////////////////////////////////
 
 void RN_UdpServerImpl::start(std::uint16_t localPort) {
-    HARD_ASSERT(_running == false);
+    HG_VALIDATE_PRECONDITION(_running == false);
 
     _socket.bind(sf::IpAddress::Any, localPort);
 
@@ -74,7 +75,7 @@ void RN_UdpServerImpl::resize(PZInteger newSize) {
     }
 
     if (newSize < stopz(_clients.size())) {
-        throw NotImplementedError{"Server downsizing not supported!"};
+        HG_NOT_IMPLEMENTED("Server downsizing not currently supported!");
     }
 
     PZInteger i = stopz(_clients.size());
@@ -113,7 +114,7 @@ RN_Telemetry RN_UdpServerImpl::update(RN_UpdateMode mode) {
         return _updateSend();
 
     default:
-        HARD_ASSERT(false && "Unreachable");
+        HG_UNREACHABLE();
         break;
     }
 }
@@ -189,7 +190,7 @@ RN_NetworkingStack RN_UdpServerImpl::getNetworkingStack() const noexcept {
 
 int RN_UdpServerImpl::acceptLocalConnection(RN_UdpConnectorImpl& localPeer, 
                                             const std::string& passphrase) {
-    HARD_ASSERT(isRunning());
+    HG_VALIDATE_PRECONDITION(isRunning());
 
     for (std::size_t i = 0; i < _clients.size(); i += 1) {
         if (_clients[i]->getStatus() == RN_ConnectorStatus::Disconnected) {
@@ -249,7 +250,7 @@ RN_Telemetry RN_UdpServerImpl::_updateReceive() {
 
         default:
             // Realistically these won't ever happen
-            HARD_ASSERT(false && "Unreachable");
+            HG_UNREACHABLE();
         }
     }
 
@@ -320,7 +321,7 @@ void RN_UdpServerImpl::_compose(RN_ComposeForAllType receiver, const void* data,
 
 void RN_UdpServerImpl::_compose(PZInteger receiver, const void* data, std::size_t sizeInBytes) {
     if (_clients[receiver]->getStatus() != RN_ConnectorStatus::Connected) {
-        throw TracedLogicError("Client is not connected; cannot compose messages");
+        HG_THROW_TRACED(TracedLogicError, 0, "Cannot compose messages to clients that are not connected.");
     }
     _clients[receiver]->appendToNextOutgoingPacket(data, sizeInBytes);
 }

@@ -1,5 +1,6 @@
 
 #include <Hobgoblin/Graphics/Sprite.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 
 #include <Hobgoblin/Graphics/Texture.hpp>
 #include <SFML/Graphics/Sprite.hpp>
@@ -72,7 +73,7 @@ void Sprite::setTexture(const Texture* aTexture, bool aResetRect) {
         SELF_IMPL->setTexture(ToSf(*aTexture), aResetRect);
     }
     else {
-        HARD_ASSERT(!aResetRect && "Cannot infer size from null texture!");
+        HG_VALIDATE_ARGUMENT(!aResetRect, "Cannot infer size from null texture.");
         SELF_IMPL->setTexture(*DUMMY_SFML_TEXTURE, aResetRect);
     }
     _texture = aTexture;

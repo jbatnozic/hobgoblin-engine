@@ -1,6 +1,7 @@
 
 #include <SPeMPE/GameContext/Game_context.hpp>
 
+#include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Logging.hpp>
 
 #include <algorithm>
@@ -20,7 +21,8 @@ GameContext::GameContext(const RuntimeConfig& aRuntimeConfig, hg::PZInteger aCom
 { 
     if ((_runtimeConfig.deltaTime <= decltype(_runtimeConfig.deltaTime){0.0}) ||
         (_runtimeConfig.maxFramesBetweenDisplays <= 0)) {
-        throw hg::TracedLogicError{"Invalid RuntimeConfig"};
+        HG_THROW_TRACED(hg::InvalidArgumentError, 0,
+                        "Invalid RuntimeConfig provided.");
     }
 }
 
@@ -131,7 +133,8 @@ hg::PZInteger GameContext::getCurrentStepOrdinal() const {
 
 void GameContext::attachChildContext(std::unique_ptr<GameContext> aChildContext) {
     if (hasChildContext()) {
-        throw hg::TracedLogicError{"A child context is already attached"};
+        HG_THROW_TRACED(hg::TracedLogicError, 0,
+                        "A child context is already attached.");
     }
     _childContext = std::move(aChildContext);
     _childContext->_parentContext = this;
@@ -139,7 +142,8 @@ void GameContext::attachChildContext(std::unique_ptr<GameContext> aChildContext)
 
 std::unique_ptr<GameContext> GameContext::detachChildContext() {
     if (hasChildContext() && isChildContextJoinable()) {
-        throw hg::TracedLogicError("Cannot detach a running child context - stop and join it first");
+        HG_THROW_TRACED(hg::TracedLogicError, 0,
+                        "Cannot detach a running child context - stop and join it first.");
     }
 
     return std::move(_childContext);
@@ -151,7 +155,8 @@ bool GameContext::hasChildContext() const {
 
 bool GameContext::isChildContextJoinable() const {
     if (!hasChildContext()) {
-        throw hg::TracedLogicError{"No child context is currently attached"};
+        HG_THROW_TRACED(hg::TracedLogicError, 0,
+                        "No child context is currently attached.");
     }
     return _childContextThread.joinable();
 }
@@ -162,11 +167,13 @@ GameContext* GameContext::getChildContext() const {
 
 void GameContext::startChildContext(int aSteps) {
     if (!hasChildContext()) {
-        throw hg::TracedLogicError{"No child context is currently attached"};
+        HG_THROW_TRACED(hg::TracedLogicError, 0,
+                        "No child context is currently attached");
     }
 
     if (_childContextThread.joinable()) {
-        throw hg::TracedLogicError{"The previous child context must be stopped and joined first"};
+        HG_THROW_TRACED(hg::TracedLogicError, 0,
+                        "The previous child context must be stopped and joined first.");
     }
 
     _childContext->_quit.store(false);
@@ -251,9 +258,9 @@ using std::chrono::duration_cast;
 
 } // namespace
 
-void GameContext::_runImpl(hg::not_null<GameContext*> aContext,
+void GameContext::_runImpl(hg::NotNull<GameContext*> aContext,
                            int aMaxSteps,
-                           hg::not_null<int*> aReturnValue) {
+                           hg::NotNull<int*> aReturnValue) {
     if (aMaxSteps == 0) {
         return;
     }

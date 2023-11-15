@@ -123,7 +123,8 @@ std::vector<Rect> MaxRectsBinPack::Insert(std::vector<RectSize> &rects, bool rot
 		}
 
 		if (bestRectIndex == -1) {
-			throw ::jbatnozic::hobgoblin::gr::TexturePackingError("Not enough room on the texture to place all sprites");
+			using ::jbatnozic::hobgoblin::gr::TexturePackingError;
+			HG_THROW_TRACED(TexturePackingError, 0, "Not enough room on the texture to place all sprites.");
 		}
 
 		completed[bestRectIndex] = true;

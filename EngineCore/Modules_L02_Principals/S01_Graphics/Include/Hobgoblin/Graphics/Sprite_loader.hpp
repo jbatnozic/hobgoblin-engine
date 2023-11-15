@@ -1,6 +1,7 @@
 #ifndef UHOBGOBLIN_GRAPHICS_SPRITE_LOADER_HPP
 #define UHOBGOBLIN_GRAPHICS_SPRITE_LOADER_HPP
 
+#include <Hobgoblin/GSL/HG_adapters.hpp>
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Graphics/Sprite.hpp>
 #include <Hobgoblin/Graphics/Sprite_blueprint.hpp>
@@ -48,8 +49,8 @@ public:
         //! \note As the `addSubsprite` method will add a new sprite if it does not
         //!       already exist, this method is not mandatory to use and is
         //!       basically syntatic sugar.
-        virtual not_null<TextureBuilder*> addSprite(SpriteIdNumerical aSpriteId,
-                                                    const std::filesystem::path& aFilePath) = 0;                       
+        virtual NotNull<TextureBuilder*> addSprite(SpriteIdNumerical aSpriteId,
+                                                   const std::filesystem::path& aFilePath) = 0;                       
 
         //! Loads an image from a file and adds it as a subsprite.
         //! 
@@ -60,9 +61,9 @@ public:
         //!                        loaded images target the same subsprite of a single sprite,
         //!                        which one will be kept is undefined.
         //! \param aFilePath Path to the image file to load.
-        virtual not_null<TextureBuilder*> addSubsprite(SpriteIdNumerical aSpriteId,
-                                                       PZInteger aSubspriteIndex,
-                                                       const std::filesystem::path& aFilePath) = 0;
+        virtual NotNull<TextureBuilder*> addSubsprite(SpriteIdNumerical aSpriteId,
+                                                      PZInteger aSubspriteIndex,
+                                                      const std::filesystem::path& aFilePath) = 0;
 
         //! Loads an image from a file and adds it as a subsprite.
         //! 
@@ -73,8 +74,8 @@ public:
         //! 
         //! \note As this method does not take a subsprite index as a parameter, the loaded
         //!       image will be appended to the sprite's array of subsprites.
-        virtual not_null<TextureBuilder*>addSubsprite(SpriteIdNumerical aSpriteId,
-                                                      const std::filesystem::path& aFilePath) = 0;
+        virtual NotNull<TextureBuilder*>addSubsprite(SpriteIdNumerical aSpriteId,
+                                                     const std::filesystem::path& aFilePath) = 0;
 
         //! Creates a new sprite, then loads an image from a file and adds it as the
         //! sprite's first subsprite.
@@ -87,8 +88,8 @@ public:
         //! \note As the `addSubsprite` method will add a new sprite if it does not
         //!       already exist, this method is not mandatory to use and is
         //!       basically syntatic sugar.
-        virtual not_null<TextureBuilder*> addSprite(const SpriteIdTextual& aSpriteId,
-                                                    const std::filesystem::path& aFilePath) = 0;
+        virtual NotNull<TextureBuilder*> addSprite(const SpriteIdTextual& aSpriteId,
+                                                   const std::filesystem::path& aFilePath) = 0;
 
         //! Loads an image from a file and adds it as a subsprite.
         //! 
@@ -99,9 +100,9 @@ public:
         //!                        loaded images target the same subsprite of a single sprite,
         //!                        which one will be kept is undefined.
         //! \param aFilePath Path to the image file to load.
-        virtual not_null<TextureBuilder*> addSubsprite( const SpriteIdTextual& aSpriteId,
-                                                       PZInteger aSubspriteIndex,
-                                                       const std::filesystem::path& aFilePath) = 0;
+        virtual NotNull<TextureBuilder*> addSubsprite(const SpriteIdTextual& aSpriteId,
+                                                      PZInteger aSubspriteIndex,
+                                                      const std::filesystem::path& aFilePath) = 0;
 
         //! Loads an image from a file and adds it as a subsprite.
         //! 
@@ -112,8 +113,8 @@ public:
         //! 
         //! \note As this method does not take a subsprite index as a parameter, the loaded
         //!       image will be appended to the sprite's array of subsprites.
-        virtual not_null<TextureBuilder*> addSubsprite(const SpriteIdTextual& aSpriteId,
-                                                       const std::filesystem::path& aFilePath) = 0;
+        virtual NotNull<TextureBuilder*> addSubsprite(const SpriteIdTextual& aSpriteId,
+                                                      const std::filesystem::path& aFilePath) = 0;
 
         // TODO: loading images from memory
 
@@ -143,9 +144,10 @@ public:
     //! Allocates a new texture with the given width and height (in pixels).
     //! 
     //! \returns Unique pointer to `TextureBuilder` which can be used to
-    //!          load sprite and subsprite images to the texture. Don't
-    //!          forget to call `finalize()`!
-    std::unique_ptr<TextureBuilder> startTexture(PZInteger aWidth, PZInteger aHeight); // TODO: accept gsl as dependency and use gsl::not_null
+    //!          load sprite and subsprite images to the texture. The pointer is
+    //!          guaranteed to not be null.
+    //!          Don't forget to call `finalize()`!
+    std::unique_ptr<TextureBuilder> startTexture(PZInteger aWidth, PZInteger aHeight);
 
     void removeTexture(Texture& aTexture);
 

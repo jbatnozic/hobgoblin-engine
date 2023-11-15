@@ -146,7 +146,10 @@ public:
     template <class taSignalType>
     void setSignalValue(std::string aSignalName, const taSignalType& aValue) const {
         if (typeid(taSignalType) != _mgr.getSignalType(aSignalName)) {
-            throw hg::TracedLogicError{"InputSyncManagerAdapter - Incorrect type for signal value!"};
+            HG_THROW_TRACED(hg::TracedLogicError, 0,
+                            "Incorrect type for signal value (expected: '{}' vs actual: '{}').",
+                            _mgr.getSignalType(aSignalName).name(),
+                            typeid(taSignalType).name());
         }
         _mgr.setSignalValue(std::move(aSignalName),
                             [&](hg::util::Packet& aPacket) {
@@ -168,7 +171,10 @@ public:
                                  const taPayloadType& aPayload,
                                  bool aPredicate = true) const {
         if (typeid(taPayloadType) != _mgr.getEventPayloadType(aEventName)) {
-            throw hg::TracedLogicError{"InputSyncManagerAdapter - Incorrect type for payload!"};
+            HG_THROW_TRACED(hg::TracedLogicError, 0,
+                            "Incorrect type for payload (expected: '{}' vs actual: '{}').",
+                            _mgr.getEventPayloadType(aEventName).name(),
+                            typeid(taPayloadType).name());
         }
 
         if (aPredicate) {
@@ -188,7 +194,10 @@ public:
     template <class taSignalType>
     void setSignalValue(int aForClient, std::string aSignalName, const taSignalType& aValue) const {
         if (typeid(taSignalType) != _mgr.getSignalType(aSignalName)) {
-            throw hg::TracedLogicError{"InputSyncManagerAdapter - Incorrect type for signal value!"};
+            HG_THROW_TRACED(hg::TracedLogicError, 0,
+                            "Incorrect type for signal value (expected: '{}' vs actual: '{}').",
+                            _mgr.getSignalType(aSignalName).name(),
+                            typeid(taSignalType).name());
         }
         _mgr.setSignalValue(aForClient,
                             std::move(aSignalName),
@@ -214,7 +223,10 @@ public:
                                  const taPayloadType& aPayload,
                                  bool aPredicate = true) const {
         if (typeid(taPayloadType) != _mgr.getEventPayloadType(aEventName)) {
-            throw hg::TracedLogicError{"InputSyncManagerAdapter - Incorrect type for payload!"};
+            HG_THROW_TRACED(hg::TracedLogicError, 0,
+                            "Incorrect type for payload (expected: '{}' vs actual: '{}').",
+                            _mgr.getEventPayloadType(aEventName).name(),
+                            typeid(taPayloadType).name());
         }
 
         if (aPredicate) {
@@ -235,7 +247,11 @@ public:
     taSignalType getSignalValue(int aForClient,
                                 std::string aSignalName) const {
         if (typeid(taSignalType) != _mgr.getSignalType(aSignalName)) {
-            throw hg::TracedLogicError{"InputSyncManagerAdapter - Incorrect type for signal value!"};
+            HG_THROW_TRACED(hg::TracedLogicError, 0,
+                            "Incorrect type for signal value (expected: '{}' vs actual: '{}').",
+                            _mgr.getSignalType(aSignalName).name(),
+                            typeid(taSignalType).name());
+
         }
         _helperPacket.clear();
         _mgr.getSignalValue(aForClient, std::move(aSignalName), _helperPacket);
@@ -276,7 +292,10 @@ public:
                                        std::string aEventName,
                                        const std::function<void(const taPayloadType&)>& aHandler) const {
         if (typeid(taPayloadType) != _mgr.getEventPayloadType(aEventName)) {
-            throw hg::TracedLogicError{"InputSyncManagerAdapter - Incorrect type for payload!"};
+            HG_THROW_TRACED(hg::TracedLogicError, 0,
+                            "Incorrect type for payload (expected: '{}' vs actual: '{}').",
+                            _mgr.getEventPayloadType(aEventName).name(),
+                            typeid(taPayloadType).name());
         }
 
         hg::PZInteger count = 0;

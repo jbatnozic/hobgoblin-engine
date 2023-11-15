@@ -1,7 +1,7 @@
 
 #include <SPeMPE/GameObjectFramework/Game_object_bases.hpp>
 
-#include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 
 #include <algorithm>
 
@@ -58,21 +58,21 @@ void SynchronizedObjectBase::__spempeimpl_destroySelfIn(int aStepCount) {
 
 void SynchronizedObjectBase::doSyncCreate() const {
     if (!isMasterObject()) {
-        throw hg::TracedLogicError("Dummy objects cannot request synchronization!");
+        HG_THROW_TRACED(hg::TracedLogicError, 0, "Dummy objects cannot request synchronization.");
     }
     _syncObjReg.syncObjectCreate(this);
 }
 
 void SynchronizedObjectBase::doSyncUpdate() const {
     if (!isMasterObject()) {
-        throw hg::TracedLogicError("Dummy objects cannot request synchronization!");
+        HG_THROW_TRACED(hg::TracedLogicError, 0, "Dummy objects cannot request synchronization.");
     }
     _syncObjReg.syncObjectUpdate(this);
 }
 
 void SynchronizedObjectBase::doSyncDestroy() const {
     if (!isMasterObject()) {
-        throw hg::TracedLogicError("Dummy objects cannot request synchronization!");
+        HG_THROW_TRACED(hg::TracedLogicError, 0, "Dummy objects cannot request synchronization");
     }
     _syncObjReg.syncObjectDestroy(this);
 }
@@ -88,7 +88,8 @@ void SynchronizedObjectBase::_enableAlternatingUpdates() {
 
 bool SynchronizedObjectBase::_didAlternatingUpdatesSync() const {
     if (ctx().getQAORuntime().getCurrentEvent() != hg::QAO_Event::FinalizeFrame) {
-        throw hg::TracedLogicError{"_didAlternatingUpdatesSync() may only be called during the FinalizeFrame event."};
+        HG_THROW_TRACED(hg::TracedLogicError, 0,
+                        "This method may only be called during the FinalizeFrame event.");
     }
     return _syncObjReg.getAlternatingUpdatesFlag();
 }

@@ -1,7 +1,7 @@
 #ifndef UHOBGOBLIN_QAO_FUNC_HPP
 #define UHOBGOBLIN_QAO_FUNC_HPP
 
-#include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/QAO/id.hpp>
 #include <Hobgoblin/QAO/runtime.hpp>
 
@@ -18,7 +18,7 @@ T* QAO_PCreate(Args&&... args) {
 
     try {
         if (object->getRuntime() == nullptr || !object->getRuntime()->ownsObject(object)) {
-            throw TracedLogicError("Will not return unowned object as raw pointer!");
+            HG_THROW_TRACED(TracedLogicError, 0, "Will not return unowned object as raw pointer.");
         }
     }
     catch (...) {
@@ -35,7 +35,7 @@ QAO_Id<T> QAO_ICreate(Args&&... args) {
 
     try {
         if (object->getRuntime() == nullptr || !object->getRuntime()->ownsObject(object)) {
-            throw TracedLogicError("Will not return unowned object as QAO_Id!"); // TODO
+            HG_THROW_TRACED(TracedLogicError, 0, "Will not return unowned object as QAO_Id.");
         }
     }
     catch (...) {
@@ -52,7 +52,7 @@ std::unique_ptr<T> QAO_UPCreate(Args&&... args) {
 
     try {
         if (object->getRuntime() != nullptr && object->getRuntime()->ownsObject(object)) {
-            throw TracedLogicError("Will not return already owned object as std::unique_ptr!"); // TODO
+            HG_THROW_TRACED(TracedLogicError, 0, "Will not return already owned object as std::unique_ptr.");
         }
     }
     catch (...) {
@@ -70,7 +70,7 @@ inline void QAO_PDestroy(QAO_Base* object) {
 inline void QAO_IDestroy(QAO_GenericId id, QAO_Runtime& runtime) {
     QAO_Base* const object = runtime.find(id);
     if (object == nullptr || !runtime.ownsObject(object)) {
-        throw TracedLogicError("Cannot delete object which is not owned by this runtime!");
+        HG_THROW_TRACED(TracedLogicError, 0, "Cannot delete object which is not owned by this runtime.");
     }
     delete object;
 }

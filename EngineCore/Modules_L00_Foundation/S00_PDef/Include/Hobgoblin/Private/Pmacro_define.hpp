@@ -44,11 +44,6 @@
 // Utility:
 #define CRTP_METHOD(_type_param_, _name_, ...) { return static_cast<_type_param_*>(this)->_name_(__VA_ARGS__); }
 #define CURRENT_FUNCTION_STR std::string{CURRENT_FUNCTION}
-#define HARD_ASSERT(_expression_) \
-    do { if (!(_expression_)) { \
-        throw ::jbatnozic::hobgoblin::TracedException( \
-            "HOBGOBLIN HARD ASSERTION FAILURE: " MSTRINGIFY(_expression_)); \
-    } } while (false)
 
 #define NO_COPY public util::NonCopyable
 #define NO_MOVE public util::NonMoveable

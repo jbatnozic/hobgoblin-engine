@@ -1,5 +1,6 @@
 
 #include <Hobgoblin/Graphics/Image.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 
 #include <SFML/Graphics/Image.hpp>
 
@@ -74,24 +75,21 @@ void Image::create(PZInteger aWidth, PZInteger aHeight, const std::uint8_t* aPix
 void Image::loadFromFile(const std::filesystem::path& aPath) {
     SFMLErrorCatcher sfErr;
     if (!SELF_IMPL->loadFromFile(FilesystemPathToSfPath(aPath))) {
-        // TODO throw IOError
-        throw TracedRuntimeError{sfErr.getErrorMessage()};
+        HG_THROW_TRACED(IOError, 0, sfErr.getErrorMessage());
     }
 }
 
 void Image::loadFromMemory(const void* aData, std::size_t aSize) {
     SFMLErrorCatcher sfErr;
     if (!SELF_IMPL->loadFromMemory(aData, aSize)) {
-        // TODO throw IOError
-        throw TracedRuntimeError{sfErr.getErrorMessage()};
+        HG_THROW_TRACED(IOError, 0, sfErr.getErrorMessage());
     }
 }
 
 void Image::saveToFile(const std::filesystem::path& aPath) const {
     SFMLErrorCatcher sfErr;
     if (!SELF_CIMPL->saveToFile(FilesystemPathToSfPath(aPath))) {
-        // TODO throw IOError
-        throw TracedRuntimeError{sfErr.getErrorMessage()};
+        HG_THROW_TRACED(IOError, 0, sfErr.getErrorMessage());
     }
 }
 

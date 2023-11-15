@@ -16,13 +16,13 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 
 #define FAIL_PARSE(_msg_) \
-    throw HGConfigParseError(_msg_)
-#define FAIL_PARSE_FMT(_fmt_, ...) \
-    throw HGConfigParseError(fmt::format(_fmt_, __VA_ARGS__))
-#define FAIL_SEMANTIC(_msg_) \
-    throw HGConfigSemanticError(_msg_)
-#define FAIL_SEMANTIC_FMT(_fmt_, ...) \
-    throw HGConfigSemanticError(fmt::format(_fmt_, __VA_ARGS__))
+    HG_THROW_TRACED(HGConfigParseError, 0, _msg_)
+
+#define FAIL_PARSE_FMT(...) \
+    HG_THROW_TRACED(HGConfigParseError, 0, __VA_ARGS__)
+
+#define FAIL_SEMANTIC(...) \
+    HG_THROW_TRACED(HGConfigSemanticError, 0, __VA_ARGS__)
 
 namespace {
 using EntryKind = HGConfig::EntryKind;
@@ -87,7 +87,7 @@ EntryKind StringToEntryKind(const std::string& aString) {
     if (aString == "integer")    return EntryKind::Integer;
     if (aString == "real")       return EntryKind::Real;
 
-    FAIL_SEMANTIC_FMT("Unknown entry type <<{}>>", aString);
+    FAIL_SEMANTIC("Unknown entry type <<{}>>", aString);
 }
 
 const std::vector<std::string>& ALLOWED_DESCRIPTORS_FOR_UNCHECKED = {"min-length", "max-length"};
@@ -107,26 +107,26 @@ void CheckExtraDescriptors(const EntryControlBlock& aEntry,
 
     for (const auto& desc : aEntry.extraDescriptors) {
         if (!isAllowed(desc.label)) {
-            FAIL_SEMANTIC_FMT("entry of kind <<{}>> doesn't support extra descriptor <<{}>>",
+            FAIL_SEMANTIC("entry of kind <<{}>> doesn't support extra descriptor <<{}>>",
                               aEntry.mainDescriptor.label,
                               desc.label);
         }
 
         // Currently all extra descriptors support exactly 1 parameter
         if (desc.args.size() != 1) {
-            FAIL_SEMANTIC_FMT("extra descriptor <<{}>> must have exactly 1 parameter", desc.label);
+            FAIL_SEMANTIC("extra descriptor <<{}>> must have exactly 1 parameter", desc.label);
         }
 
         if (desc.label == "min-length") {
             if (static_cast<long long>(aEntry.value.size()) < std::stoll(desc.args[0])) {
-                FAIL_SEMANTIC_FMT("value <<{}>> is shorter than the minimum allowed value ({}).",
+                FAIL_SEMANTIC("value <<{}>> is shorter than the minimum allowed value ({}).",
                                   aEntry.value,
                                   desc.args[0]);
             }
         }
         else if (desc.label == "max-length") {
             if (static_cast<long long>(aEntry.value.size()) > std::stoll(desc.args[0])) {
-                FAIL_SEMANTIC_FMT("value <<{}>> is longer than the maximum allowed value ({}).",
+                FAIL_SEMANTIC("value <<{}>> is longer than the maximum allowed value ({}).",
                                   aEntry.value,
                                   desc.args[0]);
             }
@@ -134,14 +134,14 @@ void CheckExtraDescriptors(const EntryControlBlock& aEntry,
         else if (desc.label == "min-value") {
             if (aEntry.mainDescriptor.label == "integer") {
                 if (std::stoll(aEntry.value) < std::stoll(desc.args[0])) {
-                    FAIL_SEMANTIC_FMT("value <<{}>> is lower than the minimum allowed value ({}).",
+                    FAIL_SEMANTIC("value <<{}>> is lower than the minimum allowed value ({}).",
                                       aEntry.value,
                                       desc.args[0]);
                 }
             }
             else { // otherwise it must be real
                 if (std::stod(aEntry.value) < std::stod(desc.args[0])) {
-                    FAIL_SEMANTIC_FMT("value <<{}>> is lower than the minimum allowed value ({}).",
+                    FAIL_SEMANTIC("value <<{}>> is lower than the minimum allowed value ({}).",
                                       aEntry.value,
                                       desc.args[0]);
                 }
@@ -150,14 +150,14 @@ void CheckExtraDescriptors(const EntryControlBlock& aEntry,
         else if (desc.label == "max-value") {
             if (aEntry.mainDescriptor.label == "integer") {
                 if (std::stoll(aEntry.value) > std::stoll(desc.args[0])) {
-                    FAIL_SEMANTIC_FMT("value <<{}>> is over the maximum allowed value ({}).",
+                    FAIL_SEMANTIC("value <<{}>> is over the maximum allowed value ({}).",
                                       aEntry.value,
                                       desc.args[0]);
                 }
             }
             else { // otherwise it must be real
                 if (std::stod(aEntry.value) > std::stod(desc.args[0])) {
-                    FAIL_SEMANTIC_FMT("value <<{}>> is over the maximum allowed value ({}).",
+                    FAIL_SEMANTIC("value <<{}>> is over the maximum allowed value ({}).",
                                       aEntry.value,
                                       desc.args[0]);
                 }
@@ -174,7 +174,7 @@ void ValidateEntry(const EntryControlBlock& aEntry) {
 
         case EntryKind::OneOf:
             if (!aEntry.extraDescriptors.empty()) {
-                FAIL_SEMANTIC_FMT("descriptor one-of doesn't support any extra descriptors",
+                FAIL_SEMANTIC("descriptor one-of doesn't support any extra descriptors",
                                   aEntry.value);
             }
             for (const auto& arg : aEntry.mainDescriptor.args) {
@@ -182,7 +182,7 @@ void ValidateEntry(const EntryControlBlock& aEntry) {
                     return;
                 }
             }
-            FAIL_SEMANTIC_FMT("value <<{}>> does not match any of the one-of options",
+            FAIL_SEMANTIC("value <<{}>> does not match any of the one-of options",
                               aEntry.value);
 
         case EntryKind::Regex:
@@ -196,11 +196,11 @@ void ValidateEntry(const EntryControlBlock& aEntry) {
                         CheckExtraDescriptors(aEntry, ALLOWED_DESCRIPTORS_FOR_REGEX);
                         return;
                     }
-                    FAIL_SEMANTIC_FMT("value <<{}>> does not match regex pattern <<{}>>",
+                    FAIL_SEMANTIC("value <<{}>> does not match regex pattern <<{}>>",
                                       aEntry.value,
                                       aEntry.mainDescriptor.args[0]);
                 } catch (const std::exception& ex) {
-                    FAIL_SEMANTIC_FMT("failed to apply regex <<{}>> with error <<{}>> (check pattern syntax)",
+                    FAIL_SEMANTIC("failed to apply regex <<{}>> with error <<{}>> (check pattern syntax)",
                                       aEntry.mainDescriptor.args[0],
                                       ex.what());
                 }
@@ -410,13 +410,13 @@ private:
                 }
             }
         } catch (const HGConfigSemanticError& ex) {
-            FAIL_SEMANTIC_FMT("Semantic error: in line ({}) with message: {}", currentLineNum, ex.what());
+            FAIL_SEMANTIC("Semantic error: in line ({}) with message: {}", currentLineNum, ex.what());
         } catch (const HGConfigParseError& ex) {
             FAIL_PARSE_FMT("Parse error: in line ({}) with message: {}", currentLineNum, ex.what());
         } catch (const std::exception& ex) {
             // We can treat generic C++ errors as parse errors because they are most likely
             // caused by errors in the format.
-            FAIL_SEMANTIC_FMT("Parse error: in line ({}) with message: {}", currentLineNum, ex.what());
+            FAIL_SEMANTIC("Parse error: in line ({}) with message: {}", currentLineNum, ex.what());
         }
     }
 
@@ -435,7 +435,7 @@ private:
 
     void _processSectionHeader(const std::string& aSectionName, LineList::iterator aLineIter) {
         if (_sections.find(aSectionName) != _sections.end()) {
-            FAIL_SEMANTIC_FMT("multiple definitions found for section <<{}>>.", aSectionName);
+            FAIL_SEMANTIC("multiple definitions found for section <<{}>>.", aSectionName);
         }
         
         SectionControlBlock& sectionControlBlock = _sections[aSectionName];
@@ -451,7 +451,7 @@ private:
         // PART 1: Find section
 
         if (aCurrentSection.empty()) {
-            FAIL_SEMANTIC_FMT("entry defined in line <<{}>> but no section was declared prior.", aLine);
+            FAIL_SEMANTIC("entry defined in line <<{}>> but no section was declared prior.", aLine);
         }
         const auto sectionIter = _sections.find(aCurrentSection);
         assert(sectionIter != _sections.end());
@@ -623,7 +623,7 @@ private:
             ValidateEntry(entryControlBlock);
 
             if (sectionControlBlock.entries.find(entryInfo.name) != sectionControlBlock.entries.end()) {
-                FAIL_SEMANTIC_FMT("multiple definitions found for entry <<{}>> in section <<{}>>",
+                FAIL_SEMANTIC("multiple definitions found for entry <<{}>> in section <<{}>>",
                                   entryInfo.name,
                                   aCurrentSection);
             }

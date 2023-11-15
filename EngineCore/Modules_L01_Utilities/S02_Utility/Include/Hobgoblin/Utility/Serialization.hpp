@@ -1,7 +1,7 @@
 #ifndef UHOBGOBLIN_UTIL_SERIALIZATION_HPP
 #define UHOBGOBLIN_UTIL_SERIALIZATION_HPP
 
-#include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Utility/Any_ptr.hpp>
 #include <Hobgoblin/Utility/Packet.hpp>
 
@@ -65,9 +65,9 @@ void RegisterSerializable() {
 
 void Deserialize(Packet& packet, AnyPtr context, int contextTag = 0);
 
-class DeserializationError : public TracedException {
+class DeserializationError : public TracedRuntimeError {
 public:
-    using TracedException::TracedException;
+    using TracedRuntimeError::TracedRuntimeError;
 };
 
 } // namespace util

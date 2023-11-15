@@ -1,15 +1,12 @@
 
 #include <SPeMPE/Managers/Window_manager_default.hpp>
 
+#include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Window.hpp>
 #include <Hobgoblin/Math/Vector.hpp>
 
 #include <iostream>
-
-#define HARD_ASSERT(_expr_) do { if (!(_expr_)) { \
-        throw ::jbatnozic::hobgoblin::TracedLogicError{#_expr_}; \
-    } } while (false)
 
 namespace jbatnozic {
 namespace spempe {
@@ -37,7 +34,7 @@ DefaultWindowManager::DefaultWindowManager(hg::QAO_RuntimeRef aRuntimeRef,
 ///////////////////////////////////////////////////////////////////////////
 
 void DefaultWindowManager::setToHeadlessMode(const TimingConfig& aTimingConfig) {
-    SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(ctx(), headless==true);
+    SPEMPE_VALIDATE_GAME_CONTEXT_FLAGS(ctx(), headless==true);
 
     _headless = true;
 
@@ -54,7 +51,7 @@ void DefaultWindowManager::setToHeadlessMode(const TimingConfig& aTimingConfig) 
 void DefaultWindowManager::setToNormalMode(const WindowConfig& aWindowConfig,
                                            const MainRenderTextureConfig& aMainRenderTextureConfig,
                                            const TimingConfig& aTimingConfig) {
-    SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(ctx(), headless==false);
+    SPEMPE_VALIDATE_GAME_CONTEXT_FLAGS(ctx(), headless==false);
 
     _headless = false;
 
@@ -109,7 +106,7 @@ void DefaultWindowManager::setToNormalMode(const WindowConfig& aWindowConfig,
 // sf::RenderTexture& getMainRenderTexture();
 
 hg::gr::Canvas& DefaultWindowManager::getCanvas() {
-    HARD_ASSERT(!_headless);
+    HG_HARD_ASSERT(!_headless && "Method not available in Headless mode.");
     if (getRuntime()->getCurrentEvent() == hg::QAO_Event::DrawGUI) {
         return *_windowDrawBatcher;
     }
@@ -127,22 +124,22 @@ void DefaultWindowManager::setMainRenderTextureDrawPosition(DrawPosition aDrawPo
 ///////////////////////////////////////////////////////////////////////////
 
 void DefaultWindowManager::setViewCount(hg::PZInteger aViewCount) {
-    HARD_ASSERT(!_headless);
+    HG_HARD_ASSERT(!_headless && "Method not available in Headless mode.");
     _mainRenderTexture->setViewCount(aViewCount);
 }
 
 hg::PZInteger DefaultWindowManager::getViewCount() const {
-    HARD_ASSERT(!_headless);
+    HG_HARD_ASSERT(!_headless && "Method not available in Headless mode.");
     return _mainRenderTexture->getViewCount();
 }
 
 hg::gr::View& DefaultWindowManager::getView(hg::PZInteger aViewIndex) {
-    HARD_ASSERT(!_headless);
+    HG_HARD_ASSERT(!_headless && "Method not available in Headless mode.");
     return _mainRenderTexture->getView(aViewIndex);
 }
 
 const hg::gr::View& DefaultWindowManager::getView(hg::PZInteger aViewIndex) const {
-    HARD_ASSERT(!_headless);
+    HG_HARD_ASSERT(!_headless && "Method not available in Headless mode.");
     return _mainRenderTexture->getView(aViewIndex);
 }
 
@@ -151,7 +148,7 @@ const hg::gr::View& DefaultWindowManager::getView(hg::PZInteger aViewIndex) cons
 ///////////////////////////////////////////////////////////////////////////
 
 Rml::Context& DefaultWindowManager::getGUIContext() {
-    HARD_ASSERT(!_headless);
+    HG_HARD_ASSERT(!_headless && "Method not available in Headless mode.");
     return *(*_rmlUiContextDriver);
 }
 

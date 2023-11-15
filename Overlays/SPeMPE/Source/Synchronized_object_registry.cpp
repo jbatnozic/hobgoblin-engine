@@ -3,6 +3,7 @@
 #include <SPeMPE/GameObjectFramework/Game_object_bases.hpp>
 #include <SPeMPE/GameObjectFramework/Synchronized_object_registry.hpp>
 
+#include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Logging.hpp>
 
 #include <cassert>
@@ -69,8 +70,9 @@ void SynchronizedObjectRegistry::unregisterObject(SynchronizedObjectBase* object
     if (object->isMasterObject()) {
         auto iter = _alreadyDestroyedObjects.find(object);
         if (iter == _alreadyDestroyedObjects.end()) {
-            assert(false && "Unregistering object which did not sync its destruction");
-            throw hg::TracedLogicError("Unregistering object which did not sync its destruction");
+            assert(false && "Unregistering object which did not sync its destruction.");
+            HG_THROW_TRACED(hg::TracedLogicError, 0,
+                            "Unregistering object which did not sync its destruction.");
         }
         else {
             _alreadyDestroyedObjects.erase(iter);
@@ -202,9 +204,8 @@ void SynchronizedObjectRegistry::setDefaultDelay(hg::PZInteger aNewDefaultDelayS
 
 void SynchronizedObjectRegistry::setPacemakerPulsePeriod(hg::PZInteger aPeriod) {
     if ((aPeriod % 2 == 1) || (aPeriod < 2)) {
-        throw hg::TracedLogicError{
-            "SynchronizedObjectRegistry - Pacemaker pulse period must be an even number and at least 2!"
-        };
+        HG_THROW_TRACED(hg::InvalidArgumentError, 0,
+                        "Pacemaker pulse period must be an even number and at least 2!");
     }
     _pacemakerPulsePeriod = (aPeriod / 2);
 }

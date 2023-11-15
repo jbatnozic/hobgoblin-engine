@@ -1,6 +1,7 @@
 #ifndef SPEMPE_GAME_OBJECT_FRAMEWORK_AUTODIFF_STATE_HPP
 #define SPEMPE_GAME_OBJECT_FRAMEWORK_AUTODIFF_STATE_HPP
 
+#include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Math.hpp>
 #include <Hobgoblin/Preprocessor.hpp>
@@ -9,6 +10,7 @@
 #include <cstdint>
 #include <cstring>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <utility>
 
@@ -853,7 +855,7 @@ public:
 constexpr int CountBases(int argc) {
     // Note: It doesn't really matter which type we throw in the else branch, because
     // throwing exceptions is not constexpr and will fail to compile.
-    return (argc > 0 && argc % 3 == 0) ? (argc / 3) : (throw hg::TracedLogicError{"CountBases - ERROR"});
+    return (argc > 0 && argc % 3 == 0) ? (argc / 3) : (throw std::invalid_argument{"CountBases - ERROR"});
 }
 
 //! Commits all changes in the autodiff object, meaning that future diffs
@@ -992,7 +994,8 @@ bool AutodiffStateCmp(
 
 #define USPEMPE_ADS_ASSERT_MIRROR_NOT_NULL() \
     do { if (USPEMPE_ADS_MIRROR_OBJECT_NAME == nullptr) { \
-        throw ::jbatnozic::spempe::detail::AutodiffStateIllegalStateError{"Mirror object wasn't initialized."}; \
+        using ::jbatnozic::spempe::detail::AutodiffStateIllegalStateError; \
+        HG_THROW_TRACED(AutodiffStateIllegalStateError, 0, "Mirror object wasn't initialized."); \
     } } while (false)
 
 ///////////////////////////////////////////////////////////////////////////

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Hobgoblin/Input/Universal_input_enumeration.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 
 #include <SFML/Window/Keyboard.hpp>
 #include <SFML/Window/Mouse.hpp>
@@ -574,7 +575,7 @@ sf::Mouse::Button ToSfMouseButton(UniversalInputEnum aValue) {
     case MB_EXTRA_1: return sf::Mouse::XButton1;
     case MB_EXTRA_2: return sf::Mouse::XButton2;
     default:
-        HARD_ASSERT(false && "Not implemented");
+        HG_NOT_IMPLEMENTED("Cannot handle UniversalInputEnum value {}.", (int)aValue);
     }
 }
 

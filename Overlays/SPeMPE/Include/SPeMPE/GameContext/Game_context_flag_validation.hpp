@@ -3,13 +3,13 @@
 
 #include <SPeMPE/GameContext/Game_context.hpp>
 
-#include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 
 namespace jbatnozic {
 namespace spempe {
 
 //! Exception raised when GameContext flag consistency check
-//! (via SPEMPE_VERIFY_GAME_CONTEXT_FLAGS, see below) fails.
+//! (via SPEMPE_VALIDATE_GAME_CONTEXT_FLAGS, see below) fails.
 class InconsistentGameContextError : hobgoblin::TracedLogicError {
 public:
     using TracedLogicError::TracedLogicError;
@@ -20,12 +20,12 @@ public:
 //! of InconsistentGameContextError will be thrown.
 //!
 //! Example of usage:
-//!     SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(ctx, privileged=true, headless=true, networking=true);    
-//!     SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(ctx, headless=false, privileged=false);
-//!     SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(ctx, headless==true, privileged==true);
+//!     SPEMPE_VALIDATE_GAME_CONTEXT_FLAGS(ctx, privileged=true, headless=true, networking=true);    
+//!     SPEMPE_VALIDATE_GAME_CONTEXT_FLAGS(ctx, headless=false, privileged=false);
+//!     SPEMPE_VALIDATE_GAME_CONTEXT_FLAGS(ctx, headless==true, privileged==true);
 //!     // Notice: flags you don't care about can be left out and you can use either = or == to
 //!     //         specify expectations.
-#define SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(_ctx_, ...) \
+#define SPEMPE_VALIDATE_GAME_CONTEXT_FLAGS(_ctx_, ...) \
     do { \
         ::jbatnozic::spempe::detail::Tribool USPEMPE_privileged; \
         ::jbatnozic::spempe::detail::Tribool USPEMPE_headless;   \

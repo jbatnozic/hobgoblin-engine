@@ -1,6 +1,8 @@
 
 #include <SPeMPE/GameContext/Context_components.hpp>
 
+#include <Hobgoblin/HGExcept.hpp>
+
 #include <cassert>
 #include <iomanip>
 #include <sstream>
@@ -57,7 +59,7 @@ void ComponentTable::_attachComponent(ContextComponent& aComponent,
                                       ContextComponent::TagHash aTagHash) {
     for (const auto& entry : _table) {
         if (entry.tagHash == aTagHash) {
-            throw hobgoblin::TracedLogicError("Tag hash collision");
+            HG_THROW_TRACED(hobgoblin::TracedLogicError, 0, "Tag hash collision ({})", aTagHash);
         }
     }
 
@@ -73,7 +75,7 @@ void ComponentTable::_attachComponent(ContextComponent& aComponent,
         }
     }
 
-    throw hobgoblin::TracedLogicError("No space for component");
+    HG_THROW_TRACED(hobgoblin::TracedLogicError, 0, "No space for component.");
 }
 
 ContextComponent* ComponentTable::_getComponentPtr(ContextComponent::TagHash aTagHash) const {
@@ -100,7 +102,7 @@ ContextComponent& ComponentTable::_getComponent(ContextComponent::TagHash aTagHa
         return *result;
     }
 
-    throw hobgoblin::TracedLogicError("Component not present");
+    HG_THROW_TRACED(hobgoblin::TracedLogicError, 0, "Component not present.");
 }
 
 } // namespace detail

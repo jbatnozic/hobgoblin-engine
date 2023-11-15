@@ -1,6 +1,7 @@
 
 #include <SPeMPE/Managers/Input_sync_manager_default.hpp>
 
+#include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Logging.hpp>
 #include <Hobgoblin/RigelNet_macros.hpp>
@@ -58,7 +59,7 @@ DefaultInputSyncManager::DefaultInputSyncManager(hg::QAO_RuntimeRef aRuntimeRef,
 }
 
 void DefaultInputSyncManager::setToHostMode(hg::PZInteger aClientCount, hg::PZInteger aStateBufferingLength) {
-    SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(ctx(), privileged==true, networking==true);
+    SPEMPE_VALIDATE_GAME_CONTEXT_FLAGS(ctx(), privileged==true, networking==true);
 
     if (aClientCount == 1) {
         HG_LOG_WARN(LOG_ID, "Instantiating DefaultInputSyncManager with a client count of 0.");
@@ -75,7 +76,7 @@ void DefaultInputSyncManager::setToHostMode(hg::PZInteger aClientCount, hg::PZIn
 }
 
 void DefaultInputSyncManager::setToClientMode() {
-    SPEMPE_VERIFY_GAME_CONTEXT_FLAGS(ctx(), privileged==false, networking==true);
+    SPEMPE_VALIDATE_GAME_CONTEXT_FLAGS(ctx(), privileged==false, networking==true);
     _mode = Mode::Client;
     _maps.resize(1u);
 }
@@ -97,7 +98,7 @@ void DefaultInputSyncManager::defineSignal(std::string aSignalName,
 
     for (auto& map : _maps) {
         if (map.find(aSignalName) != map.end()) {
-            throw hg::TracedLogicError("DefaultInputSyncManager - defining same signal multiple times!");
+            HG_THROW_TRACED(hg::TracedLogicError, 0, "Defining same signal ({}) multiple times.", aSignalName);
         }
         map[aSignalName].emplace<SignalElem>(aSignalType, aInitialValue);
     }
@@ -108,7 +109,7 @@ void DefaultInputSyncManager::defineSimpleEvent(std::string aEventName) {
 
     for (auto& map : _maps) {
         if (map.find(aEventName) != map.end()) {
-            throw hg::TracedLogicError("DefaultInputSyncManager - defining same simple event multiple times!");
+            HG_THROW_TRACED(hg::TracedLogicError, 0, "Defining same simple event ({}) multiple times.", aEventName);
         }
         map[aEventName].emplace<SimpleEventElem>();
     }
@@ -119,7 +120,7 @@ void DefaultInputSyncManager::defineEventWithPayload(std::string aEventName, con
 
     for (auto& map : _maps) {
         if (map.find(aEventName) != map.end()) {
-            throw hg::TracedLogicError("DefaultInputSyncManager - defining same event with payload multiple times!");
+            HG_THROW_TRACED(hg::TracedLogicError, 0, "Defining same event with payload ({}) multiple times.", aEventName);
         }
         map[aEventName].emplace<EventWithPayloadElem>(aPayloadType);
     }
@@ -131,7 +132,7 @@ const std::type_info& DefaultInputSyncManager::getSignalType(std::string aSignal
 
     const auto iter = map.find(aSignalName);
     if (iter == map.end()) {
-        throw hg::TracedLogicError{"DefaultInputSyncManager - Requested signal not found!"};
+        HG_THROW_TRACED(hg::TracedLogicError, 0, "Requested signal ({}) not found.", aSignalName);
     }
 
     return std::get<SignalElem>(iter->second).signalType;
@@ -143,7 +144,7 @@ const std::type_info& DefaultInputSyncManager::getEventPayloadType(std::string a
 
     const auto iter = map.find(aEventName);
     if (iter == map.end()) {
-        throw hg::TracedLogicError{"DefaultInputSyncManager - Requested event with payload not found!"};
+        HG_THROW_TRACED(hg::TracedLogicError, 0, "Requested event with payload ({}) not found.", aEventName);
     }
 
     return std::get<EventWithPayloadElem>(iter->second).payloadType;
@@ -156,8 +157,8 @@ const std::type_info& DefaultInputSyncManager::getEventPayloadType(std::string a
 void DefaultInputSyncManager::setSignalValue(std::string aSignalName,
                                              const std::function<void(hg::util::Packet&)>& f) {
     if (_mode != Mode::Client) {
-        throw hg::TracedLogicError{"DefaultInputSyncManager - This overload of setSignalValue "
-                                   "is for client configuration only!"};
+        HG_THROW_TRACED(hg::TracedLogicError, 0, 
+                        "This overload of setSignalValue is for client configuration only.");
     }
 
     auto& map = _maps[0];
@@ -165,7 +166,7 @@ void DefaultInputSyncManager::setSignalValue(std::string aSignalName,
     aSignalName += SIGNAL_TAG;
     const auto iter = map.find(aSignalName);
     if (iter == map.end()) {
-        throw hg::TracedLogicError("DefaultInputSyncManager - Requested signal not found!");
+        HG_THROW_TRACED(hg::TracedLogicError, 0, "Requested signal ({}) not found.", aSignalName);
     }
 
     auto& packet = std::get<SignalElem>(iter->second).value;
@@ -175,8 +176,8 @@ void DefaultInputSyncManager::setSignalValue(std::string aSignalName,
 
 void DefaultInputSyncManager::triggerEvent(std::string aEventName) {
     if (_mode != Mode::Client) {
-        throw hg::TracedLogicError{"DefaultInputSyncManager - This overload of setSignalValue "
-                                   "is for client configuration only!"};
+        HG_THROW_TRACED(hg::TracedLogicError, 0, 
+                        "This overload of setSignalValue is for client configuration only.");
     }
 
     auto& map = _maps[0];
@@ -184,7 +185,7 @@ void DefaultInputSyncManager::triggerEvent(std::string aEventName) {
     aEventName += SIMPLE_EVENT_TAG;
     const auto iter = map.find(aEventName);
     if (iter == map.end()) {
-        throw hg::TracedLogicError("DefaultInputSyncManager - Requested simple event not found!");
+        HG_THROW_TRACED(hg::TracedLogicError, 0, "Requested simple event ({}) not found.", aEventName);
     }
 
     std::get<SimpleEventElem>(iter->second).count += 1;
@@ -193,8 +194,8 @@ void DefaultInputSyncManager::triggerEvent(std::string aEventName) {
 void DefaultInputSyncManager::triggerEventWithPayload(std::string aEventName,
                                                       const std::function<void(hg::util::Packet&)>& f) {
     if (_mode != Mode::Client) {
-        throw hg::TracedLogicError{"DefaultInputSyncManager - This overload of setSignalValue "
-                                   "is for client configuration only!"};
+        HG_THROW_TRACED(hg::TracedLogicError, 0, 
+                        "This overload of setSignalValue is for client configuration only.");
     }
 
     auto& map = _maps[0];
@@ -202,7 +203,7 @@ void DefaultInputSyncManager::triggerEventWithPayload(std::string aEventName,
     aEventName += EVENT_WITH_PAYLOAD_TAG;
     const auto iter = map.find(aEventName);
     if (iter == map.end()) {
-        throw hg::TracedLogicError("DefaultInputSyncManager - Requested event with payload not found!");
+        HG_THROW_TRACED(hg::TracedLogicError, 0, "Requested event with payload ({}) not found.", aEventName);
     }
 
     _helperPacket.clear();
@@ -221,8 +222,8 @@ void DefaultInputSyncManager::setSignalValue(int aForClient,
                                              std::string aSignalName,
                                              const std::function<void(hg::util::Packet&)>& f) {
     if (_mode != Mode::Host) {
-        throw hg::TracedLogicError{"DefaultInputSyncManager - This overload of setSignalValue "
-            "is for host configuration only!"};
+        HG_THROW_TRACED(hg::TracedLogicError, 0, 
+                        "This overload of setSignalValue is for host configuration only.");
     }
 
     auto& map = _maps.at(static_cast<std::size_t>(aForClient) + 1);
@@ -230,7 +231,7 @@ void DefaultInputSyncManager::setSignalValue(int aForClient,
     aSignalName += SIGNAL_TAG;
     const auto iter = map.find(aSignalName);
     if (iter == map.end()) {
-        throw hg::TracedLogicError("DefaultInputSyncManager - Requested signal not found!");
+        HG_THROW_TRACED(hg::TracedLogicError, 0, "Requested signal ({}) not found.", aSignalName);
     }
 
     auto& packet = std::get<SignalElem>(iter->second).value;
@@ -241,8 +242,8 @@ void DefaultInputSyncManager::setSignalValue(int aForClient,
 void DefaultInputSyncManager::triggerEvent(int aForClient,
                                            std::string aEventName) {
     if (_mode != Mode::Host) {
-        throw hg::TracedLogicError{"DefaultInputSyncManager - This overload of setSignalValue "
-            "is for host configuration only!"};
+        HG_THROW_TRACED(hg::TracedLogicError, 0, 
+                        "This overload of setSignalValue is for host configuration only.");
     }
 
     auto& map = _maps.at(static_cast<std::size_t>(aForClient) + 1);
@@ -250,7 +251,7 @@ void DefaultInputSyncManager::triggerEvent(int aForClient,
     aEventName += SIMPLE_EVENT_TAG;
     const auto iter = map.find(aEventName);
     if (iter == map.end()) {
-        throw hg::TracedLogicError("DefaultInputSyncManager - Requested simple event not found!");
+        HG_THROW_TRACED(hg::TracedLogicError, 0, "Requested simple event ({}) not found.", aEventName);
     }
 
     std::get<SimpleEventElem>(iter->second).count += 1;
@@ -260,8 +261,8 @@ void DefaultInputSyncManager::triggerEventWithPayload(int aForClient,
                                                       std::string aEventName,
                                                       const std::function<void(hg::util::Packet&)>& f) {
     if (_mode != Mode::Host) {
-        throw hg::TracedLogicError{"DefaultInputSyncManager - This overload of setSignalValue "
-            "is for host configuration only!"};
+        HG_THROW_TRACED(hg::TracedLogicError, 0, 
+                        "This overload of setSignalValue is for host configuration only.");
     }
 
     auto& map = _maps.at(static_cast<std::size_t>(aForClient) + 1);
@@ -269,7 +270,7 @@ void DefaultInputSyncManager::triggerEventWithPayload(int aForClient,
     aEventName += EVENT_WITH_PAYLOAD_TAG;
     const auto iter = map.find(aEventName);
     if (iter == map.end()) {
-        throw hg::TracedLogicError("DefaultInputSyncManager - Requested event with payload not found!");
+        HG_THROW_TRACED(hg::TracedLogicError, 0, "Requested event with payload ({}) not found.", aEventName);
     }
 
     _helperPacket.clear();
@@ -292,7 +293,7 @@ void DefaultInputSyncManager::getSignalValue(int aForClient,
     aSignalName += SIGNAL_TAG;
     const auto iter = map.find(aSignalName);
     if (iter == map.end()) {
-        throw hg::TracedLogicError("DefaultInputSyncManager - Requested signal not found!");
+        HG_THROW_TRACED(hg::TracedLogicError, 0, "Requested signal ({}) not found.", aSignalName);
     }
 
     aPacket = std::get<SignalElem>(iter->second).value; // TODO what if it was empty?
@@ -306,7 +307,7 @@ void DefaultInputSyncManager::pollSimpleEvent(int aForClient,
     aEventName += SIMPLE_EVENT_TAG;
     const auto iter = map.find(aEventName);
     if (iter == map.end()) {
-        throw hg::TracedLogicError("DefaultInputSyncManager - Requested simple event not found!");
+        HG_THROW_TRACED(hg::TracedLogicError, 0, "Requested simple event ({}) not found.", aEventName);
     }
 
     const auto& elem = std::get<SimpleEventElem>(iter->second);
@@ -326,7 +327,7 @@ void DefaultInputSyncManager::pollEventWithPayload(
     aEventName += EVENT_WITH_PAYLOAD_TAG;
     const auto iter = map.find(aEventName);
     if (iter == map.end()) {
-        throw hg::TracedLogicError("DefaultInputSyncManager - Requested event with payload not found!");
+        HG_THROW_TRACED(hg::TracedLogicError, 0, "Requested event with payload ({}) not found.", aEventName);
     }
 
     const auto& elem = std::get<EventWithPayloadElem>(iter->second);
@@ -387,7 +388,7 @@ void DefaultInputSyncManager::_unpackSingleState(hg::PZInteger aIndex, hg::util:
         packet >> name;
         const auto iter = map.find(name);
         if (iter == map.end()) {
-            throw hg::TracedRuntimeError{"DefaultInputSyncManager - Unpacking unrecognised entry!"};
+            HG_THROW_TRACED(hg::TracedRuntimeError, 0, "Unpacking unrecognised entry.");
         }
 
         switch (name.back()) {

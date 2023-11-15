@@ -2,6 +2,7 @@
 #include "Udp_client_impl.hpp"
 
 #include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 
 #include <utility>
 
@@ -41,7 +42,7 @@ RN_UdpClientImpl::~RN_UdpClientImpl() {
 ///////////////////////////////////////////////////////////////////////////
 
 void RN_UdpClientImpl::connect(std::uint16_t localPort, sf::IpAddress serverIp, std::uint16_t serverPort) {
-    HARD_ASSERT(!_running || _connector.getStatus() == RN_ConnectorStatus::Disconnected);
+    HG_VALIDATE_PRECONDITION(!_running || _connector.getStatus() == RN_ConnectorStatus::Disconnected);
     
     _socket.bind(sf::IpAddress::Any, localPort);
     _connector.connect(serverIp, serverPort);
@@ -49,7 +50,7 @@ void RN_UdpClientImpl::connect(std::uint16_t localPort, sf::IpAddress serverIp, 
 }
 
 void RN_UdpClientImpl::connectLocal(RN_ServerInterface& server) {
-    HARD_ASSERT(!_running || _connector.getStatus() == RN_ConnectorStatus::Disconnected);
+    HG_VALIDATE_PRECONDITION(!_running || _connector.getStatus() == RN_ConnectorStatus::Disconnected);
     _connector.connectLocal(server);
     _running = true;
 }
@@ -89,7 +90,7 @@ RN_Telemetry RN_UdpClientImpl::update(RN_UpdateMode mode) {
         return _updateSend();
 
     default:
-        HARD_ASSERT(false && "Unreachable");
+        HG_UNREACHABLE("Invalid mode {}.", (int)mode);
         break;
     }
 }
@@ -127,7 +128,7 @@ const RN_ConnectorInterface& RN_UdpClientImpl::getServerConnector() const {
     return _connector;
 }
 PZInteger RN_UdpClientImpl::getClientIndex() const {
-    HARD_ASSERT(_running && _connector.getStatus() == RN_ConnectorStatus::Connected);
+    HG_VALIDATE_PRECONDITION(_running && _connector.getStatus() == RN_ConnectorStatus::Connected);
     return *_connector.getClientIndex();
 }
 
@@ -186,7 +187,7 @@ RN_Telemetry RN_UdpClientImpl::_updateReceive() {
 
         default:
             // Realistically these won't ever happen
-            HARD_ASSERT(false && "Unreachable");
+            HG_UNREACHABLE();
         }
     }
 
@@ -210,7 +211,7 @@ RN_Telemetry RN_UdpClientImpl::_updateSend() {
 
 void RN_UdpClientImpl::_compose(int receiver, const void* data, std::size_t sizeInBytes) {
     if (_connector.getStatus() != RN_ConnectorStatus::Connected) {
-        throw TracedLogicError("Client is not connected; cannot compose messages");
+        HG_THROW_TRACED(TracedLogicError, 0, "Cannot compose messages to clients that are not connected.");
     }
     _connector.appendToNextOutgoingPacket(data, sizeInBytes);
 }

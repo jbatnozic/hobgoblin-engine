@@ -4,6 +4,7 @@
 #include <SPeMPE/GameObjectFramework/Sync_details.hpp>
 
 #include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/GSL/HG_adapters.hpp>
 #include <Hobgoblin/RigelNet.hpp>
 #include <Hobgoblin/Utility/No_copy_no_move.hpp>
 #include <Hobgoblin/Utility/Packet.hpp>
@@ -84,7 +85,7 @@ private:
     std::unordered_set<const SynchronizedObjectBase*> _alreadyUpdatedObjects;
     std::unordered_set<const SynchronizedObjectBase*> _alreadyDestroyedObjects;
 
-    hg::not_null<hg::RN_NodeInterface*> _node;
+    hg::NotNull<hg::RN_NodeInterface*> _node;
     SyncDetails _syncDetails;
 
     SyncId _syncIdCounter = 2;

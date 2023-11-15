@@ -3,6 +3,7 @@
 #include "Udp_server_impl.hpp"
 
 #include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 
 #include <cassert>
 #include <cstring>
@@ -129,7 +130,7 @@ void HandleDataMessages(util::Packet& receivedPacket,
         const auto handlerId = receivedPacket.extractOrThrow<detail::RN_HandlerId>();
         auto handlerFunc = detail::RN_GlobalHandlerMapper::getInstance().handlerWithId(handlerId);
         if (handlerFunc == nullptr) {
-            throw RN_IllegalMessage("Requested handler does not exist");
+            throw RN_IllegalMessage{"Requested handler does not exist."};
         }
         (*handlerFunc)(node);
     }
@@ -234,12 +235,12 @@ void RN_UdpConnectorImpl::connectLocal(RN_ServerInterface& server) {
 
     auto* udpServer = dynamic_cast<RN_UdpServerImpl*>(&server);
     if (!udpServer) {
-        throw TracedLogicError("Incompatible node types for local connection");
+        HG_THROW_TRACED(TracedLogicError, 0, "Incompatible node types for local connection.");
     }
 
     const int clientIndex = udpServer->acceptLocalConnection(SELF, _passphrase);
     if (clientIndex < 0) {
-        throw TracedRuntimeError("Local connection refused");
+        HG_THROW_TRACED(TracedLogicError, 0, "Local connection refused.");
     }
 
     assert(_localSharedState != nullptr);
@@ -324,7 +325,7 @@ RN_Telemetry RN_UdpConnectorImpl::send() {
         break;
 
     default:
-        HARD_ASSERT(false && "Unreachable");
+        HG_UNREACHABLE();
         break;
     }
 
@@ -457,14 +458,14 @@ void RN_UdpConnectorImpl::handleDataMessages(RN_NodeInterface& node,
         }
     }
     catch (util::Packet::ReadError& ex) {
-        _eventFactory.createDisconnected(RN_Event::Disconnected::Reason::Error, ex.whatString());
+        _eventFactory.createDisconnected(RN_Event::Disconnected::Reason::Error, ex.getDescription());
         if (_isConnectedLocally()) {
             _localSharedState->setStatus(LCSS_STATUS_ENDED_ERROR);
         }
         _resetAll();
     }
     catch (RN_IllegalMessage& ex) {
-        _eventFactory.createDisconnected(RN_Event::Disconnected::Reason::Error, ex.whatString());
+        _eventFactory.createDisconnected(RN_Event::Disconnected::Reason::Error, ex.what());
         _resetAll();
     }
 
@@ -487,7 +488,7 @@ void RN_UdpConnectorImpl::handleDataMessages(RN_NodeInterface& node,
             break;
 
         default:
-            HARD_ASSERT(false && "Unreachable");
+            HG_UNREACHABLE();
         }
     }
 }
@@ -801,7 +802,7 @@ void RN_UdpConnectorImpl::_tryToAssembleFragmentedPacketAtHead() {
 
         default:
             // This isn't supposed to happen
-            throw RN_IllegalMessage("Impossible to assemble fragmented packet");
+            throw RN_IllegalMessage{"Impossible to assemble fragmented packet."};
         }
     }
 BREAK_FOR:
@@ -871,7 +872,7 @@ void RN_UdpConnectorImpl::_saveDataPacket(util::Packet& packet,
         _recvBuffer[indexInBuffer].tag = TaggedPacket::WaitingForMore_Tail;
     }
     else {
-        HARD_ASSERT(false && "_saveDataPacket called with invalid packet type");
+        HG_THROW_TRACED(TracedRuntimeError, 0, "Invalid packet type {}.", packetType);
     }
 
     _prepareAck(packetOrdinal);
@@ -893,7 +894,7 @@ void RN_UdpConnectorImpl::_processHelloPacket(util::Packet& packet) {
         break;
 
     default:
-        HARD_ASSERT(0 && "Unreachable");
+        HG_UNREACHABLE();
         break;
     }
 }
@@ -926,7 +927,7 @@ void RN_UdpConnectorImpl::_processConnectPacket(util::Packet& packet) {
         break;
 
     default:
-        HARD_ASSERT(false && "Unreachable");
+        HG_UNREACHABLE();
         break;
     }
 }
@@ -943,7 +944,7 @@ void RN_UdpConnectorImpl::_processDisconnectPacket(util::Packet& packet) {
         break;
 
     default:
-        HARD_ASSERT(false && "Unreachable");
+        HG_UNREACHABLE();
         break;
     }
 }
@@ -963,7 +964,7 @@ void RN_UdpConnectorImpl::_processDataPacket(util::Packet& packet) {
         break;
 
     default:
-        HARD_ASSERT(false && "Unreachable");
+        HG_UNREACHABLE();
         break;
     }
 }
@@ -983,7 +984,7 @@ void RN_UdpConnectorImpl::_processDataMorePacket(util::Packet& packet) {
         break;
 
     default:
-        HARD_ASSERT(false && "Unreachable");
+        HG_UNREACHABLE();
         break;
     }
 }
@@ -1003,7 +1004,7 @@ void RN_UdpConnectorImpl::_processDataTailPacket(util::Packet& packet) {
         break;
 
     default:
-        HARD_ASSERT(false && "Unreachable");
+        HG_UNREACHABLE();
         break;
     }
 }
@@ -1024,7 +1025,7 @@ void RN_UdpConnectorImpl::_processAcksPacket(util::Packet& packet) {
         break;
 
     default:
-        HARD_ASSERT(false && "Unreachable");
+        HG_UNREACHABLE();
         break;
     }
 }

@@ -1,7 +1,7 @@
 #ifndef UHOBGOBLIN_UTIL_ANY_PTR_HPP
 #define UHOBGOBLIN_UTIL_ANY_PTR_HPP
 
-#include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 
 #include <cassert>
 #include <type_traits>
@@ -57,14 +57,12 @@ public:
     template <class T>
     T* getOrThrow() const {
         if (typeid(T) != *_valueType) {
-            std::stringstream ss;
-            ss << "AnyPtr type mismatch (held: " << _valueType->name() << "; requested: " << typeid(T).name() << ")";
-            throw TracedLogicError(ss.str());
+            std::ostringstream oss;
+            oss << "AnyPtr type mismatch (held: " << _valueType->name() << "; requested: " << typeid(T).name() << ")";
+            HG_THROW_TRACED(TracedLogicError, 0, oss.str());
         }
         else if (_valueIsConst && !std::is_const<T>::value) {
-            std::stringstream ss;
-            ss << "AnyPtr const qualifier mismatch";
-            throw TracedLogicError(ss.str());
+            HG_THROW_TRACED(TracedLogicError, 0, "AnyPtr const qualifier mismatch.");
         }
         return const_cast<T*>(static_cast<const T*>(_value));
     }

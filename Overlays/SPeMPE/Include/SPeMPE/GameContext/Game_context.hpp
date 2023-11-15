@@ -1,7 +1,9 @@
 #ifndef SPEMPE_GAME_CONTEXT_GAME_CONTEXT_HPP
 #define SPEMPE_GAME_CONTEXT_GAME_CONTEXT_HPP
 
+#include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/GSL/HG_adapters.hpp>
 #include <Hobgoblin/QAO.hpp>
 
 #include <SPeMPE/GameContext/Context_components.hpp>
@@ -210,9 +212,9 @@ private:
     std::thread _childContextThread;
     int _childContextReturnValue = 0;
 
-    static void _runImpl(hg::not_null<GameContext*> aContext,
+    static void _runImpl(hg::NotNull<GameContext*> aContext,
                          int aMaxSteps,
-                         hg::not_null<int*> aReturnValue);
+                         hg::NotNull<int*> aReturnValue);
 };
 
 template <class taComponent>
@@ -222,9 +224,8 @@ void GameContext::attachComponent(taComponent& aComponent) {
 
 template <class taComponent>
 void GameContext::attachAndOwnComponent(std::unique_ptr<taComponent> aComponent) {
-    if (!aComponent) {
-        throw hg::TracedLogicError{"Cannot attach null component"};
-    }
+    HG_VALIDATE_ARGUMENT(aComponent != nullptr, "Cannot attach null component.");
+
     _components.attachComponent(*aComponent);
     _ownedComponents.push_back(std::move(aComponent));
 }
@@ -243,6 +244,6 @@ taComponent* GameContext::getComponentPtr() const {
 } // namespace jbatnozic
 
 // Convenience #include
-#include <SPeMPE/GameContext/Game_context_verification.hpp>
+#include <SPeMPE/GameContext/Game_context_flag_validation.hpp>
 
 #endif // !SPEMPE_GAME_CONTEXT_GAME_CONTEXT_HPP

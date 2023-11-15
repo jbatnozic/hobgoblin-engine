@@ -1,7 +1,7 @@
 #ifndef UHOBGOBLIN_GR_TEXTURE_PACKING_HPP
 #define UHOBGOBLIN_GR_TEXTURE_PACKING_HPP
 
-#include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Graphics/Image.hpp>
 #include <Hobgoblin/Graphics/Texture.hpp>
 #include <Hobgoblin/Graphics/Texture_rect.hpp>

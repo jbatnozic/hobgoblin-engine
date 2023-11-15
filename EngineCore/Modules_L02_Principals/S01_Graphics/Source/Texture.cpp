@@ -1,4 +1,5 @@
 #include <Hobgoblin/Graphics/Texture.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 
 #include <SFML/Graphics/Image.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
@@ -59,14 +60,14 @@ Texture& Texture::operator=(const Texture& aOther) {
 }
 
 Texture::Texture(Texture&& aOther) {
-    HARD_ASSERT((!aOther._isProxy) && "Moving is only allowed between non-proxy textures.");
+    HG_VALIDATE_ARGUMENT(!aOther._isProxy, "Moving is only allowed between non-proxy textures.");
     new (&_storage) ImplType(std::move(*IMPLOF(aOther)));
 }
 
 Texture& Texture::operator=(Texture&& aOther) {
     if (this != &aOther) {
-        HARD_ASSERT((_isProxy == aOther._isProxy) && "Moving is not allowed between proxy and non-proxy texture.");
-
+        HG_VALIDATE_ARGUMENT(aOther._isProxy == _isProxy,
+                             "Moving is not allowed between proxy and non-proxy texture.");
         // A special case, where both textures are proxies (and we just copy the pointer)
         // is allowed to enable construction of RenderTexture.
         if (_isProxy) {
@@ -92,7 +93,7 @@ Texture::~Texture() {
 void Texture::create(PZInteger aWidth, PZInteger aHeight) {
     SFMLErrorCatcher sfErr;
     if (!SELF_IMPL->create(static_cast<unsigned>(aWidth), static_cast<unsigned>(aHeight))) {
-        throw TracedRuntimeError{sfErr.getErrorMessage()}; // TODO(TracedIOError)
+        HG_THROW_TRACED(IOError, 0, sfErr.getErrorMessage());
     }
 }
 
@@ -100,7 +101,7 @@ void Texture::loadFromFile(const std::filesystem::path& aPath, TextureRect aArea
     SFMLErrorCatcher sfErr;
     if (!SELF_IMPL->loadFromFile(FilesystemPathToSfPath(aPath),
                                  {aArea.getLeft(), aArea.getTop(), aArea.w, aArea.h})) {
-        throw TracedRuntimeError{sfErr.getErrorMessage()}; // TODO(TracedIOError)
+        HG_THROW_TRACED(IOError, 0, sfErr.getErrorMessage());
     }
 }
 
@@ -109,7 +110,7 @@ void Texture::loadFromMemory(const void* aData, PZInteger aSize, TextureRect aAr
     if (!SELF_IMPL->loadFromMemory(aData, 
                                    static_cast<std::size_t>(aSize), 
                                    {aArea.getLeft(), aArea.getTop(), aArea.w, aArea.h})) {
-        throw TracedRuntimeError{sfErr.getErrorMessage()}; // TODO(TracedIOError)
+        HG_THROW_TRACED(IOError, 0, sfErr.getErrorMessage());
     }
 }
 
@@ -120,7 +121,7 @@ void Texture::loadFromImage(const Image& aImage, TextureRect aArea) {
 
     SFMLErrorCatcher sfErr;
     if (!SELF_IMPL->loadFromImage(sfImage)) {
-        throw TracedRuntimeError{sfErr.getErrorMessage()}; // TODO: to IOError
+        HG_THROW_TRACED(IOError, 0, sfErr.getErrorMessage());
     }
 }
 
@@ -214,7 +215,7 @@ bool Texture::isRepeated() const {
 void Texture::generateMipmap() {
     SFMLErrorCatcher sfErr;
     if (!SELF_IMPL->generateMipmap()) {
-        throw TracedRuntimeError{sfErr.getErrorMessage()};
+        HG_THROW_TRACED(TracedRuntimeError, 0, "Mipmap generation failed: {}", sfErr.getErrorMessage());
     }
 }
 

@@ -2,6 +2,7 @@
 #define UHOBGOBLIN_INPUT_VIRTUAL_KEYBOARD_KEY_HPP
 
 #include <Hobgoblin/Input/Universal_input_enumeration.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 
 #include <optional>
 
@@ -18,7 +19,7 @@ public:
     constexpr VirtualKeyboardKey(UniversalInputEnum aValue)
         : _value{aValue}
     {
-        HARD_ASSERT(IsVirtualKeyboardKey(aValue));
+        HG_VALIDATE_ARGUMENT(IsVirtualKeyboardKey(aValue), "{} is not a valid VirtualKeyboardKey value.", (int)aValue);
     }
 
     constexpr UniversalInputEnum val() const {

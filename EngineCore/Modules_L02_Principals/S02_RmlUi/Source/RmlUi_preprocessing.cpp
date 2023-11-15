@@ -15,7 +15,7 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace rml {
 
-#define FAIL(_msg_) throw PreprocessingError{_msg_}
+#define FAIL(_msg_) HG_THROW_TRACED(PreprocessingError, 0, _msg_)
 
 namespace {
 struct LineInfo {
@@ -299,7 +299,7 @@ void PreprocessRcssFile(const std::string& aFilePath) {
                 if (!spritesheetBegan) {
                     FAIL("A 'spritesheet_begin' must come before any 'sprite' definitions!");
                 }
-                const auto result = ProcessSpriteCommand(lineInfo, containingFolder, *srcResult->texBuilder);
+                const auto result = ProcessSpriteCommand(lineInfo, containingFolder, *(srcResult->texBuilder));
                 outputLines.push_back(lineInfo.leadingWhitespace + "sprite: %%{" + result.name + "}");
             }
             // ???

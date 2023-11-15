@@ -2,6 +2,7 @@
 #define SPEMPE_GAME_OBJECT_FRAMEWORK_SYNC_DETAILS_HPP
 
 #include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/GSL/HG_adapters.hpp>
 #include <Hobgoblin/RigelNet.hpp>
 #include <Hobgoblin/Utility/Packet.hpp>
 
@@ -89,7 +90,7 @@ struct SyncDetails {
 private:
     SyncDetails(detail::SynchronizedObjectRegistry& aRegistry);
 
-    hg::not_null<detail::SynchronizedObjectRegistry*> _registry;
+    hg::NotNull<detail::SynchronizedObjectRegistry*> _registry;
     std::vector<hg::PZInteger> _recepients;
     std::int64_t _qaoStepOrdinal;
     SyncId _forObject = SYNC_ID_NEW;

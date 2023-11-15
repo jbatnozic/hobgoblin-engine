@@ -2,6 +2,7 @@
 #define UHOBGOBLIN_CONFIG_HG_CONFIG_HPP
 
 #include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 
 #include <cstdint>
 #include <istream>
