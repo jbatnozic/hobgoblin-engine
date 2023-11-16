@@ -13,6 +13,9 @@
 
 #include <SPeMPE/SPeMPE.hpp>
 
+#include <cstdlib>
+#include <iostream>
+
 using namespace jbatnozic::hobgoblin;
 namespace spe = jbatnozic::spempe;
 
@@ -23,15 +26,8 @@ int main() {
     }
     // Common
     {
-        try {
-            throw TracedRuntimeError{"message"};
-        }
-        catch (...) {
-        }
-    }
-    // Config
-    {
-        HGConfig hgconf{"[[Section1]]"};
+        PZInteger pz = 1337;
+        (void)pz;
     }
     // Format
     {
@@ -40,6 +36,18 @@ int main() {
     // Graphics
     {
         // TODO
+    }
+    // HGConfig
+    {
+        HGConfig hgconf{"[[Section1]]"};
+    }
+    // HGExcept
+    {
+        try {
+            HG_THROW_TRACED(TracedLogicError, 0, "message");
+        }
+        catch (...) {
+        }
     }
     // Math
     {
@@ -74,4 +82,7 @@ int main() {
         spe::GameContext ctx{rtcfg};
         ctx.runFor(1);
     }
+
+    std::cout << "The Goblin hobs happily!\n";
+    return EXIT_SUCCESS;
 }

@@ -10,6 +10,7 @@ class HobgoblinConan(ConanFile):
     package_type = "library"
 
     # Optional metadata
+
     license = "<License TBD>"
     author = "Jovan Batnožić (jovanbatnozic@hotmail.rs)"
     url = "https://github.com/jbatnozic/Hobgoblin"
@@ -17,6 +18,7 @@ class HobgoblinConan(ConanFile):
     topics = ("game", "engine", "multiplayer")
 
     # Binary configuration
+
     settings = "os", "compiler", "build_type", "arch"
     options = {
         "shared": [True, False], 
@@ -27,21 +29,24 @@ class HobgoblinConan(ConanFile):
         "fPIC": True
     }
 
-    _modules = [
-        # Foundation
+    # Engine Core modules
+
+    _modules_foundation = [
         "S00_PDef",
         "S01_Format",
         "S01_GSL",
         "S01_Preprocessor",
         "S02_HGExcept",
         "S03_Logging",
+    ]
 
-        # Utilities
+    _modules_utilities = [
         "S00_Common",
         "S01_Math",
         "S02_Utility",
+    ]
 
-        # Principals
+    _modules_principals = [
         "S00_ChipmunkPhysics",
         "S00_HGConfig",
         "S00_Input",
@@ -53,9 +58,13 @@ class HobgoblinConan(ConanFile):
         "S02_RmlUI",
     ]
 
+    # Overlays
+
     _overlays = [
         "SPeMPE"
     ]
+
+    # Sources
 
     exports_sources = [
         "CMakeLists.txt",
@@ -64,6 +73,7 @@ class HobgoblinConan(ConanFile):
         "EngineCore/*",
         "Overlays/*"
     ]
+
 
     def config_options(self):
         if self.settings.os == "Windows":
@@ -128,25 +138,28 @@ class HobgoblinConan(ConanFile):
         cmake.build()
 
     def package(self):
+        INCLUDE_FILE_TYPES      = ["*.h", "*.hpp", "*.inl"]
+        INCLUDE_DESTINATION_DIR = join(self.package_folder, "include")
+
         # === PACKAGE CORE MODULE HEADERS ===
-        for module in self._modules:
-            copy(self, "*.h",   join(self.source_folder, "EngineCore/Modules_L00_Foundation/{}/Include".format(module)), join(self.package_folder, "include"))
-            copy(self, "*.hpp", join(self.source_folder, "EngineCore/Modules_L00_Foundation/{}/Include".format(module)), join(self.package_folder, "include"))
-            copy(self, "*.inl", join(self.source_folder, "EngineCore/Modules_L00_Foundation/{}/Include".format(module)), join(self.package_folder, "include"))
-        for module in self._modules:
-            copy(self, "*.h",   join(self.source_folder, "EngineCore/Modules_L01_Utilities/{}/Include".format(module)), join(self.package_folder, "include"))
-            copy(self, "*.hpp", join(self.source_folder, "EngineCore/Modules_L01_Utilities/{}/Include".format(module)), join(self.package_folder, "include"))
-            copy(self, "*.inl", join(self.source_folder, "EngineCore/Modules_L01_Utilities/{}/Include".format(module)), join(self.package_folder, "include"))
-        for module in self._modules:
-            copy(self, "*.h",   join(self.source_folder, "EngineCore/Modules_L02_Principals/{}/Include".format(module)), join(self.package_folder, "include"))
-            copy(self, "*.hpp", join(self.source_folder, "EngineCore/Modules_L02_Principals/{}/Include".format(module)), join(self.package_folder, "include"))
-            copy(self, "*.inl", join(self.source_folder, "EngineCore/Modules_L02_Principals/{}/Include".format(module)), join(self.package_folder, "include"))
+        for file_type in INCLUDE_FILE_TYPES:
+            for module in self._modules_foundation:
+                source_dir = join(self.source_folder, "EngineCore/Modules_L00_Foundation/{}/Include".format(module))
+                copy(self, file_type, source_dir, INCLUDE_DESTINATION_DIR)
+            
+            for module in self._modules_utilities:
+                source_dir = join(self.source_folder, "EngineCore/Modules_L01_Utilities/{}/Include".format(module))
+                copy(self, file_type, source_dir, INCLUDE_DESTINATION_DIR)
+
+            for module in self._modules_principals:
+                source_dir = join(self.source_folder, "EngineCore/Modules_L02_Principals/{}/Include".format(module))
+                copy(self, file_type, source_dir, INCLUDE_DESTINATION_DIR)
 
         # === PACKAGE OVERLAY HEADERS ===
-        for overlay in self._overlays:
-            copy(self, "*.h",   join(self.source_folder, "Overlays/{}/Include".format(overlay)), join(self.package_folder, "include"))
-            copy(self, "*.hpp", join(self.source_folder, "Overlays/{}/Include".format(overlay)), join(self.package_folder, "include"))
-            copy(self, "*.inl", join(self.source_folder, "Overlays/{}/Include".format(overlay)), join(self.package_folder, "include"))
+        for file_type in INCLUDE_FILE_TYPES:
+            for overlay in self._overlays:
+                source_dir = join(self.source_folder, "Overlays/{}/Include".format(overlay))
+                copy(self, file_type, source_dir, INCLUDE_DESTINATION_DIR)
 
         # === PACKAGE CORE MODULE LIBRARIES ===
         copy(self, pattern="*Hobgoblin*.dll",   src=join(self.build_folder, "bin"), dst=join(self.package_folder, "bin"), keep_path=False)
