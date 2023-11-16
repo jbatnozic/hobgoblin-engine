@@ -369,7 +369,7 @@ template <class taVector, class taAngle,
           T_ENABLE_IF(std::is_arithmetic<taAngle>::value)>
 taVector RotateVector(const taVector& aVector, taAngle aAngle) {
     const auto temp = RotateVector(aVector.x, aVector.y, aAngle);
-    typename taVector result;
+    taVector result;
     result.x = temp.x;
     result.y = temp.y;
     return result;

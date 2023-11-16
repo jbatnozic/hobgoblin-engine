@@ -144,7 +144,7 @@ taType HGConfig::getRealValue(const std::string& aSectionName, const std::string
 }
 
 HOBGOBLIN_NAMESPACE_END
-#include <Hobgoblin/Private\Pmacro_undef.hpp>
+#include <Hobgoblin/Private/Pmacro_undef.hpp>
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
 #endif // !UHOBGOBLIN_CONFIG_HG_CONFIG_HPP

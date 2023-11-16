@@ -31,7 +31,7 @@ int main() {
     }
     // Format
     {
-        fmt::format("This is {}!", "Hobgoblin");
+        (void)fmt::format("This is {}!", "Hobgoblin");
     }
     // Graphics
     {

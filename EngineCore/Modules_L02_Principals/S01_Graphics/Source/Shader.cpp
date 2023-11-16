@@ -69,7 +69,7 @@ Shader::Shader() {
     // WTF, Intellisense
     static_assert(STORAGE_SIZE  >= IMPL_SIZE,  "Shader::STORAGE_SIZE is too small.");
 #else
-    static_assert(STORAGE_SIZE  == IMPL_SIZE,  "Shader::STORAGE_SIZE is inadequate.");
+    static_assert(STORAGE_SIZE  >= IMPL_SIZE,  "Shader::STORAGE_SIZE is inadequate.");
 #endif
     static_assert(STORAGE_ALIGN == IMPL_ALIGN, "Shader::STORAGE_ALIGN is inadequate.");
 

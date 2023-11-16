@@ -70,9 +70,12 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 
-class RN_IllegalMessage : public std::exception {
+class RN_IllegalMessage : public std::runtime_error {
 public:
-    using exception::exception;
+    using runtime_error::runtime_error;
+
+    explicit RN_IllegalMessage()
+        : RN_IllegalMessage{""} {}
 };
 
 } // namespace rn

@@ -55,7 +55,7 @@ class HobgoblinConan(ConanFile):
         "S00_Window",
         "S01_ColDetect",
         "S01_Graphics",
-        "S02_RmlUI",
+        "S02_RmlUi",
     ]
 
     # Overlays
@@ -187,7 +187,7 @@ class HobgoblinConan(ConanFile):
             "SPeMPE",
 
             # Principals
-            "Hobgoblin.RmlUI",
+            "Hobgoblin.RmlUi",
             "Hobgoblin.Graphics",
             "Hobgoblin.ColDetect",
             "Hobgoblin.Window",

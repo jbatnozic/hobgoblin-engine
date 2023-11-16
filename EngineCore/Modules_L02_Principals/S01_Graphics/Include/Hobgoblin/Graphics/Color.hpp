@@ -14,10 +14,10 @@ public:
 
   //! Bits 31..24 = Red, Bits 23..16 = Green, Bits 15..8 = Blue, 7..0 = Alpha
   constexpr explicit Color(std::uint32_t aColor)
-      : r{(aColor >> 24) & 0xFF}
-      , g{(aColor >> 16) & 0xFF}
-      , b{(aColor >>  8) & 0xFF}
-      , a{(aColor >>  0) & 0xFF}
+      : r{static_cast<std::uint8_t>((aColor >> 24) & 0xFF)}
+      , g{static_cast<std::uint8_t>((aColor >> 16) & 0xFF)}
+      , b{static_cast<std::uint8_t>((aColor >>  8) & 0xFF)}
+      , a{static_cast<std::uint8_t>((aColor >>  0) & 0xFF)}
   {}
 
   constexpr Color(

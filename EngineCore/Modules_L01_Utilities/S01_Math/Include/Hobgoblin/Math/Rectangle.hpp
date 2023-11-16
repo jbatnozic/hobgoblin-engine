@@ -79,10 +79,10 @@ public:
     }
 
     bool isEqualTo(const Rectangle& aOther, taArithmetic aEpsilon) const {
-        return (abs(aLhs.x - aRhs.x) <= aEpsilon &&
-                abs(aLhs.y - aRhs.y) <= aEpsilon &&
-                abs(aLhs.w - aRhs.w) <= aEpsilon &&
-                abs(aLhs.h - aRhs.h) <= aEpsilon);
+        return (abs(x - aOther.x) <= aEpsilon &&
+                abs(y - aOther.y) <= aEpsilon &&
+                abs(w - aOther.w) <= aEpsilon &&
+                abs(h - aOther.h) <= aEpsilon);
     }
 
     void reset(taArithmetic x, taArithmetic y, taArithmetic w, taArithmetic h) {

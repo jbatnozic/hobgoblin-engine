@@ -88,7 +88,7 @@ RenderWindow& RenderWindow::operator=(RenderWindow&& aOther) {
         // Replace MultiViewRenderTargetAdapter
         GetMVA()->~MultiViewRenderTargetAdapter();
         auto* otherMvaStoragePtr = &(aOther._mvaStorage);
-        auto* otherMvaPtr = reinterpret_cast<SfmlRenderTargetAdapter*>(otherMvaStoragePtr);
+        auto* otherMvaPtr = reinterpret_cast<MultiViewRenderTargetAdapter*>(otherMvaStoragePtr);
         new (&_mvaStorage) MultiViewRenderTargetAdapter(std::move(*otherMvaPtr));
         GetMVA()->setRenderTarget(*GetSRTA());
     }
