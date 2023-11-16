@@ -4,7 +4,7 @@
 #define UHOBGOBLIN_HGEXCEPT_FUNC __PRETTY_FUNCTION__
 #endif
 
-#define UHOBGOBLIN_THROW_TRACED_0(_type_, _code_, _comment_) \
+#define UHOBGOBLIN_THROW_TRACED_0(_type_, _code_, _comment_, ...) \
     (throw _type_{#_type_, UHOBGOBLIN_HGEXCEPT_FUNC, __FILE__, __LINE__, (_code_), "<no message provided>", _comment_})
 
 #define UHOBGOBLIN_THROW_TRACED_1(_type_, _code_, _comment_, _message_) \

@@ -28,20 +28,29 @@ class HobgoblinConan(ConanFile):
     }
 
     _modules = [
-        "ChipmunkPhysics",
-        "ColDetect",
-        "Common",
-        "Config",
-        "Format",
-        "Graphics",
-        "Logging",
-        "Math",
-        "Preprocessor",
-        "Private",
-        "QAO",
-        "RigelNet",
-        "RmlUI",
-        "Utility"
+        # Foundation
+        "S00_PDef",
+        "S01_Format",
+        "S01_GSL",
+        "S01_Preprocessor",
+        "S02_HGExcept",
+        "S03_Logging",
+
+        # Utilities
+        "S00_Common",
+        "S01_Math",
+        "S02_Utility",
+
+        # Principals
+        "S00_ChipmunkPhysics",
+        "S00_HGConfig",
+        "S00_Input",
+        "S00_QAO",
+        "S00_RigelNet",
+        "S00_Window",
+        "S01_ColDetect",
+        "S01_Graphics",
+        "S02_RmlUI",
     ]
 
     _overlays = [
@@ -70,7 +79,7 @@ class HobgoblinConan(ConanFile):
         # Private
         self.requires("glew/2.2.0")
         self.requires("gtest/1.10.0")
-        self.requires("ztcpp/3.0.1@jbatnozic/stable")
+        self.requires("ztcpp/3.0.2@jbatnozic/stable")
         
         # Overrides (transitive dependencies)
         self.requires("freetype/2.11.1", override=True)
@@ -121,13 +130,23 @@ class HobgoblinConan(ConanFile):
     def package(self):
         # === PACKAGE CORE MODULE HEADERS ===
         for module in self._modules:
-            copy(self, "*.h",   join(self.source_folder, "EngineCore/Modules/{}/Include".format(module)), join(self.package_folder, "include"))
-            copy(self, "*.hpp", join(self.source_folder, "EngineCore/Modules/{}/Include".format(module)), join(self.package_folder, "include"))
+            copy(self, "*.h",   join(self.source_folder, "EngineCore/Modules_L00_Foundation/{}/Include".format(module)), join(self.package_folder, "include"))
+            copy(self, "*.hpp", join(self.source_folder, "EngineCore/Modules_L00_Foundation/{}/Include".format(module)), join(self.package_folder, "include"))
+            copy(self, "*.inl", join(self.source_folder, "EngineCore/Modules_L00_Foundation/{}/Include".format(module)), join(self.package_folder, "include"))
+        for module in self._modules:
+            copy(self, "*.h",   join(self.source_folder, "EngineCore/Modules_L01_Utilities/{}/Include".format(module)), join(self.package_folder, "include"))
+            copy(self, "*.hpp", join(self.source_folder, "EngineCore/Modules_L01_Utilities/{}/Include".format(module)), join(self.package_folder, "include"))
+            copy(self, "*.inl", join(self.source_folder, "EngineCore/Modules_L01_Utilities/{}/Include".format(module)), join(self.package_folder, "include"))
+        for module in self._modules:
+            copy(self, "*.h",   join(self.source_folder, "EngineCore/Modules_L02_Principals/{}/Include".format(module)), join(self.package_folder, "include"))
+            copy(self, "*.hpp", join(self.source_folder, "EngineCore/Modules_L02_Principals/{}/Include".format(module)), join(self.package_folder, "include"))
+            copy(self, "*.inl", join(self.source_folder, "EngineCore/Modules_L02_Principals/{}/Include".format(module)), join(self.package_folder, "include"))
 
         # === PACKAGE OVERLAY HEADERS ===
         for overlay in self._overlays:
             copy(self, "*.h",   join(self.source_folder, "Overlays/{}/Include".format(overlay)), join(self.package_folder, "include"))
             copy(self, "*.hpp", join(self.source_folder, "Overlays/{}/Include".format(overlay)), join(self.package_folder, "include"))
+            copy(self, "*.inl", join(self.source_folder, "Overlays/{}/Include".format(overlay)), join(self.package_folder, "include"))
 
         # === PACKAGE CORE MODULE LIBRARIES ===
         copy(self, pattern="*Hobgoblin*.dll",   src=join(self.build_folder, "bin"), dst=join(self.package_folder, "bin"), keep_path=False)
@@ -149,23 +168,34 @@ class HobgoblinConan(ConanFile):
         self.cpp_info.bindirs = ['bin']
 
         # Specifying libraries in reverse order (most dependent ones
-        # first, most basicones last) prevents link errors on Linux.
+        # first, most basic ones last) prevents link errors on Linux.
         self.cpp_info.libs = [
             # Overlays
             "SPeMPE",
 
-            # Core modules
-            "Hobgoblin.ChipmunkPhysics", # TODO Should be optional
-            "Hobgoblin.ColDetect",       # TODO Should be optional          
-            "Hobgoblin.Graphics",        # TODO Should be optional         
-            "Hobgoblin.QAO",             # TODO Should be optional
-            "Hobgoblin.RigelNet",        # TODO Should be optional
-            "Hobgoblin.RmlUi",           # TODO Should be optional
-            "Hobgoblin.Config",          # TODO Should be optional
-
+            # Principals
+            "Hobgoblin.RmlUI",
+            "Hobgoblin.Graphics",
+            "Hobgoblin.ColDetect",
+            "Hobgoblin.Window",
+            "Hobgoblin.RigelNet",
+            "Hobgoblin.QAO",
+            "Hobgoblin.Input",
+            "Hobgoblin.HGConfig",
+            "Hobgoblin.ChipmunkPhysics",
+            
+            # Utilities
             "Hobgoblin.Utility",
+            # "Hobgoblin.Math",         -- Header-only
+            # "Hobgoblin.Common",       -- Header-only
+            
+            # Foundation
             "Hobgoblin.Logging",
-            "Hobgoblin.Common",
+            "Hobgoblin.HGExcept",
+            # "Hobgoblin.Preprocessor", -- Header-only
+            # "Hobgoblin.GSL",          -- Header-only
+            # "Hobgoblin.Format",       -- Header-only
+            # "Hobgoblin.PDef",         -- Header-only
         ]
 
         if self.settings.os == "Windows":

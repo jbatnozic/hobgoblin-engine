@@ -323,7 +323,7 @@ sf::Vector2f DefaultWindowManager::_getViewRelativeMousePos(hobgoblin::PZInteger
     const auto mrtPositioning = _getMainRenderTexturePositioningData();
     const auto pixelPos = hg::win::GetMousePositionRelativeToWindow(*_window);
 
-    auto windowPos = _window->mapPixelToCoords(pixelPos, _window->getDefaultView()); // TODO(is default view correct?)
+    auto windowPos = _window->mapPixelToCoords(pixelPos, _window->getView());
     windowPos.x = (windowPos.x - mrtPositioning.position.x) / mrtPositioning.scale.x + mrtPositioning.origin.x;
     windowPos.y = (windowPos.y - mrtPositioning.position.y) / mrtPositioning.scale.y + mrtPositioning.origin.y;
 

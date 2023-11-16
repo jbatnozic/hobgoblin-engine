@@ -81,12 +81,12 @@ void DrawBatcher::draw(const Drawable& aDrawable,
         break;
 
     case Drawable::BatchingType::Aggregate:
-        aDrawable._draw(SELF, aStates);
+        _canvas.draw(aDrawable, aStates);
         break;
 
     case Drawable::BatchingType::Custom:
         _flush();
-        aDrawable._draw(SELF, aStates);
+        _canvas.draw(aDrawable, aStates);
         break;
 
     default:
