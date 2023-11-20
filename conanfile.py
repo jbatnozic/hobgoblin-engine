@@ -85,6 +85,7 @@ class HobgoblinConan(ConanFile):
         self.requires("ms-gsl/4.0.0", transitive_headers=True)
         self.requires("sfml/2.6.0"  , transitive_headers=True)
         self.requires("rmlui/4.4",    transitive_headers=True)
+        self.requires("icu/74.1",     transitive_headers=True)
 
         # Private
         self.requires("glew/2.2.0")
@@ -95,10 +96,10 @@ class HobgoblinConan(ConanFile):
         self.requires("freetype/2.11.1", override=True)
 
     def configure(self):
-        # Check that we have at least C++17
+        # Check that we have at least C++20
         std = str(self.settings.compiler.cppstd)
-        if std in ["98", "gnu98" "11", "gnu11", "14", "gnu14"]:
-            raise Exception("Hobgoblin requires C++17 or newer standard.")
+        if std in ["98", "gnu98" "11", "gnu11", "14", "gnu14", "17", "gnu17"]:
+            raise Exception("Hobgoblin requires C++20 or newer standard.")
         
         # Configure options
         if self.options.shared:

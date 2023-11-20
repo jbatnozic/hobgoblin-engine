@@ -4,7 +4,8 @@
 # 2nd argument: profile  (Debug|Release)
 
 conan install . -of _Build/ \
-    --profile=hobgoblin-$1 \
+    -pr:h=hobgoblin-$1 \
+    -pr:b=hobgoblin-$1 \
     -s build_type=$2 \
     --build=missing \
     --build=outdated \
