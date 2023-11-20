@@ -11,14 +11,14 @@ SET EXTRA_ARGS=--settings:host libzt*:compiler.cppstd=17 ^
 conan install . -of _Build/Hobgoblin-x64/ ^
     %PROFL_ARGS% ^
     %BUILD_ARGS% ^
-	%EXTRA_ARGS% ^
+    %EXTRA_ARGS% ^
     -s:h build_type=Debug ^
     -s:b build_type=Debug
     
 conan install . -of _Build/Hobgoblin-x64/ ^
     %PROFL_ARGS% ^
     %BUILD_ARGS% ^
-	%EXTRA_ARGS% ^
+    %EXTRA_ARGS% ^
     -s:h build_type=Release ^
     -s:b build_type=Release
 
