@@ -92,7 +92,7 @@ PhysicsPlayer::~PhysicsPlayer() {
     }
 }
 
-void PhysicsPlayer::_eventUpdate() {
+void PhysicsPlayer::_eventUpdate1() {
     using hg::math::AngleD;
     using hg::math::PointDirection;
 

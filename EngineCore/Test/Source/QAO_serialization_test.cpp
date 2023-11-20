@@ -168,42 +168,47 @@ public:
 
     // Events
 
-    void _eventStartFrame() {
+    void _eventStartFrame() override {
         _reportVector.push_back(QAO_Event::StartFrame);
         _reportVector.push_back(getExecutionPriority());
     }
 
-    void _eventPreUpdate() { 
+    void _eventPreUpdate() override { 
         _reportVector.push_back(QAO_Event::PreUpdate);
         _reportVector.push_back(getExecutionPriority());
     }
 
-    void _eventUpdate() {
-        _reportVector.push_back(QAO_Event::Update);
+    void _eventUpdate1() override {
+        _reportVector.push_back(QAO_Event::Update1);
         _reportVector.push_back(getExecutionPriority());
     }
 
-    void _eventPostUpdate() {
+    void _eventUpdate2() override {
+        _reportVector.push_back(QAO_Event::Update2);
+        _reportVector.push_back(getExecutionPriority());
+    }
+
+    void _eventPostUpdate() override {
         _reportVector.push_back(QAO_Event::PostUpdate);
         _reportVector.push_back(getExecutionPriority());
     }
 
-    void _eventDraw1() {
+    void _eventDraw1() override {
         _reportVector.push_back(QAO_Event::Draw1);
         _reportVector.push_back(getExecutionPriority());
     }
 
-    void _eventDraw2() {
+    void _eventDraw2() override {
         _reportVector.push_back(QAO_Event::Draw2);
         _reportVector.push_back(getExecutionPriority());
     }
 
-    void _eventDrawGUI() {
+    void _eventDrawGUI() override {
         _reportVector.push_back(QAO_Event::DrawGUI);
         _reportVector.push_back(getExecutionPriority());
     }
 
-    void _eventFinalizeFrame() {
+    void _eventFinalizeFrame() override {
         _reportVector.push_back(QAO_Event::FinalizeFrame);
         _reportVector.push_back(getExecutionPriority());
     }

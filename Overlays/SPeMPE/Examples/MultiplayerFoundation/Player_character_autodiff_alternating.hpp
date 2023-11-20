@@ -21,7 +21,7 @@ public:
     void init(int aOwningPlayerIndex, float aX, float aY);
 
 private:
-    void _eventUpdate(spe::IfMaster) override;
+    void _eventUpdate1(spe::IfMaster) override;
     void _eventDraw1() override;
     void _eventFinalizeFrame(spe::IfMaster) override;
 

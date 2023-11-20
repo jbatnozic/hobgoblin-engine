@@ -372,19 +372,19 @@ to all the QAO events (`_eventStartFrame`, `_eventUpdate` etc.). However, each o
 ```cpp
 virtual void _eventStartFrame(spe::IfMaster);
 virtual void _eventPreUpdate(spe::IfMaster);
-virtual void _eventUpdate(spe::IfMaster);
+virtual void _eventUpdate1(spe::IfMaster);
 ...
 virtual void _eventFinalizeFrame(spe::IfMaster);
 
 virtual void _eventStartFrame(spe::IfDummy);
 virtual void _eventPreUpdate(spe::IfDummy);
-virtual void _eventUpdate(spe::IfDummy);
+virtual void _eventUpdate1(spe::IfDummy);
 ...
 virtual void _eventFinalizeFrame(spe::IfDummy);
 ```
 
-By overriding, for example, `_eventUpdate(spe::IfMaster)` you are defining the update event behaviour this object
-will have only when it is a Master object, and, analogously to that, by overriding `_eventUpdate(spe::IfDummy)` you
+By overriding, for example, `_eventUpdate1(spe::IfMaster)` you are defining the update event behaviour this object
+will have only when it is a Master object, and, analogously to that, by overriding `_eventUpdate1(spe::IfDummy)` you
 are defining the update event behaviour this object will have only when it is a Dummy object.
 
 A lot of the time, the Dummy object will have only draw events defined, as it doesn't need to execute any logic, and
@@ -394,9 +394,9 @@ a Server which doesn't have a window to display any of it.
 **Note:** You still _can_ override general `_event*()` methods (for example `_eventStartFrame()`), in which case you
 will be defining the behaviour for both Master and Dummy objects, and the `spe::IfMaster`/`spe::IfDummy` variants
 will NEVER be called (unless you call them manually). So, this is generally not recommended. One final caveat here is
-that if you choose to override `_eventUpdate()` (specifically the update event, and not any of the others), you will
+that if you choose to override `_eventUpdate1()` (specifically the update event, and not any of the others), you will
 need to put `SPEMPE_SYNCOBJ_BEGIN_EVENT_UPDATE_OVERRIDE();` at the beginning of the event method body, or your object
-will not behave properly. Thus, overriding `_eventUpdate()` is _doubly_ not recommended. 
+will not behave properly. Thus, overriding `_eventUpdate1()` is _doubly_ not recommended. 
 
 **TODO:** destructor, default sync implementations, sinclaire (alternating updates),
 pacemaker pulses, skipping updates, deactivation, custom syncing (so many...) _getSurrentState

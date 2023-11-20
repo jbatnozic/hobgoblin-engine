@@ -102,7 +102,7 @@ void GameplayManager::restartGame() {
     }
 }
 
-void GameplayManager::_eventUpdate() {
+void GameplayManager::_eventUpdate1() {
     // Exit:
     if (ctx(DKeyboard).keyPressed(KbKey::Escape)) {
         ctx().stop();

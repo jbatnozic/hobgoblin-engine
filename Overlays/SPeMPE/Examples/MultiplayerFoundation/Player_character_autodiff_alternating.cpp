@@ -31,7 +31,7 @@ void AutodiffAlternatingPlayerCharacter::init(int aOwningPlayerIndex, float aX, 
     self.owningPlayerIndex = aOwningPlayerIndex;
 }
 
-void AutodiffAlternatingPlayerCharacter::_eventUpdate(spe::IfMaster) {
+void AutodiffAlternatingPlayerCharacter::_eventUpdate1(spe::IfMaster) {
     if (ctx().getGameState().isPaused) return;
 
     auto& self = _getCurrentState();

@@ -127,7 +127,7 @@ private:
     void _clearAllEvents(hg::PZInteger aIndex);
 
     void _eventPreUpdate() override;
-    void _eventUpdate() override;
+    void _eventUpdate1() override;
     void _eventPostUpdate() override;
 
     friend void USPEMPE_DefaultInputSyncManager_PutNewState(DefaultInputSyncManager&,

@@ -14,7 +14,7 @@ public:
     void restartGame();
 
 protected:
-    void _eventUpdate() override;
+    void _eventUpdate1() override;
     void _eventPostUpdate() override;
     void _eventDrawGUI() override;
 

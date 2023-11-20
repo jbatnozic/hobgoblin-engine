@@ -22,7 +22,7 @@ There are a number of predefined events in QAO (in order in which they run):
 |---|---------------|-------------------------|
 | 1 | StartFrame    | `_eventStartFrame()`    |
 | 2 | PreUpdate     | `_eventPreUpdate()`     |
-| 3 | Update        | `_eventUpdate()`        |
+| 3 | Update        | `_eventUpdate1()`        |
 | 4 | PostUpdate    | `_eventPostUpdate()`    |
 | 5 | Draw1         | `_eventDraw1()`         |
 | 6 | Draw2         | `_eventDraw2()`         |
@@ -125,7 +125,7 @@ public:
     }
 
 private:
-    void _eventUpdate() override {
+    void _eventUpdate1() override {
         _moveAround();
     }
 

@@ -102,7 +102,7 @@ void Player::_eventPreUpdate() {
     }
 }
 
-void Player::_eventUpdate() {
+void Player::_eventUpdate1() {
     if (ctx().isPrivileged()) {
         move(_ssch.getCurrentState());
     }

@@ -84,7 +84,7 @@ void MainGameplayManager::onNetworkingEvent(const hg::RN_Event& aEvent) {
     }
 }
 
-void MainGameplayManager::_eventUpdate() {
+void MainGameplayManager::_eventUpdate1() {
     if (ctx().isPrivileged()) {
         auto& winMgr = ccomp<MWindow>();
 

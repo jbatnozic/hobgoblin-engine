@@ -473,7 +473,7 @@ void DefaultInputSyncManager::_eventPreUpdate() {
     }
 }
 
-void DefaultInputSyncManager::_eventUpdate() {
+void DefaultInputSyncManager::_eventUpdate1() {
     // If Client, send all inputs
     if (_mode == Mode::Client) {
 

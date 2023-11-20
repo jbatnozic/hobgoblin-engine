@@ -162,10 +162,10 @@ public:
     }
 
 private:
-    // Make sure that state scheduling and company work properly even when _eventUpdate()
+    // Make sure that state scheduling and company work properly even when _eventUpdate1()
     // is overriden, as long as SPEMPE_SYNCOBJ_BEGIN_EVENT_UPDATE_OVERRIDE() is called 
     // at the start:
-    void _eventUpdate() override {
+    void _eventUpdate1() override {
         SPEMPE_SYNCOBJ_BEGIN_EVENT_UPDATE_OVERRIDE();
 
         // Make sure nothing is executed after destruction:

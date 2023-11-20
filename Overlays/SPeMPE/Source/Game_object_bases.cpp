@@ -112,9 +112,9 @@ void SynchronizedObjectBase::_eventPreUpdate() {
     }
 }
 
-void SynchronizedObjectBase::_eventUpdate() {
+void SynchronizedObjectBase::_eventUpdate1() {
     if (isMasterObject()) {
-        _eventUpdate(IfMaster{});
+        _eventUpdate1(IfMaster{});
     }
     else {
         _advanceDummyAndScheduleNewStates();
@@ -127,7 +127,7 @@ void SynchronizedObjectBase::_eventUpdate() {
             return;
         }
 
-        _eventUpdate(IfDummy{});
+        _eventUpdate1(IfDummy{});
     }
 }
 

@@ -68,7 +68,7 @@ cpBody* PhysicsBullet::getPhysicsBody() const {
     return _body.get();
 }
 
-void PhysicsBullet::_eventUpdate() {
+void PhysicsBullet::_eventUpdate1() {
     if (ctx().isPrivileged()) {
         if (_hitSomething) {
             QAO_PDestroy(this);

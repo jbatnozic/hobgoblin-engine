@@ -44,7 +44,7 @@ public:
     cpBody* getPhysicsBody() const;
 
 protected:
-    void _eventUpdate() override;
+    void _eventUpdate1() override;
     void _eventPostUpdate() override;
     void _eventDraw1() override;
 

@@ -24,7 +24,7 @@ void BasicPlayerCharacter::init(int aOwningPlayerIndex, float aX, float aY) {
     self.owningPlayerIndex = aOwningPlayerIndex;
 }
 
-void BasicPlayerCharacter::_eventUpdate(spe::IfMaster) {
+void BasicPlayerCharacter::_eventUpdate1(spe::IfMaster) {
     if (ctx().getGameState().isPaused) return;
 
     auto& self = _getCurrentState();

@@ -482,7 +482,7 @@ void LobbyFrontendManager::_eventPreUpdate() {
     _impl->eventPreUpdate();
 }
 
-void LobbyFrontendManager::_eventUpdate() {
+void LobbyFrontendManager::_eventUpdate1() {
     _impl->eventUpdate();
 }
 

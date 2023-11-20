@@ -7,7 +7,7 @@ class MainMenu : public NonstateObject {
 public:
     MainMenu(QAO_RuntimeRef runtimeRef);
 
-    void _eventUpdate() override;
+    void _eventUpdate1() override;
 
 private:
     static void generateTerrain(GameContext& ctx);

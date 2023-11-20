@@ -68,7 +68,8 @@ private:
 
     virtual void _eventStartFrame()    {}
     virtual void _eventPreUpdate()     {}
-    virtual void _eventUpdate()        {}
+    virtual void _eventUpdate1()       {}
+    virtual void _eventUpdate2()       {}
     virtual void _eventPostUpdate()    {}
     virtual void _eventDraw1()         {}
     virtual void _eventDraw2()         {}

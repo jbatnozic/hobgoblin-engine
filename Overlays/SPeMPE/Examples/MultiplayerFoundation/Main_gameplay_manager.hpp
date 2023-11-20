@@ -17,7 +17,7 @@ private:
 
     hg::PZInteger printBandwidthUsageCountdown = 120;
 
-    void _eventUpdate() override;
+    void _eventUpdate1() override;
     void _eventDrawGUI() override;
     void _eventFinalizeFrame() override;
 

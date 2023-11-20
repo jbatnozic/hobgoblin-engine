@@ -34,7 +34,7 @@ public:
 
 protected:
     void _eventPreUpdate() override;
-    void _eventUpdate() override;
+    void _eventUpdate1() override;
     void _eventDraw1() override;
 
 public: // State object must be public

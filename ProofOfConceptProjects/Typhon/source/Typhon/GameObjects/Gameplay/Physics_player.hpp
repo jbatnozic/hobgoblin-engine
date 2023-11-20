@@ -55,7 +55,7 @@ public:
     }
 
 protected:
-    void _eventUpdate() override;
+    void _eventUpdate1() override;
     void _eventPostUpdate() override;
     void _eventDraw1() override;
     void _eventDrawGUI() override;

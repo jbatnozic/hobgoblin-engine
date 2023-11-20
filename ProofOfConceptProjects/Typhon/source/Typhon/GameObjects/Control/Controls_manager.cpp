@@ -84,7 +84,7 @@ void ControlsManager::_eventPreUpdate() {
     }
 }
 
-void ControlsManager::_eventUpdate() {
+void ControlsManager::_eventUpdate1() {
     if (ctx().getLocalPlayerIndex() > 0 && 
         ctx(MNetworking).getClient().getServerConnector().getStatus() == hg::RN_ConnectorStatus::Connected) {
         auto& scheduler = _schedulers[ctx().getLocalPlayerIndex()];

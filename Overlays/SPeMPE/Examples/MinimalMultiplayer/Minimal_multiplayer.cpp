@@ -97,7 +97,7 @@ public:
     }
 
 private:
-    void _eventUpdate(spe::IfMaster) override {
+    void _eventUpdate1(spe::IfMaster) override {
         // if (ctx().getGameState().isPaused) return;
 
         auto& self = _getCurrentState();
@@ -201,7 +201,7 @@ public:
     }
 
 private:
-    void _eventUpdate(spe::IfMaster) override {
+    void _eventUpdate1(spe::IfMaster) override {
         auto& self = _getCurrentState();
         assert(self.owningPlayerIndex >= 0);
 
@@ -306,7 +306,7 @@ public:
 private:
     std::vector<hg::util::StateScheduler<PlayerControls>> _schedulers;
 
-    void _eventUpdate() override;
+    void _eventUpdate1() override;
 
     void _eventDrawGUI() override {
 #if 0 // TODO(enable when hg::gr::Text is implemented)
@@ -373,7 +373,7 @@ private:
     }
 };
 
-void GameplayManager::_eventUpdate() {
+void GameplayManager::_eventUpdate1() {
     if (!ctx().isPrivileged() &&
         ccomp<MNetworking>().getClient().getServerConnector().getStatus() == RN_ConnectorStatus::Connected) {
 

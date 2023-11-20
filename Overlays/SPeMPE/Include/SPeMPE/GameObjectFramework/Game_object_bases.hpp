@@ -114,7 +114,8 @@ protected:
 
     virtual void _eventStartFrame(IfMaster)    {}
     virtual void _eventPreUpdate(IfMaster)     {}
-    virtual void _eventUpdate(IfMaster)        {}
+    virtual void _eventUpdate1(IfMaster)       {}
+    virtual void _eventUpdate2(IfMaster)       {}
     virtual void _eventPostUpdate(IfMaster)    {}
     virtual void _eventDraw1(IfMaster)         {}
     virtual void _eventDraw2(IfMaster)         {}
@@ -126,7 +127,8 @@ protected:
 
     virtual void _eventStartFrame(IfDummy)    {}
     virtual void _eventPreUpdate(IfDummy)     {}
-    virtual void _eventUpdate(IfDummy)        {}
+    virtual void _eventUpdate1(IfDummy)       {}
+    virtual void _eventUpdate2(IfDummy)       {}
     virtual void _eventPostUpdate(IfDummy)    {}
     virtual void _eventDraw1(IfDummy)         {}
     virtual void _eventDraw2(IfDummy)         {}
@@ -138,7 +140,8 @@ protected:
 
     void _eventStartFrame() override;
     void _eventPreUpdate() override;
-    void _eventUpdate() override;
+    void _eventUpdate1() override;
+    void _eventUpdate2() override;
     void _eventPostUpdate() override;
     void _eventDraw1() override;
     void _eventDraw2() override;
@@ -189,9 +192,9 @@ private:
 /*
 Note:
     If an object drived from SynchronizedObject (below), and transitively from
-    SynchronizedObjectBase overrides _eventUpdate() (but not IfMaster/IfDummy overloads),
+    SynchronizedObjectBase overrides _eventUpdate1() (but not IfMaster/IfDummy overloads),
     the dummy object won't behave properly unless you call the following code at the start
-    of its _eventUpdate() implementation:
+    of its _eventUpdate1() implementation:
     
     if (!isMasterObject()) {
         const bool endOfLifetime = _willUpdateDeleteThis();
@@ -201,11 +204,11 @@ Note:
 
     This can be expressed with the macro SPEMPE_SYNCOBJ_BEGIN_EVENT_UPDATE_OVERRIDE().
 */
-
+// TODO(rename)
 #define SPEMPE_SYNCOBJ_BEGIN_EVENT_UPDATE_OVERRIDE() \
     do { if (!SynchronizedObjectBase::isMasterObject()) { \
         const bool USPEMPE_endOfLifetime = SynchronizedObjectBase::_willUpdateDeleteThis(); \
-        SynchronizedObjectBase::_eventUpdate(); \
+        SynchronizedObjectBase::_eventUpdate1(); \
         if (USPEMPE_endOfLifetime) return; \
     } } while (false)
 

@@ -103,7 +103,8 @@ void QAO_Base::_callEvent(QAO_Event::Enum ev) {
     const EventHandlerPointer handlers[QAO_Event::Count] = {
         &QAO_Base::_eventStartFrame,
         &QAO_Base::_eventPreUpdate,
-        &QAO_Base::_eventUpdate,
+        &QAO_Base::_eventUpdate1,
+        &QAO_Base::_eventUpdate2,
         &QAO_Base::_eventPostUpdate,
         &QAO_Base::_eventDraw1,
         &QAO_Base::_eventDraw2,

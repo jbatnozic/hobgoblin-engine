@@ -36,7 +36,7 @@ public:
 
 protected:
     void _eventPreUpdate() override; // TODO To frameStart
-    void _eventUpdate() override;
+    void _eventUpdate1() override;
     void _eventPostUpdate() override;
 
 private:

@@ -39,7 +39,7 @@ public:
 
     using QAO_Base::setExecutionPriority;
 
-    void _eventUpdate() override {
+    void _eventUpdate1() override {
         _myVec.push_back(_myNumber);
     }
 
@@ -55,7 +55,7 @@ public:
     {
     }
 
-    void _eventUpdate() {
+    void _eventUpdate1() {
         if (getRuntime()->ownsObject(this)) {
             getRuntime()->eraseObject(this);
         }

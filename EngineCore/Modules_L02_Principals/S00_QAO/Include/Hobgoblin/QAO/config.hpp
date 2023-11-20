@@ -19,7 +19,8 @@ struct QAO_Event {
     enum Enum {
         StartFrame,
         PreUpdate,
-        Update,
+        Update1,
+        Update2,
         PostUpdate,
         Draw1,
         Draw2,
