@@ -8,6 +8,10 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
+# ===== IMPORT CUSTOM FUNCTIONS =====
+
+include("CMake/hg_copy_test_assets.cmake")
+
 # ===== ADD ALL THE PARTS =====
 
 # This will make the modules which compile to Windows DLLs
