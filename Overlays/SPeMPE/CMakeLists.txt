@@ -35,7 +35,6 @@ PUBLIC
     "Hobgoblin.GSL"
     "Hobgoblin.HGExcept"
     "Hobgoblin.Logging"
-    "Hobgoblin.Unicode"
 
     # Utilities
     "Hobgoblin.Common"
