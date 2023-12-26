@@ -5,7 +5,7 @@
 
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace rn {
-namespace detail {
+namespace rn_detail {
 
 EventFactory::EventFactory(std::deque<RN_Event>& eventQueue)
     : _eventQueue{eventQueue}
@@ -37,7 +37,7 @@ void EventFactory::createDisconnected(RN_Event::Disconnected::Reason reason, std
     ENQUEUE_EVENT(RN_Event::Disconnected{_clientIndex, reason, std::move(message)});
 }
 
-} // namespace detail
+} // namespace rn_detail
 } // namespace rn
 HOBGOBLIN_NAMESPACE_END
 

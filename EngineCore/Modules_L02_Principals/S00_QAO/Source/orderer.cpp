@@ -6,7 +6,7 @@
 
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace qao {
-namespace detail {
+namespace qao_detail {
 
 bool QAO_OrdererComparator::operator()(const QAO_Base* a, const QAO_Base* b) const {
     // If A.priority > B.priority, A precedes B
@@ -18,7 +18,7 @@ bool QAO_OrdererComparator::operator()(const QAO_Base* a, const QAO_Base* b) con
            ((pri_a == pri_b) && (reinterpret_cast<std::uintptr_t>(a) < reinterpret_cast<std::uintptr_t>(b)));
 }
 
-} // namespace detail
+} // namespace qao_detail
 } // namespace qao
 HOBGOBLIN_NAMESPACE_END
 

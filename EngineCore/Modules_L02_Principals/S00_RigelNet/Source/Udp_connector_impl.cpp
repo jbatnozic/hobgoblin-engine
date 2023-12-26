@@ -127,8 +127,8 @@ void HandleDataMessages(util::Packet& receivedPacket,
     pointerToCurrentPacket = &receivedPacket;
 
     while (!receivedPacket.endOfPacket()) {
-        const auto handlerId = receivedPacket.extractOrThrow<detail::RN_HandlerId>();
-        auto handlerFunc = detail::RN_GlobalHandlerMapper::getInstance().handlerWithId(handlerId);
+        const auto handlerId = receivedPacket.extractOrThrow<rn_detail::RN_HandlerId>();
+        auto handlerFunc = rn_detail::RN_GlobalHandlerMapper::getInstance().handlerWithId(handlerId);
         if (handlerFunc == nullptr) {
             throw RN_IllegalMessage{"Requested handler does not exist."};
         }
@@ -159,7 +159,7 @@ RN_UdpConnectorImpl::RN_UdpConnectorImpl(RN_SocketAdapter& socket,
                                          const std::chrono::microseconds& timeoutLimit, 
                                          const std::string& passphrase, 
                                          const RN_RetransmitPredicate& retransmitPredicate,
-                                         detail::EventFactory eventFactory,
+                                         rn_detail::EventFactory eventFactory,
                                          PZInteger aMaxPacketSize)
     : _socket{socket}
     , _timeoutLimit{timeoutLimit}

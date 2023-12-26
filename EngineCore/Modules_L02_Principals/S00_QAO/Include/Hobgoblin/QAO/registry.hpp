@@ -17,7 +17,7 @@ namespace qao {
 
 class QAO_Base;
 
-namespace detail {
+namespace qao_detail {
 
 class QAO_Registry {
 public:
@@ -67,7 +67,7 @@ private:
     std::int64_t nextSerial();
 };
 
-} // namespace detail
+} // namespace qao_detail
 } // namespace qao
 HOBGOBLIN_NAMESPACE_END
 

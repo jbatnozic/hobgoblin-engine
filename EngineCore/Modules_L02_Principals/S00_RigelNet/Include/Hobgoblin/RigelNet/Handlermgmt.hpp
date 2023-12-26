@@ -15,7 +15,7 @@ extern void RN_IndexHandlers();
 
 class RN_NodeInterface;
 
-namespace detail {
+namespace rn_detail {
 
 using RN_HandlerFunc = void(*)(RN_NodeInterface&);
 using RN_HandlerId = std::int16_t;
@@ -66,7 +66,7 @@ private:
     RN_HandlerId _handlerId;
 };
 
-} // namespace detail
+} // namespace rn_detail
 
 ///////////////////////////////////////////////////////////////////////////////
 

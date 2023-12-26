@@ -10,7 +10,7 @@
 
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace qao {
-namespace detail {
+namespace qao_detail {
 
 QAO_Registry::QAO_Registry(PZInteger capacity)
     : _indexer{capacity}
@@ -148,7 +148,7 @@ std::int64_t QAO_Registry::nextSerial() {
     return rv;
 }
 
-} // namespace detail
+} // namespace qao_detail
 } // namespace qao
 HOBGOBLIN_NAMESPACE_END
 

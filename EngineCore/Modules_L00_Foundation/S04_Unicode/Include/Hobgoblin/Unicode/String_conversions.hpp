@@ -44,13 +44,13 @@ auto UniStrConv(TO_STD_U8STRING_Tag, const UnicodeString& aUnicodeString) -> std
 //! Returns a `std::filesystem::path` constructed from the given string.
 auto UniStrConv(TO_STD_PATH_Tag, const UnicodeString& aUnicodeString) -> std::filesystem::path;
 
-//! TODO(doc)
+//! TODO(add description)
 auto UniStrConv(FROM_UTF8_STD_STRING_Tag, const std::string& aStdString) -> UnicodeString;
 
-//! TODO(doc)
+//! TODO(add description)
 auto UniStrConv(FROM_ASCII_STD_STRING_Tag, const std::string& aStdString) -> UnicodeString;
 
-//! TODO(doc)
+//! TODO(add description)
 auto UniStrConv(FROM_STD_U8STRING_Tag, const std::u8string& aStdU8String) -> UnicodeString;
 
 HOBGOBLIN_NAMESPACE_END

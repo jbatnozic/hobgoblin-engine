@@ -65,7 +65,7 @@ private:
     template <class taRecepients, class ...taArgs>
     friend void UHOBGOBLIN_RN_ComposeImpl(RN_NodeInterface& node, 
                                           taRecepients&& recepients, 
-                                          detail::RN_HandlerId handlerId, 
+                                          rn_detail::RN_HandlerId handlerId, 
                                           taArgs... args);
 
     template <class T>
@@ -93,7 +93,7 @@ T* RN_NodeInterface::getUserDataOrThrow() const {
 template <class taRecepients,  class ...taArgs>
 void UHOBGOBLIN_RN_ComposeImpl(RN_NodeInterface& node,
                                taRecepients&& recepients,
-                               detail::RN_HandlerId handlerId,
+                               rn_detail::RN_HandlerId handlerId,
                                taArgs... args) {
     util::Packet packet;
     packet.insert(handlerId);

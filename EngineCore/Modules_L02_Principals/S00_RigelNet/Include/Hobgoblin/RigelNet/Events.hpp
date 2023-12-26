@@ -89,7 +89,7 @@ struct RN_Event {
     }
 };
 
-namespace detail {
+namespace rn_detail {
     
 class EventFactory {
 public:
@@ -106,7 +106,7 @@ private:
     std::optional<PZInteger> _clientIndex;
 };
 
-} // namespace detail
+} // namespace rn_detail
 
 } // namespace rn
 HOBGOBLIN_NAMESPACE_END

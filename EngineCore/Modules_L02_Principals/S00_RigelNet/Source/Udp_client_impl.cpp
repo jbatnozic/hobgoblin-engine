@@ -24,7 +24,7 @@ RN_UdpClientImpl::RN_UdpClientImpl(std::string aPassphrase,
                 , _timeoutLimit
                 , _passphrase
                 , _retransmitPredicate
-                , detail::EventFactory{_eventQueue}
+                , rn_detail::EventFactory{_eventQueue}
                 , _maxPacketSize 
                 }
     , _passphrase{std::move(aPassphrase)}

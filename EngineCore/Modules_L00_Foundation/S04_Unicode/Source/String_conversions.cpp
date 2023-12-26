@@ -57,6 +57,18 @@ auto UniStrConv(FROM_UTF8_STD_STRING_Tag, const std::string& aStdString) -> Unic
     return UnicodeString{aStdString.data(), static_cast<std::int32_t>(aStdString.size()), "UTF-8"};
 }
 
+auto UniStrConv(FROM_ASCII_STD_STRING_Tag, const std::string& aStdString) -> UnicodeString {
+    return UniStrConv(FROM_UTF8_STD_STRING, aStdString);
+}
+
+auto UniStrConv(FROM_STD_U8STRING_Tag, const std::u8string& aStdU8String) -> UnicodeString {
+    return UnicodeString{
+        reinterpret_cast<const char*>(aStdU8String.data()),
+        static_cast<std::int32_t>(aStdU8String.size()),
+        "UTF-8"
+    };
+}
+
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>

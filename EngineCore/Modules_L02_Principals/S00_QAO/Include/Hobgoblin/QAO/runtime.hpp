@@ -129,8 +129,8 @@ public:
     friend util::PacketBase& operator>>(util::PacketBase& packet, QAO_Runtime& self);
 
 private:
-    detail::QAO_Registry _registry;
-    detail::QAO_Orderer _orderer;
+    qao_detail::QAO_Registry _registry;
+    qao_detail::QAO_Orderer _orderer;
     std::int64_t _step_counter;
     QAO_Event::Enum _current_event;
     QAO_OrdererIterator _step_orderer_iterator;

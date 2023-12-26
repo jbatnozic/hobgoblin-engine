@@ -92,7 +92,7 @@ TEST(HGUnicodeTest, TestConversionToPath) {
     EXPECT_EQ(fileContents, "TEST");
 }
 
-TEST(HGUnicodeTest, TestCharsetDetection_UTF8) {
+TEST(HGUnicodeTest, TestCharsetDetection) {
     struct TestCase {
         hg::UnicodeString relativeFilePath;
         hg::Charset       expectedCharset;

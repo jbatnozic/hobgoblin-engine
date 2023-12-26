@@ -55,7 +55,7 @@ public:
                         const std::chrono::microseconds& timeoutLimit, 
                         const std::string& passphrase, 
                         const RN_RetransmitPredicate& retransmitPredicate,
-                        detail::EventFactory eventFactory,
+                        rn_detail::EventFactory eventFactory,
                         PZInteger aMaxPacketSize);
 
     bool tryAccept(sf::IpAddress addr, std::uint16_t port, util::Packet& packet);
@@ -89,7 +89,7 @@ private:
     const std::chrono::microseconds& _timeoutLimit;
     const std::string& _passphrase;
     const RN_RetransmitPredicate& _retransmitPredicate;
-    detail::EventFactory _eventFactory;
+    rn_detail::EventFactory _eventFactory;
 
     PZInteger _maxPacketSize;
 

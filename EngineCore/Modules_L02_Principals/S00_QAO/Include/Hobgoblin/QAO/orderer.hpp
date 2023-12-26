@@ -10,7 +10,7 @@ namespace qao {
 
 class QAO_Base;
 
-namespace detail {
+namespace qao_detail {
 
 struct QAO_OrdererComparator {
     bool operator()(const QAO_Base* a, const QAO_Base* b) const;
@@ -18,12 +18,12 @@ struct QAO_OrdererComparator {
 
 using QAO_Orderer = std::set<QAO_Base*, QAO_OrdererComparator>;
 
-} // namespace detail
+} // namespace qao_detail
 
-using QAO_OrdererIterator             = detail::QAO_Orderer::iterator;
-using QAO_OrdererReverseIterator      = detail::QAO_Orderer::reverse_iterator;
-using QAO_OrdererConstIterator        = detail::QAO_Orderer::const_iterator;
-using QAO_OrdererConstReverseIterator = detail::QAO_Orderer::const_reverse_iterator;
+using QAO_OrdererIterator             = qao_detail::QAO_Orderer::iterator;
+using QAO_OrdererReverseIterator      = qao_detail::QAO_Orderer::reverse_iterator;
+using QAO_OrdererConstIterator        = qao_detail::QAO_Orderer::const_iterator;
+using QAO_OrdererConstReverseIterator = qao_detail::QAO_Orderer::const_reverse_iterator;
 
 }
 HOBGOBLIN_NAMESPACE_END
