@@ -34,7 +34,7 @@ RN_UdpServerImpl::RN_UdpServerImpl(std::string passphrase,
             _timeoutLimit,
             _passphrase,
             _retransmitPredicate,
-            detail::EventFactory{_eventQueue, i},
+            rn_detail::EventFactory{_eventQueue, i},
             _maxPacketSize);
 
         _clients.push_back(std::move(connector));
@@ -85,7 +85,7 @@ void RN_UdpServerImpl::resize(PZInteger newSize) {
             _timeoutLimit,
             _passphrase,
             _retransmitPredicate,
-            detail::EventFactory{_eventQueue, i},
+            rn_detail::EventFactory{_eventQueue, i},
             _maxPacketSize);
 
         _clients.push_back(std::move(connector));

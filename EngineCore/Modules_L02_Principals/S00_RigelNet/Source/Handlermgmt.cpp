@@ -12,10 +12,10 @@ HOBGOBLIN_NAMESPACE_BEGIN
 namespace rn {
 
 void RN_IndexHandlers() {
-    detail::RN_GlobalHandlerMapper::getInstance().index();
+    rn_detail::RN_GlobalHandlerMapper::getInstance().index();
 }
 
-namespace detail {
+namespace rn_detail {
 
 std::size_t RN_CStringHash::operator()(const char* key) const {
     // 'Murmur One-At-A-Time 32b' hash implementation
@@ -110,7 +110,7 @@ RN_HandlerId RN_HandlerNameToIdCacher::getHandlerId() {
     return _handlerId;
 }
 
-} // namespace detail
+} // namespace rn_detail
 
 } // namespace rn
 HOBGOBLIN_NAMESPACE_END

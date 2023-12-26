@@ -27,11 +27,11 @@ constexpr auto LOG_ID = "jbatnozic::spempe::DefaultAuthorizationManager";
 std::string GenerateRandomString(hg::PZInteger aStringLength) {
     return hg::util::DoWith32bitRNG(
         [=](std::mt19937& aRNG) {
-            std::uniform_int_distribution<char> dist{33, 126};
+            std::uniform_int_distribution<int> dist{33, 126};
             std::string result;
             result.resize(hg::pztos(aStringLength), ' ');
             for (hg::PZInteger i = 0; i < aStringLength; i += 1) {
-                result[hg::pztos(i)] = dist(aRNG);
+                result[hg::pztos(i)] = static_cast<char>(dist(aRNG));
             }
             return result;
         });

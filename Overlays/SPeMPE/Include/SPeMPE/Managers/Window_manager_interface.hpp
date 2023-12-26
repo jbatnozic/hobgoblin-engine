@@ -28,12 +28,12 @@ public:
 
     struct WindowConfig {
         WindowConfig(const hg::win::VideoMode& aVideoMode,
-                     const hg::UnicodeString& aTitle,
+                     const std::string& aTitle,
                      hg::win::WindowStyle aStyle = hg::win::WindowStyle::Default,
                      const hg::win::ContextSettings& aOpenGlContextSettings = hg::win::ContextSettings{});
 
         hg::win::VideoMode videoMode;
-        hg::UnicodeString title;
+        std::string title;
         hg::win::WindowStyle style;
         hg::win::ContextSettings openGlContextSettings;
     };
@@ -138,7 +138,7 @@ private:
 inline
 WindowManagerInterface::WindowConfig::WindowConfig(
     const hg::win::VideoMode& aVideoMode,
-    const hg::UnicodeString& aTitle,
+    const std::string& aTitle,
     hg::win::WindowStyle aStyle,
     const hg::win::ContextSettings& aOpenGlContextSettings) 
     : videoMode{aVideoMode}

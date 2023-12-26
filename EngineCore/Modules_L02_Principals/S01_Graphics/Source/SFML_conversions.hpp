@@ -89,7 +89,7 @@ typename math::Rectangle<taArithmetic> ToHg(const typename sf::Rect<taArithmetic
 
 inline
 std::string FilesystemPathToSfPath(const std::filesystem::path& aPath) {
-    return aPath.u8string();
+    return aPath.string();
 }
 
 ///////////////////////////////////////////////////////////////////////////

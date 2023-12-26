@@ -72,7 +72,7 @@ void QAO_Runtime::addObjectNoOwn(QAO_Base& object) {
 
 void QAO_Runtime::addObject(std::unique_ptr<QAO_Base> object, QAO_GenericId specififcId) {
     QAO_Base* const objRaw = object.get();
-    _registry.insert(std::move(object), detail::QAO_SerialIndexPair{specififcId.getSerial(), specififcId.getIndex()});
+    _registry.insert(std::move(object), qao_detail::QAO_SerialIndexPair{specififcId.getSerial(), specififcId.getIndex()});
 
     auto ordPair = _orderer.insert(objRaw); // first = iterator, second = added_new
     assert(ordPair.second);
@@ -86,7 +86,7 @@ void QAO_Runtime::addObject(std::unique_ptr<QAO_Base> object, QAO_GenericId spec
 }
 
 void QAO_Runtime::addObjectNoOwn(QAO_Base& object, QAO_GenericId specififcId) {
-    _registry.insertNoOwn(&object, detail::QAO_SerialIndexPair{specififcId.getSerial(), specififcId.getIndex()});
+    _registry.insertNoOwn(&object, qao_detail::QAO_SerialIndexPair{specififcId.getSerial(), specififcId.getIndex()});
 
     auto ordPair = _orderer.insert(&object); // first = iterator, second = added_new
     assert(ordPair.second);
