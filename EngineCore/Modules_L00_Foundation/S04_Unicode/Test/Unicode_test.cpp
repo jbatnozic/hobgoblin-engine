@@ -6,8 +6,9 @@
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
-#include <string>
 #include <iostream>
+#include <string>
+#include <type_traits>
 
 #include <fmt/ostream.h>
 
@@ -167,6 +168,194 @@ TEST(HGUnicodeTest, TestCharsetDetection_UTF8) {
 
 // TODO(Test newline processing)
 
+namespace tou16formattable_test {
+struct MustNotCopyCanNotMove_U16Formattable {
+    #define Class MustNotCopyCanNotMove_U16Formattable
+
+    MustNotCopyCanNotMove_U16Formattable(int aValue) : value{aValue} {}
+
+    MustNotCopyCanNotMove_U16Formattable(const Class& aOther) {
+        ADD_FAILURE() << "Unexpected copy (ctor) happened.";
+    }
+
+    MustNotCopyCanNotMove_U16Formattable(Class&&) = delete;
+
+    Class& operator=(const Class& aOther) {
+        if (&aOther != this) {
+            ADD_FAILURE() << "Unexpected copy (operator) happened.";
+        }
+        return *this;
+    }
+
+    Class& operator=(Class&&) = delete;
+
+    int value;
+
+    #undef Class
+};
+
+struct MustNotCopyCanNotMove_StdStreamable {
+    #define Class MustNotCopyCanNotMove_StdStreamable
+
+    MustNotCopyCanNotMove_StdStreamable(int aValue) : value{aValue} {}
+
+    MustNotCopyCanNotMove_StdStreamable(const Class& aOther) {
+        ADD_FAILURE() << "Unexpected copy (ctor) happened.";
+    }
+
+    MustNotCopyCanNotMove_StdStreamable(Class&&) = delete;
+
+    Class& operator=(const Class& aOther) {
+        if (&aOther != this) {
+            ADD_FAILURE() << "Unexpected copy (operator) happened.";
+        }
+        return *this;
+    }
+
+    Class& operator=(Class&&) = delete;
+
+    friend std::ostream& operator<<(std::ostream& aOS, const Class& aObj) {
+        return (aOS << "tou16formattable_test::MustNotCopyCanNotMove_StdStreamable(" << aObj.value << ")");
+    }
+
+    int value;
+
+    #undef Class
+};
+
+struct MustNotCopyCanNotMove_StdTostringable {
+    #define Class MustNotCopyCanNotMove_StdTostringable
+
+    MustNotCopyCanNotMove_StdTostringable(int aValue) : value{aValue} {}
+
+    MustNotCopyCanNotMove_StdTostringable(const Class& aOther) {
+        ADD_FAILURE() << "Unexpected copy (ctor) happened.";
+    }
+
+    MustNotCopyCanNotMove_StdTostringable(Class&&) = delete;
+
+    Class& operator=(const Class& aOther) {
+        if (&aOther != this) {
+            ADD_FAILURE() << "Unexpected copy (operator) happened.";
+        }
+        return *this;
+    }
+
+    Class& operator=(Class&&) = delete;
+
+    int value;
+
+    #undef Class
+};
+
+std::string to_string(const MustNotCopyCanNotMove_StdTostringable& aObj) {
+    return "tou16formattable_test::MustNotCopyCanNotMove_StdTostringable(" +
+           std::to_string(aObj.value) + 
+           ')';
+}
+
+} // namespace tou16formattable_test
+
+namespace fmt {
+
+template <>
+struct formatter<tou16formattable_test::MustNotCopyCanNotMove_U16Formattable, char16_t> 
+    : ::fmt::formatter<std::u16string, char16_t> 
+{
+    template <class taContext>
+    auto format(const tou16formattable_test::MustNotCopyCanNotMove_U16Formattable& aArg,
+                taContext& aContext) const {
+        std::u16string u16str{u"tou16formattable_test::MustNotCopyCanNotMove_U16Formattable("};
+        const auto valstr = std::to_string(aArg.value);
+        for (const char c : valstr) {
+            u16str.push_back((char16_t)c);
+        }
+        u16str.push_back((char16_t)')');
+
+        return ::fmt::formatter<std::u16string, char16_t>::format(u16str, aContext);
+    }
+};
+
+} // namespace fmt
+
+TEST(HGUnicodeTest, ToU16Formattable_UCoalesce_Test) {
+    using hg::detail::ToU16Formattable;
+    {
+        SCOPED_TRACE("object is u16 formattable (primitive) - const reference to original object returned");
+
+        const int obj{3};
+        decltype(auto) formattable = ToU16Formattable(obj);
+        static_assert(std::is_same<decltype(formattable), const int&>::value, "wrong type");
+
+        EXPECT_EQ(&obj, &formattable);
+        EXPECT_EQ(hg::UCoalesce(formattable), HG_UNISTR("3"));
+    }
+    {
+        SCOPED_TRACE("object is u16 formattable (class) - const reference to original object returned");
+
+        tou16formattable_test::MustNotCopyCanNotMove_U16Formattable obj{5};
+        decltype(auto) formattable = ToU16Formattable(obj);
+        static_assert(std::is_same<decltype(formattable), 
+                                   tou16formattable_test::MustNotCopyCanNotMove_U16Formattable&>::value,
+                      "wrong type");
+
+        EXPECT_EQ(&obj, &formattable);
+        EXPECT_EQ(hg::UCoalesce(formattable),
+                    HG_UNISTR("tou16formattable_test::MustNotCopyCanNotMove_U16Formattable(5)"));
+    }
+#if 0 // Don't do this, it's dangerous and not supported
+    {
+        SCOPED_TRACE("object is u16 formattable but is a temporary - return it by reference");
+
+        decltype(auto) formattable = ToU16Formattable(tou16formattable_test::MustNotCopyCanNotMove_U16Formattable{23});
+    }
+#endif
+    {
+        SCOPED_TRACE("object is not u16 formattable but is tostringable - UnicodeString returned");
+
+        const tou16formattable_test::MustNotCopyCanNotMove_StdTostringable obj{66};
+        decltype(auto) formattable = ToU16Formattable(obj);
+        static_assert(std::is_same<decltype(formattable), hg::UnicodeString>::value, "wrong type");
+
+        EXPECT_EQ(hg::UCoalesce(formattable),
+                  HG_UNISTR("tou16formattable_test::MustNotCopyCanNotMove_StdTostringable(66)"));
+    }
+    {
+        SCOPED_TRACE("object is not u16 formattable but is streamable - UnicodeString returned");
+
+        const tou16formattable_test::MustNotCopyCanNotMove_StdStreamable obj{100};
+        decltype(auto) formattable = ToU16Formattable(obj);
+        static_assert(std::is_same<decltype(formattable), hg::UnicodeString>::value, "wrong type");
+
+        EXPECT_EQ(hg::UCoalesce(formattable),
+                  HG_UNISTR("tou16formattable_test::MustNotCopyCanNotMove_StdStreamable(100)"));
+    }
+    {
+        SCOPED_TRACE("object is a UTF-16 string literal - char array returned");
+
+        decltype(auto) formattable = ToU16Formattable(HG_UNILIT("utf-16 string literal å"));
+        static_assert(std::is_same<decltype(formattable), const char16_t (&)[24]>::value, "wrong type");
+
+        EXPECT_EQ(hg::UCoalesce(formattable), HG_UNISTR("utf-16 string literal å"));
+    }
+    {
+        SCOPED_TRACE("object is an ascii string literal - UnicodeString returned");
+
+        decltype(auto) formattable = ToU16Formattable("ascii string literal");
+        static_assert(std::is_same<decltype(formattable), hg::UnicodeString>::value, "wrong type");
+
+        EXPECT_EQ(hg::UCoalesce(formattable), HG_UNISTR("ascii string literal"));
+    }
+    {
+        SCOPED_TRACE("object is std::string - UnicodeString returned");
+
+        decltype(auto) formattable = ToU16Formattable(std::string{"std::string"});
+        static_assert(std::is_same<decltype(formattable), hg::UnicodeString>::value, "wrong type");
+
+        EXPECT_EQ(hg::UCoalesce(formattable), HG_UNISTR("std::string"));
+    }
+}
+
 namespace {
 
 struct CustomFormattedType {
@@ -180,10 +369,20 @@ std::ostream& operator<<(std::ostream& aOStream, const CustomFormattedType& aCFT
 
 } // namespace
 
-//template <>
-//struct fmt::formatter<CustomFormattedType, char16_t> : fmt::basic_ostream_formatter<char16_t> {};
+namespace dummy {
+struct CustomFormattedType2 {};
 
-TEST(HGUnicodeTest, FmtTest) {
+hg::UnicodeString ToUnicodeString(const CustomFormattedType2&) {
+    return HG_UNISTR("CustomFormattedType2");
+}
+
+std::string to_string(const CustomFormattedType2&) {
+    ADD_FAILURE();
+    return {};
+}
+}
+
+TEST(HGUnicodeTest, UFormatTest) {
     {
         const auto expectedString  = HG_UNISTR("The answer is 42.");
         const auto formattedString = hg::UFormat(HG_UNIFMT("The answer is {}."), 42);
@@ -217,12 +416,10 @@ TEST(HGUnicodeTest, FmtTest) {
         EXPECT_EQ(expectedString, formattedString);
     }
     {
-        using TYPE = CustomFormattedType;
+        const auto expectedString  = HG_UNISTR("_ CustomFormattedType2 _");
+        const auto formattedString = hg::UFormat(HG_UNIFMT("_ {} _"), dummy::CustomFormattedType2{});
+        ToUnicodeString(dummy::CustomFormattedType2{});
 
-        const auto e1 = hg::is_u16_formattable<TYPE>::value;
-
-        const auto e2 = hg::is_tostringable<TYPE>::value;
-
-        const auto e3 = hg::is_streamable<std::ostream, TYPE>::value;
+        EXPECT_EQ(expectedString, formattedString);
     }
 }

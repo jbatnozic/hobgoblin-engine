@@ -27,6 +27,7 @@
 
 #undef CURRENT_FUNCTION_STR
 
+#undef HG_NODISCARD
 #undef NO_COPY
 #undef NO_MOVE
 #undef NO_OP
