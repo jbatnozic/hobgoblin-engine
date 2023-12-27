@@ -2,7 +2,7 @@
 Hobgoblin is a small game engine, intended to serve as a basis for small and games. It provides often-needed 
 facilities such as object and timing measurement, graphics, physics, networking and various other utilities.
 
-It is written in C++17 and uses [SFML](https://www.sfml-dev.org/) as the core for many of its features.
+It is written in C++20 and uses [SFML](https://www.sfml-dev.org/) as the core for many of its features.
 
 It is tested most thoroughly on Windows (built with MSVC), and semi-regularly on Linux and Mac
 (built with Clang and GCC). Basically: It should work without issue on major platforms and major
@@ -31,7 +31,7 @@ Most of the directories have their own Readme file which describes relevant cont
 ## Build instructions
 If you don't already have it, you will need to install the package manager [Conan](https://conan.io/) (version 2.0.0 or
 higher) in order to be able to fetch all of Hobgoblin's dependencies and build it successfully. Other than that, you
-will need [CMake](https://cmake.org/) (version 3.23 or higher) and a C++ compiler that supports C++17.
+will need [CMake](https://cmake.org/) (version 3.23 or higher) and a C++ compiler that supports C++20.
 
 ```
 1. Set up Conan Remotes
