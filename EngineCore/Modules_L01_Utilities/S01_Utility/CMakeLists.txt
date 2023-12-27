@@ -23,10 +23,8 @@ target_link_libraries(${COMPONENT_NAME}
 PUBLIC
     # Foudnation
     "Hobgoblin_L00_S00_PDef"
-    "Hobgoblin_L00_S02_HGExcept"
-
-    # Utility
     "Hobgoblin_L00_S01_Common"
+    "Hobgoblin_L00_S02_HGExcept"
 
     # External
     "sfml::sfml"
