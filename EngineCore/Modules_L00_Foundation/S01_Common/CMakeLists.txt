@@ -9,4 +9,4 @@ INTERFACE
     "Hobgoblin_L00_S00_PDef"
 )
 
-add_library("Hobgoblin_L01_S00_Common" ALIAS ${PROJECT_NAME})
+add_library("Hobgoblin_L00_S01_Common" ALIAS ${PROJECT_NAME})

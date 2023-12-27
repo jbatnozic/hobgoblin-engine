@@ -10,6 +10,7 @@
 #include <Hobgoblin/RigelNet.hpp>
 #include <Hobgoblin/RmlUi.hpp>
 #include <Hobgoblin/Utility/Dynamic_bitset.hpp> // Utility doesn't have an umbrella header
+#include <Hobgoblin/Unicode.hpp>
 
 #include <SPeMPE/SPeMPE.hpp>
 
@@ -56,6 +57,11 @@ int main() {
     // Preprocessor
     {
         const int five = HG_PP_COUNT_ARGS(a, 2, c, 3, e);
+    }
+    // Unicode
+    {
+        const auto us = HG_UNISTR("hobgoblin");
+        const auto path = UniStrConv(TO_STD_PATH, us);
     }
     // QAO
     {

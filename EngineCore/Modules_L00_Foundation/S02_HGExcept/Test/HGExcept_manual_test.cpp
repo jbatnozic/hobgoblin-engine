@@ -4,7 +4,7 @@
 #include <iostream>
 
 namespace {
-int Fn(int x, int y) {
+int Add(int x, int y) {
     return x + y;
 }
 } // namespace
@@ -34,14 +34,14 @@ int main(int argc, char* argv[]) {
     }
 
     try {
-        HG_THROW_TRACED(TracedException, 0, "message format with detail: {}", Fn(2, 4));
+        HG_THROW_TRACED(TracedException, 0, "message format with detail: {}", Add(2, 4));
     }
     catch (const hg::TracedException& ex) {
         std::cerr << ex.getFullFormattedDescription() << "\n\n";
     }
 
     try {
-        HG_ASSERT(Fn(5, 4) == 10);
+        HG_ASSERT(Add(5, 4) == 10);
         HG_HARD_ASSERT(5 == 6);
     }
     catch (const hg::TracedException& ex) {

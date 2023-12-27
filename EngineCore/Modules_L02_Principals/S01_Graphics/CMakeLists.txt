@@ -52,13 +52,13 @@ target_link_libraries(${COMPONENT_NAME}
 PUBLIC
     # Foundation
     "Hobgoblin_L00_S00_PDef"
+    "Hobgoblin_L00_S01_Common"
     "Hobgoblin_L00_S01_GSL"
     "Hobgoblin_L00_S02_HGExcept"
     "Hobgoblin_L00_S03_Logging"
 
     # Utilities
-    "Hobgoblin_L01_S00_Common"
-    "Hobgoblin_L01_S01_Math"
+    "Hobgoblin_L01_S00_Math"
     "Hobgoblin_L01_S02_Utility"
 
     # Principals

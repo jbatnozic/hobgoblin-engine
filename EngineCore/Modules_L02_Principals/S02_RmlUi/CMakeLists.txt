@@ -25,12 +25,10 @@ target_link_libraries(${COMPONENT_NAME}
 PUBLIC
     # Foundation
     "Hobgoblin_L00_S00_PDef"
+    "Hobgoblin_L00_S01_Common"
     "Hobgoblin_L00_S01_GSL"
     "Hobgoblin_L00_S02_HGExcept"
     "Hobgoblin_L00_S03_Logging"
-
-    # Utilities
-    "Hobgoblin_L01_S00_Common"
 
     # Principals
     "Hobgoblin_L02_S00_Input"

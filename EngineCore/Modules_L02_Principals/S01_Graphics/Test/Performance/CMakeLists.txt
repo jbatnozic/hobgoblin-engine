@@ -12,3 +12,5 @@ PUBLIC
   "Hobgoblin.Utility"
   "sfml::sfml"
 )
+
+hg_copy_test_assets(${PROJECT_NAME} "Assets")

@@ -15,7 +15,7 @@ namespace math = hg::math;
 
 namespace {
 
-constexpr auto SAMPLE_SPRITE_FILE_PATH = "C:\\Users\\Jovan-PC\\Desktop\\Screenshot_1.png";
+const auto SAMPLE_SPRITE_FILE_PATH = std::string{HG_TEST_ASSET_DIR} + "/Screenshot_1.png";
 
 ///////////////////////////////////////////////////////////////////////////
 // HELPERS                                                               //
@@ -228,8 +228,8 @@ void TestDrawingVertexArrays() {
 void TestSpriteLoader() {
     gr::SpriteLoader loader;
     loader.startTexture(2048, 2048)
-        ->addSprite("mons", "C:/Users/Jovan-PC/Desktop/Mons.png")
-        ->addSprite("troidco", "C:/Users/Jovan-PC/Desktop/Troidco.png")
+        ->addSprite("mons", std::string{HG_TEST_ASSET_DIR} + "/Mons.png")
+        ->addSprite("troidco", std::string{HG_TEST_ASSET_DIR} + "/Troidco.png")
         ->finalize(gr::TexturePackingHeuristic::BestAreaFit);
 
     gr::RenderWindow window{};

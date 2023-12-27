@@ -21,7 +21,7 @@ PUBLIC
     "Hobgoblin_L00_S02_HGExcept"
 
     # Utilities
-    "Hobgoblin_L01_S00_Common"
+    "Hobgoblin_L00_S01_Common"
 )
 
 add_library("Hobgoblin_L02_S00_HGConfig" ALIAS ${COMPONENT_NAME})
