@@ -21,7 +21,7 @@ PUBLIC
     "Hobgoblin_L00_S00_PDef"
 
     # Utilities
-    "Hobgoblin_L01_S00_Common"
+    "Hobgoblin_L00_S01_Common"
     "Hobgoblin_L01_S02_Utility"
 
     # External

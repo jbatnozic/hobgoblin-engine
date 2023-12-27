@@ -20,7 +20,11 @@ public:
     }
 
     std::string getErrorMessage() const {
-        return _oss.str();
+        std::string result = _oss.str();
+        if ((result.size() > 0) && (result[result.size() - 1] == '\n')) {
+            result.pop_back();
+        }
+        return result;
     }
 
 private:

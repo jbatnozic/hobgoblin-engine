@@ -16,7 +16,7 @@ namespace math = hg::math;
 
 namespace {
 
-constexpr auto SAMPLE_SPRITE_FILE_PATH = "C:\\Users\\Jovan-PC\\Desktop\\Screenshot_1.png";
+const auto SAMPLE_SPRITE_FILE_PATH = std::string{HG_TEST_ASSET_DIR} + "/Screenshot_1.png";
 
 class Tester {
 public:

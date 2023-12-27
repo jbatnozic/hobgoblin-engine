@@ -12,4 +12,4 @@ set(COMPONENT_SOURCES
 add_library(${COMPONENT_NAME} INTERFACE ${COMPONENT_SOURCES})
 target_include_directories(${COMPONENT_NAME} INTERFACE "Include/")
 
-add_library("Hobgoblin_L01_S01_Math" ALIAS ${COMPONENT_NAME})
+add_library("Hobgoblin_L01_S00_Math" ALIAS ${COMPONENT_NAME})

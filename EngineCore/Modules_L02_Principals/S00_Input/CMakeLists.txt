@@ -26,7 +26,7 @@ PUBLIC
     "Hobgoblin_L00_S02_HGExcept"
 
     # Utilities
-    "Hobgoblin_L01_S00_Common"
+    "Hobgoblin_L00_S01_Common"
 
     # External
     "sfml::sfml"

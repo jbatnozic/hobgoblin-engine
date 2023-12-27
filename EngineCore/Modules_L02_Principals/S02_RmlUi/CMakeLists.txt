@@ -30,7 +30,7 @@ PUBLIC
     "Hobgoblin_L00_S03_Logging"
 
     # Utilities
-    "Hobgoblin_L01_S00_Common"
+    "Hobgoblin_L00_S01_Common"
 
     # Principals
     "Hobgoblin_L02_S00_Input"

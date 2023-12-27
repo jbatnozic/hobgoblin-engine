@@ -33,6 +33,7 @@ class HobgoblinConan(ConanFile):
 
     _modules_foundation = [
         "S00_PDef",
+        "S01_Common",
         "S01_Format",
         "S01_GSL",
         "S01_Preprocessor",
@@ -41,9 +42,8 @@ class HobgoblinConan(ConanFile):
     ]
 
     _modules_utilities = [
-        "S00_Common",
-        "S01_Math",
-        "S02_Utility",
+        "S00_Math",
+        "S01_Utility",
     ]
 
     _modules_principals = [

@@ -15,7 +15,7 @@ function(hg_copy_test_assets A_TARGET A_ASSET_DIR)
         "${CMAKE_CURRENT_SOURCE_DIR}/${A_ASSET_DIR}"
     )
 
-    set(COMMAND_NAME "hg-copy-test-assets-${A_ASSET_DIR}")
+    set(COMMAND_NAME "hg-copy-test-assets-${A_TARGET}-${A_ASSET_DIR}")
 
     add_custom_target(${COMMAND_NAME}
         DEPENDS "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${COPIED_DIR_NAME}"

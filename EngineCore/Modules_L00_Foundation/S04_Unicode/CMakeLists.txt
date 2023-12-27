@@ -14,6 +14,7 @@ target_link_libraries(${PROJECT_NAME}
 PUBLIC
     # Foundation
     "Hobgoblin_L00_S00_PDef"
+    "Hobgoblin_L00_S01_Common"
     "Hobgoblin_L00_S01_Format"
     "Hobgoblin_L00_S02_HGExcept"
     "Hobgoblin_L00_S03_Logging"
