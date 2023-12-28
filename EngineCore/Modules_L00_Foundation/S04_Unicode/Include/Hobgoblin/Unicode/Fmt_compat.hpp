@@ -96,39 +96,39 @@ public:
 };
 
 template <class taType,
-          T_ENABLE_IF(detail::is_u16_formattable<taType>::value &&
+          T_ENABLE_IF(is_u16_formattable<taType>::value &&
                       std::is_convertible<taType, const char*>::value)>
 UnicodeString ToU16FormattableImpl(taType&& aVal) {
     return UniStrConv(FROM_UTF8_STD_STRING, aVal);
 }
 
 template <class taType,
-          T_ENABLE_IF(  detail::is_u16_formattable<taType>::value &&
+          T_ENABLE_IF(  is_u16_formattable<taType>::value &&
                       ! std::is_convertible<taType, const char*>::value &&
-                        detail::is_addressable<taType>::value)>
+                        is_addressable<taType>::value)>
 taType&& ToU16FormattableImpl(taType&& aVal) {
     return static_cast<taType&&>(aVal);
 }
 
 template <class taType,
-          T_ENABLE_IF(  detail::is_u16_formattable<taType>::value &&
+          T_ENABLE_IF(  is_u16_formattable<taType>::value &&
                       ! std::is_convertible<taType, const char*>::value &&
-                      ! detail::is_addressable<taType>::value)>
+                      ! is_addressable<taType>::value)>
 taType&& ToU16FormattableImpl(taType&& aVal) {
     return static_cast<taType&&>(aVal);
 }
 
 template <class taType,
-          T_ENABLE_IF(! detail::is_u16_formattable<taType>::value &&
-                        detail::supports_to_unicode_string<taType>::value)>
+          T_ENABLE_IF(! is_u16_formattable<taType>::value &&
+                        supports_to_unicode_string<taType>::value)>
 UnicodeString ToU16FormattableImpl(taType&& aVal) {
     return ToUnicodeString(std::forward<taType>(aVal));
 }
 
 template <class taType,
-          T_ENABLE_IF(! detail::is_u16_formattable<taType>::value &&
-                      ! detail::supports_to_unicode_string<taType>::value &&
-                        detail::supports_std_to_string<taType>::value)>
+          T_ENABLE_IF(! is_u16_formattable<taType>::value &&
+                      ! supports_to_unicode_string<taType>::value &&
+                        supports_std_to_string<taType>::value)>
 UnicodeString ToU16FormattableImpl(taType&& aVal) {
     using std::to_string;
     const std::string s = to_string(aVal);
@@ -136,10 +136,10 @@ UnicodeString ToU16FormattableImpl(taType&& aVal) {
 }
 
 template <class taType,
-          T_ENABLE_IF(! detail::is_u16_formattable<taType>::value &&
-                      ! detail::supports_to_unicode_string<taType>::value &&
-                      ! detail::supports_std_to_string<taType>::value &&
-                        detail::supports_streaming_into<taType, std::ostream>::value)>
+          T_ENABLE_IF(! is_u16_formattable<taType>::value &&
+                      ! supports_to_unicode_string<taType>::value &&
+                      ! supports_std_to_string<taType>::value &&
+                        supports_streaming_into<taType, std::ostream>::value)>
 UnicodeString ToU16FormattableImpl(taType&& aVal) {
     std::ostringstream oss;
     oss << aVal;
@@ -147,15 +147,15 @@ UnicodeString ToU16FormattableImpl(taType&& aVal) {
 }
 
 template <class taType,
-          T_ENABLE_IF(! detail::is_u16_formattable<taType>::value &&
-                      ! detail::supports_to_unicode_string<taType>::value &&
-                      ! detail::supports_std_to_string<taType>::value &&
-                      ! detail::supports_streaming_into<taType, std::ostream>::value)>
+          T_ENABLE_IF(! is_u16_formattable<taType>::value &&
+                      ! supports_to_unicode_string<taType>::value &&
+                      ! supports_std_to_string<taType>::value &&
+                      ! supports_streaming_into<taType, std::ostream>::value)>
 void ToU16FormattableImpl(taType&& aVal) {
-    static_assert(detail::is_u16_formattable<taType>::value ||
-                  detail::supports_to_unicode_string<taType>::value ||
-                  detail::supports_std_to_string<taType>::value ||
-                  detail::supports_streaming_into<taType, std::ostream>::value, 
+    static_assert(is_u16_formattable<taType>::value ||
+                  supports_to_unicode_string<taType>::value ||
+                  supports_std_to_string<taType>::value ||
+                  supports_streaming_into<taType, std::ostream>::value, 
                   "Type not compatible with ToU16Streamable");
 }
 
@@ -186,9 +186,9 @@ void ToU16FormattableImpl(taType&& aVal) {
 //! - If none of the above is possible, compilation will fail.
 template <class taType>
 HG_NODISCARD auto ToU16Formattable(taType&& aVal)
-    -> decltype(detail::ToU16FormattableImpl(std::forward<taType>(aVal)))
+    -> decltype(ToU16FormattableImpl(std::forward<taType>(aVal)))
 {
-    return detail::ToU16FormattableImpl(std::forward<taType>(aVal));
+    return ToU16FormattableImpl(std::forward<taType>(aVal));
 }
 
 } // namespace detail
@@ -196,7 +196,7 @@ HG_NODISCARD auto ToU16Formattable(taType&& aVal)
 //! Similar to `fmt::format`, with the following differences:
 //! - The format string needs to be UTF-16 encoded (recommended to obtain it using `HG_UNILIT` or
 //!   `HG_UNIFMT` macros).
-//! - The arguments will be processed accodring to the rules laid out on `detail::ToU16Formattable`.
+//! - The arguments will be processed accodring to the rules laid out on `ToU16Formattable`.
 //! - The result will be returned as `hg::UnicodeString`.
 template <class taFormat, class... taArgs>
 HG_NODISCARD UnicodeString UFormat(taFormat&& aFormat, taArgs&&... aArgs) {
@@ -207,7 +207,7 @@ HG_NODISCARD UnicodeString UFormat(taFormat&& aFormat, taArgs&&... aArgs) {
 }
 
 //! Converts the argument into a `hg::UnicodeString` according to the rules laid out on
-//! `detail::ToU16Formattable` and returns that string.
+//! `ToU16Formattable` and returns that string.
 template <class taType>
 HG_NODISCARD UnicodeString UCoalesce(taType&& aValue) {
     return UFormat(HG_UNILIT("{}"), detail::ToU16Formattable(std::forward<taType>(aValue)));

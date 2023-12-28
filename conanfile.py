@@ -39,6 +39,7 @@ class HobgoblinConan(ConanFile):
         "S01_Preprocessor",
         "S02_HGExcept",
         "S03_Logging",
+        "S04_Unicode"
     ]
 
     _modules_utilities = [
@@ -67,6 +68,7 @@ class HobgoblinConan(ConanFile):
     # Sources
 
     exports_sources = [
+        "CMake/*",
         "CMakeLists.txt",
         "CMakeSettings.json",
         "CODEANALYSIS.ruleset",
@@ -201,14 +203,15 @@ class HobgoblinConan(ConanFile):
             # Utilities
             "Hobgoblin.Utility",
             # "Hobgoblin.Math",         -- Header-only
-            # "Hobgoblin.Common",       -- Header-only
             
             # Foundation
+            "Hobgoblin.Unicode",
             "Hobgoblin.Logging",
             "Hobgoblin.HGExcept",
             # "Hobgoblin.Preprocessor", -- Header-only
             # "Hobgoblin.GSL",          -- Header-only
             # "Hobgoblin.Format",       -- Header-only
+            # "Hobgoblin.Common",       -- Header-only
             # "Hobgoblin.PDef",         -- Header-only
         ]
 

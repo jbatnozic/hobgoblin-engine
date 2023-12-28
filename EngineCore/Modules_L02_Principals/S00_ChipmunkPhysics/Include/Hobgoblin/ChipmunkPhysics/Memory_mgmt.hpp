@@ -12,7 +12,7 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace cp {
 
-namespace detail {
+namespace cp_detail {
 
 inline
 void cpCleanUpAndDelete(cpShape* shape) { // TODO To .cpp file 
@@ -64,12 +64,12 @@ using cpShapeDeleter = cpGenericDeleter<cpShape>;
 using cpConstraintDeleter = cpGenericDeleter<cpConstraint>;
 using cpSpaceDeleter = cpGenericDeleter<cpSpace>;
 
-} // namespace detail
+} // namespace cp_detail
 
-using cpBodyUPtr = std::unique_ptr<cpBody, detail::cpBodyDeleter>;
-using cpShapeUPtr = std::unique_ptr<cpShape, detail::cpShapeDeleter>;
-using cpConstraintUPtr = std::unique_ptr<cpConstraint, detail::cpConstraintDeleter>;
-using cpSpaceUPtr = std::unique_ptr<cpSpace, detail::cpSpaceDeleter>;
+using cpBodyUPtr = std::unique_ptr<cpBody, cp_detail::cpBodyDeleter>;
+using cpShapeUPtr = std::unique_ptr<cpShape, cp_detail::cpShapeDeleter>;
+using cpConstraintUPtr = std::unique_ptr<cpConstraint, cp_detail::cpConstraintDeleter>;
+using cpSpaceUPtr = std::unique_ptr<cpSpace, cp_detail::cpSpaceDeleter>;
 
 } // namespace cp
 HOBGOBLIN_NAMESPACE_END
