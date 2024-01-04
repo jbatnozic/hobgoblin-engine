@@ -27,6 +27,7 @@
 #include <Hobgoblin/Graphics/Texture.hpp>
 #include <Hobgoblin/Graphics/Texture_packing.hpp>
 #include <Hobgoblin/Graphics/Texture_rect.hpp>
+#include <Hobgoblin/Graphics/Tga_export.hpp>
 #include <Hobgoblin/Graphics/Transform.hpp>
 #include <Hobgoblin/Graphics/Transformable.hpp>
 #include <Hobgoblin/Graphics/Transformable_data.hpp>

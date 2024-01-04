@@ -18,7 +18,6 @@ void TransformableData::setPosition(const math::Vector2f& position) {
 
 void TransformableData::setRotation(math::AngleF angle) {
     m_rotation = angle;
-
     m_transformNeedUpdate        = true;
     m_inverseTransformNeedUpdate = true;
 }
@@ -94,11 +93,9 @@ Transform TransformableData::getTransform() const {
         const float tx     = -m_origin.x * sxc - m_origin.y * sys + m_position.x;
         const float ty     = m_origin.x * sxs - m_origin.y * syc + m_position.y;
 
-        // clang-format off
         m_transform = Transform( sxc, sys, tx,
-            -sxs, syc, ty,
-            0.f, 0.f, 1.f);
-        // clang-format on
+                                -sxs, syc, ty,
+                                 0.f, 0.f, 1.f);
         m_transformNeedUpdate = false;
     }
 

@@ -211,7 +211,7 @@ void Multisprite::setPosition(const math::Vector2f& aPosition) {
 }
 
 void Multisprite::setRotation(math::AngleF aAngle) {
-    _transformableData.setRotation(aAngle);
+    _transformableData.setRotation(-aAngle);
 }
 
 void Multisprite::setScale(float aFactorX, float aFactorY) {
@@ -235,7 +235,7 @@ math::Vector2f Multisprite::getPosition() const {
 }
 
 math::AngleF Multisprite::getRotation() const {
-    return _transformableData.getRotation();
+    return -_transformableData.getRotation();
 }
 
 math::Vector2f Multisprite::getScale() const {
@@ -338,6 +338,7 @@ void Multisprite::_draw(Canvas& aCanvas, const RenderStates& aStates) const {
     std::memcpy(vertices, subspr.vertices, sizeof(Vertex) * VERTEXT_COUNT);
 
     const auto transform = getTransform();
+    const auto& sfTransform = ToSf(transform);
     for (auto& vertex : vertices) {
         vertex.color = _color;
         vertex.position = transform.transformPoint(vertex.position);

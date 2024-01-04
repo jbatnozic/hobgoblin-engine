@@ -48,7 +48,7 @@ public:
 
     //! The type of primitives to draw. This field defines how the 
     //! vertices must be interpreted when it's time to draw them.
-    PrimitiveType primitiveType;
+    PrimitiveType primitiveType = PrimitiveType::Points;
 
     //! \brief Compute the bounding rectangle of the vertex array
     //!
