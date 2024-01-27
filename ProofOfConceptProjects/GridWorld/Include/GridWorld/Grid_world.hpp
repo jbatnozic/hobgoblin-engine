@@ -6,28 +6,17 @@
 #include <Hobgoblin/Math.hpp>
 #include <Hobgoblin/Utility/Grids.hpp>
 
+#include <GridWorld/Cell.hpp>
+#include <GridWorld/Lighting.hpp>
+#include <GridWorld/Sprites.hpp>
+
 #include <optional>
 #include <unordered_map>
 
 namespace gridworld {
+#define internal private
 
 namespace hg = jbatnozic::hobgoblin;
-
-using SpriteId = hg::gr::SpriteIdNumerical;
-
-struct Cell {
-    struct Floor {
-        SpriteId spriteId;
-    };
-
-    struct Wall {
-        SpriteId spriteId;
-        SpriteId spriteId_lowered;
-    };
-
-    Floor floor;
-    std::optional<Wall> wall;
-};
 
 class IsometricRenderer;
 
@@ -71,13 +60,22 @@ public:
     // LIGHTS                                                                //
     ///////////////////////////////////////////////////////////////////////////
 
-    int createLight(SpriteId aSpriteId, hg::math::Vector2pz aSize);
+    LightId createLight(SpriteId aSpriteId, hg::math::Vector2pz aSize);
 
-    void updateLight(int aLightHandle, hg::math::Vector2f aPosition, hg::math::AngleF aAngle);
+    void updateLight(LightId aLightHandle, hg::math::Vector2f aPosition, hg::math::AngleF aAngle);
 
-    void destroyLight(int aLightHandle);
+    void destroyLight(LightId aLightHandle);
 
     // TODO(createRAIILight())
+
+internal:
+    detail::LightDataConstIterator lightDataBegin() const {
+        return _lights.cbegin();
+    }
+
+    detail::LightDataConstIterator lightDataEnd() const {
+        return _lights.cend();
+    }
 
 private:
     // ===== Cells =====
@@ -87,20 +85,14 @@ private:
 
     // ===== Lights =====
 
-    struct LightData {
-        SpriteId spriteId = 0;
-        hg::math::AngleF angle = hg::math::AngleF::zero();
-        hg::math::Vector2f position = {0.f, 0.f};
+    detail::LightMap _lights;
+    LightId _lightIdCounter = 0;
 
-        hg::gr::RenderTexture texture;
-    };
-    std::unordered_map<int, LightData> _lights;
-    int _lightIdCounter = 0;
-
-    void _renderLight(LightData& aLightData);
+    void _renderLight(detail::LightData& aLightData);
 
 public: // TODO(temp)
     hg::gr::RenderTexture* _renderLight(int aLightHandle);
 };
 
+#undef internal
 } // namespace gridw

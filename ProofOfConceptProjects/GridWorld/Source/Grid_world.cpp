@@ -89,7 +89,7 @@ void World::destroyLight(int aLightHandle) {
     _lights.erase(iter);
 }
 
-void World::_renderLight(LightData& aLightData) {
+void World::_renderLight(detail::LightData& aLightData) {
     const auto size = aLightData.texture.getSize();
 
     const auto startGridX = 

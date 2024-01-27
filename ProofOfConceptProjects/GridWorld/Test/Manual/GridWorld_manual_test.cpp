@@ -139,15 +139,8 @@ int main() {
         const auto origin = hg::math::Vector2f{lightTex->getSize().x / 2.f, lightTex->getSize().y / 2.f};
         spr.setOrigin(origin);
         spr.setPosition(isoCoords);
-        //spr.setRotation(hg::math::AngleF::fromDegrees(45.f));
 #endif
-
-        //const hg::gr::Transform magicDimetricTransform = {
-        //    1.f, -0.5f, 0.f,
-        //    1.f,  0.5f, 0.f,
-        //    0.f,   0.f, 1.f
-        //};
-        const hg::gr::Transform magicDimetricTransform = {
+        const hg::gr::Transform magicDimetricTransform = { // rotate by 45 degrees and squash! (when setting position do NOT transform it further!)
               1.f,   1.f, 0.f,
             -0.5f,  0.5f, 0.f,
               0.f,   0.f, 1.f
