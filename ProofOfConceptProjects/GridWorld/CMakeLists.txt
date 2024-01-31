@@ -2,13 +2,16 @@
 project(GridWorld)
 
 add_library(${PROJECT_NAME}
-    "Source/Isometric_renderer.cpp"
-    "Source/Main.cpp"
-    "Source/Renderer.cpp"
-    "Source/Spatial_info.cpp"
-    "Source/Grid_world.cpp" 
+    "Source/Rendering/Dimetric_renderer.cpp"
+    "Source/Rendering/Lighting_renderer_2d.cpp"
+
+    "Source/World/World.cpp"
+
     "Source/Coord_conversion.cpp"
-)
+    "Source/Dimetric_transform.cpp"
+    "Source/Main.cpp"
+    "Source/Spatial_info.cpp"
+ )
 
 target_link_libraries(${PROJECT_NAME}
 PUBLIC

@@ -1,5 +1,5 @@
 
-#include <GridWorld/Grid_world.hpp>
+#include <GridWorld/World/World.hpp>
 
 #include <Hobgoblin/HGExcept.hpp>
 
@@ -23,43 +23,119 @@ hg::PZInteger World::getCellCountY() const {
 // CELL GETTERS                                                          //
 ///////////////////////////////////////////////////////////////////////////
 
-Cell& World::getCellAt(hg::PZInteger aX, hg::PZInteger aY) {
+//#define TEMPORARY
+#ifdef TEMPORARY
+model::Cell& World::getCellAt(hg::PZInteger aX, hg::PZInteger aY) {
     return _grid.at(aY, aX);
 }
 
-Cell& World::getCellAt(hg::math::Vector2pz aPos) {
+model::Cell& World::getCellAt(hg::math::Vector2pz aPos) {
     return _grid.at(aPos.y, aPos.x);
 }
 
-Cell& World::getCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) {
+model::Cell& World::getCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) {
     return _grid[aY][aX];
 }
 
-Cell& World::getCellAtUnchecked(hg::math::Vector2pz aPos) {
+model::Cell& World::getCellAtUnchecked(hg::math::Vector2pz aPos) {
     return _grid[aPos.y][aPos.x];
 }
+#endif
 
-const Cell& World::getCellAt(hg::PZInteger aX, hg::PZInteger aY) const {
+const model::Cell& World::getCellAt(hg::PZInteger aX, hg::PZInteger aY) const {
     return _grid.at(aY, aX);
 }
 
-const Cell& World::getCellAt(hg::math::Vector2pz aPos) const {
+const model::Cell& World::getCellAt(hg::math::Vector2pz aPos) const {
     return _grid.at(aPos.y, aPos.x);
 }
 
-const Cell& World::getCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) const {
+const model::Cell& World::getCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) const {
     return _grid[aY][aX];
 }
 
-const Cell& World::getCellAtUnchecked(hg::math::Vector2pz aPos) const {
+const model::Cell& World::getCellAtUnchecked(hg::math::Vector2pz aPos) const {
     return _grid[aPos.y][aPos.x];
+}
+
+///////////////////////////////////////////////////////////////////////////
+// CELL UPDATERS                                                         //
+///////////////////////////////////////////////////////////////////////////
+
+// Floor
+
+void World::updateCellAt(hg::PZInteger aX,
+                         hg::PZInteger aY,
+                         const std::optional<model::Cell::Floor>& aFloorOpt) {
+    HG_VALIDATE_ARGUMENT(aX < getCellCountX());
+    HG_VALIDATE_ARGUMENT(aY < getCellCountY());
+
+    updateCellAtUnchecked(aX, aY, aFloorOpt);
+}
+
+void World::updateCellAt(hg::math::Vector2pz aPos,
+                         const std::optional<model::Cell::Floor>& aFloorOpt) {
+    updateCellAt(aPos.x, aPos.y, aFloorOpt);
+}
+
+void World::updateCellAtUnchecked(hg::PZInteger aX,
+                                  hg::PZInteger aY,
+                                  const std::optional<model::Cell::Floor>& aFloorOpt) {
+    _grid[aY][aX].floor = aFloorOpt;
+}
+
+void World::updateCellAtUnchecked(hg::math::Vector2pz aPos,
+                                  const std::optional<model::Cell::Floor>& aFloorOpt) {
+    updateCellAtUnchecked(aPos.x, aPos.y, aFloorOpt);
+}
+
+// Wall
+
+void World::updateCellAt(hg::PZInteger aX,
+                         hg::PZInteger aY,
+                         const std::optional<model::Cell::Wall>& aWallOpt) {
+    HG_VALIDATE_ARGUMENT(aX < getCellCountX());
+    HG_VALIDATE_ARGUMENT(aY < getCellCountY());
+    
+    updateCellAtUnchecked(aX, aY, aWallOpt);
+}
+
+void World::updateCellAt(hg::math::Vector2pz aPos,
+                         const std::optional<model::Cell::Wall>& aWallOpt) {
+    updateCellAt(aPos.x, aPos.y, aWallOpt);
+}
+
+void World::updateCellAtUnchecked(hg::PZInteger aX,
+                                  hg::PZInteger aY,
+                                  const std::optional<model::Cell::Wall>& aWallOpt) {
+    _grid[aY][aX].wall = aWallOpt;
+
+    for (int yOffset = -1; yOffset <= 1; yOffset += 1) {
+        if (aY + yOffset < 0 || aY + yOffset >= getCellCountY()) {
+            continue; // out of grid
+        }
+        for (int xOffset = -1; xOffset <= 1; xOffset += 1) {
+            if (aX + xOffset < 0 || aX + xOffset >= getCellCountX()) {
+                continue; // out of grid
+            }
+            if (yOffset == 0 && xOffset == 0) {
+                continue; // this cell
+            }
+            _refreshCellAtUnchecked(aX + xOffset, aY + yOffset);
+        }
+    }
+}
+
+void World::updateCellAtUnchecked(hg::math::Vector2pz aPos,
+                                  const std::optional<model::Cell::Wall>& aWallOpt) {
+    updateCellAtUnchecked(aPos.x, aPos.y, aWallOpt);
 }
 
 ///////////////////////////////////////////////////////////////////////////
 // LIGHTS                                                                //
 ///////////////////////////////////////////////////////////////////////////
 
-int World::createLight(SpriteId aSpriteId, hg::math::Vector2pz aSize) {
+int World::createLight(model::SpriteId aSpriteId, hg::math::Vector2pz aSize) {
     const int id = (_lightIdCounter + 1);
     _lightIdCounter += 1;
 
@@ -89,7 +165,7 @@ void World::destroyLight(int aLightHandle) {
     _lights.erase(iter);
 }
 
-void World::_renderLight(detail::LightData& aLightData) {
+void World::_renderLight(model::LightData& aLightData) {
     const auto size = aLightData.texture.getSize();
 
     const auto startGridX = 
@@ -151,6 +227,26 @@ void World::_renderLight(detail::LightData& aLightData) {
     }
 
     aLightData.texture.display();
+}
+
+void World::_refreshCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) {
+    auto& cell = _grid[aY][aX];
+
+    // North
+    cell.blockers[0] = (aY <= 0) ? true
+                                 : _grid[aY - 1][aX].wall.has_value(); // TODO(temp -> isBlockingTowards)
+
+    // West
+    cell.blockers[1] = (aX <= 0) ? true
+                                 : _grid[aY][aX - 1].wall.has_value(); // TODO(temp -> isBlockingTowards)
+
+    // East
+    cell.blockers[2] = (aX >= getCellCountX() - 1) ? true
+                                                   : _grid[aY][aX + 1].wall.has_value(); // TODO(temp -> isBlockingTowards)
+
+    // South
+    cell.blockers[3] = (aY >= getCellCountY() - 1) ? true
+                                                   : _grid[aY + 1][aX].wall.has_value(); // TODO(temp -> isBlockingTowards)
 }
 
 hg::gr::RenderTexture* World::_renderLight(int aLightHandle) {

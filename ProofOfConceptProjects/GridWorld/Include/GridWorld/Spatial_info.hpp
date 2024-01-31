@@ -60,4 +60,4 @@ private:
     bool overlaps(const SpatialInfo& aOther) const;
 };
 
-} // namespace gridw
+} // namespace gridworld

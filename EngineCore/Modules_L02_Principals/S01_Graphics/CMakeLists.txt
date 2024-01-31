@@ -56,6 +56,7 @@ PUBLIC
     "Hobgoblin_L00_S01_GSL"
     "Hobgoblin_L00_S02_HGExcept"
     "Hobgoblin_L00_S03_Logging"
+    "Hobgoblin_L00_S04_Unicode"
 
     # Utilities
     "Hobgoblin_L01_S00_Math"

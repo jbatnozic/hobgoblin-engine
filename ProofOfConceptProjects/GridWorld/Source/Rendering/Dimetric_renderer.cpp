@@ -1,6 +1,6 @@
 
 #include <GridWorld/Coord_conversion.hpp>
-#include <GridWorld/Isometric_renderer.hpp>
+#include <GridWorld/Rendering/Dimetric_renderer.hpp>
 
 #include <Hobgoblin/GSL.hpp>
 #include <Hobgoblin/HGExcept.hpp>
@@ -11,16 +11,16 @@ namespace gridworld {
 
 namespace {
 struct CellInfo {
-    hg::NotNull<const Cell*> cell;
+    hg::NotNull<const model::Cell*> cell;
     hg::PZInteger gridX;
     hg::PZInteger gridY;
 };
 } // namespace
 
 template <class taCallable>
-static void IsometricRenderer::_diagonalTraverse(const World& aWorld,
-                                                 const IsometricRenderer::ViewData& aViewData,
-                                                 taCallable&& aFunc) {
+static void DimetricRenderer::_diagonalTraverse(const World& aWorld,
+                                                const DimetricRenderer::ViewData& aViewData,
+                                                taCallable&& aFunc) {
     const float cellRes = aWorld.getCellResolution();
  
     const int cellsPerRow    = (aViewData.size.y / (cellRes * 2.f)) + 1;
@@ -50,8 +50,8 @@ static void IsometricRenderer::_diagonalTraverse(const World& aWorld,
     }
 }
 
-bool IsometricRenderer::RenderedObjectPtrLess::operator()(const RenderedObject* aLhs,
-                                                          const RenderedObject* aRhs) const {
+bool DimetricRenderer::RenderedObjectPtrLess::operator()(const RenderedObject* aLhs,
+                                                         const RenderedObject* aRhs) const {
     const auto order = aLhs->spatialInfo.checkIsometricDrawingOrder(aRhs->spatialInfo);
     switch (order) {
     case SpatialInfo::DRAW_OTHER_FIRST:
@@ -69,7 +69,7 @@ bool IsometricRenderer::RenderedObjectPtrLess::operator()(const RenderedObject* 
     }
 }
 
-void IsometricRenderer::start(const hg::gr::View& aView) {
+void DimetricRenderer::start(const hg::gr::View& aView, hg::math::Vector2f aPointOfView) {
     // clear all data
     _viewData.center = aView.getCenter();
     _viewData.size   = aView.getSize();
@@ -80,7 +80,7 @@ void IsometricRenderer::start(const hg::gr::View& aView) {
                                                                    _viewData.center.y + _viewData.size.y / 2.f});
 }
 
-void IsometricRenderer::render(hg::gr::Canvas& aCanvas) {
+void DimetricRenderer::render(hg::gr::Canvas& aCanvas) {
     _renderFloor(aCanvas);
 
     // render floor lighting
@@ -89,7 +89,7 @@ void IsometricRenderer::render(hg::gr::Canvas& aCanvas) {
     // render LoS
 }
 
-hg::gr::Sprite& IsometricRenderer::_getSprite(SpriteId aSpriteId) const {
+hg::gr::Sprite& DimetricRenderer::_getSprite(model::SpriteId aSpriteId) const {
     const auto iter = _spriteCache.find(aSpriteId);
     if (iter != _spriteCache.end()) {
         return iter->second;
@@ -103,12 +103,12 @@ hg::gr::Sprite& IsometricRenderer::_getSprite(SpriteId aSpriteId) const {
     return newIter.first->second;
 }
 
-void IsometricRenderer::_renderFloor(hg::gr::Canvas& aCanvas) const {
+void DimetricRenderer::_renderFloor(hg::gr::Canvas& aCanvas) const {
     _diagonalTraverse(_world, _viewData, [this, &aCanvas](const CellInfo& aCellInfo, hg::math::Vector2f aPos) {
-        if (aCellInfo.cell->wall.has_value()) {
+        if (aCellInfo.cell->wall.has_value() || !aCellInfo.cell->floor.has_value()) {
             return;
         }
-        auto& sprite = _getSprite(aCellInfo.cell->floor.spriteId);
+        auto& sprite = _getSprite(aCellInfo.cell->floor->spriteId);
         sprite.setPosition(aPos);
         aCanvas.draw(sprite);
     });

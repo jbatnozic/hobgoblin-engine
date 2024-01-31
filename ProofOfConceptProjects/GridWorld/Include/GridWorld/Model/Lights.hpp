@@ -4,7 +4,7 @@
 #include <Hobgoblin/Math.hpp>
 #include <Hobgoblin/Utility/Grids.hpp>
 
-#include <GridWorld/Sprites.hpp>
+#include <GridWorld/Model/Sprites.hpp>
 
 #include <cstdint>
 #include <unordered_map>
@@ -13,9 +13,10 @@ namespace gridworld {
 
 namespace hg = jbatnozic::hobgoblin;
 
-using LightId = std::int32_t;
+namespace model {
 
-namespace detail {
+//! Identifies a single Light within a World.
+using LightId = std::int32_t;
 
 struct LightData {
     SpriteId spriteId = 0;
@@ -27,8 +28,7 @@ struct LightData {
 
 using LightMap = std::unordered_map<LightId, LightData>;
 
-using LightDataConstIterator = LightMap::const_iterator;
+using LightDataMapConstIterator = LightMap::const_iterator;
 
-} // namespace detail
-
+} // namespace model
 } // namespace gridworld
