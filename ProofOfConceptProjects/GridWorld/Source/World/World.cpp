@@ -118,9 +118,11 @@ void World::updateCellAtUnchecked(hg::PZInteger aX,
             if (aX + xOffset < 0 || aX + xOffset >= getCellCountX()) {
                 continue; // out of grid
             }
+#if 0 // TODO(temporary)
             if (yOffset == 0 && xOffset == 0) {
                 continue; // this cell
             }
+#endif
             _refreshCellAtUnchecked(aX + xOffset, aY + yOffset);
         }
     }
@@ -232,30 +234,21 @@ void World::_renderLight(model::LightData& aLightData) {
 void World::_refreshCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) {
     auto& cell = _grid[aY][aX];
 
-    // North
-    cell.blockers[0] = (aY <= 0) ? true
-                                 : _grid[aY - 1][aX].wall.has_value(); // TODO(temp -> isBlockingTowards)
-
-    // West
-    cell.blockers[1] = (aX <= 0) ? true
-                                 : _grid[aY][aX - 1].wall.has_value(); // TODO(temp -> isBlockingTowards)
-
-    // East
-    cell.blockers[2] = (aX >= getCellCountX() - 1) ? true
-                                                   : _grid[aY][aX + 1].wall.has_value(); // TODO(temp -> isBlockingTowards)
-
-    // South
-    cell.blockers[3] = (aY >= getCellCountY() - 1) ? true
-                                                   : _grid[aY + 1][aX].wall.has_value(); // TODO(temp -> isBlockingTowards)
+    cell.refresh(
+        (aY <= 0) ? nullptr : std::addressof(_grid[aY - 1][aX]),
+        (aX <= 0) ? nullptr : std::addressof(_grid[aY][aX - 1]),
+        (aX >= getCellCountX() - 1) ? nullptr : std::addressof(_grid[aY][aX + 1]),
+        (aY >= getCellCountY() - 1) ? nullptr : std::addressof(_grid[aY + 1][aX])
+    );
 }
 
-hg::gr::RenderTexture* World::_renderLight(int aLightHandle) {
-    const auto iter = _lights.find(aLightHandle);
-    HG_HARD_ASSERT(iter != _lights.end());
-
-    _renderLight(iter->second);
-
-    return &(iter->second.texture);
-}
+//hg::gr::RenderTexture* World::_renderLight(int aLightHandle) {
+//    const auto iter = _lights.find(aLightHandle);
+//    HG_HARD_ASSERT(iter != _lights.end());
+//
+//    _renderLight(iter->second);
+//
+//    return &(iter->second.texture);
+//}
 
 } // namespace gridworld

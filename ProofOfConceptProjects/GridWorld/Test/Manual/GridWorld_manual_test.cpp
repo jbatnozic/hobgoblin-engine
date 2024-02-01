@@ -1,6 +1,7 @@
 
 #include <GridWorld/Coord_conversion.hpp>
 #include <GridWorld/Rendering/Dimetric_renderer.hpp>
+#include <GridWorld/Dimetric_transform.hpp>
 #include <GridWorld/Rendering/Lighting_renderer_2d.hpp>
 
 #include <Hobgoblin/Math.hpp>
@@ -60,13 +61,17 @@ void Func() {
 }
 
 #define SPR_STONE_TILE 0
+#define SPR_WALL       1
+#define SPR_WALL_SHORT 2
 
 int main() {
     hg::log::SetMinimalLogSeverity(hg::log::Severity::Info);
 
     hg::gr::SpriteLoader loader;
     loader.startTexture(1024, 1024)
-        ->addSprite(SPR_STONE_TILE, HG_TEST_ASSET_DIR "/isometric-stone-tile.png")
+        ->addSprite(SPR_STONE_TILE, (HG_TEST_ASSET_DIR "/isometric-stone-tile.png"))
+        ->addSprite(SPR_WALL,       (HG_TEST_ASSET_DIR "/isometric-wall.png"))
+        ->addSprite(SPR_WALL_SHORT, (HG_TEST_ASSET_DIR "/isometric-wall-short.png"))
         ->finalize(hg::gr::TexturePackingHeuristic::BestAreaFit);
 
     gridworld::World world{10, 20, 32.f};
@@ -76,8 +81,8 @@ int main() {
         }
     }
     for (int y = 2; y < 20; y += 3) {
-        world.updateCellAt(2, y, gridworld::model::Cell::Wall{});
-        world.updateCellAt(7, y, gridworld::model::Cell::Wall{});
+        world.updateCellAt(2, y, gridworld::model::Cell::Wall{SPR_WALL, SPR_WALL_SHORT, gridworld::model::Shape::FULL_SQUARE});
+        world.updateCellAt(7, y, gridworld::model::Cell::Wall{SPR_WALL, SPR_WALL_SHORT, gridworld::model::Shape::FULL_SQUARE});
     }
 
     const auto light = world.createLight(-1, {300, 300});
@@ -90,6 +95,8 @@ int main() {
     window.getView().setSize({1024, 1024});
 
     while (window.isOpen()) {
+        bool mouseLClick = false;
+        bool mouseRClick = false;
         hg::win::Event ev;
         while (window.pollEvent(ev)) {
             ev.visit(
@@ -111,7 +118,16 @@ int main() {
                         window.getView().move({0.f, +16.f});
                         break;
                     }
-            });
+                },
+                [&](hg::win::Event::MouseButtonPressed& aButton) {
+                    if (aButton.button == hg::in::MB_LEFT) {
+                        mouseLClick = true;
+                    }
+                    if (aButton.button == hg::in::MB_RIGHT) {
+                        mouseRClick = true;
+                    }
+                }
+            );
         } // end event processing
 
         window.clear(hg::gr::Color{0, 0, 55});
@@ -119,52 +135,33 @@ int main() {
         const auto mousePos  = hg::win::GetMousePositionRelativeToWindow(window);
         const auto isoCoords = gridworld::ScreenCoordinatesToIsometric(window.mapPixelToCoords(mousePos));
         world.updateLight(light, isoCoords, hg::math::AngleF::zero());
-        //const auto* lightTex = world._renderLight(light);
+
+        {
+            const auto xx = static_cast<int>(isoCoords.x / world.getCellResolution());
+            const auto yy = static_cast<int>(isoCoords.y / world.getCellResolution());
+
+            if (xx >= 0 && xx < world.getCellCountX() &&
+                yy >= 0 && yy < world.getCellCountY()) {
+
+                if (mouseLClick) {
+                    world.updateCellAtUnchecked({xx, yy}, gridworld::model::Cell::Wall{
+                        SPR_WALL, SPR_WALL_SHORT, gridworld::model::Shape::FULL_SQUARE
+                    });
+                } else if (mouseRClick) {
+                    world.updateCellAtUnchecked({xx, yy}, std::optional<gridworld::model::Cell::Wall>{});
+                }
+            }
+        }
 
         tdlRenderer.start(gridworld::ScreenCoordinatesToIsometric(window.getView(0).getCenter()),
                           window.getView(0).getSize(),
                           256.f);
-        renderer.start(window.getView(0), {});
+        renderer.start(window.getView(0), /* POV */ isoCoords);
 
         tdlRenderer.render();
         renderer.render(window);
 
-        const hg::gr::Transform magicDimetricTransform = { // rotate by 45 degrees and squash! (when setting position do NOT transform it further!)
-                  1.f,   1.f, 0.f,
-                -0.5f,  0.5f, 0.f,
-                  0.f,   0.f, 1.f
-            };
-
-        // Draw single light
-#if 0
-        {
-            hg::gr::Multisprite spr{&(lightTex->getTexture())};
-            spr.addSubsprite({0, 0, 300, 300});
-
-            const auto origin = hg::math::Vector2f{lightTex->getSize().x / 2.f, lightTex->getSize().y / 2.f};
-            spr.setOrigin(origin);
-            spr.setPosition(isoCoords);
-
-            spr.setColor({255, 255, 255, 155});
-            window.draw(spr, magicDimetricTransform);
-        }
-#endif
-
-        //{
-        //    hg::gr::Sprite spr2{&(tdlRenderer.getTexture())};
-        //    spr2.setScale({0.25f, 0.25f});
-        //    spr2.setPosition(window.getView().getCenter());
-        //    window.draw(spr2);
-        //}
-
-        {
-            //const float scale = 2.f;
-            const hg::gr::Transform scaleTransform = {
-                2.f, 0.f, 0.f,
-                0.f, 2.f, 0.f,
-                0.f, 0.f, 1.f
-            };
-
+        if (false) {
             hg::math::Vector2f tdlScale;
             const auto& tex = tdlRenderer.getTexture(&tdlScale);
             hg::gr::Sprite spr2{&tex};
@@ -172,8 +169,7 @@ int main() {
             spr2.setScale(tdlScale);
             spr2.setPosition(gridworld::ScreenCoordinatesToIsometric(window.getView().getCenter()));
             spr2.setColor({255, 255, 255, 155});
-            window.draw(spr2, magicDimetricTransform);
-            //window.draw(spr2);
+            window.draw(spr2, gridworld::DIMETRIC_TRANSFORM);
         }
 
         window.display();

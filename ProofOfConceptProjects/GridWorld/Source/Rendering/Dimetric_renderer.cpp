@@ -37,7 +37,7 @@ static void DimetricRenderer::_diagonalTraverse(const World& aWorld,
             if (x >= 0 && x < aWorld.getCellCountX() &&
                 y >= 0 && y < aWorld.getCellCountY()) {
                 const auto& cell = aWorld.getCellAtUnchecked(x, y);
-                const auto pos = IsometricCoordinatesToScreen({x * cellRes, y * cellRes});
+                const auto pos = IsometricCoordinatesToScreen({(x + 0.5f) * cellRes, (y + 0.5f) * cellRes});
                 aFunc(CellInfo{&cell, x, y}, pos);
             }
         }
@@ -78,10 +78,13 @@ void DimetricRenderer::start(const hg::gr::View& aView, hg::math::Vector2f aPoin
                                                                    _viewData.center.y - _viewData.size.y / 2.f});
     _viewData.isometricBottomRight = ScreenCoordinatesToIsometric({_viewData.center.x + _viewData.size.x / 2.f,
                                                                    _viewData.center.y + _viewData.size.y / 2.f});
+
+    _viewData.pointOfView = aPointOfView;
 }
 
 void DimetricRenderer::render(hg::gr::Canvas& aCanvas) {
     _renderFloor(aCanvas);
+    _renderWalls(aCanvas, _viewData.pointOfView);
 
     // render floor lighting
     // render walls & objects
@@ -97,9 +100,6 @@ hg::gr::Sprite& DimetricRenderer::_getSprite(model::SpriteId aSpriteId) const {
 
     const auto blueprint = _spriteLoader.getBlueprint(aSpriteId);
     const auto newIter = _spriteCache.emplace(std::make_pair(aSpriteId, blueprint.spr()));
-    auto& sprite = newIter.first->second;
-    auto bounds = sprite.getLocalBounds();
-    sprite.setOrigin({bounds.w / 2.f - _world.getCellResolution(), bounds.h / 2.f});
     return newIter.first->second;
 }
 
@@ -111,6 +111,47 @@ void DimetricRenderer::_renderFloor(hg::gr::Canvas& aCanvas) const {
         auto& sprite = _getSprite(aCellInfo.cell->floor->spriteId);
         sprite.setPosition(aPos);
         aCanvas.draw(sprite);
+    });
+}
+
+void DimetricRenderer::_renderWalls(hg::gr::Canvas& aCanvas, hg::math::Vector2f aPointOfView) const {
+    _diagonalTraverse(_world, _viewData, [this, &aCanvas, aPointOfView](const CellInfo& aCellInfo,
+                                                                        hg::math::Vector2f aPos) {
+        if (!aCellInfo.cell->wall.has_value()) {
+            return;
+        }
+
+        const auto drawMode = aCellInfo.cell->drawModePredicate(
+            _world.getCellResolution(),
+            {aCellInfo.gridX * _world.getCellResolution(), aCellInfo.gridY * _world.getCellResolution()},
+            aPointOfView
+        );
+
+        const auto& wall = *(aCellInfo.cell->wall);
+
+        switch (drawMode) {
+        case model::DrawMode::NONE:
+            break;
+
+        case model::DrawMode::LOWERED:
+            {
+                auto& sprite = _getSprite(wall.spriteId_lowered);
+                sprite.setPosition(aPos);
+                aCanvas.draw(sprite);
+            }
+            break;
+
+        case model::DrawMode::FULL:
+            {
+                auto& sprite = _getSprite(wall.spriteId);
+                sprite.setPosition(aPos);
+                aCanvas.draw(sprite);
+            }
+            break;
+
+        default:
+            HG_UNREACHABLE("Invalid value for DrawMode ({}).", (int)drawMode);
+        }
     });
 }
 

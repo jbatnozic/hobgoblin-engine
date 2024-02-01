@@ -39,6 +39,8 @@ private:
 
         hg::math::Vector2f isometricTopLeft;
         hg::math::Vector2f isometricBottomRight;
+
+        hg::math::Vector2f pointOfView;
     };
 
     ViewData _viewData;
@@ -55,6 +57,7 @@ private:
     static void _diagonalTraverse(const World& aWorld, const ViewData& aViewData, taCallable&& aFunc);
 
     void _renderFloor(hg::gr::Canvas& aCanvas) const;
+    void _renderWalls(hg::gr::Canvas& aCanvas, hg::math::Vector2f aPointOfView) const; // TODO(temporary)
 };
 
 } // namespace gridworld

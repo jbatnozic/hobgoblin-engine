@@ -131,8 +131,8 @@ private:
 
     void _refreshCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY);
 
-public: // TODO(temp)
-    hg::gr::RenderTexture* _renderLight(int aLightHandle);
+//public: // TODO(temp)
+//    hg::gr::RenderTexture* _renderLight(int aLightHandle);
 };
 
 } // namespace gridw
