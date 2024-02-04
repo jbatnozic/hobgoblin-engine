@@ -34,7 +34,7 @@ public:
 
     void render();
 
-    std::optional<hg::gr::Color> getColorAt() const;
+    std::optional<hg::gr::Color> getColorAt(hg::math::Vector2f aPos) const;
 
     const hg::gr::Texture& getTexture(hg::math::Vector2f* aRecommendedScale = nullptr) const;
 
@@ -42,11 +42,17 @@ private:
     const World& _world;
     const hg::gr::SpriteLoader& _spriteLoader;
 
+    mutable std::unordered_map<model::SpriteId, hg::gr::Sprite> _spriteCache;
+
     float _sizeMultiplier;
     float _recommendedScale = 1.f;
 
     hg::gr::RenderTexture _renderTexture;
+    // Image which will hold the contents of _renderTexture in RAM,
+    // for fast access for purposes of getColorAt().
     hg::gr::Image _image;
+
+    hg::gr::Sprite& _getSprite(model::SpriteId aSpriteId) const;
 
     void _renderLight(const model::LightData& aLightData);
     void _drawLight(const model::LightData& aLightData);

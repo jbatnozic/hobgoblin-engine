@@ -7,9 +7,11 @@ namespace model {
 
 namespace predicate {
 namespace {
-//if (overlaps(aOther)) {
-//    return ((centre.x - centre.y) > (aOther.centre.x - aOther.centre.y)) ? DRAW_THIS_FIRST : DRAW_OTHER_FIRST;
-//}
+
+float Half(float aVal) {
+    return aVal * 0.5;
+}
+
 bool IsPovCloserThanCell(hg::math::Vector2f aCellPosition,
                          hg::math::Vector2f aPointOfView) {
     return ((aCellPosition.x - aCellPosition.y) > (aPointOfView.x - aPointOfView.y));
@@ -24,6 +26,18 @@ DrawMode FullWhenPovIsCloserToCamera(
         return DrawMode::FULL;
     }
     return DrawMode::LOWERED;
+}
+
+DrawMode X1(
+    float aCellResolution,
+    hg::math::Vector2f aCellPosition,
+    hg::math::Vector2f aPointOfView)
+{
+    if (aPointOfView.y <= aCellPosition.y ||
+        aPointOfView.x >= aCellPosition.x + aCellResolution) {
+        return DrawMode::LOWERED;
+    }
+    return DrawMode::FULL;
 }
 
 DrawMode FullWhenPovIsSouthOrCloserToCamera(
@@ -73,7 +87,29 @@ DrawMode FullWhenPovIsWest(
     return DrawMode::LOWERED;
 }
 
+DrawMode FullWhenPovIsWest2(
+    float aCellResolution,
+    hg::math::Vector2f aCellPosition,
+    hg::math::Vector2f aPointOfView)
+{
+    if (aPointOfView.x <= aCellPosition.x + aCellResolution) {
+        return DrawMode::FULL;
+    }
+    return DrawMode::LOWERED;
+}
+
 DrawMode FullWhenPovIsSouth(
+    float aCellResolution,
+    hg::math::Vector2f aCellPosition,
+    hg::math::Vector2f aPointOfView)
+{
+    if (aPointOfView.y >= aCellPosition.y + aCellResolution) {
+        return DrawMode::FULL;
+    }
+    return DrawMode::LOWERED;
+}
+
+DrawMode FullWhenPovIsSouth2(
     float aCellResolution,
     hg::math::Vector2f aCellPosition,
     hg::math::Vector2f aPointOfView)
@@ -124,12 +160,13 @@ DrawMode AlwaysNone(
     return DrawMode::NONE;
 }
 
-std::array<DrawModePredicate, 16> SELCTION_TABLE = {
+std::array<decltype(&AlwaysNone), 16> SELCTION_TABLE = {
     // b0000
     //   _
     // _ O _
     //   _
-    &FullWhenPovIsCloserToCamera,
+    //&FullWhenPovIsCloserToCamera,
+    &X1,
 
     // b0001
     //   _
@@ -159,7 +196,8 @@ std::array<DrawModePredicate, 16> SELCTION_TABLE = {
     //   _
     // X O X
     //   _
-    &FullWhenPovIsSouth,
+    //&FullWhenPovIsSouth,
+    &FullWhenPovIsSouth2,
 
     // b0110
     //   X
@@ -189,7 +227,8 @@ std::array<DrawModePredicate, 16> SELCTION_TABLE = {
     //   X
     // _ O _
     //   X
-    &FullWhenPovIsWest,
+    //&FullWhenPovIsWest,
+    &FullWhenPovIsWest2,
 
     // b1011
     //   X
@@ -225,7 +264,7 @@ std::array<DrawModePredicate, 16> SELCTION_TABLE = {
 } // namespace predicate
 
 Cell::Cell()
-    : drawModePredicate{&predicate::AlwaysNone}
+    : _drawModePredicate{&predicate::AlwaysNone}
 {
 }
 
@@ -245,7 +284,13 @@ void Cell::refresh(const Cell* aNorthNeighbour,
         (blockedFromWest  ? 0x04 : 0) |
         (blockedFromSouth ? 0x08 : 0);
 
-    drawModePredicate = predicate::SELCTION_TABLE[static_cast<std::size_t>(selector)];
+    _drawModePredicate = predicate::SELCTION_TABLE[static_cast<std::size_t>(selector)];
+}
+
+DrawMode Cell::determineDrawMode(float aCellResolution,
+                                 hg::math::Vector2f aCellPosition,
+                                 hg::math::Vector2f aPointOfView) const {
+    return _drawModePredicate(aCellResolution, aCellPosition, aPointOfView);
 }
 
 } // namespace model

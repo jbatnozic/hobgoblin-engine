@@ -9,6 +9,8 @@
 #include <cstdint>
 #include <unordered_map>
 
+#include <iostream>
+
 namespace gridworld {
 
 namespace hg = jbatnozic::hobgoblin;
@@ -24,6 +26,14 @@ struct LightData {
     hg::math::Vector2f position = {0.f, 0.f};
 
     mutable hg::gr::RenderTexture texture;
+
+    LightData() {
+        std::cout << "LightData created!\n";
+    }
+
+    LightData(const LightData&& aOther) {
+        std::cout << "LightData copied!\n";
+    }
 };
 
 using LightMap = std::unordered_map<LightId, LightData>;

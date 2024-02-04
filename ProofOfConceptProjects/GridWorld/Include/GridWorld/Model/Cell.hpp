@@ -31,15 +31,13 @@ enum class DrawMode {
     NONE,
     LOWERED,
     FULL
+
+    // TODO: height
+    // TODO: LoS blocker bitmask
 };
 
-struct Cell;
-
-using DrawModePredicate = DrawMode(*)(float aCellResolution,
-                                      hg::math::Vector2f aCellPosition,
-                                      hg::math::Vector2f aPointOfView);
-
-struct Cell {
+class Cell {
+public:
     struct Floor {
         SpriteId spriteId;
     };
@@ -62,14 +60,25 @@ struct Cell {
     //! * edge of grid is considered a blocker
     std::array<bool, 4> blockers = {false, false, false, false};
 
-    DrawModePredicate drawModePredicate;
-
     Cell();
 
     void refresh(const Cell* aNorthNeighbour,
                  const Cell* aWestNeighbour,
                  const Cell* aEastNeighbour,
                  const Cell* aSouthNeighbour);
+
+    DrawMode determineDrawMode(float aCellResolution,
+                               hg::math::Vector2f aCellPosition,
+                               hg::math::Vector2f aPointOfView) const;
+
+    // TODO: bool isEligibleToBeDrawn (not if totally blocked)
+
+private:
+    using DrawModePredicate = DrawMode(*)(float aCellResolution,
+                                          hg::math::Vector2f aCellPosition,
+                                          hg::math::Vector2f aPointOfView);
+
+    DrawModePredicate _drawModePredicate;
 };
 
 } // namespace model

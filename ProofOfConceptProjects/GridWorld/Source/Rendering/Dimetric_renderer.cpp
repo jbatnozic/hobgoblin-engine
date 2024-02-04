@@ -1,6 +1,7 @@
 
 #include <GridWorld/Coord_conversion.hpp>
 #include <GridWorld/Rendering/Dimetric_renderer.hpp>
+#include <GridWorld/Dimetric_transform.hpp>
 
 #include <Hobgoblin/GSL.hpp>
 #include <Hobgoblin/HGExcept.hpp>
@@ -80,11 +81,16 @@ void DimetricRenderer::start(const hg::gr::View& aView, hg::math::Vector2f aPoin
                                                                    _viewData.center.y + _viewData.size.y / 2.f});
 
     _viewData.pointOfView = aPointOfView;
+
+    _lightingRenderer.start(ScreenCoordinatesToIsometric(aView.getCenter()), 
+                            aView.getSize(),
+                            0.f); // TODO(use padding parameter)
 }
 
 void DimetricRenderer::render(hg::gr::Canvas& aCanvas) {
     _renderFloor(aCanvas);
-    _renderWalls(aCanvas, _viewData.pointOfView);
+    _renderLighting(aCanvas);
+    _renderWalls(aCanvas);
 
     // render floor lighting
     // render walls & objects
@@ -114,20 +120,43 @@ void DimetricRenderer::_renderFloor(hg::gr::Canvas& aCanvas) const {
     });
 }
 
-void DimetricRenderer::_renderWalls(hg::gr::Canvas& aCanvas, hg::math::Vector2f aPointOfView) const {
-    _diagonalTraverse(_world, _viewData, [this, &aCanvas, aPointOfView](const CellInfo& aCellInfo,
-                                                                        hg::math::Vector2f aPos) {
+void DimetricRenderer::_renderLighting(hg::gr::Canvas& aCanvas) const {
+    _lightingRenderer.render();
+    
+    hg::math::Vector2f tdlScale;
+    const auto& tex = _lightingRenderer.getTexture(&tdlScale);
+    hg::gr::Sprite spr{&tex};
+    spr.setOrigin({tex.getSize().x * 0.5f, tex.getSize().y * 0.5f});
+    spr.setScale(tdlScale);
+    spr.setPosition(ScreenCoordinatesToIsometric(_viewData.center));
+    spr.setColor({255, 255, 255, 155});
+    aCanvas.draw(spr, DIMETRIC_TRANSFORM);
+}
+
+void DimetricRenderer::_renderWalls(hg::gr::Canvas& aCanvas) const {
+    _diagonalTraverse(_world, _viewData, [this, &aCanvas](const CellInfo& aCellInfo,
+                                                          hg::math::Vector2f aPos) {
         if (!aCellInfo.cell->wall.has_value()) {
             return;
         }
 
-        const auto drawMode = aCellInfo.cell->drawModePredicate(
+        const auto drawMode = aCellInfo.cell->determineDrawMode(
             _world.getCellResolution(),
             {aCellInfo.gridX * _world.getCellResolution(), aCellInfo.gridY * _world.getCellResolution()},
-            aPointOfView
+            _viewData.pointOfView
         );
 
         const auto& wall = *(aCellInfo.cell->wall);
+
+#if 0
+        const auto colopt = _lightingRenderer.getColorAt(
+            {aCellInfo.gridX * _world.getCellResolution() - 1.f,
+             aCellInfo.gridY * _world.getCellResolution() + 1.f}
+        );
+        const auto col = colopt.value_or(hg::gr::COLOR_BLACK); // TODO(temporary)
+#else
+        const auto col = hg::gr::COLOR_WHITE;
+#endif
 
         switch (drawMode) {
         case model::DrawMode::NONE:
@@ -137,6 +166,7 @@ void DimetricRenderer::_renderWalls(hg::gr::Canvas& aCanvas, hg::math::Vector2f 
             {
                 auto& sprite = _getSprite(wall.spriteId_lowered);
                 sprite.setPosition(aPos);
+                sprite.setColor(col);
                 aCanvas.draw(sprite);
             }
             break;
@@ -145,6 +175,7 @@ void DimetricRenderer::_renderWalls(hg::gr::Canvas& aCanvas, hg::math::Vector2f 
             {
                 auto& sprite = _getSprite(wall.spriteId);
                 sprite.setPosition(aPos);
+                sprite.setColor(col);
                 aCanvas.draw(sprite);
             }
             break;

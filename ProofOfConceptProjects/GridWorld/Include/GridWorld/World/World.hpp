@@ -109,11 +109,11 @@ public:
     // TODO(createRAIILight())
 
     model::LightDataMapConstIterator lightDataBegin() const {
-        return _lights.cbegin();
+        return _lights.begin();
     }
 
     model::LightDataMapConstIterator lightDataEnd() const {
-        return _lights.cend();
+        return _lights.end();
     }
 
 private:

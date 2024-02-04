@@ -5,6 +5,7 @@
 #include <Hobgoblin/Graphics/View.hpp>
 
 #include <GridWorld/Renderer.hpp>
+#include <GridWorld/Rendering/Lighting_renderer_2d.hpp>
 #include <GridWorld/World/World.hpp>
 
 #include <set>
@@ -17,9 +18,11 @@ namespace hg = jbatnozic::hobgoblin;
 class DimetricRenderer /*: public Renderer*/ {
 public:
     DimetricRenderer(const World& aWorld,
-                     const hg::gr::SpriteLoader& aSpriteLoader)
+                     const hg::gr::SpriteLoader& aSpriteLoader,
+                     LightingRenderer2D& aLightingRenderer)
         : _world{aWorld}
         , _spriteLoader{aSpriteLoader}
+        , _lightingRenderer{aLightingRenderer}
     {
     }
 
@@ -30,6 +33,7 @@ public:
 private:
     const World& _world;
     const hg::gr::SpriteLoader& _spriteLoader;
+    LightingRenderer2D& _lightingRenderer;
 
     mutable std::unordered_map<model::SpriteId, hg::gr::Sprite> _spriteCache;
 
@@ -57,7 +61,8 @@ private:
     static void _diagonalTraverse(const World& aWorld, const ViewData& aViewData, taCallable&& aFunc);
 
     void _renderFloor(hg::gr::Canvas& aCanvas) const;
-    void _renderWalls(hg::gr::Canvas& aCanvas, hg::math::Vector2f aPointOfView) const; // TODO(temporary)
+    void _renderLighting(hg::gr::Canvas& aCanvas) const;
+    void _renderWalls(hg::gr::Canvas& aCanvas) const; // TODO(temporary)
 };
 
 } // namespace gridworld

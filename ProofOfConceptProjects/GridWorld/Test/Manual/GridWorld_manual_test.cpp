@@ -63,6 +63,7 @@ void Func() {
 #define SPR_STONE_TILE 0
 #define SPR_WALL       1
 #define SPR_WALL_SHORT 2
+#define SPR_LIGHT      9
 
 int main() {
     hg::log::SetMinimalLogSeverity(hg::log::Severity::Info);
@@ -72,11 +73,12 @@ int main() {
         ->addSprite(SPR_STONE_TILE, (HG_TEST_ASSET_DIR "/isometric-stone-tile.png"))
         ->addSprite(SPR_WALL,       (HG_TEST_ASSET_DIR "/isometric-wall.png"))
         ->addSprite(SPR_WALL_SHORT, (HG_TEST_ASSET_DIR "/isometric-wall-short.png"))
+        ->addSprite(SPR_LIGHT,      (HG_TEST_ASSET_DIR "/light.png"))
         ->finalize(hg::gr::TexturePackingHeuristic::BestAreaFit);
 
-    gridworld::World world{10, 20, 32.f};
-    for (int y = 0; y < 20; y += 1) {
-        for (int x = 0; x < 10; x += 1) {
+    gridworld::World world{40, 40, 32.f};
+    for (int y = 0; y < 40; y += 1) {
+        for (int x = 0; x < 40; x += 1) {
             world.updateCellAt(x, y, gridworld::model::Cell::Floor{SPR_STONE_TILE});
         }
     }
@@ -85,10 +87,10 @@ int main() {
         world.updateCellAt(7, y, gridworld::model::Cell::Wall{SPR_WALL, SPR_WALL_SHORT, gridworld::model::Shape::FULL_SQUARE});
     }
 
-    const auto light = world.createLight(-1, {300, 300});
+    const auto light = world.createLight(SPR_LIGHT, {300, 300});
 
     gridworld::LightingRenderer2D tdlRenderer{world, loader, 2048, gridworld::LightingRenderer2D::FOR_DIMETRIC};
-    gridworld::DimetricRenderer renderer{world, loader};
+    gridworld::DimetricRenderer renderer{world, loader, tdlRenderer};
 
     hg::gr::RenderWindow window{hg::win::VideoMode{950, 950}, "GridWorld"};
     window.setFramerateLimit(60);
@@ -103,7 +105,7 @@ int main() {
                 [&](hg::win::Event::Closed&) {
                     window.close();
                 },
-                [&](hg::win::Event::KeyPressed& aKey) {
+                /*[&](hg::win::Event::KeyPressed& aKey) {
                     switch (aKey.physicalKey) {
                     case hg::in::PK_LEFT:
                         window.getView().move({-16.f, 0.f});
@@ -118,7 +120,7 @@ int main() {
                         window.getView().move({0.f, +16.f});
                         break;
                     }
-                },
+                },*/
                 [&](hg::win::Event::MouseButtonPressed& aButton) {
                     if (aButton.button == hg::in::MB_LEFT) {
                         mouseLClick = true;
@@ -129,6 +131,13 @@ int main() {
                 }
             );
         } // end event processing
+
+        {
+            using namespace hg::in;
+            const auto lr = (float)CheckPressedPK(PK_D) - (float)CheckPressedPK(PK_A);
+            const auto ud = (float)CheckPressedPK(PK_S) - (float)CheckPressedPK(PK_W);
+            window.getView().move({lr * 16.f, ud * 16.f});
+        }
 
         window.clear(hg::gr::Color{0, 0, 55});
 
@@ -153,12 +162,12 @@ int main() {
             }
         }
 
-        tdlRenderer.start(gridworld::ScreenCoordinatesToIsometric(window.getView(0).getCenter()),
-                          window.getView(0).getSize(),
-                          256.f);
+        //tdlRenderer.start(gridworld::ScreenCoordinatesToIsometric(window.getView(0).getCenter()),
+        //                  window.getView(0).getSize(),
+        //                  0.f);
         renderer.start(window.getView(0), /* POV */ isoCoords);
 
-        tdlRenderer.render();
+        //tdlRenderer.render();
         renderer.render(window);
 
         if (false) {
