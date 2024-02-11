@@ -1,6 +1,8 @@
 
 project(GridWorld)
 
+find_package(GLEW CONFIG REQUIRED)
+
 add_library(${PROJECT_NAME}
     "Source/Model/Cell.cpp"
 
@@ -33,6 +35,9 @@ PUBLIC
     # Principals
     "Hobgoblin.Window"
     "Hobgoblin.Graphics"
+
+    # External
+    "GLEW::GLEW"
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC "Include/")

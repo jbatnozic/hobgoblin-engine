@@ -51,6 +51,15 @@ static void DimetricRenderer::_diagonalTraverse(const World& aWorld,
     }
 }
 
+DimetricRenderer::DimetricRenderer(const World& aWorld,
+                                   const hg::gr::SpriteLoader& aSpriteLoader,
+                                   LightingRenderer2D& aLightingRenderer)
+    : _world{aWorld}
+    , _spriteLoader{aSpriteLoader}
+    , _lightingRenderer{aLightingRenderer}
+{
+}
+
 bool DimetricRenderer::RenderedObjectPtrLess::operator()(const RenderedObject* aLhs,
                                                          const RenderedObject* aRhs) const {
     const auto order = aLhs->spatialInfo.checkIsometricDrawingOrder(aRhs->spatialInfo);
@@ -148,7 +157,7 @@ void DimetricRenderer::_renderWalls(hg::gr::Canvas& aCanvas) const {
 
         const auto& wall = *(aCellInfo.cell->wall);
 
-#if 0
+#if 1
         const auto colopt = _lightingRenderer.getColorAt(
             {aCellInfo.gridX * _world.getCellResolution() - 1.f,
              aCellInfo.gridY * _world.getCellResolution() + 1.f}

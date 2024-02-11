@@ -9,8 +9,10 @@
 #include <GridWorld/Model/Lights.hpp>
 #include <GridWorld/World/World.hpp>
 
+#include <array>
 #include <cstdint>
 #include <unordered_map>
+#include <vector>
 
 namespace gridworld {
 
@@ -44,6 +46,7 @@ private:
 
     mutable std::unordered_map<model::SpriteId, hg::gr::Sprite> _spriteCache;
 
+    hg::PZInteger _textureSize;
     float _sizeMultiplier;
     float _recommendedScale = 1.f;
 
@@ -51,6 +54,12 @@ private:
     // Image which will hold the contents of _renderTexture in RAM,
     // for fast access for purposes of getColorAt().
     hg::gr::Image _image;
+    std::vector<std::uint8_t> _imageData;
+
+    std::array<unsigned int, 2> _framebuffers;
+    unsigned int _pbo;
+
+    int _step = 0;
 
     hg::gr::Sprite& _getSprite(model::SpriteId aSpriteId) const;
 

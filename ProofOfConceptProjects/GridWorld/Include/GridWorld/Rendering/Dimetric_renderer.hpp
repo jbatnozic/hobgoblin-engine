@@ -19,12 +19,7 @@ class DimetricRenderer /*: public Renderer*/ {
 public:
     DimetricRenderer(const World& aWorld,
                      const hg::gr::SpriteLoader& aSpriteLoader,
-                     LightingRenderer2D& aLightingRenderer)
-        : _world{aWorld}
-        , _spriteLoader{aSpriteLoader}
-        , _lightingRenderer{aLightingRenderer}
-    {
-    }
+                     LightingRenderer2D& aLightingRenderer);
 
     void start(const hg::gr::View& aView, hg::math::Vector2f aPointOfView);
 

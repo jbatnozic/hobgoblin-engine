@@ -9,6 +9,8 @@
 #include <Hobgoblin/Graphics.hpp>
 #include <Hobgoblin/Input.hpp>
 
+#include <GL/glew.h>
+
 #include <array>
 #include <iostream>
 
@@ -65,7 +67,7 @@ void Func() {
 #define SPR_WALL_SHORT 2
 #define SPR_LIGHT      9
 
-int main() {
+int main() try {
     hg::log::SetMinimalLogSeverity(hg::log::Severity::Info);
 
     hg::gr::SpriteLoader loader;
@@ -89,12 +91,17 @@ int main() {
 
     const auto light = world.createLight(SPR_LIGHT, {300, 300});
 
-    gridworld::LightingRenderer2D tdlRenderer{world, loader, 2048, gridworld::LightingRenderer2D::FOR_DIMETRIC};
-    gridworld::DimetricRenderer renderer{world, loader, tdlRenderer};
-
     hg::gr::RenderWindow window{hg::win::VideoMode{950, 950}, "GridWorld"};
     window.setFramerateLimit(60);
     window.getView().setSize({1024, 1024});
+
+    GLenum err = glewInit();
+    if (err != GLEW_OK) {
+        fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
+    }
+
+    gridworld::LightingRenderer2D tdlRenderer{world, loader, 2048, gridworld::LightingRenderer2D::FOR_DIMETRIC};
+    gridworld::DimetricRenderer renderer{world, loader, tdlRenderer};
 
     while (window.isOpen()) {
         bool mouseLClick = false;
@@ -187,4 +194,7 @@ int main() {
     world.destroyLight(light);
 
     return 0;
+}
+catch (const std::exception& ex) {
+    std::cout << "Exception caught: " << ex.what() << '\n';
 }

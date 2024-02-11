@@ -4,10 +4,35 @@
 
 #include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Graphics.hpp>
+#include <Hobgoblin/Logging.hpp>
 #include <Hobgoblin/Math.hpp>
 
+#include <GL/glew.h>
+
 #include <algorithm>
+#include <chrono>
 #include <cmath>
+#include <vector>
+
+static constexpr auto LOG_ID = "gridworld";
+
+static void ClearOpenGLErrors() {
+    while (glGetError() != GL_NO_ERROR) {}
+}
+
+static void LogOpenGLErrors(const char* aFile, int aLine) {
+    while (auto error = glGetError()) {
+        HG_LOG_ERROR(LOG_ID, "[OpenGL ERROR] code: {} file: {}:{}", (int)error, aFile, aLine);
+    }
+}
+
+#define GLCALL(...) \
+    do { \
+        ClearOpenGLErrors(); \
+        (__VA_ARGS__); \
+        LogOpenGLErrors(__FILE__, __LINE__); \
+    } while (false)
+//#define GLCALL(...) __VA_ARGS__
 
 namespace gridworld {
 
@@ -35,9 +60,34 @@ LightingRenderer2D::LightingRenderer2D(const World& aWorld,
                                        Purpose aPurpose)
     : _world{aWorld}
     , _spriteLoader{aSpriteLoader}
+    , _textureSize{aTextureSize}
     , _sizeMultiplier{MultiplierForPurpose(aPurpose)}
 {
     _renderTexture.create({aTextureSize, aTextureSize});
+
+    const auto size = hg::pztos(_textureSize) * hg::pztos(_textureSize) * 4u;
+    _imageData.resize(size);
+
+#if 0
+    // Generate 1st buffer and attach texture to it
+    GLCALL(glGenFramebuffers(1, &_framebuffers[0]));
+    GLCALL(glBindFramebuffer(GL_FRAMEBUFFER, _framebuffers[0]));
+    GLCALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _renderTexture.getTexture().getNativeHandle(), 0));
+
+    // Generate 2nd buffer and attach texture to it
+    GLCALL(glGenFramebuffers(1, &_framebuffers[1]));
+    GLCALL(glBindFramebuffer(GL_FRAMEBUFFER, _framebuffers[1]));
+    GLCALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _renderTexture.getTexture().getNativeHandle(), 0));
+
+    // Unbind buffer
+    GLCALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+#endif
+
+
+    GLCALL(glGenBuffers(1, &_pbo));
+    GLCALL(glBindBuffer(GL_PIXEL_PACK_BUFFER, _pbo));
+    GLCALL(glBufferData(GL_PIXEL_PACK_BUFFER, aTextureSize * aTextureSize * 4, NULL, GL_STREAM_READ));
+    GLCALL(glBindBuffer(GL_PIXEL_PACK_BUFFER, 0));
 }
 
 void LightingRenderer2D::start(hg::math::Vector2f aWorldPosition,
@@ -61,6 +111,15 @@ void LightingRenderer2D::start(hg::math::Vector2f aWorldPosition,
 }
 
 void LightingRenderer2D::render() {
+    if (_step % 2 == 0) {
+        _step += 1;
+        goto RENDER;
+    } else {
+        _step += 1;
+        goto COPY;
+    }
+
+    RENDER:
     for (auto iter = _world.lightDataBegin(), end = _world.lightDataEnd(); iter != end; iter = std::next(iter)) {
         auto& light = iter->second; // TODO(check that this does not do a copy)
         _renderLight(light);
@@ -78,21 +137,62 @@ void LightingRenderer2D::render() {
     }
 #endif
 
-    _renderTexture.display();
+    {
+        const auto t1 = std::chrono::steady_clock::now();
+        _renderTexture.display();
 
-    _image = _renderTexture.getTexture().copyToImage();
+        // bind PBO
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, _pbo); 
+
+        // bind texture
+        glBindTexture(GL_TEXTURE_2D, _renderTexture.getTexture().getNativeHandle());
+
+        // transfer texture into PBO
+        glGetTexImage(/* target */      GL_TEXTURE_2D,
+                      /* level */       0,
+                      /* pixelformat */ GL_RGBA,
+                      /* pixeltype */   GL_UNSIGNED_BYTE,
+                      /* offset */      nullptr);
+
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, 0); 
+
+        const auto t2 = std::chrono::steady_clock::now();
+        HG_LOG_INFO(LOG_ID, "display() took {}ms.", std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() / 1000.0);
+    }
+    return;
+
+    COPY:
+    {
+        const auto t1 = std::chrono::steady_clock::now();
+        //_image = _renderTexture.getTexture().copyToImage();
+
+        const void* p = nullptr;
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, _pbo);
+        GLCALL(p = glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY));
+        HG_HARD_ASSERT(p != nullptr);
+        const auto size = hg::pztos(_textureSize) * hg::pztos(_textureSize) * 4u;
+        std::memcpy(_imageData.data(), p, size);
+        glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+
+        const auto t2 = std::chrono::steady_clock::now();
+        HG_LOG_INFO(LOG_ID, "copyToImage() took {}ms.", std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() / 1000.0);
+    }
 }
 
 std::optional<hg::gr::Color> LightingRenderer2D::getColorAt(hg::math::Vector2f aPos) const {
     auto pixelPos = _renderTexture.mapCoordsToPixel(aPos, 0);
 
-    if (pixelPos.x < 0 || pixelPos.x >= _image.getSize().x ||
-        pixelPos.y < 0 || pixelPos.y >= _image.getSize().y)
+    if (pixelPos.x < 0 || pixelPos.x >= _textureSize ||
+        pixelPos.y < 0 || pixelPos.y >= _textureSize)
     {
         return {};
     }
 
-    return _image.getPixel(pixelPos.x, pixelPos.y);
+    const auto* p = _imageData.data() + ((_textureSize - 1 - pixelPos.y) * _textureSize + pixelPos.x) * 4;
+
+    return hg::gr::Color{p[0], p[1], p[2], p[3]};
 }
 
 const hg::gr::Texture& LightingRenderer2D::getTexture(hg::math::Vector2f* aRecommendedScale) const {
