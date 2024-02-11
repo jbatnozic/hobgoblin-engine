@@ -30,6 +30,8 @@ public:
                        hg::PZInteger aTextureSize,
                        Purpose aPurpose);
 
+    ~LightingRenderer2D();
+
     void start(hg::math::Vector2f aWorldPosition,
                hg::math::Vector2f aViewSize,
                float aPadding);
@@ -46,20 +48,28 @@ private:
 
     mutable std::unordered_map<model::SpriteId, hg::gr::Sprite> _spriteCache;
 
-    hg::PZInteger _textureSize;
     float _sizeMultiplier;
     float _recommendedScale = 1.f;
 
+    //! Texture to which all lighting is rendered.
     hg::gr::RenderTexture _renderTexture;
-    // Image which will hold the contents of _renderTexture in RAM,
-    // for fast access for purposes of getColorAt().
-    hg::gr::Image _image;
-    std::vector<std::uint8_t> _imageData;
 
-    std::array<unsigned int, 2> _framebuffers;
-    unsigned int _pbo;
+    //! Width and Height of _renderTexture (it's always a square).
+    hg::PZInteger _textureSize;
 
-    int _step = 0;
+    //! Buffer which will hold the contents of _renderTexture in RAM
+    //! (in RGBA format), for fast access for purposes of getColorAt().
+    std::vector<std::uint8_t> _textureRamBuffer;
+
+    //! Names of OpenGL Pixel Buffer Objects.
+    std::array<unsigned int, 2> _pboNames;
+
+    //! Counter used to know which PBO to write to and which PBO to read from.
+    //! - In even-numbered steps, we start writing to pbo[0] and read from pbo[1],
+    //! - In odd-numbered steps, we start writing to pbo[1] and read from pbo[0].
+    unsigned _stepCounter = -1;
+
+    void _deletePbos();
 
     hg::gr::Sprite& _getSprite(model::SpriteId aSpriteId) const;
 

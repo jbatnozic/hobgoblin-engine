@@ -2,6 +2,7 @@
 #include <GridWorld/Rendering/Lighting_renderer_2d.hpp>
 #include <GridWorld/Coord_conversion.hpp>
 
+#include <Hobgoblin/Format.hpp>
 #include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Graphics.hpp>
 #include <Hobgoblin/Logging.hpp>
@@ -12,28 +13,65 @@
 #include <algorithm>
 #include <chrono>
 #include <cmath>
-#include <vector>
+#include <type_traits>
 
-static constexpr auto LOG_ID = "gridworld";
+namespace {
+constexpr auto LOG_ID = "gridworld";
+} // namespace
 
-static void ClearOpenGLErrors() {
+///////////////////////////////////////////////////////////////////////////
+// OPENGL ERROR HANDLING                                                 //
+///////////////////////////////////////////////////////////////////////////
+namespace {
+struct OpenGLErrorContext {
+    void addError(int aErrorCode, const char* aCodeString) {
+        messageCount  += 1;
+        errorMessages += fmt::format("{}. Code '{}' resulted in {:#X}; ", messageCount, aCodeString, aErrorCode);
+    }
+
+    bool hasErrors() const {
+        return messageCount > 0;
+    }
+
+    std::string errorMessages;
+    int         messageCount = 0;
+};
+
+#define THROW_ON_ERROR(_error_context_) \
+    do { \
+        if ((_error_context_).hasErrors()) { \
+            HG_THROW_TRACED(::jbatnozic::hobgoblin::TracedRuntimeError, \
+                            0, \
+                            "There were {} OpenGL errors: {}", \
+                            (_error_context_).messageCount, \
+                            (_error_context_).errorMessages); \
+        } \
+    } while (false)
+
+void ClearOpenGLErrors() {
     while (glGetError() != GL_NO_ERROR) {}
 }
 
-static void LogOpenGLErrors(const char* aFile, int aLine) {
+void StoreOpenGLErrors(OpenGLErrorContext& aErrorCtx, const char* aCodeString) {
     while (auto error = glGetError()) {
-        HG_LOG_ERROR(LOG_ID, "[OpenGL ERROR] code: {} file: {}:{}", (int)error, aFile, aLine);
+        aErrorCtx.addError(error, aCodeString);
     }
 }
 
-#define GLCALL(...) \
+#define GLCALL(_error_context_, _code_) \
     do { \
         ClearOpenGLErrors(); \
-        (__VA_ARGS__); \
-        LogOpenGLErrors(__FILE__, __LINE__); \
+        { _code_ ; } \
+        StoreOpenGLErrors(_error_context_, #_code_); \
     } while (false)
-//#define GLCALL(...) __VA_ARGS__
+} // namespace
 
+static_assert(std::is_same_v<unsigned int, GLuint>,
+              "Adjust type of LightingRenderer2D::_pboNames");
+
+///////////////////////////////////////////////////////////////////////////
+// GRIDWORLD                                                             //
+///////////////////////////////////////////////////////////////////////////
 namespace gridworld {
 
 namespace {
@@ -60,34 +98,37 @@ LightingRenderer2D::LightingRenderer2D(const World& aWorld,
                                        Purpose aPurpose)
     : _world{aWorld}
     , _spriteLoader{aSpriteLoader}
-    , _textureSize{aTextureSize}
     , _sizeMultiplier{MultiplierForPurpose(aPurpose)}
+    , _textureSize{aTextureSize}
 {
     _renderTexture.create({aTextureSize, aTextureSize});
 
+    // Allocate Texture RAM Buffer:
     const auto size = hg::pztos(_textureSize) * hg::pztos(_textureSize) * 4u;
-    _imageData.resize(size);
+    _textureRamBuffer.resize(size);
+    std::memset(_textureRamBuffer.data(), 0x00, _textureRamBuffer.size());
 
-#if 0
-    // Generate 1st buffer and attach texture to it
-    GLCALL(glGenFramebuffers(1, &_framebuffers[0]));
-    GLCALL(glBindFramebuffer(GL_FRAMEBUFFER, _framebuffers[0]));
-    GLCALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _renderTexture.getTexture().getNativeHandle(), 0));
+    // Generate and configure PBOs:
+    OpenGLErrorContext ectx;
+    for (auto& pboName : _pboNames) {
+        pboName = 0;
+        GLCALL(ectx, glGenBuffers(1, &pboName));
+        GLCALL(ectx, glBindBuffer(GL_PIXEL_PACK_BUFFER, pboName));
+        GLCALL(ectx, glBufferData(GL_PIXEL_PACK_BUFFER, _textureRamBuffer.size(), NULL, GL_STREAM_READ));
+    }
 
-    // Generate 2nd buffer and attach texture to it
-    GLCALL(glGenFramebuffers(1, &_framebuffers[1]));
-    GLCALL(glBindFramebuffer(GL_FRAMEBUFFER, _framebuffers[1]));
-    GLCALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _renderTexture.getTexture().getNativeHandle(), 0));
+    // Unbind PBOs for now:
+    GLCALL(ectx, glBindBuffer(GL_PIXEL_PACK_BUFFER, 0));
 
-    // Unbind buffer
-    GLCALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-#endif
+    // Handle errors:
+    if (ectx.hasErrors()) {
+        _deletePbos();
+        THROW_ON_ERROR(ectx);
+    }
+}
 
-
-    GLCALL(glGenBuffers(1, &_pbo));
-    GLCALL(glBindBuffer(GL_PIXEL_PACK_BUFFER, _pbo));
-    GLCALL(glBufferData(GL_PIXEL_PACK_BUFFER, aTextureSize * aTextureSize * 4, NULL, GL_STREAM_READ));
-    GLCALL(glBindBuffer(GL_PIXEL_PACK_BUFFER, 0));
+LightingRenderer2D::~LightingRenderer2D() {
+    _deletePbos();
 }
 
 void LightingRenderer2D::start(hg::math::Vector2f aWorldPosition,
@@ -108,18 +149,11 @@ void LightingRenderer2D::start(hg::math::Vector2f aWorldPosition,
     view.setCenter(aWorldPosition);
     view.setViewport({0.f, 0.f, 1.f, 1.f});
     _renderTexture.setView(view);
+
+    _stepCounter += 1;
 }
 
 void LightingRenderer2D::render() {
-    if (_step % 2 == 0) {
-        _step += 1;
-        goto RENDER;
-    } else {
-        _step += 1;
-        goto COPY;
-    }
-
-    RENDER:
     for (auto iter = _world.lightDataBegin(), end = _world.lightDataEnd(); iter != end; iter = std::next(iter)) {
         auto& light = iter->second; // TODO(check that this does not do a copy)
         _renderLight(light);
@@ -137,44 +171,61 @@ void LightingRenderer2D::render() {
     }
 #endif
 
-    {
+    OpenGLErrorContext ectx;
+
+    /* DISPLAY & START TRANSFER TO PBO */ {
         const auto t1 = std::chrono::steady_clock::now();
         _renderTexture.display();
 
-        // bind PBO
-        glBindBuffer(GL_PIXEL_PACK_BUFFER, _pbo); 
+        const unsigned targetPbo = (_stepCounter % 2);
+        GLCALL(ectx, glBindBuffer(GL_PIXEL_PACK_BUFFER, _pboNames[targetPbo]));
+        GLCALL(ectx, glBindTexture(GL_TEXTURE_2D, _renderTexture.getTexture().getNativeHandle()));
 
-        // bind texture
-        glBindTexture(GL_TEXTURE_2D, _renderTexture.getTexture().getNativeHandle());
+        // Starts the asychronous transfer of texture pixel data into the PBO.
+        // This transfer will happen whenever is suitable for the GPU, as to now
+        // stall the graphics pipeline.
+        GLCALL(ectx, glGetTexImage(/* target */      GL_TEXTURE_2D,
+                                   /* level */       0,
+                                   /* pixelformat */ GL_RGBA,
+                                   /* pixeltype */   GL_UNSIGNED_BYTE,
+                                   /* offset */      nullptr));
 
-        // transfer texture into PBO
-        glGetTexImage(/* target */      GL_TEXTURE_2D,
-                      /* level */       0,
-                      /* pixelformat */ GL_RGBA,
-                      /* pixeltype */   GL_UNSIGNED_BYTE,
-                      /* offset */      nullptr);
+        GLCALL(ectx, glBindTexture(GL_TEXTURE_2D, 0));
+        GLCALL(ectx, glBindBuffer(GL_PIXEL_PACK_BUFFER, 0));
 
-        glBindTexture(GL_TEXTURE_2D, 0);
-        glBindBuffer(GL_PIXEL_PACK_BUFFER, 0); 
+        THROW_ON_ERROR(ectx);
 
         const auto t2 = std::chrono::steady_clock::now();
         HG_LOG_INFO(LOG_ID, "display() took {}ms.", std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() / 1000.0);
     }
-    return;
 
-    COPY:
-    {
+    /* LOAD PBO INTO RAM BUFFER */ {
         const auto t1 = std::chrono::steady_clock::now();
-        //_image = _renderTexture.getTexture().copyToImage();
+
+        const unsigned targetPbo = ((_stepCounter + 1) % 2);
 
         const void* p = nullptr;
-        glBindBuffer(GL_PIXEL_PACK_BUFFER, _pbo);
-        GLCALL(p = glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY));
-        HG_HARD_ASSERT(p != nullptr);
-        const auto size = hg::pztos(_textureSize) * hg::pztos(_textureSize) * 4u;
-        std::memcpy(_imageData.data(), p, size);
-        glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
-        glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+        GLCALL(ectx, glBindBuffer(GL_PIXEL_PACK_BUFFER, _pboNames[targetPbo]));
+        // Maps the memory of the target PBO into memory addressable by the CPU.
+        // If a transfer into this PBO previously initiated by 'glGetTexImage' is
+        // not yet complete, 'glMapBuffer' will wait until it is.
+        // Note: Where the PBO holds pixel data and whether 'glMapBuffer' involves
+        // copying the data is up to the specific OpenGL implementation.
+        GLCALL(ectx, {
+            p = glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
+        });
+
+        if (p != nullptr) {
+            std::memcpy(_textureRamBuffer.data(), p, _textureRamBuffer.size());
+        } else {
+            HG_LOG_WARN(LOG_ID, "PBO mapping into RAM returned NULL.");
+            std::memset(_textureRamBuffer.data(), 0x00, _textureRamBuffer.size());
+        }
+
+        GLCALL(ectx, glUnmapBuffer(GL_PIXEL_PACK_BUFFER));
+        GLCALL(ectx, glBindBuffer(GL_PIXEL_PACK_BUFFER, 0));
+
+        THROW_ON_ERROR(ectx);
 
         const auto t2 = std::chrono::steady_clock::now();
         HG_LOG_INFO(LOG_ID, "copyToImage() took {}ms.", std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() / 1000.0);
@@ -190,9 +241,10 @@ std::optional<hg::gr::Color> LightingRenderer2D::getColorAt(hg::math::Vector2f a
         return {};
     }
 
-    const auto* p = _imageData.data() + ((_textureSize - 1 - pixelPos.y) * _textureSize + pixelPos.x) * 4;
+    // Note: The calculation is as such because the pixel data we get from OpenGL is flipped vertically.
+    const auto* p = _textureRamBuffer.data() + ((_textureSize - 1 - pixelPos.y) * _textureSize + pixelPos.x) * 4;
 
-    return hg::gr::Color{p[0], p[1], p[2], p[3]};
+    return hg::gr::Color{p[0], p[1], p[2], 255};
 }
 
 const hg::gr::Texture& LightingRenderer2D::getTexture(hg::math::Vector2f* aRecommendedScale) const {
@@ -201,6 +253,16 @@ const hg::gr::Texture& LightingRenderer2D::getTexture(hg::math::Vector2f* aRecom
         aRecommendedScale->y = _recommendedScale;
     }
     return _renderTexture.getTexture();
+}
+
+void LightingRenderer2D::_deletePbos() {
+    for (auto& pboName : _pboNames) {
+        // OpenGL error handling deliberately left out:
+        // "glDeleteBuffers silently ignores 0's and names that
+        // do not correspond to existing buffer objects."
+        glDeleteBuffers(1, &pboName);
+        pboName = 0;
+    }
 }
 
 hg::gr::Sprite& LightingRenderer2D::_getSprite(model::SpriteId aSpriteId) const {

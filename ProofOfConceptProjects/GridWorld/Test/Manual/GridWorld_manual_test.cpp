@@ -100,7 +100,7 @@ int main() try {
         fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
     }
 
-    gridworld::LightingRenderer2D tdlRenderer{world, loader, 2048, gridworld::LightingRenderer2D::FOR_DIMETRIC};
+    gridworld::LightingRenderer2D tdlRenderer{world, loader, 1024, gridworld::LightingRenderer2D::FOR_DIMETRIC};
     gridworld::DimetricRenderer renderer{world, loader, tdlRenderer};
 
     while (window.isOpen()) {
