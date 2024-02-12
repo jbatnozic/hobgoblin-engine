@@ -83,8 +83,11 @@ float MultiplierForPurpose(LightingRenderer2D::Purpose aPurpose) {
             return 1.f;
 
         case LightingRenderer2D::FOR_DIMETRIC:
-            //return 2.f;
-            return 1.41421356237f; // sqrt(2)
+            {
+                // (17/16) * sqrt(2)
+                static constexpr float MAGIC_DIMETRIC_MULTIPLIER = 1.41421356237f * 17.f / 16.f;
+                return MAGIC_DIMETRIC_MULTIPLIER;
+            }
 
         default:
             HG_UNREACHABLE("Invalid value for LightingRenderer2D::Purpose ({}).", (int)aPurpose);
@@ -196,7 +199,7 @@ void LightingRenderer2D::render() {
         THROW_ON_ERROR(ectx);
 
         const auto t2 = std::chrono::steady_clock::now();
-        HG_LOG_INFO(LOG_ID, "display() took {}ms.", std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() / 1000.0);
+        //HG_LOG_INFO(LOG_ID, "display() took {}ms.", std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() / 1000.0);
     }
 
     /* LOAD PBO INTO RAM BUFFER */ {
@@ -228,7 +231,7 @@ void LightingRenderer2D::render() {
         THROW_ON_ERROR(ectx);
 
         const auto t2 = std::chrono::steady_clock::now();
-        HG_LOG_INFO(LOG_ID, "copyToImage() took {}ms.", std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() / 1000.0);
+        //HG_LOG_INFO(LOG_ID, "copyToImage() took {}ms.", std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() / 1000.0);
     }
 }
 

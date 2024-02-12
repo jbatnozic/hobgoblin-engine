@@ -24,8 +24,8 @@ static void DimetricRenderer::_diagonalTraverse(const World& aWorld,
                                                 taCallable&& aFunc) {
     const float cellRes = aWorld.getCellResolution();
  
-    const int cellsPerRow    = (aViewData.size.y / (cellRes * 2.f)) + 1;
-    const int cellsPerColumn = (aViewData.size.x * 2.f) / cellRes;
+    const int cellsPerRow    = (aViewData.size.x / (cellRes * 2.f)) + 1;
+    const int cellsPerColumn = (aViewData.size.y * 2.f) / cellRes;
 
     int startX = static_cast<int>(trunc(aViewData.isometricTopLeft.x / cellRes));
     int startY = static_cast<int>(trunc(aViewData.isometricTopLeft.y / cellRes));
@@ -159,8 +159,8 @@ void DimetricRenderer::_renderWalls(hg::gr::Canvas& aCanvas) const {
 
 #if 1
         const auto colopt = _lightingRenderer.getColorAt(
-            {aCellInfo.gridX * _world.getCellResolution() - 1.f,
-             aCellInfo.gridY * _world.getCellResolution() + 1.f}
+            {aCellInfo.gridX * _world.getCellResolution() - 2.f,
+             aCellInfo.gridY * _world.getCellResolution() + 2.f}
         );
         const auto col = colopt.value_or(hg::gr::COLOR_BLACK); // TODO(temporary)
 #else

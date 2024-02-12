@@ -91,9 +91,9 @@ int main() try {
 
     const auto light = world.createLight(SPR_LIGHT, {300, 300});
 
-    hg::gr::RenderWindow window{hg::win::VideoMode{950, 950}, "GridWorld"};
+    hg::gr::RenderWindow window{hg::win::VideoMode{1280, 950}, "GridWorld"};
     window.setFramerateLimit(60);
-    window.getView().setSize({1024, 1024});
+    window.getView().setSize({1280, 950});
 
     GLenum err = glewInit();
     if (err != GLEW_OK) {
