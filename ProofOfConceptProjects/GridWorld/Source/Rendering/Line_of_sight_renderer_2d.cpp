@@ -1,5 +1,5 @@
 
-#include <GridWorld/Rendering/Lighting_renderer_2d.hpp>
+#include <GridWorld/Rendering/Line_of_sight_renderer_2d.hpp>
 
 #include <Hobgoblin/Format.hpp>
 #include <Hobgoblin/HGExcept.hpp>
@@ -19,14 +19,12 @@ namespace gridworld {
 namespace {
 constexpr auto LOG_ID = "gridworld";
 
-const auto ADDITIVE_DRAW = hg::gr::RenderStates{hg::gr::BLEND_ADD};
-
-float MultiplierForPurpose(LightingRenderer2D::Purpose aPurpose) {
+float MultiplierForPurpose(LineOfSightRenderer2D::Purpose aPurpose) {
     switch (aPurpose) {
-        case LightingRenderer2D::FOR_TOPDOWN:
+        case LineOfSightRenderer2D::FOR_TOPDOWN:
             return 1.f;
 
-        case LightingRenderer2D::FOR_DIMETRIC:
+        case LineOfSightRenderer2D::FOR_DIMETRIC:
             {
                 // (17/16) * sqrt(2)
                 static constexpr float MAGIC_DIMETRIC_MULTIPLIER = 1.41421356237f * 17.f / 16.f;
@@ -34,17 +32,15 @@ float MultiplierForPurpose(LightingRenderer2D::Purpose aPurpose) {
             }
 
         default:
-            HG_UNREACHABLE("Invalid value for LightingRenderer2D::Purpose ({}).", (int)aPurpose);
+            HG_UNREACHABLE("Invalid value for LineOfSightRenderer2D::Purpose ({}).", (int)aPurpose);
     }
 }
 } // namespace
 
-LightingRenderer2D::LightingRenderer2D(const World& aWorld,
-                                       const hg::gr::SpriteLoader& aSpriteLoader,
-                                       hg::PZInteger aTextureSize,
-                                       Purpose aPurpose)
+LineOfSightRenderer2D::LineOfSightRenderer2D(const World& aWorld,
+                                             hg::PZInteger aTextureSize,
+                                             Purpose aPurpose)
     : _world{aWorld}
-    , _spriteLoader{aSpriteLoader}
     , _sizeMultiplier{MultiplierForPurpose(aPurpose)}
     , _textureSize{aTextureSize}
 {
@@ -58,15 +54,14 @@ LightingRenderer2D::LightingRenderer2D(const World& aWorld,
     DualPBO_Init(_pboNames, _textureRamBuffer.size());
 }
 
-LightingRenderer2D::~LightingRenderer2D() {
+LineOfSightRenderer2D::~LineOfSightRenderer2D() {
     DualPBO_Destroy(_pboNames);
 }
 
-void LightingRenderer2D::start(hg::math::Vector2f aWorldPosition,
-                               hg::math::Vector2f aViewSize,
-                               float aPadding) {
-    _renderTexture.clear();
-
+void LineOfSightRenderer2D::start(hg::math::Vector2f aWorldPosition,
+                                  hg::math::Vector2f aViewSize,
+                                  hg::math::Vector2f aLineOfSightOrigin,
+                                  float aPadding) {
     const float width  = aViewSize.x + aPadding;
     const float height = aViewSize.y + aPadding;
     const float largerDimension = std::max(width, height);
@@ -81,15 +76,15 @@ void LightingRenderer2D::start(hg::math::Vector2f aWorldPosition,
     view.setViewport({0.f, 0.f, 1.f, 1.f});
     _renderTexture.setView(view);
 
+    _losOrigin = aLineOfSightOrigin;
+
     _stepCounter += 1;
 }
 
-void LightingRenderer2D::render() {
-    for (auto iter = _world.lightDataBegin(), end = _world.lightDataEnd(); iter != end; iter = std::next(iter)) {
-        auto& light = iter->second; // TODO(check that this does not do a copy)
-        _renderLight(light);
-        _drawLight(light);
-    }
+void LineOfSightRenderer2D::render() {
+    _renderTexture.clear(hg::gr::COLOR_WHITE);
+
+    _renderOcclusion();
 
     // Draw red dot at centre - TODO (remove when not needed anymore)
 #if 0
@@ -102,22 +97,20 @@ void LightingRenderer2D::render() {
     }
 #endif
 
-    /* DISPLAY & START TRANSFER TO PBO */ {
-        _renderTexture.display();
+    _renderTexture.display();
 
-        const unsigned targetPbo = (_stepCounter % 2);
-        
+    {
+        const unsigned targetPbo = (_stepCounter % 2);       
         DualPBO_StartTransfer(_pboNames, targetPbo, _renderTexture.getTexture().getNativeHandle());
     }
 
-    /* LOAD PBO INTO RAM BUFFER */ {
+    {
         const unsigned targetPbo = ((_stepCounter + 1) % 2);
-
         DualPBO_LoadIntoRam(_pboNames, targetPbo, _textureRamBuffer.data(), _textureRamBuffer.size());
     }
 }
 
-std::optional<hg::gr::Color> LightingRenderer2D::getColorAt(hg::math::Vector2f aPos) const {
+std::optional<bool> LineOfSightRenderer2D::testVisibilityAt(hg::math::Vector2f aPos) const {
     auto pixelPos = _renderTexture.mapCoordsToPixel(aPos, 0);
 
     if (pixelPos.x < 0 || pixelPos.x >= _textureSize ||
@@ -129,10 +122,10 @@ std::optional<hg::gr::Color> LightingRenderer2D::getColorAt(hg::math::Vector2f a
     // Note: The calculation is as such because the pixel data we get from OpenGL is flipped vertically.
     const auto* p = _textureRamBuffer.data() + ((_textureSize - 1 - pixelPos.y) * _textureSize + pixelPos.x) * 4;
 
-    return hg::gr::Color{p[0], p[1], p[2], 255};
+    return (hg::gr::Color{p[0], p[1], p[2], 255} != hg::gr::COLOR_BLACK);
 }
 
-const hg::gr::Texture& LightingRenderer2D::getTexture(hg::math::Vector2f* aRecommendedScale) const {
+const hg::gr::Texture& LineOfSightRenderer2D::__gwimpl_getTexture(hg::math::Vector2f* aRecommendedScale) const {
     if (aRecommendedScale != nullptr) {
         aRecommendedScale->x = _recommendedScale;
         aRecommendedScale->y = _recommendedScale;
@@ -140,32 +133,10 @@ const hg::gr::Texture& LightingRenderer2D::getTexture(hg::math::Vector2f* aRecom
     return _renderTexture.getTexture();
 }
 
-hg::gr::Sprite& LightingRenderer2D::_getSprite(model::SpriteId aSpriteId) const {
-    const auto iter = _spriteCache.find(aSpriteId);
-    if (iter != _spriteCache.end()) {
-        return iter->second;
-    }
-
-    const auto blueprint = _spriteLoader.getBlueprint(aSpriteId);
-    const auto newIter = _spriteCache.emplace(std::make_pair(aSpriteId, blueprint.spr()));
-    return newIter.first->second;
-}
-
-void LightingRenderer2D::_renderLight(const model::LightData& aLightData) {
-    const auto size = aLightData.texture.getSize();
+void LineOfSightRenderer2D::_renderOcclusion() {  
     const auto cellResolution = _world.getCellResolution();
-
-    auto& view = aLightData.texture.getView();
-    view.setSize({(float)size.x, (float)size.y}); // TODO: call only once on creation
-    view.setCenter(aLightData.position);
-    view.setViewport({0.f, 0.f, 1.f, 1.f});
-
-    aLightData.texture.clear(hg::gr::COLOR_BLACK);
-    {
-        auto& sprite = _getSprite(aLightData.spriteId);
-        sprite.setPosition(aLightData.position);
-        aLightData.texture.draw(sprite);
-    }
+    const auto position = _renderTexture.getView().getCenter();
+    const auto size = _renderTexture.getView().getSize();
 
     hg::gr::Vertex vertices[10];
     for (auto& vertex : vertices) {
@@ -173,22 +144,22 @@ void LightingRenderer2D::_renderLight(const model::LightData& aLightData) {
     }
 
     const auto startGridX = 
-        hg::math::Clamp(static_cast<int>(trunc((aLightData.position.x - size.x / 2.f) / cellResolution)), 
+        hg::math::Clamp(static_cast<int>(trunc((position.x - size.x / 2.f) / cellResolution)), 
                         0, 
                         _world.getCellCountX() - 1
         );
     const auto startGridY =
-        hg::math::Clamp(static_cast<int>(trunc((aLightData.position.y - size.y / 2.f) / cellResolution)),
+        hg::math::Clamp(static_cast<int>(trunc((position.y - size.y / 2.f) / cellResolution)),
                         0,
                         _world.getCellCountY() - 1
         );
     const auto endGridX = 
-        hg::math::Clamp(static_cast<int>(trunc((aLightData.position.x + size.x / 2.f) / cellResolution)), 
+        hg::math::Clamp(static_cast<int>(trunc((position.x + size.x / 2.f) / cellResolution)), 
                         0, 
                         _world.getCellCountX() - 1
         );
     const auto endGridY =
-        hg::math::Clamp(static_cast<int>(trunc((aLightData.position.y + size.y / 2.f) / cellResolution)),
+        hg::math::Clamp(static_cast<int>(trunc((position.y + size.y / 2.f) / cellResolution)),
                         0,
                         _world.getCellCountY() - 1
         );
@@ -204,31 +175,20 @@ void LightingRenderer2D::_renderLight(const model::LightData& aLightData) {
                 vertices[8] = vertices[0];
 
                 for (int i = 1; i < 10; i += 2) {
-                    hg::math::Vector2f diff = {vertices[i - 1].position.x - aLightData.position.x,
-                        vertices[i - 1].position.y - aLightData.position.y};
-                    diff.x *= 1000.f; // TODO: magic number
-                    diff.y *= 1000.f; // TODO: magic number
+                    hg::math::Vector2f diff = {vertices[i - 1].position.x - _losOrigin.x,
+                                               vertices[i - 1].position.y - _losOrigin.y};
+                    diff.x *= 2000.f; // TODO: magic number
+                    diff.y *= 2000.f; // TODO: magic number
 
                     vertices[i].position = {vertices[i - 1].position.x + diff.x,
-                        vertices[i - 1].position.y + diff.y};
+                                            vertices[i - 1].position.y + diff.y};
                 }
 
-                aLightData.texture.draw(vertices, 10, hg::gr::PrimitiveType::TriangleStrip);
+                _renderTexture.draw(vertices, 10, hg::gr::PrimitiveType::TriangleStrip);
             }
             // ****************************************************
         }
     }
-
-    aLightData.texture.display();
-}
-
-void LightingRenderer2D::_drawLight(const model::LightData& aLightData) {
-    hg::gr::Sprite spr{&(aLightData.texture.getTexture())};
-    const auto bounds = spr.getLocalBounds();
-    spr.setOrigin({bounds.w / 2.f, bounds.h / 2.f});
-    spr.setPosition(aLightData.position);
-    spr.setRotation(aLightData.angle);
-    _renderTexture.draw(spr, ADDITIVE_DRAW);
 }
 
 } // namespace gridworld

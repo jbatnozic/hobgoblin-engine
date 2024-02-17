@@ -3,6 +3,7 @@
 #include <GridWorld/Rendering/Dimetric_renderer.hpp>
 #include <GridWorld/Dimetric_transform.hpp>
 #include <GridWorld/Rendering/Lighting_renderer_2d.hpp>
+#include <GridWorld/Rendering/Line_of_sight_renderer_2d.hpp>
 
 #include <Hobgoblin/Math.hpp>
 #include <Hobgoblin/Window.hpp>
@@ -103,6 +104,8 @@ int main() try {
     gridworld::LightingRenderer2D tdlRenderer{world, loader, 1024, gridworld::LightingRenderer2D::FOR_DIMETRIC};
     gridworld::DimetricRenderer renderer{world, loader, tdlRenderer};
 
+    gridworld::LineOfSightRenderer2D losRenderer{world, 1024, gridworld::LineOfSightRenderer2D::FOR_DIMETRIC};
+
     while (window.isOpen()) {
         bool mouseLClick = false;
         bool mouseRClick = false;
@@ -112,22 +115,6 @@ int main() try {
                 [&](hg::win::Event::Closed&) {
                     window.close();
                 },
-                /*[&](hg::win::Event::KeyPressed& aKey) {
-                    switch (aKey.physicalKey) {
-                    case hg::in::PK_LEFT:
-                        window.getView().move({-16.f, 0.f});
-                        break;
-                    case hg::in::PK_RIGHT:
-                        window.getView().move({+16.f, 0.f});
-                        break;
-                    case hg::in::PK_UP:
-                        window.getView().move({0.f, -16.f});
-                        break;
-                    case hg::in::PK_DOWN:
-                        window.getView().move({0.f, +16.f});
-                        break;
-                    }
-                },*/
                 [&](hg::win::Event::MouseButtonPressed& aButton) {
                     if (aButton.button == hg::in::MB_LEFT) {
                         mouseLClick = true;
@@ -169,23 +156,28 @@ int main() try {
             }
         }
 
-        //tdlRenderer.start(gridworld::ScreenCoordinatesToIsometric(window.getView(0).getCenter()),
-        //                  window.getView(0).getSize(),
-        //                  0.f);
         renderer.start(window.getView(0), /* POV */ isoCoords);
+        losRenderer.start(window.getView(0).getCenter(), window.getView(0).getSize(), {100.f, 100.f}, 0.f);
 
-        //tdlRenderer.render();
         renderer.render(window);
+        losRenderer.render();
 
-        if (false) {
-            hg::math::Vector2f tdlScale;
-            const auto& tex = tdlRenderer.getTexture(&tdlScale);
+        if (true) {
+            hg::math::Vector2f scale;
+            const auto& tex = losRenderer.__gwimpl_getTexture(&scale);
             hg::gr::Sprite spr2{&tex};
             spr2.setOrigin({tex.getSize().x * 0.5f, tex.getSize().y * 0.5f});
-            spr2.setScale(tdlScale);
-            spr2.setPosition(gridworld::ScreenCoordinatesToIsometric(window.getView().getCenter()));
+            spr2.setScale(scale);
+            spr2.setPosition(gridworld::ScreenCoordinatesToIsometric(window.getView(0).getCenter()));
             spr2.setColor({255, 255, 255, 155});
             window.draw(spr2, gridworld::DIMETRIC_TRANSFORM);
+
+            const auto visibility = losRenderer.testVisibilityAt(isoCoords);
+            if (visibility) {
+                std::cout << "Visibility: " << (*visibility ? "yes" : "no") << '\n';
+            } else {
+                std::cout << "Visibility: n/a" << '\n';
+            }
         }
 
         window.display();

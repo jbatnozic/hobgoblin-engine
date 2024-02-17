@@ -8,6 +8,9 @@ add_library(${PROJECT_NAME}
 
     "Source/Rendering/Dimetric_renderer.cpp"
     "Source/Rendering/Lighting_renderer_2d.cpp"
+    "Source/Rendering/Line_of_sight_renderer_2d.cpp"
+    "Source/Rendering/OpenGL_helpers.cpp"
+    "Source/Rendering/OpenGL_helpers.hpp"
 
     "Source/World/World.cpp"
 
@@ -15,7 +18,7 @@ add_library(${PROJECT_NAME}
     "Source/Dimetric_transform.cpp"
     "Source/Main.cpp"
     "Source/Spatial_info.cpp"
-  )
+ )
 
 target_link_libraries(${PROJECT_NAME}
 PUBLIC

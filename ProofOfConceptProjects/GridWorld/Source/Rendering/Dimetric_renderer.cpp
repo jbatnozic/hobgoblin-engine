@@ -132,11 +132,11 @@ void DimetricRenderer::_renderFloor(hg::gr::Canvas& aCanvas) const {
 void DimetricRenderer::_renderLighting(hg::gr::Canvas& aCanvas) const {
     _lightingRenderer.render();
     
-    hg::math::Vector2f tdlScale;
-    const auto& tex = _lightingRenderer.getTexture(&tdlScale);
+    hg::math::Vector2f scale;
+    const auto& tex = _lightingRenderer.getTexture(&scale);
     hg::gr::Sprite spr{&tex};
     spr.setOrigin({tex.getSize().x * 0.5f, tex.getSize().y * 0.5f});
-    spr.setScale(tdlScale);
+    spr.setScale(scale);
     spr.setPosition(ScreenCoordinatesToIsometric(_viewData.center));
     spr.setColor({255, 255, 255, 155});
     aCanvas.draw(spr, DIMETRIC_TRANSFORM);

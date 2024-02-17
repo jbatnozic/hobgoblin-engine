@@ -11,7 +11,6 @@
 
 #include <array>
 #include <cstdint>
-#include <optional>
 #include <unordered_map>
 #include <vector>
 
@@ -19,40 +18,39 @@ namespace gridworld {
 
 namespace hg = jbatnozic::hobgoblin;
 
-class LightingRenderer2D {
+class LineOfSightRenderer2D {
 public:
     enum Purpose {
         FOR_TOPDOWN,
         FOR_DIMETRIC
     };
 
-    LightingRenderer2D(const World& aWorld,
-                       const hg::gr::SpriteLoader& aSpriteLoader,
-                       hg::PZInteger aTextureSize,
-                       Purpose aPurpose);
+    LineOfSightRenderer2D(const World& aWorld,
+                          hg::PZInteger aTextureSize,
+                          Purpose aPurpose);
 
-    ~LightingRenderer2D();
+    ~LineOfSightRenderer2D();
 
-    void start(hg::math::Vector2f aWorldPosition,
+    void start(hg::math::Vector2f aViewWorldPosition,
                hg::math::Vector2f aViewSize,
+               hg::math::Vector2f aLineOfSightOrigin,
                float aPadding);
 
     void render();
 
-    std::optional<hg::gr::Color> getColorAt(hg::math::Vector2f aPos) const;
+    std::optional<bool> testVisibilityAt(hg::math::Vector2f aPos) const;
 
-    const hg::gr::Texture& getTexture(hg::math::Vector2f* aRecommendedScale = nullptr) const;
+    //! For debug purposes only.
+    const hg::gr::Texture& __gwimpl_getTexture(hg::math::Vector2f* aRecommendedScale = nullptr) const;
 
 private:
     const World& _world;
-    const hg::gr::SpriteLoader& _spriteLoader;
-
-    mutable std::unordered_map<model::SpriteId, hg::gr::Sprite> _spriteCache;
 
     float _sizeMultiplier;
     float _recommendedScale = 1.f;
+    hg::math::Vector2f _losOrigin;
 
-    //! Texture to which all lighting is rendered.
+    //! Texture to which visibility is rendered.
     hg::gr::RenderTexture _renderTexture;
 
     //! Width and Height of _renderTexture (it's always a square).
@@ -70,10 +68,7 @@ private:
     //! - In odd-numbered steps, we start writing to pbo[1] and read from pbo[0].
     unsigned int _stepCounter = -1;
 
-    hg::gr::Sprite& _getSprite(model::SpriteId aSpriteId) const;
-
-    void _renderLight(const model::LightData& aLightData);
-    void _drawLight(const model::LightData& aLightData);
+    void _renderOcclusion();
 };
 
 } // namespace gridworld
