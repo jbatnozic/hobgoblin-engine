@@ -5,6 +5,8 @@
 
 #include <cmath>
 
+#include "../Detail_access.hpp"
+
 namespace gridworld {
 
 float World::getCellResolution() const {
@@ -234,7 +236,7 @@ void World::_renderLight(model::LightData& aLightData) {
 void World::_refreshCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) {
     auto& cell = _grid[aY][aX];
 
-    cell.refresh(
+    GetMutableExtensionData(cell).refresh(
         (aY <= 0) ? nullptr : std::addressof(_grid[aY - 1][aX]),
         (aX <= 0) ? nullptr : std::addressof(_grid[aY][aX - 1]),
         (aX >= getCellCountX() - 1) ? nullptr : std::addressof(_grid[aY][aX + 1]),

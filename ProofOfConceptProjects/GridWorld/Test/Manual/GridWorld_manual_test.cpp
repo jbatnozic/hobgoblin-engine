@@ -9,10 +9,12 @@
 #include <Hobgoblin/Window.hpp>
 #include <Hobgoblin/Graphics.hpp>
 #include <Hobgoblin/Input.hpp>
+#include <Hobgoblin/Utility/Time_utils.hpp>
 
 #include <GL/glew.h>
 
 #include <array>
+#include <chrono>
 #include <iostream>
 
 #include <Hobgoblin/Logging.hpp>
@@ -20,7 +22,7 @@
 namespace hg = jbatnozic::hobgoblin;
 
 void DrawIsometricSquareAt(hg::gr::Canvas& aCanvas, float aSize, hg::gr::Color aColor, hg::math::Vector2f aPosition) {
-    const float coords[][2] = {
+    const float coords[5][2] = {
         {0.f, 0.f},
         {0.f, aSize},
         {aSize, aSize},
@@ -35,32 +37,12 @@ void DrawIsometricSquareAt(hg::gr::Canvas& aCanvas, float aSize, hg::gr::Color a
     va.primitiveType = hg::gr::PrimitiveType::LineStrip;
 
     for (int i = 0; i < 5; i += 1) {
-        auto iso = gridworld::ScreenCoordinatesToIsometric({coords[i][0] + aPosition.x, 
+        auto iso = gridworld::IsometricCoordinatesToScreen({coords[i][0] + aPosition.x, 
                                                             coords[i][1] + aPosition.y});
         va.vertices.push_back(Vertex{iso, aColor});
     }
 
     aCanvas.draw(va);
-}
-
-// Draws an isometric grid
-void Func() {
-    hg::gr::RenderTexture texture;
-    texture.create({800, 800});
-    texture.setView(hg::gr::View{{400.f, 0.f}, {800.f, 800.f}});
-    texture.clear(hg::gr::COLOR_BLACK);
-
-    static constexpr float size = 32.f;
-
-    for (int i = 0; i < 10; i += 1) {
-        for (int t = 0; t < 10; t += 1) {
-            DrawIsometricSquareAt(texture, size, hg::gr::COLOR_RED, {(float)t * size, (float)i * size});
-        }
-    }
-    DrawIsometricSquareAt(texture, size, hg::gr::COLOR_GREEN, {(float)0, (float)0});
-
-    texture.display();
-    texture.getTexture().copyToImage().saveToFile("iso.png");
 }
 
 #define SPR_STONE_TILE 0
@@ -93,7 +75,8 @@ int main() try {
     const auto light = world.createLight(SPR_LIGHT, {300, 300});
 
     hg::gr::RenderWindow window{hg::win::VideoMode{1280, 950}, "GridWorld"};
-    window.setFramerateLimit(60);
+    //window.setFramerateLimit(60);
+    window.setVerticalSyncEnabled(true);
     window.getView().setSize({1280, 950});
 
     GLenum err = glewInit();
@@ -101,12 +84,15 @@ int main() try {
         fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
     }
 
-    gridworld::LightingRenderer2D tdlRenderer{world, loader, 1024, gridworld::LightingRenderer2D::FOR_DIMETRIC};
-    gridworld::DimetricRenderer renderer{world, loader, tdlRenderer};
-
+    gridworld::LightingRenderer2D lightRenderer{world, loader, 1024, gridworld::LightingRenderer2D::FOR_DIMETRIC};
     gridworld::LineOfSightRenderer2D losRenderer{world, 1024, gridworld::LineOfSightRenderer2D::FOR_DIMETRIC};
+    gridworld::DimetricRenderer renderer{world, loader, lightRenderer, losRenderer};    
+
+    hg::util::Stopwatch swatch;
 
     while (window.isOpen()) {
+        const auto frameTime = swatch.restart<std::chrono::microseconds>();
+
         bool mouseLClick = false;
         bool mouseRClick = false;
         hg::win::Event ev;
@@ -156,13 +142,14 @@ int main() try {
             }
         }
 
+        const auto t1 = std::chrono::steady_clock::now();
         renderer.start(window.getView(0), /* POV */ isoCoords);
-        losRenderer.start(window.getView(0).getCenter(), window.getView(0).getSize(), {100.f, 100.f}, 0.f);
-
         renderer.render(window);
-        losRenderer.render();
+        const auto t2 = std::chrono::steady_clock::now();
+        //std::cout << "Time to render: " << std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() / 1000.0 << "ms "
+        //          << "frame time: " << frameTime.count() / 1000.0 << "ms.\n";
 
-        if (true) {
+        if (false) {
             hg::math::Vector2f scale;
             const auto& tex = losRenderer.__gwimpl_getTexture(&scale);
             hg::gr::Sprite spr2{&tex};
@@ -178,6 +165,12 @@ int main() try {
             } else {
                 std::cout << "Visibility: n/a" << '\n';
             }
+        }
+
+        if (true) {
+            const float xx = floorf(isoCoords.x / 32.f) * 32.f;
+            const float yy = floorf(isoCoords.y / 32.f) * 32.f;
+            DrawIsometricSquareAt(window, 32.f, hg::gr::COLOR_RED, {xx, yy});
         }
 
         window.display();

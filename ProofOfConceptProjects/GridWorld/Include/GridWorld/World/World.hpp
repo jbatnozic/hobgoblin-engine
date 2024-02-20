@@ -119,7 +119,7 @@ public:
 private:
     // ===== Cells =====
 
-    hg::util::RowMajorGrid<model::Cell> _grid;
+    hg::util::RowMajorGrid<detail::CellModelExt> _grid;
     float _cellResolution;
 
     // ===== Lights =====
@@ -130,9 +130,6 @@ private:
     void _renderLight(model::LightData& aLightData);
 
     void _refreshCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY);
-
-//public: // TODO(temp)
-//    hg::gr::RenderTexture* _renderLight(int aLightHandle);
 };
 
 } // namespace gridw

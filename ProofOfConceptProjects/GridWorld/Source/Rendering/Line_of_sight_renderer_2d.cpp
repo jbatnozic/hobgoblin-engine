@@ -67,6 +67,8 @@ void LineOfSightRenderer2D::start(hg::math::Vector2f aWorldPosition,
     const float largerDimension = std::max(width, height);
 
     _recommendedScale = largerDimension * _sizeMultiplier / _renderTexture.getSize().x;
+    _losOrigin        = aLineOfSightOrigin;
+    _viewCenterOffset = aWorldPosition - _renderTexture.getView().getCenter();
 
     const float virtualSquareEdge = ceil(largerDimension * _sizeMultiplier);
 
@@ -75,8 +77,6 @@ void LineOfSightRenderer2D::start(hg::math::Vector2f aWorldPosition,
     view.setCenter(aWorldPosition);
     view.setViewport({0.f, 0.f, 1.f, 1.f});
     _renderTexture.setView(view);
-
-    _losOrigin = aLineOfSightOrigin;
 
     _stepCounter += 1;
 }
@@ -111,7 +111,7 @@ void LineOfSightRenderer2D::render() {
 }
 
 std::optional<bool> LineOfSightRenderer2D::testVisibilityAt(hg::math::Vector2f aPos) const {
-    auto pixelPos = _renderTexture.mapCoordsToPixel(aPos, 0);
+    const auto pixelPos = _renderTexture.mapCoordsToPixel(aPos + _viewCenterOffset, 0);
 
     if (pixelPos.x < 0 || pixelPos.x >= _textureSize ||
         pixelPos.y < 0 || pixelPos.y >= _textureSize)

@@ -6,7 +6,6 @@ namespace gridworld {
 
 namespace hg = jbatnozic::hobgoblin;
 
-// it's technically dimetric
 const hg::gr::Transform DIMETRIC_TRANSFORM {
      1.0f, 1.0f, 0.f,
     -0.5f, 0.5f, 0.f,

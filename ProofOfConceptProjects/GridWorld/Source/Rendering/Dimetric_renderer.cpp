@@ -8,6 +8,8 @@
 
 #include <cmath>
 
+#include "../Detail_access.hpp"
+
 namespace gridworld {
 
 namespace {
@@ -53,10 +55,12 @@ static void DimetricRenderer::_diagonalTraverse(const World& aWorld,
 
 DimetricRenderer::DimetricRenderer(const World& aWorld,
                                    const hg::gr::SpriteLoader& aSpriteLoader,
-                                   LightingRenderer2D& aLightingRenderer)
+                                   LightingRenderer2D& aLightingRenderer,
+                                   LineOfSightRenderer2D& aLineOfSightRenderer)
     : _world{aWorld}
     , _spriteLoader{aSpriteLoader}
     , _lightingRenderer{aLightingRenderer}
+    , _losRenderer{aLineOfSightRenderer}
 {
 }
 
@@ -94,6 +98,10 @@ void DimetricRenderer::start(const hg::gr::View& aView, hg::math::Vector2f aPoin
     _lightingRenderer.start(ScreenCoordinatesToIsometric(aView.getCenter()), 
                             aView.getSize(),
                             0.f); // TODO(use padding parameter)
+    _losRenderer.start(ScreenCoordinatesToIsometric(aView.getCenter()),
+                       aView.getSize(),
+                       aPointOfView,
+                       0.f); // TODO(use padding parameter)
 }
 
 void DimetricRenderer::render(hg::gr::Canvas& aCanvas) {
@@ -139,25 +147,99 @@ void DimetricRenderer::_renderLighting(hg::gr::Canvas& aCanvas) const {
     spr.setScale(scale);
     spr.setPosition(ScreenCoordinatesToIsometric(_viewData.center));
     spr.setColor({255, 255, 255, 155});
-    aCanvas.draw(spr, DIMETRIC_TRANSFORM);
+
+    //! Multiplicative blending with a dimetric transform.
+    //! Note: This cannot be a freestanding global variable, because it depends on
+    //!       DIMETRIC_TRANSFORM and BLEND_MULTIPLY, and if those aren't initialized first,
+    //!       bad stuff happens...
+    static const auto GLOBAL_LIGHTING_RENDER_STATES = hg::gr::RenderStates{
+        nullptr,
+        nullptr,
+        DIMETRIC_TRANSFORM,
+        hg::gr::BLEND_MULTIPLY
+    };
+
+    aCanvas.draw(spr, GLOBAL_LIGHTING_RENDER_STATES);
 }
 
 void DimetricRenderer::_renderWalls(hg::gr::Canvas& aCanvas) const {
+    _losRenderer.render();
+
+    _diagonalTraverse(_world, _viewData, [](const CellInfo& aCellInfo, auto) {
+        GetMutableExtensionData(*aCellInfo.cell).setLowered(false);
+        GetMutableExtensionData(*aCellInfo.cell).setVisible(false);
+    });
+
+    _diagonalTraverse(_world, _viewData, [this](const CellInfo& aCellInfo, auto) {
+        const float cellres = _world.getCellResolution();
+        const float offset = 1.f;
+        const hg::math::Vector2f positions[4] = { // TODO: do top row then bottom row (cache efficiency)
+            {(aCellInfo.gridX + 0) * cellres + offset, (aCellInfo.gridY + 0) * cellres + offset},
+            {(aCellInfo.gridX + 1) * cellres - offset, (aCellInfo.gridY + 0) * cellres + offset},
+            {(aCellInfo.gridX + 1) * cellres - offset, (aCellInfo.gridY + 1) * cellres - offset},
+            {(aCellInfo.gridX + 0) * cellres + offset, (aCellInfo.gridY + 1) * cellres - offset}
+        };
+        bool cellIsVisible = false;
+        for (const auto pos : positions) {
+            const auto visibility = _losRenderer.testVisibilityAt(pos); // TODO: if there is a wall, we know there is no visibility!
+            if (visibility.value_or(false)) {
+                cellIsVisible = true;
+                break;
+            }
+        }
+        GetMutableExtensionData(*aCellInfo.cell).setVisible(cellIsVisible);
+
+        if (cellIsVisible) {
+            for (int i = 0; i < 5; i += 1) { // TODO: limit needs to be based on height
+                if (i > 0) {
+                    const int x = aCellInfo.gridX - i;
+                    const int y = aCellInfo.gridY + i - 1;
+
+                    if (x >= 0 && x < _world.getCellCountX() &&
+                        y >= 0 && y < _world.getCellCountY()) {
+                        GetMutableExtensionData(_world.getCellAtUnchecked(x, y)).setLowered(true);
+                    }
+                }
+                {
+                    const int x = aCellInfo.gridX - i;
+                    const int y = aCellInfo.gridY + i;
+
+                    if (x >= 0 && x < _world.getCellCountX() &&
+                        y >= 0 && y < _world.getCellCountY()) {
+                        GetMutableExtensionData(_world.getCellAtUnchecked(x, y)).setLowered(true);
+                    }
+                }
+                if (i > 0) {
+                    const int x = aCellInfo.gridX - i + 1;
+                    const int y = aCellInfo.gridY + i;
+
+                    if (x >= 0 && x < _world.getCellCountX() &&
+                        y >= 0 && y < _world.getCellCountY()) {
+                        GetMutableExtensionData(_world.getCellAtUnchecked(x, y)).setLowered(true);
+                    }
+                }
+            }
+        }
+    });
+
     _diagonalTraverse(_world, _viewData, [this, &aCanvas](const CellInfo& aCellInfo,
                                                           hg::math::Vector2f aPos) {
         if (!aCellInfo.cell->wall.has_value()) {
             return;
         }
 
-        const auto drawMode = aCellInfo.cell->determineDrawMode(
-            _world.getCellResolution(),
-            {aCellInfo.gridX * _world.getCellResolution(), aCellInfo.gridY * _world.getCellResolution()},
-            _viewData.pointOfView
-        );
+        //const auto drawMode = aCellInfo.cell->determineDrawMode(
+        //    _world.getCellResolution(),
+        //    {aCellInfo.gridX * _world.getCellResolution(), aCellInfo.gridY * _world.getCellResolution()},
+        //    _viewData.pointOfView
+        //);
+
+        const auto drawMode = GetExtensionData(*aCellInfo.cell).isLowered() ? detail::DrawMode::LOWERED
+                                                                            : detail::DrawMode::FULL;
 
         const auto& wall = *(aCellInfo.cell->wall);
 
-#if 1
+#if 0
         const auto colopt = _lightingRenderer.getColorAt(
             {aCellInfo.gridX * _world.getCellResolution() - 2.f,
              aCellInfo.gridY * _world.getCellResolution() + 2.f}
@@ -168,10 +250,10 @@ void DimetricRenderer::_renderWalls(hg::gr::Canvas& aCanvas) const {
 #endif
 
         switch (drawMode) {
-        case model::DrawMode::NONE:
+        case detail::DrawMode::NONE:
             break;
 
-        case model::DrawMode::LOWERED:
+        case detail::DrawMode::LOWERED:
             {
                 auto& sprite = _getSprite(wall.spriteId_lowered);
                 sprite.setPosition(aPos);
@@ -180,7 +262,7 @@ void DimetricRenderer::_renderWalls(hg::gr::Canvas& aCanvas) const {
             }
             break;
 
-        case model::DrawMode::FULL:
+        case detail::DrawMode::FULL:
             {
                 auto& sprite = _getSprite(wall.spriteId);
                 sprite.setPosition(aPos);

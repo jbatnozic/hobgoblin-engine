@@ -6,6 +6,7 @@
 
 #include <GridWorld/Renderer.hpp>
 #include <GridWorld/Rendering/Lighting_renderer_2d.hpp>
+#include <GridWorld/Rendering/Line_of_sight_renderer_2d.hpp>
 #include <GridWorld/World/World.hpp>
 
 #include <set>
@@ -19,7 +20,8 @@ class DimetricRenderer /*: public Renderer*/ {
 public:
     DimetricRenderer(const World& aWorld,
                      const hg::gr::SpriteLoader& aSpriteLoader,
-                     LightingRenderer2D& aLightingRenderer);
+                     LightingRenderer2D& aLightingRenderer,
+                     LineOfSightRenderer2D& aLineOfSightRenderer);
 
     void start(const hg::gr::View& aView, hg::math::Vector2f aPointOfView);
 
@@ -29,6 +31,7 @@ private:
     const World& _world;
     const hg::gr::SpriteLoader& _spriteLoader;
     LightingRenderer2D& _lightingRenderer;
+    LineOfSightRenderer2D& _losRenderer;
 
     mutable std::unordered_map<model::SpriteId, hg::gr::Sprite> _spriteCache;
 

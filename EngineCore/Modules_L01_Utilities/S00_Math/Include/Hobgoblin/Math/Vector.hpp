@@ -12,6 +12,10 @@ namespace math {
 
 // TODO: Use own vector class
 
+///////////////////////////////////////////////////////////////////////////
+// VECTOR 2                                                              //
+///////////////////////////////////////////////////////////////////////////
+
 using sf::Vector2;
 using sf::Vector2i;
 using sf::Vector2u;
@@ -19,12 +23,27 @@ using sf::Vector2f;
 using Vector2pz = Vector2<PZInteger>;
 using Vector2d  = Vector2<double>;
 
+#ifndef NOT_USING_SFML_VECTORS
+template <class T>
+Vector2<T> operator+(const Vector2<T>& aLhs, const Vector2<T>& aRhs) {
+    return {aLhs.x + aRhs.x, aLhs.y + aRhs.y};
+}
+#endif
+
+///////////////////////////////////////////////////////////////////////////
+// VECTOR 3                                                              //
+///////////////////////////////////////////////////////////////////////////
+
 using sf::Vector3;
 using sf::Vector3i;
 using Vector3u  = Vector3<unsigned>;
 using sf::Vector3f;
 using Vector3pz = Vector3<PZInteger>;
 using Vector3d  = Vector3<double>;
+
+///////////////////////////////////////////////////////////////////////////
+// VECTOR 4                                                              //
+///////////////////////////////////////////////////////////////////////////
 
 //! A 4-dimensional vector.
 template <typename taArithmetic>

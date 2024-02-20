@@ -65,7 +65,7 @@ LightingRenderer2D::~LightingRenderer2D() {
 void LightingRenderer2D::start(hg::math::Vector2f aWorldPosition,
                                hg::math::Vector2f aViewSize,
                                float aPadding) {
-    _renderTexture.clear();
+    _renderTexture.clear(hg::gr::Color{100, 100, 150, 255});
 
     const float width  = aViewSize.x + aPadding;
     const float height = aViewSize.y + aPadding;

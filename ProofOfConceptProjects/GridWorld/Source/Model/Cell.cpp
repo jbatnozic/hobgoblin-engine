@@ -3,12 +3,12 @@
 #include <GridWorld/Model/Cell.hpp>
 
 namespace gridworld {
-namespace model {
+namespace detail {
 
 namespace predicate {
 namespace {
 
-float Half(float aVal) {
+constexpr float Half(float aVal) {
     return aVal * 0.5;
 }
 
@@ -263,15 +263,31 @@ std::array<decltype(&AlwaysNone), 16> SELCTION_TABLE = {
 } // namespace
 } // namespace predicate
 
-Cell::Cell()
+CellModelExt::ExtensionData::ExtensionData()
     : _drawModePredicate{&predicate::AlwaysNone}
 {
 }
 
-void Cell::refresh(const Cell* aNorthNeighbour,
-                   const Cell* aWestNeighbour,
-                   const Cell* aEastNeighbour,
-                   const Cell* aSouthNeighbour)
+void CellModelExt::ExtensionData::setVisible(bool aIsVisible) {
+    _visible = aIsVisible;
+}
+
+bool CellModelExt::ExtensionData::isVisible() const {
+    return _visible;
+}
+
+void CellModelExt::ExtensionData::setLowered(bool aIsLowered) {
+    _lowered = aIsLowered;
+}
+
+bool CellModelExt::ExtensionData::isLowered() const {
+    return _lowered;
+}
+
+void CellModelExt::ExtensionData::refresh(const CellModelExt* aNorthNeighbour,
+                                            const CellModelExt* aWestNeighbour,
+                                            const CellModelExt* aEastNeighbour,
+                                            const CellModelExt* aSouthNeighbour)
 {
     const bool blockedFromNorth = !aNorthNeighbour || aNorthNeighbour->wall.has_value(); // TODO(temporary)
     const bool blockedFromWest  = !aWestNeighbour  || aWestNeighbour->wall.has_value();  // TODO(temporary)
@@ -287,11 +303,11 @@ void Cell::refresh(const Cell* aNorthNeighbour,
     _drawModePredicate = predicate::SELCTION_TABLE[static_cast<std::size_t>(selector)];
 }
 
-DrawMode Cell::determineDrawMode(float aCellResolution,
-                                 hg::math::Vector2f aCellPosition,
-                                 hg::math::Vector2f aPointOfView) const {
+DrawMode CellModelExt::ExtensionData::determineDrawMode(float aCellResolution,
+                                                        hg::math::Vector2f aCellPosition,
+                                                        hg::math::Vector2f aPointOfView) const {
     return _drawModePredicate(aCellResolution, aCellPosition, aPointOfView);
 }
 
-} // namespace model
-} // namespace gridw
+} // namespace detail
+} // namespace gridworld

@@ -49,6 +49,7 @@ private:
     float _sizeMultiplier;
     float _recommendedScale = 1.f;
     hg::math::Vector2f _losOrigin;
+    hg::math::Vector2f _viewCenterOffset;
 
     //! Texture to which visibility is rendered.
     hg::gr::RenderTexture _renderTexture;
