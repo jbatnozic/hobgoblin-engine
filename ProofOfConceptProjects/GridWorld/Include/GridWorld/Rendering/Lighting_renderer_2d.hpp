@@ -72,8 +72,8 @@ private:
 
     hg::gr::Sprite& _getSprite(SpriteId aSpriteId) const;
 
-    void _renderLight(const LightData& aLightData);
-    void _drawLight(const LightData& aLightData);
+    void _renderLight(const LightModel& aLightModel);
+    void _drawLight(const LightModel& aLightModel);
 };
 
 } // namespace gridworld

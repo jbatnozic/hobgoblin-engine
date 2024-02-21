@@ -108,11 +108,13 @@ public:
 
     // TODO(createRAIILight())
 
-    LightDataMapConstIterator lightDataBegin() const {
+    // TODO(this shouldn't be exposed like this)
+    std::unordered_map<LightId, detail::LightModelExt>::const_iterator lightDataBegin() const {
         return _lights.begin();
     }
 
-    LightDataMapConstIterator lightDataEnd() const {
+    // TODO(this shouldn't be exposed like this)
+    std::unordered_map<LightId, detail::LightModelExt>::const_iterator lightDataEnd() const {
         return _lights.end();
     }
 
@@ -124,10 +126,8 @@ private:
 
     // ===== Lights =====
 
-    LightMap _lights;
+    std::unordered_map<LightId, detail::LightModelExt> _lights;
     LightId _lightIdCounter = 0;
-
-    void _renderLight(LightData& aLightData);
 
     void _refreshCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY);
 };

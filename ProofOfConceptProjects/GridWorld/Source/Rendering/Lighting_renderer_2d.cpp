@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <cmath>
 
+#include "../Detail_access.hpp"
 #include "OpenGL_helpers.hpp"
 
 namespace gridworld {
@@ -151,20 +152,21 @@ hg::gr::Sprite& LightingRenderer2D::_getSprite(SpriteId aSpriteId) const {
     return newIter.first->second;
 }
 
-void LightingRenderer2D::_renderLight(const LightData& aLightData) {
-    const auto size = aLightData.texture.getSize();
+void LightingRenderer2D::_renderLight(const LightModel& aLightModel) {
+    auto& texture = GetMutableExtensionData(aLightModel).texture;
+    const auto size = texture.getSize();
     const auto cellResolution = _world.getCellResolution();
 
-    auto& view = aLightData.texture.getView();
+    auto& view = texture.getView();
     view.setSize({(float)size.x, (float)size.y}); // TODO: call only once on creation
-    view.setCenter(aLightData.position);
+    view.setCenter(aLightModel.position);
     view.setViewport({0.f, 0.f, 1.f, 1.f});
 
-    aLightData.texture.clear(hg::gr::COLOR_BLACK);
+    texture.clear(hg::gr::COLOR_BLACK);
     {
-        auto& sprite = _getSprite(aLightData.spriteId);
-        sprite.setPosition(aLightData.position);
-        aLightData.texture.draw(sprite);
+        auto& sprite = _getSprite(aLightModel.spriteId);
+        sprite.setPosition(aLightModel.position);
+        texture.draw(sprite);
     }
 
     hg::gr::Vertex vertices[10];
@@ -173,22 +175,22 @@ void LightingRenderer2D::_renderLight(const LightData& aLightData) {
     }
 
     const auto startGridX = 
-        hg::math::Clamp(static_cast<int>(trunc((aLightData.position.x - size.x / 2.f) / cellResolution)), 
+        hg::math::Clamp(static_cast<int>(trunc((aLightModel.position.x - size.x / 2.f) / cellResolution)), 
                         0, 
                         _world.getCellCountX() - 1
         );
     const auto startGridY =
-        hg::math::Clamp(static_cast<int>(trunc((aLightData.position.y - size.y / 2.f) / cellResolution)),
+        hg::math::Clamp(static_cast<int>(trunc((aLightModel.position.y - size.y / 2.f) / cellResolution)),
                         0,
                         _world.getCellCountY() - 1
         );
     const auto endGridX = 
-        hg::math::Clamp(static_cast<int>(trunc((aLightData.position.x + size.x / 2.f) / cellResolution)), 
+        hg::math::Clamp(static_cast<int>(trunc((aLightModel.position.x + size.x / 2.f) / cellResolution)), 
                         0, 
                         _world.getCellCountX() - 1
         );
     const auto endGridY =
-        hg::math::Clamp(static_cast<int>(trunc((aLightData.position.y + size.y / 2.f) / cellResolution)),
+        hg::math::Clamp(static_cast<int>(trunc((aLightModel.position.y + size.y / 2.f) / cellResolution)),
                         0,
                         _world.getCellCountY() - 1
         );
@@ -204,8 +206,8 @@ void LightingRenderer2D::_renderLight(const LightData& aLightData) {
                 vertices[8] = vertices[0];
 
                 for (int i = 1; i < 10; i += 2) {
-                    hg::math::Vector2f diff = {vertices[i - 1].position.x - aLightData.position.x,
-                        vertices[i - 1].position.y - aLightData.position.y};
+                    hg::math::Vector2f diff = {vertices[i - 1].position.x - aLightModel.position.x,
+                                               vertices[i - 1].position.y - aLightModel.position.y};
                     diff.x *= 1000.f; // TODO: magic number
                     diff.y *= 1000.f; // TODO: magic number
 
@@ -213,21 +215,21 @@ void LightingRenderer2D::_renderLight(const LightData& aLightData) {
                         vertices[i - 1].position.y + diff.y};
                 }
 
-                aLightData.texture.draw(vertices, 10, hg::gr::PrimitiveType::TriangleStrip);
+                texture.draw(vertices, 10, hg::gr::PrimitiveType::TriangleStrip);
             }
             // ****************************************************
         }
     }
 
-    aLightData.texture.display();
+    texture.display();
 }
 
-void LightingRenderer2D::_drawLight(const LightData& aLightData) {
-    hg::gr::Sprite spr{&(aLightData.texture.getTexture())};
+void LightingRenderer2D::_drawLight(const LightModel& aLightModel) {
+    hg::gr::Sprite spr{&(GetExtensionData(aLightModel).texture.getTexture())};
     const auto bounds = spr.getLocalBounds();
     spr.setOrigin({bounds.w / 2.f, bounds.h / 2.f});
-    spr.setPosition(aLightData.position);
-    spr.setRotation(aLightData.angle);
+    spr.setPosition(aLightModel.position);
+    spr.setRotation(aLightModel.angle);
     _renderTexture.draw(spr, ADDITIVE_DRAW);
 }
 
