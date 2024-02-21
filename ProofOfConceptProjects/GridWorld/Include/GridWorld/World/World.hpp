@@ -43,22 +43,22 @@ public:
 
 //#define TEMPORARY
 #ifdef TEMPORARY
-    model::Cell& getCellAt(hg::PZInteger aX, hg::PZInteger aY);
+    CellModel& getCellAt(hg::PZInteger aX, hg::PZInteger aY);
 
-    model::Cell& getCellAt(hg::math::Vector2pz aPos) ;
+    CellModel& getCellAt(hg::math::Vector2pz aPos) ;
 
-    model::Cell& getCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY);
+    CellModel& getCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY);
 
-    model::Cell& getCellAtUnchecked(hg::math::Vector2pz aPos);
+    CellModel& getCellAtUnchecked(hg::math::Vector2pz aPos);
 #endif
 
-    const model::Cell& getCellAt(hg::PZInteger aX, hg::PZInteger aY) const;
+    const CellModel& getCellAt(hg::PZInteger aX, hg::PZInteger aY) const;
 
-    const model::Cell& getCellAt(hg::math::Vector2pz aPos) const;
+    const CellModel& getCellAt(hg::math::Vector2pz aPos) const;
 
-    const model::Cell& getCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) const;
+    const CellModel& getCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) const;
 
-    const model::Cell& getCellAtUnchecked(hg::math::Vector2pz aPos) const;
+    const CellModel& getCellAtUnchecked(hg::math::Vector2pz aPos) const;
 
     ///////////////////////////////////////////////////////////////////////////
     // CELL UPDATERS                                                         //
@@ -68,51 +68,51 @@ public:
 
     void updateCellAt(hg::PZInteger aX,
                       hg::PZInteger aY,
-                      const std::optional<model::Cell::Floor>& aFloorOpt);
+                      const std::optional<CellModel::Floor>& aFloorOpt);
 
     void updateCellAt(hg::math::Vector2pz aPos,
-                      const std::optional<model::Cell::Floor>& aFloorOpt);
+                      const std::optional<CellModel::Floor>& aFloorOpt);
 
     void updateCellAtUnchecked(hg::PZInteger aX,
                                hg::PZInteger aY,
-                               const std::optional<model::Cell::Floor>& aFloorOpt);
+                               const std::optional<CellModel::Floor>& aFloorOpt);
 
     void updateCellAtUnchecked(hg::math::Vector2pz aPos,
-                               const std::optional<model::Cell::Floor>& aFloorOpt);
+                               const std::optional<CellModel::Floor>& aFloorOpt);
 
     // Wall
 
     void updateCellAt(hg::PZInteger aX,
                       hg::PZInteger aY,
-                      const std::optional<model::Cell::Wall>& aWallOpt);
+                      const std::optional<CellModel::Wall>& aWallOpt);
 
     void updateCellAt(hg::math::Vector2pz aPos,
-                      const std::optional<model::Cell::Wall>& aWallOpt);
+                      const std::optional<CellModel::Wall>& aWallOpt);
 
     void updateCellAtUnchecked(hg::PZInteger aX,
                                hg::PZInteger aY,
-                               const std::optional<model::Cell::Wall>& aWallOpt);
+                               const std::optional<CellModel::Wall>& aWallOpt);
 
     void updateCellAtUnchecked(hg::math::Vector2pz aPos,
-                               const std::optional<model::Cell::Wall>& aWallOpt);
+                               const std::optional<CellModel::Wall>& aWallOpt);
 
     ///////////////////////////////////////////////////////////////////////////
     // LIGHTS                                                                //
     ///////////////////////////////////////////////////////////////////////////
 
-    model::LightId createLight(model::SpriteId aSpriteId, hg::math::Vector2pz aSize);
+    LightId createLight(SpriteId aSpriteId, hg::math::Vector2pz aSize);
 
-    void updateLight(model::LightId aLightHandle, hg::math::Vector2f aPosition, hg::math::AngleF aAngle);
+    void updateLight(LightId aLightHandle, hg::math::Vector2f aPosition, hg::math::AngleF aAngle);
 
-    void destroyLight(model::LightId aLightHandle);
+    void destroyLight(LightId aLightHandle);
 
     // TODO(createRAIILight())
 
-    model::LightDataMapConstIterator lightDataBegin() const {
+    LightDataMapConstIterator lightDataBegin() const {
         return _lights.begin();
     }
 
-    model::LightDataMapConstIterator lightDataEnd() const {
+    LightDataMapConstIterator lightDataEnd() const {
         return _lights.end();
     }
 
@@ -124,10 +124,10 @@ private:
 
     // ===== Lights =====
 
-    model::LightMap _lights;
-    model::LightId _lightIdCounter = 0;
+    LightMap _lights;
+    LightId _lightIdCounter = 0;
 
-    void _renderLight(model::LightData& aLightData);
+    void _renderLight(LightData& aLightData);
 
     void _refreshCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY);
 };

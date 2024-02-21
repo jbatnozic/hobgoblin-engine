@@ -1,5 +1,7 @@
 #pragma once
 
+#include <GridWorld/Model/Shape.hpp>
+
 #include <Hobgoblin/Math.hpp>
 
 #include <functional>
@@ -13,12 +15,7 @@ enum class Layer {
     FloorDecoration,
     Entity,
     Ceiling // TODO: Do I need this?
-};
-
-enum class Shape {
-    Empty,
-    Square,
-    Circle
+    // TODO(change capitalization)
 };
 
 class SpatialInfo {

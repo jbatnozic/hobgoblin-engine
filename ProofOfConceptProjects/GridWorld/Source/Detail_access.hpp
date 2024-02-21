@@ -6,12 +6,12 @@
 namespace gridworld {
 
 inline
-const detail::CellModelExt::ExtensionData& GetExtensionData(const model::Cell& aCell) {
+const detail::CellModelExt::ExtensionData& GetExtensionData(const CellModel& aCell) {
     return static_cast<const detail::CellModelExt&>(aCell).mutableExtensionData;
 }
 
 inline
-detail::CellModelExt::ExtensionData& GetMutableExtensionData(const model::Cell& aCell) {
+detail::CellModelExt::ExtensionData& GetMutableExtensionData(const CellModel& aCell) {
     return static_cast<const detail::CellModelExt&>(aCell).mutableExtensionData;
 }
 

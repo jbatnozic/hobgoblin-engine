@@ -16,6 +16,11 @@ namespace gridworld {
 
 namespace hg = jbatnozic::hobgoblin;
 
+enum RenderOptions {
+    RENDOPT_NONE = 0x00,
+    RENDOPT_LOWER_MORE = 0x01,
+};
+
 class DimetricRenderer /*: public Renderer*/ {
 public:
     DimetricRenderer(const World& aWorld,
@@ -25,7 +30,7 @@ public:
 
     void start(const hg::gr::View& aView, hg::math::Vector2f aPointOfView);
 
-    void render(hg::gr::Canvas& aCanvas);
+    void render(hg::gr::Canvas& aCanvas, int aRenderOptions = RENDOPT_NONE);
 
 private:
     const World& _world;
@@ -33,7 +38,7 @@ private:
     LightingRenderer2D& _lightingRenderer;
     LineOfSightRenderer2D& _losRenderer;
 
-    mutable std::unordered_map<model::SpriteId, hg::gr::Sprite> _spriteCache;
+    mutable std::unordered_map<SpriteId, hg::gr::Sprite> _spriteCache;
 
     struct ViewData {
         hg::math::Vector2f center;
@@ -53,14 +58,14 @@ private:
 
     std::set<const RenderedObject*, RenderedObjectPtrLess> _objects;
 
-    hg::gr::Sprite& _getSprite(model::SpriteId aSpriteId) const;
+    hg::gr::Sprite& _getSprite(SpriteId aSpriteId) const;
 
     template <class taCallable>
     static void _diagonalTraverse(const World& aWorld, const ViewData& aViewData, taCallable&& aFunc);
 
     void _renderFloor(hg::gr::Canvas& aCanvas) const;
     void _renderLighting(hg::gr::Canvas& aCanvas) const;
-    void _renderWalls(hg::gr::Canvas& aCanvas) const; // TODO(temporary)
+    void _renderWalls(hg::gr::Canvas& aCanvas, int aRenderOptions) const; // TODO(temporary)
 };
 
 } // namespace gridworld

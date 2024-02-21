@@ -1,5 +1,6 @@
 #pragma once
 
+#include <GridWorld/Model/Shape.hpp>
 #include <GridWorld/Model/Sprites.hpp>
 
 #include <Hobgoblin/Math/Vector.hpp>
@@ -13,21 +14,16 @@ namespace gridworld {
 
 namespace hg = jbatnozic::hobgoblin;
 
-namespace model {
-
+#ifdef FUTURE
 enum NeighbourIndex {
     IDX_NORTH,
     IDX_WEST,
     IDX_EAST,
     IDX_SOUTH
 };
+#endif
 
-enum class Shape : std::int8_t {
-    EMPTY,
-    FULL_SQUARE
-};
-
-struct Cell {
+struct CellModel {
     struct Floor {
         SpriteId spriteId;
     };
@@ -40,22 +36,7 @@ struct Cell {
 
     std::optional<Floor> floor;
     std::optional<Wall>  wall;
-
-    //! Shows which neighbouring tiles block this tile
-    //! [0] - north neighbour
-    //! [1] - west neighbour
-    //! [2] - east neighbour
-    //! [3] - south neighbour
-    //! (scanline pattern)
-    //! * edge of grid is considered a blocker
-    //std::array<bool, 4> blockers = {false, false, false, false};
-
-    //mutable bool lowered = false;
-
-    // TODO: bool isEligibleToBeDrawn (not if totally blocked)
 };
-
-} // namespace model
 
 namespace detail {
 enum class DrawMode {
@@ -72,7 +53,7 @@ using DrawModePredicate = DrawMode(*)(float aCellResolution,
                                       hg::math::Vector2f aPointOfView);
 
 //! Cell model extended with optimization data.
-class CellModelExt : public model::Cell {
+class CellModelExt : public CellModel {
 public:
     class ExtensionData {
     public:

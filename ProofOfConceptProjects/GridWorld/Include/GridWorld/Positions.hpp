@@ -9,6 +9,7 @@ namespace gridworld {
 namespace hg = jbatnozic::hobgoblin;
 
 //! Represents a position in the game world.
+//! TODO(unused)
 struct WorldPosition {
     WorldPosition() = default;
 

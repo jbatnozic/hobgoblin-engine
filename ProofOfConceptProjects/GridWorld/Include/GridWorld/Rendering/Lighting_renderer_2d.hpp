@@ -47,7 +47,7 @@ private:
     const World& _world;
     const hg::gr::SpriteLoader& _spriteLoader;
 
-    mutable std::unordered_map<model::SpriteId, hg::gr::Sprite> _spriteCache;
+    mutable std::unordered_map<SpriteId, hg::gr::Sprite> _spriteCache;
 
     float _sizeMultiplier;
     float _recommendedScale = 1.f;
@@ -70,10 +70,10 @@ private:
     //! - In odd-numbered steps, we start writing to pbo[1] and read from pbo[0].
     unsigned int _stepCounter = -1;
 
-    hg::gr::Sprite& _getSprite(model::SpriteId aSpriteId) const;
+    hg::gr::Sprite& _getSprite(SpriteId aSpriteId) const;
 
-    void _renderLight(const model::LightData& aLightData);
-    void _drawLight(const model::LightData& aLightData);
+    void _renderLight(const LightData& aLightData);
+    void _drawLight(const LightData& aLightData);
 };
 
 } // namespace gridworld

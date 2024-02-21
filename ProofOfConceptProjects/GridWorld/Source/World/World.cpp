@@ -27,36 +27,36 @@ hg::PZInteger World::getCellCountY() const {
 
 //#define TEMPORARY
 #ifdef TEMPORARY
-model::Cell& World::getCellAt(hg::PZInteger aX, hg::PZInteger aY) {
+CellModel& World::getCellAt(hg::PZInteger aX, hg::PZInteger aY) {
     return _grid.at(aY, aX);
 }
 
-model::Cell& World::getCellAt(hg::math::Vector2pz aPos) {
+CellModel& World::getCellAt(hg::math::Vector2pz aPos) {
     return _grid.at(aPos.y, aPos.x);
 }
 
-model::Cell& World::getCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) {
+CellModel& World::getCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) {
     return _grid[aY][aX];
 }
 
-model::Cell& World::getCellAtUnchecked(hg::math::Vector2pz aPos) {
+CellModel& World::getCellAtUnchecked(hg::math::Vector2pz aPos) {
     return _grid[aPos.y][aPos.x];
 }
 #endif
 
-const model::Cell& World::getCellAt(hg::PZInteger aX, hg::PZInteger aY) const {
+const CellModel& World::getCellAt(hg::PZInteger aX, hg::PZInteger aY) const {
     return _grid.at(aY, aX);
 }
 
-const model::Cell& World::getCellAt(hg::math::Vector2pz aPos) const {
+const CellModel& World::getCellAt(hg::math::Vector2pz aPos) const {
     return _grid.at(aPos.y, aPos.x);
 }
 
-const model::Cell& World::getCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) const {
+const CellModel& World::getCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) const {
     return _grid[aY][aX];
 }
 
-const model::Cell& World::getCellAtUnchecked(hg::math::Vector2pz aPos) const {
+const CellModel& World::getCellAtUnchecked(hg::math::Vector2pz aPos) const {
     return _grid[aPos.y][aPos.x];
 }
 
@@ -68,7 +68,7 @@ const model::Cell& World::getCellAtUnchecked(hg::math::Vector2pz aPos) const {
 
 void World::updateCellAt(hg::PZInteger aX,
                          hg::PZInteger aY,
-                         const std::optional<model::Cell::Floor>& aFloorOpt) {
+                         const std::optional<CellModel::Floor>& aFloorOpt) {
     HG_VALIDATE_ARGUMENT(aX < getCellCountX());
     HG_VALIDATE_ARGUMENT(aY < getCellCountY());
 
@@ -76,18 +76,18 @@ void World::updateCellAt(hg::PZInteger aX,
 }
 
 void World::updateCellAt(hg::math::Vector2pz aPos,
-                         const std::optional<model::Cell::Floor>& aFloorOpt) {
+                         const std::optional<CellModel::Floor>& aFloorOpt) {
     updateCellAt(aPos.x, aPos.y, aFloorOpt);
 }
 
 void World::updateCellAtUnchecked(hg::PZInteger aX,
                                   hg::PZInteger aY,
-                                  const std::optional<model::Cell::Floor>& aFloorOpt) {
+                                  const std::optional<CellModel::Floor>& aFloorOpt) {
     _grid[aY][aX].floor = aFloorOpt;
 }
 
 void World::updateCellAtUnchecked(hg::math::Vector2pz aPos,
-                                  const std::optional<model::Cell::Floor>& aFloorOpt) {
+                                  const std::optional<CellModel::Floor>& aFloorOpt) {
     updateCellAtUnchecked(aPos.x, aPos.y, aFloorOpt);
 }
 
@@ -95,7 +95,7 @@ void World::updateCellAtUnchecked(hg::math::Vector2pz aPos,
 
 void World::updateCellAt(hg::PZInteger aX,
                          hg::PZInteger aY,
-                         const std::optional<model::Cell::Wall>& aWallOpt) {
+                         const std::optional<CellModel::Wall>& aWallOpt) {
     HG_VALIDATE_ARGUMENT(aX < getCellCountX());
     HG_VALIDATE_ARGUMENT(aY < getCellCountY());
     
@@ -103,13 +103,13 @@ void World::updateCellAt(hg::PZInteger aX,
 }
 
 void World::updateCellAt(hg::math::Vector2pz aPos,
-                         const std::optional<model::Cell::Wall>& aWallOpt) {
+                         const std::optional<CellModel::Wall>& aWallOpt) {
     updateCellAt(aPos.x, aPos.y, aWallOpt);
 }
 
 void World::updateCellAtUnchecked(hg::PZInteger aX,
                                   hg::PZInteger aY,
-                                  const std::optional<model::Cell::Wall>& aWallOpt) {
+                                  const std::optional<CellModel::Wall>& aWallOpt) {
     _grid[aY][aX].wall = aWallOpt;
 
     for (int yOffset = -1; yOffset <= 1; yOffset += 1) {
@@ -131,7 +131,7 @@ void World::updateCellAtUnchecked(hg::PZInteger aX,
 }
 
 void World::updateCellAtUnchecked(hg::math::Vector2pz aPos,
-                                  const std::optional<model::Cell::Wall>& aWallOpt) {
+                                  const std::optional<CellModel::Wall>& aWallOpt) {
     updateCellAtUnchecked(aPos.x, aPos.y, aWallOpt);
 }
 
@@ -139,7 +139,7 @@ void World::updateCellAtUnchecked(hg::math::Vector2pz aPos,
 // LIGHTS                                                                //
 ///////////////////////////////////////////////////////////////////////////
 
-int World::createLight(model::SpriteId aSpriteId, hg::math::Vector2pz aSize) {
+int World::createLight(SpriteId aSpriteId, hg::math::Vector2pz aSize) {
     const int id = (_lightIdCounter + 1);
     _lightIdCounter += 1;
 
@@ -169,7 +169,7 @@ void World::destroyLight(int aLightHandle) {
     _lights.erase(iter);
 }
 
-void World::_renderLight(model::LightData& aLightData) {
+void World::_renderLight(LightData& aLightData) {
     const auto size = aLightData.texture.getSize();
 
     const auto startGridX = 
@@ -243,14 +243,5 @@ void World::_refreshCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) {
         (aY >= getCellCountY() - 1) ? nullptr : std::addressof(_grid[aY + 1][aX])
     );
 }
-
-//hg::gr::RenderTexture* World::_renderLight(int aLightHandle) {
-//    const auto iter = _lights.find(aLightHandle);
-//    HG_HARD_ASSERT(iter != _lights.end());
-//
-//    _renderLight(iter->second);
-//
-//    return &(iter->second.texture);
-//}
 
 } // namespace gridworld

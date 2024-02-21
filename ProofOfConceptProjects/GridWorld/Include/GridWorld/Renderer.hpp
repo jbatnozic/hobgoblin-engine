@@ -21,6 +21,7 @@ struct RendererConfiguration {
     float cellSize = 32.f;
 };
 
+// TODO(unused)
 class Renderer {
 public:
 

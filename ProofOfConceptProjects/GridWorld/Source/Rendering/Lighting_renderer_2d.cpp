@@ -140,7 +140,7 @@ const hg::gr::Texture& LightingRenderer2D::getTexture(hg::math::Vector2f* aRecom
     return _renderTexture.getTexture();
 }
 
-hg::gr::Sprite& LightingRenderer2D::_getSprite(model::SpriteId aSpriteId) const {
+hg::gr::Sprite& LightingRenderer2D::_getSprite(SpriteId aSpriteId) const {
     const auto iter = _spriteCache.find(aSpriteId);
     if (iter != _spriteCache.end()) {
         return iter->second;
@@ -151,7 +151,7 @@ hg::gr::Sprite& LightingRenderer2D::_getSprite(model::SpriteId aSpriteId) const 
     return newIter.first->second;
 }
 
-void LightingRenderer2D::_renderLight(const model::LightData& aLightData) {
+void LightingRenderer2D::_renderLight(const LightData& aLightData) {
     const auto size = aLightData.texture.getSize();
     const auto cellResolution = _world.getCellResolution();
 
@@ -222,7 +222,7 @@ void LightingRenderer2D::_renderLight(const model::LightData& aLightData) {
     aLightData.texture.display();
 }
 
-void LightingRenderer2D::_drawLight(const model::LightData& aLightData) {
+void LightingRenderer2D::_drawLight(const LightData& aLightData) {
     hg::gr::Sprite spr{&(aLightData.texture.getTexture())};
     const auto bounds = spr.getLocalBounds();
     spr.setOrigin({bounds.w / 2.f, bounds.h / 2.f});

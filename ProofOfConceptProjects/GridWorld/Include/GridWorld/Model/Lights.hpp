@@ -15,8 +15,6 @@ namespace gridworld {
 
 namespace hg = jbatnozic::hobgoblin;
 
-namespace model {
-
 //! Identifies a single Light within a World.
 using LightId = std::int32_t;
 
@@ -28,11 +26,11 @@ struct LightData {
     mutable hg::gr::RenderTexture texture;
 
     LightData() {
-        std::cout << "LightData created!\n";
+        std::cout << "LightData created!\n"; // TODO(temporary)
     }
 
     LightData(const LightData&& aOther) {
-        std::cout << "LightData copied!\n";
+        std::cout << "LightData copied!\n"; // TODO(temporary)
     }
 };
 
@@ -40,5 +38,4 @@ using LightMap = std::unordered_map<LightId, LightData>;
 
 using LightDataMapConstIterator = LightMap::const_iterator;
 
-} // namespace model
 } // namespace gridworld

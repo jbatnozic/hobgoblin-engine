@@ -64,12 +64,12 @@ int main() try {
     gridworld::World world{40, 40, 32.f};
     for (int y = 0; y < 40; y += 1) {
         for (int x = 0; x < 40; x += 1) {
-            world.updateCellAt(x, y, gridworld::model::Cell::Floor{SPR_STONE_TILE});
+            world.updateCellAt(x, y, gridworld::CellModel::Floor{SPR_STONE_TILE});
         }
     }
     for (int y = 2; y < 20; y += 3) {
-        world.updateCellAt(2, y, gridworld::model::Cell::Wall{SPR_WALL, SPR_WALL_SHORT, gridworld::model::Shape::FULL_SQUARE});
-        world.updateCellAt(7, y, gridworld::model::Cell::Wall{SPR_WALL, SPR_WALL_SHORT, gridworld::model::Shape::FULL_SQUARE});
+        world.updateCellAt(2, y, gridworld::CellModel::Wall{SPR_WALL, SPR_WALL_SHORT, gridworld::Shape::FULL_SQUARE});
+        world.updateCellAt(7, y, gridworld::CellModel::Wall{SPR_WALL, SPR_WALL_SHORT, gridworld::Shape::FULL_SQUARE});
     }
 
     const auto light = world.createLight(SPR_LIGHT, {300, 300});
@@ -133,18 +133,18 @@ int main() try {
                 yy >= 0 && yy < world.getCellCountY()) {
 
                 if (mouseLClick) {
-                    world.updateCellAtUnchecked({xx, yy}, gridworld::model::Cell::Wall{
-                        SPR_WALL, SPR_WALL_SHORT, gridworld::model::Shape::FULL_SQUARE
+                    world.updateCellAtUnchecked({xx, yy}, gridworld::CellModel::Wall{
+                        SPR_WALL, SPR_WALL_SHORT, gridworld::Shape::FULL_SQUARE
                     });
                 } else if (mouseRClick) {
-                    world.updateCellAtUnchecked({xx, yy}, std::optional<gridworld::model::Cell::Wall>{});
+                    world.updateCellAtUnchecked({xx, yy}, std::optional<gridworld::CellModel::Wall>{});
                 }
             }
         }
 
         const auto t1 = std::chrono::steady_clock::now();
         renderer.start(window.getView(0), /* POV */ isoCoords);
-        renderer.render(window);
+        renderer.render(window, hg::in::CheckPressedPK(hg::in::PK_SPACE) ? gridworld::RENDOPT_LOWER_MORE : gridworld::RENDOPT_NONE);
         const auto t2 = std::chrono::steady_clock::now();
         //std::cout << "Time to render: " << std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() / 1000.0 << "ms "
         //          << "frame time: " << frameTime.count() / 1000.0 << "ms.\n";
