@@ -1,5 +1,7 @@
 
 #define HOBGOBLIN_SHORT_NAMESPACE
+#include <Hobgoblin/HGExcept.hpp>
+#include <Hobgoblin/Logging.hpp>
 #include <Hobgoblin/Graphics.hpp>
 
 #include <cassert>
@@ -288,6 +290,88 @@ void TestBatching() {
     }
 }
 
+void TestDefaultShader() {
+    gr::SpriteLoader loader;
+    loader.startTexture(1024, 1024)
+        ->addSprite("screenie", SAMPLE_SPRITE_FILE_PATH)
+        ->finalize(gr::TexturePackingHeuristic::BestAreaFit);
+
+    auto window = CreateSimpleRenderWindowForTesting({800, 800});
+
+    auto screenie = loader.getMultiBlueprint("screenie").multispr();
+
+    static constexpr auto VERTEX_SHADER = R"_(
+        void main() {
+            // transform the vertex position
+            gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+
+            // transform the texture coordinates
+            gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;
+
+            // forward the vertex color
+            gl_FrontColor = gl_Color;
+        }
+        )_";
+
+    static constexpr auto FRAGMENT_SHADER = R"_(
+        uniform sampler2D texture;
+
+        void main() {
+            // lookup the pixel in the texture
+            vec4 pixel = texture2D(texture, gl_TexCoord[0].xy);
+
+            // multiply it by the color
+            gl_FragColor = gl_Color * pixel;
+        }
+        )_";
+
+    auto shader = hg::gr::Shader{};
+    shader.loadFromMemory(VERTEX_SHADER, FRAGMENT_SHADER);
+
+    while (window.isOpen()) {
+        hg::win::Event ev;
+        while (window.pollEvent(ev)) {
+            CloseWindowIfCloseClickedOrEnterPressed(window, ev);
+        }
+
+        window.clear(gr::COLOR_BLACK);
+        screenie.setPosition(32.f, 32.f);
+        window.draw(screenie, &shader);
+
+        window.display();
+    }
+}
+
+void TestInvertShaderFromFile() {
+    gr::SpriteLoader loader;
+    loader.startTexture(1024, 1024)
+        ->addSprite("screenie", SAMPLE_SPRITE_FILE_PATH)
+        ->finalize(gr::TexturePackingHeuristic::BestAreaFit);
+
+    auto window = CreateSimpleRenderWindowForTesting({800, 800});
+
+    auto screenie = loader.getMultiBlueprint("screenie").multispr();
+
+    auto shader = hg::gr::Shader{};
+    shader.loadFromFile(
+        HG_TEST_ASSET_DIR "/Invert_shader_vertex.txt",
+        HG_TEST_ASSET_DIR "/Invert_shader_fragment.txt"
+    );
+
+    while (window.isOpen()) {
+        hg::win::Event ev;
+        while (window.pollEvent(ev)) {
+            CloseWindowIfCloseClickedOrEnterPressed(window, ev);
+        }
+
+        window.clear(gr::COLOR_BLACK);
+        screenie.setPosition(32.f, 32.f);
+        window.draw(screenie, &shader);
+
+        window.display();
+    }
+}
+
 const std::vector<void(*)()> TESTS = {
     &TestLoadingTextureFromNonexistentFile,
     &TestDrawingShapesAndSprites,
@@ -296,13 +380,25 @@ const std::vector<void(*)()> TESTS = {
     &TestDrawingVertexArrays,
     &TestSpriteLoader,
     &TestBatching,
+    &TestDefaultShader,
+    &TestInvertShaderFromFile,
 };
 
 } // namespace
 
+constexpr auto LOG_ID = "hobgoblin-gr-test";
+
 int main(int argc, char* argv[]) {
     for (const auto& test : TESTS) {
-        test();
+        try {
+            test();
+        }
+        catch (const hg::TracedException& ex) {
+            HG_LOG_ERROR(LOG_ID, "Exception caught: {}", ex.getFullFormattedDescription());
+        }
+        catch (const std::exception& ex) {
+            HG_LOG_ERROR(LOG_ID, "Exception caught: {}", ex.what());
+        }
     }
     return EXIT_SUCCESS;
 }

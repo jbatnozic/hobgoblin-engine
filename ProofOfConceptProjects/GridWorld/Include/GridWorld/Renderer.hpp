@@ -11,10 +11,24 @@ namespace gridworld {
 
 namespace hg = jbatnozic::hobgoblin;
 
-struct RenderedObject {
-    SpatialInfo spatialInfo;
+class RenderedObject {
+public:
+    RenderedObject() = default;
 
-    virtual void draw(hg::gr::RenderTarget& aRenderTarget, hg::math::Vector2<float> aPosition) = 0;
+    RenderedObject(const SpatialInfo& aSpatialInfo)
+        : _spatialInfo{aSpatialInfo}
+    {
+    }
+
+    const SpatialInfo& getSpatialInfo() const {
+        return _spatialInfo;
+    }
+
+    //! position = screen position
+    virtual void draw(hg::gr::RenderTarget& aRenderTarget, hg::math::Vector2<float> aPosition) const = 0;
+
+protected:
+    SpatialInfo _spatialInfo;
 };
 
 struct RendererConfiguration {

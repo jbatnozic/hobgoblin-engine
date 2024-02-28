@@ -56,7 +56,19 @@ private:
         bool operator()(const RenderedObject* aLhs, const RenderedObject* aRhs) const;
     };
 
-    std::set<const RenderedObject*, RenderedObjectPtrLess> _objects;
+    std::set<const RenderedObject*, RenderedObjectPtrLess> _objectsToRender;
+
+    class CellToRenderedObjectAdapter : public RenderedObject {
+    public:
+        CellToRenderedObjectAdapter(const CellModel& aCell, 
+                                    const SpatialInfo& aSpatialInfo);
+
+        void draw(hg::gr::RenderTarget& aRenderTarget, hg::math::Vector2<float> aPosition) const override;
+
+    private:
+        const CellModel* _cell = nullptr;
+        // Render parameters: drawmode, color, etc.
+    };
 
     hg::gr::Sprite& _getSprite(SpriteId aSpriteId) const;
 

@@ -1,5 +1,5 @@
-#ifndef UHOBGOBLIN_UTIL_VECTOR_HPP
-#define UHOBGOBLIN_UTIL_VECTOR_HPP
+#ifndef UHOBGOBLIN_MATH_VECTOR_HPP
+#define UHOBGOBLIN_MATH_VECTOR_HPP
 
 #include <Hobgoblin/Common.hpp>
 #include <SFML/System/Vector2.hpp>
@@ -101,4 +101,4 @@ HOBGOBLIN_NAMESPACE_END
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
-#endif // !UHOBGOBLIN_UTIL_VECTOR_HPP
+#endif // !UHOBGOBLIN_MATH_VECTOR_HPP

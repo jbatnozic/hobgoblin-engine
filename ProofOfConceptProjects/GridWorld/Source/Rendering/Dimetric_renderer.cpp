@@ -57,6 +57,18 @@ static void DimetricRenderer::_diagonalTraverse(const World& aWorld,
     }
 }
 
+DimetricRenderer::CellToRenderedObjectAdapter::CellToRenderedObjectAdapter(const CellModel& aCell,
+                                                                           const SpatialInfo& aSpatialInfo)
+    : RenderedObject{aSpatialInfo}
+    , _cell{&aCell}
+{
+}
+
+void DimetricRenderer::CellToRenderedObjectAdapter::draw(hg::gr::RenderTarget& aRenderTarget,
+                                                         hg::math::Vector2<float> aPosition) const {
+
+}
+
 DimetricRenderer::DimetricRenderer(const World& aWorld,
                                    const hg::gr::SpriteLoader& aSpriteLoader,
                                    LightingRenderer2D& aLightingRenderer,
@@ -70,7 +82,7 @@ DimetricRenderer::DimetricRenderer(const World& aWorld,
 
 bool DimetricRenderer::RenderedObjectPtrLess::operator()(const RenderedObject* aLhs,
                                                          const RenderedObject* aRhs) const {
-    const auto order = aLhs->spatialInfo.checkIsometricDrawingOrder(aRhs->spatialInfo);
+    const auto order = aLhs->getSpatialInfo().checkIsometricDrawingOrder(aRhs->getSpatialInfo());
     switch (order) {
     case SpatialInfo::DRAW_OTHER_FIRST:
         return false;

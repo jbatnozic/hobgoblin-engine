@@ -1,0 +1,10 @@
+uniform sampler2D texture;
+
+void main() {
+    // lookup the pixel in the texture
+    vec4 pixel  = texture2D(texture, gl_TexCoord[0].xy);
+    vec4 ipixel = vec4(1.0 - pixel.x, 1.0 - pixel.y, 1.0 - pixel.z, 1.0);
+
+    // multiply it by the color
+    gl_FragColor = gl_Color * ipixel;
+}
