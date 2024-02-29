@@ -1,4 +1,4 @@
-
+﻿
 #define HOBGOBLIN_SHORT_NAMESPACE
 #include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Logging.hpp>
@@ -372,6 +372,27 @@ void TestInvertShaderFromFile() {
     }
 }
 
+void TestDrawingText() {
+    auto window = CreateSimpleRenderWindowForTesting({800, 800});
+
+    const auto& font = hg::gr::BuiltInFonts::getFont(hg::gr::BuiltInFonts::EB_GARAMOND_12_REGULAR);
+
+    auto text = hg::gr::Text{font, HG_UNILIT("Chris Avellone löves you! (čćđšž-асдфљ)")};
+    text.setPosition({48.f, 48.f});
+    text.setFillColor(hg::gr::COLOR_RED);
+
+    while (window.isOpen()) {
+        hg::win::Event ev;
+        while (window.pollEvent(ev)) {
+            CloseWindowIfCloseClickedOrEnterPressed(window, ev);
+        }
+
+        window.clear(gr::COLOR_BLACK);
+        window.draw(text);
+        window.display();
+    }
+}
+
 const std::vector<void(*)()> TESTS = {
     &TestLoadingTextureFromNonexistentFile,
     &TestDrawingShapesAndSprites,
@@ -382,6 +403,7 @@ const std::vector<void(*)()> TESTS = {
     &TestBatching,
     &TestDefaultShader,
     &TestInvertShaderFromFile,
+    &TestDrawingText,
 };
 
 } // namespace

@@ -9,6 +9,7 @@
 #include <Hobgoblin/Math/Vector.hpp>
 #include <Hobgoblin/Graphics/Blend_mode.hpp>
 #include <Hobgoblin/Graphics/Color.hpp>
+#include <Hobgoblin/Graphics/Glyph.hpp>
 #include <Hobgoblin/Graphics/Primitive_type.hpp>
 #include <Hobgoblin/Graphics/Render_states.hpp>
 #include <Hobgoblin/Graphics/Render_target.hpp>
@@ -27,6 +28,7 @@
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Graphics/BlendMode.hpp>
 #include <SFML/Graphics/Color.hpp>
+#include <SFML/Graphics/Glyph.hpp>
 #include <SFML/Graphics/PrimitiveType.hpp>
 #include <SFML/Graphics/RenderStates.hpp>
 #include <SFML/Graphics/RenderTarget.hpp>
@@ -115,6 +117,11 @@ unsigned ToSf(ContextSettings::Attribute aAttribute);
 
 ContextSettings ToHg(const sf::ContextSettings& aSettings);
 sf::ContextSettings ToSf(const ContextSettings& aSettings);
+
+// Glyph
+
+Glyph ToHg(const sf::Glyph& aGlyph);
+sf::Glyph ToSf(const Glyph& aGlyph);
 
 // PrimitiveType
 
@@ -307,6 +314,35 @@ sf::ContextSettings ToSf(const ContextSettings& aSettings) {
         ToSf(aSettings.attributeFlags),
         aSettings.sRgbCapable
     };
+}
+
+// Glyph
+
+inline
+Glyph ToHg(const sf::Glyph& aGlyph) {
+    return {
+        aGlyph.advance,
+        aGlyph.lsbDelta,
+        aGlyph.rsbDelta,
+        ToHg(aGlyph.bounds),
+        TextureRect{
+            static_cast<std::uint16_t>(aGlyph.textureRect.left),
+            static_cast<std::uint16_t>(aGlyph.textureRect.top),
+            static_cast<std::uint16_t>(aGlyph.textureRect.width),
+            static_cast<std::uint16_t>(aGlyph.textureRect.height)
+        }
+    };
+}
+
+inline
+sf::Glyph ToSf(const Glyph& aGlyph) {
+    sf::Glyph result;
+    result.advance  = aGlyph.advance;
+    result.lsbDelta = aGlyph.lsbDelta;
+    result.rsbDelta = aGlyph.rsbDelta;
+    result.bounds   = ToSf(aGlyph.bounds);
+    result.textureRect = ConvertTextureRect(aGlyph.textureRect);
+    return result;    
 }
 
 // PrimitiveType

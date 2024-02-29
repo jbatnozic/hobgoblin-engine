@@ -70,7 +70,11 @@ public:
     //! \param font           Font used to draw the string
     //! \param characterSize  Base size of characters, in pixels
     Text(const Font& aFont,
-         const std::string& aString = "",
+         const char* aString = "",
+         PZInteger aCharacterSize = DEFAULT_CHARACTER_SIZE);
+
+    Text(const Font& aFont,
+         const std::string& aString,
          PZInteger aCharacterSize = DEFAULT_CHARACTER_SIZE);
 
     Text(const Font& aFont,
@@ -81,6 +85,21 @@ public:
     Text(Font&& aFont,
          std::string aString = "",
          PZInteger aCharacterSize = DEFAULT_CHARACTER_SIZE) = delete;
+
+    //! Copy constructor
+    Text(const Text& aOther);
+
+    //! Copy assignment operator
+    Text& operator=(const Text& aOther);
+
+    //! Move constructor
+    Text(Text&& aOther) noexcept;
+
+    //! Move assignment operator
+    Text& operator=(Text&& aOther) noexcept;
+
+    //! Destructor
+    ~Text();
 
     //! \brief Set the text's string
     //!
@@ -218,6 +237,10 @@ public:
     //! \endcode
     //!
     //! \return Text's string
+    //! 
+    //! \warning As `Text` internally stores the string to display as UTF-32
+    //!          and `UnicodeString` is UTF-16, for long strings this function
+    //!          could be quite slow (because of the required transcoding).
     //!
     //! \see setString
     UnicodeString getString() const;
@@ -317,14 +340,64 @@ public:
     //! \return Global bounding rectangle of the entity
     math::Rectangle<float> getGlobalBounds() const;
 
+    Drawable::BatchingType getBatchingType() const override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    // TRANSFORMABLE                                                         //
+    ///////////////////////////////////////////////////////////////////////////
+
+    void setPosition(float aX, float aY) override;
+
+    void setPosition(const math::Vector2f& aPosition) override;
+
+    void setRotation(math::AngleF aAngle) override;
+
+    void setScale(float aFactorX, float aFactorY) override;
+
+    void setScale(const math::Vector2f& aFactors) override;
+
+    void setOrigin(float aX, float aY) override;
+
+    void setOrigin(const math::Vector2f& aOrigin) override;
+
+    math::Vector2f getPosition() const override;
+
+    math::AngleF getRotation() const override;
+
+    math::Vector2f getScale() const override;
+
+    math::Vector2f getOrigin() const override;
+
+    void move(float aOffsetX, float aOffsetY) override;
+
+    void move(const math::Vector2f& aOffset) override;
+
+    void rotate(math::AngleF aAngle) override;
+
+    void scale(float aFactorX, float aFactorY) override;
+
+    void scale(const math::Vector2f& aFactor) override;
+
+    Transform getTransform() const override;
+
+    Transform getInverseTransform() const override;
+
+protected:
+    void _draw(Canvas& aCanvas, const RenderStates& aStates) const override;
+
 private:
     friend class detail::GraphicsImplAccessor;
 
     void* _getSFMLImpl();
     const void* _getSFMLImpl() const;
 
-    static constexpr std::size_t STORAGE_SIZE  = 392;
-    static constexpr std::size_t STORAGE_ALIGN =   8;
+#ifdef UHOBGOBLIN_DEBUG
+    static constexpr std::size_t STORAGE_SIZE = 392;
+#else
+    static constexpr std::size_t STORAGE_SIZE = 368;
+#endif
+
+    static constexpr std::size_t STORAGE_ALIGN = 8;
     std::aligned_storage<STORAGE_SIZE, STORAGE_ALIGN>::type _storage;
 
     const Font* _font = nullptr;

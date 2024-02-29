@@ -25,7 +25,7 @@ constexpr auto IMPL_ALIGN = alignof(ImplType);
 #define SELF_CIMPL (CIMPLOF(SELF))
 
 Font::Font() {
-    static_assert(STORAGE_SIZE  >= IMPL_SIZE,  "Font::STORAGE_SIZE is inadequate."); // TODO(size)
+    static_assert(STORAGE_SIZE  == IMPL_SIZE,  "Font::STORAGE_SIZE is inadequate.");
     static_assert(STORAGE_ALIGN == IMPL_ALIGN, "Font::STORAGE_ALIGN is inadequate.");
 
     new (&_storage) ImplType();
@@ -71,15 +71,14 @@ void Font::loadFromMemory(const void* aData, PZInteger aByteCount) {
     }
 }
 
-const Info& Font::getInfo() const {
-    // TODO
-}
-
 Glyph Font::getGlyph(std::uint32_t aCodePoint,
                      PZInteger aCharacterSize,
                      bool aBold,
                      float aOutlineThickness) const {
-    // TODO
+    return ToHg(SELF_CIMPL->getGlyph(aCodePoint,
+                                     static_cast<unsigned>(aCharacterSize),
+                                     aBold,
+                                     aOutlineThickness));
 }
 
 bool Font::hasGlyph(std::uint32_t aCodePoint) const {
@@ -90,7 +89,7 @@ float Font::getKerning(std::uint32_t aFirst,
                        std::uint32_t aSecond,
                        PZInteger aCharacterSize,
                        bool aBold) const {
-
+    return SELF_CIMPL->getKerning(aFirst, aSecond, static_cast<unsigned>(aCharacterSize), aBold);
 }
 
 float Font::getLineSpacing(PZInteger aCharacterSize) const {
@@ -105,10 +104,6 @@ float Font::getUnderlineThickness(PZInteger aCharacterSize) const {
     return SELF_CIMPL->getUnderlineThickness(aCharacterSize);
 }
 
-const Texture& Font::getTexture(PZInteger aCharacterSize) const {
-    // TODO
-}
-
 void Font::setSmooth(bool aSmooth) {
     SELF_IMPL->setSmooth(aSmooth);
 }
@@ -117,11 +112,11 @@ bool Font::isSmooth() const {
     return SELF_CIMPL->isSmooth();
 }
 
-void* Image::_getSFMLImpl() {
+void* Font::_getSFMLImpl() {
     return SELF_IMPL;
 }
 
-const void* Image::_getSFMLImpl() const {
+const void* Font::_getSFMLImpl() const {
     return SELF_CIMPL;
 }
 

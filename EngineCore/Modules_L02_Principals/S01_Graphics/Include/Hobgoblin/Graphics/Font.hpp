@@ -28,6 +28,7 @@
 #include <Hobgoblin/Graphics/Glyph.hpp>
 #include <Hobgoblin/Graphics/Texture.hpp>
 
+#include <filesystem>
 #include <type_traits>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
@@ -112,6 +113,7 @@ public:
     //! \see loadFromFile, loadFromStream
     void loadFromMemory(const void* aData, PZInteger aByteCount);
 
+#ifdef UHOBGOLBIN_FUTURE
     //! \brief Load the font from a custom stream
     //!
     //! The supported font formats are: TrueType, Type 1, CFF,
@@ -129,12 +131,13 @@ public:
     //! \return True if loading succeeded, false if it failed
     //!
     //! \see loadFromFile, loadFromMemory
-    //[[nodiscard]] bool loadFromStream(InputStream& stream);
+    void loadFromStream(InputStream& stream);
 
     //! \brief Get the font information
     //!
     //! \return A structure that holds the font information
     const Info& getInfo() const;
+#endif // !UHOBGOLBIN_FUTURE
 
     //! \brief Retrieve a glyph of the font
     //!
@@ -226,6 +229,7 @@ public:
     //! \see getUnderlinePosition
     float getUnderlineThickness(PZInteger aCharacterSize) const;
 
+#ifdef UHOBGOLBIN_FUTURE
     //! \brief Retrieve the texture containing the loaded glyphs of a certain size
     //!
     //! The contents of the returned texture changes as more glyphs
@@ -236,6 +240,7 @@ public:
     //!
     //! \return Texture containing the glyphs of the requested size
     const Texture& getTexture(PZInteger aCharacterSize) const;
+#endif // !UHOBGOLBIN_FUTURE
 
     //! \brief Enable or disable the smooth filter
     //!
@@ -263,7 +268,12 @@ private:
     void* _getSFMLImpl();
     const void* _getSFMLImpl() const;
 
+#ifdef UHOBGOBLIN_DEBUG
     static constexpr std::size_t STORAGE_SIZE  = 144;
+#else
+    static constexpr std::size_t STORAGE_SIZE  = 120;
+#endif
+
     static constexpr std::size_t STORAGE_ALIGN =   8;
     std::aligned_storage<STORAGE_SIZE, STORAGE_ALIGN>::type _storage;
 };

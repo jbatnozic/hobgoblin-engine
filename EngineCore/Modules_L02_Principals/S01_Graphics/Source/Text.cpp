@@ -1,12 +1,15 @@
 
 #include <Hobgoblin/Graphics/Text.hpp>
+#include <Hobgoblin/Graphics/Font.hpp>
 #include <Hobgoblin/HGExcept.hpp>
 
 #include <SFML/Graphics/Text.hpp>
 
+#include <cassert>
 #include <new>
 #include <utility>
 
+#include "Draw_bridge.hpp"
 #include "SFML_conversions.hpp"
 #include "SFML_err.hpp"
 
@@ -23,12 +26,38 @@ constexpr auto IMPL_ALIGN = alignof(ImplType);
 #define  SELF_IMPL (IMPLOF(SELF))
 #define SELF_CIMPL (CIMPLOF(SELF))
 
-Text::Text(const Text& aOther)
-    : _font{aOther._font}
+Text::Text(const Font& aFont,
+           const char* aString,
+           PZInteger aCharacterSize)
+    : Text{aFont, std::string{aString}, aCharacterSize}
 {
     static_assert(STORAGE_SIZE  == IMPL_SIZE,  "Text::STORAGE_SIZE is inadequate.");
     static_assert(STORAGE_ALIGN == IMPL_ALIGN, "Text::STORAGE_ALIGN is inadequate.");
+}
 
+Text::Text(const Font& aFont,
+           const std::string& aString,
+           PZInteger aCharacterSize)
+    : _font{&aFont}
+{
+    const auto& sfFont = detail::GraphicsImplAccessor::getImplOf<sf::Font>(aFont);
+    new (&_storage) ImplType(aString, sfFont, static_cast<unsigned>(aCharacterSize));
+}
+
+Text::Text(const Font& aFont,
+           const UnicodeString& aString,
+           PZInteger aCharacterSize)
+    : _font{&aFont}
+{
+    const auto& sfFont = detail::GraphicsImplAccessor::getImplOf<sf::Font>(aFont);
+    sf::String sfString;
+    hobgoblin::detail::StoreUStringInSfString(aString, &sfString);
+    new (&_storage) ImplType(sfString, sfFont, static_cast<unsigned>(aCharacterSize));
+}
+
+Text::Text(const Text& aOther)
+    : _font{aOther._font}
+{
     new (&_storage) ImplType(*CIMPLOF(aOther));
 }
 
@@ -153,11 +182,103 @@ math::Rectangle<float> Text::getGlobalBounds() const {
     return ToHg(SELF_CIMPL->getGlobalBounds());
 }
 
-void* Image::_getSFMLImpl() {
+Drawable::BatchingType Text::getBatchingType() const {
+    return Drawable::BatchingType::Custom;
+}
+
+void Text::_draw(Canvas& aCanvas, const RenderStates& aStates) const {
+    const auto drawingWasSuccessful = 
+        Draw(aCanvas, [this, &aStates](sf::RenderTarget& aSfRenderTarget) {
+        aSfRenderTarget.draw(*CIMPLOF(*this), ToSf(aStates));
+    });
+    assert(drawingWasSuccessful);
+}
+
+///////////////////////////////////////////////////////////////////////////
+// TRANSFORMABLE                                                         //
+///////////////////////////////////////////////////////////////////////////
+
+void Text::setPosition(float aX, float aY) {
+    SELF_IMPL->setPosition(aX, aY);
+}
+
+void Text::setPosition(const math::Vector2f& aPosition) {
+    SELF_IMPL->setPosition(ToSf(aPosition));
+}
+
+void Text::setRotation(math::AngleF aAngle) {
+    SELF_IMPL->setRotation(-aAngle.asDeg());
+}
+
+void Text::setScale(float aFactorX, float aFactorY) {
+    SELF_IMPL->setScale(aFactorX, aFactorY);
+}
+
+void Text::setScale(const math::Vector2f& aFactors) {
+    SELF_IMPL->setScale(ToSf(aFactors));
+}
+
+void Text::setOrigin(float aX, float aY) {
+    SELF_IMPL->setOrigin(aX, aY);
+}
+
+void Text::setOrigin(const math::Vector2f& aOrigin) {
+    SELF_IMPL->setOrigin(ToSf(aOrigin));
+}
+
+math::Vector2f Text::getPosition() const {
+    return ToHg(SELF_CIMPL->getPosition());
+}
+
+math::AngleF Text::getRotation() const {
+    return math::AngleF::fromDegrees(-(SELF_CIMPL->getRotation()));
+}
+
+math::Vector2f Text::getScale() const {
+    return ToHg(SELF_CIMPL->getScale());
+}
+
+math::Vector2f Text::getOrigin() const {
+    return ToHg(SELF_CIMPL->getOrigin());
+}
+
+void Text::move(float aOffsetX, float aOffsetY) {
+    SELF_IMPL->move(aOffsetX, aOffsetY);
+}
+
+void Text::move(const math::Vector2f& aOffset) {
+    SELF_IMPL->move(ToSf(aOffset));
+}
+
+void Text::rotate(math::AngleF aAngle) {
+    SELF_IMPL->rotate(-aAngle.asDeg());
+}
+
+void Text::scale(float aFactorX, float aFactorY) {
+    SELF_IMPL->scale(aFactorX, aFactorY);
+}
+
+void Text::scale(const math::Vector2f& aFactor) {
+    SELF_IMPL->scale(ToSf(aFactor));
+}
+
+Transform Text::getTransform() const {
+    return ToHg(SELF_CIMPL->getTransform());
+}
+
+Transform Text::getInverseTransform() const {
+    return ToHg(SELF_CIMPL->getInverseTransform());
+}
+
+///////////////////////////////////////////////////////////////////////////
+// TEST - PRIVATE                                                        //
+///////////////////////////////////////////////////////////////////////////
+
+void* Text::_getSFMLImpl() {
     return SELF_IMPL;
 }
 
-const void* Image::_getSFMLImpl() const {
+const void* Text::_getSFMLImpl() const {
     return SELF_CIMPL;
 }
 

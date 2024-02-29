@@ -230,7 +230,12 @@ private:
     void* _getSFMLImpl();
     const void* _getSFMLImpl() const;
 
-    static constexpr std::size_t STORAGE_SIZE  = 40;
+#ifdef UHOBGOBLIN_DEBUG
+    static constexpr std::size_t STORAGE_SIZE = 40;
+#else
+    static constexpr std::size_t STORAGE_SIZE = 32;
+#endif
+
     static constexpr std::size_t STORAGE_ALIGN =  8;
     std::aligned_storage<STORAGE_SIZE, STORAGE_ALIGN>::type _storage;
 };

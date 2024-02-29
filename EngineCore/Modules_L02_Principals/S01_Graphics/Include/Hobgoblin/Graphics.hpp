@@ -9,6 +9,7 @@
 #include <Hobgoblin/Graphics/Drawable.hpp>
 #include <Hobgoblin/Graphics/Draw_batcher.hpp>
 #include <Hobgoblin/Graphics/Font.hpp>
+#include <Hobgoblin/Graphics/Glyph.hpp>
 #include <Hobgoblin/Graphics/Image.hpp>
 #include <Hobgoblin/Graphics/Multisprite.hpp>
 #include <Hobgoblin/Graphics/Multisprite_blueprint.hpp>
