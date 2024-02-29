@@ -1,6 +1,8 @@
 
 #include <Hobgoblin/Unicode/String_conversions.hpp>
 
+#include <SFML/System/String.hpp>
+
 #include <unicode/schriter.h>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
@@ -68,6 +70,38 @@ auto UniStrConv(FROM_STD_U8STRING_Tag, const std::u8string& aStdU8String) -> Uni
         "UTF-8"
     };
 }
+
+namespace detail {
+void LoadUStringFromSfString(UnicodeString& aUniStr, const void* aSfString) {
+    const auto& sfString = *static_cast<const sf::String*>(aSfString);
+
+    if (sfString.getSize() == 0) {
+        aUniStr.remove();
+        return;
+    }
+
+    aUniStr = UnicodeString::fromUTF32(
+        reinterpret_cast<const UChar32*>(sfString.getData()),
+        static_cast<std::int32_t>(sfString.getSize())
+    );
+}
+
+void StoreUStringInSfString(const UnicodeString& aUniStr, void* aSfString) {
+    auto& sfString = *static_cast<sf::String*>(aSfString);
+    sfString.clear();
+
+    sf::String temp{sf::Uint32{'_'}};
+    icu::StringCharacterIterator iter{aUniStr};
+    while (iter.hasNext()) {
+        const auto codePoint = iter.next32PostInc();
+        if (codePoint == decltype(iter)::DONE) {
+            break;
+        }
+        temp[0] = codePoint;
+        sfString.insert(sfString.getSize(), temp);
+    }
+}
+} // namespace detail
 
 HOBGOBLIN_NAMESPACE_END
 

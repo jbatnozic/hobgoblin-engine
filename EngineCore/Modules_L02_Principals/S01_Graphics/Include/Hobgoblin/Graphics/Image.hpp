@@ -231,7 +231,7 @@ private:
     const void* _getSFMLImpl() const;
 
     static constexpr std::size_t STORAGE_SIZE  = 40;
-    static constexpr std::size_t STORAGE_ALIGN = 8;
+    static constexpr std::size_t STORAGE_ALIGN =  8;
     std::aligned_storage<STORAGE_SIZE, STORAGE_ALIGN>::type _storage;
 };
 

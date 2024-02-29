@@ -1,6 +1,8 @@
 ﻿
 #include <Hobgoblin/Unicode.hpp>
 
+#include <SFML/System/String.hpp>
+
 #include <gtest/gtest.h>
 
 #include <cstdint>
@@ -11,6 +13,8 @@
 #include <type_traits>
 
 #include <fmt/ostream.h>
+
+#include <iostream>
 
 namespace hg = jbatnozic::hobgoblin;
 
@@ -421,5 +425,78 @@ TEST(HGUnicodeTest, UFormatTest) {
         ToUnicodeString(dummy::CustomFormattedType2{});
 
         EXPECT_EQ(expectedString, formattedString);
+    }
+}
+
+TEST(HGUnicodeTest, SfStringConversionTest_Simple) {
+    const auto expectedSfStr  = sf::String{"Terminator 2"};
+    const auto expectedUniStr = HG_UNISTR("Terminator 2");
+
+    {
+        SCOPED_TRACE("HG to SFML");
+
+        sf::String sfStr;
+        hg::detail::StoreUStringInSfString(expectedUniStr, &sfStr);
+        EXPECT_EQ(sfStr, expectedSfStr);
+    }
+    {
+        SCOPED_TRACE("SFML to HG");
+
+        hg::UnicodeString uniStr;
+        hg::detail::LoadUStringFromSfString(uniStr, &expectedSfStr);
+        EXPECT_EQ(uniStr, expectedUniStr);
+    }
+}
+
+static sf::String CreateSfString(const char32_t* aChars, int aCharCount) {
+    sf::String result;
+    for (int i = 0; i < aCharCount; i += 1) {
+        if (i == aCharCount - 1 && aChars[i] == '\0') {
+            break;
+        }
+        result.insert(result.getSize(), static_cast<sf::Uint32>(aChars[i]));
+    }
+    return result;
+}
+
+TEST(HGUnicodeTest, SfStringConversionTest_Complex) {   
+    const char32_t utf32Chars[] = U"_ asdf 1234 ćšđž _";
+
+    const auto expectedSfStr  = CreateSfString(utf32Chars, sizeof(utf32Chars) / sizeof(utf32Chars[0]));
+    const auto expectedUniStr = HG_UNISTR("_ asdf 1234 ćšđž _");
+
+    {
+        SCOPED_TRACE("HG to SFML");
+
+        sf::String sfStr;
+        hg::detail::StoreUStringInSfString(expectedUniStr, &sfStr);
+        EXPECT_EQ(sfStr, expectedSfStr);
+    }
+    {
+        SCOPED_TRACE("SFML to HG");
+
+        hg::UnicodeString uniStr;
+        hg::detail::LoadUStringFromSfString(uniStr, &expectedSfStr);
+        EXPECT_EQ(uniStr, expectedUniStr);
+    }
+}
+
+TEST(HGUnicodeTest, SfStringConversionTest_EmptyString) {   
+    const auto expectedSfStr  = CreateSfString(nullptr, 0);
+    const auto expectedUniStr = HG_UNISTR("");
+
+    {
+        SCOPED_TRACE("HG to SFML");
+
+        sf::String sfStr;
+        hg::detail::StoreUStringInSfString(expectedUniStr, &sfStr);
+        EXPECT_EQ(sfStr, expectedSfStr);
+    }
+    {
+        SCOPED_TRACE("SFML to HG");
+
+        hg::UnicodeString uniStr;
+        hg::detail::LoadUStringFromSfString(uniStr, &expectedSfStr);
+        EXPECT_EQ(uniStr, expectedUniStr);
     }
 }
