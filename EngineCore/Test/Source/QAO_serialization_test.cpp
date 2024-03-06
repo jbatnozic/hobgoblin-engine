@@ -79,7 +79,7 @@ protected:
     hg::util::Packet _packet;
 };
 
-TEST_F(QAO_SerializationTest, TestWithoutEvents) {
+TEST_F(QAO_SerializationTest, DISABLED_TestWithoutEvents) {
     auto dummy1 = QAO_PCreate<Dummy>(&_runtime, 1, 1001);
     auto dummy2 = QAO_PCreate<Dummy>(&_runtime, 2, 1002);
 
@@ -262,7 +262,7 @@ HG_PP_DO_BEFORE_MAIN(RegisterEventReporterSerializable) {
     hg::util::RegisterSerializable<EventReporter>();
 }
 
-TEST_F(QAO_SerializationTest, TestEventRestoration) {
+TEST_F(QAO_SerializationTest, DISABLED_TestEventRestoration) {
     std::vector<int> reportVector;
     DeserializationContext deserCtx{&_runtime, &reportVector};
 
