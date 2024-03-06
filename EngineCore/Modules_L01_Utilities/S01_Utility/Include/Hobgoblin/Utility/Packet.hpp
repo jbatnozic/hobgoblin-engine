@@ -109,7 +109,7 @@ HOBGOBLIN_NAMESPACE_END
 //   - PacketBase is currently an alias to sf::Packet
 //   - We're using an older SFML version where std fixed width ints aren't all handled properly
 
-#ifndef _MSC_VER
+#if !defined(__APPLE__) && !defined(_MSC_VER)
 #define hgutil jbatnozic::hobgoblin::util
 
 namespace sf {

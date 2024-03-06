@@ -33,6 +33,7 @@
 
 # Build directories
 **/_Build/
+**/build_/
 **/build/
 **/build.out/
 **/Build/

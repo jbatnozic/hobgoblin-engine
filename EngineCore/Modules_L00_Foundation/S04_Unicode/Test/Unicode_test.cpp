@@ -14,10 +14,6 @@
 
 namespace hg = jbatnozic::hobgoblin;
 
-std::ostream& operator<<(std::ostream& os, char16_t c) {
-    return os << (std::int32_t)c;
-}
-
 TEST(HGUnicodeTest, TestSerbianLatin) {
     static constexpr int32_t  EXPECTED_LENGTH = 14;
     static constexpr char16_t EXPECTED_CONTENTS[] = {
@@ -30,8 +26,8 @@ TEST(HGUnicodeTest, TestSerbianLatin) {
     const char16_t* buffer = str.getBuffer();
     
     for (int32_t i = 0; i < EXPECTED_LENGTH; i += 1) {
-        EXPECT_EQ(buffer[i], EXPECTED_CONTENTS[i]);
-        EXPECT_EQ(str[i],    EXPECTED_CONTENTS[i]);
+        EXPECT_EQ((int)buffer[i], (int)EXPECTED_CONTENTS[i]);
+        EXPECT_EQ((int)str[i],    (int)EXPECTED_CONTENTS[i]);
     }
 
     // icu::UnicodeString is NOT null-terminated!
@@ -50,8 +46,8 @@ TEST(HGUnicodeTest, TestSerbianCyrillic) {
     const char16_t* buffer = str.getBuffer();
 
     for (int32_t i = 0; i < EXPECTED_LENGTH; i += 1) {
-        EXPECT_EQ(buffer[i], EXPECTED_CONTENTS[i]);
-        EXPECT_EQ(str[i],    EXPECTED_CONTENTS[i]);
+        EXPECT_EQ((int)buffer[i], (int)EXPECTED_CONTENTS[i]);
+        EXPECT_EQ((int)str[i],    (int)EXPECTED_CONTENTS[i]);
     }
 }
 
@@ -66,8 +62,8 @@ TEST(HGUnicodeTest, TestWeirdAlphabets) {
     const char16_t* buffer = str.getBuffer();
 
     for (int32_t i = 0; i < EXPECTED_LENGTH; i += 1) {
-        EXPECT_EQ(buffer[i], EXPECTED_CONTENTS[i]);
-        EXPECT_EQ(str[i],    EXPECTED_CONTENTS[i]);
+        EXPECT_EQ((int)buffer[i], (int)EXPECTED_CONTENTS[i]);
+        EXPECT_EQ((int)str[i],    (int)EXPECTED_CONTENTS[i]);
     }
 }
 
