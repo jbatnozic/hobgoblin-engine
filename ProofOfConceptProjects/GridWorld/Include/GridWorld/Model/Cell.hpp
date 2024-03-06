@@ -38,6 +38,11 @@ struct CellModel {
     std::optional<Wall>  wall;
 };
 
+// TODO
+std::optional<CellModel::Floor> MakeFloor();
+// TODO
+std::optional<CellModel::Wall> MakeWall();
+
 namespace detail {
 enum class DrawMode {
     NONE,

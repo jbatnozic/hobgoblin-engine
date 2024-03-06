@@ -62,21 +62,26 @@ int main() try {
         ->finalize(hg::gr::TexturePackingHeuristic::BestAreaFit);
 
     gridworld::World world{40, 40, 32.f};
-    for (int y = 0; y < 40; y += 1) {
-        for (int x = 0; x < 40; x += 1) {
-            world.updateCellAt(x, y, gridworld::CellModel::Floor{SPR_STONE_TILE});
+    // Generate world:
+    {
+        world.toggleGeneratorMode(true);
+        for (int y = 0; y < 40; y += 1) {
+            for (int x = 0; x < 40; x += 1) {
+                world.updateCellAt(x, y, gridworld::CellModel::Floor{SPR_STONE_TILE});
+            }
         }
-    }
-    for (int y = 2; y < 20; y += 3) {
-        world.updateCellAt(2, y, gridworld::CellModel::Wall{SPR_WALL, SPR_WALL_SHORT, gridworld::Shape::FULL_SQUARE});
-        world.updateCellAt(7, y, gridworld::CellModel::Wall{SPR_WALL, SPR_WALL_SHORT, gridworld::Shape::FULL_SQUARE});
+        for (int y = 2; y < 20; y += 3) {
+            world.updateCellAt(2, y, gridworld::CellModel::Wall{SPR_WALL, SPR_WALL_SHORT, gridworld::Shape::FULL_SQUARE});
+            world.updateCellAt(7, y, gridworld::CellModel::Wall{SPR_WALL, SPR_WALL_SHORT, gridworld::Shape::FULL_SQUARE});
+        }
+        world.toggleGeneratorMode(false);
     }
 
     const auto light = world.createLight(SPR_LIGHT, {300, 300});
 
     hg::gr::RenderWindow window{hg::win::VideoMode{1280, 950}, "GridWorld"};
-    //window.setFramerateLimit(60);
-    window.setVerticalSyncEnabled(true);
+    window.setFramerateLimit(120);
+    //window.setVerticalSyncEnabled(true);
     window.getView().setSize({1280, 950});
 
     GLenum err = glewInit();

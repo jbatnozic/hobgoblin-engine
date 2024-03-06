@@ -1,5 +1,6 @@
 #pragma once
 
+#include <GridWorld/Positions.hpp>
 #include <GridWorld/Model/Shape.hpp>
 
 #include <Hobgoblin/Math.hpp>
@@ -20,18 +21,28 @@ enum class Layer {
 
 class SpatialInfo {
 public:
-    // TODO(constructor)
+    SpatialInfo() = default;
+    
+    static SpatialInfo fromCentreAndSize(WorldPosition aCentre, hg::math::Vector2f aSize, Shape aShape = Shape::FULL_SQUARE);
 
-    void setCentre(hg::math::Vector2<float> aPoint);
+    static SpatialInfo fromTopLeftAndSize(WorldPosition aTopLeft, hg::math::Vector2f aSize, Shape aShape = Shape::FULL_SQUARE);
 
-    void setTopLeft(hg::math::Vector2<float> aPoint);
+    void setCentre(WorldPosition aPoint);
+
+    void setTopLeft(WorldPosition aPoint);
 
     // Maintains the top-left corner, not the centre!
-    void setSize(hg::math::Vector2<float> aSize);
+    void setSize(hg::math::Vector2f aSize);
 
-    void setSizeMaintainingCentre(hg::math::Vector2<float> aSize);
+    void setSizeMaintainingCentre(hg::math::Vector2f aSize);
 
     // TODO(getters)
+
+    WorldPosition getCentre() const;
+
+    WorldPosition getTopLeft() const;
+
+    hg::math::Vector2f getSize() const;
 
     enum CheckDrawingOrderResult {
         DRAW_OTHER_FIRST = -1,
@@ -39,7 +50,7 @@ public:
         DRAW_THIS_FIRST  =  1
     };
 
-    //! Checks whether `this` should be drawn before `aOther` as per the isometric rendering order.
+    //! Checks whether `this` should be drawn before `aOther` as per the dimetric rendering order.
     //! Return value reference:
     //! - DRAW_OTHER_FIRST: `aOther` should be drawn before `this`.
     //! - DOES_NOT_MATTER : it doesn't matter which one is drawn first.
@@ -47,12 +58,12 @@ public:
     //! 
     //! Note: if the bounding boxes overlap, there is technically no correct answer, so a simple
     //!       check is done to see which centre is lower on the screen.
-    CheckDrawingOrderResult checkIsometricDrawingOrder(const SpatialInfo& aOther) const;
+    CheckDrawingOrderResult checkDimetricDrawingOrder(const SpatialInfo& aOther) const;
 
 private:
     hg::math::Rectangle<float> bbox;
-    hg::math::Vector2<float>   centre;
-    Shape                      shape;
+    WorldPosition              centre;
+    Shape                      shape = Shape::EMPTY;
 
     bool overlaps(const SpatialInfo& aOther) const;
 };

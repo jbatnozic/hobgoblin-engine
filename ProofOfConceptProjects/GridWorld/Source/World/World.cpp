@@ -21,28 +21,28 @@ hg::PZInteger World::getCellCountY() const {
     return _grid.getHeight();
 }
 
+void World::toggleGeneratorMode(bool aGeneratorModeActive) {
+    if (_generatorMode == aGeneratorModeActive) {
+        return;
+    }
+
+    if (aGeneratorModeActive) {
+        _generatorMode = true;
+        return;
+    }
+
+    _generatorMode = false;
+
+    for (hg::PZInteger y = 0; y < getCellCountY(); y += 1) {
+        for (hg::PZInteger x = 0; x < getCellCountX(); x += 1) {
+            _refreshCellAtUnchecked(x, y);
+        }
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////
 // CELL GETTERS                                                          //
 ///////////////////////////////////////////////////////////////////////////
-
-//#define TEMPORARY
-#ifdef TEMPORARY
-CellModel& World::getCellAt(hg::PZInteger aX, hg::PZInteger aY) {
-    return _grid.at(aY, aX);
-}
-
-CellModel& World::getCellAt(hg::math::Vector2pz aPos) {
-    return _grid.at(aPos.y, aPos.x);
-}
-
-CellModel& World::getCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) {
-    return _grid[aY][aX];
-}
-
-CellModel& World::getCellAtUnchecked(hg::math::Vector2pz aPos) {
-    return _grid[aPos.y][aPos.x];
-}
-#endif
 
 const CellModel& World::getCellAt(hg::PZInteger aX, hg::PZInteger aY) const {
     return _grid.at(aY, aX);
@@ -111,6 +111,10 @@ void World::updateCellAtUnchecked(hg::PZInteger aX,
                                   hg::PZInteger aY,
                                   const std::optional<CellModel::Wall>& aWallOpt) {
     _grid[aY][aX].wall = aWallOpt;
+
+    if (_generatorMode) {
+        return; // skip refreshing
+    }
 
     for (int yOffset = -1; yOffset <= 1; yOffset += 1) {
         if (aY + yOffset < 0 || aY + yOffset >= getCellCountY()) {

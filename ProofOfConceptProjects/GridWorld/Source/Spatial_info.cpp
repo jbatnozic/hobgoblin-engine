@@ -6,6 +6,25 @@
 
 namespace gridworld {
 
+SpatialInfo SpatialInfo::fromCentreAndSize(WorldPosition aCentre,
+                                           hg::math::Vector2f aSize,
+                                           Shape aShape) {
+    SpatialInfo result;
+    result.centre = aCentre;
+    result.setSizeMaintainingCentre(aSize);
+    return result;
+}
+
+SpatialInfo SpatialInfo::fromTopLeftAndSize(WorldPosition aTopLeft,
+                                            hg::math::Vector2f aSize,
+                                            Shape aShape) {
+    SpatialInfo result;
+    result.bbox.x = aTopLeft->x;
+    result.bbox.y = aTopLeft->y;
+    result.setSize(aSize);
+    return result;
+}
+
 #define IS_BEHIND_USE_HOBGOBLIN_COORDINATE_SYSTEM 1
 #define IS_BEHIND_USE_LOOKUP_TABLE 1
 
@@ -21,41 +40,41 @@ constexpr float Half(float aF) {
 }
 } // namespace
 
-void SpatialInfo::setCentre(hg::math::Vector2<float> aPoint) {
-    centre.x = aPoint.x;
-    centre.y = aPoint.y;
+void SpatialInfo::setCentre(WorldPosition aPoint) {
+    centre->x = aPoint->x;
+    centre->y = aPoint->y;
 
-    bbox.x = aPoint.x - Half(bbox.w);
-    bbox.y = aPoint.y - Half(bbox.h);
+    bbox.x = aPoint->x - Half(bbox.w);
+    bbox.y = aPoint->y - Half(bbox.h);
 }
 
-void SpatialInfo::setTopLeft(hg::math::Vector2<float> aPoint) {
-    bbox.x = aPoint.x;
-    bbox.y = aPoint.y;
+void SpatialInfo::setTopLeft(WorldPosition aPoint) {
+    bbox.x = aPoint->x;
+    bbox.y = aPoint->y;
 
-    centre.x = aPoint.x + Half(bbox.w);
-    centre.y = aPoint.y + Half(bbox.h);
+    centre->x = aPoint->x + Half(bbox.w);
+    centre->y = aPoint->y + Half(bbox.h);
 }
 
-void SpatialInfo::setSize(hg::math::Vector2<float> aSize) {
+void SpatialInfo::setSize(hg::math::Vector2f aSize) {
     bbox.w = aSize.x;
     bbox.h = aSize.y;
 
-    centre.x = bbox.x + Half(aSize.x);
-    centre.y = bbox.y + Half(aSize.y);
+    centre->x = bbox.x + Half(aSize.x);
+    centre->y = bbox.y + Half(aSize.y);
 }
 
-void SpatialInfo::setSizeMaintainingCentre(hg::math::Vector2<float> aSize) {
+void SpatialInfo::setSizeMaintainingCentre(hg::math::Vector2f aSize) {
     bbox.w = aSize.x;
     bbox.h = aSize.y;
 
-    bbox.x = centre.x - Half(aSize.x);
-    bbox.y = centre.y - Half(aSize.y);
+    bbox.x = centre->x - Half(aSize.x);
+    bbox.y = centre->y - Half(aSize.y);
 }
 
-SpatialInfo::CheckDrawingOrderResult SpatialInfo::checkIsometricDrawingOrder(const SpatialInfo& aOther) const {
+SpatialInfo::CheckDrawingOrderResult SpatialInfo::checkDimetricDrawingOrder(const SpatialInfo& aOther) const {
     if (overlaps(aOther)) {
-        return ((centre.x - centre.y) > (aOther.centre.x - aOther.centre.y)) ? DRAW_THIS_FIRST : DRAW_OTHER_FIRST;
+        return ((centre->x - centre->y) > (aOther.centre->x - aOther.centre->y)) ? DRAW_THIS_FIRST : DRAW_OTHER_FIRST;
     }
 
     // Algorithm reference: https://stackoverflow.com/a/69088148

@@ -6,6 +6,7 @@
 #include <Hobgoblin/Math.hpp>
 #include <Hobgoblin/Utility/Grids.hpp>
 
+#include <GridWorld/Positions.hpp>
 #include <GridWorld/Model/Lights.hpp>
 #include <GridWorld/World/World.hpp>
 
@@ -31,14 +32,14 @@ public:
 
     ~LineOfSightRenderer2D();
 
-    void start(hg::math::Vector2f aViewWorldPosition,
+    void start(WorldPosition aViewPosition,
                hg::math::Vector2f aViewSize,
-               hg::math::Vector2f aLineOfSightOrigin,
+               WorldPosition aLineOfSightOrigin,
                float aPadding);
 
     void render();
 
-    std::optional<bool> testVisibilityAt(hg::math::Vector2f aPos) const;
+    std::optional<bool> testVisibilityAt(WorldPosition aPos) const;
 
     //! For debug purposes only.
     const hg::gr::Texture& __gwimpl_getTexture(hg::math::Vector2f* aRecommendedScale = nullptr) const;
@@ -48,7 +49,7 @@ private:
 
     float _sizeMultiplier;
     float _recommendedScale = 1.f;
-    hg::math::Vector2f _losOrigin;
+    WorldPosition _losOrigin;
     hg::math::Vector2f _viewCenterOffset;
 
     //! Texture to which visibility is rendered.

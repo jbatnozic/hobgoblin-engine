@@ -37,20 +37,11 @@ public:
 
     hg::PZInteger getCellCountY() const;
 
+    void toggleGeneratorMode(bool aGeneratorModeActive);
+
     ///////////////////////////////////////////////////////////////////////////
     // CELL GETTERS                                                          //
     ///////////////////////////////////////////////////////////////////////////
-
-//#define TEMPORARY
-#ifdef TEMPORARY
-    CellModel& getCellAt(hg::PZInteger aX, hg::PZInteger aY);
-
-    CellModel& getCellAt(hg::math::Vector2pz aPos) ;
-
-    CellModel& getCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY);
-
-    CellModel& getCellAtUnchecked(hg::math::Vector2pz aPos);
-#endif
 
     const CellModel& getCellAt(hg::PZInteger aX, hg::PZInteger aY) const;
 
@@ -128,6 +119,10 @@ private:
 
     std::unordered_map<LightId, detail::LightModelExt> _lights;
     LightId _lightIdCounter = 0;
+
+    // ===== Other =====
+
+    bool _generatorMode = false;
 
     void _refreshCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY);
 };

@@ -6,6 +6,7 @@
 #include <Hobgoblin/Math.hpp>
 #include <Hobgoblin/Utility/Grids.hpp>
 
+#include <GridWorld/Positions.hpp>
 #include <GridWorld/Model/Lights.hpp>
 #include <GridWorld/World/World.hpp>
 
@@ -33,13 +34,13 @@ public:
 
     ~LightingRenderer2D();
 
-    void start(hg::math::Vector2f aWorldPosition,
+    void start(WorldPosition aViewPosition,
                hg::math::Vector2f aViewSize,
                float aPadding);
 
     void render();
 
-    std::optional<hg::gr::Color> getColorAt(hg::math::Vector2f aPos) const;
+    std::optional<hg::gr::Color> getColorAt(WorldPosition aPos) const;
 
     const hg::gr::Texture& getTexture(hg::math::Vector2f* aRecommendedScale = nullptr) const;
 

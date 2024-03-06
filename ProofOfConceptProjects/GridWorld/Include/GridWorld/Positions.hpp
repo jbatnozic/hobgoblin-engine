@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Hobgoblin/Math.hpp>
+#include <Hobgoblin/Math/Vector.hpp>
 
 #include <utility>
 
@@ -9,25 +9,49 @@ namespace gridworld {
 namespace hg = jbatnozic::hobgoblin;
 
 //! Represents a position in the game world.
-//! TODO(unused)
 struct WorldPosition {
     WorldPosition() = default;
 
-    template <class... taArgs>
-    WorldPosition(taArgs&&... aArgs)
-        : pos{std::forward<taArgs>(aArgs)...}
+    ~WorldPosition() = default;
+
+    WorldPosition(const WorldPosition&) = default;
+
+    WorldPosition& operator=(const WorldPosition&) = default;
+
+    WorldPosition(WorldPosition&&) = default;
+
+    WorldPosition& operator=(WorldPosition&&) = default;
+
+    WorldPosition(hg::math::Vector2f aPos)
+        : pos{aPos}
     {
     }
 
-    hg::math::Vector2<float> pos;
+    //template <class... taArgs>
+    //WorldPosition(taArgs&&... aArgs)
+    //    : pos{std::forward<taArgs>(aArgs)...}
+    //{
+    //}
 
-    hg::math::Vector2<float>& operator*() {
+    hg::math::Vector2f pos;
+
+    hg::math::Vector2f& operator*() {
         return pos;
     }
 
-    const hg::math::Vector2<float>& operator*() const {
+    const hg::math::Vector2f& operator*() const {
         return pos;
+    }
+
+    hg::math::Vector2f* operator->() {
+        return &pos;
+    }
+
+    const hg::math::Vector2f* operator->() const {
+        return &pos;
     }
 };
+
+static_assert(sizeof(WorldPosition) <= sizeof(void*), "TODO");
 
 } // namespace gridworld

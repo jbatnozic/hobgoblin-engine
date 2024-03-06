@@ -63,7 +63,7 @@ LightingRenderer2D::~LightingRenderer2D() {
     DualPBO_Destroy(_pboNames);
 }
 
-void LightingRenderer2D::start(hg::math::Vector2f aWorldPosition,
+void LightingRenderer2D::start(WorldPosition aWiewPosition,
                                hg::math::Vector2f aViewSize,
                                float aPadding) {
     _renderTexture.clear(hg::gr::Color{100, 100, 150, 255});
@@ -78,7 +78,7 @@ void LightingRenderer2D::start(hg::math::Vector2f aWorldPosition,
 
     hg::gr::View view;
     view.setSize({virtualSquareEdge, virtualSquareEdge});
-    view.setCenter(aWorldPosition);
+    view.setCenter(*aWiewPosition);
     view.setViewport({0.f, 0.f, 1.f, 1.f});
     _renderTexture.setView(view);
 
@@ -118,8 +118,8 @@ void LightingRenderer2D::render() {
     }
 }
 
-std::optional<hg::gr::Color> LightingRenderer2D::getColorAt(hg::math::Vector2f aPos) const {
-    auto pixelPos = _renderTexture.mapCoordsToPixel(aPos, 0);
+std::optional<hg::gr::Color> LightingRenderer2D::getColorAt(WorldPosition aPos) const {
+    auto pixelPos = _renderTexture.mapCoordsToPixel(*aPos, 0);
 
     if (pixelPos.x < 0 || pixelPos.x >= _textureSize ||
         pixelPos.y < 0 || pixelPos.y >= _textureSize)

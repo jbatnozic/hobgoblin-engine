@@ -12,17 +12,14 @@
 
 // TODO(move to some header)
 #define WITH(...) [__VA_ARGS__] () -> auto
-#define DONE ()
+#define EXEC ()
 
 namespace gridworld {
 
-namespace {
-struct CellInfo {
-    hg::NotNull<const CellModel*> cell;
-    hg::PZInteger gridX;
-    hg::PZInteger gridY;
-};
-} // namespace
+void DimetricRenderer::CellToRenderedObjectAdapter::draw(hg::gr::Canvas& aRenderTarget,
+                                                         hg::math::Vector2f aPosition) const {
+    GetMutableExtensionData(*_cell);
+}
 
 template <class taCallable>
 static void DimetricRenderer::_diagonalTraverse(const World& aWorld,
@@ -33,8 +30,8 @@ static void DimetricRenderer::_diagonalTraverse(const World& aWorld,
     const int cellsPerRow    = (aViewData.size.x / (cellRes * 2.f)) + 1;
     const int cellsPerColumn = (aViewData.size.y * 2.f) / cellRes;
 
-    int startX = static_cast<int>(trunc(aViewData.isometricTopLeft.x / cellRes));
-    int startY = static_cast<int>(trunc(aViewData.isometricTopLeft.y / cellRes));
+    int startX = static_cast<int>(trunc(aViewData.topLeft->x / cellRes));
+    int startY = static_cast<int>(trunc(aViewData.topLeft->y / cellRes));
 
     for (int row = 0; row < cellsPerColumn; row += 1) {
         for (int col = 0; col < cellsPerRow; col += 1) {
@@ -64,11 +61,6 @@ DimetricRenderer::CellToRenderedObjectAdapter::CellToRenderedObjectAdapter(const
 {
 }
 
-void DimetricRenderer::CellToRenderedObjectAdapter::draw(hg::gr::RenderTarget& aRenderTarget,
-                                                         hg::math::Vector2<float> aPosition) const {
-
-}
-
 DimetricRenderer::DimetricRenderer(const World& aWorld,
                                    const hg::gr::SpriteLoader& aSpriteLoader,
                                    LightingRenderer2D& aLightingRenderer,
@@ -82,7 +74,7 @@ DimetricRenderer::DimetricRenderer(const World& aWorld,
 
 bool DimetricRenderer::RenderedObjectPtrLess::operator()(const RenderedObject* aLhs,
                                                          const RenderedObject* aRhs) const {
-    const auto order = aLhs->getSpatialInfo().checkIsometricDrawingOrder(aRhs->getSpatialInfo());
+    const auto order = aLhs->getSpatialInfo().checkDimetricDrawingOrder(aRhs->getSpatialInfo());
     switch (order) {
     case SpatialInfo::DRAW_OTHER_FIRST:
         return false;
@@ -99,15 +91,14 @@ bool DimetricRenderer::RenderedObjectPtrLess::operator()(const RenderedObject* a
     }
 }
 
-void DimetricRenderer::start(const hg::gr::View& aView, hg::math::Vector2f aPointOfView) {
-    // clear all data
+void DimetricRenderer::start(const hg::gr::View& aView, WorldPosition aPointOfView) {
     _viewData.center = aView.getCenter();
     _viewData.size   = aView.getSize();
 
-    _viewData.isometricTopLeft     = ScreenCoordinatesToIsometric({_viewData.center.x - _viewData.size.x / 2.f,
-                                                                   _viewData.center.y - _viewData.size.y / 2.f});
-    _viewData.isometricBottomRight = ScreenCoordinatesToIsometric({_viewData.center.x + _viewData.size.x / 2.f,
-                                                                   _viewData.center.y + _viewData.size.y / 2.f});
+    _viewData.topLeft     = ScreenCoordinatesToIsometric({_viewData.center.x - _viewData.size.x / 2.f,
+                                                          _viewData.center.y - _viewData.size.y / 2.f});
+    //_viewData.bottomRight = ScreenCoordinatesToIsometric({_viewData.center->x + _viewData.size.x / 2.f,
+    //                                                      _viewData.center->y + _viewData.size.y / 2.f});
 
     _viewData.pointOfView = aPointOfView;
 
@@ -118,11 +109,17 @@ void DimetricRenderer::start(const hg::gr::View& aView, hg::math::Vector2f aPoin
                        aView.getSize(),
                        aPointOfView,
                        0.f); // TODO(use padding parameter)
+
+    _objectsToRender.clear();
+    _cellAdapters.clear();
 }
 
 void DimetricRenderer::render(hg::gr::Canvas& aCanvas, int aRenderOptions) {
     _renderFloor(aCanvas);
     _renderLighting(aCanvas);
+
+
+
     _renderWalls(aCanvas, aRenderOptions);
 
     // render floor lighting
@@ -178,6 +175,91 @@ void DimetricRenderer::_renderLighting(hg::gr::Canvas& aCanvas) const {
     aCanvas.draw(spr, GLOBAL_LIGHTING_RENDER_STATES);
 }
 
+bool DimetricRenderer::_isCellObstructed(const CellInfo& aCellInfo) const {
+    if (aCellInfo.cell->wall.has_value()) {
+        return true;
+    }
+
+    const float cellres = _world.getCellResolution();
+    const float offset = 1.f;
+    const hg::math::Vector2f positions[4] = {
+        {(aCellInfo.gridX + 0) * cellres + offset, (aCellInfo.gridY + 0) * cellres + offset},
+        {(aCellInfo.gridX + 1) * cellres - offset, (aCellInfo.gridY + 0) * cellres + offset},
+        {(aCellInfo.gridX + 1) * cellres - offset, (aCellInfo.gridY + 1) * cellres - offset},
+        {(aCellInfo.gridX + 0) * cellres + offset, (aCellInfo.gridY + 1) * cellres - offset}
+    };
+    for (const auto pos : positions) {
+        const auto visibility = _losRenderer.testVisibilityAt(pos);
+        if (visibility.value_or(false)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+void DimetricRenderer::_prepareWallsForRendering() const {
+    int aRenderOptions = 0; // TODO(temp)
+
+    _diagonalTraverse(_world, _viewData, [](const CellInfo& aCellInfo, auto) {
+        GetMutableExtensionData(*aCellInfo.cell).setLowered(false);
+        GetMutableExtensionData(*aCellInfo.cell).setVisible(false);
+    });
+
+    // Determine new visibility state of all cells in view:
+    _diagonalTraverse(_world, _viewData, [this, aRenderOptions](const CellInfo& aCellInfo, auto aScreenPosition) {
+
+        const bool cellIsObstructed = _isCellObstructed(aCellInfo);
+        
+        GetMutableExtensionData(*aCellInfo.cell).setVisible(!cellIsObstructed);
+
+        if (cellIsObstructed) {
+            return;
+        }
+
+        // Loop downwards (as seen on the screen) and mark encountered walls as lowered:
+        const auto screenPov = IsometricCoordinatesToScreen(*_viewData.pointOfView);
+
+        const int limit = (aRenderOptions & RENDOPT_LOWER_MORE) ? 5 : 1; // TODO: limit needs to be based on height
+        for (int i = 0; i < limit; i += 1) {
+
+            if (screenPov.x > aScreenPosition.x) {
+                const int x = aCellInfo.gridX - 1 - i;
+                const int y = aCellInfo.gridY + 0 + i;
+
+                if (x >= 0 && x < _world.getCellCountX() &&
+                    y >= 0 && y < _world.getCellCountY()) {
+                    GetMutableExtensionData(_world.getCellAtUnchecked(x, y)).setLowered(true);
+                }
+            }
+            {
+                const int x = aCellInfo.gridX - 1 - i;
+                const int y = aCellInfo.gridY + 1 + i;
+
+                if (x >= 0 && x < _world.getCellCountX() &&
+                    y >= 0 && y < _world.getCellCountY()) {
+                    GetMutableExtensionData(_world.getCellAtUnchecked(x, y)).setLowered(true);
+                }
+            }
+            if (screenPov.x < aScreenPosition.x) {
+                const int x = aCellInfo.gridX - 0 - i;
+                const int y = aCellInfo.gridY + 1 + i;
+
+                if (x >= 0 && x < _world.getCellCountX() &&
+                    y >= 0 && y < _world.getCellCountY()) {
+                    GetMutableExtensionData(_world.getCellAtUnchecked(x, y)).setLowered(true);
+                }
+            }
+        }
+
+        // Add adapter
+        //const float cellres = _world.getCellResolution();
+        //_cellAdapters.emplace_back(*aCellInfo.cell,
+        //                           SpatialInfo::fromTopLeftAndSize({aCellInfo.gridX * cellres, aCellInfo.gridY * cellres},
+        //                                                           {cellres, cellres}));
+
+    });
+}
+
 void DimetricRenderer::_renderWalls(hg::gr::Canvas& aCanvas, int aRenderOptions) const {
     _losRenderer.render();
 
@@ -189,7 +271,7 @@ void DimetricRenderer::_renderWalls(hg::gr::Canvas& aCanvas, int aRenderOptions)
     _diagonalTraverse(_world, _viewData, [this, aRenderOptions](const CellInfo& aCellInfo, auto aScreenPosition) {
         const float cellres = _world.getCellResolution();
         const float offset = 1.f;
-        const hg::math::Vector2f positions[4] = { // TODO: do top row then bottom row (cache efficiency)
+        const hg::math::Vector2f positions[4] = {
             {(aCellInfo.gridX + 0) * cellres + offset, (aCellInfo.gridY + 0) * cellres + offset},
             {(aCellInfo.gridX + 1) * cellres - offset, (aCellInfo.gridY + 0) * cellres + offset},
             {(aCellInfo.gridX + 1) * cellres - offset, (aCellInfo.gridY + 1) * cellres - offset},
@@ -206,7 +288,7 @@ void DimetricRenderer::_renderWalls(hg::gr::Canvas& aCanvas, int aRenderOptions)
         GetMutableExtensionData(*aCellInfo.cell).setVisible(cellIsVisible);
 
         if (cellIsVisible) {
-            const auto screenPov = IsometricCoordinatesToScreen(_viewData.pointOfView);
+            const auto screenPov = IsometricCoordinatesToScreen(*_viewData.pointOfView);
 
             const int limit = (aRenderOptions & RENDOPT_LOWER_MORE) ? 5 : 1; // TODO: limit needs to be based on height
             for (int i = 0; i < limit; i += 1) {
@@ -256,10 +338,10 @@ void DimetricRenderer::_renderWalls(hg::gr::Canvas& aCanvas, int aRenderOptions)
                 return extData.determineDrawMode(
                     _world.getCellResolution(),
                     {aCellInfo.gridX * _world.getCellResolution(), aCellInfo.gridY * _world.getCellResolution()},
-                    _viewData.pointOfView
+                    *_viewData.pointOfView
                 );
             }
-        } DONE;
+        } EXEC;
 
         const auto& wall = *(aCellInfo.cell->wall);
 
@@ -299,6 +381,12 @@ void DimetricRenderer::_renderWalls(hg::gr::Canvas& aCanvas, int aRenderOptions)
             HG_UNREACHABLE("Invalid value for DrawMode ({}).", (int)drawMode);
         }
     });
+}
+
+void DimetricRenderer::_renderObjects(hg::gr::Canvas& aCanvas) const {
+    for (const auto* object : _objectsToRender) {
+        object->draw(aCanvas, IsometricCoordinatesToScreen(*object->getSpatialInfo().getCentre()));
+    }
 }
 
 } // namespace gridw

@@ -58,9 +58,9 @@ LineOfSightRenderer2D::~LineOfSightRenderer2D() {
     DualPBO_Destroy(_pboNames);
 }
 
-void LineOfSightRenderer2D::start(hg::math::Vector2f aWorldPosition,
+void LineOfSightRenderer2D::start(WorldPosition aViewPosition,
                                   hg::math::Vector2f aViewSize,
-                                  hg::math::Vector2f aLineOfSightOrigin,
+                                  WorldPosition aLineOfSightOrigin,
                                   float aPadding) {
     const float width  = aViewSize.x + aPadding;
     const float height = aViewSize.y + aPadding;
@@ -68,13 +68,13 @@ void LineOfSightRenderer2D::start(hg::math::Vector2f aWorldPosition,
 
     _recommendedScale = largerDimension * _sizeMultiplier / _renderTexture.getSize().x;
     _losOrigin        = aLineOfSightOrigin;
-    _viewCenterOffset = aWorldPosition - _renderTexture.getView().getCenter();
+    _viewCenterOffset = *aViewPosition - _renderTexture.getView().getCenter();
 
     const float virtualSquareEdge = ceil(largerDimension * _sizeMultiplier);
 
     hg::gr::View view;
     view.setSize({virtualSquareEdge, virtualSquareEdge});
-    view.setCenter(aWorldPosition);
+    view.setCenter(*aViewPosition);
     view.setViewport({0.f, 0.f, 1.f, 1.f});
     _renderTexture.setView(view);
 
@@ -110,8 +110,8 @@ void LineOfSightRenderer2D::render() {
     }
 }
 
-std::optional<bool> LineOfSightRenderer2D::testVisibilityAt(hg::math::Vector2f aPos) const {
-    const auto pixelPos = _renderTexture.mapCoordsToPixel(aPos + _viewCenterOffset, 0);
+std::optional<bool> LineOfSightRenderer2D::testVisibilityAt(WorldPosition aPos) const {
+    const auto pixelPos = _renderTexture.mapCoordsToPixel(*aPos + _viewCenterOffset, 0);
 
     if (pixelPos.x < 0 || pixelPos.x >= _textureSize ||
         pixelPos.y < 0 || pixelPos.y >= _textureSize)
@@ -175,8 +175,8 @@ void LineOfSightRenderer2D::_renderOcclusion() {
                 vertices[8] = vertices[0];
 
                 for (int i = 1; i < 10; i += 2) {
-                    hg::math::Vector2f diff = {vertices[i - 1].position.x - _losOrigin.x,
-                                               vertices[i - 1].position.y - _losOrigin.y};
+                    hg::math::Vector2f diff = {vertices[i - 1].position.x - _losOrigin->x,
+                                               vertices[i - 1].position.y - _losOrigin->y};
                     diff.x *= 2000.f; // TODO: magic number
                     diff.y *= 2000.f; // TODO: magic number
 
