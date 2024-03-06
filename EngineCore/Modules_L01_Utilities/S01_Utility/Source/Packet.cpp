@@ -141,7 +141,7 @@ HOBGOBLIN_NAMESPACE_END
 // MAKE SUPER PACKETBASE SUPPORTS ALL FIXED STD INTS ON ALL PLATFORMS    //
 ///////////////////////////////////////////////////////////////////////////
 
-#ifndef _MSC_VER
+#if !defined(__APPLE__) && !defined(_MSC_VER)
 #define hgutil jbatnozic::hobgoblin::util
 
 namespace sf {

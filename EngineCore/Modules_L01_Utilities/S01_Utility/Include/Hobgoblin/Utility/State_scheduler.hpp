@@ -1,7 +1,9 @@
 #ifndef UHOBGOBLIN_UTIL_STATE_SCHEDULER_HPP
 #define UHOBGOBLIN_UTIL_STATE_SCHEDULER_HPP
 
+#include "Hobgoblin/HGExcept/Traced_exception.hpp"
 #include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 
 #include <algorithm>
 #include <deque>
@@ -182,7 +184,7 @@ void StateScheduler<TState>::setDiscardIfOld(bool discardIfTooOld) {
 template <class TState>
 void StateScheduler<TState>::advanceDownTo(PZInteger maxSize) {
     if (maxSize < _stateBufferMinSize) {
-        throw TracedLogicError("MaxSize must be at least (defaultDelay + 1)");
+        HG_THROW_TRACED(TracedLogicError, 0, "MaxSize must be at least (defaultDelay + 1)");
     }
 
     while (ToPz(_stateBuffer.size()) > maxSize) {

@@ -35,6 +35,7 @@ DeserializeMethod GlobalSerializableRegistry::getDeserializeMethod(const std::st
 } // namespace detail
 
 void Deserialize(Packet& packet, AnyPtr context, int contextTag) {
+  #if 0
     // Format: tag, dataSize, data
     while (!packet.endOfPacket()) {
         const std::string tag = packet.extractOrThrow<std::string>();
@@ -55,6 +56,7 @@ void Deserialize(Packet& packet, AnyPtr context, int contextTag) {
         DeserializeMethod _deserialize = detail::GlobalSerializableRegistry::getInstance().getDeserializeMethod(tag);
         _deserialize(intermediaryPacket, context, contextTag);
     }
+  #endif
 }
 
 } // namespace util
