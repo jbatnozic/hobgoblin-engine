@@ -9,6 +9,7 @@
 #include <fmt/xchar.h>
 
 #include <string>
+#include <sstream>
 #include <type_traits>
 #include <utility>
 

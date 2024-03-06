@@ -13,6 +13,7 @@
 
 // SFML
 
+#include <SFML/Config.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Window/ContextSettings.hpp>
 #include <SFML/Window/Cursor.hpp>
@@ -75,7 +76,7 @@ sf::VideoMode ToSf(const VideoMode& aVideoMode);
 
 // WindowStyle
 
-int ToSf(WindowStyle aStyle);
+sf::Uint32 ToSf(WindowStyle aStyle);
 
 ///////////////////////////////////////////////////////////////////////////
 // INLINE DEFINITIONS                                                    //
@@ -209,7 +210,7 @@ sf::VideoMode ToSf(const VideoMode& aVideoMode) {
 // WindowStyle
 
 inline
-int ToSf(WindowStyle aStyle) {
+sf::Uint32 ToSf(WindowStyle aStyle) {
     if (aStyle == WindowStyle::None) {
         return sf::Style::None;
     }

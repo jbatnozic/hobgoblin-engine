@@ -242,7 +242,7 @@ public:
     //! \param active True to activate, false to deactivate
     //!
     //! \return True if operation was successful, false otherwise
-    virtual [[nodiscard]] bool setActive(bool aActive = true) = 0;  // TODO(bool->exc)
+    [[nodiscard]] virtual bool setActive(bool aActive = true) = 0;  // TODO(bool->exc)
 
     //! \brief Save the current OpenGL render states and matrices
     //!
