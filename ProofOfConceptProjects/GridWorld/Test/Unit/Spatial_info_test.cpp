@@ -24,8 +24,8 @@ TEST(GridWorldSpatialInfoDrawingOrderTest, FourSeparateRectangles) {
 
     for (unsigned i = 0; i < 4; i += 1) {
         for (unsigned t = i + 1; t < 4; t += 1) {
-            EXPECT_EQ(infos[i].checkIsometricDrawingOrder(infos[t]), SpatialInfo::DRAW_THIS_FIRST);
-            EXPECT_EQ(infos[t].checkIsometricDrawingOrder(infos[i]), SpatialInfo::DRAW_OTHER_FIRST);
+            EXPECT_EQ(infos[i].checkDimetricDrawingOrder(infos[t]), SpatialInfo::DRAW_THIS_FIRST);
+            EXPECT_EQ(infos[t].checkDimetricDrawingOrder(infos[i]), SpatialInfo::DRAW_OTHER_FIRST);
         }
     }
 }
@@ -47,8 +47,8 @@ TEST(GridWorldSpatialInfoDrawingOrderTest, TouchingRectanglesCycle) {
 
     for (unsigned i = 0; i < 4; i += 1) {
         for (unsigned t = i + 1; t < 4; t += 1) {
-            EXPECT_EQ(infos[i].checkIsometricDrawingOrder(infos[t]), SpatialInfo::DRAW_THIS_FIRST);
-            EXPECT_EQ(infos[t].checkIsometricDrawingOrder(infos[i]), SpatialInfo::DRAW_OTHER_FIRST);
+            EXPECT_EQ(infos[i].checkDimetricDrawingOrder(infos[t]), SpatialInfo::DRAW_THIS_FIRST);
+            EXPECT_EQ(infos[t].checkDimetricDrawingOrder(infos[i]), SpatialInfo::DRAW_OTHER_FIRST);
         }
     }
 }
@@ -78,7 +78,7 @@ TEST(GridWorldSpatialInfoDrawingOrderTest, CircleOrbitingAnotherCircle) {
         const float y = centreY - angle.sin() * 4.f;
         pivot.setCentre({x, y});
 
-        const auto order = pivot.checkIsometricDrawingOrder(axis);
+        const auto order = pivot.checkDimetricDrawingOrder(axis);
         if (i == 0 || i == 180) {
             // It's indeterminate what happens in this case (and also doesn't matter)
             continue;
