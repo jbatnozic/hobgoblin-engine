@@ -1,22 +1,25 @@
 
-#include "Hobgoblin/Common/Positive_or_zero_integer.hpp"
-#include "Hobgoblin/Unicode/String_conversions.hpp"
-#include "Hobgoblin/Unicode/Unicode_string.hpp"
-#include <Hobgoblin/Utility/Packet2.hpp>
-#include <type_traits>
+#include <Hobgoblin/Utility/Packet.hpp>
+#include <Hobgoblin/Unicode/String_conversions.hpp>
+#include <Hobgoblin/Logging.hpp>
 
 #ifdef _MSC_VER
-#include <winsock.h>
+#include <winsock.h> // for hton & friends
 #else
-#include <arpa/inet.h>
+#include <arpa/inet.h> // for hton & friends
 #endif
 
 #include <cstring>
+#include <type_traits>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace util {
+
+namespace {
+constexpr auto LOG_ID = "Hobgoblin.Utility";
+} // namespace
 
 Packet::Packet() = default;
 
@@ -33,11 +36,11 @@ PZInteger Packet::getReadPosition() const {
 }
 
 const void* Packet::getData() const {
-  return _buffer.data();
+  return _buffer.empty() ? nullptr : _buffer.data();
 }
 
 void* Packet::getMutableData() {
-  return _buffer.data();
+    return _buffer.empty() ? nullptr : _buffer.data();
 }
 
 PZInteger Packet::getDataSize() const {
@@ -410,8 +413,12 @@ Packet::operator BoolType() const {
 
 bool Packet::_checkSize(std::size_t aSize) {
     _isValid = _isValid && (_readPos + aSize <= _buffer.size());
-
     return _isValid;
+}
+
+void Packet::_logExtractionError(const char* aErrorMessage) {
+    HG_LOG_WARN(LOG_ID, "Exception caught while extracting data from hg::util::Packet in "
+                        "no-throw mode: {}", aErrorMessage);
 }
 
 } // namespace util

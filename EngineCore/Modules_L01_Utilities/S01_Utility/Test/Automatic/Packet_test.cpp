@@ -1,5 +1,5 @@
 ﻿
-#include <Hobgoblin/Utility/Packet2.hpp>
+#include <Hobgoblin/Utility/Packet.hpp>
 
 #include <array>
 #include <cstdint>

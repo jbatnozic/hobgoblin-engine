@@ -8,7 +8,7 @@ set(COMPONENT_NAME "Hobgoblin.Utility")
 
 set(COMPONENT_SOURCES
   "Source/Dynamic_bitset.cpp"
-  "Source/Packet2.cpp"
+  "Source/Packet.cpp"
   "Source/Randomization.cpp"
   "Source/Serialization.cpp"
   "Source/Time_utils.cpp"
