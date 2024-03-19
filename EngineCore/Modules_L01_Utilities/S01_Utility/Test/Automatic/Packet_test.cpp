@@ -211,8 +211,20 @@ namespace {
 //! - It has overloaded operator<<
 //! - It has overloaded operator>> that DOES NOT THROW on failure
 struct MyCustomType {
+    MyCustomType() = default;
+    MyCustomType(std::int32_t aI, std::string aS)
+        : i{aI}, s{std::move(aS)}
+    {
+    }
+
+    // Packets need to work with move-only types too
+    MyCustomType(const MyCustomType&) = delete;
+    MyCustomType& operator=(const MyCustomType&) = delete;  
+    MyCustomType(MyCustomType&&) = default;
+    MyCustomType& operator=(MyCustomType&&) = default;
+
     std::int32_t i = 0;
-    double  s = 5.0;
+    std::string  s = "";
 };
 
 bool operator==(const MyCustomType& aLhs, const MyCustomType& aRhs) {
@@ -231,17 +243,20 @@ Packet& operator>>(PacketExtender& aPacket, MyCustomType& aData) {
 } // namespace
 
 TEST(HGUtilPacketTest, TestMyCustomType) {
-    const auto data = MyCustomType{23, 6.0};
+    auto data = MyCustomType{23, "love"};
     const auto expectedSize = stopz(sizeof(data.i) + sizeof(std::uint32_t) + 4 * sizeof(char));
-    TestPacketWithType<MyCustomType>(data, expectedSize);
+    TestPacketWithType<MyCustomType>(std::move(data), expectedSize);
 }
 
 TEST(HGUtilPacketTest, TestMyCustomType_Derived) {
-    class Derived : public MyCustomType {};
+    class Derived : public MyCustomType {
+    public:
+        using MyCustomType::MyCustomType;
+    };
 
-    const auto data = Derived{23, 6.0};
+    auto data = Derived{23, "love"};
     const auto expectedSize = stopz(sizeof(data.i) + sizeof(std::uint32_t) + 4 * sizeof(char));
-    TestPacketWithType<Derived>(data, expectedSize);
+    TestPacketWithType<Derived>(std::move(data), expectedSize);
 }
 
 } // namespace util
