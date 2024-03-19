@@ -70,15 +70,14 @@ bool HasFullState(SyncFlags aFlags) {
     return ((aFlags & SyncFlags::FullState) != SyncFlags::None);
 }
 
-hg::util::PacketBase& operator<<(hg::util::PacketBase& aPacket, SyncFlags aFlags) {
+hg::util::Packet& operator<<(hg::util::PacketExtender& aPacket, SyncFlags aFlags) {
     return (aPacket << static_cast<detail::SyncFlagsUnderlyingType>(aFlags));
 }
 
-hg::util::PacketBase& operator>>(hg::util::PacketBase& aPacket, SyncFlags& aFlags) {
-    detail::SyncFlagsUnderlyingType value;
-    aPacket >> value;
+hg::util::Packet& operator>>(hg::util::PacketExtender& aPacket, SyncFlags& aFlags) {
+    const auto value = aPacket->extractNoThrow<detail::SyncFlagsUnderlyingType>();
     aFlags = static_cast<SyncFlags>(value);
-    return aPacket;
+    return *aPacket;
 }
 
 //

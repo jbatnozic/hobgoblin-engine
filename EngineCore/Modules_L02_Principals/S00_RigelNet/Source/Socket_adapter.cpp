@@ -91,7 +91,8 @@ RN_SocketAdapter::Status RN_SocketAdapter::send(util::Packet& aPacket,
         auto& socket = std::get<sf::UdpSocket>(_socket);
     
         for (PZInteger tryCount = 0; tryCount < MAX_SEND_TRY_COUNT; tryCount += 1) {
-            switch (socket.send(aPacket, aTargetAddress, aTargetPort)) {
+            // TODO (temporary solution)
+            switch (socket.send(aPacket.getData(), pztos(aPacket.getDataSize()), aTargetAddress, aTargetPort)) {
             case sf::Socket::Done:
                 return Status::OK;
 
@@ -148,7 +149,13 @@ RN_SocketAdapter::Status RN_SocketAdapter::recv(util::Packet& aPacket,
                                                 std::uint16_t& aRemotePort) {
     if (UseSfSocket(_protocol, _networkingStack)) {
         auto& socket = std::get<sf::UdpSocket>(_socket);
-        switch (socket.receive(aPacket, aRemoteAddress, aRemotePort)) {
+
+        // TODO: temporary solution
+        sf::Packet sfPacket;
+        const auto status = socket.receive(sfPacket, aRemoteAddress, aRemotePort);
+        aPacket.appendBytes(sfPacket.getData(), stopz(sfPacket.getDataSize()));
+
+        switch (status) {
         case sf::Socket::Done:
             return Status::OK;
 
@@ -188,7 +195,7 @@ RN_SocketAdapter::Status RN_SocketAdapter::recv(util::Packet& aPacket,
         }
 
         aPacket.clear();
-        aPacket.append(_recvBuffer.data(), *res);
+        aPacket.appendBytes(_recvBuffer.data(), stopz(*res));
 
         aRemoteAddress = sf::IpAddress(senderIp.toString());
 

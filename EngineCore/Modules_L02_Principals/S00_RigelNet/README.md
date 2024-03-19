@@ -323,13 +323,13 @@ Unfortunately, the types of the arguments must be separated from their names by 
 When specifying the type of the argument, write ONLY the name of the type, without any const/volatile qualifiers, and no pointers (I hope you're not planning on sending pointers over the network). What IS allowed is adding a single `&` after the type name - the object will still be sent over the network by value, but it will allow you to pass it to the `Compose_*` function by const reference, and RigelNet will also pass it by reference instead of by copy internally (where possible).
 
 #### Supported types
-Now, you can't use just any data type as a Message argument - only those that the compiler knows how to serialize and deserialize (because, between one node sending it and the other receiving it, any data becomes just a stream of raw bytes). With RigelNet, (de)serialization happens through the `hobgoblin::util::PacketBase` class, which is guaranteed to either behave like a [SFML Packet](https://www.sfml-dev.org/tutorials/2.5/network-packet.php) or be an alias to it.
+Now, you can't use just any data type as a Message argument - only those that the compiler knows how to serialize and deserialize (because, between one node sending it and the other receiving it, any data becomes just a stream of raw bytes). With RigelNet, (de)serialization happens through the `hobgoblin::util::Packet` class, which is guaranteed to either behave like a [SFML Packet](https://www.sfml-dev.org/tutorials/2.5/network-packet.php) or be an alias to it.
 
-So, by implementing operators `<<` and `>>` for your type and `hobgoblin::util::PacketBase` (as described in the link above under "Extending packets to handle user types"), you enable them for use with RigelNet as well. Some common types are supported out-of-the-box:
+So, by implementing operators `<<` and `>>` for your type and `hobgoblin::util::Packet` (as described in the link above under "Extending packets to handle user types"), you enable them for use with RigelNet as well. Some common types are supported out-of-the-box:
 - All signed and unsigned integral types (just make sure to use fixed-width ones such as `std::int32_t` because `int`s and `long`s may differ from platform to platform).
 - Common floating-point number types (`double` and `float`).
 - String objects (`std::string` and `sf::String`).
-- Hobgoblin packets (`hobgoblin::util::Packet` - which is different from `hobgoblin::util::PacketBase`!).
+- Hobgoblin packets (`hobgoblin::util::Packet`).
 
 There is, however, another easy way to make a data type (de)serializable - use Hobgoblin Autopack:
 

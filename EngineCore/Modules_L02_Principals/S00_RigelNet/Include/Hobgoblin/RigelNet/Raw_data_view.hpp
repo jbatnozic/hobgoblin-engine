@@ -3,6 +3,8 @@
 
 #include <Hobgoblin/Utility/Packet.hpp>
 
+#include <cstdint>
+
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_BEGIN
@@ -11,9 +13,9 @@ namespace rn {
 //! Utility class to enable sending and receiving raw byte data with RigelNet
 class RN_RawDataView {
 public:
-    RN_RawDataView(const void* data, std::size_t dataByteCount)
+    RN_RawDataView(const void* data, PZInteger dataByteCount)
         : _data{data}
-        , _dataByteCount{static_cast<decltype(_dataByteCount)>(dataByteCount)}
+        , _dataByteCount{dataByteCount}
     {
     }
 
@@ -26,30 +28,32 @@ public:
         return _data;
     }
 
-    std::size_t getDataSize() const noexcept {
+    PZInteger getDataSize() const noexcept {
         return _dataByteCount;
     }
 
-    friend util::PacketBase& operator<<(util::PacketBase& packet, const RN_RawDataView& self) {
+    friend util::PacketExtender& operator<<(util::PacketExtender& packet, const RN_RawDataView& self) {
         if (self._data != nullptr && self._dataByteCount > 0) {
             packet << self._dataByteCount;
-            packet.append(self._data, self._dataByteCount);
+            packet->appendBytes(self._data, self._dataByteCount);
+        } else {
+          packet << (std::int32_t)0;
         }
         return packet;
     }
 
-    friend util::PacketBase& operator>>(util::PacketBase& packet, RN_RawDataView& self) {
-        // TODO: Ugly hack with reinterpret cast
-        util::Packet& extendedPacket = reinterpret_cast<util::Packet&>(packet);
-        extendedPacket >> self._dataByteCount;
-        self._data = extendedPacket.extractBytes(self._dataByteCount);
+    friend util::PacketExtender& operator>>(util::PacketExtender& packet, RN_RawDataView& self) {
+        packet->noThrow() >> self._dataByteCount;
+        if (*packet) {
+            self._data = packet->extractBytesNoThrow(self._dataByteCount);
+        }
 
         return packet;
     }
 
 private:
-    const void* _data;
-    std::uint32_t _dataByteCount;
+    const void*  _data;
+    std::int32_t _dataByteCount;
 };
 
 } // namespace rn

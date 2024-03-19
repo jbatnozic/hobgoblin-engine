@@ -67,6 +67,12 @@ TEST(HGUnicodeTest, TestWeirdAlphabets) {
     }
 }
 
+TEST(HGUnicodeTest, UniStrConvTest_Utf8StrString) {
+    const auto unistr = HG_UNISTR("!@#$%^&*()šđčć");
+    const auto utf8str = hg::UniStrConv(hg::TO_UTF8_STD_STRING, unistr);
+    EXPECT_EQ(unistr, hg::UniStrConv(hg::FROM_UTF8_STD_STRING, utf8str));
+}
+
 namespace {
 std::string SlurpFileContents(std::filesystem::path aPath) {
     std::ifstream fileStream{aPath, std::ios::in | std::ios::binary};

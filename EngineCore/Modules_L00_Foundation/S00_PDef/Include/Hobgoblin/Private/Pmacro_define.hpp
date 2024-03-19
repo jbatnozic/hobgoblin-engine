@@ -52,4 +52,5 @@
 #define SELF (*this)
 
 // SFINAE:
-#define T_ENABLE_IF(...) typename ::std::enable_if<__VA_ARGS__, bool>::type = true
+#define T_ENABLE_IF(...)     typename ::std::enable_if<__VA_ARGS__, bool>::type = true
+#define T_ENABLE_IF_OOC(...) typename ::std::enable_if<__VA_ARGS__, bool>::type

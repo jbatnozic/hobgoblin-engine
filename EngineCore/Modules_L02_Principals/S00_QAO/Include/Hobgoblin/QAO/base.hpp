@@ -23,7 +23,7 @@ class QAO_Base : NO_COPY, NO_MOVE {
 public:
     QAO_Base() = delete;
     QAO_Base(QAO_RuntimeRef runtimeRef, const std::type_info& typeInfo, int executionPriority, std::string name);
-    QAO_Base(QAO_RuntimeRef runtimeRef, const std::type_info& typeInfo, util::PacketBase& packet);
+    QAO_Base(QAO_RuntimeRef runtimeRef, const std::type_info& typeInfo, util::Packet& packet);
     virtual ~QAO_Base() = 0;
     
     QAO_Runtime* getRuntime() const noexcept;
@@ -40,7 +40,7 @@ public:
 
     virtual bool message(int tag, util::AnyPtr context);
 
-    friend util::PacketBase& operator<<(util::PacketBase& packet, const QAO_Base& self);
+    friend util::Packet& operator<<(util::PacketExtender& packet, const QAO_Base& self);
 
 private:
     struct Context {

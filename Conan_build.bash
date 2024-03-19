@@ -1,6 +1,6 @@
 #! /bin/bash
 
-# 1st argument: compiler (gcc|clang)
+# 1st argument: compiler (gcc|clang|apple-clang)
 # 2nd argument: profile  (Debug|Release)
 
 conan build . -of build_/ \

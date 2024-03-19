@@ -58,14 +58,14 @@ bool QAO_GenericId::isNull() const noexcept {
     return (_serial == QAO_NULL_SERIAL || _index == QAO_NULL_INDEX);
 }
 
-util::PacketBase& operator<<(util::PacketBase& packet, const QAO_GenericId& self) {
+util::Packet& operator<<(util::PacketExtender& packet, const QAO_GenericId& self) {
     packet << self._serial << self._index;
-    return packet;
+    return *packet;
 }
 
-util::PacketBase& operator>>(util::PacketBase& packet, QAO_GenericId& self) {
-    packet >> self._serial >> self._index;
-    return packet;
+util::Packet& operator>>(util::PacketExtender& packet, QAO_GenericId& self) {
+    packet->noThrow() >> self._serial >> self._index;
+    return *packet;
 }
 
 }

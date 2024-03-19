@@ -27,7 +27,7 @@ QAO_Base::QAO_Base(QAO_RuntimeRef runtimeRef, const std::type_info& typeInfo, in
     }
 }
 
-QAO_Base::QAO_Base(QAO_RuntimeRef runtimeRef, const std::type_info& typeInfo, util::PacketBase& packet)
+QAO_Base::QAO_Base(QAO_RuntimeRef runtimeRef, const std::type_info& typeInfo, util::Packet& packet)
     : _typeInfo{typeInfo}
 {
     packet >> _instanceName >> _context.id >> _execution_priority;
@@ -76,9 +76,9 @@ bool QAO_Base::message(int tag, util::AnyPtr context) {
     return false;
 }
 
-util::PacketBase& operator<<(util::PacketBase& packet, const QAO_Base& self) {
-    packet << self._instanceName << self._context.id << self._execution_priority;
-    return packet;
+util::Packet& operator<<(util::PacketExtender& packet, const QAO_Base& self) {
+    *packet << self._instanceName << self._context.id << self._execution_priority;
+    return *packet;
 }
 
 void QAO_Base::setExecutionPriority(int new_priority) {
