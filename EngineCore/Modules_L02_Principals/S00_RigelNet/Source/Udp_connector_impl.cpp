@@ -653,7 +653,7 @@ PZInteger RN_UdpConnectorImpl::_uploadAllData() {
                                     taggedPacket.stopwatch.getElapsedTime(),
                                     _remoteInfo.meanLatency)) {
 
-            switch (_socket.send(taggedPacket.packet, _remoteInfo.ipAddress, _remoteInfo.port)) {
+            switch (auto status = _socket.send(taggedPacket.packet, _remoteInfo.ipAddress, _remoteInfo.port)) {
             case RN_SocketAdapter::Status::OK:
                 uploadedByteCount += stopz(taggedPacket.packet.getDataSize() + UDP_HEADER_BYTE_COUNT);
                 // All good, carry on
@@ -674,7 +674,7 @@ PZInteger RN_UdpConnectorImpl::_uploadAllData() {
                 break;
 
             default: 
-                assert(false && "Unreachable");
+                HG_UNREACHABLE("Invalid value for RN_SocketAdapter::Status ({}).", (int)status);
             }
 
             taggedPacket.stopwatch.restart();
