@@ -125,8 +125,8 @@ public:
     QAO_OrdererConstReverseIterator crend() const;
 
     // Pack/Unpack state:
-    friend util::PacketBase& operator<<(util::PacketBase& packet, const QAO_Runtime& self);
-    friend util::PacketBase& operator>>(util::PacketBase& packet, QAO_Runtime& self);
+    friend util::Packet& operator<<(util::PacketExtender& packet, const QAO_Runtime& self);
+    friend util::Packet& operator>>(util::PacketExtender& packet, QAO_Runtime& self);
 
 private:
     qao_detail::QAO_Registry _registry;

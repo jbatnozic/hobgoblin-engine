@@ -302,7 +302,7 @@ public:
         _mgr.pollEventWithPayload(aForClient, std::move(aEventName),
                                   [&](hg::util::Packet& aPacket) {
                                       count++;
-                                      const auto payload = aPacket.extractOrThrow<taPayloadType>();
+                                      const auto payload = aPacket.extract<taPayloadType>();
                                       aHandler(payload);
                                   });
         return count;

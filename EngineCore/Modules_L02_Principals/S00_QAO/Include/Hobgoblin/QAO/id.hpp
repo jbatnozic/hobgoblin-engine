@@ -44,8 +44,8 @@ public:
     template<class T>
     QAO_Id<T> cast() const noexcept;
 
-    friend util::PacketBase& operator<<(util::PacketBase& packet, const QAO_GenericId& self);
-    friend util::PacketBase& operator>>(util::PacketBase& packet, QAO_GenericId& self);
+    friend util::Packet& operator<<(util::PacketExtender& packet, const QAO_GenericId& self);
+    friend util::Packet& operator>>(util::PacketExtender& packet, QAO_GenericId& self);
 
 protected:
     friend class QAO_Runtime;
@@ -69,12 +69,14 @@ public:
     QAO_Id(QAO_Id &&other) = default;
     QAO_Id& operator=(QAO_Id &&other) = default;
 
-    friend util::PacketBase& operator<<(util::PacketBase& packet, const QAO_Id& self) {
-        return (packet << static_cast<const QAO_GenericId&>(self));
+    friend util::Packet& operator<<(util::PacketExtender& packet, const QAO_Id& self) {
+        packet->noThrow() << static_cast<const QAO_GenericId&>(self);
+        return *packet;
     }
 
-    friend util::PacketBase& operator>>(util::PacketBase& packet, QAO_Id& self) {
-        return (packet >> static_cast<QAO_GenericId&>(self));
+    friend util::Packet& operator>>(util::PacketExtender& packet, QAO_Id& self) {
+        packet->noThrow() >> static_cast<QAO_GenericId&>(self);
+        return *packet;
     }
 
 protected:

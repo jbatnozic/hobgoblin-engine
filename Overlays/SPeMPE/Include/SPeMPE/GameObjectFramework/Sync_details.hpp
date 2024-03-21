@@ -56,10 +56,10 @@ bool HasPacemakerPulse(SyncFlags aFlags);
 bool HasFullState(SyncFlags aFlags);
 
 //! Packing operator.
-hg::util::PacketBase& operator<<(hg::util::PacketBase& aPacket, SyncFlags aFlags);
+hg::util::Packet& operator<<(hg::util::PacketExtender& aPacket, SyncFlags aFlags);
 
 //! Unpacking operator.
-hg::util::PacketBase& operator>>(hg::util::PacketBase& aPacket, SyncFlags& aFlags);
+hg::util::Packet& operator>>(hg::util::PacketExtender& aPacket, SyncFlags& aFlags);
 
 namespace detail {
 class SynchronizedObjectRegistry;

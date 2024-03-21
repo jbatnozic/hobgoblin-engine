@@ -96,7 +96,7 @@ void UHOBGOBLIN_RN_ComposeImpl(RN_NodeInterface& node,
                                rn_detail::RN_HandlerId handlerId,
                                taArgs... args) {
     util::Packet packet;
-    packet.insert(handlerId);
+    packet.append(handlerId);
     util::PackArgs(packet, std::forward<taArgs>(args)...);
 
     if constexpr (std::is_same_v<std::remove_cv_t<std::remove_reference_t<taRecepients>>, RN_ComposeForAllType>) {
@@ -114,12 +114,12 @@ void UHOBGOBLIN_RN_ComposeImpl(RN_NodeInterface& node,
     }
 }
 
-//! Function for internal use.
+//! Function for internal use only.
 template <class taArgType>
-typename std::remove_reference<taArgType>::type UHOBGOBLIN_RN_ExtractArg(RN_NodeInterface& node) {
-    auto* pack = node._getCurrentPacket();
-    assert(pack);
-    return pack->extractOrThrow<typename std::remove_reference<taArgType>::type>();
+typename std::remove_reference_t<taArgType> UHOBGOBLIN_RN_ExtractArg(RN_NodeInterface& node) {
+    auto* packet = node._getCurrentPacket();
+    assert(packet);
+    return packet->extract<typename std::remove_reference_t<taArgType>>();
 }
 
 } // namespace rn

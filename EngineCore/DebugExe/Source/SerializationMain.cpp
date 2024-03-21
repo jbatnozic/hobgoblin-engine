@@ -24,8 +24,8 @@ struct Point {
 
     static void deserialize(Packet& packet, AnyPtr context, int /* contextTag */) {
         std::vector<Point>& points = *context.getOrThrow<std::vector<Point>>();
-        int x = packet.extractOrThrow<int>();
-        int y = packet.extractOrThrow<int>();
+        int x = packet.extract<int>();
+        int y = packet.extract<int>();
         points.emplace_back(x, y);
     }
 };
@@ -52,7 +52,7 @@ struct Circle : Shape {
 
     static void deserialize(Packet& packet, AnyPtr context, int /* contextTag */) {
         auto& shapes = *context.getOrThrow<std::vector<std::unique_ptr<Shape>>>();
-        double r = packet.extractOrThrow<double>();
+        double r = packet.extract<double>();
         shapes.emplace_back(std::make_unique<Circle>(r));
     }
 
@@ -78,8 +78,8 @@ struct Rectangle : Shape {
 
     static void deserialize(Packet& packet, AnyPtr context, int /* contextTag */) {
         auto& shapes = *context.getOrThrow<std::vector<std::unique_ptr<Shape>>>();
-        double x = packet.extractOrThrow<double>();
-        double y = packet.extractOrThrow<double>();
+        double x = packet.extract<double>();
+        double y = packet.extract<double>();
         shapes.emplace_back(std::make_unique<Rectangle>(x, y));
     }
 

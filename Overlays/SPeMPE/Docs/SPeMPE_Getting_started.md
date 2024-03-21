@@ -276,7 +276,7 @@ struct Enemy_VisibleState {
 Your visible state struct may look like something above, except this isn't enough. As this struct is going to be sent
 over the network, we must also define serialization and deserialization functions for it. This was already touched upon
 in the RigelNet guide and it comes down to providing operators `<<` and `>>` for your type and
-`hobgoblin::util::PacketBase`; and this is easiest if you use Hobgoblin's autopack feature - so let's use that and
+`hobgoblin::util::Packet`; and this is easiest if you use Hobgoblin's autopack feature - so let's use that and
 fix our struct.
 
 ```cpp

@@ -81,7 +81,7 @@ public:
     PZInteger getSendBufferSize() const override;
     PZInteger getRecvBufferSize() const override;
 
-    void appendToNextOutgoingPacket(const void *data, std::size_t sizeInBytes);
+    void appendToNextOutgoingPacket(const void *data, PZInteger sizeInBytes);
 
 private:
     RN_SocketAdapter& _socket;

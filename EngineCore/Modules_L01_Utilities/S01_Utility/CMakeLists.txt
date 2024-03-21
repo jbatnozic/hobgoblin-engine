@@ -25,9 +25,12 @@ PUBLIC
     "Hobgoblin_L00_S00_PDef"
     "Hobgoblin_L00_S01_Common"
     "Hobgoblin_L00_S02_HGExcept"
+    "Hobgoblin_L00_S04_Unicode"
 
     # External
     "sfml::sfml"
 )
 
 add_library("Hobgoblin_L01_S02_Utility" ALIAS ${COMPONENT_NAME})
+
+add_subdirectory("Test")
