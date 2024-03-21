@@ -86,9 +86,8 @@ private:
     #endif
     > _socket;
 
-#ifdef HOBGOBLIN_RN_ZEROTIER_SUPPORT
+    //! Used to 'catch' data received by sockets
     std::vector<std::uint8_t> _recvBuffer;
-#endif
 };
 
 } // namespace rn

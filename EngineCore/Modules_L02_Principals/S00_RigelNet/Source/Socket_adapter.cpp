@@ -57,10 +57,9 @@ void RN_SocketAdapter::init(PZInteger aRecvBufferSize) {
         if (res.hasError()) {
             HG_THROW_TRACED(TracedRuntimeError, res.getError().errorCode, res.getError().message);
         }
-
-        _recvBuffer.resize(pztos(aRecvBufferSize));
     }
 #endif
+    _recvBuffer.resize(pztos(aRecvBufferSize));
 }
 
 void RN_SocketAdapter::bind(sf::IpAddress aIpAddress, std::uint16_t aLocalPort) {
@@ -89,7 +88,6 @@ RN_SocketAdapter::Status RN_SocketAdapter::send(util::Packet& aPacket,
     if (UseSfSocket(_protocol, _networkingStack)) {
         auto& socket = std::get<sf::UdpSocket>(_socket);
     
-        // TODO (temporary solution)
         switch (socket.send(aPacket.getData(), pztos(aPacket.getDataSize()), aTargetAddress, aTargetPort)) {
         case sf::Socket::Done:
             return Status::OK;
@@ -146,10 +144,15 @@ RN_SocketAdapter::Status RN_SocketAdapter::recv(util::Packet& aPacket,
     if (UseSfSocket(_protocol, _networkingStack)) {
         auto& socket = std::get<sf::UdpSocket>(_socket);
 
-        // TODO: temporary solution
-        sf::Packet sfPacket;
-        const auto status = socket.receive(sfPacket, aRemoteAddress, aRemotePort);
-        aPacket.appendBytes(sfPacket.getData(), stopz(sfPacket.getDataSize()));
+        std::size_t receivedByteCount = 0;
+        const auto status = socket.receive(
+            _recvBuffer.data(),
+            _recvBuffer.size(),
+            receivedByteCount,
+            aRemoteAddress,
+            aRemotePort
+        );
+        aPacket.appendBytes(_recvBuffer.data(), stopz(receivedByteCount));
 
         switch (status) {
         case sf::Socket::Done:
