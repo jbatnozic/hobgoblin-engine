@@ -20,6 +20,7 @@ namespace spempe {
 namespace hg = ::jbatnozic::hobgoblin;
 
 //! Number identifying a SynchronizedObject.
+//! TODO: define some place else
 using SyncId = std::uint64_t;
 
 constexpr SyncId SYNC_ID_NEW = 0;
@@ -47,6 +48,7 @@ enum class SyncFilterStatus {
     //! \warning FOR INTERNAL ENGINE USE ONLY
     __spempeimpl_SKIP_NO_DIFF = 15,
 
+    //! Value that will never be set as a status towards a real client.
     //! \warning FOR INTERNAL ENGINE USE ONLY
     __spempeimpl_UNDEFINED = 99
 };
