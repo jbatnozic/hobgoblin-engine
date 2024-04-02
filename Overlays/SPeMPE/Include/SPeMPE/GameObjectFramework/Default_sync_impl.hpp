@@ -1,13 +1,13 @@
 #ifndef SPEMPE_GAME_OBJECT_FRAMEWORK_DEFAULT_SYNC_IMPL_HPP
 #define SPEMPE_GAME_OBJECT_FRAMEWORK_DEFAULT_SYNC_IMPL_HPP
 
-#include "SPeMPE/GameObjectFramework/Sync_control_delegate.hpp"
 #include <Hobgoblin/QAO.hpp>
 #include <Hobgoblin/RigelNet.hpp>
 #include <Hobgoblin/RigelNet_macros.hpp>
 #include <SPeMPE/GameContext/Game_context.hpp>
 #include <SPeMPE/GameObjectFramework/Autodiff_state.hpp>
 #include <SPeMPE/GameObjectFramework/Synchronized_object_registry.hpp>
+#include <SPeMPE/GameObjectFramework/Sync_control_delegate.hpp>
 #include <SPeMPE/Managers/Networking_manager_interface.hpp>
 #include <SPeMPE/Utility/Rpc_receiver_context_template.hpp>
 
@@ -106,10 +106,17 @@ AutodiffPackMode AlignState_PreCompose(taAutodiffState& aAutodiffState, SyncCont
                     aSyncCtrl.filter([](hg::PZInteger /* aClientIndex */) -> SyncFilterStatus {
                         return SyncFilterStatus::__spempeimpl_SKIP_NO_DIFF;
                     });
+            } else {
+                // This is a trick to sniff out the current status because ZERO won't ever
+                // be selected over any other status.
+                filterResult = 
+                    aSyncCtrl.filter([](hg::PZInteger /* aClientIndex */) -> SyncFilterStatus {
+                        return SyncFilterStatus::__spempeimpl_ZERO;
+                    });
             }
 
             // Fixes Autodiff states in combination with regular skipping and deactivations
-            if (filterResult == static_cast<int>(SyncFilterStatus::__spempeimpl_UNDEFINED)) {
+            if (filterResult == static_cast<int>(SyncFilterStatus::__spempeimpl_FULL_STATE_SYNC)) {
                 aAutodiffState.setPackMode(AutodiffPackMode::PackAll);
             }
         }

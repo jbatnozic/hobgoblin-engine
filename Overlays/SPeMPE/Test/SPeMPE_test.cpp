@@ -1,5 +1,5 @@
 
-#include "SPeMPE/GameObjectFramework/Autodiff_state.hpp"
+#include "Hobgoblin/Common/Positive_or_zero_integer.hpp"
 #include <SPeMPE/SPeMPE.hpp>
 
 #include <Hobgoblin/Utility/Autopack.hpp>
@@ -559,6 +559,16 @@ TEST_F(SPeMPE_SynchronizedTest, DeactivationTest) {
     }
 }
 
+class SPeMPE_ParametrizedSynchronizedTest : public ::testing::TestWithParam<int> {
+protected:
+    void SetUp() override {
+        hg::RN_IndexHandlers();
+    }
+
+    std::optional<GameContext> _serverCtx{GameContext::RuntimeConfig{}};
+    std::optional<GameContext> _clientCtx{GameContext::RuntimeConfig{}};
+};
+
 SPEMPE_DEFINE_AUTODIFF_STATE(AutodiffDeactivatingAvatar_VisibleState,
     SPEMPE_MEMBER(std::int32_t, i0, 1234),
     SPEMPE_MEMBER(std::int32_t, i1, 1234)
@@ -630,7 +640,7 @@ void AutodiffDeactivatingAvatar::_syncDestroyImpl(SyncControlDelegate& aSyncCtrl
     SPEMPE_SYNC_DESTROY_DEFAULT_IMPL(AutodiffDeactivatingAvatar, aSyncCtrl);
 }
 
-TEST_F(SPeMPE_SynchronizedTest, DeactivationWithAutodiffStateTest) {
+TEST_P(SPeMPE_ParametrizedSynchronizedTest, DeactivationWithAutodiffStateTest) {
     using namespace hobgoblin::rn;
     {
         SCOPED_TRACE("Configure contexts");
@@ -641,7 +651,7 @@ TEST_F(SPeMPE_SynchronizedTest, DeactivationWithAutodiffStateTest) {
         _serverCtx->setToMode(GameContext::Mode::Server);
 
         auto netwMgr1 = std::make_unique<DefaultNetworkingManager>(_serverCtx->getQAORuntime().nonOwning(),
-                                                                   0, BUFFERING_LENGTH);
+                                                                0, BUFFERING_LENGTH);
         netwMgr1->setToServerMode(RN_Protocol::UDP, "pass", 2, 512, RN_NetworkingStack::Default);
         _serverCtx->attachAndOwnComponent(std::move(netwMgr1));
 
@@ -649,7 +659,7 @@ TEST_F(SPeMPE_SynchronizedTest, DeactivationWithAutodiffStateTest) {
         _clientCtx->setToMode(GameContext::Mode::Client);
 
         auto netwMgr2 = std::make_unique<DefaultNetworkingManager>(_clientCtx->getQAORuntime().nonOwning(),
-                                                                   0, BUFFERING_LENGTH);
+                                                                0, BUFFERING_LENGTH);
         netwMgr2->setToClientMode(RN_Protocol::UDP, "pass", 512, RN_NetworkingStack::Default);
         _clientCtx->attachAndOwnComponent(std::move(netwMgr2));
     }
@@ -694,7 +704,7 @@ TEST_F(SPeMPE_SynchronizedTest, DeactivationWithAutodiffStateTest) {
         EXPECT_EQ(dummy->getI1(), AutodiffDeactivatingAvatar::VisibleState::MEMBER_DEFAULT_VALUE);
     }
     {
-        SCOPED_TRACE("Deactivate avatar");
+        SCOPED_TRACE("Deactivate avatar so state update is not sent");
 
         auto* master = dynamic_cast<AutodiffDeactivatingAvatar*>(
             _serverCtx->getQAORuntime().find("AutodiffDeactivatingAvatar")
@@ -713,7 +723,15 @@ TEST_F(SPeMPE_SynchronizedTest, DeactivationWithAutodiffStateTest) {
         EXPECT_TRUE(dummy->isDeactivated()); 
     }
     {
-        SCOPED_TRACE("TODO");
+        SCOPED_TRACE("Run the contexts a few more times");
+        const auto emptyFrameCount = GetParam();
+        for (int i = 0; i < emptyFrameCount; i += 1) {
+            _serverCtx->runFor(1);
+            _clientCtx->runFor(1);
+        }
+    }
+    {
+        SCOPED_TRACE("Check that state is synced correctly after reactivation");
 
         auto* master = dynamic_cast<AutodiffDeactivatingAvatar*>(
             _serverCtx->getQAORuntime().find("AutodiffDeactivatingAvatar")
@@ -728,11 +746,17 @@ TEST_F(SPeMPE_SynchronizedTest, DeactivationWithAutodiffStateTest) {
             _clientCtx->getQAORuntime().find("AutodiffDeactivatingAvatar")
         );
         ASSERT_NE(dummy, nullptr);
-        EXPECT_FALSE(dummy->isDeactivated());
+        ASSERT_FALSE(dummy->isDeactivated());
         EXPECT_EQ(dummy->getI0(), AutodiffDeactivatingAvatar::VisibleState::MEMBER_DEFAULT_VALUE);
         EXPECT_EQ(dummy->getI1(), 8888);
     }
 }
+
+INSTANTIATE_TEST_SUITE_P(
+    DeactivationWithAutodiffStateTest,
+    SPeMPE_ParametrizedSynchronizedTest,
+    ::testing::Values(0, 1, 2, 3, 4)
+);
 
 } // namespace spempe
 } // namespace jbatnozic

@@ -1,7 +1,7 @@
 #ifndef SPEMPE_GAME_OBJECT_FRAMEWORK_GAME_OBJECT_BASES_HPP
 #define SPEMPE_GAME_OBJECT_FRAMEWORK_GAME_OBJECT_BASES_HPP
 
-#include "Hobgoblin/Common/Positive_or_zero_integer.hpp"
+#include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/QAO.hpp>
 #include <Hobgoblin/Utility/Dynamic_bitset.hpp>
 #include <Hobgoblin/Utility/State_scheduler_simple.hpp>

@@ -1,4 +1,5 @@
 
+#include "SPeMPE/GameObjectFramework/Sync_control_delegate.hpp"
 #include <SPeMPE/GameContext/Game_context.hpp>
 #include <SPeMPE/GameObjectFramework/Game_object_bases.hpp>
 #include <SPeMPE/GameObjectFramework/Synchronized_object_registry.hpp>
@@ -68,7 +69,8 @@ public:
             _filteredRecepients.clear();
             for (std::size_t i = 0; i < _allRecepients.size(); i += 1) {
                 const auto status = _filterStatuses[i];
-                if (status == SyncFilterStatus::REGULAR_SYNC) {
+                if (status == SyncFilterStatus::REGULAR_SYNC ||
+                    status == SyncFilterStatus::__spempeimpl_FULL_STATE_SYNC) {
                     _filteredRecepients.push_back(_allRecepients[i]);
                 }
             }
@@ -79,31 +81,45 @@ public:
 
     //! \returns numerical value of actually applied status.
     int applyFilterStatus(std::size_t aIndex, SyncFilterStatus aStatus) {
-        if (aStatus > _filterStatuses[aIndex]) {
-            // If the object has an Autodiff state and there is no diff since
-            // the last frame, usually we will skip a sync message. However,
-            // if the object was previously skipped or deactivated for this
-            // client, we have to send a full state sync instead, otherwise
-            // this client could see it in an invalid state. An unfortunate
-            // side effect (due to how other components work) is that this will
-            // prompt sending full state syncs to all other clients as well,
-            // but it should happen rarely enough for it to not be a problem.
-            if (aStatus == SyncFilterStatus::__spempeimpl_SKIP_NO_DIFF) {
-                HG_ASSERT(_forObject != nullptr);
-
-                const auto client = _allRecepients[aIndex];
-                if (_forObject->__spempeimpl_getSkipFlagForClient(client) ||
-                    _forObject->__spempeimpl_getDeactivationFlagForClient(client)) {
-                    _filterStatuses[aIndex] = SyncFilterStatus::__spempeimpl_FULL_STATE_SYNC;
-                    _filteredRecepientsDirty = true;  
-                }
-            }
-
-            _filterStatuses[aIndex] = aStatus;
-            _filteredRecepientsDirty = true;
+        const auto currentStatus = _filterStatuses[aIndex];
+        if (currentStatus > aStatus ||
+            currentStatus == SyncFilterStatus::__spempeimpl_FULL_STATE_SYNC)
+        {
+            // Due to status priorities, if the current status is higher than
+            // the new one, we know right away that no change will be needed.
+            // Additionally, FULL_STATE_SYNC, though having the lowest value,
+            // is treated specially so that once set it cannot be changed.
+            return static_cast<int>(currentStatus);
         }
 
-        return static_cast<int>(_filterStatuses[aIndex]);
+        // If the object has an Autodiff state and there is no diff since
+        // the last frame, usually we will skip a sync message. However,
+        // if the object was previously skipped or deactivated for this
+        // client, we have to send a full state sync instead, otherwise
+        // this client could see it in an invalid state. An unfortunate
+        // side effect (due to how other components work) is that this will
+        // prompt sending full state syncs to all other clients as well,
+        // but it should happen rarely enough for it to not be a problem.
+        //
+        // A similar problem happens when we're going a regular sync
+        // with an Autodiff state but the change happened while the object
+        // was deactivated or being skipped.
+        if (aStatus == SyncFilterStatus::REGULAR_SYNC ||
+            aStatus == SyncFilterStatus::__spempeimpl_SKIP_NO_DIFF) {
+            HG_ASSERT(_forObject != nullptr);
+
+            const auto client = _allRecepients[aIndex];
+            if (_forObject->__spempeimpl_getSkipFlagForClient(client) ||
+                _forObject->__spempeimpl_getDeactivationFlagForClient(client)) {
+                aStatus = SyncFilterStatus::__spempeimpl_FULL_STATE_SYNC; 
+            }
+        }
+
+        // |= because false->true is the only allowed transition
+        // for the dirty flag here
+        _filteredRecepientsDirty |= (_filterStatuses[aIndex] != aStatus);
+        _filterStatuses[aIndex] = aStatus;
+        return static_cast<int>(aStatus);
     }
 
     void resetAllStatuses(SyncFilterStatus aStatus = SyncFilterStatus::REGULAR_SYNC) {

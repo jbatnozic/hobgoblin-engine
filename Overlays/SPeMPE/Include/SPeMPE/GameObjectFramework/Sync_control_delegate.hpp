@@ -1,6 +1,7 @@
 #ifndef SPEMPE_GAME_OBJECT_FRAMEWORK_SYNC_CONTROL_DELEGATE_HPP
 #define SPEMPE_GAME_OBJECT_FRAMEWORK_SYNC_CONTROL_DELEGATE_HPP
 
+#include "Hobgoblin/Common/Positive_or_zero_integer.hpp"
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/GSL/HG_adapters.hpp>
 #include <Hobgoblin/RigelNet.hpp>
@@ -32,8 +33,21 @@ enum class SyncFilterStatus {
     SKIP           = 20, //! Don't send anything during this update (no change)
     DEACTIVATE     = 30, //! Don't send anything and deactivate the remote dummy
 
+    //! Has a priority of 0, meaning it will never be selected. It can be used
+    //! together with filter() to get the currently set status.
+    //! \warning FOR INTERNAL ENGINE USE ONLY
+    __spempeimpl_ZERO = 0,
+
+    //! Similar to REGULAR_SYNC but will force even Autodiff states to send
+    //! full states and not just diffs.
+    //! \warning FOR INTERNAL ENGINE USE ONLY
     __spempeimpl_FULL_STATE_SYNC = 5,
+
+    //! Skip the sync on account of an Autodiff state without any changes.
+    //! \warning FOR INTERNAL ENGINE USE ONLY
     __spempeimpl_SKIP_NO_DIFF = 15,
+
+    //! \warning FOR INTERNAL ENGINE USE ONLY
     __spempeimpl_UNDEFINED = 99
 };
 
@@ -41,22 +55,37 @@ enum class SyncFilterStatus {
 //! individual clients.
 class SyncControlDelegate {
 public:
-    //! The node through which the sync messages need to be sent.
+    //! \returns The node through which the sync messages need to be sent.
     hg::RN_NodeInterface& getLocalNode() const;
 
-    //! TODO
+    //! \returns Flags indicating the mode for the current sync.
     SyncFlags getSyncFlags() const;
 
-    //! Vector of client indices of (recepients) to which sync messages
-    //! need to be sent.
+    //! \returns Vector of client indices of recepients to which sync messages
+    //!          need to be sent.
     const std::vector<hg::PZInteger>& getAllRecepients() const;
 
-    //! TODO
-    const std::vector<hg::PZInteger>& getFilteredRecepients() const;
+    //! \brief Determine to which clients (and how) to send state updates/syncs.
+    //!
+    //! \param aPredicate - Function which takes a PZInteger (client index) as
+    //!                     a parameter and returns a SyncFilterStatus (one of
+    //!                     REGULAR_SYNC, SKIP or DEACTIVATE).
+    //!
+    //! \warning Do not use the return value of this function, it's for the
+    //!          engine's internal use only!
+    //!
+    //! \see filter
+    int fnfilter(const std::function<SyncFilterStatus(hg::PZInteger)>& aPredicate);
 
-    //! TODO
+    //! \brief same as fnfilter() but in template form (recommended to use this one).
+    //!
+    //! \see fnfilter
     template <class taCallable>
     int filter(taCallable&& aCallable);
+
+    //! \returns Vector of client indices of recepients to which sync messages
+    //!          need to be sent, to which filtering didn't set SKIP or DEACTIVATE.
+    const std::vector<hg::PZInteger>& getFilteredRecepients() const;
 
 private:
     friend class detail::SynchronizedObjectRegistry;
@@ -69,6 +98,13 @@ private:
 
     int _applyFilterStatus(std::size_t aIndex, SyncFilterStatus aStatus);
 };
+
+inline
+int SyncControlDelegate::fnfilter(
+    const std::function<SyncFilterStatus(hg::PZInteger)>& aPredicate
+) {
+    return filter(aPredicate);    
+}
 
 template <class taCallable>
 int SyncControlDelegate::filter(taCallable&& aCallable) {
