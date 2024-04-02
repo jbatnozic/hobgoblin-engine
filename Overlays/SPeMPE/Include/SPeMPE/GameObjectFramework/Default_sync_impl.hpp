@@ -8,6 +8,7 @@
 #include <SPeMPE/GameObjectFramework/Autodiff_state.hpp>
 #include <SPeMPE/GameObjectFramework/Synchronized_object_registry.hpp>
 #include <SPeMPE/GameObjectFramework/Sync_control_delegate.hpp>
+#include <SPeMPE/GameObjectFramework/Sync_id.hpp>
 #include <SPeMPE/Managers/Networking_manager_interface.hpp>
 #include <SPeMPE/Utility/Rpc_receiver_context_template.hpp>
 

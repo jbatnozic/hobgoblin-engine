@@ -8,6 +8,7 @@
 #include <SPeMPE/GameContext/Game_context.hpp>
 #include <SPeMPE/GameObjectFramework/Autodiff_state.hpp>
 #include <SPeMPE/GameObjectFramework/Synchronized_object_registry.hpp>
+#include <SPeMPE/GameObjectFramework/Sync_id.hpp>
 
 #include <cassert>
 #include <optional>
