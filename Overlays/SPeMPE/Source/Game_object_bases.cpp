@@ -176,5 +176,49 @@ void SynchronizedObjectBase::_eventFinalizeFrame() {
     }
 }
 
+void SynchronizedObjectBase::__spempeimpl_syncCreateImpl(SyncControlDelegate& aSyncCtrl) const {
+    _syncCreateImpl(aSyncCtrl);
+}
+
+void SynchronizedObjectBase::__spempeimpl_syncUpdateImpl(SyncControlDelegate& aSyncCtrl) const {
+    _syncUpdateImpl(aSyncCtrl);
+}
+
+void SynchronizedObjectBase::__spempeimpl_syncDestroyImpl(SyncControlDelegate& aSyncCtrl) const {
+    _syncDestroyImpl(aSyncCtrl);
+}
+
+void SynchronizedObjectBase::__spempeimpl_setSkipFlagForClient(hg::PZInteger aClientIdx, bool aFlag) const {
+    const auto bitIdx = aClientIdx * 2;
+    if (aFlag) {
+        _remoteSyncStatuses.setBit(bitIdx);
+    } else {
+        _remoteSyncStatuses.clearBit(bitIdx);
+    }
+}
+
+bool SynchronizedObjectBase::__spempeimpl_getSkipFlagForClient(hg::PZInteger aClientIdx) const {
+    const auto bitIdx = aClientIdx * 2;
+    return _remoteSyncStatuses.getBit(bitIdx);
+}
+
+void SynchronizedObjectBase::__spempeimpl_setDeactivationFlagForClient(hg::PZInteger aClientIdx, bool aFlag) const {
+    const auto bitIdx = (aClientIdx * 2) + 1;
+    if (aFlag) {
+        _remoteSyncStatuses.setBit(bitIdx);
+    } else {
+        _remoteSyncStatuses.clearBit(bitIdx);
+    }
+}
+
+bool SynchronizedObjectBase::__spempeimpl_getDeactivationFlagForClient(hg::PZInteger aClientIdx) const {
+    const auto bitIdx = (aClientIdx * 2) + 1;
+    return _remoteSyncStatuses.getBit(bitIdx);
+}
+
+void SynchronizedObjectBase::__spempeimpl_setStateSchedulerDefaultDelay(hg::PZInteger aNewDefaultDelaySteps) {
+    _setStateSchedulerDefaultDelay(aNewDefaultDelaySteps);
+}
+
 } // namespace spempe
 } // namespace jbatnozic

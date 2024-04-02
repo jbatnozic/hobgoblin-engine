@@ -29,7 +29,7 @@ private:
     void _eventDraw1() override;
     void _eventFinalizeFrame(spe::IfMaster) override;
 
-    void _syncCreateImpl(spe::SyncDetails& aSyncDetails) const override;
-    void _syncUpdateImpl(spe::SyncDetails& aSyncDetails) const override;
-    void _syncDestroyImpl(spe::SyncDetails& aSyncDetails) const override;
+    void _syncCreateImpl(spe::SyncControlDelegate& aSyncCtrl) const override;
+    void _syncUpdateImpl(spe::SyncControlDelegate& aSyncCtrl) const override;
+    void _syncDestroyImpl(spe::SyncControlDelegate& aSyncCtrl) const override;
 };

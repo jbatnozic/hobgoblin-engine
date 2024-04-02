@@ -42,7 +42,6 @@
 #define MSTRINGIFY(_x_) #_x_
 
 // Utility:
-#define CRTP_METHOD(_type_param_, _name_, ...) { return static_cast<_type_param_*>(this)->_name_(__VA_ARGS__); }
 #define CURRENT_FUNCTION_STR std::string{CURRENT_FUNCTION}
 
 #define HG_NODISCARD [[nodiscard]]

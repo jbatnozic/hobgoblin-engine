@@ -432,7 +432,12 @@ auto Packet::operator>>(T& aData)
   PacketExtender extender{SELF};
   extender >> aData;
   if (!SELF) {
-    HG_THROW_TRACED(PacketExtractError, 0, "TEMP");
+    HG_THROW_TRACED(
+        PacketExtractError,
+        0,
+        "Failed to extract data from hg::util::Packet (# of bytes remaining: {}).",
+        getRemainingDataSize()
+    );
   }
   return SELF;
 }

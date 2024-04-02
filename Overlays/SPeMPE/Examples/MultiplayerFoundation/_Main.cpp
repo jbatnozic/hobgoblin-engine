@@ -62,7 +62,7 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
             spe::WindowManagerInterface::WindowConfig{
                 hg::win::VideoMode{WINDOW_WIDTH, WINDOW_HEIGHT},
                 "SPeMPE Multiplayer Foundation",
-                hg::win::WindowStyle::Fullscreen
+                hg::win::WindowStyle::Default
             },
             spe::WindowManagerInterface::MainRenderTextureConfig{{WINDOW_WIDTH, WINDOW_HEIGHT}},
             spe::WindowManagerInterface::TimingConfig{

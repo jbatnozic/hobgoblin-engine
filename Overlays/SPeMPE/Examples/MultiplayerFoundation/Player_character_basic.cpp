@@ -80,14 +80,14 @@ void BasicPlayerCharacter::_eventDraw1() {
 
 SPEMPE_GENERATE_DEFAULT_SYNC_HANDLERS(BasicPlayerCharacter, (CREATE, UPDATE, DESTROY));
 
-void BasicPlayerCharacter::_syncCreateImpl(spe::SyncDetails& aSyncDetails) const {
-    SPEMPE_SYNC_CREATE_DEFAULT_IMPL(BasicPlayerCharacter, aSyncDetails);
+void BasicPlayerCharacter::_syncCreateImpl(spe::SyncControlDelegate& aSyncCtrl) const {
+    SPEMPE_SYNC_CREATE_DEFAULT_IMPL(BasicPlayerCharacter, aSyncCtrl);
 }
 
-void BasicPlayerCharacter::_syncUpdateImpl(spe::SyncDetails& aSyncDetails) const {
-    SPEMPE_SYNC_UPDATE_DEFAULT_IMPL(BasicPlayerCharacter, aSyncDetails);
+void BasicPlayerCharacter::_syncUpdateImpl(spe::SyncControlDelegate& aSyncCtrl) const {
+    SPEMPE_SYNC_UPDATE_DEFAULT_IMPL(BasicPlayerCharacter, aSyncCtrl);
 }
 
-void BasicPlayerCharacter::_syncDestroyImpl(spe::SyncDetails& aSyncDetails) const {
-    SPEMPE_SYNC_DESTROY_DEFAULT_IMPL(BasicPlayerCharacter, aSyncDetails);
+void BasicPlayerCharacter::_syncDestroyImpl(spe::SyncControlDelegate& aSyncCtrl) const {
+    SPEMPE_SYNC_DESTROY_DEFAULT_IMPL(BasicPlayerCharacter, aSyncCtrl);
 }

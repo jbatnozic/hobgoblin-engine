@@ -12,8 +12,9 @@
 #include <SPeMPE/GameObjectFramework/Autodiff_state.hpp>
 #include <SPeMPE/GameObjectFramework/Default_sync_impl.hpp>
 #include <SPeMPE/GameObjectFramework/Game_object_bases.hpp>
+#include <SPeMPE/GameObjectFramework/Sync_control_delegate.hpp>
+#include <SPeMPE/GameObjectFramework/Sync_flags.hpp>
 #include <SPeMPE/GameObjectFramework/Synchronized_object_registry.hpp>
-#include <SPeMPE/GameObjectFramework/Sync_details.hpp>
 
 // Managers
 

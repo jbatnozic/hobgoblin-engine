@@ -1,7 +1,7 @@
 #ifndef SPEMPE_GAME_OBJECT_FRAMEWORK_SYNCHRONIZED_OBJECT_REGISTRY_HPP
 #define SPEMPE_GAME_OBJECT_FRAMEWORK_SYNCHRONIZED_OBJECT_REGISTRY_HPP
 
-#include <SPeMPE/GameObjectFramework/Sync_details.hpp>
+#include <SPeMPE/GameObjectFramework/Sync_control_delegate.hpp>
 
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/GSL/HG_adapters.hpp>
@@ -75,10 +75,6 @@ public:
 
     void deactivateObject(SyncId aObjectId, hg::PZInteger aDelayInSteps);
 
-    bool isObjectDeactivatedForClient(SyncId aObjectId, hg::PZInteger aForClient) const;
-
-    void setObjectDeactivatedFlagForClient(SyncId aObjectId, hg::PZInteger aForClient, bool aFlag);
-
 private:
     std::unordered_map<SyncId, SynchronizedObjectBase*> _mappings;
     std::unordered_set<const SynchronizedObjectBase*> _newlyCreatedObjects;
@@ -86,7 +82,7 @@ private:
     std::unordered_set<const SynchronizedObjectBase*> _alreadyDestroyedObjects;
 
     hg::NotNull<hg::RN_NodeInterface*> _node;
-    SyncDetails _syncDetails;
+    SyncControlDelegate _syncControlDelegate;
 
     SyncId _syncIdCounter = 2;
     hg::PZInteger _defaultDelay;
@@ -94,6 +90,10 @@ private:
     hg::PZInteger _pacemakerPulsePeriod = 30; // 30 => 60 frames
     hg::PZInteger _pacemakerPulseCountdown = _pacemakerPulsePeriod;
     bool _alternatingUpdateFlag = true;
+
+    static void Align(const SynchronizedObjectBase* aObject,
+                      const SyncControlDelegate& aSyncCtrl,
+                      hg::RN_NodeInterface& aLocalNode);
 };
 
 } // namespace detail

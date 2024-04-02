@@ -23,8 +23,6 @@
 #undef MDEFER
 #undef MSTRINGIFY
 
-#undef CRTP_METHOD
-
 #undef CURRENT_FUNCTION_STR
 
 #undef HG_NODISCARD

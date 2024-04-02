@@ -1,6 +1,7 @@
 #ifndef SPEMPE_GAME_OBJECT_FRAMEWORK_GAME_OBJECT_BASES_HPP
 #define SPEMPE_GAME_OBJECT_FRAMEWORK_GAME_OBJECT_BASES_HPP
 
+#include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/QAO.hpp>
 #include <Hobgoblin/Utility/Dynamic_bitset.hpp>
 #include <Hobgoblin/Utility/State_scheduler_simple.hpp>
@@ -97,9 +98,6 @@ public:
     bool isMasterObject() const noexcept;
     bool isUsingAlternatingUpdates() const noexcept;
 
-    //! Internal implementation, do not call manually!
-    void __spempeimpl_destroySelfIn(int aStepCount);
-
     virtual bool isDeactivated() const = 0;
 
 protected:
@@ -159,31 +157,63 @@ protected:
     bool _didAlternatingUpdatesSync() const;
 
 private:
-    friend class detail::SynchronizedObjectRegistry;
-
     detail::SynchronizedObjectRegistry& _syncObjReg;
     const SyncId _syncId;
 
-    hg::util::DynamicBitset _remoteStatuses;
+    //! [0] = is it skipped for client 0?
+    //! [1] = is it deactivated for client 0?
+    //! [2] = is it skipped for client 1?
+    //! [3] = is it deactivated for client 1?
+    //! ...
+    mutable hg::util::DynamicBitset _remoteSyncStatuses;
 
     int _deathCounter = -1;
 
     bool _alternatingUpdatesEnabled = false;
 
     //! Called when it's needed to sync this object's creation to one or more recepeints.
-    virtual void _syncCreateImpl(SyncDetails& aSyncDetails) const = 0;
+    virtual void _syncCreateImpl(SyncControlDelegate& aSyncCtrl) const = 0;
 
     //! Called when it's needed to sync this object's update to one or more recepeints.
-    virtual void _syncUpdateImpl(SyncDetails& aSyncDetails) const = 0;
+    virtual void _syncUpdateImpl(SyncControlDelegate& aSyncCtrl) const = 0;
 
     //! Called when it's needed to sync this object's destruction to one or more recepeints.
-    virtual void _syncDestroyImpl(SyncDetails& aSyncDetails) const = 0;
+    virtual void _syncDestroyImpl(SyncControlDelegate& aSyncCtrl) const = 0;
 
     virtual void _advanceDummyAndScheduleNewStates() = 0;
 
     virtual void _setStateSchedulerDefaultDelay(hg::PZInteger aNewDefaultDelaySteps) = 0;
 
-    virtual void _deactivateSelfIn(hg::PZInteger aDelaySteps) = 0;
+public:
+    //! \warning Internal implementation, do not call in user code!
+    void __spempeimpl_destroySelfIn(int aStepCount);
+
+    //! \warning Internal implementation, do not call in user code!
+    void __spempeimpl_syncCreateImpl(SyncControlDelegate& aSyncCtrl) const;
+
+    //! \warning Internal implementation, do not call in user code!
+    void __spempeimpl_syncUpdateImpl(SyncControlDelegate& aSyncCtrl) const;
+
+    //! \warning Internal implementation, do not call in user code!
+    void __spempeimpl_syncDestroyImpl(SyncControlDelegate& aSyncCtrl) const;
+
+    //! \warning Internal implementation, do not call in user code!
+    virtual void __spempeimpl_deactivateSelfIn(hg::PZInteger aDelaySteps) = 0;
+
+    //! \warning Internal implementation, do not call in user code!
+    void __spempeimpl_setSkipFlagForClient(hg::PZInteger aClientIdx, bool aFlag) const /*mutable*/;
+
+    //! \warning Internal implementation, do not call in user code!
+    bool __spempeimpl_getSkipFlagForClient(hg::PZInteger aClientIdx) const;
+
+    //! \warning Internal implementation, do not call in user code!
+    void __spempeimpl_setDeactivationFlagForClient(hg::PZInteger aClientIdx, bool aFlag) const /*mutable*/;
+
+    //! \warning Internal implementation, do not call in user code!
+    bool __spempeimpl_getDeactivationFlagForClient(hg::PZInteger aClientIdx) const;
+
+    //! \warning Internal implementation, do not call in user code!
+    void __spempeimpl_setStateSchedulerDefaultDelay(hg::PZInteger aNewDefaultDelaySteps);
 };
 
 /*
@@ -344,16 +374,12 @@ protected:
         }
     }
 
-    void _deactivateSelfIn(hg::PZInteger aDelaySteps) override final {
-        _ssch.putNewState(SchedulerPair{{}, DummyStatus::deactivated()}, aDelaySteps);
-    }
-
     const taVisibleState& _getLatestState() const {
         return _ssch.getLatestState().visibleState;
     }
 
 public:
-    //! Internal implementation, do not call manually!
+    //! \warning Internal implementation, do not call in user code!
     void __spempeimpl_applyUpdate(const VisibleState& aNewState, hg::PZInteger aDelaySteps, SyncFlags aFlags) {
         VisibleState stateToSchedule = [this, &aNewState, aFlags]() {
             if constexpr (std::is_base_of<detail::AutodiffStateTag, VisibleState>::value) {
@@ -408,6 +434,11 @@ public:
         default:
             break;
         }
+    }
+
+    //! \warning Internal implementation, do not call in user code!
+    void __spempeimpl_deactivateSelfIn(hg::PZInteger aDelaySteps) override final {
+        _ssch.putNewState(SchedulerPair{{}, DummyStatus::deactivated()}, aDelaySteps);
     }
 };
 
