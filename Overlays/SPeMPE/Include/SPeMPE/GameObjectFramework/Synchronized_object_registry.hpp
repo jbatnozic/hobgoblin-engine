@@ -2,6 +2,7 @@
 #define SPEMPE_GAME_OBJECT_FRAMEWORK_SYNCHRONIZED_OBJECT_REGISTRY_HPP
 
 #include <SPeMPE/GameObjectFramework/Sync_control_delegate.hpp>
+#include <SPeMPE/GameObjectFramework/Sync_id.hpp>
 
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/GSL/HG_adapters.hpp>

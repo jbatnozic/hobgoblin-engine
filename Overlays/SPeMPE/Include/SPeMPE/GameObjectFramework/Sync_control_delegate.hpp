@@ -19,12 +19,6 @@ namespace spempe {
 
 namespace hg = ::jbatnozic::hobgoblin;
 
-//! Number identifying a SynchronizedObject.
-//! TODO: define some place else
-using SyncId = std::uint64_t;
-
-constexpr SyncId SYNC_ID_NEW = 0;
-
 namespace detail {
 class SynchronizedObjectRegistry;
 } // namespace detail

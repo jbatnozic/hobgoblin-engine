@@ -14,6 +14,7 @@
 #include <SPeMPE/GameObjectFramework/Game_object_bases.hpp>
 #include <SPeMPE/GameObjectFramework/Sync_control_delegate.hpp>
 #include <SPeMPE/GameObjectFramework/Sync_flags.hpp>
+#include <SPeMPE/GameObjectFramework/Sync_id.hpp>
 #include <SPeMPE/GameObjectFramework/Synchronized_object_registry.hpp>
 
 // Managers
