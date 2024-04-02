@@ -68,8 +68,8 @@ private:
                                           rn_detail::RN_HandlerId handlerId, 
                                           taArgs... args);
 
-    template <class T>
-    friend typename std::remove_reference<T>::type UHOBGOBLIN_RN_ExtractArg(RN_NodeInterface& node);
+    template <class taArgType>
+    friend typename std::remove_reference_t<taArgType> UHOBGOBLIN_RN_ExtractArg(RN_NodeInterface&);
 };
 
 template <class T>

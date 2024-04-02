@@ -2,9 +2,13 @@
 #include <SPeMPE/GameContext/Game_context.hpp>
 #include <SPeMPE/GameObjectFramework/Game_object_bases.hpp>
 #include <SPeMPE/GameObjectFramework/Synchronized_object_registry.hpp>
+#include <SPeMPE/Managers/Networking_manager_interface.hpp>
+#include <SPeMPE/Utility/Rpc_receiver_context_template.hpp>
 
 #include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Logging.hpp>
+#include <Hobgoblin/RigelNet.hpp>
+#include <Hobgoblin/RigelNet_macros.hpp>
 
 #include <cassert>
 #include <sstream>
@@ -13,34 +17,273 @@ namespace jbatnozic {
 namespace spempe {
 
 namespace {
-constexpr auto LOG_ID = "SynchronizedObjectRegistry";
+constexpr auto LOG_ID = "SPeMPE";
 
-void GetIndicesForComposingToEveryone(const hg::RN_NodeInterface& node, std::vector<hg::PZInteger>& vec) {
-    vec.clear();
-    if (node.isServer()) {
-        auto& server = static_cast<const hg::RN_ServerInterface&>(node);
-        for (hg::PZInteger i = 0; i < server.getSize(); i += 1) {
-            auto& client = server.getClientConnector(i);
-            if (client.getStatus() == hg::RN_ConnectorStatus::Connected) {
-                vec.push_back(i);
-            }
-        }
-    }
+RN_DEFINE_RPC(USPEMPE_DeactivateObject, RN_ARGS(SyncId, aSyncId)) {
+    RN_NODE_IN_HANDLER().callIfClient(
+        [=](hg::RN_ClientInterface& aClient) {
+            const auto rc    = SPEMPE_GET_RPC_RECEIVER_CONTEXT(aClient);
+            auto  regId      = rc.netwMgr.getRegistryId();
+            auto& syncObjReg = *reinterpret_cast<detail::SynchronizedObjectRegistry*>(regId.address);
+
+            syncObjReg.deactivateObject(aSyncId, rc.pessimisticLatencyInSteps);
+        });
+
+    RN_NODE_IN_HANDLER().callIfServer(
+        [](hg::RN_ServerInterface&) {
+            throw hg::RN_IllegalMessage("Server received a sync message");
+        });
 }
 } // namespace
 
+///////////////////////////////////////////////////////////////////////////
+// SYNC CONTROL DELEGATE                                                 //
+///////////////////////////////////////////////////////////////////////////
+
+class SyncControlDelegate::Impl {
+public:
+    void setLocalNode(hg::RN_NodeInterface& aLocalNode) {
+        _node = &aLocalNode;
+    }
+
+    hg::RN_NodeInterface& getLocalNode() const {
+        HG_ASSERT(_node != nullptr);
+        return *_node;
+    }
+
+    void setSyncFlags(SyncFlags aFlags) {
+        _flags = aFlags;
+    }
+
+    SyncFlags getSyncFlags() const {
+        return _flags;
+    }
+
+    const std::vector<hg::PZInteger>& getAllRecepients() const {
+        return _allRecepients;
+    }
+
+    const std::vector<hg::PZInteger>& getFilteredRecepients() const {
+        if (_filteredRecepientsDirty) {
+            _filteredRecepients.clear();
+            for (std::size_t i = 0; i < _allRecepients.size(); i += 1) {
+                const auto status = _filterStatuses[i];
+                if (status == SyncFilterStatus::REGULAR_SYNC) {
+                    _filteredRecepients.push_back(_allRecepients[i]);
+                }
+            }
+            _filteredRecepientsDirty = false;
+        }
+        return _filteredRecepients;
+    }
+
+    //! \returns numerical value of actually applied status.
+    int applyFilterStatus(std::size_t aIndex, SyncFilterStatus aStatus) {
+        if (aStatus > _filterStatuses[aIndex]) {
+            // If the object has an Autodiff state and there is no diff since
+            // the last frame, usually we will skip a sync message. However,
+            // if the object was previously skipped or deactivated for this
+            // client, we have to send a full state sync instead, otherwise
+            // this client could see it in an invalid state. An unfortunate
+            // side effect (due to how other components work) is that this will
+            // prompt sending full state syncs to all other clients as well,
+            // but it should happen rarely enough for it to not be a problem.
+            if (aStatus == SyncFilterStatus::__spempeimpl_SKIP_NO_DIFF) {
+                HG_ASSERT(_forObject != nullptr);
+
+                const auto client = _allRecepients[aIndex];
+                if (_forObject->__spempeimpl_getSkipFlagForClient(client) ||
+                    _forObject->__spempeimpl_getDeactivationFlagForClient(client)) {
+                    _filterStatuses[aIndex] = SyncFilterStatus::__spempeimpl_FULL_STATE_SYNC;
+                    _filteredRecepientsDirty = true;  
+                }
+            }
+
+            _filterStatuses[aIndex] = aStatus;
+            _filteredRecepientsDirty = true;
+        }
+
+        return static_cast<int>(_filterStatuses[aIndex]);
+    }
+
+    void resetAllStatuses(SyncFilterStatus aStatus = SyncFilterStatus::REGULAR_SYNC) {
+        for (auto& status : _filterStatuses) {
+            if (status != aStatus) {
+                status = aStatus;
+                _filteredRecepientsDirty = true;
+            }
+        }
+    }
+
+    const std::vector<SyncFilterStatus>& getAllStatuses() const {
+        return _filterStatuses;
+    }
+
+    void targetObject(const SynchronizedObjectBase* aObject) {
+        _forObject = aObject;
+    }
+
+    void targetRecepient(hg::PZInteger aRecepientIndex) {
+        if (_allRecepients.size() != 1 || _allRecepients[0] != aRecepientIndex) {
+            _allRecepients.resize(1);
+            _allRecepients[0] = aRecepientIndex;
+            _filteredRecepientsDirty = true;
+        }
+        _alignStatusVectorSizeIfNeeded();
+    }
+
+    void targetAllRecepientsConnectedToNode(const hg::RN_NodeInterface& aNode) {     
+        if (!aNode.isServer()) {
+            // CLIENT
+            _allRecepients.clear();
+            _filterStatuses.clear();
+            _filteredRecepients.clear();
+            _filteredRecepientsDirty = false;
+        } else {
+            // SERVER
+            const auto& server = static_cast<const hg::RN_ServerInterface&>(aNode);
+            const hg::PZInteger serverSize = server.getSize();
+            if (hg::stopz(_allRecepients.size()) != serverSize) {
+                _allRecepients.resize(hg::pztos(serverSize));
+                _filteredRecepientsDirty = true;
+            }
+            std::size_t hand = 0;
+            for (hg::PZInteger i = 0; i < serverSize; i += 1) {
+                const auto& client = server.getClientConnector(i);
+
+                if (client.getStatus() != hg::RN_ConnectorStatus::Connected) {
+                    continue; // Ignore not connected clients
+                }
+
+                if (_allRecepients[hand] != i) {
+                    _allRecepients[hand] = i;
+                    _filteredRecepientsDirty = true;
+                }
+                hand += 1;
+            }
+            _allRecepients.resize(hand);
+        }
+
+        // CLEANUP
+        _alignStatusVectorSizeIfNeeded();
+    }
+
+private:
+    hg::RN_NodeInterface* _node = nullptr;
+    const SynchronizedObjectBase* _forObject = nullptr;
+    std::vector<hg::PZInteger> _allRecepients;
+    std::vector<SyncFilterStatus> _filterStatuses;
+    mutable std::vector<hg::PZInteger> _filteredRecepients;
+
+    SyncFlags _flags = SyncFlags::NONE;
+    mutable bool _filteredRecepientsDirty = false;
+
+    void _alignStatusVectorSizeIfNeeded() {
+        if (_filterStatuses.size() < _allRecepients.size()) {
+            do {
+                _filterStatuses.push_back(SyncFilterStatus::REGULAR_SYNC);
+            } while (_filterStatuses.size() < _allRecepients.size());
+        } else {
+            _filterStatuses.resize(_allRecepients.size());
+        }
+    }
+};
+
+SyncControlDelegate::SyncControlDelegate()
+    : _impl{std::make_unique<Impl>()}
+{
+}
+
+SyncControlDelegate::~SyncControlDelegate() = default;
+
+hg::RN_NodeInterface& SyncControlDelegate::getLocalNode() const {
+    return _impl->getLocalNode();
+}
+
+SyncFlags SyncControlDelegate::getSyncFlags() const {
+    return _impl->getSyncFlags();
+}
+
+const std::vector<hg::PZInteger>& SyncControlDelegate::getAllRecepients() const {
+    return _impl->getAllRecepients();
+}
+
+const std::vector<hg::PZInteger>& SyncControlDelegate::getFilteredRecepients() const {
+    return _impl->getFilteredRecepients();
+}
+
+int SyncControlDelegate::_applyFilterStatus(std::size_t aIndex, SyncFilterStatus aStatus) {
+    return _impl->applyFilterStatus(aIndex, aStatus);
+}
+
 namespace detail {
+
+///////////////////////////////////////////////////////////////////////////
+// SYNCHRONIZED OBJECT REGISTRY                                          //
+///////////////////////////////////////////////////////////////////////////
+
+//! Use this macro to properly call a synchronized object's CREATE
+//! implementation, ensuring that:
+//! - The SyncControlDelegate is properly set up prior to its use;
+//! - A DeactivateObject RPC is sent to appropriate clients after filtering;
+//! - The Skip and Deactivation flags are properly set for the
+//!   synchronized object after filtering.
+//!
+//! \note This macro is meant to be called only from within a method
+//!       of SynchronizedObjectRegistry class.
+#define CALL_SYNC_CREATE_IMPL(_object_ptr_, _sync_ctrl_ref_, _node_ref_) \
+    do { \
+        (_sync_ctrl_ref_)._impl->targetObject(_object_ptr_); \
+        (_sync_ctrl_ref_)._impl->resetAllStatuses(); \
+        (_object_ptr_)->__spempeimpl_syncCreateImpl(_sync_ctrl_ref_); \
+        Align((_object_ptr_), (_sync_ctrl_ref_), (_node_ref_)); \
+    } while (false)
+
+//! Use this macro to properly call a synchronized object's UPDATE
+//! implementation, ensuring that:
+//! - The SyncControlDelegate is properly set up prior to its use;
+//! - A DeactivateObject RPC is sent to appropriate clients after filtering;
+//! - The Skip and Deactivation flags are properly set for the
+//!   synchronized object after filtering.
+//!
+//! \note This macro is meant to be called only from within a method
+//!       of SynchronizedObjectRegistry class.
+#define CALL_SYNC_UPDATE_IMPL(_object_ptr_, _sync_ctrl_ref_, _node_ref_) \
+    do { \
+        (_sync_ctrl_ref_)._impl->targetObject(_object_ptr_); \
+        (_sync_ctrl_ref_)._impl->resetAllStatuses(); \
+        (_object_ptr_)->__spempeimpl_syncUpdateImpl(_sync_ctrl_ref_); \
+        Align((_object_ptr_), (_sync_ctrl_ref_), (_node_ref_)); \
+    } while (false)
+
+//! Use this macro to properly call a synchronized object's DESTROY
+//! implementation, ensuring that:
+//! - The SyncControlDelegate is properly set up prior to its use;
+//! - A DeactivateObject RPC is sent to appropriate clients after filtering;
+//! - The Skip and Deactivation flags are properly set for the
+//!   synchronized object after filtering.
+//!
+//! \note This macro is meant to be called only from within a method
+//!       of SynchronizedObjectRegistry class.
+#define CALL_SYNC_DESTROY_IMPL(_object_ptr_, _sync_ctrl_ref_, _node_ref_) \
+    do { \
+        (_sync_ctrl_ref_)._impl->targetObject(_object_ptr_); \
+        (_sync_ctrl_ref_)._impl->resetAllStatuses(); \
+        (_object_ptr_)->__spempeimpl_syncDestroyImpl(_sync_ctrl_ref_); \
+        Align((_object_ptr_), (_sync_ctrl_ref_), (_node_ref_)); \
+    } while (false)
 
 SynchronizedObjectRegistry::SynchronizedObjectRegistry(hg::RN_NodeInterface& node,
                                                        hg::PZInteger defaultDelay)
     : _node{&node}
-    , _syncDetails{*this}
     , _defaultDelay{defaultDelay}
 {
+    _syncControlDelegate._impl->setLocalNode(node);
 }
 
 void SynchronizedObjectRegistry::setNode(hg::RN_NodeInterface& node) {
     _node = &node;
+    _syncControlDelegate._impl->setLocalNode(node);
 }
 
 hg::RN_NodeInterface& SynchronizedObjectRegistry::getNode() const {
@@ -116,11 +359,12 @@ SynchronizedObjectBase* SynchronizedObjectRegistry::getMapping(SyncId syncId) co
 }
 
 void SynchronizedObjectRegistry::syncStateUpdates() {
-    GetIndicesForComposingToEveryone(*_node, _syncDetails._recepients);
+    _syncControlDelegate._impl->targetAllRecepientsConnectedToNode(*_node);
+    _syncControlDelegate._impl->setSyncFlags(SyncFlags::NONE);
 
     // Sync creations:
     for (auto* object : _newlyCreatedObjects) {
-        object->_syncCreateImpl(_syncDetails);
+        CALL_SYNC_CREATE_IMPL(object, _syncControlDelegate, *_node);
     }
     _newlyCreatedObjects.clear();
 
@@ -129,10 +373,10 @@ void SynchronizedObjectRegistry::syncStateUpdates() {
         _pacemakerPulseCountdown -= 1;
     }
 
-    _syncDetails._flags = SyncFlags::None;
-    if (_pacemakerPulseCountdown == 0) {
-        _syncDetails._flags |= SyncFlags::PacemakerPulse;
-    }
+    _syncControlDelegate._impl->setSyncFlags(
+        (_pacemakerPulseCountdown == 0) ? SyncFlags::PACEMAKER_PULSE 
+                                        : SyncFlags::NONE
+    );
 
     for (auto& pair : _mappings) {
         SynchronizedObjectBase* object = pair.second;
@@ -148,13 +392,7 @@ void SynchronizedObjectRegistry::syncStateUpdates() {
                 || _pacemakerPulseCountdown == 0
                 || !object->isUsingAlternatingUpdates())
             {
-                SyncDetails syncDetailsCopy = _syncDetails;
-                syncDetailsCopy._forObject = pair.first;
-
-                object->_syncUpdateImpl(syncDetailsCopy);
-                for (auto rec : syncDetailsCopy._recepients) {
-                    setObjectDeactivatedFlagForClient(pair.first, rec, false);
-                }
+                CALL_SYNC_UPDATE_IMPL(object, _syncControlDelegate, *_node);
             }
         }
     }
@@ -170,17 +408,14 @@ void SynchronizedObjectRegistry::syncStateUpdates() {
 }
 
 void SynchronizedObjectRegistry::syncCompleteState(hg::PZInteger clientIndex) {
-    _syncDetails._recepients.resize(1);
-    _syncDetails._recepients[0] = clientIndex;
-    _syncDetails._flags = SyncFlags::FullState;
+    _syncControlDelegate._impl->setSyncFlags(SyncFlags::FULL_STATE);
+    _syncControlDelegate._impl->targetRecepient(clientIndex);
 
     for (auto& mapping : _mappings) {
         auto* object = mapping.second;
-        object->_syncCreateImpl(_syncDetails);
-        object->_syncUpdateImpl(_syncDetails);
-        for (auto rec : _syncDetails._recepients) {
-            setObjectDeactivatedFlagForClient(mapping.first, rec, false);
-        }
+
+        CALL_SYNC_CREATE_IMPL(object, _syncControlDelegate, *_node);
+        CALL_SYNC_UPDATE_IMPL(object, _syncControlDelegate, *_node);
     }
 }
 
@@ -198,7 +433,7 @@ void SynchronizedObjectRegistry::setDefaultDelay(hg::PZInteger aNewDefaultDelayS
     _defaultDelay = aNewDefaultDelaySteps;
     for (auto& mapping : _mappings) {
         auto* object = mapping.second;
-        object->_setStateSchedulerDefaultDelay(aNewDefaultDelaySteps);
+        object->__spempeimpl_setStateSchedulerDefaultDelay(aNewDefaultDelaySteps);
     }
 }
 
@@ -217,9 +452,12 @@ bool SynchronizedObjectRegistry::getAlternatingUpdatesFlag() const {
 }
 
 void SynchronizedObjectRegistry::syncObjectCreate(const SynchronizedObjectBase* object) {
-    assert(object);
-    GetIndicesForComposingToEveryone(*_node, _syncDetails._recepients);
-    object->_syncCreateImpl(_syncDetails);
+    HG_ASSERT(object != nullptr);
+
+    _syncControlDelegate._impl->targetAllRecepientsConnectedToNode(*_node);
+    _syncControlDelegate._impl->setSyncFlags(SyncFlags::NONE);
+
+    CALL_SYNC_CREATE_IMPL(object, _syncControlDelegate, *_node);
 
     // TODO: Fail if object is not in _newlyCreatedObjects
 
@@ -227,30 +465,30 @@ void SynchronizedObjectRegistry::syncObjectCreate(const SynchronizedObjectBase* 
 }
 
 void SynchronizedObjectRegistry::syncObjectUpdate(const SynchronizedObjectBase* object) {
-    assert(object);
-    GetIndicesForComposingToEveryone(*_node, _syncDetails._recepients);
+    HG_ASSERT(object != nullptr);
+
+    _syncControlDelegate._impl->targetAllRecepientsConnectedToNode(*_node);
+    _syncControlDelegate._impl->setSyncFlags(SyncFlags::NONE);
 
     // Synchronized object sync Update called manualy, before the registry got to
     // sync its Create. We need to fix this because the order of these is important!
     {
         auto iter = _newlyCreatedObjects.find(const_cast<SynchronizedObjectBase*>(object));
         if (iter != _newlyCreatedObjects.end()) {
-            object->_syncCreateImpl(_syncDetails);
+            CALL_SYNC_CREATE_IMPL(object, _syncControlDelegate, *_node);
             _newlyCreatedObjects.erase(iter);
         }
     }
 
-    object->_syncUpdateImpl(_syncDetails);
-    for (auto rec : _syncDetails._recepients) {
-        setObjectDeactivatedFlagForClient(object->getSyncId(), rec, false);
-    }
+    CALL_SYNC_UPDATE_IMPL(object, _syncControlDelegate, *_node);
 
     _alreadyUpdatedObjects.insert(object);
 }
 
 void SynchronizedObjectRegistry::syncObjectDestroy(const SynchronizedObjectBase* object) {
-    assert(object);
-    GetIndicesForComposingToEveryone(*_node, _syncDetails._recepients);
+    HG_ASSERT(object != nullptr);
+    _syncControlDelegate._impl->targetAllRecepientsConnectedToNode(*_node);
+    _syncControlDelegate._impl->setSyncFlags(SyncFlags::NONE);
 
     // It could happen that a Synchronized object is destroyed before
     // its Update event - or even its Create event - were synced.
@@ -258,15 +496,15 @@ void SynchronizedObjectRegistry::syncObjectDestroy(const SynchronizedObjectBase*
         {
             auto iter = _newlyCreatedObjects.find(object);
             if (iter != _newlyCreatedObjects.end()) {
-                object->_syncCreateImpl(_syncDetails);
+                CALL_SYNC_CREATE_IMPL(object, _syncControlDelegate, *_node);
                 _newlyCreatedObjects.erase(iter);
             }
         }
         {
             auto iter = _alreadyUpdatedObjects.find(object);
             if (iter == _alreadyUpdatedObjects.end()) {
-                object->_syncUpdateImpl(_syncDetails);
-            #ifndef NDEBUG
+                CALL_SYNC_UPDATE_IMPL(object, _syncControlDelegate, *_node);
+            #ifndef NDEBUG // TODO: #ifdef HOBGOBLIN_DEBUG
                 // This isn't really needed as we don't expect to sync an object's
                 // destruction from anywhere other than its destructor, where it will
                 // get unregistered so this won't matter anyway. It's left here in
@@ -277,30 +515,52 @@ void SynchronizedObjectRegistry::syncObjectDestroy(const SynchronizedObjectBase*
         }
     }
 
-    object->_syncDestroyImpl(_syncDetails);
+    CALL_SYNC_DESTROY_IMPL(object, _syncControlDelegate, *_node);
 
     _alreadyDestroyedObjects.insert(object);
 }
 
 void SynchronizedObjectRegistry::deactivateObject(SyncId aObjectId, hg::PZInteger aDelayInSteps) {
     auto& object = _mappings.at(aObjectId);
-    object->_deactivateSelfIn(aDelayInSteps);
+    object->__spempeimpl_deactivateSelfIn(aDelayInSteps);
 }
 
-bool SynchronizedObjectRegistry::isObjectDeactivatedForClient(SyncId aObjectId, hg::PZInteger aForClient) const {
-    auto& object = _mappings.at(aObjectId);
-    return object->_remoteStatuses.getBit(aForClient);
-}
+void SynchronizedObjectRegistry::Align(const SynchronizedObjectBase* aObject,
+                                       const SyncControlDelegate& aSyncCtrl,
+                                       hg::RN_NodeInterface& aLocalNode) {
+    const auto& recepients = aSyncCtrl._impl->getAllRecepients();
+    const auto& statuses = aSyncCtrl._impl->getAllStatuses();
 
-void SynchronizedObjectRegistry::setObjectDeactivatedFlagForClient(SyncId aObjectId,
-                                                                   hg::PZInteger aForClient,
-                                                                   bool aFlag) {
-    auto& object = _mappings.at(aObjectId);
-    if (aFlag) {
-        object->_remoteStatuses.setBit(aForClient);
-    }
-    else {
-        object->_remoteStatuses.clearBit(aForClient);
+    HG_ASSERT(recepients.size() == statuses.size());
+
+    for (std::size_t i = 0; i < recepients.size(); i += 1) {
+        const hg::PZInteger client = recepients[i];
+
+        switch (auto status = statuses[i]) {
+        case SyncFilterStatus::__spempeimpl_FULL_STATE_SYNC:
+        case SyncFilterStatus::REGULAR_SYNC:
+            aObject->__spempeimpl_setSkipFlagForClient(client, false);
+            aObject->__spempeimpl_setDeactivationFlagForClient(client, false);
+            break;
+
+        case SyncFilterStatus::__spempeimpl_SKIP_NO_DIFF:
+        case SyncFilterStatus::SKIP:
+            aObject->__spempeimpl_setSkipFlagForClient(client, true);
+            aObject->__spempeimpl_setDeactivationFlagForClient(client, false);
+            break;
+
+        case SyncFilterStatus::DEACTIVATE:
+            if (!aObject->__spempeimpl_getDeactivationFlagForClient(client)) {
+                Compose_USPEMPE_DeactivateObject(aLocalNode, client, aObject->getSyncId());
+            }
+            aObject->__spempeimpl_setSkipFlagForClient(client, false);
+            aObject->__spempeimpl_setDeactivationFlagForClient(client, true);
+            break;
+
+        case SyncFilterStatus::__spempeimpl_UNDEFINED:
+        default:
+            HG_UNREACHABLE("Invalid value for SyncFilterStatus ({}).", (int)status);
+        }
     }
 }
 

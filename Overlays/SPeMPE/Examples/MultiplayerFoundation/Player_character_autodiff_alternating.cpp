@@ -97,14 +97,14 @@ void AutodiffAlternatingPlayerCharacter::_eventFinalizeFrame(spe::IfMaster) {
 
 SPEMPE_GENERATE_DEFAULT_SYNC_HANDLERS(AutodiffAlternatingPlayerCharacter, (CREATE, UPDATE, DESTROY));
 
-void AutodiffAlternatingPlayerCharacter::_syncCreateImpl(spe::SyncDetails& aSyncDetails) const {
-    SPEMPE_SYNC_CREATE_DEFAULT_IMPL(AutodiffAlternatingPlayerCharacter, aSyncDetails);
+void AutodiffAlternatingPlayerCharacter::_syncCreateImpl(spe::SyncControlDelegate& aSyncCtrl) const {
+    SPEMPE_SYNC_CREATE_DEFAULT_IMPL(AutodiffAlternatingPlayerCharacter, aSyncCtrl);
 }
 
-void AutodiffAlternatingPlayerCharacter::_syncUpdateImpl(spe::SyncDetails& aSyncDetails) const {
-    SPEMPE_SYNC_UPDATE_DEFAULT_IMPL(AutodiffAlternatingPlayerCharacter, aSyncDetails);
+void AutodiffAlternatingPlayerCharacter::_syncUpdateImpl(spe::SyncControlDelegate& aSyncCtrl) const {
+    SPEMPE_SYNC_UPDATE_DEFAULT_IMPL(AutodiffAlternatingPlayerCharacter, aSyncCtrl);
 }
 
-void AutodiffAlternatingPlayerCharacter::_syncDestroyImpl(spe::SyncDetails& aSyncDetails) const {
-    SPEMPE_SYNC_DESTROY_DEFAULT_IMPL(AutodiffAlternatingPlayerCharacter, aSyncDetails);
+void AutodiffAlternatingPlayerCharacter::_syncDestroyImpl(spe::SyncControlDelegate& aSyncCtrl) const {
+    SPEMPE_SYNC_DESTROY_DEFAULT_IMPL(AutodiffAlternatingPlayerCharacter, aSyncCtrl);
 }

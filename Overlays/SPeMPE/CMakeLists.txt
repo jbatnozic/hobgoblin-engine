@@ -18,7 +18,7 @@ set(OVERLAY_SOURCES
   "Source/Networking_manager_default.cpp"
   "Source/Synced_varmap_manager_default.cpp"
   "Source/Synchronized_object_registry.cpp"
-  "Source/Sync_details.cpp"
+  "Source/Sync_flags.cpp"
   "Source/Window_frame_input_view.cpp"
   "Source/Window_input_tracker.cpp"
   "Source/Window_manager_default.cpp"
