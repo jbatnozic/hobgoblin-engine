@@ -26,7 +26,7 @@ TEST(SPeMPE_TimingTest,
     GameContext context{runtimeConfig};
 
     hobgoblin::util::Stopwatch stopwatch;
-    context.runFor(static_cast<int>(TEST_DURATION.count() * DESIRED_FRAMERATE));
+    context.runFor(static_cast<int>(TEST_DURATION.count() * DESIRED_FRAMERATE) + 1); // TODO explain why +1
     const auto elapsedTime = stopwatch.getElapsedTime<std::chrono::microseconds>();
 
     EXPECT_NEAR(
@@ -58,8 +58,8 @@ TEST(SPeMPE_TimingTest,
 
     EXPECT_NEAR(
         context.getCurrentStepOrdinal(),
-        static_cast<int>(TEST_DURATION.count() * DESIRED_FRAMERATE),
-        4
+        static_cast<int>(TEST_DURATION.count() * DESIRED_FRAMERATE) + 1, // TODO explain why +1
+        2
     );
 
     helper.join();
