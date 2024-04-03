@@ -173,7 +173,7 @@ public:
         _reportVector.push_back(getExecutionPriority());
     }
 
-    void _eventPreUpdate() { 
+    void _eventBeginUpdate() { 
         _reportVector.push_back(QAO_Event::PreUpdate);
         _reportVector.push_back(getExecutionPriority());
     }
@@ -183,7 +183,7 @@ public:
         _reportVector.push_back(getExecutionPriority());
     }
 
-    void _eventPostUpdate() {
+    void _eventEndUpdate() {
         _reportVector.push_back(QAO_Event::PostUpdate);
         _reportVector.push_back(getExecutionPriority());
     }
@@ -203,7 +203,7 @@ public:
         _reportVector.push_back(getExecutionPriority());
     }
 
-    void _eventFinalizeFrame() {
+    void _eventDisplay() {
         _reportVector.push_back(QAO_Event::FinalizeFrame);
         _reportVector.push_back(getExecutionPriority());
     }

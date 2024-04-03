@@ -35,56 +35,7 @@ MainGameplayManager::~MainGameplayManager() {
     ccomp<MNetworking>().removeEventListener(*this);
 }
 
-void MainGameplayManager::_eventDrawGUI() {
-    // Do nothing
-}
-
-void MainGameplayManager::_eventFinalizeFrame() {
-    const auto input = ccomp<MWindow>().getInput();
-    if (input.checkPressed(hg::in::PK_F9, spe::WindowFrameInputView::Mode::Direct)) {
-        // Stopping the context will delete:
-        // - All objects owned by the QAO runtime (in undefined order)
-        // - Then, all ContextComponents owned by the context (in reverse order of insertion)
-        ctx().stop();
-    }
-
-    printBandwidthUsageCountdown -= 1;
-    if (printBandwidthUsageCountdown == 0) {
-        printBandwidthUsageCountdown = 120;
-        auto& netMgr = ccomp<MNetworking>();
-        const auto telemetry = netMgr.getTelemetry(120);
-        HG_LOG_INFO(
-            LOG_ID,
-            "Bandwidth usage in the last 120 frame(s): {:6.2f}kB UP, {:6.2f}kB DOWN.",
-            static_cast<double>(telemetry.uploadByteCount) / 1024.0,
-            static_cast<double>(telemetry.downloadByteCount) / 1024.0
-        );
-    }
-}
-
-void MainGameplayManager::onNetworkingEvent(const hg::RN_Event& aEvent) {
-    if (ccomp<MNetworking>().isClient()) {
-        // CLIENT
-        aEvent.visit(
-            [this](const RN_Event::Connected& ev) {
-                HG_LOG_INFO(LOG_ID, "Client lobby uploading local info to server.");
-                ccomp<MLobbyBackend>().uploadLocalInfo();
-            }
-        );
-    }
-    else {
-        // HOST
-        aEvent.visit(
-            [this](const RN_Event::Connected& ev) {
-            },
-            [](const RN_Event::Disconnected& ev) {
-                // TODO Remove player avatar
-            }
-        );
-    }
-}
-
-void MainGameplayManager::_eventUpdate() {
+void MainGameplayManager::_eventUpdate1() {
     if (ctx().isPrivileged()) {
         auto& winMgr = ccomp<MWindow>();
 
@@ -133,5 +84,54 @@ void MainGameplayManager::_eventUpdate() {
             wrapper.setSignalValue<bool>(CTRLNAME_DOWN,  controls.down);
             wrapper.triggerEvent(CTRLNAME_JUMP, controls.jump);
         }
+    }
+}
+
+void MainGameplayManager::_eventDrawGUI() {
+    // Do nothing
+}
+
+void MainGameplayManager::_eventPostUpdate() {
+    const auto input = ccomp<MWindow>().getInput();
+    if (input.checkPressed(hg::in::PK_F9, spe::WindowFrameInputView::Mode::Direct)) {
+        // Stopping the context will delete:
+        // - All objects owned by the QAO runtime (in undefined order)
+        // - Then, all ContextComponents owned by the context (in reverse order of insertion)
+        ctx().stop();
+    }
+
+    printBandwidthUsageCountdown -= 1;
+    if (printBandwidthUsageCountdown == 0) {
+        printBandwidthUsageCountdown = 120;
+        auto& netMgr = ccomp<MNetworking>();
+        const auto telemetry = netMgr.getTelemetry(120);
+        HG_LOG_INFO(
+            LOG_ID,
+            "Bandwidth usage in the last 120 frame(s): {:6.2f}kB UP, {:6.2f}kB DOWN.",
+            static_cast<double>(telemetry.uploadByteCount) / 1024.0,
+            static_cast<double>(telemetry.downloadByteCount) / 1024.0
+        );
+    }
+}
+
+void MainGameplayManager::onNetworkingEvent(const hg::RN_Event& aEvent) {
+    if (ccomp<MNetworking>().isClient()) {
+        // CLIENT
+        aEvent.visit(
+            [this](const RN_Event::Connected& ev) {
+                HG_LOG_INFO(LOG_ID, "Client lobby uploading local info to server.");
+                ccomp<MLobbyBackend>().uploadLocalInfo();
+            }
+        );
+    }
+    else {
+        // HOST
+        aEvent.visit(
+            [this](const RN_Event::Connected& ev) {
+            },
+            [](const RN_Event::Disconnected& ev) {
+                // TODO Remove player avatar
+            }
+        );
     }
 }

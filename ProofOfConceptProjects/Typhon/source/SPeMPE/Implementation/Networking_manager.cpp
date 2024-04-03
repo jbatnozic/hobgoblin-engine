@@ -67,12 +67,12 @@ NetworkingManager::ClientType& NetworkingManager::getClient() {
     return static_cast<ClientType&>(*_node);
 }
 
-void NetworkingManager::_eventPreUpdate() {
+void NetworkingManager::_eventBeginUpdate() {
     getNode().update(RN_UpdateMode::Receive);
     handleEvents();
 }
 
-void NetworkingManager::_eventPostUpdate() {
+void NetworkingManager::_eventEndUpdate() {
     // Update all Synchronized objects
     if (_node->isServer()) {
         ctx().getSyncObjReg().syncStateUpdates();

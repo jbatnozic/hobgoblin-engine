@@ -111,38 +111,50 @@ protected:
     // These overloads will be called if the object is a Master object 
     // (that is, executing in a Privileged context).
 
-    virtual void _eventStartFrame(IfMaster)    {}
     virtual void _eventPreUpdate(IfMaster)     {}
-    virtual void _eventUpdate(IfMaster)        {}
+    virtual void _eventBeginUpdate(IfMaster)   {}
+    virtual void _eventUpdate1(IfMaster)       {}
+    virtual void _eventUpdate2(IfMaster)       {}
+    virtual void _eventEndUpdate(IfMaster)     {}
     virtual void _eventPostUpdate(IfMaster)    {}
+    virtual void _eventPreDraw(IfMaster)       {}
     virtual void _eventDraw1(IfMaster)         {}
     virtual void _eventDraw2(IfMaster)         {}
     virtual void _eventDrawGUI(IfMaster)       {}
-    virtual void _eventFinalizeFrame(IfMaster) {}
+    virtual void _eventPostDraw(IfMaster)      {}
+    virtual void _eventDisplay(IfMaster)       {}
 
     // These overloads will be called if the object is a Dummy object 
     // (that is, executing in a non-Privileged context).
 
-    virtual void _eventStartFrame(IfDummy)    {}
     virtual void _eventPreUpdate(IfDummy)     {}
-    virtual void _eventUpdate(IfDummy)        {}
+    virtual void _eventBeginUpdate(IfDummy)   {}
+    virtual void _eventUpdate1(IfDummy)       {}
+    virtual void _eventUpdate2(IfDummy)       {}
+    virtual void _eventEndUpdate(IfDummy)     {}
     virtual void _eventPostUpdate(IfDummy)    {}
+    virtual void _eventPreDraw(IfDummy)       {}
     virtual void _eventDraw1(IfDummy)         {}
     virtual void _eventDraw2(IfDummy)         {}
     virtual void _eventDrawGUI(IfDummy)       {}
-    virtual void _eventFinalizeFrame(IfDummy) {}
+    virtual void _eventPostDraw(IfDummy)      {}
+    virtual void _eventDisplay(IfDummy)       {}
 
     // If you override any of the below, the overloads above will not be used.
     // The same code will be executed on both ends.
 
-    void _eventStartFrame() override;
-    void _eventPreUpdate() override;
-    void _eventUpdate() override;
-    void _eventPostUpdate() override;
-    void _eventDraw1() override;
-    void _eventDraw2() override;
-    void _eventDrawGUI() override;
-    void _eventFinalizeFrame() override;
+    void _eventPreUpdate()   override;
+    void _eventBeginUpdate() override;
+    void _eventUpdate1()     override final;
+    void _eventUpdate2()     override;
+    void _eventEndUpdate()   override;
+    void _eventPostUpdate()  override;
+    void _eventPreDraw()     override;
+    void _eventDraw1()       override;
+    void _eventDraw2()       override;
+    void _eventDrawGUI()     override;
+    void _eventPostDraw()    override;
+    void _eventDisplay()     override;
 
     // Misc.
     bool _willUpdateDeleteThis() const;

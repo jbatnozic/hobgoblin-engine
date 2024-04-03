@@ -241,18 +241,20 @@ constexpr std::int32_t ToEventMask(QAO_Event::Enum ev) {
     return (1 << static_cast<std::int32_t>(ev));
 }
 
-constexpr std::int32_t QAO_EVENT_MASK_ALL_DRAWS = ToEventMask(QAO_Event::Draw1)
-                                                | ToEventMask(QAO_Event::Draw2)
-                                                | ToEventMask(QAO_Event::DrawGUI);
+constexpr std::int32_t QAO_EVENT_MASK_ALL_DRAWS = ToEventMask(QAO_Event::PRE_DRAW)
+                                                | ToEventMask(QAO_Event::DRAW_1)
+                                                | ToEventMask(QAO_Event::DRAW_2)
+                                                | ToEventMask(QAO_Event::DRAW_GUI)
+                                                | ToEventMask(QAO_Event::POST_DRAW);
 
-constexpr std::int32_t QAO_EVENT_MASK_FINALIZE = ToEventMask(QAO_Event::FinalizeFrame);
+constexpr std::int32_t QAO_EVENT_MASK_DISPLAY = ToEventMask(QAO_Event::DISPLAY);
 
 constexpr std::int32_t QAO_EVENT_MASK_ALL_EXCEPT_DRAW = QAO_ALL_EVENT_FLAGS & ~QAO_EVENT_MASK_ALL_DRAWS;
 
-constexpr std::int32_t QAO_EVENT_MASK_ALL_EXCEPT_FINALIZE = QAO_ALL_EVENT_FLAGS & ~QAO_EVENT_MASK_FINALIZE;
+constexpr std::int32_t QAO_EVENT_MASK_ALL_EXCEPT_DISPLAY = QAO_ALL_EVENT_FLAGS & ~QAO_EVENT_MASK_DISPLAY;
 
-constexpr std::int32_t QAO_EVENT_MASK_ALL_EXCEPT_DRAW_AND_FINALIZE = QAO_EVENT_MASK_ALL_EXCEPT_DRAW
-                                                                   & QAO_EVENT_MASK_ALL_EXCEPT_FINALIZE;
+constexpr std::int32_t QAO_EVENT_MASK_ALL_EXCEPT_DRAW_AND_DISPLAY = QAO_EVENT_MASK_ALL_EXCEPT_DRAW
+                                                                  & QAO_EVENT_MASK_ALL_EXCEPT_DISPLAY;
 
 using TimingDuration = std::chrono::duration<double, std::micro>;
 using std::chrono::milliseconds;
@@ -318,11 +320,11 @@ void GameContext::_runImpl(hg::NotNull<GameContext*> aContext,
                 break;
             }
 
-            // STEP
-            DebugLog("_runImpl - STEP start");
+            // UPDATE
+            DebugLog("_runImpl - UPDATE start");
             (*aReturnValue) = DoSingleQaoIteration(aContext->_qaoRuntime,
-                                                   QAO_EVENT_MASK_ALL_EXCEPT_DRAW_AND_FINALIZE);
-            DebugLog("_runImpl - STEP end (status = {})", *aReturnValue);
+                                                   QAO_EVENT_MASK_ALL_EXCEPT_DRAW_AND_DISPLAY);
+            DebugLog("_runImpl - UPDATE end (status = {})", *aReturnValue);
             if ((*aReturnValue) != 0) {
                 return;
             }
@@ -361,7 +363,7 @@ void GameContext::_runImpl(hg::NotNull<GameContext*> aContext,
 
         // DISPLAY
         DebugLog("_runImpl - DISPLAY start");
-        (*aReturnValue) = DoSingleQaoIteration(aContext->_qaoRuntime, QAO_EVENT_MASK_FINALIZE);
+        (*aReturnValue) = DoSingleQaoIteration(aContext->_qaoRuntime, QAO_EVENT_MASK_DISPLAY);
         DebugLog("_runImpl - DISPLAY end (status = {})", *aReturnValue);
         if ((*aReturnValue) != 0) {
             return;

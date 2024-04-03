@@ -63,7 +63,7 @@ public:
     const sf::View& getView(hg::PZInteger viewIndex = 0) const;
 
 protected:
-    void _eventPostUpdate() override;
+    void _eventEndUpdate() override;
     void _eventDraw2() override;
     void _eventFinalizeFrame() override;
 

@@ -96,7 +96,7 @@ Player::~Player() {
     }
 }
 
-void Player::_eventPreUpdate() {
+void Player::_eventBeginUpdate() {
     if (!ctx().isPrivileged()) {
         _ssch.advance();
     }

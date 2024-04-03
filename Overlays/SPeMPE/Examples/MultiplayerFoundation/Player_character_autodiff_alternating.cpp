@@ -31,7 +31,7 @@ void AutodiffAlternatingPlayerCharacter::init(int aOwningPlayerIndex, float aX, 
     self.owningPlayerIndex = aOwningPlayerIndex;
 }
 
-void AutodiffAlternatingPlayerCharacter::_eventUpdate(spe::IfMaster) {
+void AutodiffAlternatingPlayerCharacter::_eventUpdate1(spe::IfMaster) {
     if (ctx().getGameState().isPaused) return;
 
     auto& self = _getCurrentState();
@@ -55,6 +55,12 @@ void AutodiffAlternatingPlayerCharacter::_eventUpdate(spe::IfMaster) {
                                 [&]() {
             self.y -= 16.f;
         });
+    }
+}
+
+void AutodiffAlternatingPlayerCharacter::_eventPostUpdate(spe::IfMaster) {
+    if (_didAlternatingUpdatesSync()) {
+        _getCurrentState().commit();
     }
 }
 
@@ -87,12 +93,6 @@ void AutodiffAlternatingPlayerCharacter::_eventDraw1() {
         (self_curr.y + self_next.y) / 2.f
     });
     ccomp<MWindow>().getCanvas().draw(circle);
-}
-
-void AutodiffAlternatingPlayerCharacter::_eventFinalizeFrame(spe::IfMaster) {
-    if (_didAlternatingUpdatesSync()) {
-        _getCurrentState().commit();
-    }
 }
 
 SPEMPE_GENERATE_DEFAULT_SYNC_HANDLERS(AutodiffAlternatingPlayerCharacter, (CREATE, UPDATE, DESTROY));

@@ -248,7 +248,7 @@ public:
         return _mode;
     }
 
-    void eventPreUpdate() {
+    void eventBeginUpdate() {
         auto& lobbyBackendMgr = CCOMP<MLobbyBackend>();
         spe::LobbyBackendEvent ev;
         while (lobbyBackendMgr.pollEvent(ev)) {
@@ -271,7 +271,7 @@ public:
         }
     }
 
-    void eventUpdate() {
+    void eventUpdate1() {
         if (_mode != Mode::Client) {
             return;
         }
@@ -478,12 +478,12 @@ LobbyFrontendManager::Mode LobbyFrontendManager::getMode() const {
     return _impl->getMode();
 }
 
-void LobbyFrontendManager::_eventPreUpdate() {
-    _impl->eventPreUpdate();
+void LobbyFrontendManager::_eventBeginUpdate() {
+    _impl->eventBeginUpdate();
 }
 
-void LobbyFrontendManager::_eventUpdate() {
-    _impl->eventUpdate();
+void LobbyFrontendManager::_eventUpdate1() {
+    _impl->eventUpdate1();
 }
 
 void LobbyFrontendManager:: _eventDrawGUI() {

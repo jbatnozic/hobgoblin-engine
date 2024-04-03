@@ -66,14 +66,23 @@ private:
     const std::type_info& _typeInfo;
     int _execution_priority;
 
-    virtual void _eventStartFrame()    {}
-    virtual void _eventPreUpdate()     {}
-    virtual void _eventUpdate()        {}
-    virtual void _eventPostUpdate()    {}
-    virtual void _eventDraw1()         {}
-    virtual void _eventDraw2()         {}
-    virtual void _eventDrawGUI()       {}
-    virtual void _eventFinalizeFrame() {}
+    // Update
+    virtual void _eventPreUpdate()   {}
+    virtual void _eventBeginUpdate() {}
+    virtual void _eventUpdate1()     {}
+    virtual void _eventUpdate2()     {}
+    virtual void _eventEndUpdate()   {}
+    virtual void _eventPostUpdate()  {}
+
+    // Draw
+    virtual void _eventPreDraw()     {}
+    virtual void _eventDraw1()       {}
+    virtual void _eventDraw2()       {}
+    virtual void _eventDrawGUI()     {}
+    virtual void _eventPostDraw()    {}
+
+    // Display
+    virtual void _eventDisplay()     {}
 
     void _callEvent(QAO_Event::Enum ev);
 

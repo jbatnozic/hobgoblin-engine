@@ -66,7 +66,7 @@ public:
     //! Checks the alternating updates flag:
     //! - true:  objects with alternating updates have synced in this cycle.
     //! - false: objects with alternating updates have NOT synced in this cycle.
-    //! Note: this is meant to be called during _eventFinalizeFrame(), otherwise
+    //! Note: this is meant to be called during _eventPostUpdate(), otherwise
     //! the returned value may not be reliable.
     bool getAlternatingUpdatesFlag() const;
 

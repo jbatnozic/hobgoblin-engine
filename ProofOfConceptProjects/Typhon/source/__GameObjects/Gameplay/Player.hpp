@@ -33,7 +33,7 @@ public:
     virtual void syncDestroyImpl(RN_Node& node, const std::vector<hg::PZInteger>& rec) const override;
 
 protected:
-    void _eventPreUpdate() override;
+    void _eventBeginUpdate() override;
     void _eventUpdate() override;
     void _eventDraw1() override;
 

@@ -21,13 +21,13 @@ There are a number of predefined events in QAO (in order in which they run):
 | # | Event         | Method                  |
 |---|---------------|-------------------------|
 | 1 | StartFrame    | `_eventStartFrame()`    |
-| 2 | PreUpdate     | `_eventPreUpdate()`     |
+| 2 | PreUpdate     | `_eventBeginUpdate()`     |
 | 3 | Update        | `_eventUpdate()`        |
-| 4 | PostUpdate    | `_eventPostUpdate()`    |
+| 4 | PostUpdate    | `_eventEndUpdate()`    |
 | 5 | Draw1         | `_eventDraw1()`         |
 | 6 | Draw2         | `_eventDraw2()`         |
 | 7 | DrawGUI       | `_eventDrawGUI()`       |
-| 8 | FinalizeFrame | `_eventFinalizeFrame()` |
+| 8 | Display       | `_eventDisplay()` |
 
 **Note:** All of these methods are private. But don't worry, in C++ it is possible to override private methods
 (furthermore, it's a good practice).
@@ -48,12 +48,12 @@ object that draws everything,
 sometimes be useful to have 2 separate Draw events to it's easier to order everything properly.
 - **DrawGUI:** A GUI always goes on top of everything else, so it's natural to draw it last. (Also, it's worth noting
 that a GUI is usually drawn relative to the 'window' coordinate system and not the 'game world' coordinate system.)
-- **FinalizeFrame:** Code that absolutely must run after everything else. Usually you'll only have 2 actions here: 
+- **Display:** Code that absolutely must run after everything else. Usually you'll only have 2 actions here: 
 display everything that was drawn onto the screen, and then wait some time so the next frame doesn't start too quickly
 (if we want a constant framerate).
 
 Typically, over the course of a single frame, all the events are run, in their order of appearance above. So, first
-`_eventStartFrame()` will be called for all objects in the runtime, then `_eventPreUpdate()` will be called for all
+`_eventStartFrame()` will be called for all objects in the runtime, then `_eventBeginUpdate()` will be called for all
 objects in the runtime, and so on, until all events are finished. Then we start over from `StartFrame`, and repeat
 the cycle until the game ends and the program exits.
 

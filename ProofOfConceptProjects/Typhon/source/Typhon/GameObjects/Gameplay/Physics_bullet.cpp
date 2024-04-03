@@ -81,7 +81,7 @@ void PhysicsBullet::_eventUpdate() {
     }
 }
 
-void PhysicsBullet::_eventPostUpdate() {   
+void PhysicsBullet::_eventEndUpdate() {   
     if (ctx().isPrivileged()) {
         auto& self = _ssch.getCurrentState();
         auto physicsPos = cpBodyGetPosition(_body.get());

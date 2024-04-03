@@ -134,7 +134,7 @@ std::optional<AuthToken> DefaultAuthorizationManager::getLocalAuthToken() {
     return _localAuthToken;
 }
 
-void DefaultAuthorizationManager::_eventPreUpdate() {
+void DefaultAuthorizationManager::_eventBeginUpdate() {
     // TODO - Temporary implementation
     if (_mode != Mode::Host) {
         return;

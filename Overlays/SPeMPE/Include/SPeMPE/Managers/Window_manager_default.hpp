@@ -104,9 +104,9 @@ private:
     // Input:
     detail::WindowInputTracker _inputTracker;
 
-    void _eventPostUpdate() override;
+    void _eventPreDraw() override;
     void _eventDraw2() override;
-    void _eventFinalizeFrame() override;
+    void _eventDisplay() override;
 
     MainRenderTexturePositioningData _getMainRenderTexturePositioningData() const;
 

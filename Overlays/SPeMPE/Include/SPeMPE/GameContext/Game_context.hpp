@@ -132,9 +132,12 @@ public:
     void stop();
 
     struct PerformanceInfo {
-        std::chrono::microseconds frameToFrameTime{0};
-        std::chrono::microseconds updateAndDrawTime{0};
+        std::chrono::microseconds updateTime{0};
+        std::chrono::microseconds drawTime{0};
         std::chrono::microseconds finalizeTime{0};
+
+        std::chrono::microseconds frameToFrameTime{0};
+        
         std::chrono::microseconds totalTime{0};
         hg::PZInteger consecutiveUpdateLoops{0};
     };
@@ -144,7 +147,7 @@ public:
 
     //! Returns the ordinal number of the step currently being executed, or of
     //! the last step that was executed if execution was stopped or finished.
-    hg::PZInteger getCurrentStepOrdinal() const; // TODO: Change to int64_t
+    hg::PZInteger getCurrentStepOrdinal() const; // TODO: Change to int64_t !!!!!!!!!!!!!!
 
     ///////////////////////////////////////////////////////////////////////////
     // CHILD CONTEXT SUPPORT                                                 //

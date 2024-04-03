@@ -59,7 +59,7 @@ void ControlsManager::putNewControls(hg::PZInteger playerIndex, const PlayerCont
     _schedulers[playerIndex].putNewState(controls, delaySteps);
 }
 
-void ControlsManager::_eventPreUpdate() {
+void ControlsManager::_eventBeginUpdate() {
     if (ctx().getLocalPlayerIndex() == spempe::PLAYER_INDEX_UNKNOWN) {
         return;
     }
@@ -92,7 +92,7 @@ void ControlsManager::_eventUpdate() {
     }
 }
 
-void ControlsManager::_eventPostUpdate() {
+void ControlsManager::_eventEndUpdate() {
     for (auto& scheduler : _schedulers) {
         scheduler.advance();
     }

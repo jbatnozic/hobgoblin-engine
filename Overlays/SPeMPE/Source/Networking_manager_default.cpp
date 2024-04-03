@@ -199,12 +199,12 @@ int DefaultNetworkingManager::getLocalClientIndex() const {
 // PROTECTED & PRIVATE METHODS                                           //
 ///////////////////////////////////////////////////////////////////////////
 
-void DefaultNetworkingManager::_eventStartFrame() {
+void DefaultNetworkingManager::_eventPreUpdate() {
     _telemetry.emplace_back();
     _telemetry.pop_front();
 }
 
-void DefaultNetworkingManager::_eventPreUpdate() {
+void DefaultNetworkingManager::_eventBeginUpdate() {
     const auto telemetry = _node->update(hg::RN_UpdateMode::Receive);
     if (!_telemetry.empty()) {
         _telemetry.back() += telemetry;
@@ -212,7 +212,7 @@ void DefaultNetworkingManager::_eventPreUpdate() {
     _handleEvents();
 }
 
-void DefaultNetworkingManager::_eventPostUpdate() {
+void DefaultNetworkingManager::_eventEndUpdate() {
     // Update all Synchronized objects
     if (_node->isServer()) {
         _syncObjReg.syncStateUpdates();

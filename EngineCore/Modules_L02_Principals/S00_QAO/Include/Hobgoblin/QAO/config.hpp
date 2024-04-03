@@ -17,17 +17,24 @@ static constexpr std::int64_t QAO_MIN_SERIAL = 0;
 
 struct QAO_Event {
     enum Enum {
-        StartFrame,
-        PreUpdate,
-        Update,
-        PostUpdate,
-        Draw1,
-        Draw2,
-        DrawGUI,
-        FinalizeFrame,
+        NONE = -1,
 
-        Count,
-        NoEvent
+        PRE_UPDATE,
+        BEGIN_UPDATE,
+        UPDATE_1,
+        UPDATE_2,
+        END_UPDATE,
+        POST_UPDATE,
+
+        PRE_DRAW,
+        DRAW_1,
+        DRAW_2,
+        DRAW_GUI,
+        POST_DRAW,
+
+        DISPLAY,
+
+        EVENT_COUNT,
     };
 };
 

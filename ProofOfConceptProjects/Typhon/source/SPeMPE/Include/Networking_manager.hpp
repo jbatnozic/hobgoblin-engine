@@ -36,8 +36,8 @@ public:
     void removeEventListener(EventListener* listener);
 
 protected:
-    void _eventPreUpdate() override;
-    void _eventPostUpdate() override;
+    void _eventBeginUpdate() override;
+    void _eventEndUpdate() override;
 
 private:
     enum class State {

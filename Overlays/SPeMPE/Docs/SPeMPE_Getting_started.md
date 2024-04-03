@@ -371,16 +371,16 @@ to all the QAO events (`_eventStartFrame`, `_eventUpdate` etc.). However, each o
 
 ```cpp
 virtual void _eventStartFrame(spe::IfMaster);
-virtual void _eventPreUpdate(spe::IfMaster);
+virtual void _eventBeginUpdate(spe::IfMaster);
 virtual void _eventUpdate(spe::IfMaster);
 ...
-virtual void _eventFinalizeFrame(spe::IfMaster);
+virtual void _eventDisplay(spe::IfMaster);
 
 virtual void _eventStartFrame(spe::IfDummy);
-virtual void _eventPreUpdate(spe::IfDummy);
+virtual void _eventBeginUpdate(spe::IfDummy);
 virtual void _eventUpdate(spe::IfDummy);
 ...
-virtual void _eventFinalizeFrame(spe::IfDummy);
+virtual void _eventDisplay(spe::IfDummy);
 ```
 
 By overriding, for example, `_eventUpdate(spe::IfMaster)` you are defining the update event behaviour this object

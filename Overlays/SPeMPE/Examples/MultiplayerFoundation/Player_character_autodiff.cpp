@@ -27,7 +27,7 @@ void AutodiffPlayerCharacter::init(int aOwningPlayerIndex, float aX, float aY) {
     self.owningPlayerIndex = aOwningPlayerIndex;
 }
 
-void AutodiffPlayerCharacter::_eventUpdate(spe::IfMaster) {
+void AutodiffPlayerCharacter::_eventUpdate1(spe::IfMaster) {
     if (ctx().getGameState().isPaused) return;
 
     auto& self = _getCurrentState();
@@ -52,6 +52,10 @@ void AutodiffPlayerCharacter::_eventUpdate(spe::IfMaster) {
             self.y -= 16.f;
         });
     }
+}
+
+void AutodiffPlayerCharacter::_eventPostUpdate(spe::IfMaster) {
+    _getCurrentState().commit();
 }
 
 void AutodiffPlayerCharacter::_eventDraw1() {
@@ -79,10 +83,6 @@ void AutodiffPlayerCharacter::_eventDraw1() {
     circle.setFillColor(COLORS[self.owningPlayerIndex % NUM_COLORS]);
     circle.setPosition({self.x, self.y});
     ccomp<MWindow>().getCanvas().draw(circle);
-}
-
-void AutodiffPlayerCharacter::_eventFinalizeFrame(spe::IfMaster) {
-    _getCurrentState().commit();
 }
 
 SPEMPE_GENERATE_DEFAULT_SYNC_HANDLERS(AutodiffPlayerCharacter, (CREATE, UPDATE, DESTROY));

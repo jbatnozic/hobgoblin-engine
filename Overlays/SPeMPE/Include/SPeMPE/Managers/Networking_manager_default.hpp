@@ -92,9 +92,9 @@ public:
     int getLocalClientIndex() const override;
 
 protected:
-    void _eventStartFrame() override;
     void _eventPreUpdate() override;
-    void _eventPostUpdate() override;
+    void _eventBeginUpdate() override;
+    void _eventEndUpdate() override;
 
 private:
     Mode _mode = Mode::Uninitialized;

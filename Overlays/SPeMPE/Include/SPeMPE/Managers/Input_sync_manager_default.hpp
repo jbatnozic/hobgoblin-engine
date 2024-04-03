@@ -126,9 +126,9 @@ private:
     void _unpackSingleState(hg::PZInteger aIndex, hg::util::Packet& packet);
     void _clearAllEvents(hg::PZInteger aIndex);
 
-    void _eventPreUpdate() override;
-    void _eventUpdate() override;
-    void _eventPostUpdate() override;
+    void _eventBeginUpdate() override;
+    void _eventUpdate1() override;
+    void _eventEndUpdate() override;
 
     friend void USPEMPE_DefaultInputSyncManager_PutNewState(DefaultInputSyncManager&,
                                                             int,
