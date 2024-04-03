@@ -14,6 +14,12 @@ namespace spempe {
 
 static constexpr auto LOG_ID = "SPeMPE.Test";
 
+template <class taDuration>
+double SecondsCnt(taDuration aDuration) {
+    using namespace std::chrono;
+    return static_cast<double>(duration_cast<microseconds>(aDuration).count() / 1'000'000.0);
+}
+
 TEST(SPeMPE_TimingTest,
      RunningContextProducesCorrectFramerateWithoutWindowManager_1) {
     hobgoblin::log::SetMinimalLogSeverity(hobgoblin::log::Severity::Info);
@@ -26,16 +32,18 @@ TEST(SPeMPE_TimingTest,
     GameContext context{runtimeConfig};
 
     hobgoblin::util::Stopwatch stopwatch;
-    context.runFor(static_cast<int>(TEST_DURATION.count() * DESIRED_FRAMERATE) + 1); // TODO explain why +1
+    // Need to add +1 because the delta time comes *between* every two steps,
+    // so in order to have a delay of N delta times, we need N+1 steps.
+    context.runFor(static_cast<int>(SecondsCnt(TEST_DURATION) * DESIRED_FRAMERATE) + 1);
     const auto elapsedTime = stopwatch.getElapsedTime<std::chrono::microseconds>();
 
     EXPECT_NEAR(
-        elapsedTime.count() / 1'000'000.0,
-        (double)TEST_DURATION.count(),
-        0.05
+        SecondsCnt(elapsedTime),
+        SecondsCnt(TEST_DURATION),
+        0.035 // 35ms tolerance
     );
 
-    HG_LOG_INFO(LOG_ID, "elapsedTime={}ms.", elapsedTime.count() / 1000.0);
+    HG_LOG_INFO(LOG_ID, "elapsedTime={}ms.", SecondsCnt(elapsedTime) * 1000.0);
 }
 
 TEST(SPeMPE_TimingTest,
@@ -58,8 +66,10 @@ TEST(SPeMPE_TimingTest,
 
     EXPECT_NEAR(
         context.getCurrentStepOrdinal(),
-        static_cast<int>(TEST_DURATION.count() * DESIRED_FRAMERATE) + 1, // TODO explain why +1
-        2
+        // Need to add +1 because the delta time comes *between* every two steps,
+        // so in a timeframe of N delta times, we get N+1 steps.
+        static_cast<int>(SecondsCnt(TEST_DURATION) * DESIRED_FRAMERATE) + 1,
+        2 // 2 steps tolerance
     );
 
     helper.join();

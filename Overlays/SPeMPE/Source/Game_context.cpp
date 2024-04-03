@@ -180,7 +180,8 @@ void GameContext::startChildContext(int aSteps) {
     }
 
     _childContext->_quit.store(false);
-    _childContextThread = std::thread{_runImpl, _childContext.get(), aSteps, &_childContextReturnValue};
+    _childContextThread =
+        std::thread{_runImpl, _childContext.get(), aSteps, &_childContextReturnValue, false};
 }
 
 int GameContext::stopAndJoinChildContext() {
@@ -259,42 +260,20 @@ using std::chrono::microseconds;
 using std::chrono::steady_clock;
 using std::chrono::duration_cast;
 
+template <class taDuration>
+double MsCount(taDuration aDuration) {
+    return static_cast<double>(duration_cast<microseconds>(aDuration).count() / 1000.0);
+}
 } // namespace
 
-/*
-void TimeStep() {
-    deltaTime = ...
-    accumulator = deltaTime
-
-    while (...) {
-        cycleStart = now()
-
-        for (int i = 0; i < maxConsecutiveSteps; i += 1) {
-            // reached ordinal limit -> break
-            // quit == true -> break
-            // accumulator too low -> break
-
-            accumulator -= deltaTime
-            DoSingleQaoIteration(STEP)
-            stepOrdinal++
-        }
-
-        // clamp accumulator
-
-        if (for loop had at least 1 iteration) {
-            DoSingleQaoIteration(DRAW)
-        }
-
-        DoSingleQaoIteration(DISPLAY)
-
-        cycleEnd = now()
-        accumulator += (cycleEnd - cycleStart)
-    }
-}
-*/
 void GameContext::_runImpl(hg::NotNull<GameContext*> aContext,
                            int aMaxSteps,
-                           hg::NotNull<int*> aReturnValue) {
+                           hg::NotNull<int*> aReturnValue,
+                           bool aDebugLoggingActive) {
+    using hobgoblin::util::Stopwatch;
+    #define DebugLog(...) \
+        do { if (aDebugLoggingActive) HG_LOG_DEBUG(LOG_ID, __VA_ARGS__); } while (false)
+
     if (aMaxSteps == 0) {
         (*aReturnValue) = 0;
         return;
@@ -303,47 +282,47 @@ void GameContext::_runImpl(hg::NotNull<GameContext*> aContext,
     const auto maxConsecutiveSteps = aContext->_runtimeConfig.maxFramesBetweenDisplays;
     const TimingDuration deltaTime = aContext->_runtimeConfig.deltaTime;
 
-    HG_LOG_DEBUG(LOG_ID, "_runImpl - CONFIG - maxConsecutiveSteps={}, deltaTime={}ms.",
-                 maxConsecutiveSteps, deltaTime.count() / 1000.0);
+    DebugLog("_runImpl - CONFIG - maxConsecutiveSteps={}, deltaTime={}ms.",
+             maxConsecutiveSteps,
+             MsCount(deltaTime.count()));
 
     hg::PZInteger stepsCovered = 0;
     TimingDuration accumulator = deltaTime;
-    hobgoblin::util::Stopwatch frameToFrameWatch;
+    Stopwatch frameToFrameStopwatch;
 
     while (true) {    
-        HG_LOG_DEBUG(LOG_ID, "_runImpl - CYCLE start");
+        DebugLog("_runImpl - CYCLE start");
 
         if (aMaxSteps > 0 && stepsCovered >= aMaxSteps) {
-            HG_LOG_DEBUG(LOG_ID, "_runImpl - Outer while loop breaking because aMaxSteps was reached.");
+            DebugLog("_runImpl - Outer while loop breaking because aMaxSteps was reached.");
             break;
         }
         if (aContext->_quit.load()) {
-            HG_LOG_DEBUG(LOG_ID, "_runImpl - Outer while loop breaking because _quit was set to true.");
+            DebugLog("_runImpl - Outer while loop breaking because _quit was set to true.");
             break;
         }
 
         bool didAtLeastOneStep = false;
         for (int i = 0; i < maxConsecutiveSteps; i += 1) {
             if (aMaxSteps > 0 && stepsCovered >= aMaxSteps) {
-                HG_LOG_DEBUG(LOG_ID, "_runImpl - Inner for loop breaking because aMaxSteps was reached.");
+                DebugLog("_runImpl - Inner for loop breaking because aMaxSteps was reached.");
                 break;
             }
             if (accumulator < deltaTime) {
-                HG_LOG_DEBUG(LOG_ID,
-                             "_runImpl - Inner for loop breaking because accumulator is too low ({}ms).",
-                            accumulator.count() / 1000.0);
+                DebugLog("_runImpl - Inner for loop breaking because accumulator is too low ({}ms).",
+                         MsCount(accumulator.count()));
                 break;
             }
             if (aContext->_quit.load()) {
-                HG_LOG_DEBUG(LOG_ID, "_runImpl - Inner for loop breaking because _quit was set to true.");
+                DebugLog("_runImpl - Inner for loop breaking because _quit was set to true.");
                 break;
             }
 
             // STEP
-            HG_LOG_DEBUG(LOG_ID, "_runImpl - STEP start");
+            DebugLog("_runImpl - STEP start");
             (*aReturnValue) = DoSingleQaoIteration(aContext->_qaoRuntime,
                                                    QAO_EVENT_MASK_ALL_EXCEPT_DRAW_AND_FINALIZE);
-            HG_LOG_DEBUG(LOG_ID, "_runImpl - STEP end (status = {})", *aReturnValue);
+            DebugLog("_runImpl - STEP end (status = {})", *aReturnValue);
             if ((*aReturnValue) != 0) {
                 return;
             }
@@ -359,46 +338,47 @@ void GameContext::_runImpl(hg::NotNull<GameContext*> aContext,
 
         if (didAtLeastOneStep && !aContext->isHeadless()) {
             // DRAW
-            HG_LOG_DEBUG(LOG_ID, "_runImpl - DRAW start");
+            DebugLog("_runImpl - DRAW start");
             (*aReturnValue) = DoSingleQaoIteration(aContext->_qaoRuntime,
                                                    QAO_EVENT_MASK_ALL_DRAWS);
-            HG_LOG_DEBUG(LOG_ID, "_runImpl - DRAW end (status = {})", *aReturnValue);
+            DebugLog("_runImpl - DRAW end (status = {})", *aReturnValue);
             if ((*aReturnValue) != 0) {
                 return;
             }
         }
 
-        // Prevent buildup in accumulator in case the program is not meeting time requirements
-        // const auto accCopy = accumulator;
-        // accumulator = std::min(accumulator, deltaTime * 0.5);
-        // if (accumulator != accCopy) {
-        //     HG_LOG_DEBUG(LOG_ID,
-        //                  "_runImpl - Accumulator clamped from {}ms to {}ms.",
-        //                  accCopy.count() / 1000.0,
-        //                  accumulator.count() / 1000.0);
-        // }
-
-        {
-            // DISPLAY
-            HG_LOG_DEBUG(LOG_ID, "_runImpl - DISPLAY start");
-            (*aReturnValue) = DoSingleQaoIteration(aContext->_qaoRuntime, QAO_EVENT_MASK_FINALIZE);
-            HG_LOG_DEBUG(LOG_ID, "_runImpl - DISPLAY end (status = {})", *aReturnValue);
-            if ((*aReturnValue) != 0) {
-                return;
-            }
+        if (didAtLeastOneStep) {
+             // Prevent excessive buildup in accumulator in case
+             // the program is not meeting time requirements
+             const auto accBefore = accumulator;
+             accumulator = std::min(accumulator, deltaTime * 0.5);
+             if (accumulator != accBefore) {
+                 DebugLog("_runImpl - Accumulator clamped from {}ms to {}ms.",
+                          MsCount(accBefore.count()),
+                          MsCount(accumulator.count()));
+             }
         }
 
-        const auto elapsedTime = frameToFrameWatch.restart<TimingDuration>();
+        // DISPLAY
+        DebugLog("_runImpl - DISPLAY start");
+        (*aReturnValue) = DoSingleQaoIteration(aContext->_qaoRuntime, QAO_EVENT_MASK_FINALIZE);
+        DebugLog("_runImpl - DISPLAY end (status = {})", *aReturnValue);
+        if ((*aReturnValue) != 0) {
+            return;
+        }
+
+        // 'Refill' accumulator
+        const auto elapsedTime = frameToFrameStopwatch.restart<TimingDuration>();
         accumulator += elapsedTime;
-        HG_LOG_DEBUG(LOG_ID,
-                     "_runImpl - Accumulator increased by {}ms (new value: {}ms).",
-                     elapsedTime.count() / 1000.0,
-                     accumulator.count() / 1000.0);
+        DebugLog("_runImpl - Accumulator increased by {}ms (new value: {}ms).",
+                 MsCount(elapsedTime.count()),
+                 MsCount(accumulator.count()));
 
-        HG_LOG_DEBUG(LOG_ID, "_runImpl - CYCLE end");
+        DebugLog("_runImpl - CYCLE end");
     } // End while
 
     (*aReturnValue) = 0;
+    #undef DebugLog
 }
 
 } // namespace spempe

@@ -214,7 +214,8 @@ private:
 
     static void _runImpl(hg::NotNull<GameContext*> aContext,
                          int aMaxSteps,
-                         hg::NotNull<int*> aReturnValue);
+                         hg::NotNull<int*> aReturnValue,
+                         bool aDebugLoggingActive = false);
 };
 
 template <class taComponent>
