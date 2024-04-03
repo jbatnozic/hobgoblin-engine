@@ -1,17 +1,20 @@
 
+#include "Hobgoblin/Logging/User_macros.hpp"
+#include "Hobgoblin/Utility/Time_utils.hpp"
 #include <SPeMPE/GameContext/Game_context.hpp>
 
 #include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Logging.hpp>
 
 #include <algorithm>
+#include <chrono>
 #include <iostream>
 
 namespace jbatnozic {
 namespace spempe {
 
 namespace {
-constexpr const char* LOG_ID = "::jbatnozic::spempe::GameContext";
+constexpr const char* LOG_ID = "SPeMPE";
 } // namespace
 
 GameContext::GameContext(const RuntimeConfig& aRuntimeConfig, hg::PZInteger aComponentTableSize)
@@ -258,85 +261,141 @@ using std::chrono::duration_cast;
 
 } // namespace
 
+/*
+void TimeStep() {
+    deltaTime = ...
+    accumulator = deltaTime
+
+    while (...) {
+        cycleStart = now()
+
+        for (int i = 0; i < maxConsecutiveSteps; i += 1) {
+            // reached ordinal limit -> break
+            // quit == true -> break
+            // accumulator too low -> break
+
+            accumulator -= deltaTime
+            DoSingleQaoIteration(STEP)
+            stepOrdinal++
+        }
+
+        // clamp accumulator
+
+        if (for loop had at least 1 iteration) {
+            DoSingleQaoIteration(DRAW)
+        }
+
+        DoSingleQaoIteration(DISPLAY)
+
+        cycleEnd = now()
+        accumulator += (cycleEnd - cycleStart)
+    }
+}
+*/
 void GameContext::_runImpl(hg::NotNull<GameContext*> aContext,
                            int aMaxSteps,
                            hg::NotNull<int*> aReturnValue) {
     if (aMaxSteps == 0) {
+        (*aReturnValue) = 0;
         return;
     }
 
-    const auto maxFramesBetweenDisplays = aContext->_runtimeConfig.maxFramesBetweenDisplays;
+    const auto maxConsecutiveSteps = aContext->_runtimeConfig.maxFramesBetweenDisplays;
     const TimingDuration deltaTime = aContext->_runtimeConfig.deltaTime;
-    TimingDuration accumulatorTime = deltaTime;
-    auto currentTime = steady_clock::now();
 
-    PerformanceInfo perfInfo;
-    hg::util::Stopwatch frameToFrameStopwatch;
+    HG_LOG_DEBUG(LOG_ID, "_runImpl - CONFIG - maxConsecutiveSteps={}, deltaTime={}ms.",
+                 maxConsecutiveSteps, deltaTime.count() / 1000.0);
 
     hg::PZInteger stepsCovered = 0;
+    TimingDuration accumulator = deltaTime;
+    hobgoblin::util::Stopwatch frameToFrameWatch;
 
-    while (aContext->_quit.load() == false) {
+    while (true) {    
+        HG_LOG_DEBUG(LOG_ID, "_runImpl - CYCLE start");
+
         if (aMaxSteps > 0 && stepsCovered >= aMaxSteps) {
+            HG_LOG_DEBUG(LOG_ID, "_runImpl - Outer while loop breaking because aMaxSteps was reached.");
+            break;
+        }
+        if (aContext->_quit.load()) {
+            HG_LOG_DEBUG(LOG_ID, "_runImpl - Outer while loop breaking because _quit was set to true.");
             break;
         }
 
-        perfInfo.frameToFrameTime = frameToFrameStopwatch.restart<microseconds>();
-
-        aContext->_stepOrdinal += 1;
-
-        auto now = steady_clock::now();
-        accumulatorTime += duration_cast<TimingDuration>(now - currentTime);
-        currentTime = now;
-
-        for (int i = 0; i < maxFramesBetweenDisplays; i += 1) {
+        bool didAtLeastOneStep = false;
+        for (int i = 0; i < maxConsecutiveSteps; i += 1) {
             if (aMaxSteps > 0 && stepsCovered >= aMaxSteps) {
-                break; // TODO: also skip FinalizeFrame in this case?
+                HG_LOG_DEBUG(LOG_ID, "_runImpl - Inner for loop breaking because aMaxSteps was reached.");
+                break;
             }
-            if ((accumulatorTime < deltaTime)) {
-                break; // TODO: also skip FinalizeFrame in this case?
+            if (accumulator < deltaTime) {
+                HG_LOG_DEBUG(LOG_ID,
+                             "_runImpl - Inner for loop breaking because accumulator is too low ({}ms).",
+                            accumulator.count() / 1000.0);
+                break;
             }
-
-            // Run all events except FinalizeFrame (and except Draws if headless):
-            {
-                hg::util::Stopwatch stopwatch;
-                if (aContext->isHeadless()) {
-                    (*aReturnValue) = DoSingleQaoIteration(aContext->_qaoRuntime, 
-                                                           QAO_EVENT_MASK_ALL_EXCEPT_DRAW_AND_FINALIZE);
-                }
-                else {
-                    (*aReturnValue) = DoSingleQaoIteration(aContext->_qaoRuntime, 
-                                                           QAO_EVENT_MASK_ALL_EXCEPT_FINALIZE);
-                }
-                if ((*aReturnValue) != 0) {
-                    return;
-                }
-                perfInfo.updateAndDrawTime = stopwatch.getElapsedTime<microseconds>();
+            if (aContext->_quit.load()) {
+                HG_LOG_DEBUG(LOG_ID, "_runImpl - Inner for loop breaking because _quit was set to true.");
+                break;
             }
 
-            perfInfo.consecutiveUpdateLoops = i + 1;
-            accumulatorTime -= deltaTime;
-            stepsCovered += 1;
-        } // End for
-
-        // Prevent buildup in accumulator in case the program is not meeting time requirements
-        accumulatorTime = std::min(accumulatorTime, deltaTime * 0.5);
-
-        // FinalizeFrame event:
-        {
-            hg::util::Stopwatch stopwatch;
-            (*aReturnValue) = DoSingleQaoIteration(aContext->_qaoRuntime, QAO_EVENT_MASK_FINALIZE);
+            // STEP
+            HG_LOG_DEBUG(LOG_ID, "_runImpl - STEP start");
+            (*aReturnValue) = DoSingleQaoIteration(aContext->_qaoRuntime,
+                                                   QAO_EVENT_MASK_ALL_EXCEPT_DRAW_AND_FINALIZE);
+            HG_LOG_DEBUG(LOG_ID, "_runImpl - STEP end (status = {})", *aReturnValue);
             if ((*aReturnValue) != 0) {
                 return;
             }
-            perfInfo.finalizeTime = stopwatch.getElapsedTime<microseconds>();
+
+            didAtLeastOneStep = true;
+            accumulator -= deltaTime;
+
+            stepsCovered += 1;
+            aContext->_stepOrdinal += 1;
+            
+            // TODO(poll post step actions)
+        } // End for
+
+        if (didAtLeastOneStep && !aContext->isHeadless()) {
+            // DRAW
+            HG_LOG_DEBUG(LOG_ID, "_runImpl - DRAW start");
+            (*aReturnValue) = DoSingleQaoIteration(aContext->_qaoRuntime,
+                                                   QAO_EVENT_MASK_ALL_DRAWS);
+            HG_LOG_DEBUG(LOG_ID, "_runImpl - DRAW end (status = {})", *aReturnValue);
+            if ((*aReturnValue) != 0) {
+                return;
+            }
         }
 
-        // Do post step actions:
-        // aContext->_pollPostStepActions(); TODO!!!!!!!!!!!!!!!!!!!!!
+        // Prevent buildup in accumulator in case the program is not meeting time requirements
+        // const auto accCopy = accumulator;
+        // accumulator = std::min(accumulator, deltaTime * 0.5);
+        // if (accumulator != accCopy) {
+        //     HG_LOG_DEBUG(LOG_ID,
+        //                  "_runImpl - Accumulator clamped from {}ms to {}ms.",
+        //                  accCopy.count() / 1000.0,
+        //                  accumulator.count() / 1000.0);
+        // }
 
-        // Record performance data:
-        perfInfo.totalTime = perfInfo.updateAndDrawTime + perfInfo.finalizeTime;
-        aContext->_performanceInfo = perfInfo;
+        {
+            // DISPLAY
+            HG_LOG_DEBUG(LOG_ID, "_runImpl - DISPLAY start");
+            (*aReturnValue) = DoSingleQaoIteration(aContext->_qaoRuntime, QAO_EVENT_MASK_FINALIZE);
+            HG_LOG_DEBUG(LOG_ID, "_runImpl - DISPLAY end (status = {})", *aReturnValue);
+            if ((*aReturnValue) != 0) {
+                return;
+            }
+        }
+
+        const auto elapsedTime = frameToFrameWatch.restart<TimingDuration>();
+        accumulator += elapsedTime;
+        HG_LOG_DEBUG(LOG_ID,
+                     "_runImpl - Accumulator increased by {}ms (new value: {}ms).",
+                     elapsedTime.count() / 1000.0,
+                     accumulator.count() / 1000.0);
+
+        HG_LOG_DEBUG(LOG_ID, "_runImpl - CYCLE end");
     } // End while
 
     (*aReturnValue) = 0;

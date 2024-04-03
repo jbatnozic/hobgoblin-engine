@@ -66,6 +66,7 @@ set(OVERLAY_TEST_SOURCES
   "Test/Input_sync_manager_test.cpp"
   # "Test/Keyboard_input_test.cpp"
   "Test/SPeMPE_test.cpp"
+  "Test/Timing_test.cpp"
 )
 
 add_executable(${OVERLAY_TEST_NAME} ${OVERLAY_TEST_SOURCES})

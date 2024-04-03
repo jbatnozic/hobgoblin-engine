@@ -1,5 +1,4 @@
 
-#include "Hobgoblin/Common/Positive_or_zero_integer.hpp"
 #include <SPeMPE/SPeMPE.hpp>
 
 #include <Hobgoblin/Utility/Autopack.hpp>
