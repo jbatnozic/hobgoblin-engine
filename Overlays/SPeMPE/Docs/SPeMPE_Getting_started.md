@@ -184,7 +184,7 @@ spriteProvider.loadAllSprites();
 // OR
 
 auto* spriteProvider = context.getComponentPtr<SpriteProviderInterface>();
-// ^ the above will simple return nullptr if no matching component is attached.
+// ^ the above will simply return nullptr if no matching component is attached.
 if (spriteProvider) {
   spriteProvider->loadAllSprites();
   // do other stuff with the component...
