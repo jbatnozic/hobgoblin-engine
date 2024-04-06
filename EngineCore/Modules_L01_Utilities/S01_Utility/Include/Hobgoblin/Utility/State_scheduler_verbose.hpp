@@ -57,7 +57,7 @@ public:
 
 private:
     static constexpr auto LOG_ID = "VerboseStateScheduler";
-    SimpleStateScheduler<typename taState> _ssch;
+    SimpleStateScheduler<taState> _ssch;
 
     std::string _printState() const {
         std::ostringstream oss;

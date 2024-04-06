@@ -42,12 +42,12 @@ void MainGameplayManager::_eventUpdate1() {
         const int MAX_BUFFERING_LENGTH = 10;
         bool sync = false;
 
-        if (winMgr.getInput().checkPressed(hg::in::PK_NUMPAD_PLUS,
+        if (winMgr.getInput().checkPressed(hg::in::PK_I,
                                            spe::WindowFrameInputView::Mode::Direct)) {
             stateBufferingLength = (stateBufferingLength + 1) % (MAX_BUFFERING_LENGTH + 1);
             sync = true;
         }
-        if (winMgr.getInput().checkPressed(hg::in::PK_NUMPAD_MINUS,
+        if (winMgr.getInput().checkPressed(hg::in::PK_U,
                                            spe::WindowFrameInputView::Mode::Direct)) {
             stateBufferingLength = (stateBufferingLength + MAX_BUFFERING_LENGTH) % (MAX_BUFFERING_LENGTH + 1);
             sync = true;

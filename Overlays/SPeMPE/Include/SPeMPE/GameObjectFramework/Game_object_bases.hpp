@@ -1,10 +1,12 @@
 #ifndef SPEMPE_GAME_OBJECT_FRAMEWORK_GAME_OBJECT_BASES_HPP
 #define SPEMPE_GAME_OBJECT_FRAMEWORK_GAME_OBJECT_BASES_HPP
 
+#include "Hobgoblin/Logging/User_macros.hpp"
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/QAO.hpp>
 #include <Hobgoblin/Utility/Dynamic_bitset.hpp>
 #include <Hobgoblin/Utility/State_scheduler_simple.hpp>
+#include <Hobgoblin/Utility/State_scheduler_verbose.hpp> // TEMP
 #include <SPeMPE/GameContext/Game_context.hpp>
 #include <SPeMPE/GameObjectFramework/Autodiff_state.hpp>
 #include <SPeMPE/GameObjectFramework/Synchronized_object_registry.hpp>
@@ -244,7 +246,7 @@ Note:
 
     This can be expressed with the macro SPEMPE_SYNCOBJ_BEGIN_EVENT_UPDATE_OVERRIDE().
 */
-
+// todo remove
 #define SPEMPE_SYNCOBJ_BEGIN_EVENT_UPDATE_OVERRIDE() \
     do { if (!SynchronizedObjectBase::isMasterObject()) { \
         const bool USPEMPE_endOfLifetime = SynchronizedObjectBase::_willUpdateDeleteThis(); \
@@ -288,6 +290,7 @@ protected:
                                )->getDefaultDelay()
         }
     {
+        _ssch.getCurrentState().status.isDeactivated = !isMasterObject();
     }
 
     taVisibleState& _getCurrentState() {
@@ -333,7 +336,7 @@ protected:
 
         friend
         std::ostream& operator<<(std::ostream& aOstream, const SchedulerPair& aSPair) {
-            return (aOstream << aSPair.visibleState << (aSPair.status.isDeactivated ? " [deactivated]" : " [active]"));
+            return (aOstream << aSPair.visibleState << (aSPair.status.isDeactivated ? " [D/A]" : ""));
         }
     };
 
@@ -405,9 +408,8 @@ public:
             return aNewState;
         }();
 
-        switch (HasPacemakerPulse(aFlags)) {
+        if (!HasPacemakerPulse(aFlags)) {
         // NORMAL UPDATE
-        case false:
             if (!isUsingAlternatingUpdates()) {
                 _ssch.putNewState(SchedulerPair{stateToSchedule, DummyStatus::active()}, aDelaySteps);
             }
@@ -430,10 +432,8 @@ public:
                 // pulse actually affects the *following* update.
                 _pacemakerPulse.delay = aDelaySteps;
             //}
-            break;
-
+        } else {
         // PACEMAKER UPDATE
-        case true:
             if (!isUsingAlternatingUpdates()) {
                 _ssch.putNewState(SchedulerPair{stateToSchedule, DummyStatus::active()}, aDelaySteps);
             }
@@ -442,10 +442,6 @@ public:
             }
             _pacemakerPulse.happened = true;
             _pacemakerPulse.delay = aDelaySteps;
-            break;
-
-        default:
-            break;
         }
     }
 

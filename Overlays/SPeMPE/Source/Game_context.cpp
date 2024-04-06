@@ -286,7 +286,7 @@ void GameContext::_runImpl(hg::NotNull<GameContext*> aContext,
 
     DebugLog("_runImpl - CONFIG - maxConsecutiveSteps={}, deltaTime={}ms.",
              maxConsecutiveSteps,
-             MsCount(deltaTime.count()));
+             MsCount(deltaTime));
 
     hg::PZInteger stepsCovered = 0;
     TimingDuration accumulator = deltaTime;
@@ -312,7 +312,7 @@ void GameContext::_runImpl(hg::NotNull<GameContext*> aContext,
             }
             if (accumulator < deltaTime) {
                 DebugLog("_runImpl - Inner for loop breaking because accumulator is too low ({}ms).",
-                         MsCount(accumulator.count()));
+                         MsCount(accumulator));
                 break;
             }
             if (aContext->_quit.load()) {
@@ -356,8 +356,8 @@ void GameContext::_runImpl(hg::NotNull<GameContext*> aContext,
              accumulator = std::min(accumulator, deltaTime * 0.5);
              if (accumulator != accBefore) {
                  DebugLog("_runImpl - Accumulator clamped from {}ms to {}ms.",
-                          MsCount(accBefore.count()),
-                          MsCount(accumulator.count()));
+                          MsCount(accBefore),
+                          MsCount(accumulator));
              }
         }
 
@@ -373,8 +373,8 @@ void GameContext::_runImpl(hg::NotNull<GameContext*> aContext,
         const auto elapsedTime = frameToFrameStopwatch.restart<TimingDuration>();
         accumulator += elapsedTime;
         DebugLog("_runImpl - Accumulator increased by {}ms (new value: {}ms).",
-                 MsCount(elapsedTime.count()),
-                 MsCount(accumulator.count()));
+                 MsCount(elapsedTime),
+                 MsCount(accumulator));
 
         DebugLog("_runImpl - CYCLE end");
     } // End while

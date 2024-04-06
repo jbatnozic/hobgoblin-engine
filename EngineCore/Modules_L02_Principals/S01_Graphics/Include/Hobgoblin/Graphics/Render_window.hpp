@@ -102,7 +102,7 @@ public:
     //! You can request sRGB encoding for a window by having the sRgbCapable flag set in the ContextSettings
     //!
     //! \return True if the window use sRGB encoding, false otherwise
-    virtual bool isSrgb() const;
+    virtual bool isSrgb() const override;
 
     ///////////////////////////////////////////////////////////////////////////
     // RENDER TARGET                                                         //
@@ -174,13 +174,13 @@ protected:
     //! This function is called so that derived classes can
     //! perform their own specific initialization as soon as
     //! the window is created.
-    virtual void onCreate();
+    virtual void onCreate() override;
 
     //! \brief Function called after the window has been resized
     //!
     //! This function is called so that derived classes can
     //! perform custom actions when the size of the window changes.
-    virtual void onResize();
+    virtual void onResize() override;
 
 private:
     // SFML RenderTarget adapter:

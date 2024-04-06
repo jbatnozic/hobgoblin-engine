@@ -55,27 +55,7 @@ PUBLIC
 
 # ===== BUILD TESTS =====
 
-find_package(GTest CONFIG REQUIRED)
-
-set(OVERLAY_TEST_NAME "${OVERLAY_NAME}.Test")
-
-set(OVERLAY_TEST_SOURCES
-  "Test/Autodiff_state_test.cpp"
-  "Test/Default_lobby_backend_manager_test.cpp"
-  "Test/Default_synced_varmap_manager_test.cpp"
-  "Test/Input_sync_manager_test.cpp"
-  # "Test/Keyboard_input_test.cpp"
-  "Test/SPeMPE_test.cpp"
-  "Test/Timing_test.cpp"
-)
-
-add_executable(${OVERLAY_TEST_NAME} ${OVERLAY_TEST_SOURCES})
-
-target_link_libraries(${OVERLAY_TEST_NAME}
-PUBLIC
-  "${OVERLAY_NAME}"
-  "gtest::gtest"
-)
+add_subdirectory("Test")
 
 # ===== BUILD EXAMPLES =====
 

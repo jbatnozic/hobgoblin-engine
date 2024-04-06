@@ -91,7 +91,7 @@ void DefaultWindowManager::setToNormalMode(const WindowConfig& aWindowConfig,
     _preciseTiming = aTimingConfig.preciseTiming;
 
     // TODO(temp.)
-    hg::math::Rectangle<float> visibleArea{0.f, 0.f, 1920.f, 1024.f};
+    hg::math::Rectangle<float> visibleArea{0.f, 0.f, w, h};
     _window->setView(hg::gr::View(visibleArea));
 }
 

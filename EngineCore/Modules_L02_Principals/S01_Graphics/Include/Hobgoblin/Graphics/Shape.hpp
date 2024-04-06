@@ -172,7 +172,7 @@ public:
     //! \return Number of points of the shape
     //!
     //! \see getPoint
-    virtual PZInteger getPointCount() const = 0;
+    virtual PZInteger getPointCount() const override = 0;
 
     //! \brief Get a point of the shape
     //!
@@ -186,7 +186,7 @@ public:
     //! \return index-th point of the shape
     //!
     //! \see getPointCount
-    virtual math::Vector2f getPoint(PZInteger aTndex) const = 0;
+    virtual math::Vector2f getPoint(PZInteger aTndex) const override = 0;
 
     //! \brief Get the local bounding rectangle of the entity
     //!

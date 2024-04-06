@@ -62,14 +62,14 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
             spe::WindowManagerInterface::WindowConfig{
                 hg::win::VideoMode{WINDOW_WIDTH, WINDOW_HEIGHT},
                 "SPeMPE Multiplayer Foundation",
-                hg::win::WindowStyle::Fullscreen
+                hg::win::WindowStyle::Default
             },
             spe::WindowManagerInterface::MainRenderTextureConfig{{WINDOW_WIDTH, WINDOW_HEIGHT}},
             spe::WindowManagerInterface::TimingConfig{
                 FRAMERATE,
                 false,                                           /* Framerate limiter */
                 (aGameMode == GameMode::Server) ? false : true , /* V-Sync */
-                (aGameMode == GameMode::Server) ? true : false   /* Precise timing */
+                (aGameMode == GameMode::Server) ? true : true   /* Precise timing */
             }
         );
 

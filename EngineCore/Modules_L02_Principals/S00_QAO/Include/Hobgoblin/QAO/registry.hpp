@@ -46,15 +46,15 @@ private:
 
         Elem() = default;
 
-        Elem(const Elem&) = default;
-        Elem& operator=(const Elem&) = default;
+        Elem(const Elem&) = delete;
+        Elem& operator=(const Elem&) = delete;
 
         Elem(Elem&&) = default;
         Elem& operator=(Elem&&) = default;
 
         ~Elem() {
             if (no_own) {
-                ptr.release();
+                (void)ptr.release();
             }
         }
     };
