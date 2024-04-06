@@ -37,6 +37,7 @@ enum class SyncFilterStatus {
     //! full states and not just diffs.
     //! \warning FOR INTERNAL ENGINE USE ONLY
     __spempeimpl_FULL_STATE_SYNC = 5,
+    __spempeimpl_FULL_STATE_SYNC_NO_CHAIN = 6,
 
     //! Skip the sync on account of an Autodiff state without any changes.
     //! \warning FOR INTERNAL ENGINE USE ONLY

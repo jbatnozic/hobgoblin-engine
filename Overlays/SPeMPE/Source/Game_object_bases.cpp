@@ -224,22 +224,11 @@ void SynchronizedObjectBase::__spempeimpl_syncDestroyImpl(SyncControlDelegate& a
     _syncDestroyImpl(aSyncCtrl);
 }
 
-void SynchronizedObjectBase::__spempeimpl_setSkipFlagForClient(hg::PZInteger aClientIdx, bool aFlag) const {
-    const auto bitIdx = aClientIdx * 2;
-    if (aFlag) {
-        _remoteSyncStatuses.setBit(bitIdx);
-    } else {
-        _remoteSyncStatuses.clearBit(bitIdx);
-    }
-}
-
-bool SynchronizedObjectBase::__spempeimpl_getSkipFlagForClient(hg::PZInteger aClientIdx) const {
-    const auto bitIdx = aClientIdx * 2;
-    return _remoteSyncStatuses.getBit(bitIdx);
-}
+//! Deactivated, Skipped, Autodiff-Skipped
+#define PER_CLIENT_FLAG_COUNT 3
 
 void SynchronizedObjectBase::__spempeimpl_setDeactivationFlagForClient(hg::PZInteger aClientIdx, bool aFlag) const {
-    const auto bitIdx = (aClientIdx * 2) + 1;
+    const auto bitIdx = (aClientIdx * PER_CLIENT_FLAG_COUNT) + 0;
     if (aFlag) {
         _remoteSyncStatuses.setBit(bitIdx);
     } else {
@@ -248,7 +237,35 @@ void SynchronizedObjectBase::__spempeimpl_setDeactivationFlagForClient(hg::PZInt
 }
 
 bool SynchronizedObjectBase::__spempeimpl_getDeactivationFlagForClient(hg::PZInteger aClientIdx) const {
-    const auto bitIdx = (aClientIdx * 2) + 1;
+    const auto bitIdx = (aClientIdx * PER_CLIENT_FLAG_COUNT) + 0;
+    return _remoteSyncStatuses.getBit(bitIdx);
+}
+
+void SynchronizedObjectBase::__spempeimpl_setSkipFlagForClient(hg::PZInteger aClientIdx, bool aFlag) const {
+    const auto bitIdx = (aClientIdx * PER_CLIENT_FLAG_COUNT) + 1;
+    if (aFlag) {
+        _remoteSyncStatuses.setBit(bitIdx);
+    } else {
+        _remoteSyncStatuses.clearBit(bitIdx);
+    }
+}
+
+bool SynchronizedObjectBase::__spempeimpl_getSkipFlagForClient(hg::PZInteger aClientIdx) const {
+    const auto bitIdx = (aClientIdx * PER_CLIENT_FLAG_COUNT) + 1;
+    return _remoteSyncStatuses.getBit(bitIdx);
+}
+
+void SynchronizedObjectBase::__spempeimpl_setNoDiffSkipFlagForClient(hg::PZInteger aClientIdx, bool aFlag) const {
+    const auto bitIdx = (aClientIdx * PER_CLIENT_FLAG_COUNT) + 2;
+    if (aFlag) {
+        _remoteSyncStatuses.setBit(bitIdx);
+    } else {
+        _remoteSyncStatuses.clearBit(bitIdx);
+    }
+}
+
+bool SynchronizedObjectBase::__spempeimpl_getNoDiffSkipFlagForClient(hg::PZInteger aClientIdx) const {
+    const auto bitIdx = (aClientIdx * PER_CLIENT_FLAG_COUNT) + 2;
     return _remoteSyncStatuses.getBit(bitIdx);
 }
 

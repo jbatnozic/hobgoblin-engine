@@ -158,9 +158,7 @@ void AutodiffActor::_eventUpdate1(spe::IfMaster) {
 }
 
 void AutodiffActor::_eventPostUpdate(spe::IfMaster) {
-    if (isMasterObject()) {
-        _getCurrentState().commit();
-    }
+    _getCurrentState().commit();
 }
 
 void AutodiffActor::_eventDraw1() {

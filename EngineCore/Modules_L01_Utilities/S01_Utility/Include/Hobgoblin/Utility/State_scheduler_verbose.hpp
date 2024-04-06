@@ -55,6 +55,10 @@ public:
     typename std::vector<taState>::const_iterator cbegin() const;
     typename std::vector<taState>::const_iterator cend() const;
 
+    void setIgnoreChainFlag(bool aFlag) {
+        _ssch.setIgnoreChainFlag(aFlag);
+    }
+
 private:
     static constexpr auto LOG_ID = "VerboseStateScheduler";
     SimpleStateScheduler<taState> _ssch;

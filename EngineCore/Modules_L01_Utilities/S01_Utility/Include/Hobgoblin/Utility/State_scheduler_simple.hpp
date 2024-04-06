@@ -72,6 +72,10 @@ public:
     typename std::vector<taState>::const_iterator cbegin() const;
     typename std::vector<taState>::const_iterator cend() const;
 
+    void setIgnoreChainFlag(bool aIgnoreChaining) {
+        _ignoreChaining = aIgnoreChaining;
+    }
+
 private:
     template <class T>
     friend class VerboseStateScheduler;
@@ -94,6 +98,8 @@ private:
     // to position 0.
     #define BLUE_POS_NONE (-2)
     int _bluePos = BLUE_POS_NONE;
+
+    bool _ignoreChaining = false;
 
     PZInteger _newStatesCount = 0;
     PZInteger _newStatesDelay = 0;
@@ -176,7 +182,8 @@ void SimpleStateScheduler<taState>::scheduleNewStates() {
 
     // Determine where the oldest state should go
     int pos;
-    if (_bluePos != BLUE_POS_NONE &&
+    if (_ignoreChaining == false &&
+        _bluePos != BLUE_POS_NONE &&
         _newStatesCount + _bluePos < _individualBufferSize()) {
         // Classic StateScheduler behaviour (chain blue states)
         pos = _bluePos + 1;

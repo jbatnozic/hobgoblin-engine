@@ -1,6 +1,7 @@
 #ifndef SPEMPE_GAME_OBJECT_FRAMEWORK_DEFAULT_SYNC_IMPL_HPP
 #define SPEMPE_GAME_OBJECT_FRAMEWORK_DEFAULT_SYNC_IMPL_HPP
 
+#include "SPeMPE/GameObjectFramework/Sync_flags.hpp"
 #include <Hobgoblin/QAO.hpp>
 #include <Hobgoblin/RigelNet.hpp>
 #include <Hobgoblin/RigelNet_macros.hpp>
@@ -13,6 +14,8 @@
 #include <SPeMPE/Utility/Rpc_receiver_context_template.hpp>
 
 #include <type_traits>
+
+#include <Hobgoblin/Logging.hpp>
 
 namespace jbatnozic {
 namespace spempe {
@@ -89,16 +92,19 @@ void DefaultSyncDestroyHandler(hg::RN_NodeInterface& node, SyncId syncId) {
 
 //! Align the configuration of visible state and of the sync details before sending.
 //! Note: this only does something if the state is an autodiff state.
-template <class taAutodiffState>
-AutodiffPackMode AlignState_PreCompose(taAutodiffState& aAutodiffState, SyncControlDelegate& aSyncCtrl) {
+template <class taSyncObj, class taAutodiffState>
+AutodiffPackMode AlignState_PreCompose(const taSyncObj& aObject,
+                                       taAutodiffState& aAutodiffState,
+                                       SyncControlDelegate& aSyncCtrl,
+                                       SyncFlags& aSyncFlags) {
     if constexpr (std::is_base_of<AutodiffStateTag, taAutodiffState>::value) {
         const auto previousPackMode = aAutodiffState.getPackMode();
 
         // If a full state sync was requested by the engine, we must not
         // filter out any recepients nor allow only the diff to be sent.
-        const bool diffAllowed = !HasFullState(aSyncCtrl.getSyncFlags());
+        const bool diffAllowed = !HasFullState(aSyncFlags);
         if (diffAllowed) {
-            aAutodiffState.setPackMode(AutodiffPackMode::PackDiff);
+            //aAutodiffState.setPackMode(AutodiffPackMode::PackDiff);
 
             auto filterResult = static_cast<int>(SyncFilterStatus::__spempeimpl_UNDEFINED);
             if (aAutodiffState.cmp() == AUTODIFF_STATE_NO_CHANGE &&
@@ -118,7 +124,22 @@ AutodiffPackMode AlignState_PreCompose(taAutodiffState& aAutodiffState, SyncCont
 
             // Fixes Autodiff states in combination with regular skipping and deactivations
             if (filterResult == static_cast<int>(SyncFilterStatus::__spempeimpl_FULL_STATE_SYNC)) {
+                aAutodiffState.setPackMode(AutodiffPackMode::PackAll);      
+            } if (filterResult == static_cast<int>(SyncFilterStatus::__spempeimpl_FULL_STATE_SYNC_NO_CHAIN)) {
                 aAutodiffState.setPackMode(AutodiffPackMode::PackAll);
+                aSyncFlags |= SyncFlags::IGNORE_CHAIN;
+            } else {
+                const auto& to = aObject;
+                for (const auto client : aSyncCtrl.getFilteredRecepients()) {
+                    if (to.__spempeimpl_getNoDiffSkipFlagForClient(client) ||
+                        to.__spempeimpl_getSkipFlagForClient(client) ||
+                        to.__spempeimpl_getDeactivationFlagForClient(client)) {
+                        aSyncFlags |= SyncFlags::IGNORE_CHAIN;
+                        break;
+                    }
+                }
+
+                aAutodiffState.setPackMode(AutodiffPackMode::PackDiff);
             }
         }
         else {
@@ -223,14 +244,17 @@ T& StripConstFromRef(const T& aRef) {
 //! Note: Will properly detect and handle autodiff objects.
 #define SPEMPE_SYNC_UPDATE_DEFAULT_IMPL(_class_name_, _sync_ctrl_) \
     do { \
+        auto __spempeImpl_syncFlags = (_sync_ctrl_).getSyncFlags(); \
         const auto __spempeimpl_oldPackMode = ::jbatnozic::spempe::detail::AlignState_PreCompose( \
+            *this, \
             ::jbatnozic::spempe::detail::StripConstFromRef(_getCurrentState()), \
-            _sync_ctrl_ \
+            _sync_ctrl_, \
+            __spempeImpl_syncFlags \
         ); \
         Compose_USPEMPE_Update##_class_name_((_sync_ctrl_).getLocalNode(), \
                                              (_sync_ctrl_).getFilteredRecepients(), \
                                              this->getSyncId(), \
-                                             (_sync_ctrl_).getSyncFlags(), \
+                                             __spempeImpl_syncFlags, \
                                              _getCurrentState()); \
         ::jbatnozic::spempe::detail::AlignState_PostCompose( \
             ::jbatnozic::spempe::detail::StripConstFromRef(_getCurrentState()), \

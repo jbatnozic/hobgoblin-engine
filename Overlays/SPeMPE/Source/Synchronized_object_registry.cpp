@@ -1,4 +1,5 @@
 
+#include "Hobgoblin/Logging/User_macros.hpp"
 #include <SPeMPE/GameContext/Game_context.hpp>
 #include <SPeMPE/GameObjectFramework/Game_object_bases.hpp>
 #include <SPeMPE/GameObjectFramework/Synchronized_object_registry.hpp>
@@ -69,7 +70,8 @@ public:
             for (std::size_t i = 0; i < _allRecepients.size(); i += 1) {
                 const auto status = _filterStatuses[i];
                 if (status == SyncFilterStatus::REGULAR_SYNC ||
-                    status == SyncFilterStatus::__spempeimpl_FULL_STATE_SYNC) {
+                    status == SyncFilterStatus::__spempeimpl_FULL_STATE_SYNC ||
+                    status == SyncFilterStatus::__spempeimpl_FULL_STATE_SYNC_NO_CHAIN) {
                     _filteredRecepients.push_back(_allRecepients[i]);
                 }
             }
@@ -82,7 +84,8 @@ public:
     int applyFilterStatus(std::size_t aIndex, SyncFilterStatus aStatus) {
         const auto currentStatus = _filterStatuses[aIndex];
         if (currentStatus > aStatus ||
-            currentStatus == SyncFilterStatus::__spempeimpl_FULL_STATE_SYNC)
+            currentStatus == SyncFilterStatus::__spempeimpl_FULL_STATE_SYNC ||
+            currentStatus == SyncFilterStatus::__spempeimpl_FULL_STATE_SYNC_NO_CHAIN)
         {
             // Due to status priorities, if the current status is higher than
             // the new one, we know right away that no change will be needed.
@@ -103,15 +106,42 @@ public:
         // A similar problem happens when we're going a regular sync
         // with an Autodiff state but the change happened while the object
         // was deactivated or being skipped.
-        if (aStatus == SyncFilterStatus::REGULAR_SYNC ||
-            aStatus == SyncFilterStatus::__spempeimpl_SKIP_NO_DIFF) {
-            HG_ASSERT(_forObject != nullptr);
-
-            const auto client = _allRecepients[aIndex];
-            if (_forObject->__spempeimpl_getSkipFlagForClient(client) ||
-                _forObject->__spempeimpl_getDeactivationFlagForClient(client)) {
-                aStatus = SyncFilterStatus::__spempeimpl_FULL_STATE_SYNC; 
+        switch (aStatus) {
+        case SyncFilterStatus::REGULAR_SYNC:
+            {
+                HG_ASSERT(_forObject != nullptr);
+                const auto client = _allRecepients[aIndex];
+                HG_LOG_INFO(
+                    "SPeMPE",
+                    "Filtering REGULAR_SYNC d:{} s:{} nds:{}",
+                    (int)_forObject->__spempeimpl_getDeactivationFlagForClient(client),
+                    (int)_forObject->__spempeimpl_getSkipFlagForClient(client),
+                    (int)_forObject->__spempeimpl_getNoDiffSkipFlagForClient(client)
+                );
+                if (_forObject->__spempeimpl_getNoDiffSkipFlagForClient(client) ||
+                    _forObject->__spempeimpl_getSkipFlagForClient(client) ||
+                    _forObject->__spempeimpl_getDeactivationFlagForClient(client)) {
+                    HG_LOG_INFO("SPeMPE", "IGNORE_CHAIN");
+                    aStatus = SyncFilterStatus::__spempeimpl_FULL_STATE_SYNC_NO_CHAIN;
+                }
             }
+            break;
+
+        case SyncFilterStatus::__spempeimpl_SKIP_NO_DIFF:
+            {
+                HG_ASSERT(_forObject != nullptr);
+                const auto client = _allRecepients[aIndex];
+                if (/*_forObject->__spempeimpl_getNoDiffSkipFlagForClient(client) ||*/
+                    _forObject->__spempeimpl_getSkipFlagForClient(client) ||
+                    _forObject->__spempeimpl_getDeactivationFlagForClient(client)) {
+                    aStatus = SyncFilterStatus::__spempeimpl_FULL_STATE_SYNC_NO_CHAIN;
+                }
+            }
+            break;
+
+        default:
+            // Do nothing
+            break;
         }
 
         // |= because false->true is the only allowed transition
@@ -224,11 +254,20 @@ const std::vector<hg::PZInteger>& SyncControlDelegate::getAllRecepients() const 
 }
 
 const std::vector<hg::PZInteger>& SyncControlDelegate::getFilteredRecepients() const {
-    return _impl->getFilteredRecepients();
+    const auto& result = _impl->getFilteredRecepients();
+    // if (result.size() > 0) {
+    //     HG_LOG_INFO("SPeMPE", "FilteredRecepients.size() = {}", result.size());
+    // }
+    return result;
 }
 
 int SyncControlDelegate::_applyFilterStatus(std::size_t aIndex, SyncFilterStatus aStatus) {
-    return _impl->applyFilterStatus(aIndex, aStatus);
+    auto result = _impl->applyFilterStatus(aIndex, aStatus);
+    // HG_LOG_INFO("SPeMPE", "FilterStatus for client {} is now set to {}", aIndex, result);
+    // if (result == 5) {
+    //     HG_LOG_DEBUG("A", "B");
+    // }
+    return result;
 }
 
 namespace detail {
@@ -553,23 +592,32 @@ void SynchronizedObjectRegistry::Align(const SynchronizedObjectBase* aObject,
 
         switch (auto status = statuses[i]) {
         case SyncFilterStatus::__spempeimpl_FULL_STATE_SYNC:
+        case SyncFilterStatus::__spempeimpl_FULL_STATE_SYNC_NO_CHAIN:
         case SyncFilterStatus::REGULAR_SYNC:
-            aObject->__spempeimpl_setSkipFlagForClient(client, false);
             aObject->__spempeimpl_setDeactivationFlagForClient(client, false);
+            aObject->__spempeimpl_setSkipFlagForClient(client, false);
+            aObject->__spempeimpl_setNoDiffSkipFlagForClient(client, false);
             break;
 
         case SyncFilterStatus::__spempeimpl_SKIP_NO_DIFF:
-        case SyncFilterStatus::SKIP:
-            aObject->__spempeimpl_setSkipFlagForClient(client, true);
             aObject->__spempeimpl_setDeactivationFlagForClient(client, false);
+            aObject->__spempeimpl_setSkipFlagForClient(client, false);
+            aObject->__spempeimpl_setNoDiffSkipFlagForClient(client, true);
+            break;
+
+        case SyncFilterStatus::SKIP:
+            aObject->__spempeimpl_setDeactivationFlagForClient(client, false);
+            aObject->__spempeimpl_setSkipFlagForClient(client, true);
+            aObject->__spempeimpl_setNoDiffSkipFlagForClient(client, false);
             break;
 
         case SyncFilterStatus::DEACTIVATE:
             if (!aObject->__spempeimpl_getDeactivationFlagForClient(client)) {
                 Compose_USPEMPE_DeactivateObject(aLocalNode, client, aObject->getSyncId());
             }
-            aObject->__spempeimpl_setSkipFlagForClient(client, false);
             aObject->__spempeimpl_setDeactivationFlagForClient(client, true);
+            aObject->__spempeimpl_setSkipFlagForClient(client, false);
+            aObject->__spempeimpl_setNoDiffSkipFlagForClient(client, false);
             break;
 
         case SyncFilterStatus::__spempeimpl_UNDEFINED:

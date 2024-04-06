@@ -27,6 +27,27 @@ TEST(AutodiffStateTest, IllegalStateTest) {
     EXPECT_THROW({ ad1.packDiff(packet); }, detail::AutodiffStateIllegalStateError);
 }
 
+TEST(AutodiffStateTest, CopyConstructorTest) {
+    TestAutodiff2 original;
+    original.i = 1337;
+    original.c = 'o';
+
+    TestAutodiff2 copy{original};
+    EXPECT_EQ(copy.i, 1337);
+    EXPECT_EQ(copy.c, 'o');
+}
+
+TEST(AutodiffStateTest, AssignmentOperatorTest) {
+    TestAutodiff2 original;
+    original.i = 1337;
+    original.c = 'o';
+
+    TestAutodiff2 copy;
+    copy = original;
+    EXPECT_EQ(copy.i, 1337);
+    EXPECT_EQ(copy.c, 'o');
+}
+
 TEST(AutodiffStateTest, CommitAndCmpTest) {
     TestAutodiff1 ad1;
     ad1.initMirror();

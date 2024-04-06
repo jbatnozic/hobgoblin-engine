@@ -1,7 +1,6 @@
 #ifndef SPEMPE_GAME_OBJECT_FRAMEWORK_GAME_OBJECT_BASES_HPP
 #define SPEMPE_GAME_OBJECT_FRAMEWORK_GAME_OBJECT_BASES_HPP
 
-#include "Hobgoblin/Logging/User_macros.hpp"
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/QAO.hpp>
 #include <Hobgoblin/Utility/Dynamic_bitset.hpp>
@@ -216,16 +215,22 @@ public:
     virtual void __spempeimpl_deactivateSelfIn(hg::PZInteger aDelaySteps) = 0;
 
     //! \warning Internal implementation, do not call in user code!
+    void __spempeimpl_setDeactivationFlagForClient(hg::PZInteger aClientIdx, bool aFlag) const /*mutable*/;
+
+    //! \warning Internal implementation, do not call in user code!
+    bool __spempeimpl_getDeactivationFlagForClient(hg::PZInteger aClientIdx) const;
+
+    //! \warning Internal implementation, do not call in user code!
     void __spempeimpl_setSkipFlagForClient(hg::PZInteger aClientIdx, bool aFlag) const /*mutable*/;
 
     //! \warning Internal implementation, do not call in user code!
     bool __spempeimpl_getSkipFlagForClient(hg::PZInteger aClientIdx) const;
 
     //! \warning Internal implementation, do not call in user code!
-    void __spempeimpl_setDeactivationFlagForClient(hg::PZInteger aClientIdx, bool aFlag) const /*mutable*/;
+    void __spempeimpl_setNoDiffSkipFlagForClient(hg::PZInteger aClientIdx, bool aFlag) const /*mutable*/;
 
     //! \warning Internal implementation, do not call in user code!
-    bool __spempeimpl_getDeactivationFlagForClient(hg::PZInteger aClientIdx) const;
+    bool __spempeimpl_getNoDiffSkipFlagForClient(hg::PZInteger aClientIdx) const;
 
     //! \warning Internal implementation, do not call in user code!
     void __spempeimpl_setStateSchedulerDefaultDelay(hg::PZInteger aNewDefaultDelaySteps);
@@ -379,6 +384,7 @@ protected:
         }
 
         _ssch.scheduleNewStates();
+        _ssch.setIgnoreChainFlag(false);
     }
 
     void _setStateSchedulerDefaultDelay(hg::PZInteger aNewDefaultDelaySteps) override final {
@@ -422,6 +428,10 @@ public:
                 _ssch.putNewState(SchedulerPair{stateToSchedule, DummyStatus::active()}, aDelaySteps);
 
                 _deferredState = {stateToSchedule, aDelaySteps};
+            }
+            if (HasIgnoreChain(aFlags)) {
+                HG_LOG_INFO("SPeMPE", "IGNORE_CHAIN");
+                _ssch.setIgnoreChainFlag(true);
             }
             // Save the delay even if the server didn't send the pacemaker pulse:
             // sometimes dummies with alternating updates can trigger 'pacemaking'

@@ -23,6 +23,9 @@ enum class SyncFlags : detail::SyncFlagsUnderlyingType {
     //! be contained).
     FULL_STATE = 0x01,
 
+    //! TODO(description)
+    IGNORE_CHAIN = 0x40,
+
     //! Shows whether this update will be used as a pacemaker pulse on
     //! the client side. This information is mostly only useful to the
     //! engine itself.
@@ -41,11 +44,14 @@ SyncFlags operator&(SyncFlags aLhs, SyncFlags aRhs);
 //! Bitwise AND assignment operator.
 SyncFlags& operator&=(SyncFlags& aLhs, SyncFlags aRhs);
 
-//! Returns `true` if the `PacemakerPulse` bit is set in `aFlags`, `false` otherwise.
-bool HasPacemakerPulse(SyncFlags aFlags);
-
 //! Returns `true` if the `FullState` bit is set in `aFlags`, `false` otherwise.
 bool HasFullState(SyncFlags aFlags);
+
+//! TODO(desc)
+bool HasIgnoreChain(SyncFlags aFlags);
+
+//! Returns `true` if the `PacemakerPulse` bit is set in `aFlags`, `false` otherwise.
+bool HasPacemakerPulse(SyncFlags aFlags);
 
 //! Packing operator.
 hg::util::Packet& operator<<(hg::util::PacketExtender& aPacket, SyncFlags aFlags);
@@ -90,13 +96,18 @@ SyncFlags& operator&=(SyncFlags& aLhs, SyncFlags aRhs) {
 }
 
 inline
-bool HasPacemakerPulse(SyncFlags aFlags) {
-    return ((aFlags & SyncFlags::PACEMAKER_PULSE) != SyncFlags::NONE);
+bool HasFullState(SyncFlags aFlags) {
+    return ((aFlags & SyncFlags::FULL_STATE) != SyncFlags::NONE);
 }
 
 inline
-bool HasFullState(SyncFlags aFlags) {
-    return ((aFlags & SyncFlags::FULL_STATE) != SyncFlags::NONE);
+bool HasIgnoreChain(SyncFlags aFlags) {
+    return ((aFlags & SyncFlags::IGNORE_CHAIN) != SyncFlags::NONE);
+}
+
+inline
+bool HasPacemakerPulse(SyncFlags aFlags) {
+    return ((aFlags & SyncFlags::PACEMAKER_PULSE) != SyncFlags::NONE);
 }
 
 } // namespace spempe
