@@ -1,6 +1,7 @@
 #ifndef SPEMPE_GAME_OBJECT_FRAMEWORK_GAME_OBJECT_BASES_HPP
 #define SPEMPE_GAME_OBJECT_FRAMEWORK_GAME_OBJECT_BASES_HPP
 
+#include "SPeMPE/GameObjectFramework/Sync_flags.hpp"
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/QAO.hpp>
 #include <Hobgoblin/Utility/Dynamic_bitset.hpp>
@@ -384,7 +385,7 @@ protected:
         }
 
         _ssch.scheduleNewStates();
-        _ssch.setIgnoreChainFlag(false);
+        _ssch.setChainingBlueStatesAllowed(true);
     }
 
     void _setStateSchedulerDefaultDelay(hg::PZInteger aNewDefaultDelaySteps) override final {
@@ -405,7 +406,7 @@ public:
     void __spempeimpl_applyUpdate(const VisibleState& aNewState, hg::PZInteger aDelaySteps, SyncFlags aFlags) {
         VisibleState stateToSchedule = [this, &aNewState, aFlags]() {
             if constexpr (std::is_base_of<detail::AutodiffStateTag, VisibleState>::value) {
-                if (!HasFullState(aFlags)) {
+                if (!IsFullStateFlagSet(aFlags)) {
                     VisibleState state = _getLatestState();
                     state.applyDiff(aNewState);
                     return state;
@@ -414,7 +415,7 @@ public:
             return aNewState;
         }();
 
-        if (!HasPacemakerPulse(aFlags)) {
+        if (!IsPacemakerPulseFlagSet(aFlags)) {
         // NORMAL UPDATE
             if (!isUsingAlternatingUpdates()) {
                 _ssch.putNewState(SchedulerPair{stateToSchedule, DummyStatus::active()}, aDelaySteps);
@@ -429,9 +430,8 @@ public:
 
                 _deferredState = {stateToSchedule, aDelaySteps};
             }
-            if (HasIgnoreChain(aFlags)) {
-                HG_LOG_INFO("SPeMPE", "IGNORE_CHAIN");
-                _ssch.setIgnoreChainFlag(true);
+            if (IsNoChainFlagSet(aFlags)) {
+                _ssch.setChainingBlueStatesAllowed(false);
             }
             // Save the delay even if the server didn't send the pacemaker pulse:
             // sometimes dummies with alternating updates can trigger 'pacemaking'

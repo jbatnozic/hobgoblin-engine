@@ -36,6 +36,10 @@ public:
 
     void setDefaultDelay(PZInteger aNewDefaultDelay);
 
+    bool isChainingBlueStatesAllowed() const;
+
+    void setChainingBlueStatesAllowed(bool aChainingBlueStatesAllowed);
+
     void alignToDelay(PZInteger aDelay);
 
     // Access stored states:
@@ -54,10 +58,6 @@ public:
 
     typename std::vector<taState>::const_iterator cbegin() const;
     typename std::vector<taState>::const_iterator cend() const;
-
-    void setIgnoreChainFlag(bool aFlag) {
-        _ssch.setIgnoreChainFlag(aFlag);
-    }
 
 private:
     static constexpr auto LOG_ID = "VerboseStateScheduler";
@@ -133,6 +133,16 @@ PZInteger VerboseStateScheduler<taState>::getDefaultDelay() const noexcept {
 template <class taState>
 void VerboseStateScheduler<taState>::setDefaultDelay(PZInteger aNewDefaultDelay) {
     VSC_DO({ _ssch.setDefaultDelay(aNewDefaultDelay); });
+}
+
+template <class taState>
+bool VerboseStateScheduler<taState>::isChainingBlueStatesAllowed() const {
+    return _ssch.isChainingBlueStatesAllowed();
+}
+
+template <class taState>
+void VerboseStateScheduler<taState>::setChainingBlueStatesAllowed(bool aChainingBlueStatesAllowed) {
+    _ssch.setChainingBlueStatesAllowed(aChainingBlueStatesAllowed);
 }
 
 template <class taState>

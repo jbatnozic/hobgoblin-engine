@@ -90,67 +90,93 @@ void DefaultSyncDestroyHandler(hg::RN_NodeInterface& node, SyncId syncId) {
     });
 }
 
+//! Returns `true` if the referenced object was previously skipped or 
+//! deactivated for any of the clients to which we intend to send updates.
+template <class taSynchronizedObject>
+bool WasPreviouslySkippedOrDeactivated(const taSynchronizedObject& aObject,
+                                       const SyncControlDelegate& aSyncCtrl) {
+    for (const auto client : aSyncCtrl.getFilteredRecepients()) {
+        if (aObject.__spempeimpl_getNoDiffSkipFlagForClient(client) ||
+            aObject.__spempeimpl_getSkipFlagForClient(client) ||
+            aObject.__spempeimpl_getDeactivationFlagForClient(client)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+inline
+SyncFilterStatus GetLowestSetFilterStatus(SyncControlDelegate& aSyncCtrl) {
+    // This is a trick to sniff out the current status because ZERO won't ever
+    // be selected over any other status.
+    const auto result = aSyncCtrl.filter(
+        [](hg::PZInteger /* aClientIndex */) -> SyncFilterStatus {
+            return detail::SyncFilterStatus_ZERO;
+        });
+    return static_cast<SyncFilterStatus>(result);
+}
+
 //! Align the configuration of visible state and of the sync details before sending.
-//! Note: this only does something if the state is an autodiff state.
-template <class taSyncObj, class taAutodiffState>
-AutodiffPackMode AlignState_PreCompose(const taSyncObj& aObject,
+template <class taSynchronizedObject, class taAutodiffState>
+AutodiffPackMode AlignState_PreCompose(const taSynchronizedObject& aObject,
                                        taAutodiffState& aAutodiffState,
                                        SyncControlDelegate& aSyncCtrl,
                                        SyncFlags& aSyncFlags) {
+    // REGULAR STATE
+    if constexpr (!std::is_base_of<AutodiffStateTag, taAutodiffState>::value) {
+        if (WasPreviouslySkippedOrDeactivated(aObject, aSyncCtrl)) {
+            aSyncFlags |= SyncFlags::NO_CHAIN;
+        }
+        // The specific return value doesn't matter here
+        return AutodiffPackMode::Default;
+    }
+
+    // AUTODIFF STATE
     if constexpr (std::is_base_of<AutodiffStateTag, taAutodiffState>::value) {
         const auto previousPackMode = aAutodiffState.getPackMode();
 
-        // If a full state sync was requested by the engine, we must not
-        // filter out any recepients nor allow only the diff to be sent.
-        const bool diffAllowed = !HasFullState(aSyncFlags);
-        if (diffAllowed) {
-            //aAutodiffState.setPackMode(AutodiffPackMode::PackDiff);
-
-            auto filterResult = static_cast<int>(SyncFilterStatus::__spempeimpl_UNDEFINED);
-            if (aAutodiffState.cmp() == AUTODIFF_STATE_NO_CHANGE &&
-                aAutodiffState.getNoChangeStreakCount() >= 1) {
-                filterResult = 
-                    aSyncCtrl.filter([](hg::PZInteger /* aClientIndex */) -> SyncFilterStatus {
-                        return SyncFilterStatus::__spempeimpl_SKIP_NO_DIFF;
-                    });
-            } else {
-                // This is a trick to sniff out the current status because ZERO won't ever
-                // be selected over any other status.
-                filterResult = 
-                    aSyncCtrl.filter([](hg::PZInteger /* aClientIndex */) -> SyncFilterStatus {
-                        return SyncFilterStatus::__spempeimpl_ZERO;
-                    });
-            }
-
-            // Fixes Autodiff states in combination with regular skipping and deactivations
-            if (filterResult == static_cast<int>(SyncFilterStatus::__spempeimpl_FULL_STATE_SYNC)) {
-                aAutodiffState.setPackMode(AutodiffPackMode::PackAll);      
-            } if (filterResult == static_cast<int>(SyncFilterStatus::__spempeimpl_FULL_STATE_SYNC_NO_CHAIN)) {
-                aAutodiffState.setPackMode(AutodiffPackMode::PackAll);
-                aSyncFlags |= SyncFlags::IGNORE_CHAIN;
-            } else {
-                const auto& to = aObject;
-                for (const auto client : aSyncCtrl.getFilteredRecepients()) {
-                    if (to.__spempeimpl_getNoDiffSkipFlagForClient(client) ||
-                        to.__spempeimpl_getSkipFlagForClient(client) ||
-                        to.__spempeimpl_getDeactivationFlagForClient(client)) {
-                        aSyncFlags |= SyncFlags::IGNORE_CHAIN;
-                        break;
-                    }
-                }
-
-                aAutodiffState.setPackMode(AutodiffPackMode::PackDiff);
-            }
-        }
-        else {
+        if (IsFullStateFlagSet(aSyncFlags)) {
+            // If a full state sync was requested by the engine (to initialize
+            // a newly connected client), we must not filter out any recepients
+            // nor allow only the diff to be sent.
             aAutodiffState.setPackMode(AutodiffPackMode::PackAll);
+            aSyncFlags |= SyncFlags::NO_CHAIN;
+            return previousPackMode;
+        }
+
+        auto lowestStatus = detail::SyncFilterStatus_UNDEFINED;
+        if (aAutodiffState.cmp() == AUTODIFF_STATE_NO_CHANGE &&
+            aAutodiffState.getNoChangeStreakCount() >= 1) {
+            const auto result = aSyncCtrl.filter(
+                [](hg::PZInteger /* aClientIndex */) -> SyncFilterStatus {
+                    return detail::SyncFilterStatus_SKIP_NO_DIFF;
+                });
+            lowestStatus = static_cast<SyncFilterStatus>(result);
+        } else {
+            lowestStatus = GetLowestSetFilterStatus(aSyncCtrl);
+        }
+
+        switch (lowestStatus) {
+        case detail::SyncFilterStatus_RESUMING_SYNC:
+            aAutodiffState.setPackMode(AutodiffPackMode::PackAll);
+            // We already know from the result of filter() that the object was
+            // previously skipped or deactivated for at least one client.
+            aSyncFlags |= SyncFlags::NO_CHAIN;
+            break;
+
+        case SyncFilterStatus::REGULAR_SYNC:
+            aAutodiffState.setPackMode(AutodiffPackMode::PackDiff);
+            if (WasPreviouslySkippedOrDeactivated(aObject, aSyncCtrl)) {
+                aSyncFlags |= SyncFlags::NO_CHAIN;
+            }
+            break;
+        
+        default:
+            // Do nothing
+            break;
         }
 
         return previousPackMode;
-    }
-    else {
-        // The specific return value doesn't matter here
-        return AutodiffPackMode::Default;
     }
 }
 

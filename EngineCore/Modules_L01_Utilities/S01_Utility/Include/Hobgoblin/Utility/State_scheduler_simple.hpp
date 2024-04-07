@@ -34,7 +34,7 @@ namespace util {
 template <class taState>
 class SimpleStateScheduler {
 public:
-    SimpleStateScheduler(PZInteger aDefaultDelay);
+    SimpleStateScheduler(PZInteger aDefaultDelay, bool aChainingBlueStatesAllowed = true);
 
     // Main:
 
@@ -51,6 +51,10 @@ public:
     PZInteger getDefaultDelay() const noexcept;
 
     void setDefaultDelay(PZInteger aNewDefaultDelay);
+
+    bool isChainingBlueStatesAllowed() const;
+
+    void setChainingBlueStatesAllowed(bool aChainingBlueStatesAllowed);
 
     void alignToDelay(PZInteger aDelay);
 
@@ -71,10 +75,6 @@ public:
 
     typename std::vector<taState>::const_iterator cbegin() const;
     typename std::vector<taState>::const_iterator cend() const;
-
-    void setIgnoreChainFlag(bool aIgnoreChaining) {
-        _ignoreChaining = aIgnoreChaining;
-    }
 
 private:
     template <class T>
@@ -99,7 +99,7 @@ private:
     #define BLUE_POS_NONE (-2)
     int _bluePos = BLUE_POS_NONE;
 
-    bool _ignoreChaining = false;
+    bool _chainingBlueStatesAllowed;
 
     PZInteger _newStatesCount = 0;
     PZInteger _newStatesDelay = 0;
@@ -132,8 +132,10 @@ private:
 };
 
 template <class taState>
-SimpleStateScheduler<taState>::SimpleStateScheduler(PZInteger aDefaultDelay)
+SimpleStateScheduler<taState>::SimpleStateScheduler(PZInteger aDefaultDelay,
+                                                    bool aChainingBlueStatesAllowed)
     : _defaultDelay{aDefaultDelay}
+    , _chainingBlueStatesAllowed{aChainingBlueStatesAllowed}
 {
     // First half of the buffer is for the already scheduled states.
     // The second half is for the newly received ones.
@@ -182,7 +184,7 @@ void SimpleStateScheduler<taState>::scheduleNewStates() {
 
     // Determine where the oldest state should go
     int pos;
-    if (_ignoreChaining == false &&
+    if (_chainingBlueStatesAllowed &&
         _bluePos != BLUE_POS_NONE &&
         _newStatesCount + _bluePos < _individualBufferSize()) {
         // Classic StateScheduler behaviour (chain blue states)
@@ -292,6 +294,16 @@ void SimpleStateScheduler<taState>::setDefaultDelay(PZInteger aNewDefaultDelay) 
     for (PZInteger i = 0; i < _individualBufferSize(); i += 1) {
         _newStateAt(i) = latestState;
     }
+}
+
+template <class taState>
+bool SimpleStateScheduler<taState>::isChainingBlueStatesAllowed() const {
+    return _chainingBlueStatesAllowed;
+}
+
+template <class taState>
+void SimpleStateScheduler<taState>::setChainingBlueStatesAllowed(bool aChainingBlueStatesAllowed) {
+    _chainingBlueStatesAllowed = aChainingBlueStatesAllowed;
 }
 
 template <class taState>
