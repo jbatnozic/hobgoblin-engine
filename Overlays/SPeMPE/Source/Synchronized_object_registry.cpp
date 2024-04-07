@@ -102,6 +102,9 @@ public:
         if (aStatus == detail::SyncFilterStatus_SKIP_NO_DIFF) {
             HG_ASSERT(_forObject != nullptr);
             const auto client = _allRecepients[aIndex];
+            //! \warning We must NOT check for `__spempeimpl_getNoDiffSkipFlagForClient` below,
+            //!          because the object would enter a bad cycle of alternating skipping and
+            //!          resuming every other step!
             if (/*_forObject->__spempeimpl_getNoDiffSkipFlagForClient(client) ||*/
                 _forObject->__spempeimpl_getSkipFlagForClient(client) ||
                 _forObject->__spempeimpl_getDeactivationFlagForClient(client)) {
