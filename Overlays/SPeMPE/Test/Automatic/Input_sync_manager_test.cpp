@@ -12,7 +12,7 @@ using namespace hg::rn;
 
 class InputSyncManagerTest : public ::testing::Test {
 public:
-    void SetUp() {
+    void SetUp() override {
         RN_IndexHandlers();
     }
 
