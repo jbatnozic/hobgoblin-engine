@@ -92,7 +92,7 @@ private:
 
     hobgoblin::util::Packet _stateUpdates;
 
-    void _eventPostUpdate() override;
+    void _eventEndUpdate() override;
 
     static void _packValue(const std::string& aKey, 
                            std::int64_t aValue, 

@@ -35,11 +35,63 @@ MainGameplayManager::~MainGameplayManager() {
     ccomp<MNetworking>().removeEventListener(*this);
 }
 
+void MainGameplayManager::_eventUpdate1() {
+    if (ctx().isPrivileged()) {
+        auto& winMgr = ccomp<MWindow>();
+
+        const int MAX_BUFFERING_LENGTH = 10;
+        bool sync = false;
+
+        if (winMgr.getInput().checkPressed(hg::in::PK_I,
+                                           spe::WindowFrameInputView::Mode::Direct)) {
+            stateBufferingLength = (stateBufferingLength + 1) % (MAX_BUFFERING_LENGTH + 1);
+            sync = true;
+        }
+        if (winMgr.getInput().checkPressed(hg::in::PK_U,
+                                           spe::WindowFrameInputView::Mode::Direct)) {
+            stateBufferingLength = (stateBufferingLength + MAX_BUFFERING_LENGTH) % (MAX_BUFFERING_LENGTH + 1);
+            sync = true;
+        }
+
+        if (sync) {
+            HG_LOG_INFO(LOG_ID, "Global state buffering set to {} frames.", stateBufferingLength);
+            Compose_SetGlobalStateBufferingLength(
+                ccomp<MNetworking>().getNode(),
+                RN_COMPOSE_FOR_ALL,
+                stateBufferingLength
+            );
+        }
+
+        return;
+    }
+
+    if (!ctx().isPrivileged()) {
+        auto& client = ccomp<MNetworking>().getClient();
+        if (client.getServerConnector().getStatus() == RN_ConnectorStatus::Connected) {
+            const auto input = ccomp<MWindow>().getInput();
+            PlayerControls controls{
+                input.checkPressed(hg::in::PK_A),
+                input.checkPressed(hg::in::PK_D),
+                input.checkPressed(hg::in::PK_W),
+                input.checkPressed(hg::in::PK_S),
+                input.checkPressed(hg::in::PK_SPACE, spe::WindowFrameInputView::Mode::Edge)
+            };
+
+            spe::InputSyncManagerWrapper wrapper{ccomp<MInput>()};
+            wrapper.setSignalValue<bool>(CTRLNAME_LEFT,  controls.left);
+            wrapper.setSignalValue<bool>(CTRLNAME_RIGHT, controls.right);
+            wrapper.setSignalValue<bool>(CTRLNAME_UP,    controls.up);
+            wrapper.setSignalValue<bool>(CTRLNAME_DOWN,  controls.down);
+            wrapper.triggerEvent(CTRLNAME_JUMP, controls.jump);
+        }
+    }
+}
+
 void MainGameplayManager::_eventDrawGUI() {
     // Do nothing
 }
 
-void MainGameplayManager::_eventFinalizeFrame() {
+void MainGameplayManager::_eventPostUpdate() {
     const auto input = ccomp<MWindow>().getInput();
     if (input.checkPressed(hg::in::PK_F9, spe::WindowFrameInputView::Mode::Direct)) {
         // Stopping the context will delete:
@@ -81,57 +133,5 @@ void MainGameplayManager::onNetworkingEvent(const hg::RN_Event& aEvent) {
                 // TODO Remove player avatar
             }
         );
-    }
-}
-
-void MainGameplayManager::_eventUpdate() {
-    if (ctx().isPrivileged()) {
-        auto& winMgr = ccomp<MWindow>();
-
-        const int MAX_BUFFERING_LENGTH = 10;
-        bool sync = false;
-
-        if (winMgr.getInput().checkPressed(hg::in::PK_NUMPAD_PLUS,
-                                           spe::WindowFrameInputView::Mode::Direct)) {
-            stateBufferingLength = (stateBufferingLength + 1) % (MAX_BUFFERING_LENGTH + 1);
-            sync = true;
-        }
-        if (winMgr.getInput().checkPressed(hg::in::PK_NUMPAD_MINUS,
-                                           spe::WindowFrameInputView::Mode::Direct)) {
-            stateBufferingLength = (stateBufferingLength + MAX_BUFFERING_LENGTH) % (MAX_BUFFERING_LENGTH + 1);
-            sync = true;
-        }
-
-        if (sync) {
-            HG_LOG_INFO(LOG_ID, "Global state buffering set to {} frames.", stateBufferingLength);
-            Compose_SetGlobalStateBufferingLength(
-                ccomp<MNetworking>().getNode(),
-                RN_COMPOSE_FOR_ALL,
-                stateBufferingLength
-            );
-        }
-
-        return;
-    }
-
-    if (!ctx().isPrivileged()) {
-        auto& client = ccomp<MNetworking>().getClient();
-        if (client.getServerConnector().getStatus() == RN_ConnectorStatus::Connected) {
-            const auto input = ccomp<MWindow>().getInput();
-            PlayerControls controls{
-                input.checkPressed(hg::in::PK_A),
-                input.checkPressed(hg::in::PK_D),
-                input.checkPressed(hg::in::PK_W),
-                input.checkPressed(hg::in::PK_S),
-                input.checkPressed(hg::in::PK_SPACE, spe::WindowFrameInputView::Mode::Edge)
-            };
-
-            spe::InputSyncManagerWrapper wrapper{ccomp<MInput>()};
-            wrapper.setSignalValue<bool>(CTRLNAME_LEFT,  controls.left);
-            wrapper.setSignalValue<bool>(CTRLNAME_RIGHT, controls.right);
-            wrapper.setSignalValue<bool>(CTRLNAME_UP,    controls.up);
-            wrapper.setSignalValue<bool>(CTRLNAME_DOWN,  controls.down);
-            wrapper.triggerEvent(CTRLNAME_JUMP, controls.jump);
-        }
     }
 }

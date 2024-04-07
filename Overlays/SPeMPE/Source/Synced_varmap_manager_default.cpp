@@ -324,7 +324,7 @@ void DefaultSyncedVarmapManager::stringSetClientWritePermission(const std::strin
 // PRIVATE METHODS                                                       //
 ///////////////////////////////////////////////////////////////////////////
 
-void DefaultSyncedVarmapManager::_eventPostUpdate() {
+void DefaultSyncedVarmapManager::_eventEndUpdate() {
     using namespace hg::rn;
     if (_mode == Mode::Host) {
         Compose_USPEMPE_DefaultSyncedVarmapManager_SetValues(

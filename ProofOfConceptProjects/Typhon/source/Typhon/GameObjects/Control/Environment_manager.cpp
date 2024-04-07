@@ -211,7 +211,7 @@ void EnvironmentManager::onNetworkingEvent(const RN_Event& ev) {
     );
 }
 
-void EnvironmentManager::_eventPostUpdate() {
+void EnvironmentManager::_eventEndUpdate() {
     //_lightingCtrl.render();
     //_lightingCtrl.smooth();
 }

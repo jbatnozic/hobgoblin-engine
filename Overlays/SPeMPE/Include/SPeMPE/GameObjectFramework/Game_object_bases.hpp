@@ -111,38 +111,50 @@ protected:
     // These overloads will be called if the object is a Master object 
     // (that is, executing in a Privileged context).
 
-    virtual void _eventStartFrame(IfMaster)    {}
     virtual void _eventPreUpdate(IfMaster)     {}
-    virtual void _eventUpdate(IfMaster)        {}
+    virtual void _eventBeginUpdate(IfMaster)   {}
+    virtual void _eventUpdate1(IfMaster)       {}
+    virtual void _eventUpdate2(IfMaster)       {}
+    virtual void _eventEndUpdate(IfMaster)     {}
     virtual void _eventPostUpdate(IfMaster)    {}
+    virtual void _eventPreDraw(IfMaster)       {}
     virtual void _eventDraw1(IfMaster)         {}
     virtual void _eventDraw2(IfMaster)         {}
     virtual void _eventDrawGUI(IfMaster)       {}
-    virtual void _eventFinalizeFrame(IfMaster) {}
+    virtual void _eventPostDraw(IfMaster)      {}
+    virtual void _eventDisplay(IfMaster)       {}
 
     // These overloads will be called if the object is a Dummy object 
     // (that is, executing in a non-Privileged context).
 
-    virtual void _eventStartFrame(IfDummy)    {}
     virtual void _eventPreUpdate(IfDummy)     {}
-    virtual void _eventUpdate(IfDummy)        {}
+    virtual void _eventBeginUpdate(IfDummy)   {}
+    virtual void _eventUpdate1(IfDummy)       {}
+    virtual void _eventUpdate2(IfDummy)       {}
+    virtual void _eventEndUpdate(IfDummy)     {}
     virtual void _eventPostUpdate(IfDummy)    {}
+    virtual void _eventPreDraw(IfDummy)       {}
     virtual void _eventDraw1(IfDummy)         {}
     virtual void _eventDraw2(IfDummy)         {}
     virtual void _eventDrawGUI(IfDummy)       {}
-    virtual void _eventFinalizeFrame(IfDummy) {}
+    virtual void _eventPostDraw(IfDummy)      {}
+    virtual void _eventDisplay(IfDummy)       {}
 
     // If you override any of the below, the overloads above will not be used.
     // The same code will be executed on both ends.
 
-    void _eventStartFrame() override;
-    void _eventPreUpdate() override;
-    void _eventUpdate() override;
-    void _eventPostUpdate() override;
-    void _eventDraw1() override;
-    void _eventDraw2() override;
-    void _eventDrawGUI() override;
-    void _eventFinalizeFrame() override;
+    void _eventPreUpdate()   override;
+    void _eventBeginUpdate() override;
+    void _eventUpdate1()     override final;
+    void _eventUpdate2()     override;
+    void _eventEndUpdate()   override;
+    void _eventPostUpdate()  override;
+    void _eventPreDraw()     override;
+    void _eventDraw1()       override;
+    void _eventDraw2()       override;
+    void _eventDrawGUI()     override;
+    void _eventPostDraw()    override;
+    void _eventDisplay()     override;
 
     // Misc.
     bool _willUpdateDeleteThis() const;
@@ -202,43 +214,26 @@ public:
     virtual void __spempeimpl_deactivateSelfIn(hg::PZInteger aDelaySteps) = 0;
 
     //! \warning Internal implementation, do not call in user code!
-    void __spempeimpl_setSkipFlagForClient(hg::PZInteger aClientIdx, bool aFlag) const /*mutable*/;
-
-    //! \warning Internal implementation, do not call in user code!
-    bool __spempeimpl_getSkipFlagForClient(hg::PZInteger aClientIdx) const;
-
-    //! \warning Internal implementation, do not call in user code!
     void __spempeimpl_setDeactivationFlagForClient(hg::PZInteger aClientIdx, bool aFlag) const /*mutable*/;
 
     //! \warning Internal implementation, do not call in user code!
     bool __spempeimpl_getDeactivationFlagForClient(hg::PZInteger aClientIdx) const;
 
     //! \warning Internal implementation, do not call in user code!
+    void __spempeimpl_setSkipFlagForClient(hg::PZInteger aClientIdx, bool aFlag) const /*mutable*/;
+
+    //! \warning Internal implementation, do not call in user code!
+    bool __spempeimpl_getSkipFlagForClient(hg::PZInteger aClientIdx) const;
+
+    //! \warning Internal implementation, do not call in user code!
+    void __spempeimpl_setNoDiffSkipFlagForClient(hg::PZInteger aClientIdx, bool aFlag) const /*mutable*/;
+
+    //! \warning Internal implementation, do not call in user code!
+    bool __spempeimpl_getNoDiffSkipFlagForClient(hg::PZInteger aClientIdx) const;
+
+    //! \warning Internal implementation, do not call in user code!
     void __spempeimpl_setStateSchedulerDefaultDelay(hg::PZInteger aNewDefaultDelaySteps);
 };
-
-/*
-Note:
-    If an object drived from SynchronizedObject (below), and transitively from
-    SynchronizedObjectBase overrides _eventUpdate() (but not IfMaster/IfDummy overloads),
-    the dummy object won't behave properly unless you call the following code at the start
-    of its _eventUpdate() implementation:
-    
-    if (!isMasterObject()) {
-        const bool endOfLifetime = _willUpdateDeleteThis();
-        SynchronizedObjectBase::eventUpdate();
-        if (endOfLifetime) return;
-    }
-
-    This can be expressed with the macro SPEMPE_SYNCOBJ_BEGIN_EVENT_UPDATE_OVERRIDE().
-*/
-
-#define SPEMPE_SYNCOBJ_BEGIN_EVENT_UPDATE_OVERRIDE() \
-    do { if (!SynchronizedObjectBase::isMasterObject()) { \
-        const bool USPEMPE_endOfLifetime = SynchronizedObjectBase::_willUpdateDeleteThis(); \
-        SynchronizedObjectBase::_eventUpdate(); \
-        if (USPEMPE_endOfLifetime) return; \
-    } } while (false)
 
 //! Objects which are essential to the game's state, so they are both saved when
 //! writing game state, and synchronized with clients in multiplayer sessions.
@@ -276,6 +271,7 @@ protected:
                                )->getDefaultDelay()
         }
     {
+        _ssch.getCurrentState().status.isDeactivated = !isMasterObject();
     }
 
     taVisibleState& _getCurrentState() {
@@ -321,7 +317,7 @@ protected:
 
         friend
         std::ostream& operator<<(std::ostream& aOstream, const SchedulerPair& aSPair) {
-            return (aOstream << aSPair.visibleState << (aSPair.status.isDeactivated ? " [deactivated]" : " [active]"));
+            return (aOstream << aSPair.visibleState << (aSPair.status.isDeactivated ? " [D]" : ""));
         }
     };
 
@@ -364,6 +360,7 @@ protected:
         }
 
         _ssch.scheduleNewStates();
+        _ssch.setChainingBlueStatesAllowed(true);
     }
 
     void _setStateSchedulerDefaultDelay(hg::PZInteger aNewDefaultDelaySteps) override final {
@@ -384,7 +381,7 @@ public:
     void __spempeimpl_applyUpdate(const VisibleState& aNewState, hg::PZInteger aDelaySteps, SyncFlags aFlags) {
         VisibleState stateToSchedule = [this, &aNewState, aFlags]() {
             if constexpr (std::is_base_of<detail::AutodiffStateTag, VisibleState>::value) {
-                if (!HasFullState(aFlags)) {
+                if (!IsFullStateFlagSet(aFlags)) {
                     VisibleState state = _getLatestState();
                     state.applyDiff(aNewState);
                     return state;
@@ -393,9 +390,8 @@ public:
             return aNewState;
         }();
 
-        switch (HasPacemakerPulse(aFlags)) {
+        if (!IsPacemakerPulseFlagSet(aFlags)) {
         // NORMAL UPDATE
-        case false:
             if (!isUsingAlternatingUpdates()) {
                 _ssch.putNewState(SchedulerPair{stateToSchedule, DummyStatus::active()}, aDelaySteps);
             }
@@ -409,6 +405,9 @@ public:
 
                 _deferredState = {stateToSchedule, aDelaySteps};
             }
+            if (IsNoChainFlagSet(aFlags)) {
+                _ssch.setChainingBlueStatesAllowed(false);
+            }
             // Save the delay even if the server didn't send the pacemaker pulse:
             // sometimes dummies with alternating updates can trigger 'pacemaking'
             // themselves to get out of degenerate states, and then they will need
@@ -418,10 +417,8 @@ public:
                 // pulse actually affects the *following* update.
                 _pacemakerPulse.delay = aDelaySteps;
             //}
-            break;
-
+        } else {
         // PACEMAKER UPDATE
-        case true:
             if (!isUsingAlternatingUpdates()) {
                 _ssch.putNewState(SchedulerPair{stateToSchedule, DummyStatus::active()}, aDelaySteps);
             }
@@ -430,10 +427,6 @@ public:
             }
             _pacemakerPulse.happened = true;
             _pacemakerPulse.delay = aDelaySteps;
-            break;
-
-        default:
-            break;
         }
     }
 

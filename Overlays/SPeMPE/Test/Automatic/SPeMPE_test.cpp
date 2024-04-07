@@ -1,5 +1,4 @@
 
-#include "Hobgoblin/Common/Positive_or_zero_integer.hpp"
 #include <SPeMPE/SPeMPE.hpp>
 
 #include <Hobgoblin/Utility/Autopack.hpp>
@@ -163,18 +162,6 @@ public:
     }
 
 private:
-    // Make sure that state scheduling and company work properly even when _eventUpdate()
-    // is overriden, as long as SPEMPE_SYNCOBJ_BEGIN_EVENT_UPDATE_OVERRIDE() is called 
-    // at the start:
-    void _eventUpdate() override {
-        SPEMPE_SYNCOBJ_BEGIN_EVENT_UPDATE_OVERRIDE();
-
-        // Make sure nothing is executed after destruction:
-        // (SPEMPE_SYNCOBJ_BEGIN_EVENT_UPDATE_OVERRIDE() returns from current method
-        // if it deletes self.)
-        setName(getName());
-    }
-
     void _syncCreateImpl(SyncControlDelegate& aSyncCtrl) const override;
     void _syncUpdateImpl(SyncControlDelegate& aSyncCtrl) const override;
     void _syncDestroyImpl(SyncControlDelegate& aSyncCtrl) const override;
@@ -611,7 +598,7 @@ public:
         _getCurrentState().i1 = aValue;
     }
 
-    void _eventFinalizeFrame(IfMaster) override {
+    void _eventPostUpdate(IfMaster) override {
         _getCurrentState().commit();
     }
 

@@ -361,7 +361,7 @@ bool DefaultLobbyBackendManager::resetPendingChanges() {
     //    }
     //}
     //if (somethingDidChange) {
-    //    _eventPreUpdate(); // TODO
+    //    _eventBeginUpdate(); // TODO
     //}
     //return somethingDidChange;
 
@@ -552,28 +552,28 @@ std::string DefaultLobbyBackendManager::getEntireStateString() const {
 // PRIVATE METHODS                                                       //
 ///////////////////////////////////////////////////////////////////////////
 
-void DefaultLobbyBackendManager::_eventPreUpdate() {
+void DefaultLobbyBackendManager::_eventBeginUpdate() {
     switch (_mode) {
         case Mode::Host:
-            _eventPreUpdate_Host();
+            _eventBeginUpdate_Host();
             break;
 
         case Mode::Client:
-            _eventPreUpdate_Client();
+            _eventBeginUpdate_Client();
             break;
 
         default: {}
     }
 }
 
-void DefaultLobbyBackendManager::_eventFinalizeFrame() {
+void DefaultLobbyBackendManager::_eventPostUpdate() {
     if (!_eventQueue.empty()) {
         HG_LOG_WARN(LOG_ID, "Clearing events that weren't polled.");
         _eventQueue.clear();
     }
 }
 
-void DefaultLobbyBackendManager::_eventPreUpdate_Host() {
+void DefaultLobbyBackendManager::_eventBeginUpdate_Host() {
     auto& netMgr = ccomp<NetworkingManagerInterface>();
     auto& server = netMgr.getServer();
 
@@ -600,7 +600,7 @@ void DefaultLobbyBackendManager::_eventPreUpdate_Host() {
     }
 }
 
-void DefaultLobbyBackendManager::_eventPreUpdate_Client() {
+void DefaultLobbyBackendManager::_eventBeginUpdate_Client() {
     const auto& varmap = ccomp<SyncedVarmapManagerInterface>();
 
     // Check that size is correct and adjust if needed

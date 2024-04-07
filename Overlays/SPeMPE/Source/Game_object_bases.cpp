@@ -87,20 +87,11 @@ void SynchronizedObjectBase::_enableAlternatingUpdates() {
 }
 
 bool SynchronizedObjectBase::_didAlternatingUpdatesSync() const {
-    if (ctx().getQAORuntime().getCurrentEvent() != hg::QAO_Event::FinalizeFrame) {
+    if (ctx().getQAORuntime().getCurrentEvent() != hg::QAO_Event::POST_UPDATE) {
         HG_THROW_TRACED(hg::TracedLogicError, 0,
-                        "This method may only be called during the FinalizeFrame event.");
+                        "This method may only be called during the POST_UPDATE event.");
     }
     return _syncObjReg.getAlternatingUpdatesFlag();
-}
-
-void SynchronizedObjectBase::_eventStartFrame() {
-    if (isMasterObject()) {
-        _eventStartFrame(IfMaster{});
-    }
-    else {
-        _eventStartFrame(IfDummy{});
-    }
 }
 
 void SynchronizedObjectBase::_eventPreUpdate() {
@@ -112,9 +103,18 @@ void SynchronizedObjectBase::_eventPreUpdate() {
     }
 }
 
-void SynchronizedObjectBase::_eventUpdate() {
+void SynchronizedObjectBase::_eventBeginUpdate() {
     if (isMasterObject()) {
-        _eventUpdate(IfMaster{});
+        _eventBeginUpdate(IfMaster{});
+    }
+    else {
+        _eventBeginUpdate(IfDummy{});
+    }
+}
+
+void SynchronizedObjectBase::_eventUpdate1() {
+    if (isMasterObject()) {
+        _eventUpdate1(IfMaster{});
     }
     else {
         _advanceDummyAndScheduleNewStates();
@@ -127,7 +127,25 @@ void SynchronizedObjectBase::_eventUpdate() {
             return;
         }
 
-        _eventUpdate(IfDummy{});
+        _eventUpdate1(IfDummy{});
+    }
+}
+
+void SynchronizedObjectBase::_eventUpdate2() {
+    if (isMasterObject()) {
+        _eventUpdate2(IfMaster{});
+    }
+    else {
+        _eventUpdate2(IfDummy{});
+    }
+}
+
+void SynchronizedObjectBase::_eventEndUpdate() {
+    if (isMasterObject()) {
+        _eventEndUpdate(IfMaster{});
+    }
+    else {
+        _eventEndUpdate(IfDummy{});
     }
 }
 
@@ -137,6 +155,15 @@ void SynchronizedObjectBase::_eventPostUpdate() {
     }
     else {
         _eventPostUpdate(IfDummy{});
+    }
+}
+
+void SynchronizedObjectBase::_eventPreDraw() {
+    if (isMasterObject()) {
+        _eventPreDraw(IfMaster{});
+    }
+    else {
+        _eventPreDraw(IfDummy{});
     }
 }
 
@@ -167,12 +194,21 @@ void SynchronizedObjectBase::_eventDrawGUI() {
     }
 }
 
-void SynchronizedObjectBase::_eventFinalizeFrame() {
+void SynchronizedObjectBase::_eventPostDraw() {
     if (isMasterObject()) {
-        _eventFinalizeFrame(IfMaster{});
+        _eventPostDraw(IfMaster{});
     }
     else {
-        _eventFinalizeFrame(IfDummy{});
+        _eventPostDraw(IfDummy{});
+    }
+}
+
+void SynchronizedObjectBase::_eventDisplay() {
+    if (isMasterObject()) {
+        _eventDisplay(IfMaster{});
+    }
+    else {
+        _eventDisplay(IfDummy{});
     }
 }
 
@@ -188,22 +224,11 @@ void SynchronizedObjectBase::__spempeimpl_syncDestroyImpl(SyncControlDelegate& a
     _syncDestroyImpl(aSyncCtrl);
 }
 
-void SynchronizedObjectBase::__spempeimpl_setSkipFlagForClient(hg::PZInteger aClientIdx, bool aFlag) const {
-    const auto bitIdx = aClientIdx * 2;
-    if (aFlag) {
-        _remoteSyncStatuses.setBit(bitIdx);
-    } else {
-        _remoteSyncStatuses.clearBit(bitIdx);
-    }
-}
-
-bool SynchronizedObjectBase::__spempeimpl_getSkipFlagForClient(hg::PZInteger aClientIdx) const {
-    const auto bitIdx = aClientIdx * 2;
-    return _remoteSyncStatuses.getBit(bitIdx);
-}
+//! Deactivated, Skipped, Autodiff-Skipped
+#define PER_CLIENT_FLAG_COUNT 3
 
 void SynchronizedObjectBase::__spempeimpl_setDeactivationFlagForClient(hg::PZInteger aClientIdx, bool aFlag) const {
-    const auto bitIdx = (aClientIdx * 2) + 1;
+    const auto bitIdx = (aClientIdx * PER_CLIENT_FLAG_COUNT) + 0;
     if (aFlag) {
         _remoteSyncStatuses.setBit(bitIdx);
     } else {
@@ -212,7 +237,35 @@ void SynchronizedObjectBase::__spempeimpl_setDeactivationFlagForClient(hg::PZInt
 }
 
 bool SynchronizedObjectBase::__spempeimpl_getDeactivationFlagForClient(hg::PZInteger aClientIdx) const {
-    const auto bitIdx = (aClientIdx * 2) + 1;
+    const auto bitIdx = (aClientIdx * PER_CLIENT_FLAG_COUNT) + 0;
+    return _remoteSyncStatuses.getBit(bitIdx);
+}
+
+void SynchronizedObjectBase::__spempeimpl_setSkipFlagForClient(hg::PZInteger aClientIdx, bool aFlag) const {
+    const auto bitIdx = (aClientIdx * PER_CLIENT_FLAG_COUNT) + 1;
+    if (aFlag) {
+        _remoteSyncStatuses.setBit(bitIdx);
+    } else {
+        _remoteSyncStatuses.clearBit(bitIdx);
+    }
+}
+
+bool SynchronizedObjectBase::__spempeimpl_getSkipFlagForClient(hg::PZInteger aClientIdx) const {
+    const auto bitIdx = (aClientIdx * PER_CLIENT_FLAG_COUNT) + 1;
+    return _remoteSyncStatuses.getBit(bitIdx);
+}
+
+void SynchronizedObjectBase::__spempeimpl_setNoDiffSkipFlagForClient(hg::PZInteger aClientIdx, bool aFlag) const {
+    const auto bitIdx = (aClientIdx * PER_CLIENT_FLAG_COUNT) + 2;
+    if (aFlag) {
+        _remoteSyncStatuses.setBit(bitIdx);
+    } else {
+        _remoteSyncStatuses.clearBit(bitIdx);
+    }
+}
+
+bool SynchronizedObjectBase::__spempeimpl_getNoDiffSkipFlagForClient(hg::PZInteger aClientIdx) const {
+    const auto bitIdx = (aClientIdx * PER_CLIENT_FLAG_COUNT) + 2;
     return _remoteSyncStatuses.getBit(bitIdx);
 }
 

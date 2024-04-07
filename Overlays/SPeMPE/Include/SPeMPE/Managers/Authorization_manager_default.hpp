@@ -47,7 +47,7 @@ private:
 
     detail::PlayerInfoWithIndex _currentAuthorizedPlayer;
 
-    void _eventPreUpdate() override;
+    void _eventBeginUpdate() override;
 
     bool _hasCurrentlyAuthorizedPlayer() const;
     void _authorizePlayer(

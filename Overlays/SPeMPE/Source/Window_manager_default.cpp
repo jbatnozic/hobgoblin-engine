@@ -91,7 +91,7 @@ void DefaultWindowManager::setToNormalMode(const WindowConfig& aWindowConfig,
     _preciseTiming = aTimingConfig.preciseTiming;
 
     // TODO(temp.)
-    hg::math::Rectangle<float> visibleArea{0.f, 0.f, 1920.f, 1024.f};
+    hg::math::Rectangle<float> visibleArea{0.f, 0.f, w, h};
     _window->setView(hg::gr::View(visibleArea));
 }
 
@@ -107,7 +107,7 @@ void DefaultWindowManager::setToNormalMode(const WindowConfig& aWindowConfig,
 
 hg::gr::Canvas& DefaultWindowManager::getCanvas() {
     HG_HARD_ASSERT(!_headless && "Method not available in Headless mode.");
-    if (getRuntime()->getCurrentEvent() == hg::QAO_Event::DrawGUI) {
+    if (getRuntime()->getCurrentEvent() == hg::QAO_Event::DRAW_GUI) {
         return *_windowDrawBatcher;
     }
     else {
@@ -164,7 +164,7 @@ WindowFrameInputView DefaultWindowManager::getInput() const {
 // PRIVATE METHODS                                                       //
 ///////////////////////////////////////////////////////////////////////////
 
-void DefaultWindowManager::_eventPostUpdate() {
+void DefaultWindowManager::_eventPreDraw() {
     if (!_headless) {
         _mainRenderTexture->clear(hg::gr::COLOR_DARK_GRAY); // TODO Parametrize colour
     }
@@ -177,7 +177,7 @@ void DefaultWindowManager::_eventDraw2() {
     }
 }
 
-void DefaultWindowManager::_eventFinalizeFrame() {
+void DefaultWindowManager::_eventDisplay() {
     if (!_headless) {
         _finalizeFrameByDisplayingWindow();
     }

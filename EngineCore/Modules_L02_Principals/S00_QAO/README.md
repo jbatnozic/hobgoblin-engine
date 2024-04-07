@@ -18,50 +18,85 @@ times.
 ### Events
 There are a number of predefined events in QAO (in order in which they run):
 
-| # | Event         | Method                  |
-|---|---------------|-------------------------|
-| 1 | StartFrame    | `_eventStartFrame()`    |
-| 2 | PreUpdate     | `_eventPreUpdate()`     |
-| 3 | Update        | `_eventUpdate()`        |
-| 4 | PostUpdate    | `_eventPostUpdate()`    |
-| 5 | Draw1         | `_eventDraw1()`         |
-| 6 | Draw2         | `_eventDraw2()`         |
-| 7 | DrawGUI       | `_eventDrawGUI()`       |
-| 8 | FinalizeFrame | `_eventFinalizeFrame()` |
+|  # | Event         | Method                  | Step    |
+|----|---------------|-------------------------|---------|
+|  1 | PRE_UPDATE    | `_eventPreUpdate()`     | Update  |
+|  2 | BEGIN_UPDATE  | `_eventBeginUpdate()`   | Update  |
+|  3 | UPDATE_1      | `_eventUpdate1()`       | Update  |
+|  4 | UPDATE_2      | `_eventUpdate2()`       | Update  |
+|  5 | END_UPDATE    | `_eventEndUpdate()`     | Update  |
+|  6 | POST_UPDATE   | `_eventPostUpdate()`    | Update  |
+|  7 | PRE_DRAW      | `_eventPreDraw()`       | Draw    |
+|  8 | DRAW_1        | `_eventDraw1()`         | Draw    |
+|  9 | DRAW_2        | `_eventDraw2()`         | Draw    |
+| 10 | DRAW_GUI      | `_eventDrawGUI()`       | Draw    |
+| 11 | POST_DRAW     | `_eventPostDraw()`      | Draw    |
+| 12 | DISPLAY       | `_eventDisplay()`       | Display |
 
 **Note:** All of these methods are private. But don't worry, in C++ it is possible to override private methods
 (furthermore, it's a good practice).
 
 While you can write any code for any given event, each has a specific intended purpose, and you should stick to 
 these guidelines for best results:
-- **StartFrame:** For code that absolutely must execute before anything else. This is the least used event.
-- **PreUpdate:** Objects prepare for the upcoming Update - actions like gathering user input, reading network messages
-and similar are appropriate for this event. Objects should interact as little as possible here.
-- **Update:** This is the "main" event where most of the work happens. Ideally, all objects prepared themselves during
-`PreUpdate`, so they are free to interact with each other (including creating new objects or deleting existing ones).
-- **PostUpdate:** In this event, we process the results of the preceding `Update` event. In a multiplayer game, this
-would be where the server uploads updates to clients. You can also view it as a preparation for the `Draw*` events.
-Like in `PreUpdate`, interactions between objects should be minimal.
-- **Draw1:** The game world is drawn. You can have each object resposible for drawing its own state, or have one
-object that draws everything,
-- **Draw2:** Same as `Draw1` basically. But, because things drawn later appear on top of those drawn before, it can
-sometimes be useful to have 2 separate Draw events to it's easier to order everything properly.
-- **DrawGUI:** A GUI always goes on top of everything else, so it's natural to draw it last. (Also, it's worth noting
+- **PRE_UPDATE:** Event for code that absolutely must execute before anything else. You should rarely need this event.
+- **BEGIN_UPDATE:** Objects prepare for the upcoming Update(s) - actions like gathering user input, reading network
+messages and similar are appropriate for this event. Objects should interact as little as possible here.
+- **UPDATE_1/2:** These are the "main" events where most of the work happens. Ideally, all objects prepared themselves
+during `PRE_UPDATE` and `BEGIN_UPDATE`, so they are free to interact with each other (including creating new objects or
+deleting existing ones).
+- **END_UPDATE:** In this event, we process the results of the preceding `Update1/2` events. In a multiplayer game,
+this would be where the server uploads updates to clients. You can also view it as a preparation for the `Draw*`
+events. Like in `BEGIN_UPDATE`, interactions between objects should be minimal.
+- **POST_UDPATE:** This is another rarely needed event, sometimes used to 'clean up' the results of the whole
+Update step. Again, no object interactions are expected here.
+- **PRE_DRAW:** This is the analogue to `PRE_UPDATE` but for the drawing step; this event is used to prepare the game
+state for the drawing step, if needed (for example: clear the target window). No actual drawing should be performed
+in this event.
+- **DRAW_1/2:** In this event the game world is drawn. You can have each object resposible for drawing its own state,
+or have one object that draws everything. Both (`DRAW_1` and `DRAW_2`) events are functionally the same, but because
+things drawn later appear on top of those drawn before, it can sometimes be useful to have 2 separate drawing events
+so it's easier to order everything properly.
+- **DRAW_GUI:** A GUI always goes on top of everything else, so it's natural to draw it last. (Also, it's worth noting
 that a GUI is usually drawn relative to the 'window' coordinate system and not the 'game world' coordinate system.)
-- **FinalizeFrame:** Code that absolutely must run after everything else. Usually you'll only have 2 actions here: 
-display everything that was drawn onto the screen, and then wait some time so the next frame doesn't start too quickly
-(if we want a constant framerate).
+- **POST_DRAW:** No more actual drawing should be performed after `DRAW_GUI`, but `POST_DRAW` can be used to clean up
+after the drawing step if needed.
+- **DISPLAY:** Usually you'll only have two predefined actions in this event: 1) display everything that was drawn onto
+the screen; 2) if there is still time until the expected start of the next iteration, the program can sleep or wait for
+V-Sync. (Point 2 can be skipped in games with a variable timestep, though QAO was really made with a constant timestep
+in mind.)
 
-Typically, over the course of a single frame, all the events are run, in their order of appearance above. So, first
-`_eventStartFrame()` will be called for all objects in the runtime, then `_eventPreUpdate()` will be called for all
-objects in the runtime, and so on, until all events are finished. Then we start over from `StartFrame`, and repeat
-the cycle until the game ends and the program exits.
+Typically, over the course of a single iteration, all the events are run, in their order of appearance above. So, first
+`_eventPreUpdate()` will be called for all objects in the runtime, then `_eventBeginUpdate()` will be called for all
+objects in the runtime, and so on, until all events are finished. Then we start over from `_eventPreUpdate()`, and 
+repeat the cycle until the game ends and the program exits.
 
-#### A Note on Draw* events
-You should program your objects as if the 3 `Draw*` methods arent't guaranteed to run - in other words, don't put any
-critical logic in there. In some setups, `Draw*` events can sometimes skipped (for example, if the machine is slow
-and can't keep up, or the game simulates 120 frames per second but the monitor can only display 60, and so on). In
-others (windowless game servers), they may not be run at all, ever.
+#### Logical Steps
+
+As shown in the table above, the events are split into three logical groups: **Update**, **Draw** and **Display**.
+Now, the QAO library itself doesn't implement any event loop, but there are recommendations as to how it should be
+used for best results (and that's the way it's implemented in
+[SPeMPE](https://github.com/jbatnozic/Hobgoblin/tree/master/Overlays/SPeMPE)).
+- The **Update** step is the "meat" of your program - all critical logic happens in here. In a fixed timestep loop
+(such as what SPeMPE implements), the program should prioritize invoking the step method a constant number of times
+per second (60 or 120 for example) and with as even cadence as possible (ideally you want exactly 1/60th of a
+second to pass between every start of an Update step in a 60fps game). A case which is the same for both fixed and
+variable timestep is when the host machine isn't fast enough to produce the required framerate - in this case the
+Update step should just be called as fast as possible.
+- The **Draw** step should be used exclusively for drawing stuff onto the screen, _and_ what's drawn should be
+dependent only on the results produced in the Update step. The reason for this is that the Draw step isn't
+guaranteed to run every time an Update step finishes. For example, if a game with V-Sync that's designed to run at
+120fps is running on a monitor that can only display 60fps, it makes sense to do 2 Update steps per one Draw/Display
+step. On the other hand, on a slow computer that's struggling to produce the correct framerate, the game engine may
+decide to occasionally skip the Draw step in an effort to keep up. Finally, in some deployments, such as headless
+game servers, the Draw step could be just not run at all, ever. This is why any code in the Draw step should only
+read, but not change the game state - otherwise some of the usecases described above may be broken.
+- The main purpose of the **Display** step (hence the name) is to just display whatever was drawn in the Draw step
+onto the screen, and that's almost all there is to it. On the other hand, despite the name, the Display step should
+run even on deployments (again, such as headless game servers) that don't draw/display anything (and maybe don't even
+open a window at all). A game running on a computer that's much faster than the game required will end up going
+through the Display step multiple times between two consecutive Update/Draw steps. A way to avoid this is to wait
+for V-Sync or otherwise make the program sleep in the Display step. This is why the Display step should run even
+on headless deployments - in this way we can have the timing code universally in the same place.ß
 
 ### Game objects
 Apart from their specific implementations of event methods, different game objects have a few more important values:
@@ -223,8 +258,9 @@ for (int i = 0; i < 10; i += 1) {
 Most commonly, you'll be running the `startStep()`/`advanceStep()` combo in an infinite loop, and break only when
 some external condition is met (user clicked X, pressed Escape, etc). However, QAO itself doesn't keep track of time
 at all. If you want a consistent framerate (for example, if your game doesn't use delta time), it is up to you to 
-implement vSync or some other timing mechanism. [SPeMPE](https://github.com/jbatnozic/Hobgoblin#hobgoblin)'s
-`WindowManager` can also help with this.
+implement vSync or some other timing mechanism.
+[SPeMPE](https://github.com/jbatnozic/Hobgoblin/tree/master/Overlays/SPeMPE)'s `WindowManager` can also help with
+this.
 
 ### Inspecting objects within a runtime
 **(TODO)**

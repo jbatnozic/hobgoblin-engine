@@ -20,7 +20,7 @@ QAO_Runtime::QAO_Runtime()
 
 QAO_Runtime::QAO_Runtime(util::AnyPtr userData)
     : _step_counter{MIN_STEP_ORDINAL + 1}
-    , _current_event{QAO_Event::NoEvent}
+    , _current_event{QAO_Event::NONE}
     , _step_orderer_iterator{_orderer.end()}
     , _user_data{userData}
 {
@@ -171,7 +171,7 @@ void QAO_Runtime::updateExecutionPriorityForObject(QAO_Base* object, int newPrio
 // Execution
 
 void QAO_Runtime::startStep() {
-    _current_event = QAO_Event::StartFrame;
+    _current_event = QAO_Event::PRE_UPDATE;
     _step_orderer_iterator = _orderer.begin();
 }
 
@@ -180,7 +180,7 @@ void QAO_Runtime::advanceStep(bool& done, std::int32_t eventFlags) {
     QAO_OrdererIterator& curr = _step_orderer_iterator;
 
     //-----------------------------------------//
-    for (std::int32_t i = _current_event; i < QAO_Event::Count; i += 1) {
+    for (std::int32_t i = _current_event; i < QAO_Event::EVENT_COUNT; i += 1) {
         if ((eventFlags & (1 << i)) == 0) {
             continue;
         }
@@ -214,7 +214,7 @@ void QAO_Runtime::advanceStep(bool& done, std::int32_t eventFlags) {
     }
     //-----------------------------------------//
 
-    _current_event = QAO_Event::NoEvent;
+    _current_event = QAO_Event::NONE;
     done = true;
 }
 

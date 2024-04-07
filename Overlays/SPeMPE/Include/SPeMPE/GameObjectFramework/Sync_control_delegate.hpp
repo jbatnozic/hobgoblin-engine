@@ -27,25 +27,28 @@ enum class SyncFilterStatus {
     REGULAR_SYNC   = 10, //! Sync whole state of this object (default behaviour)
     SKIP           = 20, //! Don't send anything during this update (no change)
     DEACTIVATE     = 30, //! Don't send anything and deactivate the remote dummy
-
-    //! Has a priority of 0, meaning it will never be selected. It can be used
-    //! together with filter() to get the currently set status.
-    //! \warning FOR INTERNAL ENGINE USE ONLY
-    __spempeimpl_ZERO = 0,
-
-    //! Similar to REGULAR_SYNC but will force even Autodiff states to send
-    //! full states and not just diffs.
-    //! \warning FOR INTERNAL ENGINE USE ONLY
-    __spempeimpl_FULL_STATE_SYNC = 5,
-
-    //! Skip the sync on account of an Autodiff state without any changes.
-    //! \warning FOR INTERNAL ENGINE USE ONLY
-    __spempeimpl_SKIP_NO_DIFF = 15,
-
-    //! Value that will never be set as a status towards a real client.
-    //! \warning FOR INTERNAL ENGINE USE ONLY
-    __spempeimpl_UNDEFINED = 99
 };
+
+// Additional (engine-internal) values for SyncFilterStatus
+namespace detail {
+//! Has a priority of 0, meaning it will never be selected. It can be used
+//! together with filter() to get the currently set status.
+constexpr auto SyncFilterStatus_ZERO          = static_cast<SyncFilterStatus>(0);
+
+//! Used for a first regular update after a period of being skipped or deactivated.
+//! This status will make the engine send the NO_CHAIN sync flag to prevent the
+//! client from chaining it with existing blue states (if any).
+//! With Autodiff states, this status will force them to send a full state and not
+//! just a diff.
+constexpr auto SyncFilterStatus_RESUMING_SYNC = static_cast<SyncFilterStatus>(5);
+
+//! (Autodiff states only) Skip the sync on account of having no changes since the
+//! last commit.
+constexpr auto SyncFilterStatus_SKIP_NO_DIFF  = static_cast<SyncFilterStatus>(15);
+
+//! Value that will never be set as a status towards a real client.
+constexpr auto SyncFilterStatus_UNDEFINED     = static_cast<SyncFilterStatus>(99);
+} // namespace detail
 
 //! Allows users to control how their synchronized objects are synced to
 //! individual clients.
@@ -104,7 +107,7 @@ int SyncControlDelegate::fnfilter(
 
 template <class taCallable>
 int SyncControlDelegate::filter(taCallable&& aCallable) {
-    auto result = static_cast<int>(SyncFilterStatus::__spempeimpl_UNDEFINED);
+    auto result = static_cast<int>(detail::SyncFilterStatus_UNDEFINED);
     const auto& allRecepients = getAllRecepients();
     for (std::size_t i = 0; i < allRecepients.size(); i += 1) {
         const auto applied = _applyFilterStatus(i, aCallable(allRecepients[i]));

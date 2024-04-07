@@ -133,7 +133,7 @@ void GameplayManager::_eventUpdate() {
     view.move({moveSpeed * static_cast<float>(right - left), moveSpeed * static_cast<float>(down - up)});
 }
 
-void GameplayManager::_eventPostUpdate() {
+void GameplayManager::_eventEndUpdate() {
     cpSpaceStep(ctx(DPhysicsSpace), ctx().getRuntimeConfig().getDeltaTime().count());
 }
 

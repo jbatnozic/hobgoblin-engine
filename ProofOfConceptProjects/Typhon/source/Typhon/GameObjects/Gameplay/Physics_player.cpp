@@ -287,7 +287,7 @@ void PhysicsPlayer::_eventUpdate() {
     }
 }
 
-void PhysicsPlayer::_eventPostUpdate() {
+void PhysicsPlayer::_eventEndUpdate() {
     auto& self = _ssch.getCurrentState();
     if (ctx().isPrivileged()) {
         auto physicsPos = cpBodyGetPosition(_body.get());

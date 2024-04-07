@@ -32,7 +32,7 @@ public:
 protected:
     void onNetworkingEvent(const RN_Event& ev);
 
-    void _eventPostUpdate() override;
+    void _eventEndUpdate() override;
     void _eventDraw1() override;
 
 private:
