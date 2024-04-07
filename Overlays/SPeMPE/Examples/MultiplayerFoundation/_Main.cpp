@@ -69,7 +69,7 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
                 FRAMERATE,
                 false,                                           /* Framerate limiter */
                 (aGameMode == GameMode::Server) ? false : true , /* V-Sync */
-                (aGameMode == GameMode::Server) ? true : true   /* Precise timing */
+                (aGameMode == GameMode::Server) ? true : true    /* Precise timing */
             }
         );
 

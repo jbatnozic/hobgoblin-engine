@@ -116,36 +116,45 @@ SyncFilterStatus GetLowestSetFilterStatus(SyncControlDelegate& aSyncCtrl) {
 }
 
 //! Align the configuration of visible state and of the sync details before sending.
-template <class taSynchronizedObject, class taAutodiffState>
+//! 
+//! \param aObject Synchronized object currently being synced.
+//! \param aVisibleState Current visible state of the synchronized object.
+//! \param aSyncCtrl SyncControlDelegate for the current sync.
+//! \param aSyncFlags Pointer to a variable of type `SyncFlags`. This function will
+//!                   fill this variable with a `SyncFlags` value that MUST be used
+//!                   for the sync to follow.
+template <class taSynchronizedObject, class taVisisbleState>
 AutodiffPackMode AlignState_PreCompose(const taSynchronizedObject& aObject,
-                                       taAutodiffState& aAutodiffState,
+                                       taVisisbleState& aVisibleState,
                                        SyncControlDelegate& aSyncCtrl,
-                                       SyncFlags& aSyncFlags) {
+                                       SyncFlags* aSyncFlags) {
+    *aSyncFlags = aSyncCtrl.getSyncFlags();
+
     // REGULAR STATE
-    if constexpr (!std::is_base_of<AutodiffStateTag, taAutodiffState>::value) {
+    if constexpr (!std::is_base_of<AutodiffStateTag, taVisisbleState>::value) {
         if (WasPreviouslySkippedOrDeactivated(aObject, aSyncCtrl)) {
-            aSyncFlags |= SyncFlags::NO_CHAIN;
+            *aSyncFlags |= SyncFlags::NO_CHAIN;
         }
         // The specific return value doesn't matter here
         return AutodiffPackMode::Default;
     }
 
     // AUTODIFF STATE
-    if constexpr (std::is_base_of<AutodiffStateTag, taAutodiffState>::value) {
-        const auto previousPackMode = aAutodiffState.getPackMode();
+    if constexpr (std::is_base_of<AutodiffStateTag, taVisisbleState>::value) {
+        const auto previousPackMode = aVisibleState.getPackMode();
 
-        if (IsFullStateFlagSet(aSyncFlags)) {
+        if (IsFullStateFlagSet(*aSyncFlags)) {
             // If a full state sync was requested by the engine (to initialize
             // a newly connected client), we must not filter out any recepients
             // nor allow only the diff to be sent.
-            aAutodiffState.setPackMode(AutodiffPackMode::PackAll);
-            aSyncFlags |= SyncFlags::NO_CHAIN;
+            aVisibleState.setPackMode(AutodiffPackMode::PackAll);
+            *aSyncFlags |= SyncFlags::NO_CHAIN;
             return previousPackMode;
         }
 
         auto lowestStatus = detail::SyncFilterStatus_UNDEFINED;
-        if (aAutodiffState.cmp() == AUTODIFF_STATE_NO_CHANGE &&
-            aAutodiffState.getNoChangeStreakCount() >= 1) {
+        if (aVisibleState.cmp() == AUTODIFF_STATE_NO_CHANGE &&
+            aVisibleState.getNoChangeStreakCount() >= 1) {
             const auto result = aSyncCtrl.filter(
                 [](hg::PZInteger /* aClientIndex */) -> SyncFilterStatus {
                     return detail::SyncFilterStatus_SKIP_NO_DIFF;
@@ -157,16 +166,18 @@ AutodiffPackMode AlignState_PreCompose(const taSynchronizedObject& aObject,
 
         switch (lowestStatus) {
         case detail::SyncFilterStatus_RESUMING_SYNC:
-            aAutodiffState.setPackMode(AutodiffPackMode::PackAll);
+            aVisibleState.setPackMode(AutodiffPackMode::PackAll);
             // We already know from the result of filter() that the object was
             // previously skipped or deactivated for at least one client.
-            aSyncFlags |= SyncFlags::NO_CHAIN;
+            *aSyncFlags |= SyncFlags::NO_CHAIN;
             break;
 
         case SyncFilterStatus::REGULAR_SYNC:
-            aAutodiffState.setPackMode(AutodiffPackMode::PackDiff);
             if (WasPreviouslySkippedOrDeactivated(aObject, aSyncCtrl)) {
-                aSyncFlags |= SyncFlags::NO_CHAIN;
+                aVisibleState.setPackMode(AutodiffPackMode::PackAll);
+                *aSyncFlags |= SyncFlags::NO_CHAIN;
+            } else {
+                aVisibleState.setPackMode(AutodiffPackMode::PackDiff);
             }
             break;
         
@@ -269,17 +280,17 @@ T& StripConstFromRef(const T& aRef) {
 //! Note: Will properly detect and handle autodiff objects.
 #define SPEMPE_SYNC_UPDATE_DEFAULT_IMPL(_class_name_, _sync_ctrl_) \
     do { \
-        auto __spempeImpl_syncFlags = (_sync_ctrl_).getSyncFlags(); \
+        ::jbatnozic::spempe::SyncFlags __spempeImpl_localSyncFlags; \
         const auto __spempeimpl_oldPackMode = ::jbatnozic::spempe::detail::AlignState_PreCompose( \
             *this, \
             ::jbatnozic::spempe::detail::StripConstFromRef(_getCurrentState()), \
             _sync_ctrl_, \
-            __spempeImpl_syncFlags \
+            &__spempeImpl_localSyncFlags \
         ); \
         Compose_USPEMPE_Update##_class_name_((_sync_ctrl_).getLocalNode(), \
                                              (_sync_ctrl_).getFilteredRecepients(), \
                                              this->getSyncId(), \
-                                             __spempeImpl_syncFlags, \
+                                             __spempeImpl_localSyncFlags, \
                                              _getCurrentState()); \
         ::jbatnozic::spempe::detail::AlignState_PostCompose( \
             ::jbatnozic::spempe::detail::StripConstFromRef(_getCurrentState()), \

@@ -1,4 +1,4 @@
-#include "Hobgoblin/Logging/Severity.hpp"
+
 #include <SPeMPE/SPeMPE.hpp>
 #include <Hobgoblin/Logging.hpp>
 #include <Hobgoblin/Utility/Time_utils.hpp>
@@ -12,7 +12,7 @@
 namespace jbatnozic {
 namespace spempe {
 
-static constexpr auto LOG_ID = "SPeMPE.Test";
+static constexpr auto LOG_ID = "SPeMPE.AutomaticTest";
 
 template <class taDuration>
 double SecondsCnt(taDuration aDuration) {
