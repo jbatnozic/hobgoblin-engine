@@ -1,12 +1,10 @@
 #ifndef SPEMPE_GAME_OBJECT_FRAMEWORK_GAME_OBJECT_BASES_HPP
 #define SPEMPE_GAME_OBJECT_FRAMEWORK_GAME_OBJECT_BASES_HPP
 
-#include "SPeMPE/GameObjectFramework/Sync_flags.hpp"
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/QAO.hpp>
 #include <Hobgoblin/Utility/Dynamic_bitset.hpp>
 #include <Hobgoblin/Utility/State_scheduler_simple.hpp>
-#include <Hobgoblin/Utility/State_scheduler_verbose.hpp> // TEMP
 #include <SPeMPE/GameContext/Game_context.hpp>
 #include <SPeMPE/GameObjectFramework/Autodiff_state.hpp>
 #include <SPeMPE/GameObjectFramework/Synchronized_object_registry.hpp>
@@ -237,29 +235,6 @@ public:
     void __spempeimpl_setStateSchedulerDefaultDelay(hg::PZInteger aNewDefaultDelaySteps);
 };
 
-/*
-Note:
-    If an object drived from SynchronizedObject (below), and transitively from
-    SynchronizedObjectBase overrides _eventUpdate() (but not IfMaster/IfDummy overloads),
-    the dummy object won't behave properly unless you call the following code at the start
-    of its _eventUpdate() implementation:
-    
-    if (!isMasterObject()) {
-        const bool endOfLifetime = _willUpdateDeleteThis();
-        SynchronizedObjectBase::eventUpdate();
-        if (endOfLifetime) return;
-    }
-
-    This can be expressed with the macro SPEMPE_SYNCOBJ_BEGIN_EVENT_UPDATE_OVERRIDE().
-*/
-// todo remove
-#define SPEMPE_SYNCOBJ_BEGIN_EVENT_UPDATE_OVERRIDE() \
-    do { if (!SynchronizedObjectBase::isMasterObject()) { \
-        const bool USPEMPE_endOfLifetime = SynchronizedObjectBase::_willUpdateDeleteThis(); \
-        SynchronizedObjectBase::_eventUpdate(); \
-        if (USPEMPE_endOfLifetime) return; \
-    } } while (false)
-
 //! Objects which are essential to the game's state, so they are both saved when
 //! writing game state, and synchronized with clients in multiplayer sessions.
 //! For example, units, terrain, interactible items (and, basically, most other 
@@ -342,7 +317,7 @@ protected:
 
         friend
         std::ostream& operator<<(std::ostream& aOstream, const SchedulerPair& aSPair) {
-            return (aOstream << aSPair.visibleState << (aSPair.status.isDeactivated ? " [D/A]" : ""));
+            return (aOstream << aSPair.visibleState << (aSPair.status.isDeactivated ? " [D]" : ""));
         }
     };
 

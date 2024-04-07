@@ -1,7 +1,6 @@
 #ifndef SPEMPE_GAME_OBJECT_FRAMEWORK_DEFAULT_SYNC_IMPL_HPP
 #define SPEMPE_GAME_OBJECT_FRAMEWORK_DEFAULT_SYNC_IMPL_HPP
 
-#include "SPeMPE/GameObjectFramework/Sync_flags.hpp"
 #include <Hobgoblin/QAO.hpp>
 #include <Hobgoblin/RigelNet.hpp>
 #include <Hobgoblin/RigelNet_macros.hpp>

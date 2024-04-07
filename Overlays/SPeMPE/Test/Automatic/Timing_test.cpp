@@ -65,7 +65,7 @@ TEST(SPeMPE_TimingTest,
     EXPECT_EQ(context.runFor(-1), 0);
 
     EXPECT_NEAR(
-        context.getCurrentStepOrdinal(),
+        context.getCurrentIterationOrdinal(),
         // Need to add +1 because the delta time comes *between* every two steps,
         // so in a timeframe of N delta times, we get N+1 steps.
         static_cast<int>(SecondsCnt(TEST_DURATION) * DESIRED_FRAMERATE) + 1,
@@ -74,7 +74,7 @@ TEST(SPeMPE_TimingTest,
 
     helper.join();
 
-    HG_LOG_INFO(LOG_ID, "stepOrdinal={}.", context.getCurrentStepOrdinal());
+    HG_LOG_INFO(LOG_ID, "stepOrdinal={}.", context.getCurrentIterationOrdinal());
 }
 
 } // spempe

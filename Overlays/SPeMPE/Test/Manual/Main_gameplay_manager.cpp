@@ -14,7 +14,7 @@ static constexpr auto LOG_ID = "SPeMPE.ManualTest";
 void MainGameplayManagerBase::_eventPreUpdate() {
     if (_periodicStopwatch.getElapsedTime() >= std::chrono::seconds{5}) {
         const auto time = _periodicStopwatch.restart<std::chrono::milliseconds>();
-        const auto cycles = ctx().getCurrentStepOrdinal();
+        const auto cycles = ctx().getCurrentIterationOrdinal();
 
         const auto expectedCycles =
             _totalStopwatch.getElapsedTime<std::chrono::milliseconds>().count() / 1000.0 * DESIRED_FRAMERATE;

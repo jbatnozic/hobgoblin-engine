@@ -1,10 +1,9 @@
 
-#include "Hobgoblin/Logging/User_macros.hpp"
-#include "Hobgoblin/Utility/Time_utils.hpp"
 #include <SPeMPE/GameContext/Game_context.hpp>
 
 #include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Logging.hpp>
+#include <Hobgoblin/Utility/Time_utils.hpp>
 
 #include <algorithm>
 #include <chrono>
@@ -106,10 +105,10 @@ std::string GameContext::getComponentTableString(char aSeparator) const {
 // EXECUTION                                                             //
 ///////////////////////////////////////////////////////////////////////////
 
-int GameContext::runFor(int aSteps) {
+int GameContext::runFor(int aIterations) {
     int rv;
     _quit.store(false);
-    _runImpl(this, aSteps, &rv);
+    _runImpl(this, &rv, aIterations);
     return rv;
 }
 
@@ -126,8 +125,8 @@ const GameContext::PerformanceInfo& GameContext::getPerformanceInfo() const {
     return _performanceInfo;
 }
 
-hg::PZInteger GameContext::getCurrentStepOrdinal() const {
-    return _stepOrdinal;
+std::uint64_t GameContext::getCurrentIterationOrdinal() const {
+    return _iterationCounter;
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -168,7 +167,7 @@ GameContext* GameContext::getChildContext() const {
     return _childContext.get();
 }
 
-void GameContext::startChildContext(int aSteps) {
+void GameContext::startChildContext(int aIterations) {
     if (!hasChildContext()) {
         HG_THROW_TRACED(hg::TracedLogicError, 0,
                         "No child context is currently attached");
@@ -180,8 +179,9 @@ void GameContext::startChildContext(int aSteps) {
     }
 
     _childContext->_quit.store(false);
-    _childContextThread =
-        std::thread{_runImpl, _childContext.get(), aSteps, &_childContextReturnValue, false};
+    _childContextThread = std::thread{
+        _runImpl, _childContext.get(), &_childContextReturnValue, aIterations, false
+    };
 }
 
 int GameContext::stopAndJoinChildContext() {
@@ -259,7 +259,6 @@ constexpr std::int32_t QAO_EVENT_MASK_ALL_EXCEPT_DRAW_AND_DISPLAY = QAO_EVENT_MA
 using TimingDuration = std::chrono::duration<double, std::micro>;
 using std::chrono::milliseconds;
 using std::chrono::microseconds;
-using std::chrono::steady_clock;
 using std::chrono::duration_cast;
 
 template <class taDuration>
@@ -269,14 +268,14 @@ double MsCount(taDuration aDuration) {
 } // namespace
 
 void GameContext::_runImpl(hg::NotNull<GameContext*> aContext,
-                           int aMaxSteps,
                            hg::NotNull<int*> aReturnValue,
+                           int aMaxIterations,
                            bool aDebugLoggingActive) {
     using hobgoblin::util::Stopwatch;
     #define DebugLog(...) \
         do { if (aDebugLoggingActive) HG_LOG_DEBUG(LOG_ID, __VA_ARGS__); } while (false)
 
-    if (aMaxSteps == 0) {
+    if (aMaxIterations == 0) {
         (*aReturnValue) = 0;
         return;
     }
@@ -288,15 +287,15 @@ void GameContext::_runImpl(hg::NotNull<GameContext*> aContext,
              maxConsecutiveSteps,
              MsCount(deltaTime));
 
-    hg::PZInteger stepsCovered = 0;
+    int iterationsCovered = 0;
     TimingDuration accumulator = deltaTime;
     Stopwatch frameToFrameStopwatch;
 
     while (true) {    
-        DebugLog("_runImpl - CYCLE start");
+        DebugLog("_runImpl - ITERATION start");
 
-        if (aMaxSteps > 0 && stepsCovered >= aMaxSteps) {
-            DebugLog("_runImpl - Outer while loop breaking because aMaxSteps was reached.");
+        if (aMaxIterations > 0 && iterationsCovered >= aMaxIterations) {
+            DebugLog("_runImpl - Outer while loop breaking because aMaxIterations was reached.");
             break;
         }
         if (aContext->_quit.load()) {
@@ -304,10 +303,10 @@ void GameContext::_runImpl(hg::NotNull<GameContext*> aContext,
             break;
         }
 
-        bool didAtLeastOneStep = false;
+        aContext->_performanceInfo.consecutiveUpdateSteps = 0;
         for (int i = 0; i < maxConsecutiveSteps; i += 1) {
-            if (aMaxSteps > 0 && stepsCovered >= aMaxSteps) {
-                DebugLog("_runImpl - Inner for loop breaking because aMaxSteps was reached.");
+            if (aMaxIterations > 0 && iterationsCovered >= aMaxIterations) {
+                DebugLog("_runImpl - Inner for loop breaking because aMaxIterations was reached.");
                 break;
             }
             if (accumulator < deltaTime) {
@@ -320,36 +319,47 @@ void GameContext::_runImpl(hg::NotNull<GameContext*> aContext,
                 break;
             }
 
+            aContext->_performanceInfo.consecutiveUpdateSteps += 1;
+
             // UPDATE
-            DebugLog("_runImpl - UPDATE start");
-            (*aReturnValue) = DoSingleQaoIteration(aContext->_qaoRuntime,
-                                                   QAO_EVENT_MASK_ALL_EXCEPT_DRAW_AND_DISPLAY);
-            DebugLog("_runImpl - UPDATE end (status = {})", *aReturnValue);
-            if ((*aReturnValue) != 0) {
-                return;
+            {
+                Stopwatch updateStopwatch;
+                DebugLog("_runImpl - UPDATE start");
+                (*aReturnValue) = DoSingleQaoIteration(aContext->_qaoRuntime,
+                                                    QAO_EVENT_MASK_ALL_EXCEPT_DRAW_AND_DISPLAY);
+                DebugLog("_runImpl - UPDATE end (status = {})", *aReturnValue);
+                if ((*aReturnValue) != 0) {
+                    return;
+                }
+                aContext->_performanceInfo.updateTime = updateStopwatch.getElapsedTime();
             }
 
-            didAtLeastOneStep = true;
             accumulator -= deltaTime;
 
-            stepsCovered += 1;
-            aContext->_stepOrdinal += 1;
+            iterationsCovered += 1;
+            aContext->_iterationCounter += 1;
             
             // TODO(poll post step actions)
         } // End for
 
-        if (didAtLeastOneStep && !aContext->isHeadless()) {
+        const bool didAtLeastOneUpdate = (aContext->_performanceInfo.consecutiveUpdateSteps > 0);
+
+        if (didAtLeastOneUpdate && !aContext->isHeadless()) {
             // DRAW
-            DebugLog("_runImpl - DRAW start");
-            (*aReturnValue) = DoSingleQaoIteration(aContext->_qaoRuntime,
-                                                   QAO_EVENT_MASK_ALL_DRAWS);
-            DebugLog("_runImpl - DRAW end (status = {})", *aReturnValue);
-            if ((*aReturnValue) != 0) {
-                return;
+            {
+                Stopwatch drawStopwatch;
+                DebugLog("_runImpl - DRAW start");
+                (*aReturnValue) = DoSingleQaoIteration(aContext->_qaoRuntime,
+                                                    QAO_EVENT_MASK_ALL_DRAWS);
+                DebugLog("_runImpl - DRAW end (status = {})", *aReturnValue);
+                if ((*aReturnValue) != 0) {
+                    return;
+                }
+                aContext->_performanceInfo.drawTime = drawStopwatch.getElapsedTime();
             }
         }
 
-        if (didAtLeastOneStep) {
+        if (didAtLeastOneUpdate) {
              // Prevent excessive buildup in accumulator in case
              // the program is not meeting time requirements
              const auto accBefore = accumulator;
@@ -362,11 +372,15 @@ void GameContext::_runImpl(hg::NotNull<GameContext*> aContext,
         }
 
         // DISPLAY
-        DebugLog("_runImpl - DISPLAY start");
-        (*aReturnValue) = DoSingleQaoIteration(aContext->_qaoRuntime, QAO_EVENT_MASK_DISPLAY);
-        DebugLog("_runImpl - DISPLAY end (status = {})", *aReturnValue);
-        if ((*aReturnValue) != 0) {
-            return;
+        {
+            Stopwatch displayStopwatch;
+            DebugLog("_runImpl - DISPLAY start");
+            (*aReturnValue) = DoSingleQaoIteration(aContext->_qaoRuntime, QAO_EVENT_MASK_DISPLAY);
+            DebugLog("_runImpl - DISPLAY end (status = {})", *aReturnValue);
+            if ((*aReturnValue) != 0) {
+                return;
+            }
+            aContext->_performanceInfo.drawTime = displayStopwatch.getElapsedTime();
         }
 
         // 'Refill' accumulator
@@ -376,7 +390,7 @@ void GameContext::_runImpl(hg::NotNull<GameContext*> aContext,
                  MsCount(elapsedTime),
                  MsCount(accumulator));
 
-        DebugLog("_runImpl - CYCLE end");
+        DebugLog("_runImpl - ITERATION end");
     } // End while
 
     (*aReturnValue) = 0;
