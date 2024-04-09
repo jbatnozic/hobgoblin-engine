@@ -12,7 +12,7 @@
 namespace jbatnozic {
 namespace spempe {
 namespace {
-constexpr const char* LOG_ID = "jbatnozic::spempe::DefaultNetworkingManager";
+constexpr const char* LOG_ID = "SPeMPE";
 } // namespace
 
 DefaultNetworkingManager::DefaultNetworkingManager(hg::QAO_RuntimeRef aRuntimeRef,

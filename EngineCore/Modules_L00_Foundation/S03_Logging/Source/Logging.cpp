@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cmath>
+#include <filesystem>
 #include <iostream> // Temp?
 #include <mutex>
 #include <vector>
@@ -65,7 +66,13 @@ HG_DYNAPI void HGCALL UnregisterLoggingObserver(LoggingObserverInterface& aObser
 }
 
 namespace detail {
-HG_DYNAPI void HGCALL FuncLogImpl(Severity aSeverity, const char* aLogId, const std::string& aMessage) {
+HG_DYNAPI void HGCALL FuncLogImpl(
+    Severity aSeverity, 
+    const char* aLogId,
+    const char* aFilePath,
+    int aLineNumber, 
+    const std::string& aMessage
+) {
     using namespace std::chrono;
 
     const auto now = system_clock::now();
@@ -75,13 +82,16 @@ HG_DYNAPI void HGCALL FuncLogImpl(Severity aSeverity, const char* aLogId, const 
             duration_cast<duration<double>>(now.time_since_epoch()).count(), 
             60.0);
 
+    const std::filesystem::path filePath{aFilePath};
 
     const auto fullFormattedOutput = 
-        fmt::format("[{:%Y-%m-%d %H:%M}:{:09.6f}] [{}] {}: {}",
+        fmt::format("[{:%Y-%m-%d %H:%M}:{:09.6f}] [{}] {}@{}:{}: {}",
                     now,
                     now_onlySecondsAsDouble,
                     SeverityCString(aSeverity),
                     aLogId,
+                    filePath.filename().c_str(),
+                    aLineNumber,
                     aMessage);
 
     if (aSeverity < Severity::Error) {

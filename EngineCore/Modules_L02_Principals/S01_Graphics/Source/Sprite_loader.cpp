@@ -18,7 +18,7 @@ namespace gr {
 ///////////////////////////////////////////////////////////////////////////
 
 namespace {
-constexpr auto LOG_ID = "Hobgoblin";
+constexpr auto LOG_ID = "Hobgoblin.Graphics";
 } // namespace
 
 namespace detail {

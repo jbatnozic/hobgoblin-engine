@@ -1,6 +1,10 @@
 #ifndef UHOBGOBLIN_LOGGING_OBSERVERS_HPP
 #define UHOBGOBLIN_LOGGING_OBSERVERS_HPP
 
+#include <Hobgoblin/Logging/Severity.hpp>
+
+#include <string>
+
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_BEGIN

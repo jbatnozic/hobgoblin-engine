@@ -60,7 +60,7 @@ public:
     typename std::vector<taState>::const_iterator cend() const;
 
 private:
-    static constexpr auto LOG_ID = "VerboseStateScheduler";
+    static constexpr auto LOG_ID = "Hobgoblin.Utility";
     SimpleStateScheduler<taState> _ssch;
 
     std::string _printState() const {

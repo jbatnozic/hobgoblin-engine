@@ -22,7 +22,7 @@ using namespace hg::rn;
 
 namespace {
 
-constexpr auto LOG_ID = "jbatnozic::spempe::DefaultAuthorizationManager";
+constexpr auto LOG_ID = "MultiplayerFoundation";
 
 std::string GenerateRandomString(hg::PZInteger aStringLength) {
     return hg::util::DoWith32bitRNG(

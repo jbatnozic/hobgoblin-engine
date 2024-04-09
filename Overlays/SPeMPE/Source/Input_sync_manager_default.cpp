@@ -15,7 +15,7 @@ namespace jbatnozic {
 namespace spempe {
 
 namespace {
-constexpr auto LOG_ID = "DefaultInputSyncManager";
+constexpr auto LOG_ID = "SPeMPE";
 
 constexpr char SIGNAL_TAG             = 'S';
 constexpr char SIMPLE_EVENT_TAG       = 'E';

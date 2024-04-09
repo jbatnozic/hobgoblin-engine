@@ -23,7 +23,7 @@ namespace hg = hobgoblin;
 using namespace hg::rn;
 
 namespace {
-constexpr auto LOG_ID = "jbatnozic::spempe::DefaultLobbyBackendManager";
+constexpr auto LOG_ID = "SPeMPE";
 
 constexpr auto CUSTOM_DATA_LEN = hg::stopz(std::tuple_size_v<decltype(PlayerInfo::customData)>);
 

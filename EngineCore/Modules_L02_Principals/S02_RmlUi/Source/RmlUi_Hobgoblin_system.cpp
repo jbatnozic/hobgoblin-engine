@@ -12,7 +12,7 @@ namespace rml {
 namespace detail {
 
 namespace {
-constexpr auto LOG_ID = "RmlUiHobgoblinSystem";
+constexpr auto LOG_ID = "Hobgoblin.RmlUi";
 } // namespace
 
 RmlUiHobgoblinSystem::~RmlUiHobgoblinSystem() = default;

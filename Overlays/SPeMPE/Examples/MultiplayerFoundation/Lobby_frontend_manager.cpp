@@ -6,7 +6,7 @@
 #include <Hobgoblin/Utility/No_copy_no_move.hpp>
 
 namespace {
-constexpr auto LOG_ID = "LobbyFrontendManager";
+constexpr auto LOG_ID = "MultiplayerFoundation";
 
 struct PlayerInfoModel {
     Rml::String name;

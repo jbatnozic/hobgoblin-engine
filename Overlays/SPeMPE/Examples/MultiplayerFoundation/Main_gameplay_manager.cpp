@@ -6,7 +6,7 @@
 #include <Hobgoblin/Logging.hpp>
 
 namespace {
-constexpr auto LOG_ID = "MainGameplayManager";
+constexpr auto LOG_ID = "MultiplayerFoundation";
 } // namespace
 
 RN_DEFINE_RPC(SetGlobalStateBufferingLength, RN_ARGS(unsigned, aNewLength)) {
