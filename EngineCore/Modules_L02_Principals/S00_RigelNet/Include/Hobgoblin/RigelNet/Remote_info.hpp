@@ -14,7 +14,9 @@ HOBGOBLIN_NAMESPACE_BEGIN
 namespace rn {
 
 struct RN_RemoteInfo {
-    //! TODO
+    //! The stopwatch showing the elapsed time since the last contact from
+    //! the related remote. Each time a message is received from that remote,
+    //! the stopwatch restarts.
     util::Stopwatch timeoutStopwatch;
 
     //! Latency to the remote.
