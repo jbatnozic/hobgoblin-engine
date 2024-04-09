@@ -40,3 +40,9 @@ will need [CMake](https://cmake.org/) (version 3.23 or higher) and a C++ compile
 4. Build an overlay
 (Instructions are Work-in-progress)
 ```
+
+## Licence
+The engine is licensed under the [MS-PL](https://opensource.org/license/ms-pl-html) licence.
+
+This EXCLUDES certain files which are modified versions of SFML code and Chipmunk Physics code - these files retain
+their original copyright notices.
