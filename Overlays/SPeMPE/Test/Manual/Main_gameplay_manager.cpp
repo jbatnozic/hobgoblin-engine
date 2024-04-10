@@ -11,23 +11,27 @@
 
 static constexpr auto LOG_ID = "SPeMPE.ManualTest";
 
-void MainGameplayManagerBase::_eventPreUpdate() {
-    if (_periodicStopwatch.getElapsedTime() >= std::chrono::seconds{5}) {
-        const auto time = _periodicStopwatch.restart<std::chrono::milliseconds>();
-        const auto cycles = ctx().getCurrentIterationOrdinal();
-
-        const auto expectedCycles =
-            _totalStopwatch.getElapsedTime<std::chrono::milliseconds>().count() / 1000.0 * DESIRED_FRAMERATE;
-
-        HG_LOG_INFO(LOG_ID,
-                    "Timing update: last_period={}ms, total_time={}ms, total_cycles={}, accurracy={}%",
-                    time.count(),
-                    _totalStopwatch.getElapsedTime<std::chrono::milliseconds>().count(),
-                    cycles,
-                    (1.0 - std::abs(expectedCycles - cycles) / expectedCycles) * 100.0
-                    );
+MainGameplayManagerBase::MainGameplayManagerBase(QAO_RuntimeRef aRuntimeRef)
+    : spe::NonstateObject{aRuntimeRef,
+                          SPEMPE_TYPEID_SELF, 
+                          PRIORITY_GAMEPLAYMGR,
+                          "MainGameplayManager"}
+{
+    const int execPriority = 10; // not really important for these objects
+    const int cycleLength  = 600; // 10 seconds @ 60fps
+    {
+        const auto config = spe::EventLoopTimingReporter::Config{ cycleLength };
+        QAO_PCreate<spe::EventLoopTimingReporter>(ctx().getQAORuntime(), execPriority, config);
     }
+        {
+        const auto config = spe::NetworkingTelemetryReporter::Config{ cycleLength };
+        QAO_PCreate<spe::NetworkingTelemetryReporter>(ctx().getQAORuntime(), execPriority, config);
 
+        ccomp<spe::NetworkingManagerInterface>().setTelemetryCycleLimit(cycleLength);
+    }
+}
+
+void MainGameplayManagerBase::_eventPreUpdate() {
     if (hg::in::CheckPressedPK(hg::in::PK_RSHIFT)) {
         ctx().stop();
     }

@@ -3,25 +3,14 @@
 #include "Config.hpp"
 #include "Engine.hpp"
 
-#include <Hobgoblin/Utility/Time_utils.hpp>
-
 #include "Main_gameplay_manager_interface.hpp"
 
 class MainGameplayManagerBase
     : public spe::NonstateObject {
 public:
-    MainGameplayManagerBase(QAO_RuntimeRef aRuntimeRef)
-        : spe::NonstateObject{aRuntimeRef,
-                              SPEMPE_TYPEID_SELF, 
-                              PRIORITY_GAMEPLAYMGR,
-                              "MainGameplayManager"}
-    {
-    }
+    MainGameplayManagerBase(QAO_RuntimeRef aRuntimeRef);
 
 private:
-    hg::util::Stopwatch _periodicStopwatch;
-    hg::util::Stopwatch _totalStopwatch;
-
     void _eventPreUpdate() override;
 };
 
@@ -32,9 +21,6 @@ class MainGameplayManager
     , public MainGameplayManagerBase {
 public:
     MainGameplayManager(QAO_RuntimeRef aRuntimeRef);
-
-private:
-
 };
 
 } // namespace singleplayer
@@ -46,9 +32,6 @@ class MainGameplayManager
     , public MainGameplayManagerBase {
 public:
     MainGameplayManager(QAO_RuntimeRef aRuntimeRef);
-
-private:
-
 };
 
 } // namespace multiplayer

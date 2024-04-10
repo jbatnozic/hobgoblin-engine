@@ -380,7 +380,7 @@ void GameContext::_runImpl(hg::NotNull<GameContext*> aContext,
             if ((*aReturnValue) != 0) {
                 return;
             }
-            aContext->_performanceInfo.drawTime = displayStopwatch.getElapsedTime();
+            aContext->_performanceInfo.displayTime = displayStopwatch.getElapsedTime();
         }
 
         // 'Refill' accumulator
