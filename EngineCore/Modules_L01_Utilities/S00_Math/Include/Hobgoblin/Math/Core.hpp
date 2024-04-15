@@ -6,6 +6,8 @@
 #ifndef UHOBGOBLIN_UTIL_MATH_HPP
 #define UHOBGOBLIN_UTIL_MATH_HPP
 
+#include <Hobgoblin/Math/Vector.hpp>
+
 #include <algorithm>
 #include <cmath>
 #include <climits>

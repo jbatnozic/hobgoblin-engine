@@ -24,5 +24,3 @@ export -f digest_file
 # find . -name "*.hpp" -exec bash -c 'digest_file "$0"' {} \;
 # find . -name "*.c"   -exec bash -c 'digest_file "$0"' {} \;
 # find . -name "*.h"   -exec bash -c 'digest_file "$0"' {} \;
-
-find . -name "CMakeLists.txt" -exec bash -c 'digest_file "$0"' {} \;

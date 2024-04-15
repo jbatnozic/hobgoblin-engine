@@ -14,7 +14,7 @@ class HobgoblinConan(ConanFile):
 
     # Optional metadata
 
-    license = "<License TBD>"
+    license = "MS-PL"
     author = "Jovan Batnožić (jovanbatnozic@hotmail.rs)"
     url = "https://github.com/jbatnozic/Hobgoblin"
     description = "Simple game engine"
