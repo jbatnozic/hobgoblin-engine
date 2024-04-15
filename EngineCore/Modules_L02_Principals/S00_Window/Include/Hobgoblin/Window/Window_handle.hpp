@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef UHOBGOBLIN_WINDOW_WINDOW_HANDLE_HPP
 #define UHOBGOBLIN_WINDOW_WINDOW_HANDLE_HPP
 
@@ -19,3 +24,4 @@ HOBGOBLIN_NAMESPACE_END
 
 #endif // !UHOBGOBLIN_WINDOW_WINDOW_HANDLE_HPP
 
+// clang-format on

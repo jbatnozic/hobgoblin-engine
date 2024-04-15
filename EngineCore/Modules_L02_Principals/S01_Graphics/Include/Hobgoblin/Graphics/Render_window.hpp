@@ -1,3 +1,7 @@
+// Code in this file is adapted from SFML code and retains its original
+// open source licence (provided below).
+// See https://github.com/SFML/SFML
+
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
@@ -21,6 +25,8 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 ////////////////////////////////////////////////////////////
+
+// clang-format off
 
 #ifndef UHOBGOBLIN_GRAPHICS_RENDER_WINDOW_HPP
 #define UHOBGOBLIN_GRAPHICS_RENDER_WINDOW_HPP
@@ -227,3 +233,5 @@ HOBGOBLIN_NAMESPACE_END
 /// \see sf::RenderWindow, sf::RenderTexture, sf::View
 ///
 ////////////////////////////////////////////////////////////
+
+// clang-format on

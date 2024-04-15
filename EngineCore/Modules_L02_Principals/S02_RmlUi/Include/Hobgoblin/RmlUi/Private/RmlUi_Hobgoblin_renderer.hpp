@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef UHOBGOBLIN_RMLUI_PRIVATE_RMLUI_HOBGOBLIN_RENDERER_HPP
 #define UHOBGOBLIN_RMLUI_PRIVATE_RMLUI_HOBGOBLIN_RENDERER_HPP
 
@@ -70,3 +75,5 @@ HOBGOBLIN_NAMESPACE_END
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
 #endif // !UHOBGOBLIN_RMLUI_PRIVATE_RMLUI_HOBGOBLIN_RENDERER_HPP
+
+// clang-format on

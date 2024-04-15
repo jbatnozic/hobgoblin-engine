@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <Hobgoblin/RigelNet/Node_interface.hpp>
 
@@ -31,3 +36,5 @@ void RN_NodeInterface::callIfServer(std::function<void(RN_ServerInterface& clien
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
+
+// clang-format on

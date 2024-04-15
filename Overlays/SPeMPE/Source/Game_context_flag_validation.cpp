@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <SPeMPE/GameContext/Game_context_flag_validation.hpp>
 
@@ -43,3 +48,5 @@ void RaiseInconsistentGameContextError(
 } // namespace detail
 } // namespace spempe
 } // namespace jbatnozic
+
+// clang-format on

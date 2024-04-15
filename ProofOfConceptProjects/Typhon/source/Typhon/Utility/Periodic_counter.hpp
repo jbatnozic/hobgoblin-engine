@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef UTIL_PERIODIC_COUNTER_HPP
 #define UTIL_PERIODIC_COUNTER_HPP
 
@@ -17,3 +22,5 @@ bool CountPeriodic(T* counterVariable, T period, bool predicate) {
 }
 
 #endif // !UTIL_PERIODIC_COUNTER_HPP
+
+// clang-format on

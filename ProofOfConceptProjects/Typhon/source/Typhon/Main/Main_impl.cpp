@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <Hobgoblin/RigelNet.hpp>
 #include <Hobgoblin/Common.hpp>
@@ -200,3 +205,5 @@ catch (...) {
 	return EXIT_FAILURE;
 }
 #endif // MAIN_SHOULD_CATCH_EXCEPTIONS
+
+// clang-format on

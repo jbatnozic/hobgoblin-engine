@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <Hobgoblin/RigelNet/Factories.hpp>
 #include <Hobgoblin/Common.hpp>
@@ -172,3 +177,5 @@ std::unique_ptr<RN_ClientInterface> RN_ClientFactory::createDummyClient() {
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
+
+// clang-format on

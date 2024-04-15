@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #define HOBGOBLIN_SHORT_NAMESPACE
 #include <Hobgoblin/GSL.hpp>
 
@@ -15,3 +20,5 @@ TEST(HobgoblinGSLTest, DISABLED_NotNullTest) {
 TEST(HobgoblinGSLTest, DISABLED_NotNullWithUniquePtr) {
     hg::NotNull<std::unique_ptr<int>> nn{std::make_unique<int>(123)};
 }
+
+// clang-format on

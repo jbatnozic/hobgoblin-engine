@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <SPeMPE/Utility/Event_loop_timing_reporter.hpp>
 
@@ -85,3 +90,5 @@ void EventLoopTimingReporter::_resetCounters() {
 
 } // namespace spempe
 } // namespace jbatnozic
+
+// clang-format on

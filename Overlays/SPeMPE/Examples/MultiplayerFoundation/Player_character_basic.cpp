@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include "Player_character_basic.hpp"
 
@@ -91,3 +96,5 @@ void BasicPlayerCharacter::_syncUpdateImpl(spe::SyncControlDelegate& aSyncCtrl) 
 void BasicPlayerCharacter::_syncDestroyImpl(spe::SyncControlDelegate& aSyncCtrl) const {
     SPEMPE_SYNC_DESTROY_DEFAULT_IMPL(BasicPlayerCharacter, aSyncCtrl);
 }
+
+// clang-format on

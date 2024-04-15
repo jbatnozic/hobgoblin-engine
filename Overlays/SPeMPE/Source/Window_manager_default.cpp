@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <SPeMPE/Managers/Window_manager_default.hpp>
 
@@ -342,3 +347,5 @@ sf::Vector2i DefaultWindowManager::_getWindowRelativeMousePos() const {
 
 } // namespace spempe
 } // namespace jbatnozic
+
+// clang-format on

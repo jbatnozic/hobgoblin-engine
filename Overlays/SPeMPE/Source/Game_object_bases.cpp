@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <SPeMPE/GameObjectFramework/Game_object_bases.hpp>
 
@@ -275,3 +280,5 @@ void SynchronizedObjectBase::__spempeimpl_setStateSchedulerDefaultDelay(hg::PZIn
 
 } // namespace spempe
 } // namespace jbatnozic
+
+// clang-format on

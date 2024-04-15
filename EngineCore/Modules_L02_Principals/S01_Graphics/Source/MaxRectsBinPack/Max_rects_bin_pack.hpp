@@ -1,5 +1,7 @@
+// clang-format off
+
 /** @file MaxRectsBinPack.hpp
-	@author Jukka Jylänki
+	@author Jukka Jylï¿½nki
 
 	@brief Implements different bin packer algorithms that use the MAXRECTS data structure.
 
@@ -87,3 +89,5 @@ private:
 }
 
 #endif // !UHOBGOBLIN_PRIV_MAX_RECTS_BIN_PACK_HPP
+
+// clang-format on

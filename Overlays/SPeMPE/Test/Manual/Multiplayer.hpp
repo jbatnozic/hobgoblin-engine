@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #pragma once
 
 #include "Config.hpp"
@@ -104,3 +109,5 @@ std::unique_ptr<spe::GameContext> CreateClientGameContext(std::uint16_t aServerP
 }
 
 } // namespace multiplayer
+
+// clang-format on

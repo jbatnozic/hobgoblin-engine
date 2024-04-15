@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef TYPHON_FRAMEWORK_EXTENSIONS_HPP
 #define TYPHON_FRAMEWORK_EXTENSIONS_HPP
 
@@ -69,3 +74,5 @@ spempe::WindowManager& GetWindowManager(spempe::GameContext& ctx);
     spempe::WindowManager& ctx(ContextTagWindowManager) const { return GetWindowManager(ctx()); } \
 
 #endif // !TYPHON_FRAMEWORK_EXTENSIONS_HPP
+
+// clang-format on

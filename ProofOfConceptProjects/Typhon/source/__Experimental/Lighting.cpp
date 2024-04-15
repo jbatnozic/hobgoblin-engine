@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <Hobgoblin/Math.hpp>
 
@@ -366,3 +371,5 @@ void LightingController::_removeLight(PZInteger lightIndex) {
     _lights[hg::ToSz(lightIndex)] = Light(0.f, 0.f, 0.f, Color::Transparent);
     _lightIndexer.free(lightIndex);
 }
+
+// clang-format on

@@ -1,5 +1,11 @@
+// Code in this file is adapted from Chhipmunk2D code and retains its original
+// open source licence (provided below).
+// See https://github.com/slembcke/Chipmunk2D
+
 // Copyright 2013 Howling Moon Software. All rights reserved.
 // See http://chipmunk2d.net/legal.php for more information.
+
+// clang-format off
 
 // Polylines are just arrays of vertexes.
 // They are looped if the first vertex is equal to the last.
@@ -68,3 +74,5 @@ CP_EXPORT void cpPolylineSetCollectSegment(cpVect v0, cpVect v1, cpPolylineSet *
 CP_EXPORT cpPolylineSet *cpPolylineConvexDecomposition(cpPolyline *line, cpFloat tol);
 
 #define cpPolylineConvexDecomposition_BETA cpPolylineConvexDecomposition
+
+// clang-format on

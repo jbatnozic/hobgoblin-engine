@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include "Engine.h"
 #include "Lobby_frontend_manager.hpp"
@@ -319,3 +324,5 @@ int main(int argc, char* argv[]) {
     HG_LOG_INFO(LOG_ID, "Program exiting with status code: {}.", status);
     return status;
 }
+
+// clang-format on

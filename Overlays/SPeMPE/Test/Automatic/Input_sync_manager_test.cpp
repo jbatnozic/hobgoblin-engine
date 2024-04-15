@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <Hobgoblin/Common.hpp>
 #include <SPeMPE/SPeMPE.hpp>
@@ -208,3 +213,5 @@ TEST_F(InputSyncManagerTest, HappyPathTest_StateBuffering_1) {
     EXPECT_EQ(wrap1.getSignalValue<SignalType>(0, SIGNAL_NAME), 420);
     EXPECT_EQ(wrap1.countSimpleEvent(0, EVENT_NAME), 0);
 }
+
+// clang-format on

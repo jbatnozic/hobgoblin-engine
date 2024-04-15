@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <SPeMPE/SPeMPE.hpp>
 
@@ -235,3 +240,5 @@ TEST(AutodiffStateTest, AutodiffState_32Members) {
 } // namespace test
 } // namespace spempe
 } // namespace jbatnozic
+
+// clang-format on

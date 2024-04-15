@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #define HOBGOBLIN_SHORT_NAMESPACE
 #include <Hobgoblin/Common.hpp>
@@ -429,3 +434,5 @@ TEST_F(QAO_Test, PriorityResolver2PrecedesMethod) {
     ASSERT_GT(C, A); // C before A
     ASSERT_GT(A, D); // A before D
 }
+
+// clang-format on

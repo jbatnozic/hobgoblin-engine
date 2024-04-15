@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #pragma once
 
 #include <Hobgoblin/Input/Private/Conversions.hpp>
@@ -139,3 +144,5 @@ Event ToHg(const sf::Event& aEvent) {
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
+
+// clang-format on

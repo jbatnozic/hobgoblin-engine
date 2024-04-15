@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <SFML/System.hpp>
 
@@ -97,3 +102,5 @@ void ControlsManager::_eventEndUpdate() {
         scheduler.advance();
     }
 }
+
+// clang-format on

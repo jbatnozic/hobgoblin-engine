@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef SPEMPE_NETWORKING_MANAGER_HPP
 #define SPEMPE_NETWORKING_MANAGER_HPP
 
@@ -58,3 +63,4 @@ private:
 
 #endif // !SPEMPE_NETWORKING_MANAGER_HPP
 
+// clang-format on

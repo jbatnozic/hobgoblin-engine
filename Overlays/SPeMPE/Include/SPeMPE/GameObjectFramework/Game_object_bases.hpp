@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef SPEMPE_GAME_OBJECT_FRAMEWORK_GAME_OBJECT_BASES_HPP
 #define SPEMPE_GAME_OBJECT_FRAMEWORK_GAME_OBJECT_BASES_HPP
 
@@ -440,3 +445,5 @@ public:
 } // namespace jbatnozic
 
 #endif // !SPEMPE_GAME_OBJECT_FRAMEWORK_GAME_OBJECT_BASES_HPP
+
+// clang-format on

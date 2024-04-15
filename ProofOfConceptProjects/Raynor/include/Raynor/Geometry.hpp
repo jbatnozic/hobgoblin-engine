@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #pragma once
 
@@ -43,3 +48,5 @@ bool RayIntersectsSphere(const Vec3<taReal>& aRayOrigin,
 
 } // namespace raynor
 } // namespace jbatnozic
+
+// clang-format on

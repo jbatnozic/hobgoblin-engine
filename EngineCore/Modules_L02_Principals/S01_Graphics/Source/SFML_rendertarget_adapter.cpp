@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include "SFML_rendertarget_adapter.hpp"
 
@@ -157,3 +162,5 @@ bool SfmlRenderTargetAdapter::isSrgb() const {
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
+
+// clang-format on

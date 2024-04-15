@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #pragma once
 
 #define PRIORITY_NETWORKMGR  15
@@ -10,3 +15,5 @@
 #define WINDOW_WIDTH  800
 #define WINDOW_HEIGHT 600
 #define DESIRED_FRAMERATE 60
+
+// clang-format on

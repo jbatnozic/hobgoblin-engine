@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <SPeMPE/Managers/Networking_manager_default.hpp>
 
@@ -264,3 +269,5 @@ void DefaultNetworkingManager::_handleEvents() {
 
 } // namespace spempe
 } // namespace jbatnozic
+
+// clang-format on

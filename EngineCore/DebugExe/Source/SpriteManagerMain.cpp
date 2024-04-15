@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #define HOBGOBLIN_SHORT_NAMESPACE
 #include <Hobgoblin/Graphics/Sprite_loader.hpp>
@@ -147,3 +152,5 @@ int main() {
 
     return 0;
 }
+
+// clang-format on

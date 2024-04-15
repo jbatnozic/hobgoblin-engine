@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #pragma once
 
 #include "Engine.h"
@@ -25,3 +30,5 @@ void SetUpPlayerControlsDefinitions(spe::InputSyncManagerInterface& aInputSyncMa
     wrapper.defineSignal<bool>(CTRLNAME_DOWN,  false);
     wrapper.defineSimpleEvent(CTRLNAME_JUMP);
 }
+
+// clang-format on

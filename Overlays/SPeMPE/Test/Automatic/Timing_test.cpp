@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <SPeMPE/SPeMPE.hpp>
 #include <Hobgoblin/Logging.hpp>
@@ -79,3 +84,5 @@ TEST(SPeMPE_TimingTest,
 
 } // spempe
 } // jbatnozic
+
+// clang-format on

@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <Typhon/GameObjects/Control/Controls_manager.hpp>
 #include <Typhon/GameObjects/Control/Environment_manager.hpp>
@@ -83,3 +88,5 @@ cpSpace* GetPhysicsSpace(spempe::GameContext& ctx) {
 spempe::WindowManager& GetWindowManager(spempe::GameContext& ctx) {
     return ctx.getWindowManager();
 }
+
+// clang-format on

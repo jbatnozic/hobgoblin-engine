@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #define HOBGOBLIN_SHORT_NAMESPACE
 #include <Hobgoblin/Common.hpp>
@@ -298,3 +303,5 @@ TEST_F(QAO_SerializationTest, TestEventRestoration) {
 
     ASSERT_EQ(reportVector.size(), QAO_Event::Count * 4);
 }
+
+// clang-format on

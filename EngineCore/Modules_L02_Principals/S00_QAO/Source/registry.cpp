@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <Hobgoblin/QAO/config.hpp>
 #include <Hobgoblin/QAO/base.hpp>
@@ -153,3 +158,5 @@ std::int64_t QAO_Registry::nextSerial() {
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
+
+// clang-format on

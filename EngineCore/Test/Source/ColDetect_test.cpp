@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #define HOBGOBLIN_SHORT_NAMESPACE
 #include <Hobgoblin/ColDetect.hpp>
@@ -161,3 +166,5 @@ TEST_F(MultiThreadedQuadTreeCollisionDomainTest, FourBoxesOverlap) {
 
     ASSERT_EQ(_domain.recalcPairs(), 6);
 }
+
+// clang-format on

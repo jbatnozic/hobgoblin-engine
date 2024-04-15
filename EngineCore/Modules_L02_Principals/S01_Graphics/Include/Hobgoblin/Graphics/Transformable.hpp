@@ -1,4 +1,8 @@
+// Code in this file is adapted from SFML code and retains its original
+// open source licence (provided below).
+// See https://github.com/SFML/SFML
 
+////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
 // Copyright (C) 2007-2023 Laurent Gomila (laurent@sfml-dev.org)
@@ -20,6 +24,9 @@
 //
 // 3. This notice may not be removed or altered from any source distribution.
 //
+////////////////////////////////////////////////////////////
+
+// clang-format off
 
 #ifndef UHOBGOBLIN_GRAPHICS_TRANSFORMABLE_HPP
 #define UHOBGOBLIN_GRAPHICS_TRANSFORMABLE_HPP
@@ -344,3 +351,5 @@ HOBGOBLIN_NAMESPACE_END
 //!
 //! \see sf::Transform
 //!
+
+// clang-format on

@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #define HOBGOBLIN_SHORT_NAMESPACE
 #include <Hobgoblin/Config.hpp>
@@ -327,3 +332,5 @@ TEST(HGConfigTest, GetIntegerWithCustomRadix) {
     EXPECT_EQ(hgconf.getIntegerValue<std::uint64_t>("Section1", "Variable1", 16), 0xd3ecf5726d81ccb3);
     EXPECT_EQ(hgconf.getIntegerValue<std::uint64_t>("Section1", "Variable2", 16), 0xd3ecf5726d81ccb3);
 }
+
+// clang-format on

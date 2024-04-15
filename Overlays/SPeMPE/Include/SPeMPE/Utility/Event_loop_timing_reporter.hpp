@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef SPEMPE_UTILITY_EVENT_LOOP_TIMING_REPORTER_HPP
 #define SPEMPE_UTILITY_EVENT_LOOP_TIMING_REPORTER_HPP
 
@@ -52,3 +57,5 @@ private:
 } // namespace jbatnozic
 
 #endif // !SPEMPE_UTILITY_EVENT_LOOP_TIMING_REPORTER_HPP
+
+// clang-format on

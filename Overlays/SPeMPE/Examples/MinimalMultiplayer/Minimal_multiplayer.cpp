@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #include <Hobgoblin/Input.hpp>
 #include <Hobgoblin/Logging.hpp>
 #include <Hobgoblin/Graphics.hpp>
@@ -638,3 +643,5 @@ int main(int argc, char* argv[]) {
     const int status = context->runFor(-1);
     return status;
 }
+
+// clang-format on

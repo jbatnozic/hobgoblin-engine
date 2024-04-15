@@ -1,3 +1,7 @@
+// Code in this file is adapted from Chhipmunk2D code and retains its original
+// open source licence (provided below).
+// See https://github.com/slembcke/Chipmunk2D
+
 /* Copyright (c) 2013 Scott Lembcke and Howling Moon Software
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -18,6 +22,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
+// clang-format off
 
 // Used for resizing hash tables.
 // Values approximately double.
@@ -66,3 +72,5 @@ next_prime(int n)
 	
 	return primes[i];
 }
+
+// clang-format on

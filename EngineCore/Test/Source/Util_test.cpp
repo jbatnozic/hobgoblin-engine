@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <gtest/gtest.h>
 
@@ -158,3 +163,5 @@ TEST(DynamicBitsetTest, DynamicBitsetTest) {
         EXPECT_EQ(bitset.getBit(200), true);
     }
 }
+
+// clang-format on

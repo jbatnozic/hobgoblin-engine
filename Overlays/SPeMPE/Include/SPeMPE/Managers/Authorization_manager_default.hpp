@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef SPEMPE_MANAGERS_AUTHORIZATION_MANAGER_DEFAULT_HPP
 #define SPEMPE_MANAGERS_AUTHORIZATION_MANAGER_DEFAULT_HPP
 
@@ -77,3 +82,5 @@ bool operator==(const PlayerInfoWithIndex& aRhs,
 } // namespace jbatnozic
 
 #endif // !SPEMPE_MANAGERS_AUTHORIZATION_MANAGER_DEFAULT_HPP
+
+// clang-format on

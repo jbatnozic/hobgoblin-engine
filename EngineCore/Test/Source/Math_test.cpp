@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #define HOBGOBLIN_SHORT_NAMESPACE
 #include <Hobgoblin/Math.hpp>
@@ -159,3 +164,5 @@ TEST(HgMathTest, RotateVectorTest) {
         EXPECT_NEAR(newVec.y, -9.0, EPSILON);
     }
 }
+
+// clang-format on

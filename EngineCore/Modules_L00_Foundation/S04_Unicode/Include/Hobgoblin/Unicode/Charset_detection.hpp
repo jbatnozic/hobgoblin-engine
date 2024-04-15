@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef UHOBGOBLIN_UNICODE_CHARSET_DETECTION_HPP
 #define UHOBGOBLIN_UNICODE_CHARSET_DETECTION_HPP
 
@@ -75,3 +80,5 @@ HOBGOBLIN_NAMESPACE_END
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
 #endif // !UHOBGOBLIN_UNICODE_CHARSET_DETECTION_HPP
+
+// clang-format on

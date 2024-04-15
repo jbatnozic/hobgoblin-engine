@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 // Note: Header guard omitted on purpose.
 // IMPORTANT: Always include this as the last header file
 
@@ -52,3 +57,5 @@
 
 // SFINAE:
 #define T_ENABLE_IF(...)     typename ::std::enable_if<__VA_ARGS__, bool>::type = true
+
+// clang-format on

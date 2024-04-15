@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include "Udp_connector_impl.hpp"
 #include "Udp_server_impl.hpp"
@@ -1034,3 +1039,5 @@ void RN_UdpConnectorImpl::_processAcksPacket(util::Packet& packet) {
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
+
+// clang-format on

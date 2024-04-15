@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #pragma once
 
 #include <Hobgoblin/Graphics.hpp>
@@ -183,3 +188,5 @@ private:
     void _syncUpdateImpl(spe::SyncControlDelegate& aSyncCtrl) const override;
     void _syncDestroyImpl(spe::SyncControlDelegate& aSyncCtrl) const override;
 };
+
+// clang-format on

@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #include <Hobgoblin/Graphics/Vertex_array.hpp>
 
 #include <SFML/Graphics/VertexArray.hpp>
@@ -59,3 +64,5 @@ void VertexArray::_draw(Canvas& aCanvas, const RenderStates& aStates) const {
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
+
+// clang-format on

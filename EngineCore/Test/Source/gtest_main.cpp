@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 // Copyright 2006, Google Inc.
 // All rights reserved.
 //
@@ -53,3 +58,5 @@ GTEST_API_ int main(int argc, char **argv) {
     return ret;
 }
 #endif
+
+// clang-format on

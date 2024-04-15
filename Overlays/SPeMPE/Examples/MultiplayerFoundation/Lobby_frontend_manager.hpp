@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #pragma once
 
 #include "Engine.h"
@@ -28,3 +33,5 @@ private:
 
     friend void ActivateCommand(LobbyFrontendManager& aMgr, int aCommand, void* aArgs);
 };
+
+// clang-format on

@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #pragma once
 
 #include "Engine.h"
@@ -23,3 +28,5 @@ private:
 
     void onNetworkingEvent(const RN_Event& aEvent) override;
 };
+
+// clang-format on

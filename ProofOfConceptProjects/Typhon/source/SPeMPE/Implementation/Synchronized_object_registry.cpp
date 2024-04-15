@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <SPeMPE/Include/Game_object_framework.hpp>
 #include <SPeMPE/Include/Synchronized_object_registry.hpp>
@@ -130,3 +135,5 @@ void SynchronizedObjectRegistry::syncObjectDestroy(const SynchronizedObject* obj
 }
 
 } // namespace spempe
+
+// clang-format on

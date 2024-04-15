@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <SPeMPE/Include/Networking_manager.hpp>
 #include <SPeMPE/Include/Game_context.hpp>
@@ -125,3 +130,5 @@ void NetworkingManager::handleEvents() {
 }
 
 } // namespace spempe
+
+// clang-format on

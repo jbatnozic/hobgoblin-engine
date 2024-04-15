@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <Hobgoblin/RigelNet/Client_interface.hpp>
 #include <Hobgoblin/RigelNet/Configuration.hpp>
@@ -18,3 +23,5 @@ using namespace rn;
 
 }
 }
+
+// clang-format on

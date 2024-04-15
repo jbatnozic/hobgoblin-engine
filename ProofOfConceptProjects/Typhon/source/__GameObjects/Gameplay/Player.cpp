@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <Hobgoblin/ChipmunkPhysics.hpp>
 #include <Hobgoblin/Utility/Math.hpp>
@@ -187,3 +192,5 @@ void Player::move(State& self) {
 
     oldUp = controls.up;
 }
+
+// clang-format on

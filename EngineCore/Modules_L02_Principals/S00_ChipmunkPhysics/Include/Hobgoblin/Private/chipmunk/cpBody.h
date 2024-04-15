@@ -1,3 +1,7 @@
+// Code in this file is adapted from Chhipmunk2D code and retains its original
+// open source licence (provided below).
+// See https://github.com/slembcke/Chipmunk2D
+
 /* Copyright (c) 2013 Scott Lembcke and Howling Moon Software
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -18,6 +22,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
+// clang-format off
 
 /// @defgroup cpBody cpBody
 /// Chipmunk's rigid body type. Rigid bodies hold the physical properties of an object like
@@ -187,3 +193,5 @@ typedef void (*cpBodyArbiterIteratorFunc)(cpBody *body, cpArbiter *arbiter, void
 CP_EXPORT void cpBodyEachArbiter(cpBody *body, cpBodyArbiterIteratorFunc func, void *data);
 
 ///@}
+
+// clang-format on

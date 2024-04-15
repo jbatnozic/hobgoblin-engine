@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include "Player_character_autodiff_alternating.hpp"
 
@@ -108,3 +113,5 @@ void AutodiffAlternatingPlayerCharacter::_syncUpdateImpl(spe::SyncControlDelegat
 void AutodiffAlternatingPlayerCharacter::_syncDestroyImpl(spe::SyncControlDelegate& aSyncCtrl) const {
     SPEMPE_SYNC_DESTROY_DEFAULT_IMPL(AutodiffAlternatingPlayerCharacter, aSyncCtrl);
 }
+
+// clang-format on

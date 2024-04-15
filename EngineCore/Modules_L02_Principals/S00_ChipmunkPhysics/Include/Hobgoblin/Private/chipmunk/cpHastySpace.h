@@ -1,5 +1,11 @@
+// Code in this file is adapted from Chhipmunk2D code and retains its original
+// open source licence (provided below).
+// See https://github.com/slembcke/Chipmunk2D
+
 // Copyright 2013 Howling Moon Software. All rights reserved.
 // See http://chipmunk2d.net/legal.php for more information.
+
+// clang-format off
 
 /// cpHastySpace is exclusive to Chipmunk Pro
 /// Currently it enables ARM NEON optimizations in the solver, but in the future will include other optimizations such as
@@ -25,3 +31,5 @@ CP_EXPORT unsigned long cpHastySpaceGetThreads(cpSpace *space);
 
 /// When stepping a hasty space, you must use this function.
 CP_EXPORT void cpHastySpaceStep(cpSpace *space, cpFloat dt);
+
+// clang-format on

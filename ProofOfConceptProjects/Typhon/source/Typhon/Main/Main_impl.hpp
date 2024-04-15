@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef TYPHON_MAIN_MAIN_IMPL_HPP
 #define TYPHON_MAIN_MAIN_IMPL_HPP
 
@@ -14,3 +19,5 @@ private:
 };
 
 #endif // !TYPHON_MAIN_MAIN_IMPL_HPP
+
+// clang-format on

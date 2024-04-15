@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <Hobgoblin/Graphics.hpp>
 #include <Hobgoblin/Math.hpp>
@@ -395,3 +400,5 @@ void PhysicsPlayer::_takeDamage(double damage) {
     _health -= (damage - _shield);
     _shield = 0.0;
 }
+
+// clang-format on

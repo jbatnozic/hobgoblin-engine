@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef UHOBGOBLIN_UTIL_STRING_UTILS_HPP
 #define UHOBGOBLIN_UTIL_STRING_UTILS_HPP
 
@@ -26,3 +31,5 @@ HOBGOBLIN_NAMESPACE_END
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
 #endif // !UHOBGOBLIN_UTIL_STRING_UTILS_HPP
+
+// clang-format on

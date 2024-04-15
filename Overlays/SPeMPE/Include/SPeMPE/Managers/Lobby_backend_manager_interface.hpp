@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef SPEMPE_MANAGERS_LOBBY_BACKEND_MANAGER_INTERFACE_HPP
 #define SPEMPE_MANAGERS_LOBBY_BACKEND_MANAGER_INTERFACE_HPP
 
@@ -255,3 +260,5 @@ bool operator!=(const PlayerInfo& aLhs, const PlayerInfo& aRhs) {
 } // namespace jbatnozic
 
 #endif // !SPEMPE_MANAGERS_LOBBY_BACKEND_MANAGER_INTERFACE_HPP
+
+// clang-format on

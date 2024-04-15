@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <Hobgoblin/Common.hpp>
 #include <SPeMPE/Include/Keyboard_input.hpp>
@@ -131,3 +136,5 @@ void KbInputTracker::cullInputString() {
 }
 
 } // namespace spempe
+
+// clang-format on
