@@ -14,7 +14,7 @@ function digest_file {
   local contents=$(cat $file)
   echo -e "${PREFIX}\n"      >  $file
   echo    "${contents}"      >> $file
-  echo -e "\n${POSTFIX}"     >> $file
+  #echo -e "\n${POSTFIX}"     >> $file
   echo "Processed file $file"
 }
 
