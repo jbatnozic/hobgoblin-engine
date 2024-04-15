@@ -1,5 +1,8 @@
 #! /bin/bash
 
+# Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+# See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
 echo "Looking for conan..."
 if ! command -v git &> /dev/null
 then
