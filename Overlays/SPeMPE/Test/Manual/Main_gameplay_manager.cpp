@@ -65,7 +65,7 @@ MainGameplayManager::MainGameplayManager(QAO_RuntimeRef aRuntimeRef)
         );
         basicActor->init(32.f, 32.f, hg::gr::COLOR_PURPLE, 0);
 #endif
-#if 1
+#if 0
         auto* autodiffActor = QAO_PCreate<AutodiffActor>(
             rt,
             ccomp<spe::NetworkingManagerInterface>().getRegistryId(),
@@ -73,7 +73,7 @@ MainGameplayManager::MainGameplayManager(QAO_RuntimeRef aRuntimeRef)
         );
         autodiffActor->init(32.f, 96.f, hg::gr::COLOR_ORANGE, 0);
 #endif
-#if 1
+#if 0
         auto* alternatingActor = QAO_PCreate<AlternatingActor>(
             rt,
             ccomp<spe::NetworkingManagerInterface>().getRegistryId(),

@@ -24,7 +24,7 @@ std::unique_ptr<spe::GameContext> CreateHostGameContext() {
         hg::RN_Protocol::UDP, "pass", 3, 4096, hg::RN_NetworkingStack::Default);
     netMgr->setStateBufferingLength(STATE_BUFFERING_LENGTH);
     netMgr->getServer().setTimeoutLimit(std::chrono::seconds{5});
-    netMgr->getServer().start(0);
+    netMgr->getServer().start(12500);
 
     context->attachAndOwnComponent(std::move(netMgr));
 
@@ -58,7 +58,10 @@ std::unique_ptr<spe::GameContext> CreateHostGameContext() {
 }
 
 inline
-std::unique_ptr<spe::GameContext> CreateClientGameContext(std::uint16_t aServerPort) {
+std::unique_ptr<spe::GameContext> CreateClientGameContext(
+    const std::string& aServerIp,
+    std::uint16_t aServerPort
+) {
     auto context = std::make_unique<spe::GameContext>(
         spe::GameContext::RuntimeConfig{std::chrono::duration<double>(1.0 / DESIRED_FRAMERATE)});
     context->setToMode(spe::GameContext::Mode::Client);
@@ -70,7 +73,7 @@ std::unique_ptr<spe::GameContext> CreateClientGameContext(std::uint16_t aServerP
         hg::RN_Protocol::UDP, "pass", 4096, hg::RN_NetworkingStack::Default);
     netMgr->setStateBufferingLength(STATE_BUFFERING_LENGTH);
     netMgr->getClient().setTimeoutLimit(std::chrono::seconds{5});
-    netMgr->getClient().connect(0, "127.0.0.1", aServerPort);
+    netMgr->getClient().connect(0, aServerIp, aServerPort);
 
     context->attachAndOwnComponent(std::move(netMgr));
 
