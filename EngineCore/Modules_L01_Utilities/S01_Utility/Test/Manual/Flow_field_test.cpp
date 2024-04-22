@@ -11,6 +11,7 @@
 #include <Hobgoblin/Utility/Grids.hpp>
 
 #include <array>
+#include <cmath>
 #include <cstdint>
 #include <deque> // TODO: replace with more efficient deque implementation
 
@@ -18,6 +19,8 @@
 
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace util {
+
+constexpr std::uint8_t COST_IMPASSABLE = 255;
 
 class DataProvider {
 public:
@@ -28,7 +31,36 @@ public:
     util::RowMajorGrid<std::uint8_t> costs;
 };
 
-using FlowField = util::RowMajorGrid<math::AngleF>;
+//! Stores an angle between 0 and 360 degrees in a single byte
+//! using 2.5 degree increments.
+class CompactAngle {
+public:
+    CompactAngle() = default;
+
+    explicit CompactAngle(math::AngleF aAngle)
+        : _value{static_cast<std::uint8_t>(std::round(aAngle.normalize().asDeg() / INCREMENT))}
+    {
+    }
+
+    bool hasValue() const {
+        return (_value != VALUE_NONE);
+    }
+
+    math::AngleF getValue() const {
+        HG_VALIDATE_PRECONDITION(hasValue());
+        return math::AngleF::fromDeg(_value * INCREMENT);
+    }
+
+private:
+    static constexpr float INCREMENT = 2.5f;
+    static constexpr std::uint8_t VALUE_NONE = 255;
+
+    std::uint8_t _value = VALUE_NONE;
+};
+
+static_assert(sizeof(CompactAngle) == 1, "TODO");
+
+using FlowField = util::RowMajorGrid<CompactAngle>;
 using IntegrationField = util::RowMajorGrid<std::int32_t>;
 
 class FlowFieldCalculator {
@@ -42,9 +74,8 @@ public:
         HG_VALIDATE_ARGUMENT(aTarget.x < _fieldDimensions.x && aTarget.y < _fieldDimensions.y,
                              "Target must be within the field.");
 
-        auto flowField = FlowField{_fieldDimensions.x, _fieldDimensions.y, math::AngleF::fromDeg(361.0)};
         auto integrationField =
-            IntegrationField{_fieldDimensions.x, _fieldDimensions.y, 65535};
+            IntegrationField{_fieldDimensions.x, _fieldDimensions.y, 65535}; // TODO: reuse integration field
 
         _queue.clear();
         integrationField[aTarget.y][aTarget.x] = 0;
@@ -64,7 +95,7 @@ public:
 
                 const auto neighbourOffset = neighbours[pztos(i)];
                 const auto neighbourCost = getCostAt(curr + *neighbourOffset);
-                if (neighbourCost == 255) {
+                if (neighbourCost == COST_IMPASSABLE) {
                     continue; // Impassable cell
                 }
 
@@ -81,51 +112,10 @@ public:
             }
         }
 
-        // Make FlowField
-        for (PZInteger y = 0; y < _fieldDimensions.y; y += 1) {
-            for (PZInteger x = 0; x < _fieldDimensions.x; x += 1) {
-                std::int32_t minCost = 2'000'000'000;
-
-                NeighbourArray neighbours;
-                _getValidNeighboursAroundPosition({x, y}, &neighbours, true);
-
-                for (PZInteger i = 0; i < 8; i += 1) {
-                    if (!neighbours[pztos(i)].has_value()) {
-                        continue;
-                    }
-                    const auto neighbourOffset = neighbours[pztos(i)];
-
-                    if (neighbourOffset->x == -1 && neighbourOffset->y == -1) {
-                        if (getCostAt({x - 1, y}) == 255 || getCostAt({x, y - 1}) == 255) {
-                            continue;
-                        }
-                    } else if (neighbourOffset->x == +1 && neighbourOffset->y == -1) {
-                        if (getCostAt({x + 1, y}) == 255 || getCostAt({x, y - 1}) == 255) {
-                            continue;
-                        }    
-                    } else if (neighbourOffset->x == -1 && neighbourOffset->y == +1) {
-                        if (getCostAt({x - 1, y}) == 255 || getCostAt({x, y + 1}) == 255) {
-                            continue;
-                        }  
-                    } else if (neighbourOffset->x == +1 && neighbourOffset->y == +1) {
-                        if (getCostAt({x + 1, y}) == 255 || getCostAt({x, y + 1}) == 255) {
-                            continue;
-                        }   
-                    }
-
-                    const auto cost = integrationField[y + neighbourOffset->y][x + neighbourOffset->x];
-                    if (cost < minCost) {
-                        minCost = cost;
-                        flowField[y][x] = _directionTowardsNeighbour(i);
-                    }
-                }
-            }
-        }
-
-        return flowField;
+        return flowFieldFromIntegrationField(integrationField);
     }
 
-    int getCostAt(math::Vector2pz aPosition) {
+    int getCostAt(math::Vector2pz aPosition) const {
         return dataProvider->getCostAt(aPosition);
     }
 
@@ -148,7 +138,7 @@ private:
             {+1, -1},
             // Same row
             {-1,  0},
-            // { 0,  0}, -- self
+            // { 0,  0}, <-- self
             {+1,  0},
             // Row below
             {-1, +1},
@@ -175,16 +165,16 @@ private:
     }
 
     // TODO: make free function
-    static constexpr math::AngleF _directionTowardsNeighbour(PZInteger aNeighbourIndex) {
-        constexpr std::array<math::AngleF, 8> DIRECTIONS = {
-            math::AngleF::fromDegrees(135.f),
-            math::AngleF::fromDegrees( 90.f),
-            math::AngleF::fromDegrees( 45.f),
-            math::AngleF::fromDegrees(180.f),
-            math::AngleF::fromDegrees(  0.f),
-            math::AngleF::fromDegrees(225.f),
-            math::AngleF::fromDegrees(270.f),
-            math::AngleF::fromDegrees(315.f)
+    static CompactAngle _directionTowardsNeighbour(PZInteger aNeighbourIndex) {
+        const std::array<CompactAngle, 8> DIRECTIONS = {
+            CompactAngle{math::AngleF::fromDegrees(135.f)},
+            CompactAngle{math::AngleF::fromDegrees( 90.f)},
+            CompactAngle{math::AngleF::fromDegrees( 45.f)},
+            CompactAngle{math::AngleF::fromDegrees(180.f)},
+            CompactAngle{math::AngleF::fromDegrees(  0.f)},
+            CompactAngle{math::AngleF::fromDegrees(225.f)},
+            CompactAngle{math::AngleF::fromDegrees(270.f)},
+            CompactAngle{math::AngleF::fromDegrees(315.f)}
         };
         return DIRECTIONS[pztos(aNeighbourIndex)];
     }
@@ -202,6 +192,59 @@ private:
             math::AngleF::fromDegrees(135.f)
         };
         return DIRECTIONS[pztos(aNeighbourIndex)];
+    }
+
+    FlowField flowFieldFromIntegrationField(const IntegrationField& aIntegrationField) const {
+        auto ff = FlowField{_fieldDimensions.x, _fieldDimensions.y, CompactAngle{}};
+
+        for (PZInteger y = 0; y < _fieldDimensions.y; y += 1) {
+            for (PZInteger x = 0; x < _fieldDimensions.x; x += 1) {
+                if (getCostAt({x, y}) == COST_IMPASSABLE) {
+                    continue;
+                }
+
+                std::int32_t minCost = 2'000'000'000;
+
+                NeighbourArray neighbours;
+                _getValidNeighboursAroundPosition({x, y}, &neighbours, true);
+
+                for (PZInteger i = 0; i < 8; i += 1) {
+                    if (!neighbours[pztos(i)].has_value()) {
+                        continue;
+                    }
+                    const auto neighbourOffset = neighbours[pztos(i)];
+
+                    // Prevent diagonal turns through corners
+                    if ((neighbourOffset->x & neighbourOffset->y) != 0) {
+                        if (neighbourOffset->x == -1 && neighbourOffset->y == -1) {
+                            if (getCostAt({x - 1, y}) == COST_IMPASSABLE || getCostAt({x, y - 1}) == COST_IMPASSABLE) {
+                                continue;
+                            }
+                        } else if (neighbourOffset->x == +1 && neighbourOffset->y == -1) {
+                            if (getCostAt({x + 1, y}) == COST_IMPASSABLE || getCostAt({x, y - 1}) == COST_IMPASSABLE) {
+                                continue;
+                            }    
+                        } else if (neighbourOffset->x == -1 && neighbourOffset->y == +1) {
+                            if (getCostAt({x - 1, y}) == COST_IMPASSABLE || getCostAt({x, y + 1}) == COST_IMPASSABLE) {
+                                continue;
+                            }  
+                        } else if (neighbourOffset->x == +1 && neighbourOffset->y == +1) {
+                            if (getCostAt({x + 1, y}) == COST_IMPASSABLE || getCostAt({x, y + 1}) == COST_IMPASSABLE) {
+                                continue;
+                            }   
+                        }
+                    }
+
+                    const auto cost = aIntegrationField[y + neighbourOffset->y][x + neighbourOffset->x];
+                    if (cost < minCost) {
+                        minCost = cost;
+                        ff[y][x] = _directionTowardsNeighbour(i);
+                    }
+                }
+            }
+        }
+
+        return ff;
     }
 };
 
@@ -224,8 +267,8 @@ HOBGOBLIN_NAMESPACE_END
 
 namespace hg = jbatnozic::hobgoblin;
 
-#define GRID_W 512
-#define GRID_H 512
+#define GRID_W (3*128)
+#define GRID_H (3*128)
 
 static void DrawDirection(sf::RenderTarget& aTarget,
                           sf::Vector2f aPosition,
@@ -246,6 +289,14 @@ int main(int argc, char* argv[]) {
     hg::util::DataProvider provider;
     provider.costs.resize(GRID_W, GRID_H);
     provider.costs.setAll(1);
+
+    for (hg::PZInteger y = 0; y < GRID_H; y += 1) {
+        for (hg::PZInteger x = 0; x < GRID_W; x += 1) {
+            if (x % 2 == 0 && y % 2 == 0) {
+                provider.costs[y][x] = 255;
+            }
+        }
+    }
 
     hg::util::FlowFieldCalculator calc;
     calc.setFieldDimensions({GRID_W, GRID_H});
@@ -302,8 +353,8 @@ int main(int argc, char* argv[]) {
 
                 DrawDirection(window, 
                               {x * 16.f + 8.f, y * 16.f + 8.f}, 
-                              ff[y][x], 
-                              (ff[y][x] == hg::math::AngleF::fromDeg(361.f)) ? sf::Color::Red : sf::Color::Green);
+                              (ff[y][x].hasValue()) ? ff[y][x].getValue() : hg::math::AngleF::zero(), 
+                              (ff[y][x].hasValue()) ? sf::Color::Green : sf::Color::Red);
             }
         }
 
