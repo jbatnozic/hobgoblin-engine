@@ -51,6 +51,10 @@ public:
         return math::AngleF::fromDeg(_value * INCREMENT);
     }
 
+    math::AngleF operator*() const {
+        return getValue();
+    }
+
 private:
     static constexpr float INCREMENT = 2.5f;
     static constexpr std::uint8_t VALUE_NONE = 255;
@@ -63,8 +67,17 @@ static_assert(sizeof(CompactAngle) == 1, "TODO");
 using FlowField = util::RowMajorGrid<CompactAngle>;
 using IntegrationField = util::RowMajorGrid<std::int32_t>;
 
+constexpr std::int32_t INTEGRATION_FIELD_MAX_COST = 0x7FFFFFFF;
+
+template <class taGrid, class taPosition>
+auto GridUnsafeAt(taGrid&& aGrid, taPosition aPosition) -> decltype(aGrid[0][0])& {
+    return aGrid[aPosition.y][aPosition.x];
+}
+
+#define GRID_U_AT GridUnsafeAt
+
 class FlowFieldCalculator {
-    using NeighbourArray = std::array<std::optional<math::Vector2pz>, 8>;
+    using NeighbourArray = std::array<std::optional<math::Vector2i>, 8>;
 public:
     void setFieldDimensions(math::Vector2pz aDimensions) {
         _fieldDimensions = aDimensions;
@@ -74,11 +87,35 @@ public:
         HG_VALIDATE_ARGUMENT(aTarget.x < _fieldDimensions.x && aTarget.y < _fieldDimensions.y,
                              "Target must be within the field.");
 
-        auto integrationField =
-            IntegrationField{_fieldDimensions.x, _fieldDimensions.y, 65535}; // TODO: reuse integration field
+        _resetIntegrationField();
+        _calculateIntegrationField(aTarget);
+        
+        return _flowFieldFromIntegrationField(_integrationField);
+    }
 
+    int getCostAt(math::Vector2pz aPosition) const {
+        return dataProvider->getCostAt(aPosition);
+    }
+
+    DataProvider* dataProvider = nullptr;
+
+private:
+    math::Vector2pz _fieldDimensions;
+
+    //! Reusable integration field (grid)
+    IntegrationField _integrationField;
+
+    //! Reusable queue for calculating the integration field
+    std::deque<math::Vector2pz> _queue;
+    
+    void _resetIntegrationField() {
+        _integrationField.resize(_fieldDimensions.x, _fieldDimensions.y);
+        _integrationField.setAll(INTEGRATION_FIELD_MAX_COST);
+    }
+
+    void _calculateIntegrationField(math::Vector2pz aTarget) {
         _queue.clear();
-        integrationField[aTarget.y][aTarget.x] = 0;
+        GRID_U_AT(_integrationField, aTarget) = 0;
         _queue.push_back(aTarget);
 
         while (!_queue.empty()) {
@@ -94,36 +131,23 @@ public:
                 }
 
                 const auto neighbourOffset = neighbours[pztos(i)];
-                const auto neighbourCost = getCostAt(curr + *neighbourOffset);
+                const auto neighbourPosition = curr + *neighbourOffset;
+                const auto neighbourCost = getCostAt(neighbourPosition);
                 if (neighbourCost == COST_IMPASSABLE) {
                     continue; // Impassable cell
                 }
 
-                const auto costFromCurrToNeighbour =
-                    integrationField[curr.y][curr.x] + neighbourCost;
+                const auto costFromCurrToNeighbour = GRID_U_AT(_integrationField, curr) + neighbourCost;
 
-                if (costFromCurrToNeighbour >= integrationField[(curr + *neighbourOffset).y][(curr + *neighbourOffset).x]) {
+                if (costFromCurrToNeighbour >= GRID_U_AT(_integrationField, neighbourPosition)) {
                     continue; // Neighbour already has a better path
                 }
 
-                integrationField[(curr + *neighbourOffset).y][(curr + *neighbourOffset).x] = costFromCurrToNeighbour;
-                // flowField[(curr + *neighbourOffset).y][(curr + *neighbourOffset).x] = _directionFromNeighbour(i);
-                _queue.push_back(curr + *neighbourOffset);
+                GRID_U_AT(_integrationField, neighbourPosition) = costFromCurrToNeighbour;
+                _queue.push_back(neighbourPosition);
             }
         }
-
-        return flowFieldFromIntegrationField(integrationField);
     }
-
-    int getCostAt(math::Vector2pz aPosition) const {
-        return dataProvider->getCostAt(aPosition);
-    }
-
-    DataProvider* dataProvider = nullptr;
-
-private:
-    std::deque<math::Vector2pz> _queue;
-    math::Vector2pz _fieldDimensions;
 
     //! 0 1 2
     //! 3 X 4
@@ -179,7 +203,7 @@ private:
         return DIRECTIONS[pztos(aNeighbourIndex)];
     }
 
-    // TODO: make free function
+    #if 0
     static constexpr math::AngleF _directionFromNeighbour(PZInteger aNeighbourIndex) {
         constexpr std::array<math::AngleF, 8> DIRECTIONS = {
             math::AngleF::fromDegrees(315.f),
@@ -193,9 +217,10 @@ private:
         };
         return DIRECTIONS[pztos(aNeighbourIndex)];
     }
+    #endif
 
-    FlowField flowFieldFromIntegrationField(const IntegrationField& aIntegrationField) const {
-        auto ff = FlowField{_fieldDimensions.x, _fieldDimensions.y, CompactAngle{}};
+    FlowField _flowFieldFromIntegrationField(const IntegrationField& aIntegrationField) const {
+        auto flowField = FlowField{_fieldDimensions.x, _fieldDimensions.y, CompactAngle{}};
 
         for (PZInteger y = 0; y < _fieldDimensions.y; y += 1) {
             for (PZInteger x = 0; x < _fieldDimensions.x; x += 1) {
@@ -203,48 +228,52 @@ private:
                     continue;
                 }
 
-                std::int32_t minCost = 2'000'000'000;
-
                 NeighbourArray neighbours;
                 _getValidNeighboursAroundPosition({x, y}, &neighbours, true);
-
+                
+                std::int32_t minCost = INTEGRATION_FIELD_MAX_COST;
                 for (PZInteger i = 0; i < 8; i += 1) {
                     if (!neighbours[pztos(i)].has_value()) {
                         continue;
                     }
+
                     const auto neighbourOffset = neighbours[pztos(i)];
 
                     // Prevent diagonal turns through corners
                     if ((neighbourOffset->x & neighbourOffset->y) != 0) {
                         if (neighbourOffset->x == -1 && neighbourOffset->y == -1) {
-                            if (getCostAt({x - 1, y}) == COST_IMPASSABLE || getCostAt({x, y - 1}) == COST_IMPASSABLE) {
+                            if (getCostAt({x - 1, y}) == COST_IMPASSABLE ||
+                                getCostAt({x, y - 1}) == COST_IMPASSABLE) {
                                 continue;
                             }
                         } else if (neighbourOffset->x == +1 && neighbourOffset->y == -1) {
-                            if (getCostAt({x + 1, y}) == COST_IMPASSABLE || getCostAt({x, y - 1}) == COST_IMPASSABLE) {
+                            if (getCostAt({x + 1, y}) == COST_IMPASSABLE ||
+                                getCostAt({x, y - 1}) == COST_IMPASSABLE) {
                                 continue;
                             }    
                         } else if (neighbourOffset->x == -1 && neighbourOffset->y == +1) {
-                            if (getCostAt({x - 1, y}) == COST_IMPASSABLE || getCostAt({x, y + 1}) == COST_IMPASSABLE) {
+                            if (getCostAt({x - 1, y}) == COST_IMPASSABLE ||
+                                getCostAt({x, y + 1}) == COST_IMPASSABLE) {
                                 continue;
                             }  
                         } else if (neighbourOffset->x == +1 && neighbourOffset->y == +1) {
-                            if (getCostAt({x + 1, y}) == COST_IMPASSABLE || getCostAt({x, y + 1}) == COST_IMPASSABLE) {
+                            if (getCostAt({x + 1, y}) == COST_IMPASSABLE ||
+                                getCostAt({x, y + 1}) == COST_IMPASSABLE) {
                                 continue;
                             }   
                         }
                     }
 
-                    const auto cost = aIntegrationField[y + neighbourOffset->y][x + neighbourOffset->x];
+                    const auto cost = GRID_U_AT(_integrationField, *neighbourOffset + math::Vector2pz(x, y));
                     if (cost < minCost) {
                         minCost = cost;
-                        ff[y][x] = _directionTowardsNeighbour(i);
+                        flowField[y][x] = _directionTowardsNeighbour(i);
                     }
                 }
             }
         }
 
-        return ff;
+        return flowField;
     }
 };
 
@@ -267,8 +296,8 @@ HOBGOBLIN_NAMESPACE_END
 
 namespace hg = jbatnozic::hobgoblin;
 
-#define GRID_W (3*128)
-#define GRID_H (3*128)
+#define GRID_W (3*100)
+#define GRID_H (3*100)
 
 static void DrawDirection(sf::RenderTarget& aTarget,
                           sf::Vector2f aPosition,
