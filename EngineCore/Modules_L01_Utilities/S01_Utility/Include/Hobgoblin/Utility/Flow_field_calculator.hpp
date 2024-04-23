@@ -33,34 +33,33 @@ public:
     util::RowMajorGrid<std::uint8_t> costs;
 };
 
+//! TODO(description)
 using FlowField = util::RowMajorGrid<CompactAngle>;
 
-class FlowFieldCalculator {
-    using NeighbourArray = std::array<std::optional<math::Vector2i>, 8>;
+//! TODO(description)
+class FlowFieldCalculator { 
 public:
     //! TODO(description)
     void reset(math::Vector2pz aFieldDimensions,
                math::Vector2pz aTarget,
                const DataProvider& aDataProvider);
 
-    //! TODO(description)
+    //! Calculates the integration field which is needed before
+    //! the flow field can be calculated. This work is not parallelizable.
     void calculateIntegrationField();
 
     //! TODO(description)
     void calculateFlowField(PZInteger aStartingRow,
                             PZInteger aRowCount);
 
-    //! TODO(description)
+    //! Calculates the entire flow field.
     void calculateFlowField();
 
     //! TODO(description)
     std::shared_ptr<FlowField> takeFlowField();
 
-    int getCostAt(math::Vector2pz aPosition) const {
-        return _dataProvider->getCostAt(aPosition);
-    }
-
 private:
+    using NeighbourArray = std::array<std::optional<math::Vector2i>, 8>;
     using IntegrationField = util::RowMajorGrid<std::int32_t>;
     static constexpr std::int32_t INTEGRATION_FIELD_MAX_COST = 0x7FFFFFFF;
 
@@ -78,8 +77,6 @@ private:
     //! Reusable queue for calculating the integration field
     std::deque<math::Vector2pz> _queue;
 
-    void _calculateIntegrationField();
-
     //! 0 1 2
     //! 3 X 4
     //! 5 6 7
@@ -87,7 +84,12 @@ private:
                                            NeighbourArray* aNeighbours,
                                            bool aDiagonalAllowed) const;
 
+    void _calculateIntegrationField();
     void _calculateFlowField(PZInteger aStartingRow, PZInteger aRowCount) const;
+
+    std::uint8_t _getCostAt(math::Vector2pz aPosition) const {
+        return _dataProvider->getCostAt(aPosition);
+    }
 };
 
 ///////////////////////////////////////////////////////////////////////////
@@ -189,7 +191,7 @@ void FlowFieldCalculator::_calculateIntegrationField() {
 
             const auto neighbourOffset = neighbours[pztos(i)];
             const auto neighbourPosition = curr + *neighbourOffset;
-            const auto neighbourCost = getCostAt(neighbourPosition);
+            const auto neighbourCost = _getCostAt(neighbourPosition);
             if (neighbourCost == COST_IMPASSABLE) {
                 continue; // Impassable cell
             }
@@ -249,7 +251,7 @@ void FlowFieldCalculator::_calculateFlowField(PZInteger aStartingRow, PZInteger 
 
     for (PZInteger y = aStartingRow; y < aStartingRow + aRowCount; y += 1) {
         for (PZInteger x = 0; x < _fieldDimensions.x; x += 1) {
-            if (getCostAt({x, y}) == COST_IMPASSABLE) {
+            if (_getCostAt({x, y}) == COST_IMPASSABLE) {
                 continue;
             }
 
@@ -267,23 +269,23 @@ void FlowFieldCalculator::_calculateFlowField(PZInteger aStartingRow, PZInteger 
                 // Prevent diagonal turns through corners
                 if ((neighbourOffset->x & neighbourOffset->y) != 0) {
                     if (neighbourOffset->x == -1 && neighbourOffset->y == -1) {
-                        if (getCostAt({x - 1, y}) == COST_IMPASSABLE ||
-                            getCostAt({x, y - 1}) == COST_IMPASSABLE) {
+                        if (_getCostAt({x - 1, y}) == COST_IMPASSABLE ||
+                            _getCostAt({x, y - 1}) == COST_IMPASSABLE) {
                             continue;
                         }
                     } else if (neighbourOffset->x == +1 && neighbourOffset->y == -1) {
-                        if (getCostAt({x + 1, y}) == COST_IMPASSABLE ||
-                            getCostAt({x, y - 1}) == COST_IMPASSABLE) {
+                        if (_getCostAt({x + 1, y}) == COST_IMPASSABLE ||
+                            _getCostAt({x, y - 1}) == COST_IMPASSABLE) {
                             continue;
                         }    
                     } else if (neighbourOffset->x == -1 && neighbourOffset->y == +1) {
-                        if (getCostAt({x - 1, y}) == COST_IMPASSABLE ||
-                            getCostAt({x, y + 1}) == COST_IMPASSABLE) {
+                        if (_getCostAt({x - 1, y}) == COST_IMPASSABLE ||
+                            _getCostAt({x, y + 1}) == COST_IMPASSABLE) {
                             continue;
                         }  
                     } else if (neighbourOffset->x == +1 && neighbourOffset->y == +1) {
-                        if (getCostAt({x + 1, y}) == COST_IMPASSABLE ||
-                            getCostAt({x, y + 1}) == COST_IMPASSABLE) {
+                        if (_getCostAt({x + 1, y}) == COST_IMPASSABLE ||
+                            _getCostAt({x, y + 1}) == COST_IMPASSABLE) {
                             continue;
                         }   
                     }
