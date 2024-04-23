@@ -47,6 +47,10 @@ public:
                math::Vector2pz aTarget,
                const taCostProvider& aCostProvider);
 
+    //! If `false` is returned, it needs to be called again (until `true` is returned)
+    //! before `calculateFlowField` can be called.
+    bool calculateIntegrationField(PZInteger aMaxIterationCount);
+
     //! Calculates the integration field which is needed before
     //! the flow field can be calculated. This work is not parallelizable.
     void calculateIntegrationField();
@@ -87,7 +91,7 @@ private:
                                            NeighbourArray* aNeighbours,
                                            bool aDiagonalAllowed) const;
 
-    void _calculateIntegrationField();
+    bool _calculateIntegrationField(PZInteger aMaxIterationCount);
     void _calculateFlowField(PZInteger aStartingRow, PZInteger aRowCount) const;
 
     std::uint8_t _getCostAt(math::Vector2pz aPosition) const {
@@ -133,9 +137,9 @@ void FlowFieldCalculator<taCostProvider>::reset(math::Vector2pz aFieldDimensions
                                                 math::Vector2pz aTarget,
                                                 const taCostProvider& aCostProvider) {
     HG_VALIDATE_ARGUMENT(aFieldDimensions.x > 0 && aFieldDimensions.y > 0,
-                            "Field width and height must both be greater than 0.");
+                         "Field width and height must both be greater than 0.");
     HG_VALIDATE_ARGUMENT(aTarget.x < aFieldDimensions.x && aTarget.y < aFieldDimensions.y,
-                            "Target must be within the field.");
+                         "Target must be within the field.");
 
     _fieldDimensions = aFieldDimensions;
     _target = aTarget;
@@ -147,11 +151,22 @@ void FlowFieldCalculator<taCostProvider>::reset(math::Vector2pz aFieldDimensions
     _integrationField.setAll(INTEGRATION_FIELD_MAX_COST);
 
     _queue.clear();
+    GRID_U_AT(_integrationField, _target) = 0;
+    _queue.push_back(_target);
+}
+
+template <class taCostProvider>
+bool FlowFieldCalculator<taCostProvider>::calculateIntegrationField(PZInteger aMaxIterationCount) {
+    return _calculateIntegrationField(aMaxIterationCount);
 }
 
 template <class taCostProvider>
 void FlowFieldCalculator<taCostProvider>::calculateIntegrationField() {
-    _calculateIntegrationField();
+    while (true) {
+        if (calculateIntegrationField(1'000'000)) {
+            return;
+        }
+    }
 }
 
 template <class taCostProvider>
@@ -176,13 +191,18 @@ std::shared_ptr<FlowField> FlowFieldCalculator<taCostProvider>::takeFlowField() 
 }
 
 template <class taCostProvider>
-void FlowFieldCalculator<taCostProvider>::_calculateIntegrationField() {
-    GRID_U_AT(_integrationField, _target) = 0;
-    _queue.push_back(_target);
+bool FlowFieldCalculator<taCostProvider>::_calculateIntegrationField(PZInteger aMaxIterationCount) {
+    for (PZInteger i = 0; i < aMaxIterationCount; i += 1) {
+        if (_queue.empty()) {
+            return true; // Done
+        }
 
-    while (!_queue.empty()) {
         const auto curr = _queue.front();
         _queue.pop_front();
+
+        if (_getCostAt(curr) == COST_IMPASSABLE) {
+            continue;
+        }
 
         NeighbourArray neighbours;
         _getValidNeighboursAroundPosition(curr, &neighbours, false);
@@ -209,6 +229,8 @@ void FlowFieldCalculator<taCostProvider>::_calculateIntegrationField() {
             _queue.push_back(neighbourPosition);
         }
     }
+
+    return false; // Not finished yet
 }
 
 template <class taCostProvider>
