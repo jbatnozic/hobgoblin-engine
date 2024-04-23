@@ -24,6 +24,7 @@ namespace util {
 
 constexpr std::uint8_t COST_IMPASSABLE = 255;
 
+/*
 class DataProvider {
 public:
     std::uint8_t getCostAt(math::Vector2pz aPosition) const {
@@ -32,17 +33,19 @@ public:
 
     util::RowMajorGrid<std::uint8_t> costs;
 };
+*/
 
 //! TODO(description)
 using FlowField = util::RowMajorGrid<CompactAngle>;
 
 //! TODO(description)
+template <class taCostProvider>
 class FlowFieldCalculator { 
 public:
     //! TODO(description)
     void reset(math::Vector2pz aFieldDimensions,
                math::Vector2pz aTarget,
-               const DataProvider& aDataProvider);
+               const taCostProvider& aCostProvider);
 
     //! Calculates the integration field which is needed before
     //! the flow field can be calculated. This work is not parallelizable.
@@ -67,7 +70,7 @@ private:
     math::Vector2pz _source;
     math::Vector2pz _target;
 
-    const DataProvider* _dataProvider = nullptr;
+    const taCostProvider* _costProvider = nullptr;
 
     std::shared_ptr<FlowField> _flowField = nullptr;
 
@@ -88,7 +91,7 @@ private:
     void _calculateFlowField(PZInteger aStartingRow, PZInteger aRowCount) const;
 
     std::uint8_t _getCostAt(math::Vector2pz aPosition) const {
-        return _dataProvider->getCostAt(aPosition);
+        return _costProvider->getCostAt(aPosition);
     }
 };
 
@@ -125,10 +128,10 @@ CompactAngle GetDirectionTowardsNeighbour(PZInteger aNeighbourIndex) {
 
 #define GRID_U_AT detail::GridUnsafeAt
 
-inline
-void FlowFieldCalculator::reset(math::Vector2pz aFieldDimensions,
-           math::Vector2pz aTarget,
-           const DataProvider& aDataProvider) {
+template <class taCostProvider>
+void FlowFieldCalculator<taCostProvider>::reset(math::Vector2pz aFieldDimensions,
+                                                math::Vector2pz aTarget,
+                                                const taCostProvider& aCostProvider) {
     HG_VALIDATE_ARGUMENT(aFieldDimensions.x > 0 && aFieldDimensions.y > 0,
                             "Field width and height must both be greater than 0.");
     HG_VALIDATE_ARGUMENT(aTarget.x < aFieldDimensions.x && aTarget.y < aFieldDimensions.y,
@@ -136,7 +139,7 @@ void FlowFieldCalculator::reset(math::Vector2pz aFieldDimensions,
 
     _fieldDimensions = aFieldDimensions;
     _target = aTarget;
-    _dataProvider = &aDataProvider;
+    _costProvider = &aCostProvider;
 
     _flowField = std::make_shared<FlowField>(_fieldDimensions.x, _fieldDimensions.y, CompactAngle{});
 
@@ -146,34 +149,34 @@ void FlowFieldCalculator::reset(math::Vector2pz aFieldDimensions,
     _queue.clear();
 }
 
-inline
-void FlowFieldCalculator::calculateIntegrationField() {
+template <class taCostProvider>
+void FlowFieldCalculator<taCostProvider>::calculateIntegrationField() {
     _calculateIntegrationField();
 }
 
-inline
-void FlowFieldCalculator::calculateFlowField(PZInteger aStartingRow,
-                        PZInteger aRowCount) {
+template <class taCostProvider>
+void FlowFieldCalculator<taCostProvider>::calculateFlowField(PZInteger aStartingRow,
+                                                             PZInteger aRowCount) {
     HG_VALIDATE_ARGUMENT(aStartingRow < _fieldDimensions.y &&
                             aStartingRow + aRowCount <= _fieldDimensions.y,
                             "Invalid row indices provided.");
     _calculateFlowField(aStartingRow, aRowCount);
 }
 
-inline
-void FlowFieldCalculator::calculateFlowField() {
+template <class taCostProvider>
+void FlowFieldCalculator<taCostProvider>::calculateFlowField() {
     calculateFlowField(0, _fieldDimensions.y);
 }
 
-inline
-std::shared_ptr<FlowField> FlowFieldCalculator::takeFlowField() {
+template <class taCostProvider>
+std::shared_ptr<FlowField> FlowFieldCalculator<taCostProvider>::takeFlowField() {
     std::shared_ptr<FlowField> result = _flowField;
     _flowField.reset();
     return result;
 }
 
-inline
-void FlowFieldCalculator::_calculateIntegrationField() {
+template <class taCostProvider>
+void FlowFieldCalculator<taCostProvider>::_calculateIntegrationField() {
     GRID_U_AT(_integrationField, _target) = 0;
     _queue.push_back(_target);
 
@@ -208,10 +211,10 @@ void FlowFieldCalculator::_calculateIntegrationField() {
     }
 }
 
-inline
-void FlowFieldCalculator::_getValidNeighboursAroundPosition(math::Vector2pz aPosition,
-                                        NeighbourArray* aNeighbours,
-                                        bool aDiagonalAllowed) const {
+template <class taCostProvider>
+void FlowFieldCalculator<taCostProvider>::_getValidNeighboursAroundPosition(math::Vector2pz aPosition,
+                                                                            NeighbourArray* aNeighbours,
+                                                                            bool aDiagonalAllowed) const {
     static const std::array<math::Vector2i, 8> OFFSETS = {
         // Row above
         math::Vector2i{-1, -1},
@@ -245,8 +248,9 @@ void FlowFieldCalculator::_getValidNeighboursAroundPosition(math::Vector2pz aPos
     }
 }
 
-inline
-void FlowFieldCalculator::_calculateFlowField(PZInteger aStartingRow, PZInteger aRowCount) const {
+template <class taCostProvider>
+void FlowFieldCalculator<taCostProvider>::_calculateFlowField(PZInteger aStartingRow,
+                                                              PZInteger aRowCount) const {
     HG_HARD_ASSERT(_flowField != nullptr);
 
     for (PZInteger y = aStartingRow; y < aStartingRow + aRowCount; y += 1) {

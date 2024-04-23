@@ -27,11 +27,20 @@ static void DrawDirection(sf::RenderTarget& aTarget,
     aTarget.draw(rect);
 }
 
+class CostProvider {
+public:
+    std::uint8_t getCostAt(hg::math::Vector2pz aPosition) const {
+        return costs.at(aPosition.y, aPosition.x);
+    }
+
+    hg::util::RowMajorGrid<std::uint8_t> costs;
+};
+
 int main(int argc, char* argv[]) {
     sf::RenderWindow window{sf::VideoMode{1200, 900}, "FlowFields", sf::Style::Default};
     window.setFramerateLimit(60);
 
-    hg::util::DataProvider provider;
+    CostProvider provider;
     provider.costs.resize(GRID_W, GRID_H);
     provider.costs.setAll(1);
 
@@ -43,7 +52,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    hg::util::FlowFieldCalculator calc;
+    hg::util::FlowFieldCalculator<CostProvider> calc;
     calc.reset({GRID_W, GRID_H}, {0, 0}, provider);
 
     std::shared_ptr<hg::util::FlowField> ff;
