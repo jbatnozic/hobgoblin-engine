@@ -57,10 +57,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    hg::util::FlowFieldSpooler<CostProvider> spooler{provider};
-
-    // hg::util::FlowFieldCalculator<CostProvider> calc;
-    // calc.reset({GRID_W, GRID_H}, {0, 0}, provider);
+    hg::util::FlowFieldSpooler<CostProvider> spooler{provider, 8};
 
     hg::util::FlowField ff;
     {
@@ -68,9 +65,6 @@ int main(int argc, char* argv[]) {
         spooler.tick();
         ff = spooler.collectResult(id)->flowField;
     }
-    // calc.calculateIntegrationField();
-    // calc.calculateFlowField();
-    // ff = calc.takeFlowField();
 
     while (window.isOpen()) {
         sf::Event ev;
@@ -91,9 +85,15 @@ int main(int argc, char* argv[]) {
                         val = (val == 1) ? 255 : 1;
                     } else if (ev.mouseButton.button == sf::Mouse::Right) {
                         const auto start = std::chrono::steady_clock::now();
-                        const auto id = spooler.addRequest({0, 0}, {GRID_W, GRID_H}, {gridX, gridY}, 1);
+                        const auto id1 = spooler.addRequest({0, 0}, {GRID_W, GRID_H}, {gridX, gridY}, 1);
+                        // const auto id2 = spooler.addRequest({0, 0}, {GRID_W, GRID_H}, {gridX, gridY}, 1);
+                        // const auto id3 = spooler.addRequest({0, 0}, {GRID_W, GRID_H}, {gridX, gridY}, 1);
+                        // const auto id4 = spooler.addRequest({0, 0}, {GRID_W, GRID_H}, {gridX, gridY}, 1);
                         spooler.tick();
-                        ff = spooler.collectResult(id)->flowField;
+                        // (void)spooler.collectResult(id4)->flowField;
+                        // (void)spooler.collectResult(id3)->flowField;
+                        // (void)spooler.collectResult(id2)->flowField;
+                        ff = spooler.collectResult(id1)->flowField;
                         const auto end = std::chrono::steady_clock::now();
                         std::cout << "Calculate took "
                                   << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000.0

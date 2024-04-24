@@ -40,7 +40,8 @@ struct OffsetFlowField {
 template <class taWorldCostProvider>
 class FlowFieldSpooler {
 public:
-    FlowFieldSpooler(const taWorldCostProvider& aWorldCostProvider);
+    FlowFieldSpooler(const taWorldCostProvider& aWorldCostProvider,
+                     PZInteger aConcurrencyLimit = 8);
 
     void tick();
 
@@ -63,7 +64,7 @@ private:
     std::unique_ptr<detail::FlowFieldSpoolerImplInterface> _impl;
 
     static std::uint8_t _worldCostFunction(math::Vector2pz aWorldPosition, void* aData) {
-        // Assume not null
+        // Assume not null for performance reasons
         const auto& self = *static_cast<FlowFieldSpooler*>(aData);
         return self._costProvider.getCostAt(aWorldPosition);
     }
@@ -74,9 +75,10 @@ private:
 ///////////////////////////////////////////////////////////////////////////
 
 template <class taWorldCostProvider>
-FlowFieldSpooler<taWorldCostProvider>::FlowFieldSpooler(const taWorldCostProvider& aWorldCostProvider)
+FlowFieldSpooler<taWorldCostProvider>::FlowFieldSpooler(const taWorldCostProvider& aWorldCostProvider,
+                                                        PZInteger aConcurrencyLimit)
     : _costProvider{aWorldCostProvider}
-    , _impl{detail::CreateDefaultFlowFieldSpoolerImpl(8, &_worldCostFunction, this)}
+    , _impl{detail::CreateDefaultFlowFieldSpoolerImpl(aConcurrencyLimit, &_worldCostFunction, this)}
 {
 }
 
