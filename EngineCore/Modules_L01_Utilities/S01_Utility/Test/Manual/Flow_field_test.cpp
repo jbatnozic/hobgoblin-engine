@@ -1,7 +1,10 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
+#include <Hobgoblin/Logging.hpp>
 #include <Hobgoblin/Utility/Flow_field_calculator.hpp>
+
+#include "Flow_field_spooler.hpp"
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
@@ -37,6 +40,8 @@ public:
 };
 
 int main(int argc, char* argv[]) {
+    hg::log::SetMinimalLogSeverity(hg::log::Severity::Warning);
+
     sf::RenderWindow window{sf::VideoMode{1200, 900}, "FlowFields", sf::Style::Default};
     window.setFramerateLimit(60);
 
@@ -52,13 +57,20 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    hg::util::FlowFieldCalculator<CostProvider> calc;
-    calc.reset({GRID_W, GRID_H}, {0, 0}, provider);
+    hg::util::FlowFieldSpooler<CostProvider> spooler{provider};
 
-    std::shared_ptr<hg::util::FlowField> ff;
-    calc.calculateIntegrationField();
-    calc.calculateFlowField();
-    ff = calc.takeFlowField();
+    // hg::util::FlowFieldCalculator<CostProvider> calc;
+    // calc.reset({GRID_W, GRID_H}, {0, 0}, provider);
+
+    hg::util::FlowField ff;
+    {
+        const auto id = spooler.addRequest({0, 0}, {GRID_W, GRID_H}, {0, 0}, 1);
+        spooler.tick();
+        ff = spooler.collectResult(id)->flowField;
+    }
+    // calc.calculateIntegrationField();
+    // calc.calculateFlowField();
+    // ff = calc.takeFlowField();
 
     while (window.isOpen()) {
         sf::Event ev;
@@ -79,10 +91,9 @@ int main(int argc, char* argv[]) {
                         val = (val == 1) ? 255 : 1;
                     } else if (ev.mouseButton.button == sf::Mouse::Right) {
                         const auto start = std::chrono::steady_clock::now();
-                        calc.reset({GRID_W, GRID_H}, {gridX, gridY}, provider);
-                        calc.calculateIntegrationField();
-                        calc.calculateFlowField();
-                        ff = calc.takeFlowField();
+                        const auto id = spooler.addRequest({0, 0}, {GRID_W, GRID_H}, {gridX, gridY}, 1);
+                        spooler.tick();
+                        ff = spooler.collectResult(id)->flowField;
                         const auto end = std::chrono::steady_clock::now();
                         std::cout << "Calculate took "
                                   << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000.0
@@ -111,8 +122,8 @@ int main(int argc, char* argv[]) {
 
                 DrawDirection(window, 
                               {x * 16.f + 8.f, y * 16.f + 8.f}, 
-                              ((*ff)[y][x].hasValue()) ? (*ff)[y][x].getValue() : hg::math::AngleF::zero(), 
-                              ((*ff)[y][x].hasValue()) ? sf::Color::Green : sf::Color::Red);
+                              (ff[y][x].hasValue()) ? ff[y][x].getValue() : hg::math::AngleF::zero(), 
+                              (ff[y][x].hasValue()) ? sf::Color::Green : sf::Color::Red);
             }
         }
 
