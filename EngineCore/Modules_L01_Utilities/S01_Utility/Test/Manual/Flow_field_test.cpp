@@ -86,13 +86,14 @@ int main(int argc, char* argv[]) {
                     } else if (ev.mouseButton.button == sf::Mouse::Right) {
                         const auto start = std::chrono::steady_clock::now();
                         const auto id1 = spooler.addRequest({0, 0}, {GRID_W, GRID_H}, {gridX, gridY}, 1);
-                        //const auto id2 = spooler.addRequest({0, 0}, {GRID_W, GRID_H}, {gridX, gridY}, 1);
-                        //const auto id3 = spooler.addRequest({0, 0}, {GRID_W, GRID_H}, {gridX, gridY}, 1);
-                        //const auto id4 = spooler.addRequest({0, 0}, {GRID_W, GRID_H}, {gridX, gridY}, 1);
+                        const auto id2 = spooler.addRequest({0, 0}, {GRID_W, GRID_H}, {gridX, gridY}, 1);
+                        const auto id3 = spooler.addRequest({0, 0}, {GRID_W, GRID_H}, {gridX, gridY}, 1);
+                        const auto id4 = spooler.addRequest({0, 0}, {GRID_W, GRID_H}, {gridX, gridY}, 1);
+                        spooler.cancelRequest(id2);
                         spooler.tick();
-                        //(void)spooler.collectResult(id4)->flowField;
-                        //(void)spooler.collectResult(id3)->flowField;
-                        //(void)spooler.collectResult(id2)->flowField;
+                        (void)spooler.collectResult(id4)->flowField;
+                        (void)spooler.collectResult(id3)->flowField;
+                        // (void)spooler.collectResult(id2)->flowField;
                         ff = spooler.collectResult(id1)->flowField;
                         const auto end = std::chrono::steady_clock::now();
                         std::cout << "Calculate took "

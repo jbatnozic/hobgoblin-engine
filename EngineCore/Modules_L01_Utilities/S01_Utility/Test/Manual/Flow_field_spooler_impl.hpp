@@ -42,6 +42,8 @@ public:
                                      math::Vector2pz aTarget,
                                      PZInteger aMaxIterations) = 0;
 
+    virtual void cancelRequest(std::uint64_t aRequestId) = 0;
+
     virtual std::optional<OffsetFlowField> collectResult(std::uint64_t aRequestId) = 0;
 };
 

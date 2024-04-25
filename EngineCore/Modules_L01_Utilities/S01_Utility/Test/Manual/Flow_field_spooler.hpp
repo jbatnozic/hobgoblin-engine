@@ -55,7 +55,7 @@ public:
                          math::Vector2pz aTarget,
                          PZInteger aMaxIterations);
 
-    // TODO: void cancelRequest(RequestId aRequestId);
+    void cancelRequest(RequestId aRequestId);
 
     std::optional<OffsetFlowField> collectResult(RequestId aRequestId);
 
@@ -105,6 +105,11 @@ FlowFieldSpooler<taWorldCostProvider>::RequestId FlowFieldSpooler<taWorldCostPro
     math::Vector2pz aTarget,
     PZInteger aMaxIterations) {
     return _impl->addRequest(aFieldTopLeft, aFieldDimensions, aTarget, aMaxIterations);
+}
+
+template <class taWorldCostProvider>
+void FlowFieldSpooler<taWorldCostProvider>::cancelRequest(RequestId aRequestId) {
+    _impl->cancelRequest(aRequestId);
 }
 
 template <class taWorldCostProvider>

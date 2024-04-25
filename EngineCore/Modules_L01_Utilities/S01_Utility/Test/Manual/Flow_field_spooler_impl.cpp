@@ -80,10 +80,10 @@ struct Station {
 
 struct Request {
     Request(std::uint64_t aRequestId)
-        : _requestId{aRequestId} {}
+        : id{aRequestId} {}
 
     ~Request() {
-        HG_LOG_DEBUG(LOG_ID, "Flow Field Request (id: {}) destroyed.", _requestId);
+        HG_LOG_DEBUG(LOG_ID, "Flow Field Request (id: {}) destroyed.", id);
     }
 
     // Prevent copying and moving because `Job` has to be
@@ -95,7 +95,7 @@ struct Request {
 
     ///////////////////////////////////////
 
-    std::uint64_t _requestId;
+    std::uint64_t id;
 
     math::Vector2pz fieldTopLeft{};
     PZInteger remainingIterations{0};
@@ -193,6 +193,8 @@ public:
                              math::Vector2pz aFieldDimensions,
                              math::Vector2pz aTarget,
                              PZInteger aMaxIterations) override;
+
+    void cancelRequest(std::uint64_t aRequestId) override;
 
     std::optional<OffsetFlowField> collectResult(std::uint64_t aRequestId) override;
 
@@ -319,14 +321,16 @@ private:
                 lock.unlock();
             }
             
+            const auto requestId = job.request->id;
+
             /* WORK */
             switch (job.kind) {
             case Job::CALCULATE_INTEGRATION_FIELD:
                 {
-                    HG_LOG_DEBUG(LOG_ID, "Worker {} starting a CALCULATE_INTEGRATION_FIELD job...", aWorkerId);
+                    HG_LOG_DEBUG(LOG_ID, "Worker {} starting a CALCULATE_INTEGRATION_FIELD job for request {}...", aWorkerId, requestId);
                     Station* station = _workCalculateIntegrationFieldJob(job, aWorkerId);
-                    HG_LOG_DEBUG(LOG_ID, "Worker {} finished a CALCULATE_INTEGRATION_FIELD job.", aWorkerId);
-                    _finalizeCalculateIntegrationFieldJob(job, aWorkerId, station);
+                    HG_LOG_DEBUG(LOG_ID, "Worker {} finished a CALCULATE_INTEGRATION_FIELD job for request {}.", aWorkerId, requestId); // TODO: print if cancelled
+                    /* TODO: IF NOT CANCELLED */_finalizeCalculateIntegrationFieldJob(job, aWorkerId, station);
                 }
                 break;
 
@@ -335,16 +339,18 @@ private:
                     const auto startRow = job.calcFlowFieldPartData.startingRow;
                     const auto endRow = startRow + job.calcFlowFieldPartData.rowCount - 1;
                     HG_LOG_DEBUG(LOG_ID,
-                                 "Worker {} starting a CALCULATE_FLOW_FIELD_PART ({}-{}) job...",
+                                 "Worker {} starting a CALCULATE_FLOW_FIELD_PART ({}-{}) job for request {}...",
                                  aWorkerId,
                                  startRow,
-                                 endRow);
+                                 endRow,
+                                 requestId);
                     _workCalculateFlowFieldPartJob(job, aWorkerId);
                     HG_LOG_DEBUG(LOG_ID,
-                                 "Worker {} finished a CALCULATE_FLOW_FIELD_PART ({}-{}) job.",
+                                 "Worker {} finished a CALCULATE_FLOW_FIELD_PART ({}-{}) job for request {}.",
                                  aWorkerId,
                                  startRow,
-                                 endRow);
+                                 endRow,
+                                 requestId); // TODO: print if cancelled
                     _finalizeCalculateFlowFieldPartJob(job, aWorkerId);
                 }
                 break;
@@ -564,6 +570,22 @@ std::uint64_t FlowFieldSpoolerImpl::addRequest(math::Vector2pz aFieldTopLeft,
     }
 
     return id;
+}
+
+void FlowFieldSpoolerImpl::cancelRequest(std::uint64_t aRequestId) {
+    std::shared_ptr<Request> request;
+    _requests.Do([aRequestId, &request](RequestMap& aIt) {
+        auto iter = aIt.find(aRequestId);
+        if (iter != aIt.end()) {
+            std::swap(request, iter->second);
+            aIt.erase(iter);
+        }
+    });
+
+    if (request != nullptr) {
+        request->cancelled.store(true);
+        HG_LOG_INFO(LOG_ID, "Request {} cancelled.", aRequestId);
+    }    
 }
 
 std::optional<OffsetFlowField> FlowFieldSpoolerImpl::collectResult(std::uint64_t aRequestId) {
