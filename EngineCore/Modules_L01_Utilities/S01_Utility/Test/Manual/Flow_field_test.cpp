@@ -40,7 +40,7 @@ public:
 };
 
 int main(int argc, char* argv[]) {
-    hg::log::SetMinimalLogSeverity(hg::log::Severity::Warning);
+    hg::log::SetMinimalLogSeverity(hg::log::Severity::All);
 
     sf::RenderWindow window{sf::VideoMode{1200, 900}, "FlowFields", sf::Style::Default};
     window.setFramerateLimit(60);
@@ -86,13 +86,13 @@ int main(int argc, char* argv[]) {
                     } else if (ev.mouseButton.button == sf::Mouse::Right) {
                         const auto start = std::chrono::steady_clock::now();
                         const auto id1 = spooler.addRequest({0, 0}, {GRID_W, GRID_H}, {gridX, gridY}, 1);
-                        const auto id2 = spooler.addRequest({0, 0}, {GRID_W, GRID_H}, {gridX, gridY}, 1);
-                        const auto id3 = spooler.addRequest({0, 0}, {GRID_W, GRID_H}, {gridX, gridY}, 1);
-                        const auto id4 = spooler.addRequest({0, 0}, {GRID_W, GRID_H}, {gridX, gridY}, 1);
+                        //const auto id2 = spooler.addRequest({0, 0}, {GRID_W, GRID_H}, {gridX, gridY}, 1);
+                        //const auto id3 = spooler.addRequest({0, 0}, {GRID_W, GRID_H}, {gridX, gridY}, 1);
+                        //const auto id4 = spooler.addRequest({0, 0}, {GRID_W, GRID_H}, {gridX, gridY}, 1);
                         spooler.tick();
-                        (void)spooler.collectResult(id4)->flowField;
-                        (void)spooler.collectResult(id3)->flowField;
-                        (void)spooler.collectResult(id2)->flowField;
+                        //(void)spooler.collectResult(id4)->flowField;
+                        //(void)spooler.collectResult(id3)->flowField;
+                        //(void)spooler.collectResult(id2)->flowField;
                         ff = spooler.collectResult(id1)->flowField;
                         const auto end = std::chrono::steady_clock::now();
                         std::cout << "Calculate took "
@@ -111,15 +111,17 @@ int main(int argc, char* argv[]) {
         rect.setOutlineThickness(1.0);
         for (hg::PZInteger y = 0; y < GRID_H; y += 1) {
             for (hg::PZInteger x = 0; x < GRID_W; x += 1) {
+                bool drawRect = true;
                 if (provider.costs[y][x] == 1) {
-                    rect.setFillColor(sf::Color::Transparent);
-                    continue;
+                    drawRect = false;
                 } else {
+                    rect.setPosition({x * 16.f, y * 16.f});
                     rect.setFillColor(sf::Color::Black);
                 }
 
-                rect.setPosition({x * 16.f, y * 16.f});
-                window.draw(rect);
+                if (drawRect) {
+                    window.draw(rect);
+                }
 
                 DrawDirection(window, 
                               {x * 16.f + 8.f, y * 16.f + 8.f}, 

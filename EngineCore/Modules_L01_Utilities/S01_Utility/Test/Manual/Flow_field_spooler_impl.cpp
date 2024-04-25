@@ -70,6 +70,8 @@ struct Station {
     Station(Station&&) = delete;
     Station& operator=(Station&&) = delete;
 
+    ///////////////////////////////////////
+
     OffsetCostProvider costProvider;
     FlowFieldCalculator<OffsetCostProvider> flowFieldCalculator;
     std::atomic_int remainingJobCount{0};
@@ -77,7 +79,12 @@ struct Station {
 };
 
 struct Request {
-    Request() = default;
+    Request(std::uint64_t aRequestId)
+        : _requestId{aRequestId} {}
+
+    ~Request() {
+        HG_LOG_DEBUG(LOG_ID, "Flow Field Request (id: {}) destroyed.", _requestId);
+    }
 
     // Prevent copying and moving because `Job` has to be
     // able to hold a pointer to an instance of `Request.
@@ -86,12 +93,18 @@ struct Request {
     Request(Request&&) = delete;
     Request& operator=(Request&&) = delete;
 
-    math::Vector2pz fieldTopLeft;
-    PZInteger remainingIterations;
+    ///////////////////////////////////////
 
-    std::optional<FlowField> result = {};
+    std::uint64_t _requestId;
+
+    math::Vector2pz fieldTopLeft{};
+    PZInteger remainingIterations{0};
+
+    std::optional<FlowField> result{};
 
     Semaphore latch{0}; // TODO
+
+    std::atomic_bool cancelled{false};
 };
 
 struct Job {
@@ -126,7 +139,7 @@ struct Job {
     };
 
     //! Original request that this job relates to.
-    Request* request = nullptr;
+    std::shared_ptr<Request> request = nullptr;
 };
 
 class FlowFieldSpoolerImpl : public FlowFieldSpoolerImplInterface {
@@ -134,7 +147,8 @@ public:
     FlowFieldSpoolerImpl(PZInteger aConcurrencyLimit,
                          WorldCostFunction aWorldCostFunc,
                          void* aWcfData)
-        : _worldCostFunc{aWorldCostFunc}
+        : _concurrencyLimit{aConcurrencyLimit}
+        , _worldCostFunc{aWorldCostFunc}
         , _wcfData{aWcfData}
     {
         HG_LOG_INFO(LOG_ID, "Creating Spooler with aConcurrencyLimit={}...", aConcurrencyLimit);
@@ -183,13 +197,14 @@ public:
     std::optional<OffsetFlowField> collectResult(std::uint64_t aRequestId) override;
 
 private:
+    PZInteger _concurrencyLimit;
     const WorldCostFunction _worldCostFunc;
     void* const _wcfData;
 
     ///////////////////////////////////////  
 
     using StationList = std::list<Station>;
-    using RequestMap  = std::unordered_map<std::uint64_t, std::unique_ptr<Request>>;
+    using RequestMap  = std::unordered_map<std::uint64_t, std::shared_ptr<Request>>;
 
     Monitor<StationList> _stations;
     Monitor<RequestMap>  _requests;
@@ -258,11 +273,11 @@ private:
         }
         score -= (aJob.request->remainingIterations * 1000);
 
-        return 0;
+        return score;
     }
 
     Job _takeJob(PZInteger aWorkerId, const std::unique_lock<Mutex>&) {
-      HG_ASSERT(!aJobs.empty());
+      HG_ASSERT(!_jobs.empty());
 
       std::size_t  pickedJobIdx = 0;
       std::int32_t pickedJobScore = _calcJobScore(_jobs[0], aWorkerId);
@@ -286,16 +301,15 @@ private:
             Job job;
 
             /* SYNCHRONIZATION */
-            HG_LOG_DEBUG(LOG_ID, "Worker {} entering SYNCHRONIZATION block...", aWorkerId);
             {
                 std::unique_lock<Mutex> lock{_mutex};
                 _setWorkerStatus(aWorkerId, WorkerStatus::PREP_OR_IDLE, lock);
                 while (true) {
                     if (_stopped) {
-                      return; // Spooler is being destroyed
+                        return; // Spooler is being destroyed
                     }
                     if (!_paused && _countAvailableJobs(lock) > 0) {
-                      break; // Ready to work
+                        break; // Ready to work
                     }
                     _cv.wait(lock);
                 }
@@ -306,21 +320,33 @@ private:
             }
             
             /* WORK */
-            HG_LOG_DEBUG(LOG_ID, "Worker {} entering WORK block...", aWorkerId);
-
             switch (job.kind) {
             case Job::CALCULATE_INTEGRATION_FIELD:
-                HG_LOG_DEBUG(LOG_ID, "Worker {} starting a CALCULATE_INTEGRATION_FIELD job...", aWorkerId);
-                _workCalculateIntegrationFieldJob(job, aWorkerId);
+                {
+                    HG_LOG_DEBUG(LOG_ID, "Worker {} starting a CALCULATE_INTEGRATION_FIELD job...", aWorkerId);
+                    Station* station = _workCalculateIntegrationFieldJob(job, aWorkerId);
+                    HG_LOG_DEBUG(LOG_ID, "Worker {} finished a CALCULATE_INTEGRATION_FIELD job.", aWorkerId);
+                    _finalizeCalculateIntegrationFieldJob(job, aWorkerId, station);
+                }
                 break;
 
             case Job::CALCULATE_FLOW_FIELD_PART:
-                HG_LOG_DEBUG(LOG_ID,
-                             "Worker {} starting a CALCULATE_FLOW_FIELD_PART ({}-{}) job...",
-                             aWorkerId,
-                             job.calcFlowFieldPartData.startingRow,
-                             job.calcFlowFieldPartData.startingRow + job.calcFlowFieldPartData.rowCount - 1);
-                _workCalculateFlowFieldPartJob(job, aWorkerId);
+                {
+                    const auto startRow = job.calcFlowFieldPartData.startingRow;
+                    const auto endRow = startRow + job.calcFlowFieldPartData.rowCount - 1;
+                    HG_LOG_DEBUG(LOG_ID,
+                                 "Worker {} starting a CALCULATE_FLOW_FIELD_PART ({}-{}) job...",
+                                 aWorkerId,
+                                 startRow,
+                                 endRow);
+                    _workCalculateFlowFieldPartJob(job, aWorkerId);
+                    HG_LOG_DEBUG(LOG_ID,
+                                 "Worker {} finished a CALCULATE_FLOW_FIELD_PART ({}-{}) job.",
+                                 aWorkerId,
+                                 startRow,
+                                 endRow);
+                    _finalizeCalculateFlowFieldPartJob(job, aWorkerId);
+                }
                 break;
 
             default:
@@ -330,7 +356,8 @@ private:
     }
 
     //! Note: call without holding the mutex.
-    void _workCalculateIntegrationFieldJob(Job& aJob, PZInteger aWorkerId) {
+    //! \returns pointer to station that was assigned to this Job/Request (never NULL).
+    Station* _workCalculateIntegrationFieldJob(Job& aJob, PZInteger aWorkerId) {
         Station* const station = _stations.Do([&aJob](StationList& aIt) -> Station* {
             for (auto& station : aIt) {
                 if (!station.isOccupied) {
@@ -354,10 +381,13 @@ private:
                 _setWorkerStatus(aWorkerId, WorkerStatus::PREP_OR_IDLE, lock);
                 while (true) {
                     if (_stopped) {
-                      return; // Spooler is being destroyed
+                        return station; // Spooler is being destroyed
+                    }
+                    if (aJob.request->cancelled.load()) {
+                        return station; // Request cancelled
                     }
                     if (!_paused) {
-                      break; // Ready to work
+                        break; // Ready to work
                     }
                     _cv.wait(lock);
                 }
@@ -372,7 +402,11 @@ private:
             }
         }
 
-        const PZInteger _concurrencyLimit = 8;
+        return station;
+    }
+
+    //! Note: call without holding the mutex.
+    void _finalizeCalculateIntegrationFieldJob(Job& aJob, PZInteger aWorkerId, Station* aStation) {
         const auto totalRowCount = aJob.calcIntegrationFieldData.fieldDimensions.y;
         const auto rowsPerJob = (totalRowCount + (_concurrencyLimit - 1)) / _concurrencyLimit;
 
@@ -383,7 +417,7 @@ private:
             auto& job = newJobs.back();
 
             job.kind = Job::CALCULATE_FLOW_FIELD_PART;
-            job.calcFlowFieldPartData.station = station;
+            job.calcFlowFieldPartData.station = aStation;
             job.calcFlowFieldPartData.startingRow = rowsCovered;
             job.calcFlowFieldPartData.rowCount =
                 (rowsCovered + rowsPerJob < totalRowCount) ? rowsPerJob : (totalRowCount - rowsCovered);
@@ -393,7 +427,7 @@ private:
             rowsCovered += rowsPerJob;
         }
 
-        station->remainingJobCount.store(static_cast<int>(newJobs.size()));
+        aStation->remainingJobCount.store(static_cast<int>(newJobs.size()));
 
         {
             std::unique_lock<Mutex> lock{_mutex};
@@ -410,10 +444,13 @@ private:
                 _setWorkerStatus(aWorkerId, WorkerStatus::PREP_OR_IDLE, lock);
                 while (true) {
                     if (_stopped) {
-                      return; // Spooler is being destroyed
+                        return; // Spooler is being destroyed
+                    }
+                    if (aJob.request->cancelled.load()) {
+                        return; // Request cancelled
                     }
                     if (!_paused) {
-                      break; // Ready to work
+                        break; // Ready to work
                     }
                     _cv.wait(lock);
                 }
@@ -426,18 +463,25 @@ private:
             // TODO: not great for pausing ability; refactor (maybe 1 row at a time?)
             jobData.station->flowFieldCalculator.calculateFlowField(jobData.startingRow, jobData.rowCount);
 
-            const auto fsRes = jobData.station->remainingJobCount.fetch_sub(1);
-            HG_LOG_DEBUG(LOG_ID, "Worker {} fsRes = {}.", aWorkerId, fsRes);
-            if (fsRes == 1) {
-                // There was exactly one job left - this one - so the calculation is finished
-                auto flowField = jobData.station->flowFieldCalculator.takeFlowField();
-                aJob.request->result = {std::move(flowField)};
-                HG_LOG_DEBUG(LOG_ID, "Worker {} signalling latch.", aWorkerId);
-                aJob.request->latch.signal();
-                jobData.station->isOccupied = false;
-            }
-
             break; // TODO Temp.
+        }
+    }
+
+    //! Note: call without holding the mutex.
+    void _finalizeCalculateFlowFieldPartJob(Job& aJob, PZInteger aWorkerId) {
+        HG_ASSERT(aJob.kind == Job::CALCULATE_FLOW_FIELD_PART);
+
+        const auto& jobData = aJob.calcFlowFieldPartData;
+        const auto fsRes = jobData.station->remainingJobCount.fetch_sub(1);
+
+        HG_LOG_DEBUG(LOG_ID, "Worker {} fsRes = {}.", aWorkerId, fsRes);
+        if (fsRes == 1) {
+            // There was exactly one job left - this one - so the calculation is finished
+            auto flowField = jobData.station->flowFieldCalculator.takeFlowField();
+            aJob.request->result = {std::move(flowField)};
+            HG_LOG_DEBUG(LOG_ID, "Worker {} signalling latch.", aWorkerId);
+            aJob.request->latch.signal();
+            jobData.station->isOccupied = false;
         }
     }
 };
@@ -487,16 +531,28 @@ std::uint64_t FlowFieldSpoolerImpl::addRequest(math::Vector2pz aFieldTopLeft,
     HG_VALIDATE_ARGUMENT(aMaxIterations > 0, "aMaxIterations must be at least 1.");
 
     const auto id = _requestIdCounter.fetch_add(1);
-    auto request = std::make_unique<Request>();
+    auto request = std::make_shared<Request>(id);
     request->fieldTopLeft = aFieldTopLeft;
     request->remainingIterations = aMaxIterations;
+
+    HG_LOG_DEBUG(
+        LOG_ID,
+        "Flow Field Request (id: {}; topLeft: ({},{}); size: ({}x{}); target: ({},{}), maxIter: {}) created.",
+        id,
+        aFieldTopLeft.x,
+        aFieldTopLeft.y,
+        aFieldDimensions.x,
+        aFieldDimensions.y,
+        aTarget.x,
+        aTarget.y,
+        aMaxIterations);
 
     Job job;
     job.kind = Job::CALCULATE_INTEGRATION_FIELD;
     job.calcIntegrationFieldData.fieldTopLeft    = aFieldTopLeft;
     job.calcIntegrationFieldData.fieldDimensions = aFieldDimensions;
     job.calcIntegrationFieldData.target          = aTarget;
-    job.request = request.get();
+    job.request = std::shared_ptr<Request>{request}; // Share ownership
 
     _requests.Do([request_ = std::move(request), id](RequestMap& aIt) mutable {
         aIt[id] = std::move(request_);
