@@ -15,7 +15,7 @@
 #include <cmath>
 #include <cstdint>
 #include <deque> // TODO: replace with more efficient deque implementation
-#include <memory>
+#include <optional>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
@@ -63,7 +63,7 @@ public:
     void calculateFlowField();
 
     //! TODO(description)
-    std::shared_ptr<FlowField> takeFlowField();
+    FlowField takeFlowField();
 
 private:
     using NeighbourArray = std::array<std::optional<math::Vector2i>, 8>;
@@ -76,7 +76,7 @@ private:
 
     const taCostProvider* _costProvider = nullptr;
 
-    std::shared_ptr<FlowField> _flowField = nullptr;
+    std::optional<FlowField> _flowField;
 
     //! Reusable integration field (grid)
     IntegrationField _integrationField;
@@ -92,7 +92,7 @@ private:
                                            bool aDiagonalAllowed) const;
 
     bool _calculateIntegrationField(PZInteger aMaxIterationCount);
-    void _calculateFlowField(PZInteger aStartingRow, PZInteger aRowCount) const;
+    void _calculateFlowField(PZInteger aStartingRow, PZInteger aRowCount);
 
     std::uint8_t _getCostAt(math::Vector2pz aPosition) const {
         return _costProvider->getCostAt(aPosition);
@@ -145,7 +145,7 @@ void FlowFieldCalculator<taCostProvider>::reset(math::Vector2pz aFieldDimensions
     _target = aTarget;
     _costProvider = &aCostProvider;
 
-    _flowField = std::make_shared<FlowField>(_fieldDimensions.x, _fieldDimensions.y, CompactAngle{});
+    _flowField.emplace(_fieldDimensions.x, _fieldDimensions.y, CompactAngle{});
 
     _integrationField.resize(_fieldDimensions.x, _fieldDimensions.y);
     _integrationField.setAll(INTEGRATION_FIELD_MAX_COST);
@@ -184,8 +184,9 @@ void FlowFieldCalculator<taCostProvider>::calculateFlowField() {
 }
 
 template <class taCostProvider>
-std::shared_ptr<FlowField> FlowFieldCalculator<taCostProvider>::takeFlowField() {
-    std::shared_ptr<FlowField> result = _flowField;
+FlowField FlowFieldCalculator<taCostProvider>::takeFlowField() {
+    HG_VALIDATE_PRECONDITION(_flowField.has_value());
+    FlowField result = std::move(*_flowField);
     _flowField.reset();
     return result;
 }
@@ -272,8 +273,8 @@ void FlowFieldCalculator<taCostProvider>::_getValidNeighboursAroundPosition(math
 
 template <class taCostProvider>
 void FlowFieldCalculator<taCostProvider>::_calculateFlowField(PZInteger aStartingRow,
-                                                              PZInteger aRowCount) const {
-    HG_HARD_ASSERT(_flowField != nullptr);
+                                                              PZInteger aRowCount) {
+    HG_HARD_ASSERT(_flowField.has_value());
 
     for (PZInteger y = aStartingRow; y < aStartingRow + aRowCount; y += 1) {
         for (PZInteger x = 0; x < _fieldDimensions.x; x += 1) {

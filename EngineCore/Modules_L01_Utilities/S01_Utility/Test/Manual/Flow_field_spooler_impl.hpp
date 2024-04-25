@@ -38,13 +38,14 @@ public:
     virtual void unpause() = 0;
 
     virtual std::uint64_t addRequest(math::Vector2pz aFieldTopLeft,
-                             math::Vector2pz aFieldDimensions,
-                             math::Vector2pz aTarget,
-                             PZInteger aMaxIterations) = 0;
+                                     math::Vector2pz aFieldDimensions,
+                                     math::Vector2pz aTarget,
+                                     PZInteger aMaxIterations) = 0;
 
     virtual std::optional<OffsetFlowField> collectResult(std::uint64_t aRequestId) = 0;
 };
 
+//! Creates a default implementation of FlowFieldSpoolerImplInterface.
 extern std::unique_ptr<FlowFieldSpoolerImplInterface> CreateDefaultFlowFieldSpoolerImpl(
     PZInteger aConcurrencyLimit,
     WorldCostFunction aWorldCostFunc,

@@ -86,13 +86,13 @@ int main(int argc, char* argv[]) {
                     } else if (ev.mouseButton.button == sf::Mouse::Right) {
                         const auto start = std::chrono::steady_clock::now();
                         const auto id1 = spooler.addRequest({0, 0}, {GRID_W, GRID_H}, {gridX, gridY}, 1);
-                        // const auto id2 = spooler.addRequest({0, 0}, {GRID_W, GRID_H}, {gridX, gridY}, 1);
-                        // const auto id3 = spooler.addRequest({0, 0}, {GRID_W, GRID_H}, {gridX, gridY}, 1);
-                        // const auto id4 = spooler.addRequest({0, 0}, {GRID_W, GRID_H}, {gridX, gridY}, 1);
+                        const auto id2 = spooler.addRequest({0, 0}, {GRID_W, GRID_H}, {gridX, gridY}, 1);
+                        const auto id3 = spooler.addRequest({0, 0}, {GRID_W, GRID_H}, {gridX, gridY}, 1);
+                        const auto id4 = spooler.addRequest({0, 0}, {GRID_W, GRID_H}, {gridX, gridY}, 1);
                         spooler.tick();
-                        // (void)spooler.collectResult(id4)->flowField;
-                        // (void)spooler.collectResult(id3)->flowField;
-                        // (void)spooler.collectResult(id2)->flowField;
+                        (void)spooler.collectResult(id4)->flowField;
+                        (void)spooler.collectResult(id3)->flowField;
+                        (void)spooler.collectResult(id2)->flowField;
                         ff = spooler.collectResult(id1)->flowField;
                         const auto end = std::chrono::steady_clock::now();
                         std::cout << "Calculate took "
@@ -113,6 +113,7 @@ int main(int argc, char* argv[]) {
             for (hg::PZInteger x = 0; x < GRID_W; x += 1) {
                 if (provider.costs[y][x] == 1) {
                     rect.setFillColor(sf::Color::Transparent);
+                    continue;
                 } else {
                     rect.setFillColor(sf::Color::Black);
                 }

@@ -8,7 +8,6 @@
 
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/HGExcept.hpp>
-#include <Hobgoblin/Math/Angle.hpp>
 #include <Hobgoblin/Math/Vector.hpp>
 #include <Hobgoblin/Utility/Flow_field_calculator.hpp>
 
@@ -56,7 +55,9 @@ public:
                          math::Vector2pz aTarget,
                          PZInteger aMaxIterations);
 
-    std::optional<OffsetFlowField> collectResult(std::uint64_t aRequestId);
+    // TODO: void cancelRequest(RequestId aRequestId);
+
+    std::optional<OffsetFlowField> collectResult(RequestId aRequestId);
 
 private:
     const taWorldCostProvider& _costProvider;
@@ -108,7 +109,7 @@ FlowFieldSpooler<taWorldCostProvider>::RequestId FlowFieldSpooler<taWorldCostPro
 
 template <class taWorldCostProvider>
 std::optional<OffsetFlowField> FlowFieldSpooler<taWorldCostProvider>::collectResult(
-    std::uint64_t aRequestId) {
+    RequestId aRequestId) {
     auto implResult = _impl->collectResult(aRequestId);
     if (!implResult.has_value()) {
         return {};

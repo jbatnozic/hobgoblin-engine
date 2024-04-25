@@ -13,29 +13,6 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace util {
 
-class FlowFieldSpooler {
-public:
-
-private:
-};
-
-/*
-- Have N "Stations" (N = number of worker threads)
-- Each Station has its own FlowFieldCalculator
-
-WORKER THREAD FLOW:
-- If idle:
-    - If there is a free Station and an outstanding request waiting,
-      assign the request to that Station and start working
-    - If there are no free Stations, help one of them finish its work
-    - If there are free Stations but no outstanding requests, try to help
-      an occupied Station finish its work
-    - If there are no occupied Stations and no outstanding requests, wait
-
-- If working:
-
-*/
-
 } // namespace util
 HOBGOBLIN_NAMESPACE_END
 

@@ -48,13 +48,7 @@ public:
     }
 
     std::uint8_t getCostAt(math::Vector2pz aPosition) const {
-        const auto cost = _worldCostFunc(aPosition + _offset, _wcfData);
-        // HG_LOG_DEBUG(LOG_ID,
-        //              "Cost @ ({},{}) = {}",
-        //              (aPosition + _offset).x,
-        //              (aPosition + _offset).y,
-        //              cost);
-        return cost;
+        return _worldCostFunc(aPosition + _offset, _wcfData);
     }
 
 private:
@@ -131,6 +125,7 @@ struct Job {
         CalculateFlowFieldPartData calcFlowFieldPartData;
     };
 
+    //! Original request that this job relates to.
     Request* request = nullptr;
 };
 
@@ -142,23 +137,31 @@ public:
         : _worldCostFunc{aWorldCostFunc}
         , _wcfData{aWcfData}
     {
+        HG_LOG_INFO(LOG_ID, "Creating Spooler with aConcurrencyLimit={}...", aConcurrencyLimit);
+
+        // Create stations
         _stations.Do([=](StationList& aIt) {
             for (PZInteger i = 0; i < aConcurrencyLimit; i += 1) {
                 aIt.emplace_back(aWorldCostFunc, aWcfData);
             }
         });
 
+        // Create & start worker threads
+        _workers.reserve(pztos(aConcurrencyLimit));
+        _workerStatuses.reserve(_workers.size());
         for (PZInteger i = 0; i < aConcurrencyLimit; i += 1) {
             _workers.emplace_back(&FlowFieldSpoolerImpl::_workerBody, this, i);
+            _workerStatuses.push_back(WorkerStatus::PREP_OR_IDLE);
         }
-
-        HG_LOG_INFO(LOG_ID, "Spooler created with aConcurrencyLimit={}.", aConcurrencyLimit);
     }
 
     ~FlowFieldSpoolerImpl() override {
-        HG_LOG_INFO(LOG_ID, "Spooler stopping...");
+        HG_LOG_INFO(LOG_ID, "Stopping Spooler...");
 
-        _stopped.store(true);
+        {
+            std::unique_lock<Mutex> lock{_mutex};
+            _stopped = true;
+        }
         _cv.notify_all();
 
         for (auto& worker : _workers) {
@@ -180,41 +183,60 @@ public:
     std::optional<OffsetFlowField> collectResult(std::uint64_t aRequestId) override;
 
 private:
-    WorldCostFunction _worldCostFunc;
-    void* _wcfData;
+    const WorldCostFunction _worldCostFunc;
+    void* const _wcfData;
+
+    ///////////////////////////////////////  
 
     using StationList = std::list<Station>;
     using RequestMap  = std::unordered_map<std::uint64_t, std::unique_ptr<Request>>;
-    using JobVector   = std::vector<Job>;
 
     Monitor<StationList> _stations;
     Monitor<RequestMap>  _requests;
-    Monitor<JobVector>   _jobs; // Could do without the Monitor
-
+    
     std::atomic_uint64_t _requestIdCounter{0};
 
+    ///////////////////////////////////////   
+
     using Mutex = std::mutex;
-    Mutex _mutex;
+    Mutex _mutex; // Protects: _jobs, _paused, _stopped, _workerStatuses
     std::condition_variable _cv;
 
-    std::atomic_bool _paused{false};
-    std::atomic_bool _stopped{false};
+    std::vector<Job> _jobs;
 
-    std::vector<std::thread> _workers;
+    bool _paused{false};
+    bool _stopped{false};
 
-    enum class WorkerStatus {
-        PREPARING,
-        WORKING
+    enum class WorkerStatus : std::int8_t {
+        PREP_OR_IDLE, //!< Preparing to work or idling
+        WORKING       //!< Working
     };
 
-    PZInteger _countAvailableJobs() const {
-        return _jobs.Do([](const JobVector& aIt) {
-            return stopz(aIt.size());
-        });
+    std::vector<std::thread>  _workers;
+    std::vector<WorkerStatus> _workerStatuses;
+    std::condition_variable   _cv_workerStatuses;
+
+    /////////////////////////////////////// 
+
+    void _setWorkerStatus(PZInteger aWorkerId, WorkerStatus aStatus, const std::unique_lock<Mutex>&) {
+        _workerStatuses[pztos(aWorkerId)] = aStatus;
+        _cv_workerStatuses.notify_all();
     }
 
-    void _setWorkerStatus(PZInteger aWorkerId, WorkerStatus aStatus) {
-        // TODO
+    void _addJob(const Job& aNewJob, const std::unique_lock<Mutex>&) {
+        _jobs.emplace_back(aNewJob);
+        _cv.notify_all(); // If a worker was blocked waiting for a job, unblock it
+    }
+
+    void _addJobs(const std::vector<Job>& aNewJobs, const std::unique_lock<Mutex>&) {
+        for (const auto& job : aNewJobs) {
+            _jobs.emplace_back(job);
+        }
+        _cv.notify_all(); // If a worker(s) was blocked waiting for a job, unblock it(them)
+    }
+
+    PZInteger _countAvailableJobs(const std::unique_lock<Mutex>&) const {
+        return stopz(_jobs.size());
     }
 
     static std::int32_t _calcJobScore(const Job& aJob, PZInteger aWorkerId) {
@@ -239,13 +261,13 @@ private:
         return 0;
     }
 
-    static Job _takeJob(JobVector& aJobs, PZInteger aWorkerId) {
+    Job _takeJob(PZInteger aWorkerId, const std::unique_lock<Mutex>&) {
       HG_ASSERT(!aJobs.empty());
 
       std::size_t  pickedJobIdx = 0;
-      std::int32_t pickedJobScore = _calcJobScore(aJobs[0], aWorkerId);
-      for (std::size_t i = 1; i < aJobs.size(); i += 1) {
-          const auto& current = aJobs[i];
+      std::int32_t pickedJobScore = _calcJobScore(_jobs[0], aWorkerId);
+      for (std::size_t i = 1; i < _jobs.size(); i += 1) {
+          const auto& current = _jobs[i];
           const auto score = _calcJobScore(current, aWorkerId);
           if (score > pickedJobScore) {
             pickedJobIdx = i;
@@ -253,9 +275,9 @@ private:
           }
       }
 
-      const Job result = aJobs[pickedJobIdx];
-      std::swap(aJobs[pickedJobIdx], aJobs[aJobs.size() - 1]);
-      aJobs.pop_back();
+      const Job result = _jobs[pickedJobIdx];
+      std::swap(_jobs[pickedJobIdx], _jobs[_jobs.size() - 1]);
+      _jobs.pop_back();
       return result;
     } 
 
@@ -267,21 +289,19 @@ private:
             HG_LOG_DEBUG(LOG_ID, "Worker {} entering SYNCHRONIZATION block...", aWorkerId);
             {
                 std::unique_lock<Mutex> lock{_mutex};
-                _setWorkerStatus(aWorkerId, WorkerStatus::PREPARING);
+                _setWorkerStatus(aWorkerId, WorkerStatus::PREP_OR_IDLE, lock);
                 while (true) {
-                    if (_stopped.load()) {
+                    if (_stopped) {
                       return; // Spooler is being destroyed
                     }
-                    if (!_paused.load() && _countAvailableJobs() > 0) {
+                    if (!_paused && _countAvailableJobs(lock) > 0) {
                       break; // Ready to work
                     }
                     _cv.wait(lock);
                 }
-                _setWorkerStatus(aWorkerId, WorkerStatus::WORKING);
+                _setWorkerStatus(aWorkerId, WorkerStatus::WORKING, lock);
 
-                _jobs.Do([this, &job, aWorkerId](JobVector& aIt) {
-                    job = _takeJob(aIt, aWorkerId);
-                });
+                job = _takeJob(aWorkerId, lock);
                 lock.unlock();
             }
             
@@ -309,6 +329,7 @@ private:
         }
     }
 
+    //! Note: call without holding the mutex.
     void _workCalculateIntegrationFieldJob(Job& aJob, PZInteger aWorkerId) {
         Station* const station = _stations.Do([&aJob](StationList& aIt) -> Station* {
             for (auto& station : aIt) {
@@ -330,17 +351,17 @@ private:
             /* SYNCHRONIZATION */
             {
                 std::unique_lock<Mutex> lock{_mutex};
-                _setWorkerStatus(aWorkerId, WorkerStatus::PREPARING);
+                _setWorkerStatus(aWorkerId, WorkerStatus::PREP_OR_IDLE, lock);
                 while (true) {
-                    if (_stopped.load()) {
+                    if (_stopped) {
                       return; // Spooler is being destroyed
                     }
-                    if (!_paused.load()) {
+                    if (!_paused) {
                       break; // Ready to work
                     }
                     _cv.wait(lock);
                 }
-                _setWorkerStatus(aWorkerId, WorkerStatus::WORKING);
+                _setWorkerStatus(aWorkerId, WorkerStatus::WORKING, lock);
                 lock.unlock();
             }
 
@@ -374,30 +395,29 @@ private:
 
         station->remainingJobCount.store(static_cast<int>(newJobs.size()));
 
-        _jobs.Do([&newJobs](JobVector& aIt) {
-            for (const auto& job : newJobs) {
-                aIt.emplace_back(job);
-            }
-        });
-        _cv.notify_all(); // TODO temp.
+        {
+            std::unique_lock<Mutex> lock{_mutex};
+            _addJobs(newJobs, lock);
+        }
     }
 
+    //! Note: call without holding the mutex.
     void _workCalculateFlowFieldPartJob(Job& aJob, PZInteger aWorkerId) {
         while (true) {
             /* SYNCHRONIZATION */
             {
                 std::unique_lock<Mutex> lock{_mutex};
-                _setWorkerStatus(aWorkerId, WorkerStatus::PREPARING);
+                _setWorkerStatus(aWorkerId, WorkerStatus::PREP_OR_IDLE, lock);
                 while (true) {
-                    if (_stopped.load()) {
+                    if (_stopped) {
                       return; // Spooler is being destroyed
                     }
-                    if (!_paused.load()) {
+                    if (!_paused) {
                       break; // Ready to work
                     }
                     _cv.wait(lock);
                 }
-                _setWorkerStatus(aWorkerId, WorkerStatus::WORKING);
+                _setWorkerStatus(aWorkerId, WorkerStatus::WORKING, lock);
                 lock.unlock();
             }
 
@@ -411,7 +431,7 @@ private:
             if (fsRes == 1) {
                 // There was exactly one job left - this one - so the calculation is finished
                 auto flowField = jobData.station->flowFieldCalculator.takeFlowField();
-                aJob.request->result = {std::move(*flowField)};
+                aJob.request->result = {std::move(flowField)};
                 HG_LOG_DEBUG(LOG_ID, "Worker {} signalling latch.", aWorkerId);
                 aJob.request->latch.signal();
                 jobData.station->isOccupied = false;
@@ -423,6 +443,7 @@ private:
 };
 
 void FlowFieldSpoolerImpl::tick() {
+    // TODO: throw exception if _paused==true (otherwise there could be a deadlock)
     _requests.Do([](RequestMap& aIt) {
         for (auto& pair : aIt) {
             auto& request = *pair.second;
@@ -431,18 +452,30 @@ void FlowFieldSpoolerImpl::tick() {
                 request.remainingIterations -=1;
             } else if (request.remainingIterations == 1) {
                 request.remainingIterations -=1;
-                request.latch.wait();
+                request.latch.wait(); // Warning: will block all access to _requests until resolved!
             }
         }
     });
 }
 
 void FlowFieldSpoolerImpl::pause() {
-    // TODO
+    std::unique_lock<Mutex> lock{_mutex};
+
+    _paused = true;
+    
+    _cv_workerStatuses.wait(lock, [this]() -> bool {
+        for (const auto status : _workerStatuses) {
+            if (status == WorkerStatus::WORKING) {
+                return false;
+            }
+        }
+        return true;
+    });
 }
 
 void FlowFieldSpoolerImpl::unpause() {
-    _paused.store(false);
+    std::unique_lock<Mutex> lock{_mutex};
+    _paused = false;
     _cv.notify_all();
 }
 
@@ -469,10 +502,10 @@ std::uint64_t FlowFieldSpoolerImpl::addRequest(math::Vector2pz aFieldTopLeft,
         aIt[id] = std::move(request_);
     });
 
-    _jobs.Do([&job](JobVector& aIt) {
-        aIt.push_back(job);
-    });
-    _cv.notify_all(); // TODO temp.
+    {
+        std::unique_lock<Mutex> lock{_mutex};
+        _addJob(job, lock);
+    }
 
     return id;
 }
