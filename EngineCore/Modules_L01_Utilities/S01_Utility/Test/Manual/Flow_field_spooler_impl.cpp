@@ -8,8 +8,8 @@
 #include <Hobgoblin/Logging.hpp>
 #include <Hobgoblin/Math/Vector.hpp>
 #include <Hobgoblin/Utility/Flow_field_calculator.hpp>
+#include <Hobgoblin/Utility/Latch.hpp>
 #include <Hobgoblin/Utility/Monitor.hpp>
-#include <Hobgoblin/Utility/Semaphore.hpp> // TODO Temp.
 
 #include <atomic>
 #include <condition_variable>
@@ -35,31 +35,24 @@ constexpr auto LOG_ID = "Hobgoblin.Utility";
 
 class OffsetCostProvider {
 public:
-    OffsetCostProvider(WorldCostFunction aWorldCostFunc, void* aWcfData)
-        : _worldCostFunc{aWorldCostFunc}
-        , _wcfData{aWcfData}
+    OffsetCostProvider(WorldCostFunctionWithArg aWcfWithArg, math::Vector2pz aOffset)
+        : _wcfWithArg{aWcfWithArg}
+        , _offset{aOffset}
     {
-        HG_VALIDATE_ARGUMENT(aWorldCostFunc != nullptr);
-        HG_VALIDATE_ARGUMENT(aWcfData != nullptr);
-    }
-
-    void setOffset(math::Vector2pz aOffset) {
-        _offset = aOffset;
     }
 
     std::uint8_t getCostAt(math::Vector2pz aPosition) const {
-        return _worldCostFunc(aPosition + _offset, _wcfData);
+        return _wcfWithArg.func(aPosition + _offset, _wcfWithArg.arg);
     }
 
 private:
-    WorldCostFunction _worldCostFunc;
-    void* _wcfData;
+    WorldCostFunctionWithArg _wcfWithArg;
     math::Vector2pz _offset = {0, 0};
 };
 
 struct Station {
-    Station(WorldCostFunction aWorldCostFunc, void* aWcfData)
-        : costProvider{aWorldCostFunc, aWcfData}
+    Station()
+        : costProvider{{nullptr, nullptr}, {0, 0}}
     {
     }
 
@@ -79,8 +72,9 @@ struct Station {
 };
 
 struct Request {
-    Request(std::uint64_t aRequestId)
-        : id{aRequestId} {}
+    Request(std::uint64_t aRequestId, std::int32_t aCostProviderId)
+        : id{aRequestId}
+        , costProviderId{aCostProviderId} {}
 
     ~Request() {
         HG_LOG_DEBUG(LOG_ID, "Flow Field Request (id: {}) destroyed.", id);
@@ -96,13 +90,14 @@ struct Request {
     ///////////////////////////////////////
 
     std::uint64_t id;
+    std::int32_t costProviderId;
 
     math::Vector2pz fieldTopLeft{};
     PZInteger remainingIterations{0};
 
     std::optional<FlowField> result{};
 
-    Semaphore latch{0}; // TODO
+    Latch latch{Latch::CLOSED};
 
     std::atomic_bool cancelled{false};
 };
@@ -144,19 +139,20 @@ struct Job {
 
 class FlowFieldSpoolerImpl : public FlowFieldSpoolerImplInterface {
 public:
-    FlowFieldSpoolerImpl(PZInteger aConcurrencyLimit,
-                         WorldCostFunction aWorldCostFunc,
-                         void* aWcfData)
-        : _concurrencyLimit{aConcurrencyLimit}
-        , _worldCostFunc{aWorldCostFunc}
-        , _wcfData{aWcfData}
+    FlowFieldSpoolerImpl(std::unordered_map<std::int32_t, WorldCostFunctionWithArg> aWcfMap,
+                         PZInteger aConcurrencyLimit)
+        : _wcfMap{std::move(aWcfMap)}
+        , _concurrencyLimit{aConcurrencyLimit}
     {
+        HG_VALIDATE_ARGUMENT(!_wcfMap.empty());
+        HG_VALIDATE_ARGUMENT(aConcurrencyLimit > 0);
+
         HG_LOG_INFO(LOG_ID, "Creating Spooler with aConcurrencyLimit={}...", aConcurrencyLimit);
 
         // Create stations
         _stations.Do([=](StationList& aIt) {
             for (PZInteger i = 0; i < aConcurrencyLimit; i += 1) {
-                aIt.emplace_back(aWorldCostFunc, aWcfData);
+                aIt.emplace_back(nullptr, nullptr);
             }
         });
 
@@ -199,9 +195,8 @@ public:
     std::optional<OffsetFlowField> collectResult(std::uint64_t aRequestId) override;
 
 private:
+    std::unordered_map<std::int32_t, WorldCostFunctionWithArg> _wcfMap;
     PZInteger _concurrencyLimit;
-    const WorldCostFunction _worldCostFunc;
-    void* const _wcfData;
 
     ///////////////////////////////////////  
 
@@ -364,11 +359,15 @@ private:
     //! Note: call without holding the mutex.
     //! \returns pointer to station that was assigned to this Job/Request (never NULL).
     Station* _workCalculateIntegrationFieldJob(Job& aJob, PZInteger aWorkerId) {
-        Station* const station = _stations.Do([&aJob](StationList& aIt) -> Station* {
+        Station* const station = _stations.Do([this, &aJob](StationList& aIt) -> Station* {
             for (auto& station : aIt) {
                 if (!station.isOccupied) {
+                    auto iter = _wcfMap.find(aJob.request->costProviderId);
+                    HG_HARD_ASSERT(iter != _wcfMap.end());
+
                     const auto& jobData = aJob.calcIntegrationFieldData;
-                    station.costProvider.setOffset(jobData.fieldTopLeft);
+                    station.costProvider =
+                        OffsetCostProvider{iter->second, jobData.fieldTopLeft};
                     station.flowFieldCalculator.reset(jobData.fieldDimensions,
                                                       jobData.target,
                                                       station.costProvider);
@@ -486,7 +485,7 @@ private:
             auto flowField = jobData.station->flowFieldCalculator.takeFlowField();
             aJob.request->result = {std::move(flowField)};
             HG_LOG_DEBUG(LOG_ID, "Worker {} signalling latch.", aWorkerId);
-            aJob.request->latch.signal();
+            aJob.request->latch.open();
             jobData.station->isOccupied = false;
         }
     }
@@ -612,10 +611,9 @@ std::optional<OffsetFlowField> FlowFieldSpoolerImpl::collectResult(std::uint64_t
 } // namespace
 
 std::unique_ptr<FlowFieldSpoolerImplInterface> CreateDefaultFlowFieldSpoolerImpl(
-    PZInteger aConcurrencyLimit,
-    WorldCostFunction aWorldCostFunc,
-    void* aWcfData) {
-    return std::make_unique<FlowFieldSpoolerImpl>(aConcurrencyLimit, aWorldCostFunc, aWcfData);
+    std::unordered_map<std::int32_t, WorldCostFunctionWithArg> aWcfMap,
+    PZInteger aConcurrencyLimit) {
+    return std::make_unique<FlowFieldSpoolerImpl>(std::move(aWcfMap), aConcurrencyLimit);
 }
 
 } // namespace detail

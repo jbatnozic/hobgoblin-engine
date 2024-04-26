@@ -13,6 +13,7 @@
 #include <cstdint>
 #include <memory>
 #include <optional>
+#include <unordered_map>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
@@ -21,6 +22,11 @@ namespace util {
 namespace detail {
 
 using WorldCostFunction = std::uint8_t (*)(math::Vector2pz aWorldPosition, void* aData);
+
+struct WorldCostFunctionWithArg {
+    WorldCostFunction func = nullptr;
+    void* arg = nullptr;
+};
 
 struct OffsetFlowField {
     FlowField flowField;
@@ -49,9 +55,8 @@ public:
 
 //! Creates a default implementation of FlowFieldSpoolerImplInterface.
 extern std::unique_ptr<FlowFieldSpoolerImplInterface> CreateDefaultFlowFieldSpoolerImpl(
-    PZInteger aConcurrencyLimit,
-    WorldCostFunction aWorldCostFunc,
-    void* aWcfData);
+    std::unordered_map<std::int32_t, WorldCostFunctionWithArg> aWcfMap,
+    PZInteger aConcurrencyLimit);
 
 } // namespace detail
 } // namespace util
