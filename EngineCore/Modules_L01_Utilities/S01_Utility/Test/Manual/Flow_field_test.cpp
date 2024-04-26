@@ -17,6 +17,7 @@ namespace hg = jbatnozic::hobgoblin;
 
 #define GRID_W (3*100)
 #define GRID_H (3*100)
+#define COST_PROVIDER_ID 5
 
 static void DrawDirection(sf::RenderTarget& aTarget,
                           sf::Vector2f aPosition,
@@ -57,11 +58,11 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    hg::util::FlowFieldSpooler<CostProvider> spooler{provider, 8};
+    hg::util::FlowFieldSpooler<CostProvider> spooler{{{COST_PROVIDER_ID, &provider}}, 8};
 
     hg::util::FlowField ff;
     {
-        const auto id = spooler.addRequest({0, 0}, {GRID_W, GRID_H}, {0, 0}, 1);
+        const auto id = spooler.addRequest({0, 0}, {GRID_W, GRID_H}, {0, 0}, COST_PROVIDER_ID, 1);
         spooler.tick();
         ff = spooler.collectResult(id)->flowField;
     }
@@ -85,10 +86,10 @@ int main(int argc, char* argv[]) {
                         val = (val == 1) ? 255 : 1;
                     } else if (ev.mouseButton.button == sf::Mouse::Right) {
                         const auto start = std::chrono::steady_clock::now();
-                        const auto id1 = spooler.addRequest({0, 0}, {GRID_W, GRID_H}, {gridX, gridY}, 1);
-                        const auto id2 = spooler.addRequest({0, 0}, {GRID_W, GRID_H}, {gridX, gridY}, 1);
-                        const auto id3 = spooler.addRequest({0, 0}, {GRID_W, GRID_H}, {gridX, gridY}, 1);
-                        const auto id4 = spooler.addRequest({0, 0}, {GRID_W, GRID_H}, {gridX, gridY}, 1);
+                        const auto id1 = spooler.addRequest({0, 0}, {GRID_W, GRID_H}, {gridX, gridY}, COST_PROVIDER_ID, 1);
+                        const auto id2 = spooler.addRequest({0, 0}, {GRID_W, GRID_H}, {gridX, gridY}, COST_PROVIDER_ID, 1);
+                        const auto id3 = spooler.addRequest({0, 0}, {GRID_W, GRID_H}, {gridX, gridY}, COST_PROVIDER_ID, 1);
+                        const auto id4 = spooler.addRequest({0, 0}, {GRID_W, GRID_H}, {gridX, gridY}, COST_PROVIDER_ID, 1);
                         spooler.cancelRequest(id2);
                         spooler.tick();
                         (void)spooler.collectResult(id4)->flowField;

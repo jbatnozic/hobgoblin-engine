@@ -49,14 +49,10 @@ template <class taWorldCostProvider>
 class FlowFieldSpooler {
 public:
     //! \brief TODO
-    using CostProviderMap = std::unordered_map<std::int32_t, taWorldCostProvider*>;
+    using CostProviderMap = std::unordered_map<std::int32_t, NeverNull<const taWorldCostProvider*>>;
 
     //! \brief TODO
     FlowFieldSpooler(CostProviderMap aCostProviderMap,
-                     PZInteger aConcurrencyLimit = 8);
-
-    //! \brief TODO
-    FlowFieldSpooler(const taWorldCostProvider& aWorldCostProvider,
                      PZInteger aConcurrencyLimit = 8);
 
     //! \brief Pauses all of the spooler's operations.
@@ -102,6 +98,7 @@ public:
     //! \param aTarget target coordinates that the flow field will try to reach. This is
     //!                given in absolute world coordinates and NOT relative to `aFieldTopLeft`.
     //!                This value must be within `aFieldDimensions`.
+    //! \param aCostProviderId TODO
     //! \param aMaxIterations maximum number of iterations given to calculate the flow field.
     //!                       Must be > 0. Note: setting too low a value can make subsequent
     //!                       calls to `tick()` block:
@@ -136,15 +133,26 @@ public:
     std::optional<OffsetFlowField> collectResult(RequestId aRequestId);
 
 private:
-    const taWorldCostProvider& _costProvider;
-
     std::unique_ptr<detail::FlowFieldSpoolerImplInterface> _impl;
 
-    static std::uint8_t _worldCostFunction(math::Vector2pz aWorldPosition, void* aData) {
+    static std::uint8_t _worldCostFunction(math::Vector2pz aWorldPosition, const void* aData) {
         // Assume not null for performance reasons
         // "If he dies, he dies"
-        const auto& self = *static_cast<FlowFieldSpooler*>(aData);
-        return self._costProvider.getCostAt(aWorldPosition);
+        const auto* provider = static_cast<const taWorldCostProvider*>(aData);
+        return provider->getCostAt(aWorldPosition);
+    }
+
+    static detail::WCFMap _convertCostMap(const CostProviderMap& aCostProviderMap) {
+        detail::WCFMap result;
+
+        for (const auto& pair : aCostProviderMap) {
+            const std::int32_t id = pair.first;
+            const taWorldCostProvider* provider = pair.second;
+
+            result[id] = {&_worldCostFunction, provider};
+        }
+
+        return result;
     }
 };
 
@@ -153,10 +161,9 @@ private:
 ///////////////////////////////////////////////////////////////////////////
 
 template <class taWorldCostProvider>
-FlowFieldSpooler<taWorldCostProvider>::FlowFieldSpooler(const taWorldCostProvider& aWorldCostProvider,
+FlowFieldSpooler<taWorldCostProvider>::FlowFieldSpooler(CostProviderMap aCostProviderMap,
                                                         PZInteger aConcurrencyLimit)
-    : _costProvider{aWorldCostProvider}
-    , _impl{detail::CreateDefaultFlowFieldSpoolerImpl({{0, &_worldCostFunction, this}}, aConcurrencyLimit)}
+    : _impl{detail::CreateDefaultFlowFieldSpoolerImpl(_convertCostMap(aCostProviderMap), aConcurrencyLimit)}
 {
 }
 
@@ -182,7 +189,7 @@ FlowFieldSpooler<taWorldCostProvider>::RequestId FlowFieldSpooler<taWorldCostPro
     math::Vector2pz aTarget,
     std::int32_t aCostProviderId,
     PZInteger aMaxIterations) {
-    return _impl->addRequest(aFieldTopLeft, aFieldDimensions, aTarget, aMaxIterations);
+    return _impl->addRequest(aFieldTopLeft, aFieldDimensions, aTarget, aCostProviderId, aMaxIterations);
 }
 
 template <class taWorldCostProvider>

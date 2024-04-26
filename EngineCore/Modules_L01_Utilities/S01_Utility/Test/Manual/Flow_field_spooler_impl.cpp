@@ -139,8 +139,7 @@ struct Job {
 
 class FlowFieldSpoolerImpl : public FlowFieldSpoolerImplInterface {
 public:
-    FlowFieldSpoolerImpl(std::unordered_map<std::int32_t, WorldCostFunctionWithArg> aWcfMap,
-                         PZInteger aConcurrencyLimit)
+    FlowFieldSpoolerImpl(WCFMap aWcfMap, PZInteger aConcurrencyLimit)
         : _wcfMap{std::move(aWcfMap)}
         , _concurrencyLimit{aConcurrencyLimit}
     {
@@ -152,7 +151,7 @@ public:
         // Create stations
         _stations.Do([=](StationList& aIt) {
             for (PZInteger i = 0; i < aConcurrencyLimit; i += 1) {
-                aIt.emplace_back(nullptr, nullptr);
+                aIt.emplace_back();
             }
         });
 
@@ -188,6 +187,7 @@ public:
     std::uint64_t addRequest(math::Vector2pz aFieldTopLeft,
                              math::Vector2pz aFieldDimensions,
                              math::Vector2pz aTarget,
+                             std::int32_t aCostProviderId,
                              PZInteger aMaxIterations) override;
 
     void cancelRequest(std::uint64_t aRequestId) override;
@@ -531,12 +531,13 @@ void FlowFieldSpoolerImpl::unpause() {
 std::uint64_t FlowFieldSpoolerImpl::addRequest(math::Vector2pz aFieldTopLeft,
                                                math::Vector2pz aFieldDimensions,
                                                math::Vector2pz aTarget,
+                                               std::int32_t aCostProviderId,
                                                PZInteger aMaxIterations) {
     // TODO: error checking for parameters
     HG_VALIDATE_ARGUMENT(aMaxIterations > 0, "aMaxIterations must be at least 1.");
 
     const auto id = _requestIdCounter.fetch_add(1);
-    auto request = std::make_shared<Request>(id);
+    auto request = std::make_shared<Request>(id, aCostProviderId);
     request->fieldTopLeft = aFieldTopLeft;
     request->remainingIterations = aMaxIterations;
 
@@ -611,7 +612,7 @@ std::optional<OffsetFlowField> FlowFieldSpoolerImpl::collectResult(std::uint64_t
 } // namespace
 
 std::unique_ptr<FlowFieldSpoolerImplInterface> CreateDefaultFlowFieldSpoolerImpl(
-    std::unordered_map<std::int32_t, WorldCostFunctionWithArg> aWcfMap,
+    WCFMap aWcfMap,
     PZInteger aConcurrencyLimit) {
     return std::make_unique<FlowFieldSpoolerImpl>(std::move(aWcfMap), aConcurrencyLimit);
 }
