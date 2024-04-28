@@ -1,5 +1,22 @@
-// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
-// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+// The code in this file is adapted from the code at https://github.com/microsoft/GSL,
+// which was originally provided under the MIT licence. The original copyright notice
+// is presented below:
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Copyright (c) 2015 Microsoft Corporation. All rights reserved.
+//
+// This code is licensed under the MIT License (MIT).
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+//
+///////////////////////////////////////////////////////////////////////////////
 
 #ifndef UHOBGOBLIN_COMMON_NULLABILITY_HPP
 #define UHOBGOBLIN_COMMON_NULLABILITY_HPP
@@ -10,12 +27,14 @@
 #include <stdexcept>
 #include <string>
 #include <type_traits>
-#include <vector>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_BEGIN
 
+//! Exception that's thrown when an attempt is made to assign NULL to one
+//! of the pointer-like classes that's supposed to guard against NULL values.
+//! \see NeverNull, AvoidNull
 class NullPointerException : public std::logic_error {
 public:
     using std::logic_error::logic_error;
@@ -25,26 +44,25 @@ public:
 // NEVERNULL                                                             //
 ///////////////////////////////////////////////////////////////////////////
 
-//
-// not_null
-//
-// Restricts a pointer or smart pointer to only hold non-null values.
-//
-// Has zero size overhead over T.
-//
-// If T is a pointer (i.e. T == U*) then
-// - allow construction from U*
-// - disallow construction from null_ptrt
-// - disallow default construction
-// - ensure construction from null U* fails
-// - allow implicit conversion to U*
-//
+//! Restricts a raw pointer or smart pointer to only hold non-NULL values.
+//!
+//! Has zero size overhead over `taPointer`.
+//!
+//! If `taPointer` is a pointer (i.e. `taPointer` == `U*`) then
+//! - allow construction from `U*`
+//! - disallow construction from `nullptr`
+//! - disallow default construction
+//! - ensure construction from NULL `U*` fails
+//! - allow implicit conversion to `U*`
+//!
 template <class taPointer>
 class NeverNull {
 public:
-    // static_assert(details::is_comparable_to_nullptr<T>::value, "T cannot be compared to nullptr.");
-
     //! Construct from a value of type `T` which is convertible to `taPointer`.
+    //! 
+    //! If `aValue` compares equal to `nullptr`, then:
+    //! 1) If standard assertions are enabled, an assertion failure will be generated.
+    //! 2) A `NullPointerException` will be thrown.
     template <typename T,
               typename = std::enable_if_t<std::is_convertible<T, taPointer>::value>>
     constexpr NeverNull(T&& aValue)
@@ -52,7 +70,9 @@ public:
     {
         assert(_ptr != nullptr);
         if (_ptr == nullptr) {
-            throw NullPointerException{"TODO"};
+            throw NullPointerException{
+                "Attempting to construct an instance of NeverNull with a NULL pointer! (function: " +
+                CURRENT_FUNCTION_STR + ")"};
         }
     }
 
@@ -71,7 +91,9 @@ public:
     {
         assert(_ptr != nullptr);
         if (_ptr == nullptr) {
-            throw NullPointerException{"TODO"};
+            throw NullPointerException{
+                "Attempting to construct an instance of NeverNull with a NULL pointer! (function: " +
+                CURRENT_FUNCTION_STR + ")"};
         }
     }
 
@@ -115,16 +137,20 @@ public:
 
 protected:
     taPointer _ptr;
+
+public:
+    // TODO
+    // static_assert(details::is_comparable_to_nullptr<taPointer>::value, "T cannot be compared to nullptr.");
 };
 
 #define HG_NEVER_NULL(...) ::jbatnozic::hobgoblin::NeverNull<__VA_ARGS__>
 
 template <class T>
-auto make_not_null(T&& t) noexcept
-{
+auto MakeNeverNull(T&& t) noexcept {
     return NeverNull<std::remove_cv_t<std::remove_reference_t<T>>>{std::forward<T>(t)};
 }
 
+// TODO
 #if !defined(GSL_NO_IOSTREAMS)
 template <class T>
 std::ostream& operator<<(std::ostream& os, const NeverNull<T>& val)
@@ -199,6 +225,7 @@ auto operator>=(const NeverNull<T>& lhs,
 }
 
 // more unwanted operators
+
 template <class T, class U>
 std::ptrdiff_t operator-(const NeverNull<T>&, const NeverNull<U>&) = delete;
 
@@ -215,6 +242,7 @@ HOBGOBLIN_NAMESPACE_END
 
 namespace std {
 
+//! Enable `std::hash` for `NeverNull`.
 template <class taPointer>
 struct hash<jbatnozic::hobgoblin::NeverNull<taPointer>>
 {
@@ -231,6 +259,14 @@ HOBGOBLIN_NAMESPACE_BEGIN
 // AVOIDNULL                                                             //
 ///////////////////////////////////////////////////////////////////////////
 
+//! `AvoidNull` class template is very similar to `NeverNull` class template.
+//! 
+//! The only difference is that an instance of `AvoidNull<T>` can be moved from,
+//! making `AvoidNull` more flexible for use with move-only pointer types, such
+//! as `std::unique_ptr`.
+//! 
+//! \warning After an instance of `AvoidNull<T>` is moved from, YOU MUST NOT USE IT
+//!          ANYMORE. Consider the move as ending its lifetime.
 template <class taPointer>
 class AvoidNull : public NeverNull<taPointer> {
 public:
@@ -251,10 +287,16 @@ public:
 
 #define HG_AVOID_NULL(...) ::jbatnozic::hobgoblin::AvoidNull<__VA_ARGS__>
 
+template <class T>
+auto MakeAvoidNull(T&& t) noexcept {
+    return AvoidNull<std::remove_cv_t<std::remove_reference_t<T>>>{std::forward<T>(t)};
+}
+
 HOBGOBLIN_NAMESPACE_END
 
 namespace std {
 
+//! Enable `std::hash` for `AvoidNull`.
 template <class taPointer>
 struct hash<jbatnozic::hobgoblin::AvoidNull<taPointer>>
 {
@@ -265,9 +307,8 @@ struct hash<jbatnozic::hobgoblin::AvoidNull<taPointer>>
 
 } // namespace std
 
-HOBGOBLIN_NAMESPACE_BEGIN
-
-HOBGOBLIN_NAMESPACE_END
+// HOBGOBLIN_NAMESPACE_BEGIN
+// HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
 #include <Hobgoblin/Private/Short_namespace.hpp>

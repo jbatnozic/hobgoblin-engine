@@ -82,7 +82,7 @@ TEST(NeverNullTest, NeverNullWithUniquePtr_2) {
 
 TEST(NeverNullTest, AssignmentOfNullPointerThrowsNPE) {
     int* p = nullptr;
-    EXPECT_THROW(NeverNull{p}, NullPointerException);
+    EXPECT_THROW(NeverNull<int*>{p}, NullPointerException);
 
     int i = 5;
     NeverNull<int*> nn = &i;
@@ -162,7 +162,7 @@ TEST(AvoidNullTest, AvoidNullWithUniquePtr_2) {
 
 TEST(AvoidNullTest, AssignmentOfNullPointerThrowsNPE) {
     int* p = nullptr;
-    EXPECT_THROW(AvoidNull{p}, NullPointerException);
+    EXPECT_THROW(AvoidNull<int*>{p}, NullPointerException);
 
     int i = 5;
     AvoidNull<int*> an = &i;

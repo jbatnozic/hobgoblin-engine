@@ -125,6 +125,7 @@ private:
     using NeighbourArray = std::array<std::optional<math::Vector2i>, 8>;
     using IntegrationField = util::RowMajorGrid<std::int32_t>;
     static constexpr std::int32_t INTEGRATION_FIELD_MAX_COST = 0x7FFFFFFF;
+    static constexpr PZInteger VERY_MANY_ITERATIONS = 0x7FFFFFFF;
 
     math::Vector2pz _fieldDimensions;
     math::Vector2pz _source;
@@ -219,7 +220,7 @@ bool FlowFieldCalculator<taCostProvider>::calculateIntegrationField(PZInteger aM
 template <class taCostProvider>
 void FlowFieldCalculator<taCostProvider>::calculateIntegrationField() {
     while (true) {
-        if (calculateIntegrationField(1'000'000)) {
+        if (calculateIntegrationField(VERY_MANY_ITERATIONS)) {
             return;
         }
     }

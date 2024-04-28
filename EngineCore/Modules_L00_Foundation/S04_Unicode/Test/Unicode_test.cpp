@@ -1,4 +1,4 @@
-// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+﻿// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
 // clang-format off
@@ -340,7 +340,7 @@ TEST(HGUnicodeTest, ToU16Formattable_UCoalesce_Test) {
         SCOPED_TRACE("object is a UTF-16 string literal - char array returned");
 
         decltype(auto) formattable = ToU16Formattable(HG_UNILIT("utf-16 string literal å"));
-        // static_assert(std::is_same<decltype(formattable), const char16_t (&)[24]>::value, "wrong type"); // WTF MSVC
+        static_assert(std::is_same<decltype(formattable), const char16_t (&)[24]>::value, "wrong type");
 
         EXPECT_EQ(hg::UCoalesce(formattable), HG_UNISTR("utf-16 string literal å"));
     }

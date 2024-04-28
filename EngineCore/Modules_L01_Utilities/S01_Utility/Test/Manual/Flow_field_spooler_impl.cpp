@@ -492,7 +492,12 @@ private:
 
     //! Note: call without holding the mutex.
     void _workCalculateFlowFieldPartJob(Job& aJob, PZInteger aWorkerId) {
-        while (true) {
+        static constexpr PZInteger ROWS_PER_ITER = 4;
+
+        const auto startingRow = aJob.calcFlowFieldPartData.startingRow;
+        const auto rowCount = aJob.calcFlowFieldPartData.rowCount;
+
+        for (PZInteger y = startingRow; y < startingRow + rowCount; y += ROWS_PER_ITER) {
             /* SYNCHRONIZATION */
             {
                 std::unique_lock<Mutex> lock{_mutex};
@@ -515,10 +520,9 @@ private:
 
             /* WORK */
             const auto& jobData = aJob.calcFlowFieldPartData;
-            // TODO: not great for pausing ability; refactor (maybe 1 row at a time?)
-            jobData.station->flowFieldCalculator.calculateFlowField(jobData.startingRow, jobData.rowCount);
-
-            break; // TODO Temp.
+            jobData.station->flowFieldCalculator.calculateFlowField(
+                y,
+                (y + ROWS_PER_ITER <= startingRow + rowCount) ? ROWS_PER_ITER : (startingRow + rowCount - y));
         }
     }
 
@@ -584,8 +588,13 @@ std::uint64_t FlowFieldSpoolerImpl::addRequest(math::Vector2pz aFieldTopLeft,
                                                math::Vector2pz aTarget,
                                                std::int32_t aCostProviderId,
                                                PZInteger aMaxIterations) {
-    // TODO: error checking for parameters
+    HG_VALIDATE_ARGUMENT(aTarget.x >= aFieldTopLeft.x &&
+                         aTarget.y >= aFieldTopLeft.y &&
+                         aTarget.x < aFieldTopLeft.x + aFieldDimensions.x &&
+                         aTarget.y < aFieldTopLeft.y + aFieldDimensions.y);  
     HG_VALIDATE_ARGUMENT(aMaxIterations > 0, "aMaxIterations must be at least 1.");
+    HG_VALIDATE_ARGUMENT(_wcfMap.find(aCostProviderId) != _wcfMap.end(),
+                         "Invalid cost provider ID provided.");
 
     const auto id = _requestIdCounter.fetch_add(1);
     auto request = std::make_shared<Request>(id, aCostProviderId);
