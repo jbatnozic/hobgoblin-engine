@@ -4,12 +4,10 @@
 #ifndef UHOBGOBLIN_UTIL_FLOW_FIELD_SPOOLER_HPP
 #define UHOBGOBLIN_UTIL_FLOW_FIELD_SPOOLER_HPP
 
-#include "Flow_field_spooler_impl.hpp"
-
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Math/Vector.hpp>
-#include <Hobgoblin/Utility/Flow_field_calculator.hpp>
+#include <Hobgoblin/Utility/Private/Flow_field_spooler_impl.hpp>
 
 #include <cstdint>
 #include <memory>

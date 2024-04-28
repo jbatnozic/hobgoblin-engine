@@ -11,6 +11,7 @@ set(COMPONENT_NAME "Hobgoblin.Utility")
 
 set(COMPONENT_SOURCES
   "Source/Dynamic_bitset.cpp"
+  "Source/Flow_field_spooler_impl.cpp"
   "Source/Packet.cpp"
   "Source/Randomization.cpp"
   "Source/Serialization.cpp"
@@ -24,11 +25,14 @@ target_include_directories(${COMPONENT_NAME} PUBLIC "Include/")
 
 target_link_libraries(${COMPONENT_NAME}
 PUBLIC
-    # Foudnation
+    # Foundation
     "Hobgoblin_L00_S00_PDef"
     "Hobgoblin_L00_S01_Common"
     "Hobgoblin_L00_S02_HGExcept"
     "Hobgoblin_L00_S04_Unicode"
+
+    # Utilities
+    "Hobgoblin_L01_S00_Math"
 
     # External
     "sfml::sfml"

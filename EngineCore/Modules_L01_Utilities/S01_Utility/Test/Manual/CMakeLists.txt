@@ -6,7 +6,6 @@ project("Hobgoblin.Utility.ManualTest")
 find_package(SFML CONFIG REQUIRED)
 
 add_executable(${PROJECT_NAME}
-    "Flow_field_spooler_impl.cpp"
     "Flow_field_test.cpp"
 )
 

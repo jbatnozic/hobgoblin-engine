@@ -2,9 +2,7 @@
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
 #include <Hobgoblin/Logging.hpp>
-#include <Hobgoblin/Utility/Flow_field_calculator.hpp>
-
-#include "Flow_field_spooler.hpp"
+#include <Hobgoblin/Utility/Flow_field_spooler.hpp>
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>

@@ -1,7 +1,7 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-#include "Flow_field_spooler_impl.hpp"
+#include <Hobgoblin/Utility/Private/Flow_field_spooler_impl.hpp>
 
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/HGExcept.hpp>
