@@ -13,3 +13,5 @@ INTERFACE
 )
 
 add_library("Hobgoblin_L00_S01_Common" ALIAS ${PROJECT_NAME})
+
+add_subdirectory("Test")

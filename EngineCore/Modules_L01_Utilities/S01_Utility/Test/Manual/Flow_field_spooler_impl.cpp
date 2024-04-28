@@ -291,7 +291,23 @@ private:
       std::swap(_jobs[pickedJobIdx], _jobs[_jobs.size() - 1]);
       _jobs.pop_back();
       return result;
-    } 
+    }
+
+    //! Assigns an unoccupied Station to a Job.
+    NeverNull<Station*> _assignStation(Station& aStation, Job& aJob) {
+        HG_HARD_ASSERT(!aStation.isOccupied);
+
+        auto wcfIter = _wcfMap.find(aJob.request->costProviderId);
+        HG_HARD_ASSERT(wcfIter != _wcfMap.end());
+
+        const auto& jobData = aJob.calcIntegrationFieldData;
+        aStation.costProvider = OffsetCostProvider{wcfIter->second, jobData.fieldTopLeft};
+        aStation.flowFieldCalculator.reset(jobData.fieldDimensions,
+                                           jobData.target,
+                                           aStation.costProvider);
+        aStation.isOccupied = true;
+        return &aStation;
+    }
 
     void _workerBody(PZInteger aWorkerId) {
         while (true) {
@@ -322,10 +338,20 @@ private:
             switch (job.kind) {
             case Job::CALCULATE_INTEGRATION_FIELD:
                 {
-                    HG_LOG_DEBUG(LOG_ID, "Worker {} starting a CALCULATE_INTEGRATION_FIELD job for request {}...", aWorkerId, requestId);
+                    HG_LOG_DEBUG(LOG_ID,
+                                 "Worker {} starting a CALCULATE_INTEGRATION_FIELD job for request {}...",
+                                 aWorkerId,
+                                 requestId);
                     Station* station = _workCalculateIntegrationFieldJob(job, aWorkerId);
-                    HG_LOG_DEBUG(LOG_ID, "Worker {} finished a CALCULATE_INTEGRATION_FIELD job for request {}.", aWorkerId, requestId); // TODO: print if cancelled
-                    /* TODO: IF NOT CANCELLED */_finalizeCalculateIntegrationFieldJob(job, aWorkerId, station);
+                    const bool requestCancelled = job.request->cancelled.load();
+                    HG_LOG_DEBUG(LOG_ID, 
+                                 "Worker {} finished a CALCULATE_INTEGRATION_FIELD job for request {}{}.",
+                                 aWorkerId,
+                                 requestId,
+                                 requestCancelled ? " (cancelled)" : "");
+                    if (!requestCancelled) {
+                        _finalizeCalculateIntegrationFieldJob(job, aWorkerId, station);
+                    }
                 }
                 break;
 
@@ -340,12 +366,15 @@ private:
                                  endRow,
                                  requestId);
                     _workCalculateFlowFieldPartJob(job, aWorkerId);
+                    const bool requestCancelled = job.request->cancelled.load();
                     HG_LOG_DEBUG(LOG_ID,
-                                 "Worker {} finished a CALCULATE_FLOW_FIELD_PART ({}-{}) job for request {}.",
+                                 "Worker {} finished a CALCULATE_FLOW_FIELD_PART ({}-{}) job for request {}{}.",
                                  aWorkerId,
                                  startRow,
                                  endRow,
-                                 requestId); // TODO: print if cancelled
+                                 requestId,
+                                 requestCancelled ? " (cancelled)" : "");
+                    // Finalize even if cancelled
                     _finalizeCalculateFlowFieldPartJob(job, aWorkerId);
                 }
                 break;
@@ -358,21 +387,11 @@ private:
 
     //! Note: call without holding the mutex.
     //! \returns pointer to station that was assigned to this Job/Request (never NULL).
-    Station* _workCalculateIntegrationFieldJob(Job& aJob, PZInteger aWorkerId) {
+    NeverNull<Station*> _workCalculateIntegrationFieldJob(Job& aJob, PZInteger aWorkerId) {
         Station* const station = _stations.Do([this, &aJob](StationList& aIt) -> Station* {
             for (auto& station : aIt) {
                 if (!station.isOccupied) {
-                    auto iter = _wcfMap.find(aJob.request->costProviderId);
-                    HG_HARD_ASSERT(iter != _wcfMap.end());
-
-                    const auto& jobData = aJob.calcIntegrationFieldData;
-                    station.costProvider =
-                        OffsetCostProvider{iter->second, jobData.fieldTopLeft};
-                    station.flowFieldCalculator.reset(jobData.fieldDimensions,
-                                                      jobData.target,
-                                                      station.costProvider);
-                    station.isOccupied = true;
-                    return &station;
+                    return _assignStation(station, aJob);
                 }
             }
             return nullptr;

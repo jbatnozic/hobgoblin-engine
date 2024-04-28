@@ -49,7 +49,10 @@ template <class taWorldCostProvider>
 class FlowFieldSpooler {
 public:
     //! \brief TODO
-    using CostProviderMap = std::unordered_map<std::int32_t, NeverNull<const taWorldCostProvider*>>;
+    using CostProviderId = std::uint32_t;
+
+    //! \brief TODO
+    using CostProviderMap = std::unordered_map<CostProviderId, NeverNull<const taWorldCostProvider*>>;
 
     //! \brief TODO
     FlowFieldSpooler(CostProviderMap aCostProviderMap,
@@ -117,7 +120,7 @@ public:
     RequestId addRequest(math::Vector2pz aFieldTopLeft,
                          math::Vector2pz aFieldDimensions,
                          math::Vector2pz aTarget,
-                         std::int32_t aCostProviderId,
+                         CostProviderId aCostProviderId,
                          PZInteger aMaxIterations);
 
     //! \brief Cancels an ongoing flow field request.
@@ -187,7 +190,7 @@ FlowFieldSpooler<taWorldCostProvider>::RequestId FlowFieldSpooler<taWorldCostPro
     math::Vector2pz aFieldTopLeft,
     math::Vector2pz aFieldDimensions,
     math::Vector2pz aTarget,
-    std::int32_t aCostProviderId,
+    CostProviderId aCostProviderId,
     PZInteger aMaxIterations) {
     return _impl->addRequest(aFieldTopLeft, aFieldDimensions, aTarget, aCostProviderId, aMaxIterations);
 }
