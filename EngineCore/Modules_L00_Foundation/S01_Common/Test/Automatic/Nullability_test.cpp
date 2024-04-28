@@ -155,6 +155,22 @@ TEST(AvoidNullTest, AvoidNullWithUniquePtr_2) {
     EXPECT_TRUE(an.get().get() == raw);
 }
 
+// In Debug mode, assigning NULL to NeverNull will result in an assertion failure,
+// which is difficult to test. In Release mode, it will throw an exception which
+// we can easily catch.
+#ifdef NDEBUG
+
+TEST(AvoidNullTest, AssignmentOfNullPointerThrowsNPE) {
+    int* p = nullptr;
+    EXPECT_THROW(AvoidNull{p}, NullPointerException);
+
+    int i = 5;
+    AvoidNull<int*> an = &i;
+    EXPECT_THROW({ an = p; }, NullPointerException);
+}
+
+#endif
+
 TEST(AvoidNullTest, MoveTest) {
     {
         int  i = 5;
@@ -185,7 +201,7 @@ TEST(NeverNullAvoidNullInteropTest, Test1) {
 
     {
         NeverNull<int*> nn2 = an;
-        // AvoidNull<int*> an2 = nn;
+        AvoidNull<int*> an2 = nn;
     }
 }
 

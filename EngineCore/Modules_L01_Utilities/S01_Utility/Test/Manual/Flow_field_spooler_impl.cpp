@@ -156,8 +156,8 @@ public:
         });
 
         // Create & start worker threads
+        _workerStatuses.resize(pztos(aConcurrencyLimit));
         _workers.reserve(pztos(aConcurrencyLimit));
-        _workerStatuses.resize(_workers.size());
         for (PZInteger i = 0; i < aConcurrencyLimit; i += 1) {
             _workerStatuses[pztos(i)] = WorkerStatus::PREP_OR_IDLE;
             _workers.emplace_back(&FlowFieldSpoolerImpl::_workerBody, this, i);        

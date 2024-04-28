@@ -24,45 +24,101 @@ namespace util {
 
 constexpr std::uint8_t COST_IMPASSABLE = 255;
 
-/*
-class DataProvider {
-public:
-    std::uint8_t getCostAt(math::Vector2pz aPosition) const {
-        return costs.at(aPosition.y, aPosition.x);
-    }
-
-    util::RowMajorGrid<std::uint8_t> costs;
-};
-*/
-
-//! TODO(description)
+//! A flow field leading to some destination within the field (the coordinates of the
+//! destination are not stored in the field itself). Each cell stores the direction which
+//! should be travelled in order to get closer to the destination. Cells from which there
+//! is no path to the destination store no value.
 using FlowField = util::RowMajorGrid<CompactAngle>;
 
-//! TODO(description)
+//! Class used to calculate flow fields.
+//! For a more powerful API for this purpose, see `FlowFieldSpooler`.
+//! 
+//! \tparam taCostProvider object which will be used to get the costs of traversing each cell in
+//!                        the game world (the higher the cost of the cell, the more likely that
+//!                        the cell will be avoided if possible. Return COST_IMPASSABLE (255) to
+//!                        mark impassable cells). The only requirement is that it has a public
+//!                        method with the following signature:
+//!                                `std::uint8_t getCostAt(math::Vector2pz aPosition) const`
+//!                        - Note: this method will be on the hot path of the flow field calculation,
+//!                                so make sure it doesn't do any unnecessary work.
+//!                        - Note: DO NOT, EVER have this method return zero! Only the destination
+//!                                point of the flow field gets to have a cost of zero. However, the
+//!                                calculator will not check this due to the previous point.
+//! 
+//! Example cost provider:
+//!     class DataProvider {
+//!     public:
+//!         std::uint8_t getCostAt(math::Vector2pz aPosition) const {
+//!             return costs.at(aPosition.y, aPosition.x);
+//!         }
+//!     
+//!         util::RowMajorGrid<std::uint8_t> costs;
+//!     };
+//! 
 template <class taCostProvider>
 class FlowFieldCalculator { 
 public:
-    //! TODO(description)
+    //! Initializes the state of the calculator so that a new flow field can be calculated.
+    //! 
+    //! \param aFieldDimensions dimensions of the field.
+    //! \param aTarget destination to which the flow field will lead. Must be within the given
+    //!                dimensions.
+    //! \param aCostProvider reference to a cost provider to be used. The object must be kept alive
+    //!                      until the flow field calculator is destroyed or until a new cost
+    //!                      provider is set using `reset()`.
     void reset(math::Vector2pz aFieldDimensions,
                math::Vector2pz aTarget,
                const taCostProvider& aCostProvider);
 
-    //! If `false` is returned, it needs to be called again (until `true` is returned)
-    //! before `calculateFlowField` can be called.
+    //! Calculates the integration field which is needed before the flow field can be calculated.
+    //! This work is not parallelizable.
+    //! 
+    //! \warning this must be called AFTER `reset`!
+    //! 
+    //! \param aMaxIterationCount maximum number of iterations to perform before returning from
+    //!                           the method. If 0, nothing will be done.
+    //! 
+    //! \returns `true` if the calculation has been finished; `false` if there is more to do and
+    //!          `calculateIntegrationField` needs to be called again (until `true` is eventually
+    //!          returned).
+    //! 
+    //! \note this version of the method is intended to be used when you need to be able to pause
+    //!       or cancel the calculation, and the API offers a way to do it in small chunks. To
+    //!       calculate the whole integration field in one go, use the version without parameters.
     bool calculateIntegrationField(PZInteger aMaxIterationCount);
 
-    //! Calculates the integration field which is needed before
-    //! the flow field can be calculated. This work is not parallelizable.
+    //! Calculates the whole integration field which is needed before the flow field can be
+    //! calculated. This work is not parallelizable.
+    //! \warning this must be called AFTER `reset`!
     void calculateIntegrationField();
 
-    //! TODO(description)
+    //! Calculates a part of a flow field.
+    //! 
+    //! \warning this must be called AFTER calculating the integration field has been finished!
+    //! 
+    //! \param aStartingRow index of the row to start at.
+    //! \param aRowCount number of rows to calculate.
+    //! 
+    //! \throws InvalidArgumentError if the given row indices don't fit in the previously set
+    //!                              field dimensions.
+    //! 
+    //! \note this version of the method is intended to be used when you want to split the
+    //!       calculation among multiple threads. Caution - when you later call `takeFlowField()`,
+    //!       no check will be done to see if all the rows have been calculated! To calculate
+    //!       the whole flow field in one go by a single thread, use the version without parameters.
     void calculateFlowField(PZInteger aStartingRow,
                             PZInteger aRowCount);
 
     //! Calculates the entire flow field.
+    //! \warning this must be called AFTER calculating the integration field has been finished!
     void calculateFlowField();
 
-    //! TODO(description)
+    //! Once a flow field has been calculated, use this method to take the result.
+    //! 
+    //! \warning this must be called AFTER calculating the flow field has been finished!
+    //! 
+    //! \throws PreconditionNotMetError if no flow field is stored (if it hasn't been calculated yet
+    //!                                 or if it has already been taken).
     FlowField takeFlowField();
 
 private:
@@ -274,6 +330,8 @@ void FlowFieldCalculator<taCostProvider>::_getValidNeighboursAroundPosition(math
 template <class taCostProvider>
 void FlowFieldCalculator<taCostProvider>::_calculateFlowField(PZInteger aStartingRow,
                                                               PZInteger aRowCount) {
+    HG_VALIDATE_ARGUMENT(aStartingRow < _fieldDimensions.y);
+    HG_VALIDATE_ARGUMENT(aStartingRow + aRowCount <= _fieldDimensions.y);
     HG_HARD_ASSERT(_flowField.has_value());
 
     for (PZInteger y = aStartingRow; y < aStartingRow + aRowCount; y += 1) {
