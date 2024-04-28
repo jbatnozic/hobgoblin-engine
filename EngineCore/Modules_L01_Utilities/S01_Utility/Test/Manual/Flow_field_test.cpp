@@ -1,6 +1,8 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
+// clang-format off
+
 #include <Hobgoblin/Logging.hpp>
 #include <Hobgoblin/Utility/Flow_field_spooler.hpp>
 
@@ -135,3 +137,5 @@ int main(int argc, char* argv[]) {
 
     return EXIT_SUCCESS;
 }
+
+// clang-format on

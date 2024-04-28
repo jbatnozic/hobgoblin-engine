@@ -4,8 +4,8 @@
 #ifndef UHOBGOBLIN_UTIL_LATCH_HPP
 #define UHOBGOBLIN_UTIL_LATCH_HPP
 
-#include <mutex>
 #include <condition_variable>
+#include <mutex>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
@@ -14,13 +14,11 @@ namespace util {
 
 class Latch {
 public:
-    static constexpr bool OPEN   = true;
+    static constexpr bool OPEN = true;
     static constexpr bool CLOSED = false;
 
     Latch(bool aInitialValue = CLOSED)
-        : _val{aInitialValue}
-    {
-    }
+        : _val{aInitialValue} {}
 
     void open() {
         std::unique_lock<decltype(_mutex)> lock(_mutex);
@@ -58,9 +56,9 @@ public:
     }
 
 private:
-    mutable std::mutex _mutex;
+    mutable std::mutex      _mutex;
     std::condition_variable _condition;
-    bool _val;
+    bool                    _val;
 };
 
 } // namespace util

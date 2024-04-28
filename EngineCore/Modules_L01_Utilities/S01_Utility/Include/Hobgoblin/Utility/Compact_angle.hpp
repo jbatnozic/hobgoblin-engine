@@ -22,9 +22,7 @@ public:
     CompactAngle() = default;
 
     explicit CompactAngle(math::AngleF aAngle)
-        : _value{static_cast<std::uint8_t>(std::round(aAngle.normalize().asDeg() / INCREMENT))}
-    {
-    }
+        : _value{static_cast<std::uint8_t>(std::round(aAngle.normalize().asDeg() / INCREMENT))} {}
 
     bool hasValue() const {
         return (_value != VALUE_NONE);
@@ -40,7 +38,7 @@ public:
     }
 
 private:
-    static constexpr float INCREMENT = 2.5f;
+    static constexpr float        INCREMENT = 2.5f;
     static constexpr std::uint8_t VALUE_NONE = 255;
 
     std::uint8_t _value = VALUE_NONE;

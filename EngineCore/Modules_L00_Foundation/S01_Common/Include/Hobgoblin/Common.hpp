@@ -5,7 +5,7 @@
 #define UHOBGOBLIN_COMMON_HPP
 
 #include <Hobgoblin/Common/Nullability.hpp>
-#include <Hobgoblin/Common/Tag_types.hpp>
 #include <Hobgoblin/Common/Positive_or_zero_integer.hpp>
+#include <Hobgoblin/Common/Tag_types.hpp>
 
 #endif // !UHOBGOBLIN_COMMON_HPP

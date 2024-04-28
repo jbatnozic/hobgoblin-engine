@@ -21,7 +21,7 @@ HOBGOBLIN_NAMESPACE_BEGIN
 namespace util {
 
 struct OffsetFlowField {
-    FlowField flowField;
+    FlowField       flowField;
     math::Vector2pz offset;
 };
 
@@ -29,7 +29,7 @@ struct OffsetFlowField {
 //! calculating flow fields in limited parts of a (potentially) very large grid-based
 //! game world.
 //! The flow fields are calculated asynchronously by a pool of threads that can each
-//! work on their own flow field in parallel, or they can collaborate on a single 
+//! work on their own flow field in parallel, or they can collaborate on a single
 //! flow field to finalize it more quickly.
 //!
 //! \tparam taCostProvider object which will be used to get the costs of traversing each cell in
@@ -43,14 +43,14 @@ struct OffsetFlowField {
 //!                        - Note: DO NOT, EVER have this method return zero! Only the destination
 //!                                point of the flow field gets to have a cost of zero. However, the
 //!                                calculator will not check this due to the previous point.
-//! 
+//!
 //! Example cost provider:
 //!     class DataProvider {
 //!     public:
 //!         std::uint8_t getCostAt(math::Vector2pz aPosition) const {
 //!             return costs.at(aPosition.y, aPosition.x);
 //!         }
-//!     
+//!
 //!         util::RowMajorGrid<std::uint8_t> costs;
 //!     };
 //!
@@ -64,7 +64,7 @@ public:
     using CostProviderMap = std::unordered_map<CostProviderId, NeverNull<const taWorldCostProvider*>>;
 
     //! \brief Constructor.
-    //! 
+    //!
     //! \param aCostProviderMap a collection of cost providers mapped to their IDs (the IDs can be
     //!                         chosen arbitrarily). Whenever you later request a new flow field,
     //!                         you will need to provide the ID of a cost provider to use. By this
@@ -78,10 +78,9 @@ public:
     //!                          `FlowFieldCalculator`. At 2, they will be about on-par with each
     //!                          other. Thus at least 3 (and preferrably more) is recommended. But
     //!                          1 is the minimal required value.
-    //! 
+    //!
     //! \throws InvalidArgumentError if `aCostProviderMap` is empty or if `aConcurrencyLimit` is 0.
-    FlowFieldSpooler(CostProviderMap aCostProviderMap,
-                     PZInteger aConcurrencyLimit = 8);
+    FlowFieldSpooler(CostProviderMap aCostProviderMap, PZInteger aConcurrencyLimit = 8);
 
     //! \brief Pauses all of the spooler's operations.
     //!
@@ -108,7 +107,7 @@ public:
     void unpause();
 
     //! \brief Helps the Spooler keep track of time.
-    //! 
+    //!
     //! The Spooler has no internal time-keeping mechanism, and when making a new flow field request,
     //! the maximum time to complete the request is given in iterations rather than milliseconds.
     //! The idea is that the program will call `tick()` at a steady pace, and the time between two
@@ -123,15 +122,15 @@ public:
     //!     <add new flow field requests if needed>
     //!     ...
     //!     <GAME ITERATION ENDS>
-    //! 
+    //!
     //! \note if there are any requests that are due until the end of the current iteration when
     //!       `tick()` is called, the call will block until they are all finished (see the description
     //!       of `addRequest()` for more on this). This is why it's important to never call `tick()`
     //!       while the spooler is paused - because the requests would never get finished and it
     //!       would block forever.
-    //! 
+    //!
     //! \throws PreconditionNotMetError if the spooler is not unpaused when `tick()` is called.
-    //! 
+    //!
     //! \see addRequest
     void tick();
 
@@ -171,8 +170,8 @@ public:
     RequestId addRequest(math::Vector2pz aFieldTopLeft,
                          math::Vector2pz aFieldDimensions,
                          math::Vector2pz aTarget,
-                         CostProviderId aCostProviderId,
-                         PZInteger aMaxIterations);
+                         CostProviderId  aCostProviderId,
+                         PZInteger       aMaxIterations);
 
     //! \brief Cancels an ongoing flow field request.
     //!
@@ -200,7 +199,7 @@ private:
         detail::WCFMap result;
 
         for (const auto& pair : aCostProviderMap) {
-            const std::int32_t id = pair.first;
+            const std::int32_t         id = pair.first;
             const taWorldCostProvider* provider = pair.second;
 
             result[id] = {&_worldCostFunction, provider};
@@ -216,10 +215,9 @@ private:
 
 template <class taWorldCostProvider>
 FlowFieldSpooler<taWorldCostProvider>::FlowFieldSpooler(CostProviderMap aCostProviderMap,
-                                                        PZInteger aConcurrencyLimit)
-    : _impl{detail::CreateDefaultFlowFieldSpoolerImpl(_convertCostMap(aCostProviderMap), aConcurrencyLimit)}
-{
-}
+                                                        PZInteger       aConcurrencyLimit)
+    : _impl{detail::CreateDefaultFlowFieldSpoolerImpl(_convertCostMap(aCostProviderMap),
+                                                      aConcurrencyLimit)} {}
 
 template <class taWorldCostProvider>
 void FlowFieldSpooler<taWorldCostProvider>::tick() {
@@ -237,12 +235,12 @@ void FlowFieldSpooler<taWorldCostProvider>::unpause() {
 }
 
 template <class taWorldCostProvider>
-FlowFieldSpooler<taWorldCostProvider>::RequestId FlowFieldSpooler<taWorldCostProvider>::addRequest(
-    math::Vector2pz aFieldTopLeft,
-    math::Vector2pz aFieldDimensions,
-    math::Vector2pz aTarget,
-    CostProviderId aCostProviderId,
-    PZInteger aMaxIterations) {
+FlowFieldSpooler<taWorldCostProvider>::RequestId
+FlowFieldSpooler<taWorldCostProvider>::addRequest(math::Vector2pz aFieldTopLeft,
+                                                  math::Vector2pz aFieldDimensions,
+                                                  math::Vector2pz aTarget,
+                                                  CostProviderId  aCostProviderId,
+                                                  PZInteger       aMaxIterations) {
     return _impl->addRequest(aFieldTopLeft, aFieldDimensions, aTarget, aCostProviderId, aMaxIterations);
 }
 
@@ -252,8 +250,8 @@ void FlowFieldSpooler<taWorldCostProvider>::cancelRequest(RequestId aRequestId) 
 }
 
 template <class taWorldCostProvider>
-std::optional<OffsetFlowField> FlowFieldSpooler<taWorldCostProvider>::collectResult(
-    RequestId aRequestId) {
+std::optional<OffsetFlowField>
+FlowFieldSpooler<taWorldCostProvider>::collectResult(RequestId aRequestId) {
     auto implResult = _impl->collectResult(aRequestId);
     if (!implResult.has_value()) {
         return {};

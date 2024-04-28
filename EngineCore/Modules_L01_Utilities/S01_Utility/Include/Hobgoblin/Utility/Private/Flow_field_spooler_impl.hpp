@@ -25,14 +25,14 @@ using WorldCostFunction = std::uint8_t (*)(math::Vector2pz aWorldPosition, const
 
 struct WorldCostFunctionWithArg {
     WorldCostFunction func = nullptr;
-    const void* arg = nullptr;
+    const void*       arg = nullptr;
 };
 
 //! Map of (CostProviderId -> WorldCostFunctionWithArg[arg = pointer to cost provider]).
 using WCFMap = std::unordered_map<std::int32_t, WorldCostFunctionWithArg>;
 
 struct OffsetFlowField {
-    FlowField flowField;
+    FlowField       flowField;
     math::Vector2pz offset;
 };
 
@@ -49,8 +49,8 @@ public:
     virtual std::uint64_t addRequest(math::Vector2pz aFieldTopLeft,
                                      math::Vector2pz aFieldDimensions,
                                      math::Vector2pz aTarget,
-                                     std::int32_t aCostProviderId,
-                                     PZInteger aMaxIterations) = 0;
+                                     std::int32_t    aCostProviderId,
+                                     PZInteger       aMaxIterations) = 0;
 
     virtual void cancelRequest(std::uint64_t aRequestId) = 0;
 
@@ -58,9 +58,8 @@ public:
 };
 
 //! Creates a default implementation of FlowFieldSpoolerImplInterface.
-extern std::unique_ptr<FlowFieldSpoolerImplInterface> CreateDefaultFlowFieldSpoolerImpl(
-    WCFMap aWcfMap,
-    PZInteger aConcurrencyLimit);
+extern std::unique_ptr<FlowFieldSpoolerImplInterface>
+CreateDefaultFlowFieldSpoolerImpl(WCFMap aWcfMap, PZInteger aConcurrencyLimit);
 
 } // namespace detail
 } // namespace util

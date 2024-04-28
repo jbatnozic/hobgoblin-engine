@@ -59,15 +59,13 @@ template <class taPointer>
 class NeverNull {
 public:
     //! Construct from a value of type `T` which is convertible to `taPointer`.
-    //! 
+    //!
     //! If `aValue` compares equal to `nullptr`, then:
     //! 1) If standard assertions are enabled, an assertion failure will be generated.
     //! 2) A `NullPointerException` will be thrown.
-    template <typename T,
-              typename = std::enable_if_t<std::is_convertible<T, taPointer>::value>>
+    template <typename T, typename = std::enable_if_t<std::is_convertible<T, taPointer>::value>>
     constexpr NeverNull(T&& aValue)
-        : _ptr{std::forward<T>(aValue)}
-    {
+        : _ptr{std::forward<T>(aValue)} {
         assert(_ptr != nullptr);
         if (_ptr == nullptr) {
             throw NullPointerException{
@@ -77,18 +75,14 @@ public:
     }
 
     //! Construct from a value of type `NeverNull<U>` where `U` is convertible to `taPointer`.
-    template <typename U,
-              typename = std::enable_if_t<std::is_convertible<U, taPointer>::value>>
+    template <typename U, typename = std::enable_if_t<std::is_convertible<U, taPointer>::value>>
     constexpr NeverNull(const NeverNull<U>& aOther)
-        : NeverNull{aOther.get()}
-    {
-    }
+        : NeverNull{aOther.get()} {}
 
     //! ???
     template <typename = std::enable_if_t<!std::is_same<std::nullptr_t, taPointer>::value>>
     constexpr NeverNull(taPointer aValue)
-        : _ptr{std::move(aValue)}
-    {
+        : _ptr{std::move(aValue)} {
         assert(_ptr != nullptr);
         if (_ptr == nullptr) {
             throw NullPointerException{
@@ -104,22 +98,26 @@ public:
     NeverNull& operator=(const NeverNull& aOther) = default;
 
     //! Returns the underlying pointer (or a const reference to it if it's not copyable).
-    constexpr
-    std::conditional_t<
-        std::is_copy_constructible<taPointer>::value, taPointer, const taPointer&
-    > get() const
-    {
+    constexpr std::
+        conditional_t< std::is_copy_constructible<taPointer>::value, taPointer, const taPointer& >
+        get() const {
         return _ptr;
     }
 
     //! Implicit conversion operator to `taPointer`.
-    constexpr operator taPointer() const { return get(); }
+    constexpr operator taPointer() const {
+        return get();
+    }
 
     //! Operator `->`.
-    constexpr decltype(auto) operator->() const { return get(); }
+    constexpr decltype(auto) operator->() const {
+        return get();
+    }
 
     //! Operator `*`.
-    constexpr decltype(auto) operator*() const { return *get(); }
+    constexpr decltype(auto) operator*() const {
+        return *get();
+    }
 
 public:
     // prevents compilation when someone attempts to assign a null pointer constant
@@ -129,18 +127,19 @@ public:
     // unwanted operators...pointers only point to single objects!
     NeverNull& operator++() = delete;
     NeverNull& operator--() = delete;
-    NeverNull operator++(int) = delete;
-    NeverNull operator--(int) = delete;
+    NeverNull  operator++(int) = delete;
+    NeverNull  operator--(int) = delete;
     NeverNull& operator+=(std::ptrdiff_t) = delete;
     NeverNull& operator-=(std::ptrdiff_t) = delete;
-    void operator[](std::ptrdiff_t) const = delete;
+    void       operator[](std::ptrdiff_t) const = delete;
 
 protected:
     taPointer _ptr;
 
 public:
     // TODO
-    // static_assert(details::is_comparable_to_nullptr<taPointer>::value, "T cannot be compared to nullptr.");
+    // static_assert(details::is_comparable_to_nullptr<taPointer>::value, "T cannot be compared to
+    // nullptr.");
 };
 
 #define HG_NEVER_NULL(...) ::jbatnozic::hobgoblin::NeverNull<__VA_ARGS__>
@@ -153,8 +152,7 @@ auto MakeNeverNull(T&& t) noexcept {
 // TODO
 #if !defined(GSL_NO_IOSTREAMS)
 template <class T>
-std::ostream& operator<<(std::ostream& os, const NeverNull<T>& val)
-{
+std::ostream& operator<<(std::ostream& os, const NeverNull<T>& val) {
     os << val.get();
     return os;
 }
@@ -163,64 +161,54 @@ std::ostream& operator<<(std::ostream& os, const NeverNull<T>& val)
 template <class T, class U>
 auto operator==(const NeverNull<T>& lhs,
                 const NeverNull<U>& rhs) noexcept(noexcept(lhs.get() == rhs.get()))
-    -> decltype(lhs.get() == rhs.get())
-{
+    -> decltype(lhs.get() == rhs.get()) {
     return lhs.get() == rhs.get();
 }
 
 template <class T>
-auto operator==(const NeverNull<T>& lhs,
-                std::nullptr_t) noexcept(noexcept(lhs.get() == nullptr))
-    -> decltype(lhs.get() == nullptr)
-{
+auto operator==(const NeverNull<T>& lhs, std::nullptr_t) noexcept(noexcept(lhs.get() == nullptr))
+    -> decltype(lhs.get() == nullptr) {
     return false;
 }
 
 template <class T, class U>
 auto operator!=(const NeverNull<T>& lhs,
                 const NeverNull<U>& rhs) noexcept(noexcept(lhs.get() != rhs.get()))
-    -> decltype(lhs.get() != rhs.get())
-{
+    -> decltype(lhs.get() != rhs.get()) {
     return lhs.get() != rhs.get();
 }
 
 template <class T>
-auto operator!=(const NeverNull<T>& lhs,
-                std::nullptr_t) noexcept(noexcept(lhs.get() != nullptr))
-    -> decltype(lhs.get() != nullptr)
-{
+auto operator!=(const NeverNull<T>& lhs, std::nullptr_t) noexcept(noexcept(lhs.get() != nullptr))
+    -> decltype(lhs.get() != nullptr) {
     return true;
 }
 
 template <class T, class U>
 auto operator<(const NeverNull<T>& lhs,
-    const NeverNull<U>& rhs) noexcept(noexcept(lhs.get() < rhs.get()))
-    -> decltype(lhs.get() < rhs.get())
-{
+               const NeverNull<U>& rhs) noexcept(noexcept(lhs.get() < rhs.get()))
+    -> decltype(lhs.get() < rhs.get()) {
     return lhs.get() < rhs.get();
 }
 
 template <class T, class U>
 auto operator<=(const NeverNull<T>& lhs,
                 const NeverNull<U>& rhs) noexcept(noexcept(lhs.get() <= rhs.get()))
-    -> decltype(lhs.get() <= rhs.get())
-{
+    -> decltype(lhs.get() <= rhs.get()) {
     return lhs.get() <= rhs.get();
 }
 
 template <class T, class U>
 auto operator>(const NeverNull<T>& lhs,
                const NeverNull<U>& rhs) noexcept(noexcept(lhs.get() > rhs.get()))
-    -> decltype(lhs.get() > rhs.get())
-{
+    -> decltype(lhs.get() > rhs.get()) {
     return lhs.get() > rhs.get();
 }
 
 template <class T, class U>
 auto operator>=(const NeverNull<T>& lhs,
                 const NeverNull<U>& rhs) noexcept(noexcept(lhs.get() >= rhs.get()))
-    -> decltype(lhs.get() >= rhs.get())
-{
+    -> decltype(lhs.get() >= rhs.get()) {
     return lhs.get() >= rhs.get();
 }
 
@@ -244,8 +232,7 @@ namespace std {
 
 //! Enable `std::hash` for `NeverNull`.
 template <class taPointer>
-struct hash<jbatnozic::hobgoblin::NeverNull<taPointer>>
-{
+struct hash<jbatnozic::hobgoblin::NeverNull<taPointer>> {
     std::size_t operator()(const jbatnozic::hobgoblin::NeverNull<taPointer>& aValue) const {
         return hash<taPointer>{}(aValue.get());
     }
@@ -260,11 +247,11 @@ HOBGOBLIN_NAMESPACE_BEGIN
 ///////////////////////////////////////////////////////////////////////////
 
 //! `AvoidNull` class template is very similar to `NeverNull` class template.
-//! 
+//!
 //! The only difference is that an instance of `AvoidNull<T>` can be moved from,
 //! making `AvoidNull` more flexible for use with move-only pointer types, such
 //! as `std::unique_ptr`.
-//! 
+//!
 //! \warning After an instance of `AvoidNull<T>` is moved from, YOU MUST NOT USE IT
 //!          ANYMORE. Consider the move as ending its lifetime.
 template <class taPointer>
@@ -273,9 +260,7 @@ public:
     using NeverNull<taPointer>::NeverNull;
 
     AvoidNull(AvoidNull&& aOther)
-        : NeverNull<taPointer>{std::move(aOther._ptr)}
-    {
-    }
+        : NeverNull<taPointer>{std::move(aOther._ptr)} {}
 
     AvoidNull& operator=(AvoidNull&& aOther) {
         if (&aOther != this) {
@@ -298,8 +283,7 @@ namespace std {
 
 //! Enable `std::hash` for `AvoidNull`.
 template <class taPointer>
-struct hash<jbatnozic::hobgoblin::AvoidNull<taPointer>>
-{
+struct hash<jbatnozic::hobgoblin::AvoidNull<taPointer>> {
     std::size_t operator()(const jbatnozic::hobgoblin::AvoidNull<taPointer>& aValue) const {
         return hash<taPointer>{}(aValue.get());
     }

@@ -17,9 +17,9 @@ HOBGOBLIN_NAMESPACE_BEGIN
 
 TEST(NeverNullTest, AssignmentTest) {
     // Just checking that this can compile
-    int i = 5;
+    int             i = 5;
     NeverNull<int*> nn = &i;
-    int* p = nn;
+    int*            p = nn;
 }
 
 TEST(NeverNullTest, ComparisonTest) {
@@ -27,6 +27,7 @@ TEST(NeverNullTest, ComparisonTest) {
     int  i2 = 6;
     int* p1 = &i1;
     int* p2 = &i2;
+
     NeverNull<int*> nn1 = &i1;
     NeverNull<int*> nn2 = &i2;
 
@@ -55,7 +56,7 @@ TEST(NeverNullTest, MappingTest) {
 
 TEST(NeverNullTest, HashingTest) {
     // Just checking that this can compile
-    int* p = reinterpret_cast<int*>(0x12345678);
+    int*            p = reinterpret_cast<int*>(0x12345678);
     NeverNull<int*> nn = p;
     EXPECT_EQ(std::hash<decltype(p)>{}(p), std::hash<decltype(nn)>{}(nn));
 }
@@ -67,8 +68,8 @@ TEST(NeverNullTest, NeverNullWithUniquePtr_1) {
 
 TEST(NeverNullTest, NeverNullWithUniquePtr_2) {
     // Just checking that this can compile
-    auto uniquePtr = std::make_unique<int>(123);
-    int* raw = uniquePtr.get();
+    auto                            uniquePtr = std::make_unique<int>(123);
+    int*                            raw = uniquePtr.get();
     NeverNull<std::unique_ptr<int>> nn{std::move(uniquePtr)};
 
     EXPECT_TRUE(nn != nullptr);
@@ -84,7 +85,7 @@ TEST(NeverNullTest, AssignmentOfNullPointerThrowsNPE) {
     int* p = nullptr;
     EXPECT_THROW(NeverNull<int*>{p}, NullPointerException);
 
-    int i = 5;
+    int             i = 5;
     NeverNull<int*> nn = &i;
     EXPECT_THROW({ nn = p; }, NullPointerException);
 }
@@ -97,16 +98,17 @@ TEST(NeverNullTest, AssignmentOfNullPointerThrowsNPE) {
 
 TEST(AvoidNullTest, AssignmentTest) {
     // Just checking that this can compile
-    int i = 5;
+    int             i = 5;
     AvoidNull<int*> an = &i;
-    int* p = an;
+    int*            p = an;
 }
 
 TEST(AvoidNullTest, ComparisonTest) {
-    int  i1 = 5;
-    int  i2 = 6;
-    int* p1 = &i1;
-    int* p2 = &i2;
+    int             i1 = 5;
+    int             i2 = 6;
+    int*            p1 = &i1;
+    int*            p2 = &i2;
+    
     AvoidNull<int*> an1 = &i1;
     AvoidNull<int*> an2 = &i2;
 
@@ -135,7 +137,7 @@ TEST(AvoidNullNullTest, MappingTest) {
 
 TEST(AvoidNullTest, HashingTest) {
     // Just checking that this can compile
-    int* p = reinterpret_cast<int*>(0x12345678);
+    int*            p = reinterpret_cast<int*>(0x12345678);
     AvoidNull<int*> an = p;
     EXPECT_EQ(std::hash<decltype(p)>{}(p), std::hash<decltype(an)>{}(an));
 }
@@ -149,6 +151,7 @@ TEST(AvoidNullTest, AvoidNullWithUniquePtr_2) {
     // Just checking that this can compile
     auto uniquePtr = std::make_unique<int>(123);
     int* raw = uniquePtr.get();
+
     AvoidNull<std::unique_ptr<int>> an{std::move(uniquePtr)};
 
     EXPECT_TRUE(an != nullptr);
@@ -164,7 +167,7 @@ TEST(AvoidNullTest, AssignmentOfNullPointerThrowsNPE) {
     int* p = nullptr;
     EXPECT_THROW(AvoidNull<int*>{p}, NullPointerException);
 
-    int i = 5;
+    int             i = 5;
     AvoidNull<int*> an = &i;
     EXPECT_THROW({ an = p; }, NullPointerException);
 }

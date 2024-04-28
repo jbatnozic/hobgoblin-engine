@@ -24,7 +24,8 @@ public:
     //! Constructs the monitor and the protected object. Provide arguments
     //! as you would for T.
     template <class... Args>
-    Monitor(Args&&... aArgs) : _protectedObject{std::forward<Args>(aArgs)...} {}
+    Monitor(Args&&... aArgs)
+        : _protectedObject{std::forward<Args>(aArgs)...} {}
 
     //! Synchronize access to the protected object before destruction.
     ~Monitor() {
@@ -42,7 +43,7 @@ public:
     template <class taCallable>
     auto Do(taCallable&& aCallable) {
         std::lock_guard<decltype(_mutex)> lock{_mutex};
-        T& ref = _protectedObject;
+        T&                                ref = _protectedObject;
         return aCallable(ref);
     }
 
@@ -51,14 +52,14 @@ public:
     template <class taCallable>
     auto Do(taCallable&& aCallable) const {
         std::lock_guard<decltype(_mutex)> lock{_mutex};
-        const T& ref = _protectedObject;
+        const T&                          ref = _protectedObject;
         return aCallable(ref);
     }
 
     //! Sets the protected object to a new value and returns the old one.
     T Exchange(T aNewValue) {
         std::lock_guard<decltype(_mutex)> lock{_mutex};
-        auto tmp = std::move(_protectedObject);
+        auto                              tmp = std::move(_protectedObject);
         _protectedObject = std::move(aNewValue);
         return tmp;
     }
@@ -66,14 +67,14 @@ public:
     //! Returns a copy of the protected object.
     T Copy() const {
         std::unique_lock<decltype(_mutex)> lock{_mutex};
-        T copy{_protectedObject};
+        T                                  copy{_protectedObject};
         lock.unlock();
         return copy;
     }
 
 private:
     mutable Mutex _mutex;
-    T _protectedObject;
+    T             _protectedObject;
 };
 
 } // namespace util
