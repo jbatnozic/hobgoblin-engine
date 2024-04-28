@@ -2,4 +2,3 @@
 # See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
 add_subdirectory("Automatic")
-add_subdirectory("Manual")

@@ -9,7 +9,7 @@ BinPackArguments: false
 BinPackParameters: false
 BreakConstructorInitializers: BeforeComma
 BreakInheritanceList: BeforeComma
-ColumnLimit: 120
+ColumnLimit: 105
 FixNamespaceComments: true
 IndentAccessModifiers: false
 IndentCaseBlocks: true
@@ -49,3 +49,48 @@ SpacesInSquareBrackets: false
 Standard: c++20
 TabWidth: 4
 UseTab: Never
+
+AlignConsecutiveDeclarations:
+  Enabled: true
+  AcrossEmptyLines: false
+  AcrossComments: false
+  AlignCompound: true
+  PadOperators: true
+AlignConsecutiveMacros:
+  Enabled: true
+  AcrossEmptyLines: false
+  AcrossComments: false
+  AlignCompound: true
+  PadOperators: true
+AlignOperands: Align
+AlignEscapedNewlines: Left
+AllowAllArgumentsOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowShortBlocksOnASingleLine: Empty
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortEnumsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakTemplateDeclarations: Yes
+# AlignAfterOpenBracket: BlockIndent
+
+AlignArrayOfStructures: Right
+BraceWrapping:
+  AfterCaseLabel: true
+  AfterClass: false
+  AfterControlStatement: MultiLine
+  AfterEnum: false
+  AfterFunction: false
+  AfterNamespace: false
+  AfterStruct: false
+  AfterUnion: false
+  AfterExternBlock: false
+  BeforeCatch: false
+  BeforeElse: false
+  BeforeLambdaBody: false
+  BeforeWhile: false
+  SplitEmptyFunction: true
+  SplitEmptyRecord: true
+  SplitEmptyNamespace: true
+BreakBeforeTernaryOperators: true

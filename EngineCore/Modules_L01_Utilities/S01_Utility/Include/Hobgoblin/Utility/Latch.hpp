@@ -1,52 +1,53 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-// clang-format off
+#ifndef UHOBGOBLIN_UTIL_LATCH_HPP
+#define UHOBGOBLIN_UTIL_LATCH_HPP
 
-#ifndef UHOBGOBLIN_UTIL_SEMAPHORE_HPP
-#define UHOBGOBLIN_UTIL_SEMAPHORE_HPP
-
-#include <mutex>
 #include <condition_variable>
+#include <mutex>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace util {
 
-class Semaphore {
+class Latch {
 public:
+    static constexpr bool OPEN = true;
+    static constexpr bool CLOSED = false;
 
-    Semaphore(int initialValue = 0)
-        : _val{initialValue}
-    {
+    Latch(bool aInitialValue = CLOSED)
+        : _val{aInitialValue} {}
+
+    void open() {
+        std::unique_lock<decltype(_mutex)> lock(_mutex);
+        _val = OPEN;
+        _condition.notify_all();
     }
 
-    void signal() {
+    void close() {
         std::unique_lock<decltype(_mutex)> lock(_mutex);
-        _val += 1;
-        _condition.notify_one();
+        _val = CLOSED;
     }
 
     void wait() {
         std::unique_lock<decltype(_mutex)> lock(_mutex);
-        while (!(_val > 0)) {
+        while (_val == CLOSED) {
             _condition.wait(lock);
         }
-        _val -= 1;
     }
 
     bool tryWait() {
         std::unique_lock<decltype(_mutex)> lock(_mutex);
-        if (_val) {
-            _val -= 1;
+        if (_val == OPEN) {
             return true;
         }
         return false;
     }
 
-    int getValue() const {
-        int result;
+    bool getValue() const {
+        bool result;
         {
             std::unique_lock<decltype(_mutex)> lock(_mutex);
             result = _val;
@@ -55,9 +56,9 @@ public:
     }
 
 private:
-    mutable std::mutex _mutex;
+    mutable std::mutex      _mutex;
     std::condition_variable _condition;
-    int _val;
+    bool                    _val;
 };
 
 } // namespace util
@@ -66,6 +67,4 @@ HOBGOBLIN_NAMESPACE_END
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
-#endif // !UHOBGOBLIN_UTIL_SEMAPHORE_HPP
-
-// clang-format on
+#endif // !UHOBGOBLIN_UTIL_LATCH_HPP

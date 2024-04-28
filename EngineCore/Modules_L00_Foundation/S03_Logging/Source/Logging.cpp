@@ -95,7 +95,7 @@ HG_DYNAPI void HGCALL FuncLogImpl(
                     now_onlySecondsAsDouble,
                     SeverityCString(aSeverity),
                     aLogId,
-                    filePath.filename().c_str(),
+                    filePath.filename().string(),
                     aLineNumber,
                     aMessage);
 

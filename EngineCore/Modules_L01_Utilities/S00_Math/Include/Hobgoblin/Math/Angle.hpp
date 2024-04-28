@@ -93,6 +93,9 @@ class Angle {
 public:
     using Real = taReal;
 
+    //! Default constructor. Contructs a 0-degree angle.
+    constexpr Angle() : _angleInRadians{static_cast<taReal>(0.f)} {}
+
     constexpr static Angle zero() {
         return Angle{static_cast<taReal>(0.f)};
     }
