@@ -113,7 +113,7 @@ public:
     NeverNull& operator-=(std::ptrdiff_t) = delete;
     void operator[](std::ptrdiff_t) const = delete;
 
-private:
+protected:
     taPointer _ptr;
 };
 
@@ -235,6 +235,18 @@ template <class taPointer>
 class AvoidNull : public NeverNull<taPointer> {
 public:
     using NeverNull<taPointer>::NeverNull;
+
+    AvoidNull(AvoidNull&& aOther)
+        : NeverNull<taPointer>{std::move(aOther._ptr)}
+    {
+    }
+
+    AvoidNull& operator=(AvoidNull&& aOther) {
+        if (&aOther != this) {
+            NeverNull<taPointer>::_ptr = std::move(aOther._ptr);
+        }
+        return SELF;
+    }
 };
 
 #define HG_AVOID_NULL(...) ::jbatnozic::hobgoblin::AvoidNull<__VA_ARGS__>
