@@ -55,6 +55,7 @@ using FlowField = util::RowMajorGrid<CompactAngle>;
 //!         util::RowMajorGrid<std::uint8_t> costs;
 //!     };
 //!
+//! \note Implementation based on https://leifnode.com/2013/12/flow-field-pathfinding/.
 template <class taCostProvider>
 class FlowFieldCalculator {
 public:
