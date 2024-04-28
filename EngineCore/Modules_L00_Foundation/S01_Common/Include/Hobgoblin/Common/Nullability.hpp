@@ -145,7 +145,7 @@ public:
 #define HG_NEVER_NULL(...) ::jbatnozic::hobgoblin::NeverNull<__VA_ARGS__>
 
 template <class T>
-auto MakeNeverNull(T&& t) noexcept {
+auto MakeNeverNull(T&& t) {
     return NeverNull<std::remove_cv_t<std::remove_reference_t<T>>>{std::forward<T>(t)};
 }
 
@@ -259,21 +259,25 @@ class AvoidNull : public NeverNull<taPointer> {
 public:
     using NeverNull<taPointer>::NeverNull;
 
-    AvoidNull(AvoidNull&& aOther)
+    constexpr AvoidNull(AvoidNull&& aOther)
         : NeverNull<taPointer>{std::move(aOther._ptr)} {}
 
-    AvoidNull& operator=(AvoidNull&& aOther) {
+    constexpr AvoidNull& operator=(AvoidNull&& aOther) {
         if (&aOther != this) {
             NeverNull<taPointer>::_ptr = std::move(aOther._ptr);
         }
         return SELF;
     }
+
+    template <typename U, typename = std::enable_if_t<std::is_convertible<U, taPointer>::value>>
+    constexpr AvoidNull(const NeverNull<U>& aOther)
+        : NeverNull<taPointer>{aOther.get()} {}
 };
 
 #define HG_AVOID_NULL(...) ::jbatnozic::hobgoblin::AvoidNull<__VA_ARGS__>
 
 template <class T>
-auto MakeAvoidNull(T&& t) noexcept {
+auto MakeAvoidNull(T&& t) {
     return AvoidNull<std::remove_cv_t<std::remove_reference_t<T>>>{std::forward<T>(t)};
 }
 

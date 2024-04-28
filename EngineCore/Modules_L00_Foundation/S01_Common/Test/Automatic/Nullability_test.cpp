@@ -104,11 +104,11 @@ TEST(AvoidNullTest, AssignmentTest) {
 }
 
 TEST(AvoidNullTest, ComparisonTest) {
-    int             i1 = 5;
-    int             i2 = 6;
-    int*            p1 = &i1;
-    int*            p2 = &i2;
-    
+    int  i1 = 5;
+    int  i2 = 6;
+    int* p1 = &i1;
+    int* p2 = &i2;
+
     AvoidNull<int*> an1 = &i1;
     AvoidNull<int*> an2 = &i2;
 
