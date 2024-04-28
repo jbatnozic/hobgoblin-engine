@@ -22,16 +22,6 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace util {
 
-/*
-class WorldCostProvider {
-public:
-    std::uint8_t getCostAt(math::Vector2pz aPosition) const; // pos.x, pos.y could be very large
-
-private:
-    // ...
-};
-*/
-
 struct OffsetFlowField {
     FlowField flowField;
     math::Vector2pz offset;
@@ -44,17 +34,54 @@ struct OffsetFlowField {
 //! work on their own flow field in parallel, or they can collaborate on a single 
 //! flow field to finalize it more quickly.
 //!
-//! TODO: write what condition taWorldCostProvider must fulfill
+//! \tparam taCostProvider object which will be used to get the costs of traversing each cell in
+//!                        the game world (the higher the cost of the cell, the more likely that
+//!                        the cell will be avoided if possible. Return COST_IMPASSABLE (255) to
+//!                        mark impassable cells). The only requirement is that it has a public
+//!                        method with the following signature:
+//!                                `std::uint8_t getCostAt(math::Vector2pz aPosition) const`
+//!                        - Note: this method will be on the hot path of the flow field calculation,
+//!                                so make sure it doesn't do any unnecessary work.
+//!                        - Note: DO NOT, EVER have this method return zero! Only the destination
+//!                                point of the flow field gets to have a cost of zero. However, the
+//!                                calculator will not check this due to the previous point.
+//! 
+//! Example cost provider:
+//!     class DataProvider {
+//!     public:
+//!         std::uint8_t getCostAt(math::Vector2pz aPosition) const {
+//!             return costs.at(aPosition.y, aPosition.x);
+//!         }
+//!     
+//!         util::RowMajorGrid<std::uint8_t> costs;
+//!     };
+//!
 template <class taWorldCostProvider>
 class FlowFieldSpooler {
 public:
-    //! \brief TODO
+    //! \brief Identifies a single cost provider.
     using CostProviderId = std::uint32_t;
 
     //! \brief TODO
     using CostProviderMap = std::unordered_map<CostProviderId, NeverNull<const taWorldCostProvider*>>;
 
-    //! \brief TODO
+    //! \brief Constructor.
+    //! 
+    //! \param aCostProviderMap a collection of cost providers mapped to their IDs (the IDs can be
+    //!                         chosen arbitrarily). Whenever you later request a new flow field,
+    //!                         you will need to provide the ID of a cost provider to use. By this
+    //!                         mechanism a single spooler can be used to calculate flow fields in
+    //!                         multiple distinct game worlds; or to model the fact that different
+    //!                         entities in the game traverse the game world in different ways and
+    //!                         thus use different cost models.
+    //!                         Note: all providers must be kept alive until the spooler is destroyed.
+    //! \param aConcurrencyLimit the number of worker threads that the spooler is allowed to use.
+    //!                          Note that at 1, the spooler will perform slower than a bare
+    //!                          `FlowFieldCalculator`. At 2, they will be about on-par with each
+    //!                          other. Thus at least 3 (and preferrably more) is recommended. But
+    //!                          1 is the minimal required value.
+    //! 
+    //! \throws InvalidArgumentError if `aCostProviderMap` is empty or if `aConcurrencyLimit` is 0.
     FlowFieldSpooler(CostProviderMap aCostProviderMap,
                      PZInteger aConcurrencyLimit = 8);
 
@@ -82,7 +109,32 @@ public:
     //! \see pause
     void unpause();
 
-    //! \brief TODO
+    //! \brief Helps the Spooler keep track of time.
+    //! 
+    //! The Spooler has no internal time-keeping mechanism, and when making a new flow field request,
+    //! the maximum time to complete the request is given in iterations rather than milliseconds.
+    //! The idea is that the program will call `tick()` at a steady pace, and the time between two
+    //! of such calls is one iteration. The recommended way to order various method calls is as follows:
+    //!     <GAME ITERATION BEGINS>
+    //!     ...
+    //!     spooler.tick();
+    //!     <collect finished flow fields>
+    //!     spooler.pause();
+    //!     <quickly apply changes to the game world if needed>
+    //!     spooler.unpause();
+    //!     <add new flow field requests if needed>
+    //!     ...
+    //!     <GAME ITERATION ENDS>
+    //! 
+    //! \note if there are any requests that are due until the end of the current iteration when
+    //!       `tick()` is called, the call will block until they are all finished (see the description
+    //!       of `addRequest()` for more on this). This is why it's important to never call `tick()`
+    //!       while the spooler is paused - because the requests would never get finished and it
+    //!       would block forever.
+    //! 
+    //! \throws PreconditionNotMetError if the spooler is not unpaused when `tick()` is called.
+    //! 
+    //! \see addRequest
     void tick();
 
     //! Identifies a flow field request.
@@ -101,7 +153,8 @@ public:
     //! \param aTarget target coordinates that the flow field will try to reach. This is
     //!                given in absolute world coordinates and NOT relative to `aFieldTopLeft`.
     //!                This value must be within `aFieldDimensions`.
-    //! \param aCostProviderId TODO
+    //! \param aCostProviderId ID of the cost provider to use for the calculation (one of the
+    //!                        providers passed to the constructor).
     //! \param aMaxIterations maximum number of iterations given to calculate the flow field.
     //!                       Must be > 0. Note: setting too low a value can make subsequent
     //!                       calls to `tick()` block:

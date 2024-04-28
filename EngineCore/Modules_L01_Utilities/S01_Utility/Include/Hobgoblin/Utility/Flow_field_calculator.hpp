@@ -54,7 +54,7 @@ using FlowField = util::RowMajorGrid<CompactAngle>;
 //!     
 //!         util::RowMajorGrid<std::uint8_t> costs;
 //!     };
-//! 
+//!
 template <class taCostProvider>
 class FlowFieldCalculator { 
 public:

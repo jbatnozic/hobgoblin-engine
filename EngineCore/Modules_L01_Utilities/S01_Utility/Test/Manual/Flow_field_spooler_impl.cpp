@@ -119,7 +119,7 @@ struct Job {
     };
 
     struct CalculateFlowFieldPartData {
-        Station*  station;
+        NeverNull<Station*> station;
         PZInteger preferredWorkerId;
         PZInteger startingRow;
         PZInteger rowCount;
@@ -136,6 +136,38 @@ struct Job {
     //! Original request that this job relates to.
     std::shared_ptr<Request> request = nullptr;
 };
+
+Job CreateCalcIntegrationFieldJob(std::shared_ptr<Request> aRequest,
+                                  math::Vector2pz aFieldTopLeft,
+                                  math::Vector2pz aFieldDimensions,
+                                  math::Vector2pz aTarget) {
+    Job job;
+    job.kind = Job::CALCULATE_INTEGRATION_FIELD;
+    job.request = std::move(aRequest);
+
+    job.calcIntegrationFieldData.fieldTopLeft    = aFieldTopLeft;
+    job.calcIntegrationFieldData.fieldDimensions = aFieldDimensions;
+    job.calcIntegrationFieldData.target          = aTarget;
+
+    return job;
+}
+
+Job CreateCalcFlowFieldPartJob(std::shared_ptr<Request> aRequest,
+                               NeverNull<Station*> aStation,
+                               PZInteger aPreferredWorkerId,
+                               PZInteger aStartingRow,
+                               PZInteger aRowCount) {
+    Job job;
+    job.kind = Job::CALCULATE_FLOW_FIELD_PART;
+    job.request = std::move(aRequest);
+
+    job.calcFlowFieldPartData.station           = aStation;
+    job.calcFlowFieldPartData.preferredWorkerId = aPreferredWorkerId;
+    job.calcFlowFieldPartData.startingRow       = aStartingRow;
+    job.calcFlowFieldPartData.rowCount          = aRowCount;
+
+    return job;
+}
 
 class FlowFieldSpoolerImpl : public FlowFieldSpoolerImplInterface {
 public:
@@ -398,7 +430,9 @@ private:
             }
             return nullptr;
         });
-        HG_HARD_ASSERT(station != nullptr);
+        if (!station) {
+            HG_UNREACHABLE("No unoccupied station was found to work on a request.");
+        }
 
         while (true) {
             /* SYNCHRONIZATION */
@@ -439,17 +473,12 @@ private:
         std::vector<Job> newJobs;
         PZInteger rowsCovered = 0;
         while (rowsCovered < totalRowCount) {
-            newJobs.emplace_back();
-            auto& job = newJobs.back();
-
-            job.kind = Job::CALCULATE_FLOW_FIELD_PART;
-            job.calcFlowFieldPartData.station = aStation;
-            job.calcFlowFieldPartData.startingRow = rowsCovered;
-            job.calcFlowFieldPartData.rowCount =
-                (rowsCovered + rowsPerJob < totalRowCount) ? rowsPerJob : (totalRowCount - rowsCovered);
-            job.calcFlowFieldPartData.preferredWorkerId = aWorkerId;
-            job.request = aJob.request;
-
+            newJobs.push_back(
+                CreateCalcFlowFieldPartJob(aJob.request,
+                                           aStation,
+                                           aWorkerId,
+                                           rowsCovered,
+                                           (rowsCovered + rowsPerJob < totalRowCount) ? rowsPerJob : (totalRowCount - rowsCovered)));
             rowsCovered += rowsPerJob;
         }
 
@@ -513,7 +542,8 @@ private:
 };
 
 void FlowFieldSpoolerImpl::tick() {
-    // TODO: throw exception if _paused==true (otherwise there could be a deadlock)
+    HG_VALIDATE_PRECONDITION(_paused == false);
+
     _requests.Do([](RequestMap& aIt) {
         for (auto& pair : aIt) {
             auto& request = *pair.second;
@@ -574,12 +604,7 @@ std::uint64_t FlowFieldSpoolerImpl::addRequest(math::Vector2pz aFieldTopLeft,
         aTarget.y,
         aMaxIterations);
 
-    Job job;
-    job.kind = Job::CALCULATE_INTEGRATION_FIELD;
-    job.calcIntegrationFieldData.fieldTopLeft    = aFieldTopLeft;
-    job.calcIntegrationFieldData.fieldDimensions = aFieldDimensions;
-    job.calcIntegrationFieldData.target          = aTarget;
-    job.request = std::shared_ptr<Request>{request}; // Share ownership
+    auto job = CreateCalcIntegrationFieldJob(request, aFieldTopLeft, aFieldDimensions, aTarget);
 
     _requests.Do([request_ = std::move(request), id](RequestMap& aIt) mutable {
         aIt[id] = std::move(request_);

@@ -28,6 +28,7 @@ struct WorldCostFunctionWithArg {
     const void* arg = nullptr;
 };
 
+//! Map of (CostProviderId -> WorldCostFunctionWithArg[arg = pointer to cost provider]).
 using WCFMap = std::unordered_map<std::int32_t, WorldCostFunctionWithArg>;
 
 struct OffsetFlowField {

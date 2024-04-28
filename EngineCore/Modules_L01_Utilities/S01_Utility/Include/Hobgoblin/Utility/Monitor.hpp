@@ -28,12 +28,8 @@ public:
 
     //! Synchronize access to the protected object before destruction.
     ~Monitor() {
+        // Locking needed to make TSAN errors go away
         std::lock_guard<decltype(_mutex)> lock{_mutex};
-        // This lock is needed for Thread sanitizer checks, example:
-        // 1. Monitor<A> is used from a different thread, writing to A by holding the mutex.
-        // 2. Main thread calls ~Monitor that destroys the object A, without holding the object's mutex.
-        // 3. TSAN sees that before the A object was protected, now it isn't -> reports an error.
-        // By locking the mutex a happens-before relationship is established for the sanitizer.
     }
 
     Monitor(const Monitor&) = delete;
