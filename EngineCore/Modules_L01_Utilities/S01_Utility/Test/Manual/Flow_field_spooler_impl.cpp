@@ -157,10 +157,10 @@ public:
 
         // Create & start worker threads
         _workers.reserve(pztos(aConcurrencyLimit));
-        _workerStatuses.reserve(_workers.size());
+        _workerStatuses.resize(_workers.size());
         for (PZInteger i = 0; i < aConcurrencyLimit; i += 1) {
-            _workers.emplace_back(&FlowFieldSpoolerImpl::_workerBody, this, i);
-            _workerStatuses.push_back(WorkerStatus::PREP_OR_IDLE);
+            _workerStatuses[pztos(i)] = WorkerStatus::PREP_OR_IDLE;
+            _workers.emplace_back(&FlowFieldSpoolerImpl::_workerBody, this, i);        
         }
     }
 
@@ -351,6 +351,8 @@ private:
                                  requestCancelled ? " (cancelled)" : "");
                     if (!requestCancelled) {
                         _finalizeCalculateIntegrationFieldJob(job, aWorkerId, station);
+                    } else {
+                        station->isOccupied = false;
                     }
                 }
                 break;
