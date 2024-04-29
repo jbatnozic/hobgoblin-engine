@@ -11,6 +11,8 @@ then
 fi
 echo "conan found"
 
+BUILD_PARAMS="--build=missing --build=outdated --build=cascade"
+
 if [[ "$1" == "clean" ]];
 then
     # No extra arguments required
@@ -26,12 +28,10 @@ then
     # 3rd argument: profile  (Debug|Release)
 
     conan install . -of build_/ \
-        -pr:h=hobgoblin-$2 \
-        -pr:b=hobgoblin-$2 \
-        -s build_type=$3 \
-        --build=missing \
-        --build=outdated \
-        --build=cascade
+        -pr:h=hobgoblin-$2      \
+        -pr:b=hobgoblin-$2      \
+        -s build_type=$3        \
+        ${BUILD_PARAMS}
 
     exit 0
 fi
@@ -42,12 +42,26 @@ then
     # 3rd argument: profile  (Debug|Release)
 
     conan build . -of build_/ \
+        -pr:h=hobgoblin-$2    \
+        -pr:b=hobgoblin-$2    \
+        -s build_type=$3      \
+        ${BUILD_PARAMS}
+
+    exit 0
+fi
+
+if [[ "$1" == "create" ]];
+then
+    # 2nd argument: compiler (gcc|clang|apple-clang)
+    # 3rd argument: profile  (Debug|Release)
+
+    conan create .         \
+        --user jbatnozic   \
+        --channel stable   \
         -pr:h=hobgoblin-$2 \
         -pr:b=hobgoblin-$2 \
-        -s build_type=$3 \
-        --build=missing \
-        --build=outdated \
-        --build=cascade
+        -s build_type=$3   \
+        ${BUILD_PARAMS}
 
     exit 0
 fi
