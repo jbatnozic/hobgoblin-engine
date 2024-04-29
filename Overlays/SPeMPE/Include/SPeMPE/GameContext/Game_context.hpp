@@ -6,9 +6,8 @@
 #ifndef SPEMPE_GAME_CONTEXT_GAME_CONTEXT_HPP
 #define SPEMPE_GAME_CONTEXT_GAME_CONTEXT_HPP
 
-#include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Common.hpp>
-#include <Hobgoblin/GSL/HG_adapters.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/QAO.hpp>
 
 #include <SPeMPE/GameContext/Context_components.hpp>
@@ -230,8 +229,8 @@ private:
     std::thread _childContextThread;
     int _childContextReturnValue = 0;
 
-    static void _runImpl(hg::NotNull<GameContext*> aContext,
-                         hg::NotNull<int*> aReturnValue,
+    static void _runImpl(hg::NeverNull<GameContext*> aContext,
+                         hg::NeverNull<int*> aReturnValue,
                          int aMaxIterations,
                          bool aDebugLoggingActive = false);
 };

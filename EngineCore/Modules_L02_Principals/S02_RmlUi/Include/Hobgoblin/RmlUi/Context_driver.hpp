@@ -8,7 +8,6 @@
 
 #include <RmlUi/Core.h>
 
-#include <Hobgoblin/GSL/HG_adapters.hpp>
 #include <Hobgoblin/Graphics.hpp>
 #include <Hobgoblin/Math/Vector.hpp>
 #include <Hobgoblin/Window.hpp>
@@ -46,7 +45,7 @@ public:
     void setRenderTarget(gr::RenderTarget& aRenderTarget);
 
 private:
-    NotNull<gr::RenderTarget*> _renderTarget;
+    NeverNull<gr::RenderTarget*> _renderTarget;
     Rml::Context* _context = nullptr;
 };
 

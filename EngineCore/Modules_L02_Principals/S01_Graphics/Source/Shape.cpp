@@ -7,7 +7,6 @@
 #include <Hobgoblin/Graphics/Shape.hpp>
 
 #include <Hobgoblin/Common.hpp>
-#include <Hobgoblin/GSL/HG_adapters.hpp>
 
 #include <SFML/Graphics/Shape.hpp>
 #include <SFML/Graphics/Texture.hpp>
@@ -48,7 +47,7 @@ public:
 private:
     friend class ::jbatnozic::hobgoblin::gr::Shape;
 
-    NotNull<detail::ShapePolymorphismAdapter*> _shapePolyAdapter;
+    NeverNull<detail::ShapePolymorphismAdapter*> _shapePolyAdapter;
 };
 } // namespace
 

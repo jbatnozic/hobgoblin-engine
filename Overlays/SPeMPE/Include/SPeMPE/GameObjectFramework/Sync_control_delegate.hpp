@@ -6,9 +6,7 @@
 #ifndef SPEMPE_GAME_OBJECT_FRAMEWORK_SYNC_CONTROL_DELEGATE_HPP
 #define SPEMPE_GAME_OBJECT_FRAMEWORK_SYNC_CONTROL_DELEGATE_HPP
 
-#include "Hobgoblin/Common/Positive_or_zero_integer.hpp"
 #include <Hobgoblin/Common.hpp>
-#include <Hobgoblin/GSL/HG_adapters.hpp>
 #include <Hobgoblin/RigelNet.hpp>
 #include <Hobgoblin/Utility/Packet.hpp>
 

@@ -37,7 +37,7 @@ target_include_directories(${OVERLAY_NAME} PUBLIC "Include/")
 target_link_libraries(${OVERLAY_NAME}
 PUBLIC
     # Foundation
-    "Hobgoblin.GSL"
+    "Hobgoblin.Common"
     "Hobgoblin.HGExcept"
     "Hobgoblin.Logging"
 

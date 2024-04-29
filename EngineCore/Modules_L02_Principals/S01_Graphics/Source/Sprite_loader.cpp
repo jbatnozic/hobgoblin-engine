@@ -1,9 +1,6 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-// clang-format off
-
-
 #include <Hobgoblin/Graphics/Sprite_loader.hpp>
 
 #include <Hobgoblin/Logging.hpp>
@@ -36,7 +33,7 @@ public:
 		_texture->create(aTextureWidth, aTextureHeight);
 	}
 
-	NotNull<TextureBuilder*> addSprite(SpriteIdNumerical aSpriteId,
+	NeverNull<TextureBuilder*> addSprite(SpriteIdNumerical aSpriteId,
                                        const std::filesystem::path& aFilePath) override {
 		_assertNotFinalized();
 
@@ -54,7 +51,7 @@ public:
 		return this;
 	}
 
-	NotNull<TextureBuilder*> addSubsprite(SpriteIdNumerical aSpriteId,
+	NeverNull<TextureBuilder*> addSubsprite(SpriteIdNumerical aSpriteId,
 										  PZInteger aSubspriteIndex,
 										  const std::filesystem::path& aFilePath) override {
 		_assertNotFinalized();
@@ -79,7 +76,7 @@ public:
 		return this;
 	}
 
-	NotNull<TextureBuilder*> addSubsprite(SpriteIdNumerical aSpriteId,
+	NeverNull<TextureBuilder*> addSubsprite(SpriteIdNumerical aSpriteId,
                                           const std::filesystem::path& aFilePath) override {
 		_assertNotFinalized();
 
@@ -93,7 +90,7 @@ public:
 		return this;
 	}
 
-	NotNull<TextureBuilder*> addSprite(const SpriteIdTextual& aSpriteId,
+	NeverNull<TextureBuilder*> addSprite(const SpriteIdTextual& aSpriteId,
                                        const std::filesystem::path& aFilePath) override {
 		_assertNotFinalized();
 
@@ -111,7 +108,7 @@ public:
 		return this;
 	}
 
-	NotNull<TextureBuilder*> addSubsprite(const SpriteIdTextual& aSpriteId,
+	NeverNull<TextureBuilder*> addSubsprite(const SpriteIdTextual& aSpriteId,
                                           PZInteger aSubspriteIndex,
                                           const std::filesystem::path& aFilePath) override {
 		_assertNotFinalized();
@@ -136,7 +133,7 @@ public:
 		return this;
 	}
 
-	NotNull<TextureBuilder*> addSubsprite(const SpriteIdTextual& aSpriteId,
+	NeverNull<TextureBuilder*> addSubsprite(const SpriteIdTextual& aSpriteId,
 										  const std::filesystem::path& aFilePath) override {
 		_assertNotFinalized();
 
@@ -259,8 +256,8 @@ private:
 // SPRITE LOADER                                                         //
 ///////////////////////////////////////////////////////////////////////////
 
-std::unique_ptr<SpriteLoader::TextureBuilder> SpriteLoader::startTexture(PZInteger aWidth,
-																		 PZInteger aHeight) {
+AvoidNull<std::unique_ptr<SpriteLoader::TextureBuilder>> SpriteLoader::startTexture(PZInteger aWidth,
+																		                                                PZInteger aHeight) {
 	return std::make_unique<detail::TextureBuilderImpl>(SELF, aWidth, aHeight);
 }
 
@@ -342,5 +339,3 @@ void SpriteLoader::_pushTexture(std::unique_ptr<Texture> aTexture) {
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
-
-// clang-format on

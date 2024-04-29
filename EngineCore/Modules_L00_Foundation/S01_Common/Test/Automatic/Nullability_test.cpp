@@ -23,13 +23,12 @@ TEST(NeverNullTest, AssignmentTest) {
 }
 
 TEST(NeverNullTest, ComparisonTest) {
-    int  i1 = 5;
-    int  i2 = 6;
-    int* p1 = &i1;
-    int* p2 = &i2;
+    int vars[2] = {5, 6};
+    int* p1 = &vars[0];
+    int* p2 = &vars[1];
 
-    NeverNull<int*> nn1 = &i1;
-    NeverNull<int*> nn2 = &i2;
+    NeverNull<int*> nn1 = &vars[0];
+    NeverNull<int*> nn2 = &vars[1];
 
     EXPECT_FALSE(nn1 == nullptr);
     EXPECT_FALSE(nn2 == nullptr);
@@ -104,13 +103,12 @@ TEST(AvoidNullTest, AssignmentTest) {
 }
 
 TEST(AvoidNullTest, ComparisonTest) {
-    int  i1 = 5;
-    int  i2 = 6;
-    int* p1 = &i1;
-    int* p2 = &i2;
+    int vars[2] = {5, 6};
+    int* p1 = &vars[0];
+    int* p2 = &vars[1];
 
-    AvoidNull<int*> an1 = &i1;
-    AvoidNull<int*> an2 = &i2;
+    AvoidNull<int*> an1 = &vars[0];
+    AvoidNull<int*> an2 = &vars[1];
 
     EXPECT_FALSE(an1 == nullptr);
     EXPECT_FALSE(an2 == nullptr);
