@@ -23,7 +23,7 @@ TEST(NeverNullTest, AssignmentTest) {
 }
 
 TEST(NeverNullTest, ComparisonTest) {
-    int vars[2] = {5, 6};
+    int  vars[2] = {5, 6};
     int* p1 = &vars[0];
     int* p2 = &vars[1];
 
@@ -103,7 +103,7 @@ TEST(AvoidNullTest, AssignmentTest) {
 }
 
 TEST(AvoidNullTest, ComparisonTest) {
-    int vars[2] = {5, 6};
+    int  vars[2] = {5, 6};
     int* p1 = &vars[0];
     int* p2 = &vars[1];
 
