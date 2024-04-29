@@ -4,7 +4,6 @@
 add_subdirectory("S00_PDef")
 add_subdirectory("S01_Common")
 add_subdirectory("S01_Format")
-add_subdirectory("S01_GSL")
 add_subdirectory("S01_Preprocessor")
 add_subdirectory("S02_HGExcept")
 add_subdirectory("S03_Logging")

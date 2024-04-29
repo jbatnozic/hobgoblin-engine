@@ -3,7 +3,6 @@
 
 // clang-format off
 
-
 #include <SPeMPE/GameContext/Game_context.hpp>
 
 #include <Hobgoblin/HGExcept.hpp>
@@ -272,8 +271,8 @@ double MsCount(taDuration aDuration) {
 }
 } // namespace
 
-void GameContext::_runImpl(hg::NotNull<GameContext*> aContext,
-                           hg::NotNull<int*> aReturnValue,
+void GameContext::_runImpl(hg::NeverNull<GameContext*> aContext,
+                           hg::NeverNull<int*> aReturnValue,
                            int aMaxIterations,
                            bool aDebugLoggingActive) {
     using hobgoblin::util::Stopwatch;

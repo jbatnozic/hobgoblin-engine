@@ -3,8 +3,11 @@
 
 // clang-format off
 
-
 #include <Hobgoblin/RmlUi/RmlUi_preprocessing.hpp>
+
+#include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/Graphics/Sprite_loader.hpp>
+#include <Hobgoblin/Graphics/Tga_export.hpp>
 
 #include <cctype>
 #include <fstream>
@@ -12,9 +15,6 @@
 #include <optional>
 #include <regex>
 #include <vector>
-
-#include <Hobgoblin/Graphics/Sprite_loader.hpp>
-#include <Hobgoblin/Graphics/Tga_export.hpp>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 HOBGOBLIN_NAMESPACE_BEGIN
@@ -136,7 +136,7 @@ void ForEachLineInFileDo(const std::string& aFilePath,
 }
 
 struct SrcResult {
-    std::unique_ptr<gr::SpriteLoader::TextureBuilder> texBuilder;
+    AvoidNull<std::unique_ptr<gr::SpriteLoader::TextureBuilder>> texBuilder;
     std::string path;
 };
 
