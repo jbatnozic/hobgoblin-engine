@@ -1,3 +1,6 @@
+# Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+# See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
 project("Hobgoblin.Graphics.AutomaticTest")
 
 find_package(GTest CONFIG REQUIRED)

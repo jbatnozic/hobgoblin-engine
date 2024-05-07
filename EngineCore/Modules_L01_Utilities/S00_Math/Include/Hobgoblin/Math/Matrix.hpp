@@ -1,3 +1,6 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
 #ifndef UHOBGOBLIN_MATH_MATRIX_HPP
 #define UHOBGOBLIN_MATH_MATRIX_HPP
 
