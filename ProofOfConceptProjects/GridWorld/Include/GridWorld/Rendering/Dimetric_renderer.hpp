@@ -3,7 +3,6 @@
 #include <Hobgoblin/Graphics/Sprite.hpp>
 #include <Hobgoblin/Graphics/Sprite_loader.hpp>
 #include <Hobgoblin/Graphics/View.hpp>
-#include <Hobgoblin/GSL.hpp>
 
 #include <GridWorld/Positions.hpp>
 #include <GridWorld/Renderer.hpp>
@@ -85,7 +84,7 @@ private:
     // ===== Utility =====
 
     struct CellInfo {
-        hg::NotNull<const CellModel*> cell;
+        hg::NeverNull<const CellModel*> cell;
         hg::PZInteger gridX;
         hg::PZInteger gridY;
     };

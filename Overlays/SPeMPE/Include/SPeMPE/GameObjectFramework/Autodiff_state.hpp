@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef SPEMPE_GAME_OBJECT_FRAMEWORK_AUTODIFF_STATE_HPP
 #define SPEMPE_GAME_OBJECT_FRAMEWORK_AUTODIFF_STATE_HPP
 
@@ -690,18 +695,18 @@ public:
         memset(_bytes, 0x00, BYTE_COUNT);
     }
 
-    friend hg::util::PacketBase& operator<<(hg::util::PacketBase& aPacket, const StaticPackableBitset& aBitset) {
+    friend hg::util::Packet& operator<<(hg::util::PacketExtender& aPacket, const StaticPackableBitset& aBitset) {
         for (auto byte : aBitset._bytes) {
-            aPacket << byte;
+            *aPacket << byte;
         }
-        return aPacket;
+        return *aPacket;
     }
 
-    friend hg::util::PacketBase& operator>>(hg::util::PacketBase& aPacket, StaticPackableBitset& aBitset) {
+    friend hg::util::Packet& operator>>(hg::util::PacketExtender& aPacket, StaticPackableBitset& aBitset) {
         for (auto& byte : aBitset._bytes) {
-            aPacket >> byte;
+            aPacket->noThrow() >> byte;
         }
-        return aPacket;
+        return *aPacket;
     }
 
 private:
@@ -841,7 +846,7 @@ public:
         std::string result;
         result.resize(static_cast<std::size_t>(taBaseCount));
         for (int i = taBaseCount - 1; i >= 0; i--) {
-            result.at(static_cast<std::size_t>(i)) = (((USPEMPE_ADS_BITS_NAME.getBit(i))) ? '1' : '0');
+            result.at(static_cast<std::size_t>(i)) = ((USPEMPE_ADS_BITS_NAME.getBit(i)) ? '1' : '0');
         }
         return result;
     }
@@ -871,7 +876,7 @@ void AutodiffStateCommit(taMember& aMirror, const taMember& aReal, taRest&&... a
 //! Packs the diff of this object into the packet.
 template <class taBits, class taMember, class... taRest>
 void AutodiffStatePackDiff(
-    hg::util::PacketBase& aPacket,
+    hg::util::Packet& aPacket,
     taBits& aBits,
     hg::PZInteger aDepth,
     const taMember& aMirror,
@@ -900,7 +905,7 @@ void AutodiffStatePackDiff(
 //! Packs the whole object into the packet.
 template <class taBits, class taMember, class... taRest>
 void AutodiffStatePackAll(
-    hg::util::PacketBase& aPacket,
+    hg::util::Packet& aPacket,
     taBits& aBits,
     hg::PZInteger aDepth,
     const taMember& aMirror,
@@ -921,7 +926,7 @@ void AutodiffStatePackAll(
 //! Unpacks the object from the packet.
 template <class taBits, class taMember, class... taRest>
 void AutodiffStateUnpack(
-    hg::util::PacketBase& aPacket,
+    hg::util::Packet& aPacket,
     taBits& aBits,
     hg::PZInteger aDepth,
     const taMember& aMirror,
@@ -929,15 +934,21 @@ void AutodiffStateUnpack(
     taRest&&... aRest)
 {
     if constexpr (sizeof...(taRest) == 0) { // Is last recursion?
-        aPacket >> aBits;
+        if (!(aPacket.noThrow() >> aBits)) {
+          return;
+        }
         if (aBits.getBit(aDepth)) {
-            aPacket >> aReal;
+            if (!(aPacket.noThrow() >> aReal)) {
+              return;
+            }
             (void)aMirror;
         }
     } else {
         AutodiffStateUnpack(aPacket, aBits, aDepth + 1, std::forward<taRest>(aRest)...);
         if (aBits.getBit(aDepth)) {
-            aPacket >> aReal;
+            if (!(aPacket.noThrow() >> aReal)) {
+              return;
+            }
             (void)aMirror;
         }
     }
@@ -1022,16 +1033,16 @@ bool AutodiffStateCmp(
                 if (USPEMPE_ADS_NO_CHANGE_STREAK_CNT_NAME < 255) { USPEMPE_ADS_NO_CHANGE_STREAK_CNT_NAME++; } \
             } \
         } \
-        void packDiff(::jbatnozic::hobgoblin::util::PacketBase& aPacket) const { \
+        void packDiff(::jbatnozic::hobgoblin::util::Packet& aPacket) const { \
             USPEMPE_ADS_ASSERT_MIRROR_NOT_NULL(); \
             USPEMPE_ADS_BITS_TYPE bits; \
             ::jbatnozic::spempe::detail::AutodiffStatePackDiff(aPacket, bits, 0, USPEMPE_ADS_PASS_MEMBER_REFS(USPEMPE_ADS_MIRROR_OBJECT_NAME, __VA_ARGS__)); \
         } \
-        void packAll(::jbatnozic::hobgoblin::util::PacketBase& aPacket) const { \
+        void packAll(::jbatnozic::hobgoblin::util::Packet& aPacket) const { \
             USPEMPE_ADS_BITS_TYPE bits; \
             ::jbatnozic::spempe::detail::AutodiffStatePackAll(aPacket, bits, 0, USPEMPE_ADS_PASS_MEMBER_REFS(USPEMPE_ADS_MIRROR_OBJECT_NAME, __VA_ARGS__)); \
         } \
-        void unpack(::jbatnozic::hobgoblin::util::PacketBase& aPacket) { \
+        void unpack(::jbatnozic::hobgoblin::util::Packet& aPacket) { \
             USPEMPE_ADS_BITS_TYPE bits; \
             ::jbatnozic::spempe::detail::AutodiffStateUnpack(aPacket, bits, 0, USPEMPE_ADS_PASS_MEMBER_REFS(USPEMPE_ADS_MIRROR_OBJECT_NAME, __VA_ARGS__)); \
             this->USPEMPE_ADS_BITS_NAME = bits; \
@@ -1045,18 +1056,18 @@ bool AutodiffStateCmp(
         }; \
         \
         friend \
-        ::jbatnozic::hobgoblin::util::PacketBase& operator>>(::jbatnozic::hobgoblin::util::PacketBase& aPacket, Super& aSelf) { \
-            aSelf.unpack(aPacket); \
-            return aPacket; \
+        ::jbatnozic::hobgoblin::util::Packet& operator>>(::jbatnozic::hobgoblin::util::PacketExtender& aPacket, Super& aSelf) { \
+            aSelf.unpack(*aPacket); \
+            return *aPacket; \
         }; \
         friend \
-        ::jbatnozic::hobgoblin::util::PacketBase& operator<<(::jbatnozic::hobgoblin::util::PacketBase& aPacket, const Super& aSelf) { \
+        ::jbatnozic::hobgoblin::util::Packet& operator<<(::jbatnozic::hobgoblin::util::PacketExtender& aPacket, const Super& aSelf) { \
             if (aSelf.getPackMode() == ::jbatnozic::spempe::AutodiffPackMode::PackDiff) { \
-                aSelf.packDiff(aPacket); \
+                aSelf.packDiff(*aPacket); \
             } else { \
-                aSelf.packAll(aPacket); \
+                aSelf.packAll(*aPacket); \
             } \
-            return aPacket; \
+            return *aPacket; \
         } \
     }; \
     struct _struct_name_ : public USPEMPE_AutodiffState_##_struct_name_##_LowerBase
@@ -1066,7 +1077,7 @@ bool AutodiffStateCmp(
 //! Note: Due to how the preprocessor works, none of the parameters may contain
 //! commas. So, if the type is a multi-parameter template, you will have to
 //! typedef it to something, and if the default value is a function call with
-//! multiple parameters, you will have to assign it to a variable or constant first.
+//! multiple parameters, you will have to assign it to constant first.
 #define SPEMPE_MEMBER(_type_, _name_, _default_value_) _type_, _name_, _default_value_
 
 ///////////////////////////////////////////////////////////////////////////
@@ -1231,3 +1242,5 @@ int main() {
 #endif
 
 #endif // !SPEMPE_GAME_OBJECT_FRAMEWORK_AUTODIFF_STATE_HPP
+
+// clang-format on

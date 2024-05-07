@@ -1,5 +1,11 @@
+// Code in this file is adapted from Chhipmunk2D code and retains its original
+// open source licence (provided below).
+// See https://github.com/slembcke/Chipmunk2D
+
 // Copyright 2013 Howling Moon Software. All rights reserved.
 // See http://chipmunk2d.net/legal.php for more information.
+
+// clang-format off
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -155,3 +161,5 @@ cpMarchHard(
 ){
 	cpMarchCells(bb, x_samples, y_samples, t, segment, segment_data, sample, sample_data, cpMarchCellHard);
 }
+
+// clang-format on

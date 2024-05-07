@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include "Engine.h"
 #include "Lobby_frontend_manager.hpp"
@@ -62,14 +67,14 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
             spe::WindowManagerInterface::WindowConfig{
                 hg::win::VideoMode{WINDOW_WIDTH, WINDOW_HEIGHT},
                 "SPeMPE Multiplayer Foundation",
-                hg::win::WindowStyle::Fullscreen
+                hg::win::WindowStyle::Default
             },
             spe::WindowManagerInterface::MainRenderTextureConfig{{WINDOW_WIDTH, WINDOW_HEIGHT}},
             spe::WindowManagerInterface::TimingConfig{
                 FRAMERATE,
                 false,                                           /* Framerate limiter */
                 (aGameMode == GameMode::Server) ? false : true , /* V-Sync */
-                (aGameMode == GameMode::Server) ? true : false   /* Precise timing */
+                (aGameMode == GameMode::Server) ? true : true    /* Precise timing */
             }
         );
 
@@ -319,3 +324,5 @@ int main(int argc, char* argv[]) {
     HG_LOG_INFO(LOG_ID, "Program exiting with status code: {}.", status);
     return status;
 }
+
+// clang-format on

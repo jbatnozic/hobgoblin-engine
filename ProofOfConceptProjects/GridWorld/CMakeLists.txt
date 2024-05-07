@@ -26,7 +26,6 @@ PUBLIC
     # Foundation
     "Hobgoblin.Common"
     "Hobgoblin.Format"
-    "Hobgoblin.GSL"
     "Hobgoblin.Preprocessor"
     "Hobgoblin.HGExcept"
     "Hobgoblin.Logging"

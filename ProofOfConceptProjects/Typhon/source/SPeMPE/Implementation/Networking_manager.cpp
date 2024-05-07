@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <SPeMPE/Include/Networking_manager.hpp>
 #include <SPeMPE/Include/Game_context.hpp>
@@ -67,12 +72,12 @@ NetworkingManager::ClientType& NetworkingManager::getClient() {
     return static_cast<ClientType&>(*_node);
 }
 
-void NetworkingManager::_eventPreUpdate() {
+void NetworkingManager::_eventBeginUpdate() {
     getNode().update(RN_UpdateMode::Receive);
     handleEvents();
 }
 
-void NetworkingManager::_eventPostUpdate() {
+void NetworkingManager::_eventEndUpdate() {
     // Update all Synchronized objects
     if (_node->isServer()) {
         ctx().getSyncObjReg().syncStateUpdates();
@@ -125,3 +130,5 @@ void NetworkingManager::handleEvents() {
 }
 
 } // namespace spempe
+
+// clang-format on

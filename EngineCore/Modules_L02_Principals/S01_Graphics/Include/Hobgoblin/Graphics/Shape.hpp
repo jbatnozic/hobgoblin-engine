@@ -1,3 +1,7 @@
+// Code in this file is adapted from SFML code and retains its original
+// open source licence (provided below).
+// See https://github.com/SFML/SFML
+
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
@@ -21,6 +25,8 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 ////////////////////////////////////////////////////////////
+
+// clang-format off
 
 #ifndef UHOBGOBLIN_GRAPHICS_SHAPE_HPP
 #define UHOBGOBLIN_GRAPHICS_SHAPE_HPP
@@ -172,7 +178,7 @@ public:
     //! \return Number of points of the shape
     //!
     //! \see getPoint
-    virtual PZInteger getPointCount() const = 0;
+    virtual PZInteger getPointCount() const override = 0;
 
     //! \brief Get a point of the shape
     //!
@@ -186,7 +192,7 @@ public:
     //! \return index-th point of the shape
     //!
     //! \see getPointCount
-    virtual math::Vector2f getPoint(PZInteger aTndex) const = 0;
+    virtual math::Vector2f getPoint(PZInteger aTndex) const override = 0;
 
     //! \brief Get the local bounding rectangle of the entity
     //!
@@ -331,3 +337,5 @@ HOBGOBLIN_NAMESPACE_END
 /// \see sf::RectangleShape, sf::CircleShape, sf::ConvexShape, sf::Transformable
 ///
 ////////////////////////////////////////////////////////////
+
+// clang-format on

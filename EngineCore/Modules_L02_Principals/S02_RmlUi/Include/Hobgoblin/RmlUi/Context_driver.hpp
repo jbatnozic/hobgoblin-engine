@@ -1,9 +1,13 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef UHOBGOBLIN_RMLUI_PRIVATE_RMLUI_CONTEXT_DRIVER_HPP
 #define UHOBGOBLIN_RMLUI_PRIVATE_RMLUI_CONTEXT_DRIVER_HPP
 
 #include <RmlUi/Core.h>
 
-#include <Hobgoblin/GSL/HG_adapters.hpp>
 #include <Hobgoblin/Graphics.hpp>
 #include <Hobgoblin/Math/Vector.hpp>
 #include <Hobgoblin/Window.hpp>
@@ -41,7 +45,7 @@ public:
     void setRenderTarget(gr::RenderTarget& aRenderTarget);
 
 private:
-    NotNull<gr::RenderTarget*> _renderTarget;
+    NeverNull<gr::RenderTarget*> _renderTarget;
     Rml::Context* _context = nullptr;
 };
 
@@ -51,3 +55,5 @@ HOBGOBLIN_NAMESPACE_END
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
 #endif // !UHOBGOBLIN_RMLUI_PRIVATE_RMLUI_CONTEXT_DRIVER_HPP
+
+// clang-format on

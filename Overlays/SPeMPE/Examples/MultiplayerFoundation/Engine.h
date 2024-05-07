@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #pragma once
 
 #include <Hobgoblin/QAO.hpp>
@@ -25,3 +30,5 @@ using MWindow       = spe::WindowManagerInterface;
 #define PRIORITY_WINDOWMGR      0
 
 #define STATE_BUFFERING_LENGTH 2
+
+// clang-format on

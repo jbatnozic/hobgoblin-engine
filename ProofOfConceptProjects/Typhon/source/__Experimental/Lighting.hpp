@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #pragma once
 
 #include <Hobgoblin/Graphics.hpp>
@@ -102,3 +107,5 @@ private:
     void _removeLight(PZInteger lightIndex);
     friend class LightHandle;
 };
+
+// clang-format on

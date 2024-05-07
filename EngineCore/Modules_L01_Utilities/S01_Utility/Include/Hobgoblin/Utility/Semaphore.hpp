@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef UHOBGOBLIN_UTIL_SEMAPHORE_HPP
 #define UHOBGOBLIN_UTIL_SEMAPHORE_HPP
 
@@ -41,11 +46,16 @@ public:
     }
 
     int getValue() const {
-        return _val;
+        int result;
+        {
+            std::unique_lock<decltype(_mutex)> lock(_mutex);
+            result = _val;
+        }
+        return result;
     }
 
 private:
-    std::mutex _mutex;
+    mutable std::mutex _mutex;
     std::condition_variable _condition;
     int _val;
 };
@@ -57,3 +67,5 @@ HOBGOBLIN_NAMESPACE_END
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
 #endif // !UHOBGOBLIN_UTIL_SEMAPHORE_HPP
+
+// clang-format on

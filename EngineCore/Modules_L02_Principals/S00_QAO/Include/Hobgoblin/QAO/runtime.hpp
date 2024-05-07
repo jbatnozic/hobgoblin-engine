@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef UHOBGOBLIN_QAO_RUNTIME_HPP
 #define UHOBGOBLIN_QAO_RUNTIME_HPP
 
@@ -125,8 +130,8 @@ public:
     QAO_OrdererConstReverseIterator crend() const;
 
     // Pack/Unpack state:
-    friend util::PacketBase& operator<<(util::PacketBase& packet, const QAO_Runtime& self);
-    friend util::PacketBase& operator>>(util::PacketBase& packet, QAO_Runtime& self);
+    friend util::Packet& operator<<(util::PacketExtender& packet, const QAO_Runtime& self);
+    friend util::Packet& operator>>(util::PacketExtender& packet, QAO_Runtime& self);
 
 private:
     qao_detail::QAO_Registry _registry;
@@ -164,3 +169,5 @@ HOBGOBLIN_NAMESPACE_END
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
 #endif // !UHOBGOBLIN_QAO_RUNTIME_HPP
+
+// clang-format on

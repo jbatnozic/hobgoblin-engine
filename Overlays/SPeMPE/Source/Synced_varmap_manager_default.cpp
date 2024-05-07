@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <SPeMPE/Managers/Synced_varmap_manager_default.hpp>
 #include <SPeMPE/Managers/Networking_manager_interface.hpp>
@@ -324,7 +329,7 @@ void DefaultSyncedVarmapManager::stringSetClientWritePermission(const std::strin
 // PRIVATE METHODS                                                       //
 ///////////////////////////////////////////////////////////////////////////
 
-void DefaultSyncedVarmapManager::_eventPostUpdate() {
+void DefaultSyncedVarmapManager::_eventEndUpdate() {
     using namespace hg::rn;
     if (_mode == Mode::Host) {
         Compose_USPEMPE_DefaultSyncedVarmapManager_SetValues(
@@ -356,20 +361,20 @@ void DefaultSyncedVarmapManager::_packValue(const std::string& aKey,
 
 void DefaultSyncedVarmapManager::_unpackValues(hobgoblin::util::Packet& aPacket) {
     while (!aPacket.endOfPacket()) {
-        const auto type = aPacket.extractOrThrow<std::int8_t>();
-        const auto key  = aPacket.extractOrThrow<std::string>();
+        const auto type = aPacket.extract<std::int8_t>();
+        const auto key  = aPacket.extract<std::string>();
 
         switch (type) {
         case TYPE_TAG_INT64:
-            _int64Values[key].value = aPacket.extractOrThrow<std::int64_t>();
+            _int64Values[key].value = aPacket.extract<std::int64_t>();
             break;
 
         case TYPE_TAG_DOUBLE:
-            _doubleValues[key].value = aPacket.extractOrThrow<double>();
+            _doubleValues[key].value = aPacket.extract<double>();
             break;
 
         case TYPE_TAG_STRING:
-            _stringValues[key].value = aPacket.extractOrThrow<std::string>();
+            _stringValues[key].value = aPacket.extract<std::string>();
             break;
 
         default:
@@ -381,8 +386,8 @@ void DefaultSyncedVarmapManager::_unpackValues(hobgoblin::util::Packet& aPacket)
 
 bool DefaultSyncedVarmapManager::_setValueRequested(hobgoblin::PZInteger aPlayerIndex, 
                                                     hobgoblin::util::Packet& aPacket) {
-    const auto type = aPacket.extractOrThrow<std::int8_t>();
-    const auto key = aPacket.extractOrThrow<std::string>();
+    const auto type = aPacket.extract<std::int8_t>();
+    const auto key = aPacket.extract<std::string>();
 
     switch (type) {
     case TYPE_TAG_INT64:
@@ -394,7 +399,7 @@ bool DefaultSyncedVarmapManager::_setValueRequested(hobgoblin::PZInteger aPlayer
             if (iter->second.permissions.getBit(aPlayerIndex) == false) {
                 return false;
             }
-            setInt64(key, aPacket.extractOrThrow<std::int64_t>());
+            setInt64(key, aPacket.extract<std::int64_t>());
         }
         break;
 
@@ -407,7 +412,7 @@ bool DefaultSyncedVarmapManager::_setValueRequested(hobgoblin::PZInteger aPlayer
             if (iter->second.permissions.getBit(aPlayerIndex) == false) {
                 return false;
             }
-            setDouble(key, aPacket.extractOrThrow<double>());
+            setDouble(key, aPacket.extract<double>());
         }
         break;
 
@@ -420,7 +425,7 @@ bool DefaultSyncedVarmapManager::_setValueRequested(hobgoblin::PZInteger aPlayer
             if (iter->second.permissions.getBit(aPlayerIndex) == false) {
                 return false;
             }
-            setString(key, aPacket.extractOrThrow<std::string>());
+            setString(key, aPacket.extract<std::string>());
         }
         break;
 
@@ -457,3 +462,5 @@ void DefaultSyncedVarmapManager::_sendFullState(hg::PZInteger aClientIndex) cons
 
 } // namespace spempe
 } // namespace jbatnozic
+
+// clang-format on

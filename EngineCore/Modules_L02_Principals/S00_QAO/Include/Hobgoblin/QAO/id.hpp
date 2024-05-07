@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef UHOBGOBLIN_QAO_ID_HPP
 #define UHOBGOBLIN_QAO_ID_HPP
 
@@ -44,8 +49,8 @@ public:
     template<class T>
     QAO_Id<T> cast() const noexcept;
 
-    friend util::PacketBase& operator<<(util::PacketBase& packet, const QAO_GenericId& self);
-    friend util::PacketBase& operator>>(util::PacketBase& packet, QAO_GenericId& self);
+    friend util::Packet& operator<<(util::PacketExtender& packet, const QAO_GenericId& self);
+    friend util::Packet& operator>>(util::PacketExtender& packet, QAO_GenericId& self);
 
 protected:
     friend class QAO_Runtime;
@@ -69,12 +74,14 @@ public:
     QAO_Id(QAO_Id &&other) = default;
     QAO_Id& operator=(QAO_Id &&other) = default;
 
-    friend util::PacketBase& operator<<(util::PacketBase& packet, const QAO_Id& self) {
-        return (packet << static_cast<const QAO_GenericId&>(self));
+    friend util::Packet& operator<<(util::PacketExtender& packet, const QAO_Id& self) {
+        packet->noThrow() << static_cast<const QAO_GenericId&>(self);
+        return *packet;
     }
 
-    friend util::PacketBase& operator>>(util::PacketBase& packet, QAO_Id& self) {
-        return (packet >> static_cast<QAO_GenericId&>(self));
+    friend util::Packet& operator>>(util::PacketExtender& packet, QAO_Id& self) {
+        packet->noThrow() >> static_cast<QAO_GenericId&>(self);
+        return *packet;
     }
 
 protected:
@@ -97,3 +104,5 @@ HOBGOBLIN_NAMESPACE_END
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
 #endif // !UHOBGOBLIN_QAO_ID_HPP
+
+// clang-format on

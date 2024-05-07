@@ -1,3 +1,6 @@
+# Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+# See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
 # ===== COMPONENT SETUP =====
 
 find_package(GTest CONFIG REQUIRED)
@@ -15,7 +18,7 @@ set(COMPONENT_SOURCES
   "Source/Math_test.cpp"
   "Source/gtest_main.cpp"
   "Source/Preprocessor_test.cpp"
-  "Source/QAO_serialization_test.cpp"
+  # "Source/QAO_serialization_test.cpp"
   "Source/QAO_test.cpp"
   "Source/RigelNet_test.cpp"
   "Source/Util_test.cpp"

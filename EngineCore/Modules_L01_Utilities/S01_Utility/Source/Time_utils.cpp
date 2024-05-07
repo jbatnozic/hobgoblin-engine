@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <Hobgoblin/Utility/Time_utils.hpp>
 
@@ -80,9 +85,16 @@ void PreciseSleep(milliseconds timeToSleep) {
 // ****************** UNIX ******************
 
 void PreciseSleep(milliseconds timeToSleep) {
+    static constexpr auto MILLISECONDS_PER_SECOND = 1'000LL;
+    static constexpr auto NANOSECONDS_PER_MILLISECOND = 1'000'000LL;
+
     struct timespec ts;
-    ts.tv_sec  = static_cast<decltype(ts.tv_sec)>(timeToSleep.count() / 1'000);
-    ts.tv_nsec = static_cast<decltype(ts.tv_nsec)>((timeToSleep.count() % 1'000) * 1000);
+    ts.tv_sec  = static_cast<decltype(ts.tv_sec)>(
+        timeToSleep.count() / MILLISECONDS_PER_SECOND
+    );
+    ts.tv_nsec = static_cast<decltype(ts.tv_nsec)>(
+        (timeToSleep.count() % 1'000) * NANOSECONDS_PER_MILLISECOND
+    );
 
     while (nanosleep(&ts, &ts) == -1 && errno == EINTR) {}
 }
@@ -114,3 +126,5 @@ void SuperPreciseSleep(microseconds timeToSleep) {
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
+
+// clang-format on

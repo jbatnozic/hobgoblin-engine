@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef SPEMPE_GAME_CONTEXT_CONTEXT_COMPONENTS_HPP
 #define SPEMPE_GAME_CONTEXT_CONTEXT_COMPONENTS_HPP
 
@@ -106,3 +111,5 @@ taComponent* ComponentTable::getComponentPtr() const {
 } // namespace jbatnozic
 
 #endif // !SPEMPE_GAME_CONTEXT_CONTEXT_COMPONENTS_HPP
+
+// clang-format on

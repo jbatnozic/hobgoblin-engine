@@ -1,3 +1,7 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
 
 #include <Hobgoblin/Graphics/Transformable_data.hpp>
 
@@ -81,8 +85,7 @@ void TransformableData::scale(const math::Vector2f& factor) {
 
 Transform TransformableData::getTransform() const {
     // Recompute the combined transform if needed
-    if (m_transformNeedUpdate)
-    {
+    if (m_transformNeedUpdate) {
         const float angle  = -m_rotation.asRadians();
         const float cosine = std::cos(angle);
         const float sine   = std::sin(angle);
@@ -93,27 +96,30 @@ Transform TransformableData::getTransform() const {
         const float tx     = -m_origin.x * sxc - m_origin.y * sys + m_position.x;
         const float ty     = m_origin.x * sxs - m_origin.y * syc + m_position.y;
 
-        m_transform = Transform( sxc, sys, tx,
-                                -sxs, syc, ty,
-                                 0.f, 0.f, 1.f);
+        m_transform = Transform(  sxc, sys, tx,
+                                 -sxs, syc, ty,
+                                  0.f, 0.f, 1.f);
+
         m_transformNeedUpdate = false;
     }
 
-    return m_transform;
+  return m_transform;
 }
 
 Transform TransformableData::getInverseTransform() const {
     // Recompute the inverse transform if needed
-    if (m_inverseTransformNeedUpdate)
-    {
-        m_inverseTransform           = getTransform().getInverse();
-        m_inverseTransformNeedUpdate = false;
+    if (m_inverseTransformNeedUpdate) {
+            m_inverseTransform = getTransform().getInverse();
+            m_inverseTransformNeedUpdate = false;
     }
 
     return m_inverseTransform;
 }
+
 } // namespace gr
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
 #include <Hobgoblin/Private/Short_namespace.hpp>
+
+// clang-format on

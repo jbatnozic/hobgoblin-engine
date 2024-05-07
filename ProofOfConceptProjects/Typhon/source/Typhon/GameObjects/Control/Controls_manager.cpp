@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <SFML/System.hpp>
 
@@ -59,7 +64,7 @@ void ControlsManager::putNewControls(hg::PZInteger playerIndex, const PlayerCont
     _schedulers[playerIndex].putNewState(controls, delaySteps);
 }
 
-void ControlsManager::_eventPreUpdate() {
+void ControlsManager::_eventBeginUpdate() {
     if (ctx().getLocalPlayerIndex() == spempe::PLAYER_INDEX_UNKNOWN) {
         return;
     }
@@ -92,8 +97,10 @@ void ControlsManager::_eventUpdate() {
     }
 }
 
-void ControlsManager::_eventPostUpdate() {
+void ControlsManager::_eventEndUpdate() {
     for (auto& scheduler : _schedulers) {
         scheduler.advance();
     }
 }
+
+// clang-format on

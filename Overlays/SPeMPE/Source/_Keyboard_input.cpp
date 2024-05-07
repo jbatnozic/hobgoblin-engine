@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <SPeMPE/Utility/Keyboard_input.hpp>
 
@@ -577,3 +582,5 @@ void KbInputTracker::_limitTypedTextLength() {
 
 } // namespace spempe
 } // namespace jbatnozic
+
+// clang-format on

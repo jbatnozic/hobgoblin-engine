@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef TYPHON_FRAMEWORK_ENVIRONMENT_MANAGER_HPP
 #define TYPHON_FRAMEWORK_ENVIRONMENT_MANAGER_HPP
 
@@ -32,7 +37,7 @@ public:
 protected:
     void onNetworkingEvent(const RN_Event& ev);
 
-    void _eventPostUpdate() override;
+    void _eventEndUpdate() override;
     void _eventDraw1() override;
 
 private:
@@ -58,3 +63,5 @@ private:
 };
 
 #endif // !TYPHON_FRAMEWORK_ENVIRONMENT_MANAGER_HPP
+
+// clang-format on

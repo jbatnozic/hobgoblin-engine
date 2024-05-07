@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include "Socket_adapter.hpp"
 
@@ -9,7 +14,6 @@ HOBGOBLIN_NAMESPACE_BEGIN
 namespace rn {
 
 namespace {
-constexpr PZInteger MAX_SEND_TRY_COUNT = 100;
 
 inline
 bool UseSfSocket(RN_Protocol protocol, RN_NetworkingStack networkingStack) {
@@ -58,10 +62,9 @@ void RN_SocketAdapter::init(PZInteger aRecvBufferSize) {
         if (res.hasError()) {
             HG_THROW_TRACED(TracedRuntimeError, res.getError().errorCode, res.getError().message);
         }
-
-        _recvBuffer.resize(pztos(aRecvBufferSize));
     }
 #endif
+    _recvBuffer.resize(pztos(aRecvBufferSize));
 }
 
 void RN_SocketAdapter::bind(sf::IpAddress aIpAddress, std::uint16_t aLocalPort) {
@@ -90,27 +93,24 @@ RN_SocketAdapter::Status RN_SocketAdapter::send(util::Packet& aPacket,
     if (UseSfSocket(_protocol, _networkingStack)) {
         auto& socket = std::get<sf::UdpSocket>(_socket);
     
-        for (PZInteger tryCount = 0; tryCount < MAX_SEND_TRY_COUNT; tryCount += 1) {
-            switch (socket.send(aPacket, aTargetAddress, aTargetPort)) {
-            case sf::Socket::Done:
-                return Status::OK;
+        switch (socket.send(aPacket.getData(), pztos(aPacket.getDataSize()), aTargetAddress, aTargetPort)) {
+        case sf::Socket::Done:
+            return Status::OK;
 
-            case sf::Socket::NotReady:
-                return Status::NotReady;
+        case sf::Socket::NotReady:
+            return Status::NotReady;
 
-            case sf::Socket::Partial:
-                continue; // Retry
+        case sf::Socket::Partial:
+            // SFML's UDP socket can't return this status
+            HG_UNREACHABLE("Received unexpected sf::Socket::Partial status from UDP socket.");
 
-            case sf::Socket::Disconnected:
-                return Status::Disconnected;
+        case sf::Socket::Disconnected:
+            return Status::Disconnected;
 
-            case sf::Socket::Error:
-                HG_THROW_TRACED(TracedRuntimeError, 0, "Socket reached an unrecoverable error state.");
-            }
+        case sf::Socket::Error:
+        default:
+            HG_THROW_TRACED(TracedRuntimeError, 0, "Socket reached an unrecoverable error state.");
         }
-
-        // Maximum retry count reached
-        HG_THROW_TRACED(TracedRuntimeError, 0, "Socket reached an unrecoverable error state (maximum retry count reached).");
     }
 #ifdef HOBGOBLIN_RN_ZEROTIER_SUPPORT
     else if (UseZtSocket(_protocol, _networkingStack)) {
@@ -148,18 +148,33 @@ RN_SocketAdapter::Status RN_SocketAdapter::recv(util::Packet& aPacket,
                                                 std::uint16_t& aRemotePort) {
     if (UseSfSocket(_protocol, _networkingStack)) {
         auto& socket = std::get<sf::UdpSocket>(_socket);
-        switch (socket.receive(aPacket, aRemoteAddress, aRemotePort)) {
+
+        std::size_t receivedByteCount = 0;
+        const auto status = socket.receive(
+            _recvBuffer.data(),
+            _recvBuffer.size(),
+            receivedByteCount,
+            aRemoteAddress,
+            aRemotePort
+        );
+        aPacket.appendBytes(_recvBuffer.data(), stopz(receivedByteCount));
+
+        switch (status) {
         case sf::Socket::Done:
             return Status::OK;
 
         case sf::Socket::NotReady:
             return Status::NotReady;
 
+        case sf::Socket::Partial:
+            // SFML's UDP socket can't return this status
+            HG_UNREACHABLE("Received unexpected sf::Socket::Partial status from UDP socket.");
+
         case sf::Socket::Disconnected:
             return Status::Disconnected;
 
-        case sf::Socket::Partial: // Partial should happen only when sending
         case sf::Socket::Error:
+        default:
             HG_THROW_TRACED(TracedRuntimeError, 0, "Socket reached an unrecoverable error state.");
         }
     }
@@ -188,7 +203,7 @@ RN_SocketAdapter::Status RN_SocketAdapter::recv(util::Packet& aPacket,
         }
 
         aPacket.clear();
-        aPacket.append(_recvBuffer.data(), *res);
+        aPacket.appendBytes(_recvBuffer.data(), stopz(*res));
 
         aRemoteAddress = sf::IpAddress(senderIp.toString());
 
@@ -249,3 +264,5 @@ RN_NetworkingStack RN_SocketAdapter::getNetworkingStack() const noexcept {
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
+
+// clang-format on

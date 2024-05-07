@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef SPEMPE_GAME_OBJECT_FRAMEWORK_DEFAULT_SYNC_IMPL_HPP
 #define SPEMPE_GAME_OBJECT_FRAMEWORK_DEFAULT_SYNC_IMPL_HPP
 
@@ -7,10 +12,14 @@
 #include <SPeMPE/GameContext/Game_context.hpp>
 #include <SPeMPE/GameObjectFramework/Autodiff_state.hpp>
 #include <SPeMPE/GameObjectFramework/Synchronized_object_registry.hpp>
+#include <SPeMPE/GameObjectFramework/Sync_control_delegate.hpp>
+#include <SPeMPE/GameObjectFramework/Sync_id.hpp>
 #include <SPeMPE/Managers/Networking_manager_interface.hpp>
 #include <SPeMPE/Utility/Rpc_receiver_context_template.hpp>
 
 #include <type_traits>
+
+#include <Hobgoblin/Logging.hpp>
 
 namespace jbatnozic {
 namespace spempe {
@@ -85,35 +94,104 @@ void DefaultSyncDestroyHandler(hg::RN_NodeInterface& node, SyncId syncId) {
     });
 }
 
-//! Align the configuration of visible state and of the sync details before sending.
-//! Note: this only does something if the state is an autodiff state.
-template <class taAutodiffState>
-AutodiffPackMode AlignState_PreCompose(taAutodiffState& aAutodiffState, SyncDetails& aSyncDetails) {
-    if constexpr (std::is_base_of<AutodiffStateTag, taAutodiffState>::value) {
-        const auto previousPackMode = aAutodiffState.getPackMode();
-
-        // If a full state sync was requested by the engine, we must not
-        // filter out any recepients nor allow only the diff to be sent.
-        const bool diffAllowed = !HasFullState(aSyncDetails.getFlags());
-        if (diffAllowed) {
-            aAutodiffState.setPackMode(AutodiffPackMode::PackDiff);
-
-            if (aAutodiffState.cmp() == AUTODIFF_STATE_NO_CHANGE &&
-                aAutodiffState.getNoChangeStreakCount() >= 1) {
-                aSyncDetails.filterSyncs([](hg::PZInteger /* aClientIndex */) -> SyncDetails::FilterResult {
-                    return SyncDetails::FilterResult::Skip;
-                });
-            }
+//! Returns `true` if the referenced object was previously skipped or 
+//! deactivated for any of the clients to which we intend to send updates.
+template <class taSynchronizedObject>
+bool WasPreviouslySkippedOrDeactivated(const taSynchronizedObject& aObject,
+                                       const SyncControlDelegate& aSyncCtrl) {
+    for (const auto client : aSyncCtrl.getFilteredRecepients()) {
+        if (aObject.__spempeimpl_getNoDiffSkipFlagForClient(client) ||
+            aObject.__spempeimpl_getSkipFlagForClient(client) ||
+            aObject.__spempeimpl_getDeactivationFlagForClient(client)) {
+            return true;
         }
-        else {
-            aAutodiffState.setPackMode(AutodiffPackMode::PackAll);
+    }
+    return false;
+}
+
+inline
+SyncFilterStatus GetLowestSetFilterStatus(SyncControlDelegate& aSyncCtrl) {
+    // This is a trick to sniff out the current status because ZERO won't ever
+    // be selected over any other status.
+    const auto result = aSyncCtrl.filter(
+        [](hg::PZInteger /* aClientIndex */) -> SyncFilterStatus {
+            return detail::SyncFilterStatus_ZERO;
+        });
+    return static_cast<SyncFilterStatus>(result);
+}
+
+//! Align the configuration of visible state and of the sync details before sending.
+//! 
+//! \param aObject Synchronized object currently being synced.
+//! \param aVisibleState Current visible state of the synchronized object.
+//! \param aSyncCtrl SyncControlDelegate for the current sync.
+//! \param aSyncFlags Pointer to a variable of type `SyncFlags`. This function will
+//!                   fill this variable with a `SyncFlags` value that MUST be used
+//!                   for the sync to follow.
+template <class taSynchronizedObject, class taVisisbleState>
+AutodiffPackMode AlignState_PreCompose(const taSynchronizedObject& aObject,
+                                       taVisisbleState& aVisibleState,
+                                       SyncControlDelegate& aSyncCtrl,
+                                       SyncFlags* aSyncFlags) {
+    *aSyncFlags = aSyncCtrl.getSyncFlags();
+
+    // REGULAR STATE
+    if constexpr (!std::is_base_of<AutodiffStateTag, taVisisbleState>::value) {
+        if (WasPreviouslySkippedOrDeactivated(aObject, aSyncCtrl)) {
+            *aSyncFlags |= SyncFlags::NO_CHAIN;
+        }
+        // The specific return value doesn't matter here
+        return AutodiffPackMode::Default;
+    }
+
+    // AUTODIFF STATE
+    if constexpr (std::is_base_of<AutodiffStateTag, taVisisbleState>::value) {
+        const auto previousPackMode = aVisibleState.getPackMode();
+
+        if (IsFullStateFlagSet(*aSyncFlags)) {
+            // If a full state sync was requested by the engine (to initialize
+            // a newly connected client), we must not filter out any recepients
+            // nor allow only the diff to be sent.
+            aVisibleState.setPackMode(AutodiffPackMode::PackAll);
+            *aSyncFlags |= SyncFlags::NO_CHAIN;
+            return previousPackMode;
+        }
+
+        auto lowestStatus = detail::SyncFilterStatus_UNDEFINED;
+        if (aVisibleState.cmp() == AUTODIFF_STATE_NO_CHANGE &&
+            aVisibleState.getNoChangeStreakCount() >= 1) {
+            const auto result = aSyncCtrl.filter(
+                [](hg::PZInteger /* aClientIndex */) -> SyncFilterStatus {
+                    return detail::SyncFilterStatus_SKIP_NO_DIFF;
+                });
+            lowestStatus = static_cast<SyncFilterStatus>(result);
+        } else {
+            lowestStatus = GetLowestSetFilterStatus(aSyncCtrl);
+        }
+
+        switch (lowestStatus) {
+        case detail::SyncFilterStatus_RESUMING_SYNC:
+            aVisibleState.setPackMode(AutodiffPackMode::PackAll);
+            // We already know from the result of filter() that the object was
+            // previously skipped or deactivated for at least one client.
+            *aSyncFlags |= SyncFlags::NO_CHAIN;
+            break;
+
+        case SyncFilterStatus::REGULAR_SYNC:
+            if (WasPreviouslySkippedOrDeactivated(aObject, aSyncCtrl)) {
+                aVisibleState.setPackMode(AutodiffPackMode::PackAll);
+                *aSyncFlags |= SyncFlags::NO_CHAIN;
+            } else {
+                aVisibleState.setPackMode(AutodiffPackMode::PackDiff);
+            }
+            break;
+        
+        default:
+            // Do nothing
+            break;
         }
 
         return previousPackMode;
-    }
-    else {
-        // The specific return value doesn't matter here
-        return AutodiffPackMode::Default;
     }
 }
 
@@ -197,24 +275,27 @@ T& StripConstFromRef(const T& aRef) {
 
 //! Calls the default sync/CREATE implementation of a SynchronizedObject
 //! generated by SPEMPE_GENERATE_DEFAULT_SYNC_HANDLERS.
-#define SPEMPE_SYNC_CREATE_DEFAULT_IMPL(_class_name_, _sync_details_) \
-    Compose_USPEMPE_Create##_class_name_((_sync_details_).getNode(), \
-                                         (_sync_details_).getRecepients(), \
-                                         getSyncId())
+#define SPEMPE_SYNC_CREATE_DEFAULT_IMPL(_class_name_, _sync_ctrl_) \
+    Compose_USPEMPE_Create##_class_name_((_sync_ctrl_).getLocalNode(), \
+                                         (_sync_ctrl_).getFilteredRecepients(), \
+                                         this->getSyncId())
 
 //! Calls the default sync/UPDATE implementation of a SynchronizedObject
 //! generated by SPEMPE_GENERATE_DEFAULT_SYNC_HANDLERS.
 //! Note: Will properly detect and handle autodiff objects.
-#define SPEMPE_SYNC_UPDATE_DEFAULT_IMPL(_class_name_, _sync_details_) \
+#define SPEMPE_SYNC_UPDATE_DEFAULT_IMPL(_class_name_, _sync_ctrl_) \
     do { \
+        ::jbatnozic::spempe::SyncFlags __spempeImpl_localSyncFlags; \
         const auto __spempeimpl_oldPackMode = ::jbatnozic::spempe::detail::AlignState_PreCompose( \
+            *this, \
             ::jbatnozic::spempe::detail::StripConstFromRef(_getCurrentState()), \
-            _sync_details_ \
+            _sync_ctrl_, \
+            &__spempeImpl_localSyncFlags \
         ); \
-        Compose_USPEMPE_Update##_class_name_((_sync_details_).getNode(), \
-                                             (_sync_details_).getRecepients(), \
-                                             getSyncId(), \
-                                             (_sync_details_).getFlags(), \
+        Compose_USPEMPE_Update##_class_name_((_sync_ctrl_).getLocalNode(), \
+                                             (_sync_ctrl_).getFilteredRecepients(), \
+                                             this->getSyncId(), \
+                                             __spempeImpl_localSyncFlags, \
                                              _getCurrentState()); \
         ::jbatnozic::spempe::detail::AlignState_PostCompose( \
             ::jbatnozic::spempe::detail::StripConstFromRef(_getCurrentState()), \
@@ -224,12 +305,14 @@ T& StripConstFromRef(const T& aRef) {
 
 //! Calls the default sync/DESTROY implementation of a SynchronizedObject
 //! generated by SPEMPE_GENERATE_DEFAULT_SYNC_HANDLERS.
-#define SPEMPE_SYNC_DESTROY_DEFAULT_IMPL(_class_name_, _sync_details_) \
-    Compose_USPEMPE_Destroy##_class_name_((_sync_details_).getNode(), \
-                                          (_sync_details_).getRecepients(), \
-                                          getSyncId())
+#define SPEMPE_SYNC_DESTROY_DEFAULT_IMPL(_class_name_, _sync_ctrl_) \
+    Compose_USPEMPE_Destroy##_class_name_((_sync_ctrl_).getLocalNode(), \
+                                          (_sync_ctrl_).getFilteredRecepients(), \
+                                          this->getSyncId())
 
 } // namespace spempe
 } // namespace jbatnozic
 
 #endif // !SPEMPE_GAME_OBJECT_FRAMEWORK_DEFAULT_SYNC_IMPL_HPP
+
+// clang-format on

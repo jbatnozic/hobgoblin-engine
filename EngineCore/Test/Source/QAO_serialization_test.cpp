@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #define HOBGOBLIN_SHORT_NAMESPACE
 #include <Hobgoblin/Common.hpp>
@@ -27,18 +32,18 @@ public:
     {
     }
 
-    Dummy(QAO_RuntimeRef rtRef, hg::util::PacketBase& packet)
+    Dummy(QAO_RuntimeRef rtRef, hg::util::Packet& packet)
         : QAO_Base{rtRef, TYPEID_SELF, packet}
     {
         packet >> SELF;
     }
 
-    void serialize(hg::util::PacketBase& packet) const override {
+    void serialize(hg::util::Packet& packet) const override {
         packet << static_cast<const QAO_Base&>(SELF);
         packet << SELF;
     }
 
-    static void deserialize(hg::util::PacketBase& packet, hg::util::AnyPtr context, int /*contextTag*/) {
+    static void deserialize(hg::util::Packet& packet, hg::util::AnyPtr context, int /*contextTag*/) {
         QAO_Runtime* runtime = context.getOrThrow<QAO_Runtime>();
 
         QAO_PCreate<Dummy>(runtime, packet);
@@ -79,7 +84,7 @@ protected:
     hg::util::Packet _packet;
 };
 
-TEST_F(QAO_SerializationTest, DISABLED_TestWithoutEvents) {
+TEST_F(QAO_SerializationTest, TestWithoutEvents) {
     auto dummy1 = QAO_PCreate<Dummy>(&_runtime, 1, 1001);
     auto dummy2 = QAO_PCreate<Dummy>(&_runtime, 2, 1002);
 
@@ -135,7 +140,7 @@ public:
     {
     }
 
-    EventReporter(QAO_RuntimeRef rtRef, std::vector<int>& reportVec, hg::util::PacketBase& packet)
+    EventReporter(QAO_RuntimeRef rtRef, std::vector<int>& reportVec, hg::util::Packet& packet)
         : QAO_Base{rtRef, TYPEID_SELF, packet}
         , _reportVector{reportVec}
     {
@@ -143,11 +148,11 @@ public:
 
     // Serialization
 
-    void serialize(hg::util::PacketBase& packet) const override {
+    void serialize(hg::util::Packet& packet) const override {
         packet << static_cast<const QAO_Base&>(SELF);
     }
 
-    static void deserialize(hg::util::PacketBase& packet, hg::util::AnyPtr context, int /*contextTag*/) {
+    static void deserialize(hg::util::PacketExtender& packet, hg::util::AnyPtr context, int /*contextTag*/) {
         auto* ctx = context.getOrThrow<DeserializationContext>();
 
         QAO_PCreate<EventReporter>(ctx->runtime, *ctx->reportVector, packet);
@@ -159,7 +164,7 @@ public:
 
     bool message(int tag, hg::util::AnyPtr context) override {
         if (tag == MESSAGE_SERIALIZE) {
-            auto packet = context.getOrThrow<hg::util::PacketBase>();
+            auto packet = context.getOrThrow<hg::util::PacketExtender>();
             hg::util::Serialize(*packet, SELF);
             return true;
         }
@@ -173,7 +178,7 @@ public:
         _reportVector.push_back(getExecutionPriority());
     }
 
-    void _eventPreUpdate() { 
+    void _eventBeginUpdate() { 
         _reportVector.push_back(QAO_Event::PreUpdate);
         _reportVector.push_back(getExecutionPriority());
     }
@@ -183,7 +188,7 @@ public:
         _reportVector.push_back(getExecutionPriority());
     }
 
-    void _eventPostUpdate() {
+    void _eventEndUpdate() {
         _reportVector.push_back(QAO_Event::PostUpdate);
         _reportVector.push_back(getExecutionPriority());
     }
@@ -203,7 +208,7 @@ public:
         _reportVector.push_back(getExecutionPriority());
     }
 
-    void _eventFinalizeFrame() {
+    void _eventDisplay() {
         _reportVector.push_back(QAO_Event::FinalizeFrame);
         _reportVector.push_back(getExecutionPriority());
     }
@@ -214,7 +219,7 @@ public:
 
 class SerializeAtDrawEvent : public QAO_Base {
 public:
-    SerializeAtDrawEvent(QAO_RuntimeRef rtRef, hg::util::PacketBase& packet)
+    SerializeAtDrawEvent(QAO_RuntimeRef rtRef, hg::util::PacketExtender& packet)
         : QAO_Base{rtRef, TYPEID_SELF, 10, "n/a"}
         , _packet{packet}
     {
@@ -236,7 +241,7 @@ public:
     }
 
 private:
-    hg::util::PacketBase& _packet;
+    hg::util::PacketExtender& _packet;
 };
 
 class DeserializeAtDrawEvent : public QAO_Base {
@@ -262,7 +267,7 @@ HG_PP_DO_BEFORE_MAIN(RegisterEventReporterSerializable) {
     hg::util::RegisterSerializable<EventReporter>();
 }
 
-TEST_F(QAO_SerializationTest, DISABLED_TestEventRestoration) {
+TEST_F(QAO_SerializationTest, TestEventRestoration) {
     std::vector<int> reportVector;
     DeserializationContext deserCtx{&_runtime, &reportVector};
 
@@ -298,3 +303,5 @@ TEST_F(QAO_SerializationTest, DISABLED_TestEventRestoration) {
 
     ASSERT_EQ(reportVector.size(), QAO_Event::Count * 4);
 }
+
+// clang-format on

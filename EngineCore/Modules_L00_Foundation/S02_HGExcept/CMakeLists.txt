@@ -1,3 +1,6 @@
+# Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+# See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
 project("Hobgoblin.HGExcept")
 
 add_library(${PROJECT_NAME}

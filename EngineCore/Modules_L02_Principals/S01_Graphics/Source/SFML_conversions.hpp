@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef HOBGOBLIN_GRAPHICS_SFML_CONVERSIONS_HPP
 #define HOBGOBLIN_GRAPHICS_SFML_CONVERSIONS_HPP
 
@@ -494,3 +499,5 @@ HOBGOBLIN_NAMESPACE_END
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
 
 #endif // !HOBGOBLIN_GRAPHICS_SFML_CONVERSIONS_HPP
+
+// clang-format on

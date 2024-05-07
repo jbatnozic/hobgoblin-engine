@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef SPEMPE_MANAGERS_LOBBY_BACKEND_MANAGER_DEFAULT_HPP
 #define SPEMPE_MANAGERS_LOBBY_BACKEND_MANAGER_DEFAULT_HPP
 
@@ -113,11 +118,11 @@ private:
 
     std::deque<LobbyBackendEvent> _eventQueue;
 
-    void _eventPreUpdate() override;
-    void _eventFinalizeFrame() override;
+    void _eventBeginUpdate() override;
+    void _eventPostUpdate() override;
 
-    void _eventPreUpdate_Host();
-    void _eventPreUpdate_Client();
+    void _eventBeginUpdate_Host();
+    void _eventBeginUpdate_Client();
 
     hg::PZInteger _getSize() const;
     bool _hasEntryForClient(const hobgoblin::RN_ConnectorInterface& aClient, int aClientIndex) const;
@@ -150,3 +155,5 @@ private:
 } // namespace jbatnozic
 
 #endif // !SPEMPE_MANAGERS_LOBBY_BACKEND_MANAGER_DEFAULT_HPP
+
+// clang-format on

@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #pragma once
 
 #include <Hobgoblin/Common.hpp>
@@ -62,3 +67,5 @@ private:
     std::vector<Block> _blocks; // Grid
     std::vector<bdfp_t> _drawBuffer;
 };
+
+// clang-format on

@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #include <Hobgoblin/Input.hpp>
 #include <Hobgoblin/Logging.hpp>
 #include <Hobgoblin/Graphics.hpp>
@@ -97,7 +102,7 @@ public:
     }
 
 private:
-    void _eventUpdate(spe::IfMaster) override {
+    void _eventUpdate1(spe::IfMaster) override {
         // if (ctx().getGameState().isPaused) return;
 
         auto& self = _getCurrentState();
@@ -134,34 +139,34 @@ private:
         ccomp<MWindow>().getCanvas().draw(circle);
     }
 
-    void _syncCreateImpl(spe::SyncDetails& aSyncDetails) const override;
-    void _syncUpdateImpl(spe::SyncDetails& aSyncDetails) const override;
-    void _syncDestroyImpl(spe::SyncDetails& aSyncDetails) const override;
+    void _syncCreateImpl(spe::SyncControlDelegate& aSyncCtrl) const override;
+    void _syncUpdateImpl(spe::SyncControlDelegate& aSyncCtrl) const override;
+    void _syncDestroyImpl(spe::SyncControlDelegate& aSyncCtrl) const override;
 };
 
 SPEMPE_GENERATE_DEFAULT_SYNC_HANDLERS(PlayerAvatar, (CREATE, UPDATE, DESTROY));
 
-void PlayerAvatar::_syncCreateImpl(spe::SyncDetails& aSyncDetails) const {
-    SPEMPE_SYNC_CREATE_DEFAULT_IMPL(PlayerAvatar, aSyncDetails);
+void PlayerAvatar::_syncCreateImpl(spe::SyncControlDelegate& aSyncCtrl) const {
+    SPEMPE_SYNC_CREATE_DEFAULT_IMPL(PlayerAvatar, aSyncCtrl);
 }
 
-void PlayerAvatar::_syncUpdateImpl(spe::SyncDetails& aSyncDetails) const {
-    aSyncDetails.filterSyncs(
-        [](hg::PZInteger aRecepient) -> spe::SyncDetails::FilterResult {
+void PlayerAvatar::_syncUpdateImpl(spe::SyncControlDelegate& aSyncCtrl) const {
+    aSyncCtrl.filter(
+        [](hg::PZInteger aRecepient) -> spe::SyncFilterStatus {
             if (hg::in::CheckPressedMB(hg::in::MB_LEFT)) {
-                return spe::SyncDetails::FilterResult::Skip;
+                return spe::SyncFilterStatus::SKIP;
             }
             if (hg::in::CheckPressedMB(hg::in::MB_RIGHT)) {
-                return spe::SyncDetails::FilterResult::Deactivate;
+                return spe::SyncFilterStatus::DEACTIVATE;
             }
-            return spe::SyncDetails::FilterResult::FullSync;
+            return spe::SyncFilterStatus::REGULAR_SYNC;
         }
     );
-    SPEMPE_SYNC_UPDATE_DEFAULT_IMPL(PlayerAvatar, aSyncDetails);
+    SPEMPE_SYNC_UPDATE_DEFAULT_IMPL(PlayerAvatar, aSyncCtrl);
 }
 
-void PlayerAvatar::_syncDestroyImpl(spe::SyncDetails& aSyncDetails) const {
-    SPEMPE_SYNC_DESTROY_DEFAULT_IMPL(PlayerAvatar, aSyncDetails);
+void PlayerAvatar::_syncDestroyImpl(spe::SyncControlDelegate& aSyncCtrl) const {
+    SPEMPE_SYNC_DESTROY_DEFAULT_IMPL(PlayerAvatar, aSyncCtrl);
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -201,7 +206,7 @@ public:
     }
 
 private:
-    void _eventUpdate(spe::IfMaster) override {
+    void _eventUpdate1(spe::IfMaster) override {
         auto& self = _getCurrentState();
         assert(self.owningPlayerIndex >= 0);
 
@@ -240,34 +245,34 @@ private:
         ccomp<MWindow>().getCanvas().draw(circle);
     }
 
-    void _syncCreateImpl(spe::SyncDetails& aSyncDetails) const override;
-    void _syncUpdateImpl(spe::SyncDetails& aSyncDetails) const override;
-    void _syncDestroyImpl(spe::SyncDetails& aSyncDetails) const override;
+    void _syncCreateImpl(spe::SyncControlDelegate& aSyncCtrl) const override;
+    void _syncUpdateImpl(spe::SyncControlDelegate& aSyncCtrl) const override;
+    void _syncDestroyImpl(spe::SyncControlDelegate& aSyncCtrl) const override;
 };
 
 SPEMPE_GENERATE_DEFAULT_SYNC_HANDLERS(SinclaireAvatar, (CREATE, UPDATE, DESTROY));
 
-void SinclaireAvatar::_syncCreateImpl(spe::SyncDetails& aSyncDetails) const {
-    SPEMPE_SYNC_CREATE_DEFAULT_IMPL(SinclaireAvatar, aSyncDetails);
+void SinclaireAvatar::_syncCreateImpl(spe::SyncControlDelegate& aSyncCtrl) const {
+    SPEMPE_SYNC_CREATE_DEFAULT_IMPL(SinclaireAvatar, aSyncCtrl);
 }
 
-void SinclaireAvatar::_syncUpdateImpl(spe::SyncDetails& aSyncDetails) const {
-    aSyncDetails.filterSyncs(
-        [](hg::PZInteger aRecepient) -> spe::SyncDetails::FilterResult {
+void SinclaireAvatar::_syncUpdateImpl(spe::SyncControlDelegate& aSyncCtrl) const {
+    aSyncCtrl.filter(
+        [](hg::PZInteger aRecepient) -> spe::SyncFilterStatus {
             if (hg::in::CheckPressedMB(hg::in::MB_LEFT)) {
-                return spe::SyncDetails::FilterResult::Skip;
+                return spe::SyncFilterStatus::SKIP;
             }
             if (hg::in::CheckPressedMB(hg::in::MB_RIGHT)) {
-                return spe::SyncDetails::FilterResult::Deactivate;
+                return spe::SyncFilterStatus::DEACTIVATE;
             }
-            return spe::SyncDetails::FilterResult::FullSync;
+            return spe::SyncFilterStatus::REGULAR_SYNC;
         }
     );
-    SPEMPE_SYNC_UPDATE_DEFAULT_IMPL(SinclaireAvatar, aSyncDetails);
+    SPEMPE_SYNC_UPDATE_DEFAULT_IMPL(SinclaireAvatar, aSyncCtrl);
 }
 
-void SinclaireAvatar::_syncDestroyImpl(spe::SyncDetails& aSyncDetails) const {
-    SPEMPE_SYNC_DESTROY_DEFAULT_IMPL(SinclaireAvatar, aSyncDetails);
+void SinclaireAvatar::_syncDestroyImpl(spe::SyncControlDelegate& aSyncCtrl) const {
+    SPEMPE_SYNC_DESTROY_DEFAULT_IMPL(SinclaireAvatar, aSyncCtrl);
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -306,7 +311,7 @@ public:
 private:
     std::vector<hg::util::StateScheduler<PlayerControls>> _schedulers;
 
-    void _eventUpdate() override;
+    void _eventUpdate1() override;
 
     void _eventDrawGUI() override {
 #if 0 // TODO(enable when hg::gr::Text is implemented)
@@ -334,7 +339,7 @@ private:
 #endif
     }
 
-    void _eventFinalizeFrame() override {
+    void _eventDisplay() override {
         const auto input = ccomp<MWindow>().getInput();
         if (input.checkPressed(hg::in::VK_ESCAPE, spe::WindowFrameInputView::Mode::Direct)) {
             // Stopping the context will delete:
@@ -373,7 +378,7 @@ private:
     }
 };
 
-void GameplayManager::_eventUpdate() {
+void GameplayManager::_eventUpdate1() {
     if (!ctx().isPrivileged() &&
         ccomp<MNetworking>().getClient().getServerConnector().getStatus() == RN_ConnectorStatus::Connected) {
 
@@ -638,3 +643,5 @@ int main(int argc, char* argv[]) {
     const int status = context->runFor(-1);
     return status;
 }
+
+// clang-format on

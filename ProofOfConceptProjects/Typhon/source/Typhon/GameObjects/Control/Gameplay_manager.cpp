@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <Hobgoblin/ChipmunkPhysics.hpp>
 #include <Hobgoblin/Graphics.hpp>
@@ -133,7 +138,7 @@ void GameplayManager::_eventUpdate() {
     view.move({moveSpeed * static_cast<float>(right - left), moveSpeed * static_cast<float>(down - up)});
 }
 
-void GameplayManager::_eventPostUpdate() {
+void GameplayManager::_eventEndUpdate() {
     cpSpaceStep(ctx(DPhysicsSpace), ctx().getRuntimeConfig().getDeltaTime().count());
 }
 
@@ -245,3 +250,5 @@ void GameplayManager::_setPlayerPosition(hg::PZInteger playerIndex, float* x, fl
     *x = minX + (maxX - minX) * noramalizedRandX;
     *y = minY + (maxY - minY) * noramalizedRandY;
 }
+
+// clang-format on

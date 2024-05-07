@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <algorithm>
 #include <cstdlib>
@@ -211,7 +216,7 @@ void EnvironmentManager::onNetworkingEvent(const RN_Event& ev) {
     );
 }
 
-void EnvironmentManager::_eventPostUpdate() {
+void EnvironmentManager::_eventEndUpdate() {
     //_lightingCtrl.render();
     //_lightingCtrl.smooth();
 }
@@ -302,3 +307,5 @@ void EnvironmentManager::_drawCell(hg::PZInteger x, hg::PZInteger y, hg::PZInteg
 
     quad[0].color = quad[1].color = quad[1].color = quad[1].color = hg::gr::Color::White;
 }
+
+// clang-format on

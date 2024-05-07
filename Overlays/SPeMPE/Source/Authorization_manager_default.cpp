@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <SPeMPE/Managers/Authorization_manager_default.hpp>
 
@@ -22,7 +27,7 @@ using namespace hg::rn;
 
 namespace {
 
-constexpr auto LOG_ID = "jbatnozic::spempe::DefaultAuthorizationManager";
+constexpr auto LOG_ID = "MultiplayerFoundation";
 
 std::string GenerateRandomString(hg::PZInteger aStringLength) {
     return hg::util::DoWith32bitRNG(
@@ -134,7 +139,7 @@ std::optional<AuthToken> DefaultAuthorizationManager::getLocalAuthToken() {
     return _localAuthToken;
 }
 
-void DefaultAuthorizationManager::_eventPreUpdate() {
+void DefaultAuthorizationManager::_eventBeginUpdate() {
     // TODO - Temporary implementation
     if (_mode != Mode::Host) {
         return;
@@ -199,3 +204,5 @@ void DefaultAuthorizationManager::_authorizePlayer(
 
 } // namespace spempe
 } // namespace jbatnozic
+
+// clang-format on

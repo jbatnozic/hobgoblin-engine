@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Utility/Time_utils.hpp>
@@ -156,3 +161,5 @@ int main() {
 
     return 0;
 }
+
+// clang-format on

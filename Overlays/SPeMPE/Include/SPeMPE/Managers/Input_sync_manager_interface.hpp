@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef SPEMPE_MANAGERS_INPUT_SYNC_MANAGER_INTERFACE_HPP
 #define SPEMPE_MANAGERS_INPUT_SYNC_MANAGER_INTERFACE_HPP
 
@@ -302,7 +307,7 @@ public:
         _mgr.pollEventWithPayload(aForClient, std::move(aEventName),
                                   [&](hg::util::Packet& aPacket) {
                                       count++;
-                                      const auto payload = aPacket.extractOrThrow<taPayloadType>();
+                                      const auto payload = aPacket.extract<taPayloadType>();
                                       aHandler(payload);
                                   });
         return count;
@@ -317,3 +322,5 @@ private:
 } // namespace jbatnozic
 
 #endif // !SPEMPE_MANAGERS_INPUT_SYNC_MANAGER_INTERFACE_HPP
+
+// clang-format on

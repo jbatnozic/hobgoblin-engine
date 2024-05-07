@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <gtest/gtest.h>
 
@@ -118,33 +123,6 @@ TEST(AutopackTest, AutopackPrivateMembers) {
     ASSERT_EQ(t1.getF(), t2.getF());
 }
 
-TEST(PacketTest, AppendPacketToPacket) {
-    PacketBase basePacket;
-    Packet hgPacket;
-
-    // Pack:
-
-    hgPacket << std::int32_t{808} << std::int32_t{123};
-    basePacket << hgPacket << std::int16_t{1337};
-
-    // Unpack:
-
-    Packet testPacket;
-    std::int32_t val808, val123;
-    std::int16_t guardValue;
-
-    basePacket >> testPacket >> guardValue;
-
-    ASSERT_TRUE(basePacket);
-    ASSERT_TRUE(basePacket.endOfPacket());
-    ASSERT_EQ(guardValue, 1337);
-
-    testPacket >> val808 >> val123;
-    ASSERT_TRUE(testPacket.endOfPacket());
-    ASSERT_EQ(val808, 808);
-    ASSERT_EQ(val123, 123);
-}
-
 TEST(DynamicBitsetTest, DynamicBitsetTest) {
     {
         SCOPED_TRACE("Check that initial values are all zero");
@@ -185,3 +163,5 @@ TEST(DynamicBitsetTest, DynamicBitsetTest) {
         EXPECT_EQ(bitset.getBit(200), true);
     }
 }
+
+// clang-format on

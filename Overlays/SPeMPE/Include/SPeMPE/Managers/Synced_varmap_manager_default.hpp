@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef SPEMPE_MANAGERS_SYNCED_VARMAP_MANAGER_DEFAULT_HPP
 #define SPEMPE_MANAGERS_SYNCED_VARMAP_MANAGER_DEFAULT_HPP
 
@@ -92,7 +97,7 @@ private:
 
     hobgoblin::util::Packet _stateUpdates;
 
-    void _eventPostUpdate() override;
+    void _eventEndUpdate() override;
 
     static void _packValue(const std::string& aKey, 
                            std::int64_t aValue, 
@@ -117,3 +122,5 @@ private:
 } // namespace jbatnozic
 
 #endif // !SPEMPE_MANAGERS_SYNCED_VARMAP_MANAGER_DEFAULT_HPP
+
+// clang-format on

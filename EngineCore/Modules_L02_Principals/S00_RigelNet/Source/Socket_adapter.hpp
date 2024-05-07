@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef UHOBGOBLIN_RN_SOCKET_ADAPTER_HPP
 #define UHOBGOBLIN_RN_SOCKET_ADAPTER_HPP
 
@@ -86,9 +91,8 @@ private:
     #endif
     > _socket;
 
-#ifdef HOBGOBLIN_RN_ZEROTIER_SUPPORT
+    //! Used to 'catch' data received by sockets
     std::vector<std::uint8_t> _recvBuffer;
-#endif
 };
 
 } // namespace rn
@@ -97,3 +101,5 @@ HOBGOBLIN_NAMESPACE_END
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
 
 #endif // !UHOBGOBLIN_RN_SOCKET_ADAPTER_HPP
+
+// clang-format on

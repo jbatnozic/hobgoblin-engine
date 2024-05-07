@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 /*
     Gorilla
     -------
@@ -177,3 +182,5 @@ XMACRO(WHITE, 0xffffffff)
 XMACRO(WHITE_SMOKE, 0xf5f5f5ff)
 XMACRO(YELLOW, 0xffff00ff)
 XMACRO(YELLOW_GREEN, 0x9acd32ff)
+
+// clang-format on

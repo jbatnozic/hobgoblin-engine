@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef UHOBGOBLIN_MATH_ANGLE_HPP
 #define UHOBGOBLIN_MATH_ANGLE_HPP
 
@@ -87,6 +92,9 @@ template <class taReal>
 class Angle {
 public:
     using Real = taReal;
+
+    //! Default constructor. Contructs a 0-degree angle.
+    constexpr Angle() : _angleInRadians{static_cast<taReal>(0.f)} {}
 
     constexpr static Angle zero() {
         return Angle{static_cast<taReal>(0.f)};
@@ -401,3 +409,5 @@ HOBGOBLIN_NAMESPACE_END
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
 #endif // !UHOBGOBLIN_MATH_ANGLE_HPP
+
+// clang-format on

@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #define HOBGOBLIN_SHORT_NAMESPACE
 #include <Hobgoblin/Common.hpp>
@@ -39,7 +44,7 @@ public:
 
     using QAO_Base::setExecutionPriority;
 
-    void _eventUpdate() override {
+    void _eventUpdate1() override {
         _myVec.push_back(_myNumber);
     }
 
@@ -55,7 +60,7 @@ public:
     {
     }
 
-    void _eventUpdate() {
+    void _eventUpdate1() override {
         if (getRuntime()->ownsObject(this)) {
             getRuntime()->eraseObject(this);
         }
@@ -429,3 +434,5 @@ TEST_F(QAO_Test, PriorityResolver2PrecedesMethod) {
     ASSERT_GT(C, A); // C before A
     ASSERT_GT(A, D); // A before D
 }
+
+// clang-format on

@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include "Player_character_autodiff.hpp"
 
@@ -27,7 +32,7 @@ void AutodiffPlayerCharacter::init(int aOwningPlayerIndex, float aX, float aY) {
     self.owningPlayerIndex = aOwningPlayerIndex;
 }
 
-void AutodiffPlayerCharacter::_eventUpdate(spe::IfMaster) {
+void AutodiffPlayerCharacter::_eventUpdate1(spe::IfMaster) {
     if (ctx().getGameState().isPaused) return;
 
     auto& self = _getCurrentState();
@@ -52,6 +57,10 @@ void AutodiffPlayerCharacter::_eventUpdate(spe::IfMaster) {
             self.y -= 16.f;
         });
     }
+}
+
+void AutodiffPlayerCharacter::_eventPostUpdate(spe::IfMaster) {
+    _getCurrentState().commit();
 }
 
 void AutodiffPlayerCharacter::_eventDraw1() {
@@ -81,20 +90,18 @@ void AutodiffPlayerCharacter::_eventDraw1() {
     ccomp<MWindow>().getCanvas().draw(circle);
 }
 
-void AutodiffPlayerCharacter::_eventFinalizeFrame(spe::IfMaster) {
-    _getCurrentState().commit();
-}
-
 SPEMPE_GENERATE_DEFAULT_SYNC_HANDLERS(AutodiffPlayerCharacter, (CREATE, UPDATE, DESTROY));
 
-void AutodiffPlayerCharacter::_syncCreateImpl(spe::SyncDetails& aSyncDetails) const {
-    SPEMPE_SYNC_CREATE_DEFAULT_IMPL(AutodiffPlayerCharacter, aSyncDetails);
+void AutodiffPlayerCharacter::_syncCreateImpl(spe::SyncControlDelegate& aSyncCtrl) const {
+    SPEMPE_SYNC_CREATE_DEFAULT_IMPL(AutodiffPlayerCharacter, aSyncCtrl);
 }
 
-void AutodiffPlayerCharacter::_syncUpdateImpl(spe::SyncDetails& aSyncDetails) const {
-    SPEMPE_SYNC_UPDATE_DEFAULT_IMPL(AutodiffPlayerCharacter, aSyncDetails);
+void AutodiffPlayerCharacter::_syncUpdateImpl(spe::SyncControlDelegate& aSyncCtrl) const {
+    SPEMPE_SYNC_UPDATE_DEFAULT_IMPL(AutodiffPlayerCharacter, aSyncCtrl);
 }
 
-void AutodiffPlayerCharacter::_syncDestroyImpl(spe::SyncDetails& aSyncDetails) const {
-    SPEMPE_SYNC_DESTROY_DEFAULT_IMPL(AutodiffPlayerCharacter, aSyncDetails);
+void AutodiffPlayerCharacter::_syncDestroyImpl(spe::SyncControlDelegate& aSyncCtrl) const {
+    SPEMPE_SYNC_DESTROY_DEFAULT_IMPL(AutodiffPlayerCharacter, aSyncCtrl);
 }
+
+// clang-format on

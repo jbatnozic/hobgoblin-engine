@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef TYPHON_GAME_OBJECTS_GAMEPLAY_PHYSICS_BULLET_HPP
 #define TYPHON_GAME_OBJECTS_GAMEPLAY_PHYSICS_BULLET_HPP
 
@@ -45,7 +50,7 @@ public:
 
 protected:
     void _eventUpdate() override;
-    void _eventPostUpdate() override;
+    void _eventEndUpdate() override;
     void _eventDraw1() override;
 
 private:
@@ -67,3 +72,5 @@ private:
 };
 
 #endif // !TYPHON_GAME_OBJECTS_GAMEPLAY_PHYSICS_BULLET_HPP
+
+// clang-format on

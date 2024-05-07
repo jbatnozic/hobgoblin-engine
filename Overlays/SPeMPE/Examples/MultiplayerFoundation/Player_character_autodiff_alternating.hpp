@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #pragma once
 
 #include "Engine.h"
@@ -21,11 +26,13 @@ public:
     void init(int aOwningPlayerIndex, float aX, float aY);
 
 private:
-    void _eventUpdate(spe::IfMaster) override;
+    void _eventUpdate1(spe::IfMaster) override;
+    void _eventPostUpdate(spe::IfMaster) override;
     void _eventDraw1() override;
-    void _eventFinalizeFrame(spe::IfMaster) override;
-
-    void _syncCreateImpl(spe::SyncDetails& aSyncDetails) const override;
-    void _syncUpdateImpl(spe::SyncDetails& aSyncDetails) const override;
-    void _syncDestroyImpl(spe::SyncDetails& aSyncDetails) const override;
+    
+    void _syncCreateImpl(spe::SyncControlDelegate& aSyncCtrl) const override;
+    void _syncUpdateImpl(spe::SyncControlDelegate& aSyncCtrl) const override;
+    void _syncDestroyImpl(spe::SyncControlDelegate& aSyncCtrl) const override;
 };
+
+// clang-format on

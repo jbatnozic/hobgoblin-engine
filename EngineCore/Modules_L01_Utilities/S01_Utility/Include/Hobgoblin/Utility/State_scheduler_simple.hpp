@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef UHOBGOBLIN_UTIL_STATE_SCHEDULER_SIMPLE_HPP
 #define UHOBGOBLIN_UTIL_STATE_SCHEDULER_SIMPLE_HPP
 
@@ -34,7 +39,7 @@ namespace util {
 template <class taState>
 class SimpleStateScheduler {
 public:
-    SimpleStateScheduler(PZInteger aDefaultDelay);
+    SimpleStateScheduler(PZInteger aDefaultDelay, bool aChainingBlueStatesAllowed = true);
 
     // Main:
 
@@ -51,6 +56,10 @@ public:
     PZInteger getDefaultDelay() const noexcept;
 
     void setDefaultDelay(PZInteger aNewDefaultDelay);
+
+    bool isChainingBlueStatesAllowed() const;
+
+    void setChainingBlueStatesAllowed(bool aChainingBlueStatesAllowed);
 
     void alignToDelay(PZInteger aDelay);
 
@@ -95,6 +104,8 @@ private:
     #define BLUE_POS_NONE (-2)
     int _bluePos = BLUE_POS_NONE;
 
+    bool _chainingBlueStatesAllowed;
+
     PZInteger _newStatesCount = 0;
     PZInteger _newStatesDelay = 0;
 
@@ -126,8 +137,10 @@ private:
 };
 
 template <class taState>
-SimpleStateScheduler<taState>::SimpleStateScheduler(PZInteger aDefaultDelay)
+SimpleStateScheduler<taState>::SimpleStateScheduler(PZInteger aDefaultDelay,
+                                                    bool aChainingBlueStatesAllowed)
     : _defaultDelay{aDefaultDelay}
+    , _chainingBlueStatesAllowed{aChainingBlueStatesAllowed}
 {
     // First half of the buffer is for the already scheduled states.
     // The second half is for the newly received ones.
@@ -176,7 +189,8 @@ void SimpleStateScheduler<taState>::scheduleNewStates() {
 
     // Determine where the oldest state should go
     int pos;
-    if (_bluePos != BLUE_POS_NONE &&
+    if (_chainingBlueStatesAllowed &&
+        _bluePos != BLUE_POS_NONE &&
         _newStatesCount + _bluePos < _individualBufferSize()) {
         // Classic StateScheduler behaviour (chain blue states)
         pos = _bluePos + 1;
@@ -288,6 +302,16 @@ void SimpleStateScheduler<taState>::setDefaultDelay(PZInteger aNewDefaultDelay) 
 }
 
 template <class taState>
+bool SimpleStateScheduler<taState>::isChainingBlueStatesAllowed() const {
+    return _chainingBlueStatesAllowed;
+}
+
+template <class taState>
+void SimpleStateScheduler<taState>::setChainingBlueStatesAllowed(bool aChainingBlueStatesAllowed) {
+    _chainingBlueStatesAllowed = aChainingBlueStatesAllowed;
+}
+
+template <class taState>
 void SimpleStateScheduler<taState>::alignToDelay(PZInteger aDelay) {
     const int newBluePos = _defaultDelay - aDelay;
     if (_bluePos < newBluePos) {
@@ -372,3 +396,5 @@ HOBGOBLIN_NAMESPACE_END
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
 #endif // !UHOBGOBLIN_UTIL_STATE_SCHEDULER_SIMPLE_HPP
+
+// clang-format on

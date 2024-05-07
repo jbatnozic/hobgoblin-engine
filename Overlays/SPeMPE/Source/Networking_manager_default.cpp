@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <SPeMPE/Managers/Networking_manager_default.hpp>
 
@@ -12,7 +17,7 @@
 namespace jbatnozic {
 namespace spempe {
 namespace {
-constexpr const char* LOG_ID = "jbatnozic::spempe::DefaultNetworkingManager";
+constexpr const char* LOG_ID = "SPeMPE";
 } // namespace
 
 DefaultNetworkingManager::DefaultNetworkingManager(hg::QAO_RuntimeRef aRuntimeRef,
@@ -199,12 +204,12 @@ int DefaultNetworkingManager::getLocalClientIndex() const {
 // PROTECTED & PRIVATE METHODS                                           //
 ///////////////////////////////////////////////////////////////////////////
 
-void DefaultNetworkingManager::_eventStartFrame() {
+void DefaultNetworkingManager::_eventPreUpdate() {
     _telemetry.emplace_back();
     _telemetry.pop_front();
 }
 
-void DefaultNetworkingManager::_eventPreUpdate() {
+void DefaultNetworkingManager::_eventBeginUpdate() {
     const auto telemetry = _node->update(hg::RN_UpdateMode::Receive);
     if (!_telemetry.empty()) {
         _telemetry.back() += telemetry;
@@ -212,7 +217,7 @@ void DefaultNetworkingManager::_eventPreUpdate() {
     _handleEvents();
 }
 
-void DefaultNetworkingManager::_eventPostUpdate() {
+void DefaultNetworkingManager::_eventEndUpdate() {
     // Update all Synchronized objects
     if (_node->isServer()) {
         _syncObjReg.syncStateUpdates();
@@ -264,3 +269,5 @@ void DefaultNetworkingManager::_handleEvents() {
 
 } // namespace spempe
 } // namespace jbatnozic
+
+// clang-format on

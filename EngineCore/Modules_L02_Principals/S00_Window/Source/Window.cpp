@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #include <Hobgoblin/Window/Window.hpp>
 
 #include <SFML/Graphics/RenderWindow.hpp>
@@ -234,3 +239,5 @@ math::Vector2i GetMousePositionRelativeToWindow(const Window& aWindow) {
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
+
+// clang-format on

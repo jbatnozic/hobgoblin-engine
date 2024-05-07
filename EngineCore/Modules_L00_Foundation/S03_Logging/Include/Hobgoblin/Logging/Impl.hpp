@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef UHOBGOBLIN_LOGGING_IMPL_HPP
 #define UHOBGOBLIN_LOGGING_IMPL_HPP
 
@@ -15,19 +20,29 @@ namespace log {
 // TODO: Turn on/off console (stdout) echoing
 
 namespace detail {
-HG_DYNAPI void HGCALL FuncLogImpl(Severity aSeverity, const char* aLogId, const std::string& aMessage);
+HG_DYNAPI void HGCALL FuncLogImpl(
+    Severity aSeverity,
+    const char* aLogId,
+    const char* aFilePath,
+    int aLineNumber,
+    const std::string& aMessage
+);
 } // namespace detail
 
 #define UHOBGOBLIN_LOG_IMPL_N(_severity_, _log_id_, _format_, ...) \
     if (_severity_ >= ::jbatnozic::hobgoblin::log::GetMinimalLogSeverity()) { \
         std::string uhobgoblin_message = ::fmt::format(FMT_STRING(_format_), __VA_ARGS__); \
-        ::jbatnozic::hobgoblin::log::detail::FuncLogImpl(_severity_, _log_id_, uhobgoblin_message); \
+        ::jbatnozic::hobgoblin::log::detail::FuncLogImpl( \
+            _severity_, _log_id_, __FILE__, __LINE__, uhobgoblin_message \
+        ); \
     }
 
 #define UHOBGOBLIN_LOG_IMPL_0(_severity_, _log_id_, _format_, ...) \
     if (_severity_ >= ::jbatnozic::hobgoblin::log::GetMinimalLogSeverity()) { \
         std::string uhobgoblin_message = _format_; \
-        ::jbatnozic::hobgoblin::log::detail::FuncLogImpl(_severity_, _log_id_, uhobgoblin_message); \
+        ::jbatnozic::hobgoblin::log::detail::FuncLogImpl( \
+            _severity_, _log_id_, __FILE__, __LINE__, uhobgoblin_message \
+        ); \
     }
 
 #define UHOBGOBLIN_LOG_IMPL_1(_severity_, _log_id_, _format_, ...) UHOBGOBLIN_LOG_IMPL_N(_severity_, _log_id_, _format_, __VA_ARGS__)
@@ -73,3 +88,5 @@ HOBGOBLIN_NAMESPACE_END
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
 #endif // !UHOBGOBLIN_LOGGING_IMPL_HPP
+
+// clang-format on

@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <SFML/Graphics.hpp>
 #include <Hobgoblin/Private/Max_rects_bin_pack.hpp> // namespace rbp
@@ -96,3 +101,5 @@ int main() {
 
     return 0;
 }
+
+// clang-format on

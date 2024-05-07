@@ -1,5 +1,13 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
 
 #include <Hobgoblin/RmlUi/RmlUi_preprocessing.hpp>
+
+#include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/Graphics/Sprite_loader.hpp>
+#include <Hobgoblin/Graphics/Tga_export.hpp>
 
 #include <cctype>
 #include <fstream>
@@ -7,9 +15,6 @@
 #include <optional>
 #include <regex>
 #include <vector>
-
-#include <Hobgoblin/Graphics/Sprite_loader.hpp>
-#include <Hobgoblin/Graphics/Tga_export.hpp>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 HOBGOBLIN_NAMESPACE_BEGIN
@@ -131,7 +136,7 @@ void ForEachLineInFileDo(const std::string& aFilePath,
 }
 
 struct SrcResult {
-    std::unique_ptr<gr::SpriteLoader::TextureBuilder> texBuilder;
+    AvoidNull<std::unique_ptr<gr::SpriteLoader::TextureBuilder>> texBuilder;
     std::string path;
 };
 
@@ -349,3 +354,4 @@ void PreprocessRcssFile(const std::string& aFilePath) {
 HOBGOBLIN_NAMESPACE_END
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
 
+// clang-format on

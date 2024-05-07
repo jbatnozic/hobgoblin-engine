@@ -1,3 +1,6 @@
+# Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+# See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
 # ===== OVERLAY SETUP =====
 
 find_package(SFML CONFIG REQUIRED)
@@ -10,6 +13,7 @@ set(OVERLAY_NAME "SPeMPE")
 set(OVERLAY_SOURCES
   "Source/Authorization_manager_default.cpp"
   "Source/Context_components.cpp"
+  "Source/Event_loop_timing_reporter.cpp"
   "Source/Game_context.cpp"
   "Source/Game_context_flag_validation.cpp"
   "Source/Game_object_bases.cpp"
@@ -18,7 +22,8 @@ set(OVERLAY_SOURCES
   "Source/Networking_manager_default.cpp"
   "Source/Synced_varmap_manager_default.cpp"
   "Source/Synchronized_object_registry.cpp"
-  "Source/Sync_details.cpp"
+  "Source/Networking_telemetry_reporter.cpp"
+  "Source/Sync_flags.cpp"
   "Source/Window_frame_input_view.cpp"
   "Source/Window_input_tracker.cpp"
   "Source/Window_manager_default.cpp"
@@ -32,7 +37,7 @@ target_include_directories(${OVERLAY_NAME} PUBLIC "Include/")
 target_link_libraries(${OVERLAY_NAME}
 PUBLIC
     # Foundation
-    "Hobgoblin.GSL"
+    "Hobgoblin.Common"
     "Hobgoblin.HGExcept"
     "Hobgoblin.Logging"
 
@@ -55,26 +60,7 @@ PUBLIC
 
 # ===== BUILD TESTS =====
 
-find_package(GTest CONFIG REQUIRED)
-
-set(OVERLAY_TEST_NAME "${OVERLAY_NAME}.Test")
-
-set(OVERLAY_TEST_SOURCES
-  "Test/Autodiff_state_test.cpp"
-  "Test/Default_lobby_backend_manager_test.cpp"
-  "Test/Default_synced_varmap_manager_test.cpp"
-  "Test/Input_sync_manager_test.cpp"
-  # "Test/Keyboard_input_test.cpp"
-  "Test/SPeMPE_test.cpp"
-)
-
-add_executable(${OVERLAY_TEST_NAME} ${OVERLAY_TEST_SOURCES})
-
-target_link_libraries(${OVERLAY_TEST_NAME}
-PUBLIC
-  "${OVERLAY_NAME}"
-  "gtest::gtest"
-)
+add_subdirectory("Test")
 
 # ===== BUILD EXAMPLES =====
 

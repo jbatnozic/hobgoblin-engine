@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <deque>
 #include <iostream>
@@ -295,3 +300,5 @@ int main() {
     std::cout << "\nHappy end!\n";
     std::cin.get();
 }
+
+// clang-format on

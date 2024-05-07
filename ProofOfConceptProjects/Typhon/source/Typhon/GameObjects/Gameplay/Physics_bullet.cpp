@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <Hobgoblin/Graphics.hpp>
 #include <Typhon/Graphics/Sprites.hpp>
@@ -81,7 +86,7 @@ void PhysicsBullet::_eventUpdate() {
     }
 }
 
-void PhysicsBullet::_eventPostUpdate() {   
+void PhysicsBullet::_eventEndUpdate() {   
     if (ctx().isPrivileged()) {
         auto& self = _ssch.getCurrentState();
         auto physicsPos = cpBodyGetPosition(_body.get());
@@ -124,3 +129,5 @@ void PhysicsBullet::collisionSeparate(Collideables::ICreature* other, cpArbiter*
 void PhysicsBullet::collisionPostSolve(Collideables::ITerrain* other, cpArbiter* arbiter) {
     _hitSomething = true;
 }
+
+// clang-format on

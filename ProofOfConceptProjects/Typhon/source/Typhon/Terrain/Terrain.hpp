@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef TYPHON_TERRAIN_TERRAIN_HPP
 #define TYPHON_TERRAIN_TERRAIN_HPP
 
@@ -77,3 +82,5 @@ private:
 };
 
 #endif // !TYPHON_TERRAIN_TERRAIN_HPP
+
+// clang-format on

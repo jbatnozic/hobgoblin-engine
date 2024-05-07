@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <SPeMPE/Managers/Window_manager_default.hpp>
 
@@ -61,11 +66,28 @@ void DefaultWindowManager::setToNormalMode(const WindowConfig& aWindowConfig,
                     aWindowConfig.style, 
                     aWindowConfig.openGlContextSettings);
 
+    _window->setView(hg::gr::View{{
+        0.f,
+        0.f,
+        static_cast<float>(aWindowConfig.videoMode.width),
+        static_cast<float>(aWindowConfig.videoMode.height)
+    }});
+
     // Create main render texture:
     _mainRenderTexture.emplace();
     _mainRenderTexture->create(aMainRenderTextureConfig.size,
                                aMainRenderTextureConfig.openGlContextSettings);
     _mainRenderTexture->setSmooth(aMainRenderTextureConfig.smooth);
+
+    {
+        const auto w = static_cast<float>(aMainRenderTextureConfig.size.x);
+        const auto h = static_cast<float>(aMainRenderTextureConfig.size.y);
+
+        _mainRenderTexture->setViewCount(1);
+        _mainRenderTexture->getView(0).setSize({w, h});
+        _mainRenderTexture->getView(0).setCenter({w * 0.5f, h * 0.5f});
+        _mainRenderTexture->getView(0).setViewport({0.f, 0.f, 1.f, 1.f});
+    }
 
     // Create adapters:
     _windowDrawBatcher.emplace(*_window);
@@ -75,24 +97,11 @@ void DefaultWindowManager::setToNormalMode(const WindowConfig& aWindowConfig,
     _rmlUiBackendLifecycleGuard = hg::rml::HobgoblinBackend::initialize();
     _rmlUiContextDriver.emplace("DefaultWindowManager::RmlContext", *_window);
 
-    // Create default view: TODO(do we still need this?)
-    const auto w = static_cast<float>(aMainRenderTextureConfig.size.x);
-    const auto h = static_cast<float>(aMainRenderTextureConfig.size.y);
-
-    _mainRenderTexture->setViewCount(1);
-    _mainRenderTexture->getView(0).setSize({w, h});
-    _mainRenderTexture->getView(0).setCenter({w * 0.5f, h * 0.5f});
-    _mainRenderTexture->getView(0).setViewport({0.f, 0.f, 1.f, 1.f});
-
     // Set timing parameters:
     _deltaTime = std::chrono::microseconds{1'000'000 / aTimingConfig.targetFramerate};
     _window->setFramerateLimit(aTimingConfig.framerateLimiter ? aTimingConfig.targetFramerate : 0);
     _window->setVerticalSyncEnabled(aTimingConfig.verticalSync);
     _preciseTiming = aTimingConfig.preciseTiming;
-
-    // TODO(temp.)
-    hg::math::Rectangle<float> visibleArea{0.f, 0.f, 1920.f, 1024.f};
-    _window->setView(hg::gr::View(visibleArea));
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -107,7 +116,7 @@ void DefaultWindowManager::setToNormalMode(const WindowConfig& aWindowConfig,
 
 hg::gr::Canvas& DefaultWindowManager::getCanvas() {
     HG_HARD_ASSERT(!_headless && "Method not available in Headless mode.");
-    if (getRuntime()->getCurrentEvent() == hg::QAO_Event::DrawGUI) {
+    if (getRuntime()->getCurrentEvent() == hg::QAO_Event::DRAW_GUI) {
         return *_windowDrawBatcher;
     }
     else {
@@ -164,7 +173,7 @@ WindowFrameInputView DefaultWindowManager::getInput() const {
 // PRIVATE METHODS                                                       //
 ///////////////////////////////////////////////////////////////////////////
 
-void DefaultWindowManager::_eventPostUpdate() {
+void DefaultWindowManager::_eventPreDraw() {
     if (!_headless) {
         _mainRenderTexture->clear(hg::gr::COLOR_DARK_GRAY); // TODO Parametrize colour
     }
@@ -177,7 +186,7 @@ void DefaultWindowManager::_eventDraw2() {
     }
 }
 
-void DefaultWindowManager::_eventFinalizeFrame() {
+void DefaultWindowManager::_eventDisplay() {
     if (!_headless) {
         _finalizeFrameByDisplayingWindow();
     }
@@ -342,3 +351,5 @@ sf::Vector2i DefaultWindowManager::_getWindowRelativeMousePos() const {
 
 } // namespace spempe
 } // namespace jbatnozic
+
+// clang-format on

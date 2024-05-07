@@ -1,17 +1,23 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
 
 #include <SPeMPE/GameContext/Game_context.hpp>
 
 #include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Logging.hpp>
+#include <Hobgoblin/Utility/Time_utils.hpp>
 
 #include <algorithm>
+#include <chrono>
 #include <iostream>
 
 namespace jbatnozic {
 namespace spempe {
 
 namespace {
-constexpr const char* LOG_ID = "::jbatnozic::spempe::GameContext";
+constexpr const char* LOG_ID = "SPeMPE";
 } // namespace
 
 GameContext::GameContext(const RuntimeConfig& aRuntimeConfig, hg::PZInteger aComponentTableSize)
@@ -103,10 +109,10 @@ std::string GameContext::getComponentTableString(char aSeparator) const {
 // EXECUTION                                                             //
 ///////////////////////////////////////////////////////////////////////////
 
-int GameContext::runFor(int aSteps) {
+int GameContext::runFor(int aIterations) {
     int rv;
     _quit.store(false);
-    _runImpl(this, aSteps, &rv);
+    _runImpl(this, &rv, aIterations);
     return rv;
 }
 
@@ -123,8 +129,8 @@ const GameContext::PerformanceInfo& GameContext::getPerformanceInfo() const {
     return _performanceInfo;
 }
 
-hg::PZInteger GameContext::getCurrentStepOrdinal() const {
-    return _stepOrdinal;
+std::uint64_t GameContext::getCurrentIterationOrdinal() const {
+    return _iterationCounter;
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -165,7 +171,7 @@ GameContext* GameContext::getChildContext() const {
     return _childContext.get();
 }
 
-void GameContext::startChildContext(int aSteps) {
+void GameContext::startChildContext(int aIterations) {
     if (!hasChildContext()) {
         HG_THROW_TRACED(hg::TracedLogicError, 0,
                         "No child context is currently attached");
@@ -177,7 +183,9 @@ void GameContext::startChildContext(int aSteps) {
     }
 
     _childContext->_quit.store(false);
-    _childContextThread = std::thread{_runImpl, _childContext.get(), aSteps, &_childContextReturnValue};
+    _childContextThread = std::thread{
+        _runImpl, _childContext.get(), &_childContextReturnValue, aIterations, false
+    };
 }
 
 int GameContext::stopAndJoinChildContext() {
@@ -237,110 +245,163 @@ constexpr std::int32_t ToEventMask(QAO_Event::Enum ev) {
     return (1 << static_cast<std::int32_t>(ev));
 }
 
-constexpr std::int32_t QAO_EVENT_MASK_ALL_DRAWS = ToEventMask(QAO_Event::Draw1)
-                                                | ToEventMask(QAO_Event::Draw2)
-                                                | ToEventMask(QAO_Event::DrawGUI);
+constexpr std::int32_t QAO_EVENT_MASK_ALL_DRAWS = ToEventMask(QAO_Event::PRE_DRAW)
+                                                | ToEventMask(QAO_Event::DRAW_1)
+                                                | ToEventMask(QAO_Event::DRAW_2)
+                                                | ToEventMask(QAO_Event::DRAW_GUI)
+                                                | ToEventMask(QAO_Event::POST_DRAW);
 
-constexpr std::int32_t QAO_EVENT_MASK_FINALIZE = ToEventMask(QAO_Event::FinalizeFrame);
+constexpr std::int32_t QAO_EVENT_MASK_DISPLAY = ToEventMask(QAO_Event::DISPLAY);
 
 constexpr std::int32_t QAO_EVENT_MASK_ALL_EXCEPT_DRAW = QAO_ALL_EVENT_FLAGS & ~QAO_EVENT_MASK_ALL_DRAWS;
 
-constexpr std::int32_t QAO_EVENT_MASK_ALL_EXCEPT_FINALIZE = QAO_ALL_EVENT_FLAGS & ~QAO_EVENT_MASK_FINALIZE;
+constexpr std::int32_t QAO_EVENT_MASK_ALL_EXCEPT_DISPLAY = QAO_ALL_EVENT_FLAGS & ~QAO_EVENT_MASK_DISPLAY;
 
-constexpr std::int32_t QAO_EVENT_MASK_ALL_EXCEPT_DRAW_AND_FINALIZE = QAO_EVENT_MASK_ALL_EXCEPT_DRAW
-                                                                   & QAO_EVENT_MASK_ALL_EXCEPT_FINALIZE;
+constexpr std::int32_t QAO_EVENT_MASK_ALL_EXCEPT_DRAW_AND_DISPLAY = QAO_EVENT_MASK_ALL_EXCEPT_DRAW
+                                                                  & QAO_EVENT_MASK_ALL_EXCEPT_DISPLAY;
 
 using TimingDuration = std::chrono::duration<double, std::micro>;
 using std::chrono::milliseconds;
 using std::chrono::microseconds;
-using std::chrono::steady_clock;
 using std::chrono::duration_cast;
 
+template <class taDuration>
+double MsCount(taDuration aDuration) {
+    return static_cast<double>(duration_cast<microseconds>(aDuration).count() / 1000.0);
+}
 } // namespace
 
-void GameContext::_runImpl(hg::NotNull<GameContext*> aContext,
-                           int aMaxSteps,
-                           hg::NotNull<int*> aReturnValue) {
-    if (aMaxSteps == 0) {
+void GameContext::_runImpl(hg::NeverNull<GameContext*> aContext,
+                           hg::NeverNull<int*> aReturnValue,
+                           int aMaxIterations,
+                           bool aDebugLoggingActive) {
+    using hobgoblin::util::Stopwatch;
+    #define DebugLog(...) \
+        do { if (aDebugLoggingActive) HG_LOG_DEBUG(LOG_ID, __VA_ARGS__); } while (false)
+
+    if (aMaxIterations == 0) {
+        (*aReturnValue) = 0;
         return;
     }
 
-    const auto maxFramesBetweenDisplays = aContext->_runtimeConfig.maxFramesBetweenDisplays;
+    const auto maxConsecutiveSteps = aContext->_runtimeConfig.maxFramesBetweenDisplays;
     const TimingDuration deltaTime = aContext->_runtimeConfig.deltaTime;
-    TimingDuration accumulatorTime = deltaTime;
-    auto currentTime = steady_clock::now();
 
-    PerformanceInfo perfInfo;
-    hg::util::Stopwatch frameToFrameStopwatch;
+    DebugLog("_runImpl - CONFIG - maxConsecutiveSteps={}, deltaTime={}ms.",
+             maxConsecutiveSteps,
+             MsCount(deltaTime));
 
-    hg::PZInteger stepsCovered = 0;
+    int iterationsCovered = 0;
+    TimingDuration accumulator = deltaTime;
+    Stopwatch frameToFrameStopwatch;
 
-    while (aContext->_quit.load() == false) {
-        if (aMaxSteps > 0 && stepsCovered >= aMaxSteps) {
+    while (true) {    
+        DebugLog("_runImpl - ITERATION start");
+
+        if (aMaxIterations > 0 && iterationsCovered >= aMaxIterations) {
+            DebugLog("_runImpl - Outer while loop breaking because aMaxIterations was reached.");
+            break;
+        }
+        if (aContext->_quit.load()) {
+            DebugLog("_runImpl - Outer while loop breaking because _quit was set to true.");
             break;
         }
 
-        perfInfo.frameToFrameTime = frameToFrameStopwatch.restart<microseconds>();
-
-        aContext->_stepOrdinal += 1;
-
-        auto now = steady_clock::now();
-        accumulatorTime += duration_cast<TimingDuration>(now - currentTime);
-        currentTime = now;
-
-        for (int i = 0; i < maxFramesBetweenDisplays; i += 1) {
-            if (aMaxSteps > 0 && stepsCovered >= aMaxSteps) {
-                break; // TODO: also skip FinalizeFrame in this case?
+        aContext->_performanceInfo.consecutiveUpdateSteps = 0;
+        for (int i = 0; i < maxConsecutiveSteps; i += 1) {
+            if (aMaxIterations > 0 && iterationsCovered >= aMaxIterations) {
+                DebugLog("_runImpl - Inner for loop breaking because aMaxIterations was reached.");
+                break;
             }
-            if ((accumulatorTime < deltaTime)) {
-                break; // TODO: also skip FinalizeFrame in this case?
+            if (accumulator < deltaTime) {
+                DebugLog("_runImpl - Inner for loop breaking because accumulator is too low ({}ms).",
+                         MsCount(accumulator));
+                break;
+            }
+            if (aContext->_quit.load()) {
+                DebugLog("_runImpl - Inner for loop breaking because _quit was set to true.");
+                break;
             }
 
-            // Run all events except FinalizeFrame (and except Draws if headless):
+            aContext->_performanceInfo.consecutiveUpdateSteps += 1;
+
+            // UPDATE
             {
-                hg::util::Stopwatch stopwatch;
-                if (aContext->isHeadless()) {
-                    (*aReturnValue) = DoSingleQaoIteration(aContext->_qaoRuntime, 
-                                                           QAO_EVENT_MASK_ALL_EXCEPT_DRAW_AND_FINALIZE);
-                }
-                else {
-                    (*aReturnValue) = DoSingleQaoIteration(aContext->_qaoRuntime, 
-                                                           QAO_EVENT_MASK_ALL_EXCEPT_FINALIZE);
-                }
+                Stopwatch updateStopwatch;
+                DebugLog("_runImpl - UPDATE start");
+                (*aReturnValue) = DoSingleQaoIteration(aContext->_qaoRuntime,
+                                                    QAO_EVENT_MASK_ALL_EXCEPT_DRAW_AND_DISPLAY);
+                DebugLog("_runImpl - UPDATE end (status = {})", *aReturnValue);
                 if ((*aReturnValue) != 0) {
                     return;
                 }
-                perfInfo.updateAndDrawTime = stopwatch.getElapsedTime<microseconds>();
+                aContext->_performanceInfo.updateTime = updateStopwatch.getElapsedTime();
             }
 
-            perfInfo.consecutiveUpdateLoops = i + 1;
-            accumulatorTime -= deltaTime;
-            stepsCovered += 1;
+            accumulator -= deltaTime;
+
+            iterationsCovered += 1;
+            aContext->_iterationCounter += 1;
+            
+            // TODO(poll post step actions)
         } // End for
 
-        // Prevent buildup in accumulator in case the program is not meeting time requirements
-        accumulatorTime = std::min(accumulatorTime, deltaTime * 0.5);
+        const bool didAtLeastOneUpdate = (aContext->_performanceInfo.consecutiveUpdateSteps > 0);
 
-        // FinalizeFrame event:
+        if (didAtLeastOneUpdate && !aContext->isHeadless()) {
+            // DRAW
+            {
+                Stopwatch drawStopwatch;
+                DebugLog("_runImpl - DRAW start");
+                (*aReturnValue) = DoSingleQaoIteration(aContext->_qaoRuntime,
+                                                    QAO_EVENT_MASK_ALL_DRAWS);
+                DebugLog("_runImpl - DRAW end (status = {})", *aReturnValue);
+                if ((*aReturnValue) != 0) {
+                    return;
+                }
+                aContext->_performanceInfo.drawTime = drawStopwatch.getElapsedTime();
+            }
+        }
+
+        if (didAtLeastOneUpdate) {
+             // Prevent excessive buildup in accumulator in case
+             // the program is not meeting time requirements
+             const auto accBefore = accumulator;
+             accumulator = std::min(accumulator, deltaTime * 0.5);
+             if (accumulator != accBefore) {
+                 DebugLog("_runImpl - Accumulator clamped from {}ms to {}ms.",
+                          MsCount(accBefore),
+                          MsCount(accumulator));
+             }
+        }
+
+        // DISPLAY
         {
-            hg::util::Stopwatch stopwatch;
-            (*aReturnValue) = DoSingleQaoIteration(aContext->_qaoRuntime, QAO_EVENT_MASK_FINALIZE);
+            Stopwatch displayStopwatch;
+            DebugLog("_runImpl - DISPLAY start");
+            (*aReturnValue) = DoSingleQaoIteration(aContext->_qaoRuntime, QAO_EVENT_MASK_DISPLAY);
+            DebugLog("_runImpl - DISPLAY end (status = {})", *aReturnValue);
             if ((*aReturnValue) != 0) {
                 return;
             }
-            perfInfo.finalizeTime = stopwatch.getElapsedTime<microseconds>();
+            aContext->_performanceInfo.displayTime = displayStopwatch.getElapsedTime();
         }
 
-        // Do post step actions:
-        // aContext->_pollPostStepActions(); TODO!!!!!!!!!!!!!!!!!!!!!
+        // 'Refill' accumulator
+        const auto elapsedTime = frameToFrameStopwatch.restart<TimingDuration>();
+        accumulator += elapsedTime;
+        DebugLog("_runImpl - Accumulator increased by {}ms (new value: {}ms).",
+                 MsCount(elapsedTime),
+                 MsCount(accumulator));
 
-        // Record performance data:
-        perfInfo.totalTime = perfInfo.updateAndDrawTime + perfInfo.finalizeTime;
-        aContext->_performanceInfo = perfInfo;
+        DebugLog("_runImpl - ITERATION end");
     } // End while
 
     (*aReturnValue) = 0;
+    #undef DebugLog
 }
 
 } // namespace spempe
 } // namespace jbatnozic
+
+// clang-format on

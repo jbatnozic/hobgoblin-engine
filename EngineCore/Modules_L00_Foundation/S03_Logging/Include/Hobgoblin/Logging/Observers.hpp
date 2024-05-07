@@ -1,5 +1,14 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef UHOBGOBLIN_LOGGING_OBSERVERS_HPP
 #define UHOBGOBLIN_LOGGING_OBSERVERS_HPP
+
+#include <Hobgoblin/Logging/Severity.hpp>
+
+#include <string>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
@@ -31,3 +40,5 @@ HOBGOBLIN_NAMESPACE_END
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
 
 #endif // !UHOBGOBLIN_LOGGING_OBSERVERS_HPP
+
+// clang-format on

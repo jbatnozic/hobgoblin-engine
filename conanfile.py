@@ -1,3 +1,6 @@
+# Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+# See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
 from conan import ConanFile
 from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain
 from conan.tools.files import copy
@@ -11,7 +14,7 @@ class HobgoblinConan(ConanFile):
 
     # Optional metadata
 
-    license = "<License TBD>"
+    license = "MS-PL"
     author = "Jovan Batnožić (jovanbatnozic@hotmail.rs)"
     url = "https://github.com/jbatnozic/Hobgoblin"
     description = "Simple game engine"
@@ -35,7 +38,6 @@ class HobgoblinConan(ConanFile):
         "S00_PDef",
         "S01_Common",
         "S01_Format",
-        "S01_GSL",
         "S01_Preprocessor",
         "S02_HGExcept",
         "S03_Logging",
@@ -84,7 +86,6 @@ class HobgoblinConan(ConanFile):
     def requirements(self):
         # Public
         self.requires("fmt/10.0.0",   transitive_headers=True)
-        self.requires("ms-gsl/4.0.0", transitive_headers=True)
         self.requires("sfml/2.6.0"  , transitive_headers=True)
         self.requires("rmlui/4.4",    transitive_headers=True)
         self.requires("icu/74.1",     transitive_headers=True)
@@ -210,7 +211,6 @@ class HobgoblinConan(ConanFile):
             "Hobgoblin.Logging",
             "Hobgoblin.HGExcept",
             # "Hobgoblin.Preprocessor", -- Header-only
-            # "Hobgoblin.GSL",          -- Header-only
             # "Hobgoblin.Format",       -- Header-only
             # "Hobgoblin.Common",       -- Header-only
             # "Hobgoblin.PDef",         -- Header-only

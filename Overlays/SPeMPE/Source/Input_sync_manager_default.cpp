@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <SPeMPE/Managers/Input_sync_manager_default.hpp>
 
@@ -15,7 +20,7 @@ namespace jbatnozic {
 namespace spempe {
 
 namespace {
-constexpr auto LOG_ID = "DefaultInputSyncManager";
+constexpr auto LOG_ID = "SPeMPE";
 
 constexpr char SIGNAL_TAG             = 'S';
 constexpr char SIMPLE_EVENT_TAG       = 'E';
@@ -450,7 +455,7 @@ void DefaultInputSyncManager::_clearAllEvents(hg::PZInteger aIndex) {
     }
 }
 
-void DefaultInputSyncManager::_eventPreUpdate() {
+void DefaultInputSyncManager::_eventBeginUpdate() {
     // If Host, apply new input
     if (_mode == Mode::Host) {
 
@@ -473,7 +478,7 @@ void DefaultInputSyncManager::_eventPreUpdate() {
     }
 }
 
-void DefaultInputSyncManager::_eventUpdate() {
+void DefaultInputSyncManager::_eventUpdate1() {
     // If Client, send all inputs
     if (_mode == Mode::Client) {
 
@@ -489,16 +494,16 @@ void DefaultInputSyncManager::_eventUpdate() {
     }
 }
 
-void DefaultInputSyncManager::_eventPostUpdate() {
+void DefaultInputSyncManager::_eventEndUpdate() {
     // If Host, advance all state schedulers
     if (_mode == Mode::Host) {
-
         for (std::size_t i = 0; i < _incomingStates.size(); i += 1) {
             _incomingStates[i].advance();
         }
-
     }
 }
 
 } // namespace spempe
 } // namespace jbatnozic
+
+// clang-format on

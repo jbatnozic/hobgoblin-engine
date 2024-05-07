@@ -1,3 +1,6 @@
+# Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+# See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
 # ===== COMPONENT SETUP =====
 
 find_package(GLEW CONFIG REQUIRED)
@@ -26,7 +29,6 @@ PUBLIC
     # Foundation
     "Hobgoblin_L00_S00_PDef"
     "Hobgoblin_L00_S01_Common"
-    "Hobgoblin_L00_S01_GSL"
     "Hobgoblin_L00_S02_HGExcept"
     "Hobgoblin_L00_S03_Logging"
 

@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #include <Hobgoblin/ChipmunkPhysics.hpp>
 #include <Hobgoblin/ColDetect.hpp>
 #include <Hobgoblin/Common.hpp>
@@ -92,3 +97,5 @@ int main() {
     std::cout << "The Goblin hobs happily!\n";
     return EXIT_SUCCESS;
 }
+
+// clang-format on

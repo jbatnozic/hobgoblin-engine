@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef UHOBGOBLIN_QAO_BASE_HPP
 #define UHOBGOBLIN_QAO_BASE_HPP
 
@@ -23,7 +28,7 @@ class QAO_Base : NO_COPY, NO_MOVE {
 public:
     QAO_Base() = delete;
     QAO_Base(QAO_RuntimeRef runtimeRef, const std::type_info& typeInfo, int executionPriority, std::string name);
-    QAO_Base(QAO_RuntimeRef runtimeRef, const std::type_info& typeInfo, util::PacketBase& packet);
+    QAO_Base(QAO_RuntimeRef runtimeRef, const std::type_info& typeInfo, util::Packet& packet);
     virtual ~QAO_Base() = 0;
     
     QAO_Runtime* getRuntime() const noexcept;
@@ -40,7 +45,7 @@ public:
 
     virtual bool message(int tag, util::AnyPtr context);
 
-    friend util::PacketBase& operator<<(util::PacketBase& packet, const QAO_Base& self);
+    friend util::Packet& operator<<(util::PacketExtender& packet, const QAO_Base& self);
 
 private:
     struct Context {
@@ -66,14 +71,23 @@ private:
     const std::type_info& _typeInfo;
     int _execution_priority;
 
-    virtual void _eventStartFrame()    {}
-    virtual void _eventPreUpdate()     {}
-    virtual void _eventUpdate()        {}
-    virtual void _eventPostUpdate()    {}
-    virtual void _eventDraw1()         {}
-    virtual void _eventDraw2()         {}
-    virtual void _eventDrawGUI()       {}
-    virtual void _eventFinalizeFrame() {}
+    // Update
+    virtual void _eventPreUpdate()   {}
+    virtual void _eventBeginUpdate() {}
+    virtual void _eventUpdate1()     {}
+    virtual void _eventUpdate2()     {}
+    virtual void _eventEndUpdate()   {}
+    virtual void _eventPostUpdate()  {}
+
+    // Draw
+    virtual void _eventPreDraw()     {}
+    virtual void _eventDraw1()       {}
+    virtual void _eventDraw2()       {}
+    virtual void _eventDrawGUI()     {}
+    virtual void _eventPostDraw()    {}
+
+    // Display
+    virtual void _eventDisplay()     {}
 
     void _callEvent(QAO_Event::Enum ev);
 
@@ -88,3 +102,5 @@ HOBGOBLIN_NAMESPACE_END
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
 #endif // !UHOBGOBLIN_QAO_BASE_HPP
+
+// clang-format on

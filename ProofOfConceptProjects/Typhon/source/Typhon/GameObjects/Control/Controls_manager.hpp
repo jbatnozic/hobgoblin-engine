@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef TYPHON_GAME_OBJECTS_CONTROL_CONTROLS_MANAGER_HPP
 #define TYPHON_GAME_OBJECTS_CONTROL_CONTROLS_MANAGER_HPP
 
@@ -35,9 +40,9 @@ public:
     void putNewControls(hg::PZInteger playerIndex, const PlayerControls& controls, int delaySteps);
 
 protected:
-    void _eventPreUpdate() override; // TODO To frameStart
+    void _eventBeginUpdate() override; // TODO To frameStart
     void _eventUpdate() override;
-    void _eventPostUpdate() override;
+    void _eventEndUpdate() override;
 
 private:
     std::vector<ControlsScheduler> _schedulers;
@@ -45,3 +50,4 @@ private:
 
 #endif // !TYPHON_GAME_OBJECTS_CONTROL_CONTROLS_MANAGER_HPP
 
+// clang-format on

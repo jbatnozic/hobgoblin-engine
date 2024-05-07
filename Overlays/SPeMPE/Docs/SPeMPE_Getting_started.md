@@ -184,7 +184,7 @@ spriteProvider.loadAllSprites();
 // OR
 
 auto* spriteProvider = context.getComponentPtr<SpriteProviderInterface>();
-// ^ the above will simple return nullptr if no matching component is attached.
+// ^ the above will simply return nullptr if no matching component is attached.
 if (spriteProvider) {
   spriteProvider->loadAllSprites();
   // do other stuff with the component...
@@ -276,7 +276,7 @@ struct Enemy_VisibleState {
 Your visible state struct may look like something above, except this isn't enough. As this struct is going to be sent
 over the network, we must also define serialization and deserialization functions for it. This was already touched upon
 in the RigelNet guide and it comes down to providing operators `<<` and `>>` for your type and
-`hobgoblin::util::PacketBase`; and this is easiest if you use Hobgoblin's autopack feature - so let's use that and
+`hobgoblin::util::Packet`; and this is easiest if you use Hobgoblin's autopack feature - so let's use that and
 fix our struct.
 
 ```cpp
@@ -371,16 +371,16 @@ to all the QAO events (`_eventStartFrame`, `_eventUpdate` etc.). However, each o
 
 ```cpp
 virtual void _eventStartFrame(spe::IfMaster);
-virtual void _eventPreUpdate(spe::IfMaster);
+virtual void _eventBeginUpdate(spe::IfMaster);
 virtual void _eventUpdate(spe::IfMaster);
 ...
-virtual void _eventFinalizeFrame(spe::IfMaster);
+virtual void _eventDisplay(spe::IfMaster);
 
 virtual void _eventStartFrame(spe::IfDummy);
-virtual void _eventPreUpdate(spe::IfDummy);
+virtual void _eventBeginUpdate(spe::IfDummy);
 virtual void _eventUpdate(spe::IfDummy);
 ...
-virtual void _eventFinalizeFrame(spe::IfDummy);
+virtual void _eventDisplay(spe::IfDummy);
 ```
 
 By overriding, for example, `_eventUpdate(spe::IfMaster)` you are defining the update event behaviour this object

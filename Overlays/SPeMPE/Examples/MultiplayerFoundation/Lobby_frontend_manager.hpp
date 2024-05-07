@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #pragma once
 
 #include "Engine.h"
@@ -22,9 +27,11 @@ private:
     friend Impl;
     std::unique_ptr<Impl> _impl;
 
-    void _eventPreUpdate() override;
-    void _eventUpdate() override;
+    void _eventBeginUpdate() override;
+    void _eventUpdate1() override;
     void _eventDrawGUI() override;
 
     friend void ActivateCommand(LobbyFrontendManager& aMgr, int aCommand, void* aArgs);
 };
+
+// clang-format on

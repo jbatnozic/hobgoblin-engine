@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include "Lobby_frontend_manager.hpp"
 
@@ -6,7 +11,7 @@
 #include <Hobgoblin/Utility/No_copy_no_move.hpp>
 
 namespace {
-constexpr auto LOG_ID = "LobbyFrontendManager";
+constexpr auto LOG_ID = "MultiplayerFoundation";
 
 struct PlayerInfoModel {
     Rml::String name;
@@ -248,7 +253,7 @@ public:
         return _mode;
     }
 
-    void eventPreUpdate() {
+    void eventBeginUpdate() {
         auto& lobbyBackendMgr = CCOMP<MLobbyBackend>();
         spe::LobbyBackendEvent ev;
         while (lobbyBackendMgr.pollEvent(ev)) {
@@ -271,7 +276,7 @@ public:
         }
     }
 
-    void eventUpdate() {
+    void eventUpdate1() {
         if (_mode != Mode::Client) {
             return;
         }
@@ -478,12 +483,12 @@ LobbyFrontendManager::Mode LobbyFrontendManager::getMode() const {
     return _impl->getMode();
 }
 
-void LobbyFrontendManager::_eventPreUpdate() {
-    _impl->eventPreUpdate();
+void LobbyFrontendManager::_eventBeginUpdate() {
+    _impl->eventBeginUpdate();
 }
 
-void LobbyFrontendManager::_eventUpdate() {
-    _impl->eventUpdate();
+void LobbyFrontendManager::_eventUpdate1() {
+    _impl->eventUpdate1();
 }
 
 void LobbyFrontendManager:: _eventDrawGUI() {
@@ -503,3 +508,5 @@ void LobbyFrontendManager:: _eventDrawGUI() {
 #endif
     _impl->eventDrawGUI();
 }
+
+// clang-format on

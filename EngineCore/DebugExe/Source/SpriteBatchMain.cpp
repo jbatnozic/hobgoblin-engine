@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <Hobgoblin/Graphics.hpp>
 #include <SFML/Graphics.hpp>
@@ -133,3 +138,5 @@ int main()
 
     return 0;
 }
+
+// clang-format on

@@ -1,5 +1,7 @@
+// clang-format off
+
 /** @file MaxRectsBinPack.cpp
-	@author Jukka Jylänki
+	@author Jukka Jylï¿½nki
 
 	@brief Implements different bin packer algorithms that use the MAXRECTS data structure.
 
@@ -555,3 +557,5 @@ void MaxRectsBinPack::PruneFreeList()
 }
 
 }
+
+// clang-format on

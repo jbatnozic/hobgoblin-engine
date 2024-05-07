@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef SPEMPE_MANAGERS_INPUT_SYNC_MANAGER_DEFAULT_HPP
 #define SPEMPE_MANAGERS_INPUT_SYNC_MANAGER_DEFAULT_HPP
 
@@ -126,9 +131,9 @@ private:
     void _unpackSingleState(hg::PZInteger aIndex, hg::util::Packet& packet);
     void _clearAllEvents(hg::PZInteger aIndex);
 
-    void _eventPreUpdate() override;
-    void _eventUpdate() override;
-    void _eventPostUpdate() override;
+    void _eventBeginUpdate() override;
+    void _eventUpdate1() override;
+    void _eventEndUpdate() override;
 
     friend void USPEMPE_DefaultInputSyncManager_PutNewState(DefaultInputSyncManager&,
                                                             int,
@@ -140,3 +145,5 @@ private:
 } // namespace jbatnozic
 
 #endif // !SPEMPE_MANAGERS_INPUT_SYNC_MANAGER_DEFAULT_HPP
+
+// clang-format on

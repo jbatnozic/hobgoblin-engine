@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef UHOBGOBLIN_UTIL_AUTOPACK_HPP
 #define UHOBGOBLIN_UTIL_AUTOPACK_HPP
 
@@ -14,45 +19,39 @@ namespace util {
 
 namespace detail {
 
-template <class ...NoArgs>
-typename std::enable_if_t<sizeof...(NoArgs) == 0, void>  Autopack(PacketBase& packet) {
-    // Do nothing
+template <class ...taArgs>
+void Autopack(Packet& aPacket, taArgs&&... aArgs) {
+    (aPacket << ... << std::forward<taArgs>(aArgs));
 }
 
-template <class ArgsHead, class ...ArgsRest>
-void Autopack(PacketBase& packet, ArgsHead&& argsHead, ArgsRest&&... argsRest) {
-    packet << std::forward<ArgsHead>(argsHead);
-    Autopack(packet, std::forward<ArgsRest>(argsRest)...);
-}
+template <class ...taNoArgs,
+          T_ENABLE_IF(sizeof...(taNoArgs) == 0)>
+void Autounpack(Packet& aPacket) {}
 
-template <class ...NoArgs>
-typename std::enable_if_t<sizeof...(NoArgs) == 0, void>  Autounpack(PacketBase& packet) {
-    // Do nothing
-}
-
-template <class ArgsHead, class ...ArgsRest>
-void Autounpack(PacketBase& packet, ArgsHead&& argsHead, ArgsRest&&... argsRest) {
-    packet >> std::forward<ArgsHead>(argsHead);
-    Autounpack(packet, std::forward<ArgsRest>(argsRest)...);
+template <class taArgsHead, class ...taArgsRest>
+void Autounpack(Packet& aPacket, taArgsHead&& aArgsHead, taArgsRest&&... aArgsRest) {
+    if (aPacket.noThrow() >> std::forward<taArgsHead>(aArgsHead)) {
+        Autounpack(aPacket, std::forward<taArgsRest>(aArgsRest)...);
+    }
 }
 
 } // namespace detail
 
 // ========================================================================= //
 #define HG_ENABLE_AUTOPACK(_class_name_, ...) \
-    void UHOBGOBLIN_autopack(::jbatnozic::hobgoblin::util::PacketBase& packet) const {\
-        ::jbatnozic::hobgoblin::util::detail::Autopack(packet, __VA_ARGS__); \
+    void UHOBGOBLIN_autopack(::jbatnozic::hobgoblin::util::Packet& aPacket) const { \
+        ::jbatnozic::hobgoblin::util::detail::Autopack(aPacket, __VA_ARGS__); \
     } \
-    void UHOBGOBLIN_autounpack(::jbatnozic::hobgoblin::util::PacketBase& packet) { \
-        ::jbatnozic::hobgoblin::util::detail::Autounpack(packet, __VA_ARGS__); \
+    void UHOBGOBLIN_autounpack(::jbatnozic::hobgoblin::util::Packet& aPacket) { \
+        ::jbatnozic::hobgoblin::util::detail::Autounpack(aPacket, __VA_ARGS__); \
     } \
-    friend ::jbatnozic::hobgoblin::util::PacketBase& operator<<(::jbatnozic::hobgoblin::util::PacketBase& packet, \
-                                                                const _class_name_& self) { \
-        self.UHOBGOBLIN_autopack(packet); return packet; \
+    friend ::jbatnozic::hobgoblin::util::Packet& operator<<(::jbatnozic::hobgoblin::util::PacketExtender& aPacket, \
+                                                            const _class_name_& aSelf) { \
+        aSelf.UHOBGOBLIN_autopack(*aPacket); return *aPacket; \
     } \
-    friend ::jbatnozic::hobgoblin::util::PacketBase& operator>>(::jbatnozic::hobgoblin::util::PacketBase& packet, \
-                                                                _class_name_& self) { \
-        self.UHOBGOBLIN_autounpack(packet); return packet; \
+    friend ::jbatnozic::hobgoblin::util::Packet& operator>>(::jbatnozic::hobgoblin::util::PacketExtender& aPacket, \
+                                                            _class_name_& aSelf) { \
+        aSelf.UHOBGOBLIN_autounpack(*aPacket); return *aPacket; \
     }
 // ========================================================================= //
 
@@ -63,3 +62,5 @@ HOBGOBLIN_NAMESPACE_END
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
 #endif // !UHOBGOBLIN_UTIL_AUTOPACK_HPP
+
+// clang-format on

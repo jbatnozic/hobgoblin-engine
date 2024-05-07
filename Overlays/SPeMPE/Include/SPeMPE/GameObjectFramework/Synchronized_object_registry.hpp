@@ -1,10 +1,15 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef SPEMPE_GAME_OBJECT_FRAMEWORK_SYNCHRONIZED_OBJECT_REGISTRY_HPP
 #define SPEMPE_GAME_OBJECT_FRAMEWORK_SYNCHRONIZED_OBJECT_REGISTRY_HPP
 
-#include <SPeMPE/GameObjectFramework/Sync_details.hpp>
+#include <SPeMPE/GameObjectFramework/Sync_control_delegate.hpp>
+#include <SPeMPE/GameObjectFramework/Sync_id.hpp>
 
 #include <Hobgoblin/Common.hpp>
-#include <Hobgoblin/GSL/HG_adapters.hpp>
 #include <Hobgoblin/RigelNet.hpp>
 #include <Hobgoblin/Utility/No_copy_no_move.hpp>
 #include <Hobgoblin/Utility/Packet.hpp>
@@ -65,7 +70,7 @@ public:
     //! Checks the alternating updates flag:
     //! - true:  objects with alternating updates have synced in this cycle.
     //! - false: objects with alternating updates have NOT synced in this cycle.
-    //! Note: this is meant to be called during _eventFinalizeFrame(), otherwise
+    //! Note: this is meant to be called during _eventPostUpdate(), otherwise
     //! the returned value may not be reliable.
     bool getAlternatingUpdatesFlag() const;
 
@@ -75,18 +80,14 @@ public:
 
     void deactivateObject(SyncId aObjectId, hg::PZInteger aDelayInSteps);
 
-    bool isObjectDeactivatedForClient(SyncId aObjectId, hg::PZInteger aForClient) const;
-
-    void setObjectDeactivatedFlagForClient(SyncId aObjectId, hg::PZInteger aForClient, bool aFlag);
-
 private:
     std::unordered_map<SyncId, SynchronizedObjectBase*> _mappings;
     std::unordered_set<const SynchronizedObjectBase*> _newlyCreatedObjects;
     std::unordered_set<const SynchronizedObjectBase*> _alreadyUpdatedObjects;
     std::unordered_set<const SynchronizedObjectBase*> _alreadyDestroyedObjects;
 
-    hg::NotNull<hg::RN_NodeInterface*> _node;
-    SyncDetails _syncDetails;
+    hg::NeverNull<hg::RN_NodeInterface*> _node;
+    SyncControlDelegate _syncControlDelegate;
 
     SyncId _syncIdCounter = 2;
     hg::PZInteger _defaultDelay;
@@ -94,6 +95,10 @@ private:
     hg::PZInteger _pacemakerPulsePeriod = 30; // 30 => 60 frames
     hg::PZInteger _pacemakerPulseCountdown = _pacemakerPulsePeriod;
     bool _alternatingUpdateFlag = true;
+
+    static void Align(const SynchronizedObjectBase* aObject,
+                      const SyncControlDelegate& aSyncCtrl,
+                      hg::RN_NodeInterface& aLocalNode);
 };
 
 } // namespace detail
@@ -103,3 +108,4 @@ private:
 
 #endif // !SPEMPE_GAME_OBJECT_FRAMEWORK_SYNCHRONIZED_OBJECT_REGISTRY_HPP
 
+// clang-format on

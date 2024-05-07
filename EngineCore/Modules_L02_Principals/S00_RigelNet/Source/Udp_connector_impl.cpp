@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include "Udp_connector_impl.hpp"
 #include "Udp_server_impl.hpp"
@@ -127,7 +132,7 @@ void HandleDataMessages(util::Packet& receivedPacket,
     pointerToCurrentPacket = &receivedPacket;
 
     while (!receivedPacket.endOfPacket()) {
-        const auto handlerId = receivedPacket.extractOrThrow<rn_detail::RN_HandlerId>();
+        const auto handlerId = receivedPacket.extract<rn_detail::RN_HandlerId>();
         auto handlerFunc = rn_detail::RN_GlobalHandlerMapper::getInstance().handlerWithId(handlerId);
         if (handlerFunc == nullptr) {
             throw RN_IllegalMessage{"Requested handler does not exist."};
@@ -341,7 +346,7 @@ void RN_UdpConnectorImpl::receivedPacket(util::Packet& packet) {
     assert(_status != RN_ConnectorStatus::Disconnected);
 
     try {
-        const auto packetType = packet.extractOrThrow<std::uint32_t>();
+        const auto packetType = packet.extract<std::uint32_t>();
 
         switch (packetType) {
         case UDP_PACKET_TYPE_HELLO:
@@ -457,7 +462,7 @@ void RN_UdpConnectorImpl::handleDataMessages(RN_NodeInterface& node,
             }
         }
     }
-    catch (util::Packet::ReadError& ex) {
+    catch (util::PacketExtractError& ex) {
         _eventFactory.createDisconnected(RN_Event::Disconnected::Reason::Error, ex.getDescription());
         if (_isConnectedLocally()) {
             _localSharedState->setStatus(LCSS_STATUS_ENDED_ERROR);
@@ -521,7 +526,7 @@ PZInteger RN_UdpConnectorImpl::getRecvBufferSize() const {
     return static_cast<PZInteger>(_recvBuffer.size());
 }
 
-void RN_UdpConnectorImpl::appendToNextOutgoingPacket(const void *data, std::size_t sizeInBytes) {
+void RN_UdpConnectorImpl::appendToNextOutgoingPacket(const void *data, PZInteger sizeInBytes) {
     assert(data != nullptr && sizeInBytes > 0);
 
     // We want to send independent DATA packets whenever possible, 
@@ -532,7 +537,7 @@ void RN_UdpConnectorImpl::appendToNextOutgoingPacket(const void *data, std::size
             _prepareNextOutgoingDataPacket(UDP_PACKET_TYPE_DATA);
             sendBufTail = &_sendBuffer.back();
         }
-        sendBufTail->packet.append(data, sizeInBytes);
+        sendBufTail->packet.appendBytes(data, sizeInBytes);
     }
     else {
         // Prepare the current latest outgoing packet (finalize it if it's full enough, and
@@ -557,17 +562,17 @@ void RN_UdpConnectorImpl::appendToNextOutgoingPacket(const void *data, std::size
         }
 
         // Pack the data into multiple consecutive packets:
-        std::size_t bytesPacked = 0;
+        PZInteger bytesPacked = 0;
         while (true) {
             TaggedPacket& sendBufTail = _sendBuffer.back();
-            assert(pztos(_maxPacketSize) >= sendBufTail.packet.getDataSize());
-            const std::size_t remainingCapacity =
-                pztos(_maxPacketSize) - sendBufTail.packet.getDataSize();
-            
-            const std::size_t bytesToPackNow = std::min(remainingCapacity, 
-                                                        sizeInBytes - bytesPacked);
 
-            sendBufTail.packet.append(static_cast<const char*>(data) + bytesPacked,
+            assert(pztos(_maxPacketSize) >= sendBufTail.packet.getDataSize());
+
+            const PZInteger remainingCapacity = _maxPacketSize - sendBufTail.packet.getDataSize();
+            const PZInteger bytesToPackNow = std::min(remainingCapacity,
+                                                      sizeInBytes - bytesPacked);
+
+            sendBufTail.packet.appendBytes(static_cast<const char*>(data) + bytesPacked,
                                           bytesToPackNow);
             bytesPacked += bytesToPackNow;
 
@@ -653,7 +658,7 @@ PZInteger RN_UdpConnectorImpl::_uploadAllData() {
                                     taggedPacket.stopwatch.getElapsedTime(),
                                     _remoteInfo.meanLatency)) {
 
-            switch (_socket.send(taggedPacket.packet, _remoteInfo.ipAddress, _remoteInfo.port)) {
+            switch (auto status = _socket.send(taggedPacket.packet, _remoteInfo.ipAddress, _remoteInfo.port)) {
             case RN_SocketAdapter::Status::OK:
                 uploadedByteCount += stopz(taggedPacket.packet.getDataSize() + UDP_HEADER_BYTE_COUNT);
                 // All good, carry on
@@ -674,7 +679,7 @@ PZInteger RN_UdpConnectorImpl::_uploadAllData() {
                 break;
 
             default: 
-                assert(false && "Unreachable");
+                HG_UNREACHABLE("Invalid value for RN_SocketAdapter::Status ({}).", (int)status);
             }
 
             taggedPacket.stopwatch.restart();
@@ -816,8 +821,8 @@ BREAK_FOR:
         TaggedPacket& curr = _recvBuffer[i];
 
         const auto currDataSize = curr.packet.getRemainingDataSize();
-        _recvBuffer[0].packet.append(curr.packet.extractBytes(currDataSize),
-                                     currDataSize);
+        _recvBuffer[0].packet.appendBytes(curr.packet.extractBytes(currDataSize),
+                                          currDataSize);
 
         curr.packet.clear();
 
@@ -834,7 +839,7 @@ BREAK_FOR:
 
 void RN_UdpConnectorImpl::_saveDataPacket(util::Packet& packet,
                                           std::uint32_t packetType) {
-    const std::uint32_t packetOrdinal = packet.extractOrThrow<std::uint32_t>();
+    const std::uint32_t packetOrdinal = packet.extract<std::uint32_t>();
 
     if (packetOrdinal < _recvBufferHeadIndex) {
         // Old data - acknowledge and ignore
@@ -853,7 +858,7 @@ void RN_UdpConnectorImpl::_saveDataPacket(util::Packet& packet,
     }
 
     while (true) {
-        const std::uint32_t ackOrdinal = packet.extractOrThrow<std::uint32_t>();
+        const std::uint32_t ackOrdinal = packet.extract<std::uint32_t>();
         if (ackOrdinal == 0u) {
             break;
         }
@@ -903,8 +908,8 @@ void RN_UdpConnectorImpl::_processConnectPacket(util::Packet& packet) {
     switch (_status) {
     case RN_ConnectorStatus::Connecting:
     {
-        auto receivedPassphrase = packet.extractOrThrow<std::string>();
-        const PZInteger receivedClientIndex = packet.extractOrThrow<PZInteger>();
+        auto receivedPassphrase = packet.extract<std::string>();
+        const PZInteger receivedClientIndex = packet.extract<PZInteger>();
         if (receivedPassphrase == _passphrase) {
             // Client connected to server
             _clientIndex = receivedClientIndex;
@@ -1019,7 +1024,7 @@ void RN_UdpConnectorImpl::_processAcksPacket(util::Packet& packet) {
 
     case RN_ConnectorStatus::Connected:
         while (!packet.endOfPacket()) {
-            const std::uint32_t ackOrd = packet.extractOrThrow<std::uint32_t>();
+            const std::uint32_t ackOrd = packet.extract<std::uint32_t>();
             _receivedAck(ackOrd, false);
         }
         break;
@@ -1034,3 +1039,5 @@ void RN_UdpConnectorImpl::_processAcksPacket(util::Packet& packet) {
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
+
+// clang-format on

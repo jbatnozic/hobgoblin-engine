@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef UHOBGOBLIN_UTIL_STATE_SCHEDULER_VERBOSE_HPP
 #define UHOBGOBLIN_UTIL_STATE_SCHEDULER_VERBOSE_HPP
 
@@ -36,6 +41,10 @@ public:
 
     void setDefaultDelay(PZInteger aNewDefaultDelay);
 
+    bool isChainingBlueStatesAllowed() const;
+
+    void setChainingBlueStatesAllowed(bool aChainingBlueStatesAllowed);
+
     void alignToDelay(PZInteger aDelay);
 
     // Access stored states:
@@ -56,8 +65,8 @@ public:
     typename std::vector<taState>::const_iterator cend() const;
 
 private:
-    static constexpr auto LOG_ID = "VerboseStateScheduler";
-    SimpleStateScheduler<typename taState> _ssch;
+    static constexpr auto LOG_ID = "Hobgoblin.Utility";
+    SimpleStateScheduler<taState> _ssch;
 
     std::string _printState() const {
         std::ostringstream oss;
@@ -132,6 +141,16 @@ void VerboseStateScheduler<taState>::setDefaultDelay(PZInteger aNewDefaultDelay)
 }
 
 template <class taState>
+bool VerboseStateScheduler<taState>::isChainingBlueStatesAllowed() const {
+    return _ssch.isChainingBlueStatesAllowed();
+}
+
+template <class taState>
+void VerboseStateScheduler<taState>::setChainingBlueStatesAllowed(bool aChainingBlueStatesAllowed) {
+    _ssch.setChainingBlueStatesAllowed(aChainingBlueStatesAllowed);
+}
+
+template <class taState>
 void VerboseStateScheduler<taState>::alignToDelay(PZInteger aDelay) {
     VSC_DO({ _ssch.alignToDelay(aDelay); });
 }
@@ -197,3 +216,5 @@ HOBGOBLIN_NAMESPACE_END
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
 #endif // !UHOBGOBLIN_UTIL_STATE_SCHEDULER_VERBOSE_HPP
+
+// clang-format on

@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef UHOBGOBLIN_UTIL_SERIALIZATION_HPP
 #define UHOBGOBLIN_UTIL_SERIALIZATION_HPP
 
@@ -16,13 +21,13 @@ namespace util {
 
 class PolymorphicSerializable {
 protected:
-    virtual void serialize(PacketBase& packet) const = 0;
+    virtual void serialize(Packet& packet) const = 0;
     virtual std::string getSerializableTag() const = 0;
     template <class T>
-    friend void Serialize(PacketBase&, const T&);
+    friend void Serialize(Packet&, const T&);
 };
 
-using DeserializeMethod = void(*)(PacketBase&, AnyPtr, int);
+using DeserializeMethod = void(*)(Packet&, AnyPtr, int);
 
 namespace detail {
 
@@ -42,7 +47,7 @@ private:
 } // namespace detail
 
 template <class T>
-void Serialize(PacketBase& packet, const T& serializable) {
+void Serialize(Packet& packet, const T& serializable) {
     Packet intermediaryPacket;
     serializable.serialize(intermediaryPacket);
 
@@ -54,7 +59,7 @@ void Serialize(PacketBase& packet, const T& serializable) {
     }
 
     packet << static_cast<std::uint32_t>(intermediaryPacket.getDataSize());
-    packet.append(intermediaryPacket.getData(), intermediaryPacket.getDataSize());
+    packet.appendBytes(intermediaryPacket.getData(), intermediaryPacket.getDataSize());
 }
 
 template <class T>
@@ -77,3 +82,5 @@ HOBGOBLIN_NAMESPACE_END
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
 #endif // !UHOBGOBLIN_UTIL_SERIALIZATION_HPP
+
+// clang-format on

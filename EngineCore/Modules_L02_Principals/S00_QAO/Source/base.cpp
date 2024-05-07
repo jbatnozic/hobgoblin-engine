@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/HGExcept.hpp>
@@ -27,7 +32,7 @@ QAO_Base::QAO_Base(QAO_RuntimeRef runtimeRef, const std::type_info& typeInfo, in
     }
 }
 
-QAO_Base::QAO_Base(QAO_RuntimeRef runtimeRef, const std::type_info& typeInfo, util::PacketBase& packet)
+QAO_Base::QAO_Base(QAO_RuntimeRef runtimeRef, const std::type_info& typeInfo, util::Packet& packet)
     : _typeInfo{typeInfo}
 {
     packet >> _instanceName >> _context.id >> _execution_priority;
@@ -76,9 +81,9 @@ bool QAO_Base::message(int tag, util::AnyPtr context) {
     return false;
 }
 
-util::PacketBase& operator<<(util::PacketBase& packet, const QAO_Base& self) {
-    packet << self._instanceName << self._context.id << self._execution_priority;
-    return packet;
+util::Packet& operator<<(util::PacketExtender& packet, const QAO_Base& self) {
+    *packet << self._instanceName << self._context.id << self._execution_priority;
+    return *packet;
 }
 
 void QAO_Base::setExecutionPriority(int new_priority) {
@@ -100,17 +105,23 @@ void QAO_Base::setName(std::string newName) {
 
 void QAO_Base::_callEvent(QAO_Event::Enum ev) {
     using EventHandlerPointer = void(QAO_Base::*)();
-    const EventHandlerPointer handlers[QAO_Event::Count] = {
-        &QAO_Base::_eventStartFrame,
+    const EventHandlerPointer handlers[QAO_Event::EVENT_COUNT] = {
         &QAO_Base::_eventPreUpdate,
-        &QAO_Base::_eventUpdate,
+        &QAO_Base::_eventBeginUpdate,
+        &QAO_Base::_eventUpdate1,
+        &QAO_Base::_eventUpdate2,
+        &QAO_Base::_eventEndUpdate,
         &QAO_Base::_eventPostUpdate,
+
+        &QAO_Base::_eventPreDraw,
         &QAO_Base::_eventDraw1,
         &QAO_Base::_eventDraw2,
         &QAO_Base::_eventDrawGUI,
-        &QAO_Base::_eventFinalizeFrame
+        &QAO_Base::_eventPostDraw,
+
+        &QAO_Base::_eventDisplay
     };
-    assert(ev >= 0 && ev < QAO_Event::Count);
+    assert(ev >= 0 && ev < QAO_Event::EVENT_COUNT);
     (this->*handlers[ev])();
 }
 
@@ -118,3 +129,5 @@ void QAO_Base::_callEvent(QAO_Event::Enum ev) {
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
+
+// clang-format on

@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef SPEMPE_UTILITY_KEYBOARD_INPUT_HPP
 #define SPEMPE_UTILITY_KEYBOARD_INPUT_HPP
 
@@ -227,3 +232,5 @@ private:
 } // namespace jbatnozic
 
 #endif // !SPEMPE_UTILITY_KEYBOARD_INPUT_HPP
+
+// clang-format on

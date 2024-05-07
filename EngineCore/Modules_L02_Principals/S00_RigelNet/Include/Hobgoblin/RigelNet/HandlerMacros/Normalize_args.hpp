@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef UHOBGOBLIN_RN_HANDLER_MACROS_NORMALIZE_ARGS_HPP
 #define UHOBGOBLIN_RN_HANDLER_MACROS_NORMALIZE_ARGS_HPP
 
@@ -114,3 +119,5 @@
     UHOBGOBLIN_RN_NORMALIZE_ARGS_MIDDLE(_cvspec_, HG_PP_COUNT_ARGS(__VA_ARGS__), __VA_ARGS__)
 
 #endif // !UHOBGOBLIN_RN_HANDLER_MACROS_NORMALIZE_ARGS_HPP
+
+// clang-format on

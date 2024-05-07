@@ -1,4 +1,8 @@
-/* Copyright (c) 2007 Scott Lembcke
+// Code in this file is adapted from Chhipmunk2D code and retains its original
+// open source licence (provided below).
+// See https://github.com/slembcke/Chipmunk2D
+
+/* Copyright (c) 2013 Scott Lembcke and Howling Moon Software
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -18,6 +22,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
+// clang-format off
  
 #include <string.h>
 
@@ -347,3 +353,5 @@ cpBodySleepWithGroup(cpBody *body, cpBody *group){
 	
 	cpArrayDeleteObj(space->dynamicBodies, body);
 }
+
+// clang-format on

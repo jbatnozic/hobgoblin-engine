@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef SPEMPE_WINDOW_MANAGER
 #define SPEMPE_WINDOW_MANAGER
 
@@ -63,7 +68,7 @@ public:
     const sf::View& getView(hg::PZInteger viewIndex = 0) const;
 
 protected:
-    void _eventPostUpdate() override;
+    void _eventEndUpdate() override;
     void _eventDraw2() override;
     void _eventFinalizeFrame() override;
 
@@ -84,3 +89,4 @@ private:
 
 #endif // !SPEMPE_WINDOW_MANAGER
 
+// clang-format on

@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef UHOBGOBLIN_RN_UDP_CONNECTOR_IMPL_HPP
 #define UHOBGOBLIN_RN_UDP_CONNECTOR_IMPL_HPP
 
@@ -81,7 +86,7 @@ public:
     PZInteger getSendBufferSize() const override;
     PZInteger getRecvBufferSize() const override;
 
-    void appendToNextOutgoingPacket(const void *data, std::size_t sizeInBytes);
+    void appendToNextOutgoingPacket(const void *data, PZInteger sizeInBytes);
 
 private:
     RN_SocketAdapter& _socket;
@@ -191,3 +196,5 @@ HOBGOBLIN_NAMESPACE_END
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
 
 #endif // !UHOBGOBLIN_RN_UDP_CONNECTOR_IMPL_HPP
+
+// clang-format on

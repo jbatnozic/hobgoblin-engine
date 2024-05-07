@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #include <Hobgoblin/Graphics/Circle_shape.hpp>
 
 #include <Hobgoblin/Math/Angle.hpp>
@@ -44,3 +49,5 @@ math::Vector2f CircleShape::getPoint(PZInteger aIndex) const {
 
 } // namespace gr
 HOBGOBLIN_NAMESPACE_END
+
+// clang-format on

@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <SPeMPE/Include/Game_context.hpp>
 #include <SPeMPE/Include/Window_manager.hpp>
@@ -116,7 +121,7 @@ void WindowManager::drawMainRenderTexture(DrawPosition drawPosition) {
     _window.draw(mrtSprite);
 }
 
-void WindowManager::_eventPostUpdate() {
+void WindowManager::_eventEndUpdate() {
     _mainRenderTexture.clear(hg::gr::Color::Black);
 }
 
@@ -125,7 +130,7 @@ void WindowManager::_eventDraw2() {
     drawMainRenderTexture(DrawPosition::Fit);
 }
 
-void WindowManager::_eventFinalizeFrame() {
+void WindowManager::_eventDisplay() {
     if (!_isHeadless) {
         _finalizeFrameByDisplayingWindow();
     }
@@ -202,3 +207,5 @@ void WindowManager::_finalizeFrameBySleeping() {
 }
 
 } // namespace spempe
+
+// clang-format on

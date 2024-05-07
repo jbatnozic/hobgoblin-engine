@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef UHOBGOBLIN_QAO_REGISTRY_HPP
 #define UHOBGOBLIN_QAO_REGISTRY_HPP
 
@@ -46,15 +51,15 @@ private:
 
         Elem() = default;
 
-        Elem(const Elem&) = default;
-        Elem& operator=(const Elem&) = default;
+        Elem(const Elem&) = delete;
+        Elem& operator=(const Elem&) = delete;
 
         Elem(Elem&&) = default;
         Elem& operator=(Elem&&) = default;
 
         ~Elem() {
             if (no_own) {
-                ptr.release();
+                (void)ptr.release();
             }
         }
     };
@@ -75,3 +80,5 @@ HOBGOBLIN_NAMESPACE_END
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
 #endif // !UHOBGOBLIN_QAO_REGISTRY_HPP
+
+// clang-format on

@@ -3,7 +3,7 @@
 #include <GridWorld/Rendering/Dimetric_renderer.hpp>
 #include <GridWorld/Dimetric_transform.hpp>
 
-#include <Hobgoblin/GSL.hpp>
+#include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/HGExcept.hpp>
 
 #include <cmath>

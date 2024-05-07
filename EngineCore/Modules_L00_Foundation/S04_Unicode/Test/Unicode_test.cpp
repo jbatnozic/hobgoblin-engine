@@ -1,4 +1,8 @@
-﻿
+﻿// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #include <Hobgoblin/Unicode.hpp>
 
 #include <SFML/System/String.hpp>
@@ -69,6 +73,12 @@ TEST(HGUnicodeTest, TestWeirdAlphabets) {
         EXPECT_EQ((int)buffer[i], (int)EXPECTED_CONTENTS[i]);
         EXPECT_EQ((int)str[i],    (int)EXPECTED_CONTENTS[i]);
     }
+}
+
+TEST(HGUnicodeTest, UniStrConvTest_Utf8StrString) {
+    const auto unistr = HG_UNISTR("!@#$%^&*()šđčć");
+    const auto utf8str = hg::UniStrConv(hg::TO_UTF8_STD_STRING, unistr);
+    EXPECT_EQ(unistr, hg::UniStrConv(hg::FROM_UTF8_STD_STRING, utf8str));
 }
 
 namespace {
@@ -496,3 +506,5 @@ TEST(HGUnicodeTest, SfStringConversionTest_EmptyString) {
         EXPECT_EQ(uniStr, expectedUniStr);
     }
 }
+
+// clang-format on

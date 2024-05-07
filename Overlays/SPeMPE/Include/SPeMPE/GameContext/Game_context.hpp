@@ -1,9 +1,13 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef SPEMPE_GAME_CONTEXT_GAME_CONTEXT_HPP
 #define SPEMPE_GAME_CONTEXT_GAME_CONTEXT_HPP
 
-#include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Common.hpp>
-#include <Hobgoblin/GSL/HG_adapters.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/QAO.hpp>
 
 #include <SPeMPE/GameContext/Context_components.hpp>
@@ -11,6 +15,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <thread>
@@ -123,20 +128,32 @@ public:
     // EXECUTION                                                             //
     ///////////////////////////////////////////////////////////////////////////
 
-    //! Run for a number of steps. A negative value will be taken as infinity.
+    //! Run for a number of iterations. A negative value will be taken as infinity.
     //! Returns status code of the run (0 = success).
-    int runFor(int aSteps);
+    int runFor(int aIterations);
 
     //! Can be called by an instance from 'within' the context (if runFor has
     //! been started) to stop the execution after the current step.
     void stop();
 
     struct PerformanceInfo {
-        std::chrono::microseconds frameToFrameTime{0};
-        std::chrono::microseconds updateAndDrawTime{0};
-        std::chrono::microseconds finalizeTime{0};
-        std::chrono::microseconds totalTime{0};
-        hg::PZInteger consecutiveUpdateLoops{0};
+        //! Duration of the last finished Update step.
+        std::chrono::microseconds updateTime{0};
+
+        //! Duration of the last finished Draw step.
+        std::chrono::microseconds drawTime{0};
+
+        //! Duration of the last finished Display step.
+        std::chrono::microseconds displayTime{0};
+
+        //! Duration of the last fully finished iteration.
+        std::chrono::microseconds iterationTime{0};
+        
+        //! Number of consecutive Update steps in an iteration.
+        //! During the first Update step in an iteration, this variable
+        //! will be set to 1, then during the next consecutive Update step
+        //! (if it happens) it will be set to 2, and so on.
+        hg::PZInteger consecutiveUpdateSteps{0};
     };
 
     //! Returns the performance measurements of the last executed step.
@@ -144,7 +161,7 @@ public:
 
     //! Returns the ordinal number of the step currently being executed, or of
     //! the last step that was executed if execution was stopped or finished.
-    hg::PZInteger getCurrentStepOrdinal() const; // TODO: Change to int64_t
+    std::uint64_t getCurrentIterationOrdinal() const;
 
     ///////////////////////////////////////////////////////////////////////////
     // CHILD CONTEXT SUPPORT                                                 //
@@ -173,10 +190,10 @@ public:
     GameContext* getChildContext() const;
 
     //! Starts executing the child context in a background thread.
-    //! The argument aSteps is the same as for runFor().
+    //! The argument aIterations is the same as for runFor().
     //! Throws hg::TracedLogicError if no child context is attached or it's
     //! joinable (that is, isChildContextJoinable() returns true).
-    void startChildContext(int aSteps);
+    void startChildContext(int aIterations);
 
     //! If a child context is currently attached and is currently running, this
     //! method stops it and joins the background thread. Otherwise, it does 
@@ -203,7 +220,7 @@ private:
 
     // Execution:
     PerformanceInfo _performanceInfo;
-    hg::PZInteger _stepOrdinal = 0;
+    std::uint64_t _iterationCounter = 0;
     std::atomic<bool> _quit;
 
     // Child context support:
@@ -212,9 +229,10 @@ private:
     std::thread _childContextThread;
     int _childContextReturnValue = 0;
 
-    static void _runImpl(hg::NotNull<GameContext*> aContext,
-                         int aMaxSteps,
-                         hg::NotNull<int*> aReturnValue);
+    static void _runImpl(hg::NeverNull<GameContext*> aContext,
+                         hg::NeverNull<int*> aReturnValue,
+                         int aMaxIterations,
+                         bool aDebugLoggingActive = false);
 };
 
 template <class taComponent>
@@ -247,3 +265,5 @@ taComponent* GameContext::getComponentPtr() const {
 #include <SPeMPE/GameContext/Game_context_flag_validation.hpp>
 
 #endif // !SPEMPE_GAME_CONTEXT_GAME_CONTEXT_HPP
+
+// clang-format on

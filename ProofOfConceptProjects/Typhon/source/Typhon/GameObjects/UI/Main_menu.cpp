@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <iostream>
 #include <string>
@@ -129,3 +134,5 @@ void MainMenu::generateTerrain(GameContext& ctx) {
     GetEnvironmentManager(ctx).generate(100, 100, 32.f);
     std::cout << "DONE! Terrain generated (took " << stopwatch.getElapsedTime().count() << "ms)\n";
 }
+
+// clang-format on

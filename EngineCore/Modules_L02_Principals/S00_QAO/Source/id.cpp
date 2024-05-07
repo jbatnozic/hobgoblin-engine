@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 
 #include <Hobgoblin/QAO/base.hpp>
 #include <Hobgoblin/QAO/config.hpp>
@@ -58,17 +63,19 @@ bool QAO_GenericId::isNull() const noexcept {
     return (_serial == QAO_NULL_SERIAL || _index == QAO_NULL_INDEX);
 }
 
-util::PacketBase& operator<<(util::PacketBase& packet, const QAO_GenericId& self) {
+util::Packet& operator<<(util::PacketExtender& packet, const QAO_GenericId& self) {
     packet << self._serial << self._index;
-    return packet;
+    return *packet;
 }
 
-util::PacketBase& operator>>(util::PacketBase& packet, QAO_GenericId& self) {
-    packet >> self._serial >> self._index;
-    return packet;
+util::Packet& operator>>(util::PacketExtender& packet, QAO_GenericId& self) {
+    packet->noThrow() >> self._serial >> self._index;
+    return *packet;
 }
 
 }
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
+
+// clang-format on

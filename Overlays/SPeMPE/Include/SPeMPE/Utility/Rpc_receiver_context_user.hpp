@@ -1,3 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
+// clang-format off
+
 #ifndef SPEMPE_UTILITY_RPC_RECEIVER_CONTEXT_USER_HPP
 #define SPEMPE_UTILITY_RPC_RECEIVER_CONTEXT_USER_HPP
 
@@ -13,3 +18,5 @@ using RPCReceiverContext = RPCReceiverContextTemplate<NetworkingManagerInterface
 } // namespace jbatnozic
 
 #endif // !SPEMPE_UTILITY_RPC_RECEIVER_CONTEXT_USER_HPP
+
+// clang-format on
