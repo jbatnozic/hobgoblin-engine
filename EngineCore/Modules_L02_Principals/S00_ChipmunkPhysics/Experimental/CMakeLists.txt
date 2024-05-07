@@ -2,6 +2,8 @@ project("Alvin")
 
 add_executable(${PROJECT_NAME}
     "Alvin.cpp"
+
+    "Source/Space.cpp"
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC "Include/")

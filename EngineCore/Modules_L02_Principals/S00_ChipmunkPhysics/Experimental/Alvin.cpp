@@ -6,10 +6,13 @@
 #include <Hobgoblin/Graphics.hpp>
 #include <Hobgoblin/Window.hpp>
 
+#include <Hobgoblin/Alvin/Body.hpp>
 #include <Hobgoblin/Alvin/Collision_delegate.hpp>
 #include <Hobgoblin/Alvin/Collision_delegate_builder.hpp>
 #include <Hobgoblin/Alvin/Entity_base.hpp>
 #include <Hobgoblin/Alvin/Main_collision_dispatcher.hpp>
+#include <Hobgoblin/Alvin/Shape.hpp>
+#include <Hobgoblin/Alvin/Space.hpp>
 
 #include <cstdint>
 #include <stdexcept>
@@ -51,15 +54,11 @@ static_assert(Terrain::ENTITY_TYPE_ID   == TAG_TERRAIN);
 class PlayerDude : public Player {
 public:
     PlayerDude(cpSpace* aSpace)
-        : _collisionDelegate{_createCollisionDelegate()}
+        : _body{cpBodyNew(100.f, cpMomentForCircle(100.f, 0.f, 5.f, cpv(0.f, 0.f)))}
+        , _shape{cpCircleShapeNew(_body, 100.f, cpv(0.f, 0.f))}
+        , _collisionDelegate{_createCollisionDelegate()}
     {
-        _body = cpBodyNew(100.f, cpMomentForCircle(100.f, 0.f, 5.f, cpv(0.f, 0.f)));
-        _shape = cpCircleShapeNew(_body, 100.f, cpv(0.f, 0.f));
-
-        //cpShapeSetCollisionType(_shape, 0x01);
-        //cpShapeSetFilter(_shape, cpShapeFilterNew(CP_NO_GROUP, 0x01, CP_ALL_CATEGORIES));
-
-        _collisionDelegate.bind<Player>(*this, _body);
+        _collisionDelegate.bind<Player>(*this, _shape);
 
         cpSpaceAddBody(aSpace, _body);
         cpSpaceAddShape(aSpace, _shape);
@@ -68,11 +67,10 @@ public:
 
     void drawOnto(hg::gr::Canvas& aCanvas) {
         hg::gr::CircleShape circle{100.f};
-        circle.setOrigin({50.f, 50.f});
+        circle.setOrigin({100.f, 100.f});
         circle.setFillColor(hg::gr::COLOR_TRANSPARENT);
         circle.setOutlineColor(hg::gr::COLOR_GREEN);
         circle.setOutlineThickness(1.f);
-        circle.setOrigin({50.f, 50.f});
 
         const auto pos = cpBodyGetPosition(_body);
         circle.setPosition({(float)pos.x, (float)pos.y});
@@ -91,10 +89,9 @@ public:
     }
 
 private:
+    alvin::Body              _body;
+    alvin::Shape             _shape;
     alvin::CollisionDelegate _collisionDelegate;
-
-    cpBody* _body;
-    cpShape* _shape;
 
     alvin::CollisionDelegate _createCollisionDelegate() {
         return alvin::CollisionDelegateBuilder{}
@@ -111,7 +108,7 @@ private:
 
 class TerrainController : public Terrain {
 public:
-    TerrainController(cpSpace* aSpace)
+    TerrainController(alvin::Space& aSpace)
         : _space{aSpace}
         , _collisionDelegate{_createCollisionDelegate()} {
         auto* body = cpSpaceGetStaticBody(_space);
@@ -131,15 +128,13 @@ public:
         }
 
         for (int i = 0; i < 20; i += 1) {
-            auto* shape =
-                cpPolyShapeNew(body, 5, vertices, cpTransformTranslate(cpv(i * 32.0, 640.0)), 0.0);
-            //cpShapeSetCollisionType(shape, 0x02);
-            //cpShapeSetFilter(shape, cpShapeFilterNew(CP_NO_GROUP, 0x01, CP_ALL_CATEGORIES));
-            cpSpaceAddShape(_space, shape);
-            _shapes.push_back(shape);
+            alvin::Shape shape = {
+                cpPolyShapeNew(body, 5, vertices, cpTransformTranslate(cpv(i * 32.0, 640.0)), 0.0)};
+            _space.add(shape);
+            _shapes.push_back(std::move(shape));
         }
 
-        _collisionDelegate.bind<Terrain>(*this, body);
+        _collisionDelegate.bind<Terrain>(*this, _shapes.begin(), _shapes.end());
     }
 
     void drawOnto(hg::gr::Canvas& aCanvas) {
@@ -148,7 +143,7 @@ public:
         rect.setOutlineColor(hg::gr::COLOR_RED);
         rect.setOutlineThickness(1.f);
 
-        for (const auto& shape : _shapes) {
+        for (auto& shape : _shapes) {
             cpShapeCacheBB(shape);
             const auto bbox = cpShapeGetBB(shape);
             
@@ -159,9 +154,9 @@ public:
     }
 
 private:
-    cpSpace* _space;
+    alvin::Space& _space;
     alvin::CollisionDelegate _collisionDelegate;
-    std::vector<cpShape*> _shapes;
+    std::vector<alvin::Shape> _shapes;
 
     alvin::CollisionDelegate _createCollisionDelegate() {
         return alvin::CollisionDelegateBuilder{}
@@ -170,7 +165,7 @@ private:
 };
 
 int main(int argc, char* argv[]) try {
-    cpSpace* space = cpSpaceNew();
+    alvin::Space space{};
     cpSpaceSetIterations(space, 30);
     cpSpaceSetGravity(space, cpv(0.0, 1000.0));
 
@@ -183,8 +178,6 @@ int main(int argc, char* argv[]) try {
 
     PlayerDude dude{space};
     TerrainController terrain{space};
-
-    ///////////////////////////////////////   
 
     ///////////////////////////////////////
 
@@ -203,7 +196,7 @@ int main(int argc, char* argv[]) try {
             });
         }
 
-        cpSpaceStep(space, 1.0 / 60.0);
+        space.step(1.0 / 60.0);
 
         window.clear(hg::gr::COLOR_DARK_GREY);
         dude.drawOnto(window);

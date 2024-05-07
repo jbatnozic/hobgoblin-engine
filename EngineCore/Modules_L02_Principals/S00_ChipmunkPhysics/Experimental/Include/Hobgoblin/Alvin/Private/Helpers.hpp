@@ -39,8 +39,16 @@ struct EntityTypeIdAndUsage {
         return static_cast<EntityTypeId>(_storage & 0x0000'0000'FFFF'FFFFull);
     }
 
+    bool operator==(const EntityTypeIdAndUsage& aOther) const {
+        return _storage == aOther._storage;
+    }
+
     bool operator<(const EntityTypeIdAndUsage& aOther) const {
         return _storage < aOther._storage;
+    }
+
+    bool operator>(const EntityTypeIdAndUsage& aOther) const {
+        return _storage > aOther._storage;
     }
 
 private:

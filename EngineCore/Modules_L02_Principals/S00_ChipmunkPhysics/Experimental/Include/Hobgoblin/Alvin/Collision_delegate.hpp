@@ -10,6 +10,9 @@
 
 #include <Hobgoblin/Alvin/Entity_base.hpp>
 #include <Hobgoblin/Alvin/Private/Helpers.hpp>
+#include <Hobgoblin/Alvin/Shape.hpp>
+
+#include <optional>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
@@ -31,11 +34,45 @@ public:
     //! Allow cheap moving.
     CollisionDelegate& operator=(CollisionDelegate&&) = default;
 
-    template <class taCollideable>
-    void bind(taCollideable& aCollideable, HG_NEVER_NULL(cpBody*) aBody) {
-        _entity = &aCollideable;
-        _entityTypeId = taCollideable::ENTITY_TYPE_ID;
-        cpBodySetUserData(aBody, this);
+    //! Binds to a single shape
+    template <class taEntity>
+    void bind(taEntity&                aEntity,
+              Shape&                   aShape,
+              std::optional<cpGroup>   aGroup = std::nullopt,
+              std::optional<cpBitmask> aCategory = std::nullopt,
+              std::optional<cpBitmask> aCollidesWith = std::nullopt) {
+        _entity = &aEntity;
+        _entityTypeId = taEntity::ENTITY_TYPE_ID;
+        cpShapeSetUserData(aShape, this);
+
+        const auto filter = cpShapeFilterNew(aGroup.value_or(CP_NO_GROUP),
+                                             aCategory.value_or(taEntity::ENTITY_DEFAULT_CATEGORY),
+                                             aCollidesWith.value_or(taEntity::ENTITY_DEFAULT_MASK));
+        cpShapeSetFilter(aShape, filter);
+    }
+
+    //! Binds to multiple shapes
+    template <class taEntity, class taShapeBeginIterator, class taShapeEndIterator>
+    void bind(taEntity&                aEntity,
+              taShapeBeginIterator     aShapeBeginIterator,
+              taShapeEndIterator       aShapeEndIterator,
+              std::optional<cpGroup>   aGroup = std::nullopt,
+              std::optional<cpBitmask> aCategory = std::nullopt,
+              std::optional<cpBitmask> aCollidesWith = std::nullopt) {
+        _entity = &aEntity;
+        _entityTypeId = taEntity::ENTITY_TYPE_ID;
+        
+        const auto filter = cpShapeFilterNew(aGroup.value_or(CP_NO_GROUP),
+                                             aCategory.value_or(taEntity::ENTITY_DEFAULT_CATEGORY),
+                                             aCollidesWith.value_or(taEntity::ENTITY_DEFAULT_MASK));
+
+        auto iter = aShapeBeginIterator;
+        while (iter != aShapeEndIterator) {
+            auto& shape = *iter;
+            cpShapeSetUserData(shape, this);
+            cpShapeSetFilter(shape, filter);
+            iter = std::next(iter);
+        }
     }
 
     EntityBase& getEntity() const {
@@ -73,12 +110,26 @@ private:
 
     const detail::GenericEntityCollisionFunc* _findCollisionFunc(EntityTypeId  aEntityTypeId,
                                                                  detail::Usage aUsage) const {
-        // TODO: do binary search
-        for (const auto& fn : _collisionFunctions) {
-            if (fn.specifier.getEntityTypeId() == aEntityTypeId && fn.specifier.getUsage() == aUsage) {
-                return &fn.func;
+        const auto target = detail::EntityTypeIdAndUsage{aEntityTypeId, aUsage};
+
+        std::size_t low  = 0;
+        std::size_t high = _collisionFunctions.size();
+
+        while (low < high) {
+            const std::size_t pivot = (low + high) / 2;
+            if (_collisionFunctions[pivot].specifier == target) {
+                return &(_collisionFunctions[pivot].func);
+            }
+            if (_collisionFunctions[pivot].specifier < target) {
+                low = pivot + 1;
+                continue;
+            }
+            if (_collisionFunctions[pivot].specifier > target) {
+                high = pivot;
+                continue;
             }
         }
+
         return nullptr;
     }
 };

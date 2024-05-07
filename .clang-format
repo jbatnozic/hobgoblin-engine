@@ -91,3 +91,5 @@ BraceWrapping:
   SplitEmptyRecord: true
   SplitEmptyNamespace: true
 BreakBeforeTernaryOperators: true
+
+PenaltyReturnTypeOnItsOwnLine: 1000

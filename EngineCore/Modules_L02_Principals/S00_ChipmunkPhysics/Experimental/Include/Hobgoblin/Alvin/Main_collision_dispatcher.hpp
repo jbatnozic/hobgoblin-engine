@@ -65,7 +65,7 @@ private:
     const detail::GenericEntityCollisionFunc* _findCollisionFunc(const CollisionDelegate& aDelegate,
                                                                  EntityTypeId             aEntityTypeId,
                                                                  detail::Usage            aUsage) {
-        if (aDelegate._isTrivial()) {
+        if (aDelegate._isTrivial()) { // TODO: if (aDelegate.funcCount(aUsage) == 0) return nullptr;
             return nullptr;
         }
 
@@ -98,12 +98,9 @@ private:
 
             // Get pointers to shapes
             CP_ARBITER_GET_SHAPES(aArbiter, shape1, shape2);
-            // Get pointers to bodies
-            const auto* body1 = cpShapeGetBody(shape1);
-            const auto* body2 = cpShapeGetBody(shape2);
             // Get pointers to collision delegates
-            const auto* del1 = cpBodyGetUserData(body1).get<CollisionDelegate>();
-            const auto* del2 = cpBodyGetUserData(body2).get<CollisionDelegate>();
+            const auto* del1 = cpShapeGetUserData(shape1).get<CollisionDelegate>();
+            const auto* del2 = cpShapeGetUserData(shape2).get<CollisionDelegate>();
             // Get pointers to collision functions
             const auto* cf1 =
                 dispatcher->_findCollisionFunc(*del1, del2->getEntityTypeId(), USAGE_COL_BEGIN);
@@ -125,12 +122,9 @@ private:
 
             // Get pointers to shapes
             CP_ARBITER_GET_SHAPES(aArbiter, shape1, shape2);
-            // Get pointers to bodies
-            const auto* body1 = cpShapeGetBody(shape1);
-            const auto* body2 = cpShapeGetBody(shape2);
             // Get pointers to collision delegates
-            const auto* del1 = cpBodyGetUserData(body1).get<CollisionDelegate>();
-            const auto* del2 = cpBodyGetUserData(body2).get<CollisionDelegate>();
+            const auto* del1 = cpShapeGetUserData(shape1).get<CollisionDelegate>();
+            const auto* del2 = cpShapeGetUserData(shape2).get<CollisionDelegate>();
             // Get pointers to collision functions
             const auto* cf1 =
                 dispatcher->_findCollisionFunc(*del1, del2->getEntityTypeId(), USAGE_COL_PRESOLVE);
@@ -152,12 +146,9 @@ private:
 
             // Get pointers to shapes
             CP_ARBITER_GET_SHAPES(aArbiter, shape1, shape2);
-            // Get pointers to bodies
-            const auto* body1 = cpShapeGetBody(shape1);
-            const auto* body2 = cpShapeGetBody(shape2);
             // Get pointers to collision delegates
-            const auto* del1 = cpBodyGetUserData(body1).get<CollisionDelegate>();
-            const auto* del2 = cpBodyGetUserData(body2).get<CollisionDelegate>();
+            const auto* del1 = cpShapeGetUserData(shape1).get<CollisionDelegate>();
+            const auto* del2 = cpShapeGetUserData(shape2).get<CollisionDelegate>();
             // Get pointers to collision functions
             const auto* cf1 =
                 dispatcher->_findCollisionFunc(*del1, del2->getEntityTypeId(), USAGE_COL_POSTSOLVE);
@@ -179,12 +170,9 @@ private:
 
             // Get pointers to shapes
             CP_ARBITER_GET_SHAPES(aArbiter, shape1, shape2);
-            // Get pointers to bodies
-            const auto* body1 = cpShapeGetBody(shape1);
-            const auto* body2 = cpShapeGetBody(shape2);
             // Get pointers to collision delegates
-            const auto* del1 = cpBodyGetUserData(body1).get<CollisionDelegate>();
-            const auto* del2 = cpBodyGetUserData(body2).get<CollisionDelegate>();
+            const auto* del1 = cpShapeGetUserData(shape1).get<CollisionDelegate>();
+            const auto* del2 = cpShapeGetUserData(shape2).get<CollisionDelegate>();
             // Get pointers to collision functions
             const auto* cf1 =
                 dispatcher->_findCollisionFunc(*del1, del2->getEntityTypeId(), USAGE_COL_SEPARATE);
