@@ -22,7 +22,6 @@ void TransformableData::setPosition(const math::Vector2f& position) {
 
 void TransformableData::setRotation(math::AngleF angle) {
     m_rotation = angle;
-
     m_transformNeedUpdate        = true;
     m_inverseTransformNeedUpdate = true;
 }

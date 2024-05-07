@@ -85,8 +85,6 @@ public:
     //! \see setTexture, setTextureRect
     Sprite(const Texture* aTexture, TextureRect aTextureRect);
 
-    Transform getInverseTransform() const override final;
-
     //! \brief Change the source texture of the sprite
     //!
     //! The \a texture argument refers to a texture that must
@@ -212,6 +210,8 @@ public:
     void scale(const math::Vector2f& aFactor) override;
 
     Transform getTransform() const override;
+
+    Transform getInverseTransform() const override final;
 
 protected:
     void _draw(Canvas& aCanvas, const RenderStates& aStates) const override;

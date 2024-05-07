@@ -11,7 +11,9 @@
 #include <Hobgoblin/Graphics/Sprite.hpp>
 #include <Hobgoblin/Graphics/Sprite_blueprint.hpp>
 #include <Hobgoblin/Graphics/Multisprite.hpp>
+#include <Hobgoblin/Graphics/Origin_offset.hpp>
 
+#include <optional>
 #include <variant>
 #include <vector>
 
@@ -27,11 +29,15 @@ public:
     ///////////////////////////////////////////////////////////////////////////
 
     // Construct with single subsprite
-    MultispriteBlueprint(const Texture& aTexture, TextureRect aTextureRect);
+    MultispriteBlueprint(const Texture& aTexture,
+                         TextureRect aTextureRect, 
+                         std::optional<OriginOffset> aOriginOffset = {});
 
     // Construct with one or more subsprites
     template <class taRects>
-    MultispriteBlueprint(const Texture& aTexture, const taRects& aTextureRects);
+    MultispriteBlueprint(const Texture& aTexture,
+                         const taRects& aTextureRects, 
+                         std::optional<OriginOffset> aOriginOffset = {});
 
     ///////////////////////////////////////////////////////////////////////////
     // COPIES & MOVES                                                        //
@@ -62,18 +68,27 @@ public:
     //! this MultispriteBlueprint.
     SpriteBlueprint extractBlueprint(PZInteger aSubspriteIndex) const;
 
+    //! Checks whether the origin of the sprite was given explicitly (returns true in this case).
+    //! If false is returned, the sprite will have the implicit/default origin (top-left of the image).
+    bool hasExplicitOrigin() const;
+
 private:
     const Texture* _texture;
 
     std::variant<TextureRect, std::vector<TextureRect>> _textureRects;
 
     PZInteger _subspriteCount;
+
+    std::optional<OriginOffset> _offset;
 };
 
 template <class taRects>
-MultispriteBlueprint::MultispriteBlueprint(const Texture& aTexture, const taRects& aTextureRects)
+MultispriteBlueprint::MultispriteBlueprint(const Texture& aTexture, 
+                                           const taRects& aTextureRects, 
+                                           std::optional<OriginOffset> aOriginOffset)
     : _texture{&aTexture}
     , _subspriteCount{stopz(aTextureRects.size())}
+    , _offset{aOriginOffset}
 {
     if (_subspriteCount > 1) {
         _textureRects = std::vector<TextureRect>{};

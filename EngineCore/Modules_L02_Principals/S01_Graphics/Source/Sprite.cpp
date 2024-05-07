@@ -40,11 +40,13 @@ Sprite::Sprite() {
 
 Sprite::Sprite(const Sprite& aOther) {
     new (&_storage) ImplType(*CIMPLOF(aOther));
+    _texture = aOther._texture;
 }
 
 Sprite& Sprite::operator=(const Sprite& aOther) {
     if (this != &aOther) {
         *SELF_IMPL = *CIMPLOF(aOther);
+        _texture = aOther._texture;
     }
     return SELF;
 }

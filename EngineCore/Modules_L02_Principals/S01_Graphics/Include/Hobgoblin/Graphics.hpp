@@ -14,6 +14,7 @@
 #include <Hobgoblin/Graphics/Drawable.hpp>
 #include <Hobgoblin/Graphics/Draw_batcher.hpp>
 #include <Hobgoblin/Graphics/Font.hpp>
+#include <Hobgoblin/Graphics/Glyph.hpp>
 #include <Hobgoblin/Graphics/Image.hpp>
 #include <Hobgoblin/Graphics/Multisprite.hpp>
 #include <Hobgoblin/Graphics/Multisprite_blueprint.hpp>
@@ -32,6 +33,7 @@
 #include <Hobgoblin/Graphics/Texture.hpp>
 #include <Hobgoblin/Graphics/Texture_packing.hpp>
 #include <Hobgoblin/Graphics/Texture_rect.hpp>
+#include <Hobgoblin/Graphics/Tga_export.hpp>
 #include <Hobgoblin/Graphics/Transform.hpp>
 #include <Hobgoblin/Graphics/Transformable.hpp>
 #include <Hobgoblin/Graphics/Transformable_data.hpp>

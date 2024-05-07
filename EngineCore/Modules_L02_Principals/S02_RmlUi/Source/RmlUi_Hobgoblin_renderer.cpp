@@ -3,7 +3,7 @@
 
 // clang-format off
 
-
+#include <Hobgoblin/Logging.hpp>
 #include <Hobgoblin/RmlUi/Private/RmlUi_Hobgoblin_renderer.hpp>
 
 #include <RmlUi/Core.h>
@@ -14,6 +14,10 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace rml {
 namespace detail {
+
+namespace {
+constexpr auto LOG_ID = "Hobgoblin.RmlUi";
+} // namespace
 
 void RmlUiHobgoblinRenderer::setRenderTarget(gr::RenderTarget* aRenderTarget) {
     _renderTarget = aRenderTarget;
@@ -48,10 +52,10 @@ void RmlUiHobgoblinRenderer::RenderGeometry(
     glVertexPointer(2, GL_FLOAT, sizeof(Rml::Vertex), &aVertices[0].position);
     glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(Rml::Vertex), &aVertices[0].colour);
 
-    if (auto sfTexture = reinterpret_cast<sf::Texture*>(aTexture)) {
+    if (auto hgTexture = reinterpret_cast<gr::Texture*>(aTexture)) {
         glEnable(GL_TEXTURE_2D);
 
-        sf::Texture::bind(sfTexture);
+        gr::Texture::bind(hgTexture);
 
         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
         glTexCoordPointer(2, GL_FLOAT, sizeof(Rml::Vertex), &aVertices[0].tex_coord);
@@ -144,19 +148,23 @@ bool RmlUiHobgoblinRenderer::LoadTexture(Rml::TextureHandle& texture_handle,
     file_interface->Read(buffer, buffer_size, file_handle);
     file_interface->Close(file_handle);
 
-    sf::Texture* texture = new sf::Texture();
+    gr::Texture* hgTexture = new gr::Texture();
 
-    if (!texture->loadFromMemory(buffer, buffer_size))
-    {
+    try {
+        hgTexture->loadFromMemory(buffer, buffer_size);
+    } catch (const std::exception& ex) {
+        HG_LOG_ERROR(LOG_ID, "Failed to load texture from memory; details: {}", ex.what());
+
         delete[] buffer;
-        delete texture;
+        delete hgTexture;
 
         return false;
-    };
+    }
+
     delete[] buffer;
 
-    texture_handle = reinterpret_cast<Rml::TextureHandle>(texture);
-    texture_dimensions = Rml::Vector2i(texture->getSize().x, texture->getSize().y);
+    texture_handle = reinterpret_cast<Rml::TextureHandle>(hgTexture);
+    texture_dimensions = Rml::Vector2i(hgTexture->getSize().x, hgTexture->getSize().y);
 
     return true;
 }
@@ -164,21 +172,24 @@ bool RmlUiHobgoblinRenderer::LoadTexture(Rml::TextureHandle& texture_handle,
 bool RmlUiHobgoblinRenderer::GenerateTexture(Rml::TextureHandle& texture_handle,
                                              const Rml::byte* source,
                                              const Rml::Vector2i& source_dimensions) {
-    sf::Texture* texture = new sf::Texture();
+    gr::Texture* hgTexture = new gr::Texture();
 
-    if (!texture->create(source_dimensions.x, source_dimensions.y)) {
-        delete texture;
+    try {
+        hgTexture->create(source_dimensions.x, source_dimensions.y);
+    } catch (const std::exception& ex) {
+        HG_LOG_ERROR(LOG_ID, "Failed to create texture; details: {}", ex.what());
+        delete hgTexture;
         return false;
     }
 
-    texture->update(source, source_dimensions.x, source_dimensions.y, 0, 0);
-    texture_handle = reinterpret_cast<Rml::TextureHandle>(texture);
+    hgTexture->update(source, source_dimensions.x, source_dimensions.y, 0, 0);
+    texture_handle = reinterpret_cast<Rml::TextureHandle>(hgTexture);
 
     return true;
 }
 
-void RmlUiHobgoblinRenderer::ReleaseTexture(Rml::TextureHandle texture_handle) {
-    delete (reinterpret_cast<sf::Texture*>(texture_handle));
+void RmlUiHobgoblinRenderer::ReleaseTexture(Rml::TextureHandle aTextureHandle) {
+    delete (reinterpret_cast<gr::Texture*>(aTextureHandle));
 }
 
 void RmlUiHobgoblinRenderer::EnableScissorRegion(bool aEnable) {

@@ -6,7 +6,7 @@
 
 #include <Hobgoblin/Graphics/Builtin_fonts.hpp>
 
-#include <cassert>
+#include <Hobgoblin/HGExcept.hpp>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
@@ -21,71 +21,71 @@ namespace {
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
-const sf::Font& BuiltInFonts::getFont(FontChoice fontChoice) {
-    switch (fontChoice) {
-    case ComputerModernSerifRoman:
+const Font& BuiltInFonts::getFont(FontChoice aFontChoice) {
+    switch (aFontChoice) {
+    case COMPUTER_MODERN_SERIF_ROMAN:
         return getCmuSerifRoman();
 
-    case ComputerModernTypewriterText:
+    case COMPUTER_MODERN_TYPEWRITER_TEXT:
         return getCmuTypewriterText();
 
-    case EbGaramond12Regular:
+    case EB_GARAMOND_12_REGULAR:
         return getEbGaramond12Regular();
 
-    case InconsolataRegular:
+    case INCONSOLATA_REGULAR:
         return getInconsolataRegular();
 
-    case TitilliumRegular:
+    case TITILLIUM_REGULAR:
         return getTitilliumRegular();
 
     default:
-        assert(0 && "Unreachable");
+        HG_UNREACHABLE("Invalid value for BuiltInFonts::FontChoice ({}).", (int)aFontChoice);
     }
 }
 
-const sf::Font& BuiltInFonts::getCmuSerifRoman() {
+const Font& BuiltInFonts::getCmuSerifRoman() {
     static bool fontInitialized{false};
-    static sf::Font font;
+    static Font font;
     if (!fontInitialized) {
-        assert(font.loadFromMemory(cmu_serif_roman_ttf, cmu_serif_roman_ttf_len));
+        font.loadFromMemory(cmu_serif_roman_ttf, cmu_serif_roman_ttf_len);
         fontInitialized = true;
     }
     return font;
 }
 
-const sf::Font& BuiltInFonts::getCmuTypewriterText() {
+const Font& BuiltInFonts::getCmuTypewriterText() {
     static bool fontInitialized{false};
-    static sf::Font font;
+    static Font font;
     if (!fontInitialized) {
-        assert(font.loadFromMemory(cmuntt_ttf, cmuntt_ttf_len));
+        font.loadFromMemory(cmuntt_ttf, cmuntt_ttf_len);
         fontInitialized = true;
     }
     return font;
 }
 
-const sf::Font& BuiltInFonts::getEbGaramond12Regular() {
+const Font& BuiltInFonts::getEbGaramond12Regular() {
     static bool fontInitialized{false};
-    static sf::Font font;
+    static Font font;
     if (!fontInitialized) {
-        assert(font.loadFromMemory(EBGaramond12_Regular_ttf, EBGaramond12_Regular_ttf_len));
+        font.loadFromMemory(EBGaramond12_Regular_ttf, EBGaramond12_Regular_ttf_len);
         fontInitialized = true;
     }
     return font;
 }
 
-const sf::Font& BuiltInFonts::getInconsolataRegular() {
+const Font& BuiltInFonts::getInconsolataRegular() {
     static bool fontInitialized{false};
-    static sf::Font font;
+    static Font font;
     if (!fontInitialized) {
-        assert(font.loadFromMemory(Inconsolata_Regular_ttf, Inconsolata_Regular_ttf_len));
+        font.loadFromMemory(Inconsolata_Regular_ttf, Inconsolata_Regular_ttf_len);
         fontInitialized = true;
     }
     return font;
 }
 
-const sf::Font& BuiltInFonts::getTitilliumRegular() {
+const Font& BuiltInFonts::getTitilliumRegular() {
     static bool fontInitialized{false};
-    static sf::Font font;
+    static Font font;
     if (!fontInitialized) {
         font.loadFromMemory(TitilliumWeb_Regular_ttf, TitilliumWeb_Regular_ttf_len);
         fontInitialized = true;

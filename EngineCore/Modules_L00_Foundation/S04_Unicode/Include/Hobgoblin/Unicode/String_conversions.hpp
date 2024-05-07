@@ -55,6 +55,14 @@ auto UniStrConv(FROM_ASCII_STD_STRING_Tag, const std::string& aStdString) -> Uni
 //! TODO(add description)
 auto UniStrConv(FROM_STD_U8STRING_Tag, const std::u8string& aStdU8String) -> UnicodeString;
 
+namespace detail {
+//! `aUniStr` will be cleared first
+void LoadUStringFromSfString(UnicodeString& aUniStr, const void* aSfString);
+
+//! `aSfString` will be cleared first
+void StoreUStringInSfString(const UnicodeString& aUniStr, void* aSfString);
+} // namespace detail
+
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>

@@ -117,7 +117,7 @@ void DrawBatcher::draw(const Vertex* aVertices,
         }
         else {
             // If batches are not compatible, flush and start a new batch
-            if (_vertexArray.primitiveType != aType || aStates != _renderStates) {
+            if (_vertexArray.primitiveType != aType || aStates != _renderStates) { // TODO: not all primitive types are "continuable"
                 _flush();
                 _prepForBatchingVertices(aStates, aType);
             }
