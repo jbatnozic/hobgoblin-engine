@@ -30,26 +30,27 @@ void CheckOriginCorrectness(const taSprite& aSprite, const gr::OriginOffset& aEx
         EXPECT_NEAR(origin.y, aExpectedOffset.offset.y, EPSILON);
         break;
 
-    default:
-        HG_UNREACHABLE("Invalid value for OriginOffset::Kind ({}).", (int)aExpectedOffset.kind);
+    default: HG_UNREACHABLE("Invalid value for OriginOffset::Kind ({}).", (int)aExpectedOffset.kind);
     }
 }
 } // namespace
 
 TEST(SpriteLoadingTest, LoadOriginOffset_SingleSubspriteExamples) {
     struct Case {
-        const char16_t* path;
+        const char16_t*  path;
         gr::OriginOffset expectedOffset;
     };
 
     const auto SPRITE_SIZE = hg::math::Vector2f{64.f, 32.f};
 
+    // clang-format off
     const std::array<const Case, 4> CASES = {
         Case{HG_UNILIT("tile-0.png"), {{0.f, 0.f}, gr::OriginOffset::RELATIVE_TO_TOP_LEFT}},
         Case{HG_UNILIT("tile-1.png"), {{1.5f, 123.456f}, gr::OriginOffset::RELATIVE_TO_TOP_LEFT}},
         Case{HG_UNILIT("tile-2.png"), {{SPRITE_SIZE.x / 2.f, SPRITE_SIZE.y / 2.f}, gr::OriginOffset::RELATIVE_TO_CENTER}},
         Case{HG_UNILIT("tile-3.png"), {{SPRITE_SIZE.x / 2.f - 10.f, SPRITE_SIZE.y / 2.f + 15.f}, gr::OriginOffset::RELATIVE_TO_CENTER}}
     };
+    // clang-format on
 
     constexpr gr::SpriteIdNumerical SPRITE_ID = 49;
 
@@ -68,7 +69,7 @@ TEST(SpriteLoadingTest, LoadOriginOffset_SingleSubspriteExamples) {
         {
             const auto blueprint = loader.getBlueprint(SPRITE_ID);
             EXPECT_TRUE(blueprint.hasExplicitOrigin());
-        
+
             const auto sprite = blueprint.spr();
             CheckOriginCorrectness(sprite, _case.expectedOffset);
         }

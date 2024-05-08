@@ -18,8 +18,7 @@ HOBGOBLIN_NAMESPACE_BEGIN
 //! \param aPath Path to the file.
 //! \param aCharset Encoding charset of the file. If none, the
 //!                 function will try to detect it automatically.
-UnicodeString LoadWholeFile(const std::filesystem::path& aPath,
-                            std::optional<Charset> aCharset = {});
+UnicodeString LoadWholeFile(const std::filesystem::path& aPath, std::optional<Charset> aCharset = {});
 
 HOBGOBLIN_NAMESPACE_END
 

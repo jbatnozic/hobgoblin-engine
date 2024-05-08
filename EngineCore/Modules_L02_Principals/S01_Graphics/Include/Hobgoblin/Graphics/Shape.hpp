@@ -284,7 +284,7 @@ private:
     void* _getSFMLImpl();
     const void* _getSFMLImpl() const;
 
-#ifdef UHOBGOBLIN_DEBUG
+#if defined(UHOBGOBLIN_DEBUG) && defined(_MSC_VER)
     static constexpr std::size_t STORAGE_SIZE = 360;
 #else
     static constexpr std::size_t STORAGE_SIZE = 344;

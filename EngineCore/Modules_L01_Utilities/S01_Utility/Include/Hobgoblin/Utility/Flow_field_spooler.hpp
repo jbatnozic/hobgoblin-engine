@@ -235,12 +235,12 @@ void FlowFieldSpooler<taWorldCostProvider>::unpause() {
 }
 
 template <class taWorldCostProvider>
-FlowFieldSpooler<taWorldCostProvider>::RequestId
-FlowFieldSpooler<taWorldCostProvider>::addRequest(math::Vector2pz aFieldTopLeft,
-                                                  math::Vector2pz aFieldDimensions,
-                                                  math::Vector2pz aTarget,
-                                                  CostProviderId  aCostProviderId,
-                                                  PZInteger       aMaxIterations) {
+FlowFieldSpooler<taWorldCostProvider>::RequestId FlowFieldSpooler<taWorldCostProvider>::addRequest(
+    math::Vector2pz aFieldTopLeft,
+    math::Vector2pz aFieldDimensions,
+    math::Vector2pz aTarget,
+    CostProviderId  aCostProviderId,
+    PZInteger       aMaxIterations) {
     return _impl->addRequest(aFieldTopLeft, aFieldDimensions, aTarget, aCostProviderId, aMaxIterations);
 }
 
@@ -250,8 +250,8 @@ void FlowFieldSpooler<taWorldCostProvider>::cancelRequest(RequestId aRequestId) 
 }
 
 template <class taWorldCostProvider>
-std::optional<OffsetFlowField>
-FlowFieldSpooler<taWorldCostProvider>::collectResult(RequestId aRequestId) {
+std::optional<OffsetFlowField> FlowFieldSpooler<taWorldCostProvider>::collectResult(
+    RequestId aRequestId) {
     auto implResult = _impl->collectResult(aRequestId);
     if (!implResult.has_value()) {
         return {};

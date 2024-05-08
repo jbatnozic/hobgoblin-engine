@@ -667,8 +667,9 @@ std::optional<OffsetFlowField> FlowFieldSpoolerImpl::collectResult(std::uint64_t
 
 } // namespace
 
-std::unique_ptr<FlowFieldSpoolerImplInterface>
-CreateDefaultFlowFieldSpoolerImpl(WCFMap aWcfMap, PZInteger aConcurrencyLimit) {
+std::unique_ptr<FlowFieldSpoolerImplInterface> CreateDefaultFlowFieldSpoolerImpl(
+    WCFMap    aWcfMap,
+    PZInteger aConcurrencyLimit) {
     return std::make_unique<FlowFieldSpoolerImpl>(std::move(aWcfMap), aConcurrencyLimit);
 }
 

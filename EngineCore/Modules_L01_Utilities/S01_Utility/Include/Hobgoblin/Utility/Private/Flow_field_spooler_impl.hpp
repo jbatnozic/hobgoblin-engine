@@ -58,8 +58,9 @@ public:
 };
 
 //! Creates a default implementation of FlowFieldSpoolerImplInterface.
-extern std::unique_ptr<FlowFieldSpoolerImplInterface>
-CreateDefaultFlowFieldSpoolerImpl(WCFMap aWcfMap, PZInteger aConcurrencyLimit);
+extern std::unique_ptr<FlowFieldSpoolerImplInterface> CreateDefaultFlowFieldSpoolerImpl(
+    WCFMap    aWcfMap,
+    PZInteger aConcurrencyLimit);
 
 } // namespace detail
 } // namespace util
