@@ -11,6 +11,7 @@
 #include <Hobgoblin/Graphics/Sprite_blueprint.hpp>
 #include <Hobgoblin/Graphics/Texture.hpp>
 #include <Hobgoblin/Graphics/Texture_packing.hpp>
+#include <Hobgoblin/Math.hpp>
 
 #include <filesystem>
 #include <memory>

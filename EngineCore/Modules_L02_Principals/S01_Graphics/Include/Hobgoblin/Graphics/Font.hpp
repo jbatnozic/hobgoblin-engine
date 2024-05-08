@@ -25,7 +25,6 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 ////////////////////////////////////////////////////////////
-#if 0
 
 // clang-format off
 
@@ -33,18 +32,19 @@
 #define UHOBGOBLIN_GRAPHICS_FONT_HPP
 
 #include <Hobgoblin/Graphics/Glyph.hpp>
-#include <Hobgoblin/Graphics/Rect.hpp>
 #include <Hobgoblin/Graphics/Texture.hpp>
 
-#include <memory>
-#include <string>
-#include <unordered_map>
-#include <vector>
+#include <filesystem>
+#include <type_traits>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
+
+namespace detail {
+class GraphicsImplAccessor;
+} // namespace detail
 
 //! \brief Class for loading and manipulating character fonts.
 class Font {
@@ -61,8 +61,15 @@ public:
 
     //! \brief Copy constructor
     //!
-    //! \param copy Instance to copy
-    Font(const Font& copy);
+    //! \param aOther Instance to copy
+    Font(const Font& aOther);
+
+    //! \brief Copy assignment operator.
+    //!
+    //! \param aOther Instance to copy
+    //! 
+    //! \return Reference to self
+    Font& operator=(const Font& aOther);
 
     //! \brief Move constructor
     Font(Font&&) noexcept;
@@ -92,7 +99,7 @@ public:
     //! \return True if loading succeeded, false if it failed
     //!
     //! \see loadFromMemory, loadFromStream
-    [[nodiscard]] bool loadFromFile(const std::filesystem::path& filename);
+    void loadFromFile(const std::filesystem::path& aFile);
 
     //! \brief Load the font from a file in memory
     //!
@@ -110,8 +117,9 @@ public:
     //! \return True if loading succeeded, false if it failed
     //!
     //! \see loadFromFile, loadFromStream
-    [[nodiscard]] bool loadFromMemory(const void* data, std::size_t sizeInBytes);
+    void loadFromMemory(const void* aData, PZInteger aByteCount);
 
+#ifdef UHOBGOLBIN_FUTURE
     //! \brief Load the font from a custom stream
     //!
     //! The supported font formats are: TrueType, Type 1, CFF,
@@ -129,12 +137,13 @@ public:
     //! \return True if loading succeeded, false if it failed
     //!
     //! \see loadFromFile, loadFromMemory
-    [[nodiscard]] bool loadFromStream(InputStream& stream);
+    void loadFromStream(InputStream& stream);
 
     //! \brief Get the font information
     //!
     //! \return A structure that holds the font information
     const Info& getInfo() const;
+#endif // !UHOBGOLBIN_FUTURE
 
     //! \brief Retrieve a glyph of the font
     //!
@@ -155,7 +164,10 @@ public:
     //! \param outlineThickness Thickness of outline (when != 0 the glyph will not be filled)
     //!
     //! \return The glyph corresponding to \a codePoint and \a characterSize
-    const Glyph& getGlyph(std::uint32_t codePoint, unsigned int characterSize, bool bold, float outlineThickness = 0) const;
+    Glyph getGlyph(std::uint32_t aCodePoint,
+                   PZInteger aCharacterSize,
+                   bool aBold,
+                   float aOutlineThickness = 0) const;
 
     //! \brief Determine if this font has a glyph representing the requested code point
     //!
@@ -170,7 +182,7 @@ public:
     //! \param codePoint Unicode code point to check
     //!
     //! \return True if the codepoint has a glyph representation, false otherwise
-    bool hasGlyph(std::uint32_t codePoint) const;
+    bool hasGlyph(std::uint32_t aCodePoint) const;
 
     //! \brief Get the kerning offset of two glyphs
     //!
@@ -185,7 +197,10 @@ public:
     //! \param characterSize Reference character size
     //!
     //! \return Kerning value for \a first and \a second, in pixels
-    float getKerning(std::uint32_t first, std::uint32_t second, unsigned int characterSize, bool bold = false) const;
+    float getKerning(std::uint32_t aFirst,
+                     std::uint32_t aSecond,
+                     PZInteger aCharacterSize,
+                     bool aBold = false) const;
 
     //! \brief Get the line spacing
     //!
@@ -195,7 +210,7 @@ public:
     //! \param characterSize Reference character size
     //!
     //! \return Line spacing, in pixels
-    float getLineSpacing(unsigned int characterSize) const;
+    float getLineSpacing(PZInteger aCharacterSize) const;
 
     //! \brief Get the position of the underline
     //!
@@ -207,7 +222,7 @@ public:
     //! \return Underline position, in pixels
     //!
     //! \see getUnderlineThickness
-    float getUnderlinePosition(unsigned int characterSize) const;
+    float getUnderlinePosition(PZInteger aCharacterSize) const;
 
     //! \brief Get the thickness of the underline
     //!
@@ -218,8 +233,9 @@ public:
     //! \return Underline thickness, in pixels
     //!
     //! \see getUnderlinePosition
-    float getUnderlineThickness(unsigned int characterSize) const;
+    float getUnderlineThickness(PZInteger aCharacterSize) const;
 
+#ifdef UHOBGOLBIN_FUTURE
     //! \brief Retrieve the texture containing the loaded glyphs of a certain size
     //!
     //! The contents of the returned texture changes as more glyphs
@@ -229,7 +245,8 @@ public:
     //! \param characterSize Reference character size
     //!
     //! \return Texture containing the glyphs of the requested size
-    const Texture& getTexture(unsigned int characterSize) const;
+    const Texture& getTexture(PZInteger aCharacterSize) const;
+#endif // !UHOBGOLBIN_FUTURE
 
     //! \brief Enable or disable the smooth filter
     //!
@@ -242,7 +259,7 @@ public:
     //! \param smooth True to enable smoothing, false to disable it
     //!
     //! \see isSmooth
-    void setSmooth(bool smooth);
+    void setSmooth(bool aSmooth);
 
     //! \brief Tell whether the smooth filter is enabled or not
     //!
@@ -251,15 +268,20 @@ public:
     //! \see setSmooth
     bool isSmooth() const;
 
-    //! \brief Overload of assignment operator
-    //!
-    //! \param right Instance to assign
-    //!
-    //! \return Reference to self
-    Font& operator=(const Font& right);
-
 private:
+    friend class detail::GraphicsImplAccessor;
 
+    void* _getSFMLImpl();
+    const void* _getSFMLImpl() const;
+
+#ifdef UHOBGOBLIN_DEBUG
+    static constexpr std::size_t STORAGE_SIZE  = 144;
+#else
+    static constexpr std::size_t STORAGE_SIZE  = 120;
+#endif
+
+    static constexpr std::size_t STORAGE_ALIGN =   8;
+    std::aligned_storage<STORAGE_SIZE, STORAGE_ALIGN>::type _storage;
 };
 
 } // namespace gr
@@ -340,6 +362,5 @@ HOBGOBLIN_NAMESPACE_END
 /// \see sf::Text
 ///
 ////////////////////////////////////////////////////////////
-#endif
 
 // clang-format on

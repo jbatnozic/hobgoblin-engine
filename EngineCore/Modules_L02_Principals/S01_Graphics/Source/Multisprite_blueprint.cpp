@@ -12,11 +12,35 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
+namespace {
+void ApplyOffset(Multisprite& aMultisprite, const OriginOffset& aOffset) {
+    switch (aOffset.kind) {
+    case OriginOffset::RELATIVE_TO_TOP_LEFT:
+        aMultisprite.setOrigin(aOffset.offset);
+        break;
+
+    case OriginOffset::RELATIVE_TO_CENTER:
+        {
+            const auto size = aMultisprite.getLocalBounds();
+            aMultisprite.setOrigin(size.w / 2.f + aOffset.offset.x,
+                                   size.h / 2.f + aOffset.offset.y);
+        }
+        break;
+
+    default:
+        HG_UNREACHABLE("Invalid value for OriginOffset::Kind ({}).", (int)aOffset.kind);
+    }
+}
+} // namespace
+
 // Construct with single subsprite
-MultispriteBlueprint::MultispriteBlueprint(const Texture& aTexture, TextureRect aTextureRect)
+MultispriteBlueprint::MultispriteBlueprint(const Texture& aTexture,
+                                           TextureRect aTextureRect, 
+                                           std::optional<OriginOffset> aOriginOffset)
     : _texture{&aTexture}
     , _textureRects{aTextureRect}
     , _subspriteCount{1}
+    , _offset{aOriginOffset}
 {
 }
 
@@ -24,6 +48,7 @@ MultispriteBlueprint::MultispriteBlueprint(const MultispriteBlueprint& aOther)
     : _texture{aOther._texture}
     , _textureRects{aOther._textureRects}
     , _subspriteCount{aOther._subspriteCount}
+    , _offset{aOther._offset}
 {
 }
 
@@ -32,6 +57,7 @@ MultispriteBlueprint& MultispriteBlueprint::operator=(const MultispriteBlueprint
         SELF._texture = aOther._texture;
         SELF._textureRects = aOther._textureRects;
         SELF._subspriteCount = aOther._subspriteCount;
+        SELF._offset = aOther._offset;
     }
     return SELF;
 }
@@ -40,6 +66,7 @@ MultispriteBlueprint::MultispriteBlueprint(MultispriteBlueprint&& aOther)
     : _texture{aOther._texture}
     , _textureRects{std::move(aOther._textureRects)}
     , _subspriteCount{aOther._subspriteCount}
+    , _offset{aOther._offset}
 {
 }
 
@@ -48,6 +75,7 @@ MultispriteBlueprint& MultispriteBlueprint::operator=(MultispriteBlueprint&& aOt
         SELF._texture = aOther._texture;
         SELF._textureRects = std::move(aOther._textureRects);
         SELF._subspriteCount = aOther._subspriteCount;
+        SELF._offset = aOther._offset;
     }
     return SELF;
 }
@@ -63,10 +91,18 @@ Sprite MultispriteBlueprint::subspr(PZInteger aSubspriteIndex) const {
 Multisprite MultispriteBlueprint::multispr() const {
     if (_subspriteCount > 1) {
         const auto& subsprites = std::get<std::vector<TextureRect>>(_textureRects);
-        return Multisprite{_texture, subsprites.begin(), subsprites.end()};
+        auto result = Multisprite{_texture, subsprites.begin(), subsprites.end()};
+        if (_offset.has_value()) {
+            ApplyOffset(result, *_offset);
+        }
+        return result;
     }
 
-    return Multisprite{_texture, std::get<TextureRect>(_textureRects)};
+    auto result = Multisprite{_texture, std::get<TextureRect>(_textureRects)};
+    if (_offset.has_value()) {
+        ApplyOffset(result, *_offset);
+    }
+    return result;
 }
 
 SpriteBlueprint MultispriteBlueprint::extractBlueprint(PZInteger aSubspriteIndex) const {
@@ -75,11 +111,16 @@ SpriteBlueprint MultispriteBlueprint::extractBlueprint(PZInteger aSubspriteIndex
     if (_subspriteCount > 1) {
         return SpriteBlueprint{
             *_texture, 
-            std::get<std::vector<TextureRect>>(_textureRects).at(pztos(aSubspriteIndex))
+            std::get<std::vector<TextureRect>>(_textureRects).at(pztos(aSubspriteIndex)),
+            _offset
         };
     }
 
-    return SpriteBlueprint{*_texture, std::get<TextureRect>(_textureRects)};
+    return SpriteBlueprint{*_texture, std::get<TextureRect>(_textureRects), _offset};
+}
+
+bool MultispriteBlueprint::hasExplicitOrigin() const {
+    return _offset.has_value();
 }
 
 } // namespace gr

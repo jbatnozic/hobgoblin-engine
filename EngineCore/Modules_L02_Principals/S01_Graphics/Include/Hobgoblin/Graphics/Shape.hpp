@@ -284,7 +284,12 @@ private:
     void* _getSFMLImpl();
     const void* _getSFMLImpl() const;
 
-    static constexpr std::size_t STORAGE_SIZE  = 360;
+#ifdef UHOBGOBLIN_DEBUG
+    static constexpr std::size_t STORAGE_SIZE = 360;
+#else
+    static constexpr std::size_t STORAGE_SIZE = 344;
+#endif
+
     static constexpr std::size_t STORAGE_ALIGN = 8;
 
     const Texture* _texture;

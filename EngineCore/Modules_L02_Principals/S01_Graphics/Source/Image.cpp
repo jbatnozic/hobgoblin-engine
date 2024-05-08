@@ -29,7 +29,7 @@ constexpr auto IMPL_ALIGN = alignof(ImplType);
 #define SELF_CIMPL (CIMPLOF(SELF))
 
 Image::Image() {
-    static_assert(STORAGE_SIZE  >= IMPL_SIZE,   "Image::STORAGE_SIZE is inadequate."); // TODO(size)
+    static_assert(STORAGE_SIZE  == IMPL_SIZE,  "Image::STORAGE_SIZE is inadequate.");
     static_assert(STORAGE_ALIGN == IMPL_ALIGN, "Image::STORAGE_ALIGN is inadequate.");
 
     new (&_storage) ImplType();
