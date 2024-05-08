@@ -1,3 +1,7 @@
+// Code in this file is adapted from SFML code and retains its original
+// open source licence (provided below).
+// See https://github.com/SFML/SFML
+
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
