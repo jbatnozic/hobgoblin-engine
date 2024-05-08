@@ -1,4 +1,4 @@
-// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+﻿// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
 // clang-format off
@@ -136,7 +136,7 @@ TEST(HGUtilPacketTest, TestStdString) {
 }
 
 TEST(HGUtilPacketTest, TestUnicodeString) {
-    TestPacketWithType<UnicodeString>(HG_UNISTR("!@#$%^&*()šđčć"), sizeof(std::uint32_t) + 18);
+    TestPacketWithType<UnicodeString>(HG_UNISTR("!@#$%^&*()šđćč"), sizeof(std::uint32_t) + 18);
 }
 
 TEST(HGUtilPacketTest, TestInsertingAnotherPacket) {

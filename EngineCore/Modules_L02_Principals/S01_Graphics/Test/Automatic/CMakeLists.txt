@@ -1,25 +1,23 @@
 # Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 # See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-project("Hobgoblin.Unicode.Test")
+project("Hobgoblin.Graphics.AutomaticTest")
 
-find_package(ICU CONFIG REQUIRED)
 find_package(GTest CONFIG REQUIRED)
-find_package(SFML CONFIG REQUIRED)
 
 add_executable(${PROJECT_NAME}
-    "Unicode_test.cpp"
+    "Graphics_automatic_test.cpp"
 )
 
 target_link_libraries(${PROJECT_NAME}
 PUBLIC
-    # Foundation
-    "Hobgoblin.Unicode"
+  "Hobgoblin.Common"
+  "Hobgoblin.Graphics"
+  "Hobgoblin.Unicode"
 
-    # External
-    "gtest::gtest"
-    "icu::icu"
-    "sfml::sfml"
+  # External
+  "gtest::gtest"
+  "sfml::sfml"
 )
 
 hg_copy_test_assets(${PROJECT_NAME} "Assets")

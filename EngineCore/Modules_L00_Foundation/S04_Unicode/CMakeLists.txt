@@ -4,10 +4,12 @@
 project("Hobgoblin.Unicode")
 
 find_package(ICU CONFIG REQUIRED)
+find_package(SFML CONFIG REQUIRED)
 
 add_library(${PROJECT_NAME}
 STATIC
     "Source/Charset_detection.cpp"
+    "Source/File_io.cpp"
     "Source/String_conversions.cpp"
 )
 
@@ -24,6 +26,7 @@ PUBLIC
 
     # External
     "icu::icu"
+    "sfml::sfml"
 )
 
 add_library("Hobgoblin_L00_S04_Unicode" ALIAS ${PROJECT_NAME})
