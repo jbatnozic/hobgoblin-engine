@@ -49,10 +49,10 @@ struct Glyph {
     int rsbDelta = 0;
 
     //! Bounding rectangle of the glyph, in coordinates relative to the baseline.
-    math::Rectangle<float> bounds;     
+    math::Rectangle<float> bounds;
 
     //! Texture coordinates of the glyph inside the font's texture.
-    TextureRect textureRect;  
+    TextureRect textureRect;
 };
 
 } // namespace gr

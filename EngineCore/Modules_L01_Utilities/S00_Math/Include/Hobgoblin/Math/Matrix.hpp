@@ -12,6 +12,7 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace math {
 
+// clang-format off
 template <class taArithmetic, PZInteger taWidth, PZInteger taHeight>
 class Matrix {
 public:
@@ -20,6 +21,7 @@ public:
 
     std::array<taArithmetic, static_cast<std::size_t>(WIDTH * HEIGHT)> data;
 };
+// clang-format on
 
 } // namespace math
 HOBGOBLIN_NAMESPACE_END

@@ -19,15 +19,15 @@ HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
 using ImplType = sf::Font;
-constexpr auto IMPL_SIZE  = sizeof(ImplType);
+constexpr auto IMPL_SIZE = sizeof(ImplType);
 constexpr auto IMPL_ALIGN = alignof(ImplType);
-#define  IMPLOF(_obj_) (reinterpret_cast<ImplType*>(&((_obj_)._storage)))
+#define IMPLOF(_obj_)  (reinterpret_cast<ImplType*>(&((_obj_)._storage)))
 #define CIMPLOF(_obj_) (reinterpret_cast<const ImplType*>(&((_obj_)._storage)))
-#define  SELF_IMPL (IMPLOF(SELF))
-#define SELF_CIMPL (CIMPLOF(SELF))
+#define SELF_IMPL      (IMPLOF(SELF))
+#define SELF_CIMPL     (CIMPLOF(SELF))
 
 Font::Font() {
-    static_assert(STORAGE_SIZE  == IMPL_SIZE,  "Font::STORAGE_SIZE is inadequate.");
+    static_assert(STORAGE_SIZE == IMPL_SIZE, "Font::STORAGE_SIZE is inadequate.");
     static_assert(STORAGE_ALIGN == IMPL_ALIGN, "Font::STORAGE_ALIGN is inadequate.");
 
     new (&_storage) ImplType();
@@ -74,9 +74,9 @@ void Font::loadFromMemory(const void* aData, PZInteger aByteCount) {
 }
 
 Glyph Font::getGlyph(std::uint32_t aCodePoint,
-                     PZInteger aCharacterSize,
-                     bool aBold,
-                     float aOutlineThickness) const {
+                     PZInteger     aCharacterSize,
+                     bool          aBold,
+                     float         aOutlineThickness) const {
     return ToHg(SELF_CIMPL->getGlyph(aCodePoint,
                                      static_cast<unsigned>(aCharacterSize),
                                      aBold,
@@ -89,8 +89,8 @@ bool Font::hasGlyph(std::uint32_t aCodePoint) const {
 
 float Font::getKerning(std::uint32_t aFirst,
                        std::uint32_t aSecond,
-                       PZInteger aCharacterSize,
-                       bool aBold) const {
+                       PZInteger     aCharacterSize,
+                       bool          aBold) const {
     return SELF_CIMPL->getKerning(aFirst, aSecond, static_cast<unsigned>(aCharacterSize), aBold);
 }
 
