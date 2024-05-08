@@ -15,8 +15,8 @@
 #include <Hobgoblin/Alvin/Space.hpp>
 
 #include <cstdint>
-#include <stdexcept>
 #include <iostream>
+#include <stdexcept>
 
 namespace hg = jbatnozic::hobgoblin;
 namespace alvin = hg::alvin;
@@ -46,8 +46,8 @@ public:
 };
 
 static_assert(Character::ENTITY_TYPE_ID == TAG_CHARACTER);
-static_assert(Player::ENTITY_TYPE_ID    == TAG_PLAYER);
-static_assert(Terrain::ENTITY_TYPE_ID   == TAG_TERRAIN);
+static_assert(Player::ENTITY_TYPE_ID == TAG_PLAYER);
+static_assert(Terrain::ENTITY_TYPE_ID == TAG_TERRAIN);
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -56,8 +56,7 @@ public:
     PlayerDude(cpSpace* aSpace)
         : _body{cpBodyNew(100.f, cpMomentForCircle(100.f, 0.f, 5.f, cpv(0.f, 0.f)))}
         , _shape{cpCircleShapeNew(_body, 100.f, cpv(0.f, 0.f))}
-        , _collisionDelegate{_createCollisionDelegate()}
-    {
+        , _collisionDelegate{_createCollisionDelegate()} {
         _collisionDelegate.bind<Player>(*this, _shape);
 
         cpSpaceAddBody(aSpace, _body);
@@ -146,7 +145,7 @@ public:
         for (auto& shape : _shapes) {
             cpShapeCacheBB(shape);
             const auto bbox = cpShapeGetBB(shape);
-            
+
             rect.setPosition({(float)bbox.l, (float)bbox.t});
             rect.setSize({(float)(bbox.r - bbox.l), (float)(bbox.b - bbox.t)});
             aCanvas.draw(rect);
@@ -154,13 +153,12 @@ public:
     }
 
 private:
-    alvin::Space& _space;
-    alvin::CollisionDelegate _collisionDelegate;
+    alvin::Space&             _space;
+    alvin::CollisionDelegate  _collisionDelegate;
     std::vector<alvin::Shape> _shapes;
 
     alvin::CollisionDelegate _createCollisionDelegate() {
-        return alvin::CollisionDelegateBuilder{}
-            .finalize();
+        return alvin::CollisionDelegateBuilder{}.finalize();
     }
 };
 
@@ -170,13 +168,12 @@ int main(int argc, char* argv[]) try {
     cpSpaceSetGravity(space, cpv(0.0, 1000.0));
 
     alvin::MainCollisionDispatcher dispatcher;
-    dispatcher
-        .registerEntityType<Character>()
+    dispatcher.registerEntityType<Character>()
         .registerEntityType<Player>()
         .registerEntityType<Terrain>()
         .configureSpace(space);
 
-    PlayerDude dude{space};
+    PlayerDude        dude{space};
     TerrainController terrain{space};
 
     ///////////////////////////////////////
@@ -203,7 +200,6 @@ int main(int argc, char* argv[]) try {
         terrain.drawOnto(window);
         window.display();
     }
-}
-catch (const std::exception& ex) {
+} catch (const std::exception& ex) {
     std::cerr << "Exception caught: " << ex.what() << std::endl;
 }

@@ -4,8 +4,8 @@
 #ifndef UHOBGOBLIN_ALVIN_PRIVATE_HELPERS_HPP
 #define UHOBGOBLIN_ALVIN_PRIVATE_HELPERS_HPP
 
-#include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Alvin/Entity_base.hpp>
+#include <Hobgoblin/Common.hpp>
 
 #include <cstdint>
 #include <functional>

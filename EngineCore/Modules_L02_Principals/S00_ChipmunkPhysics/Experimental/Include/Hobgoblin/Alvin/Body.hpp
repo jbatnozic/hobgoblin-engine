@@ -39,11 +39,11 @@ public:
     Body(Body&&) = default;
     Body& operator=(Body&&) = default;
 
-    //! Automatic conversion to `cpBody*` for 
+    //! Automatic conversion to `cpBody*` for
     //! compatibility with regular Chipmunk functions.
     //! \note the returned pointer will never be NULL
     //!       unless the object was moved from.
-    operator cpBody* () {
+    operator cpBody*() {
         return _body.get();
     }
 
@@ -51,7 +51,7 @@ public:
     //! compatibility with regular Chipmunk functions.
     //! \note the returned pointer will never be NULL
     //!       unless the object was moved from.
-    operator const cpBody* () const {
+    operator const cpBody*() const {
         return _body.get();
     }
 

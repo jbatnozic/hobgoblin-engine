@@ -61,7 +61,7 @@ public:
               std::optional<cpBitmask> aCollidesWith = std::nullopt) {
         _entity = &aEntity;
         _entityTypeId = taEntity::ENTITY_TYPE_ID;
-        
+
         const auto filter = cpShapeFilterNew(aGroup.value_or(CP_NO_GROUP),
                                              aCategory.value_or(taEntity::ENTITY_DEFAULT_CATEGORY),
                                              aCollidesWith.value_or(taEntity::ENTITY_DEFAULT_MASK));
@@ -112,7 +112,7 @@ private:
                                                                  detail::Usage aUsage) const {
         const auto target = detail::EntityTypeIdAndUsage{aEntityTypeId, aUsage};
 
-        std::size_t low  = 0;
+        std::size_t low = 0;
         std::size_t high = _collisionFunctions.size();
 
         while (low < high) {

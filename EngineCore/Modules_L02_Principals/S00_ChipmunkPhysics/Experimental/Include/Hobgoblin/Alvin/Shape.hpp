@@ -26,15 +26,11 @@ public:
         return {cpBoxShapeNew(aBody, aWidth, aHeight, aCornerRadius)};
     }
 
-    static Shape createBox(NeverNull<cpBody*> aBody, 
-                           const cpBB&        aBoundingBox,
-                           cpFloat            aCornerRadius) {
+    static Shape createBox(NeverNull<cpBody*> aBody, const cpBB& aBoundingBox, cpFloat aCornerRadius) {
         return {cpBoxShapeNew2(aBody, aBoundingBox, aCornerRadius)};
     }
 
-    static Shape createCircle(NeverNull<cpBody*> aBody,
-                              cpFloat            aRadius,
-                              cpVect             aOffset) {
+    static Shape createCircle(NeverNull<cpBody*> aBody, cpFloat aRadius, cpVect aOffset) {
         return {cpCircleShapeNew(aBody, aRadius, aOffset)};
     }
 
@@ -46,11 +42,11 @@ public:
     Shape(Shape&&) = default;
     Shape& operator=(Shape&&) = default;
 
-    //! Automatic conversion to `cpShape*` for 
+    //! Automatic conversion to `cpShape*` for
     //! compatibility with regular Chipmunk functions.
     //! \note the returned pointer will never be NULL
     //!       unless the object was moved from.
-    operator cpShape* () {
+    operator cpShape*() {
         return _shape.get();
     }
 
@@ -58,7 +54,7 @@ public:
     //! compatibility with regular Chipmunk functions.
     //! \note the returned pointer will never be NULL
     //!       unless the object was moved from.
-    operator const cpShape* () const {
+    operator const cpShape*() const {
         return _shape.get();
     }
 
