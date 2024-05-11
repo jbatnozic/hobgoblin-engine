@@ -108,6 +108,10 @@ void DefaultWindowManager::setToNormalMode(const WindowConfig& aWindowConfig,
 // WINDOW MANAGEMENT                                                     //
 ///////////////////////////////////////////////////////////////////////////
 
+hobgoblin::math::Vector2pz DefaultWindowManager::getWindowSize() const {
+    return _window->getSize();
+}
+
 ///////////////////////////////////////////////////////////////////////////
 // GRAPHICS & DRAWING                                                    //
 ///////////////////////////////////////////////////////////////////////////
@@ -150,6 +154,63 @@ hg::gr::View& DefaultWindowManager::getView(hg::PZInteger aViewIndex) {
 const hg::gr::View& DefaultWindowManager::getView(hg::PZInteger aViewIndex) const {
     HG_HARD_ASSERT(!_headless && "Method not available in Headless mode.");
     return _mainRenderTexture->getView(aViewIndex);
+}
+
+hg::math::Vector2f DefaultWindowManager::mapPixelToCoords(const hg::math::Vector2i& aPoint,
+                                                          const hg::gr::View& aView) const {
+    HG_HARD_ASSERT(!_headless && "Method not available in Headless mode.");
+
+    const auto mrtPositioning = _getMainRenderTexturePositioningData();
+
+    auto windowPos = _window->mapPixelToCoords(aPoint, _window->getView());
+    windowPos.x = (windowPos.x - mrtPositioning.position.x) / mrtPositioning.scale.x + mrtPositioning.origin.x;
+    windowPos.y = (windowPos.y - mrtPositioning.position.y) / mrtPositioning.scale.y + mrtPositioning.origin.y;
+
+    const sf::Vector2i windowPosI = {static_cast<int>(windowPos.x), static_cast<int>(windowPos.y)};
+
+    return _mainRenderTexture->mapPixelToCoords(windowPosI, aView);
+}
+
+hg::math::Vector2f DefaultWindowManager::mapPixelToCoords(const hg::math::Vector2i& aPoint,
+                                                          hg::PZInteger aViewIdx) const {
+    HG_HARD_ASSERT(!_headless && "Method not available in Headless mode.");
+
+    const auto mrtPositioning = _getMainRenderTexturePositioningData();
+
+    auto windowPos = _window->mapPixelToCoords(aPoint, _window->getView());
+    windowPos.x = (windowPos.x - mrtPositioning.position.x) / mrtPositioning.scale.x + mrtPositioning.origin.x;
+    windowPos.y = (windowPos.y - mrtPositioning.position.y) / mrtPositioning.scale.y + mrtPositioning.origin.y;
+
+    const sf::Vector2i windowPosI = {static_cast<int>(windowPos.x), static_cast<int>(windowPos.y)};
+
+    return _mainRenderTexture->mapPixelToCoords(windowPosI, aViewIdx);
+}
+
+hg::math::Vector2i DefaultWindowManager::mapCoordsToPixel(const hg::math::Vector2f& aPoint,
+                                                          const hg::gr::View& aView) const {
+    HG_HARD_ASSERT(!_headless && "Method not available in Headless mode.");
+
+    const auto mrtPositioning = _getMainRenderTexturePositioningData();
+
+    auto mrtPos = _mainRenderTexture->mapCoordsToPixel(aPoint, aView);
+    const auto xx = mrtPositioning.position.x + (mrtPos.x - mrtPositioning.origin.x) * mrtPositioning.scale.x;
+    const auto yy = mrtPositioning.position.y + (mrtPos.y - mrtPositioning.origin.y) * mrtPositioning.scale.y;
+
+    return _window->mapCoordsToPixel({xx, yy}, _window->getView());
+}
+
+hg::math::Vector2i DefaultWindowManager::mapCoordsToPixel(const hg::math::Vector2f& aPoint,
+                                                          hg::PZInteger aViewIdx) const {
+    HG_HARD_ASSERT(!_headless && "Method not available in Headless mode.");
+
+    const auto mrtPositioning = _getMainRenderTexturePositioningData();
+
+    auto mrtPos = _mainRenderTexture->mapCoordsToPixel(aPoint, aViewIdx);
+    const auto xx = mrtPositioning.position.x + (mrtPos.x - mrtPositioning.origin.x) * mrtPositioning.scale.x;
+    const auto yy = mrtPositioning.position.y + (mrtPos.y - mrtPositioning.origin.y) * mrtPositioning.scale.y;
+
+    return {(int)xx, (int)yy};
+    //return _window->mapCoordsToPixel({xx, yy}, _window->getView());
 }
 
 ///////////////////////////////////////////////////////////////////////////

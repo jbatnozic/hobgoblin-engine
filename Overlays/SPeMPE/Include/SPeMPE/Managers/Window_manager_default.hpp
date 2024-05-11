@@ -9,6 +9,7 @@
 #include <Hobgoblin/Graphics.hpp>
 #include <Hobgoblin/RmlUi.hpp>
 #include <Hobgoblin/Utility/Time_utils.hpp>
+
 #include <Hobgoblin/Graphics.hpp>
 #include <Hobgoblin/Window.hpp>
 
@@ -44,6 +45,8 @@ public:
     // WINDOW MANAGEMENT                                                     //
     ///////////////////////////////////////////////////////////////////////////
 
+    hg::math::Vector2pz getWindowSize() const override;
+
     ///////////////////////////////////////////////////////////////////////////
     // GRAPHICS & DRAWING                                                    //
     ///////////////////////////////////////////////////////////////////////////
@@ -65,6 +68,18 @@ public:
     hg::gr::View& getView(hg::PZInteger aViewIndex = 0) override;
 
     const hg::gr::View& getView(hg::PZInteger aViewIndex = 0) const override;
+
+    hg::math::Vector2f mapPixelToCoords(const hg::math::Vector2i& aPoint,
+                                        const hg::gr::View& aView) const override;
+
+    hg::math::Vector2f mapPixelToCoords(const hg::math::Vector2i& aPoint,
+                                        hg::PZInteger aViewIdx = 0) const override;
+
+    hg::math::Vector2i mapCoordsToPixel(const hg::math::Vector2f& aPoint,
+                                        const hg::gr::View& aView) const override;
+
+    hg::math::Vector2i mapCoordsToPixel(const hg::math::Vector2f& aPoint,
+                                        hg::PZInteger aViewIdx = 0) const override;
 
     ///////////////////////////////////////////////////////////////////////////
     // GUI                                                                   //

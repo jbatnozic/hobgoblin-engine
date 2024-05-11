@@ -6,7 +6,7 @@
 #ifndef SPEMPE_MANAGERS_WINDOW_MANAGER_INTERFACE_HPP
 #define SPEMPE_MANAGERS_WINDOW_MANAGER_INTERFACE_HPP
 
-#include <Hobgoblin/Graphics.hpp>
+#include <Hobgoblin/Math/Vector.hpp>
 #include <Hobgoblin/RmlUi.hpp>
 #include <Hobgoblin/Graphics.hpp>
 #include <Hobgoblin/Window.hpp>
@@ -77,7 +77,7 @@ public:
 
     //_window.getSettings();
     //_window.getPosition();
-    //_window.getSize();
+    virtual hg::math::Vector2pz getWindowSize() const = 0;
     //_window.hasFocus();
     //_window.mapCoordsToPixel();
     //_window.mapPixelToCoords();
@@ -123,6 +123,18 @@ public:
     virtual hg::gr::View& getView(hg::PZInteger aViewIndex = 0) = 0;
 
     virtual const hg::gr::View& getView(hg::PZInteger aViewIndex = 0) const = 0;
+
+    virtual hg::math::Vector2f mapPixelToCoords(const hg::math::Vector2i& aPoint,
+                                                const hg::gr::View& aView) const = 0;
+
+    virtual hg::math::Vector2f mapPixelToCoords(const hg::math::Vector2i& aPoint,
+                                                hg::PZInteger aViewIdx = 0) const = 0;
+
+    virtual hg::math::Vector2i mapCoordsToPixel(const hg::math::Vector2f& aPoint,
+                                                const hg::gr::View& aView) const = 0;
+
+    virtual hg::math::Vector2i mapCoordsToPixel(const hg::math::Vector2f& aPoint,
+                                                hg::PZInteger aViewIdx = 0) const = 0;
 
     ///////////////////////////////////////////////////////////////////////////
     // GUI                                                                   //
