@@ -203,9 +203,11 @@ private:
 #define PRIORITY_EDITOR_DRIVER  1
 #define PRIORITY_WINDOW_MANAGER 0
 
+#define FRAMERATE 120
+
 std::unique_ptr<spe::GameContext> CreateContex() {
     spe::GameContext::RuntimeConfig rtConfig;
-    rtConfig.deltaTime = std::chrono::duration<double>{1.0 / 60.0};
+    rtConfig.deltaTime = std::chrono::duration<double>{1.0 / FRAMERATE};
     rtConfig.maxFramesBetweenDisplays = 2;
     auto ctx = std::make_unique<spe::GameContext>(rtConfig);
 
@@ -222,7 +224,7 @@ std::unique_ptr<spe::GameContext> CreateContex() {
         /* SMOOTH*/ true
     };
     spe::WindowManagerInterface::TimingConfig timingConfig{
-        60, false, true, true
+        FRAMERATE, true, true, false
     };
     // clang-format on
     winMgr->setToNormalMode(windowConfig, mrtConfig, timingConfig);

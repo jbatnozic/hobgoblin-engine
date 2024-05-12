@@ -208,11 +208,11 @@ int GameContext::stopAndJoinChildContext() {
 
 namespace {
 
-#ifdef NDEBUG
+#ifndef UHOBGOBLIN_DEBUG
     // If we're in Debug mode, we don't want to catch and handle
     // exceptions, but rather let the IDE break the program.
     #define CATCH_EXCEPTIONS_TOP_LEVEL
-#endif // !NDEBUG
+#endif // !UHOBGOBLIN_DEBUG
 
 int DoSingleQaoIteration(hg::QAO_Runtime& runtime, std::int32_t eventFlags) {
     runtime.startStep();
@@ -330,7 +330,7 @@ void GameContext::_runImpl(hg::NeverNull<GameContext*> aContext,
                 Stopwatch updateStopwatch;
                 DebugLog("_runImpl - UPDATE start");
                 (*aReturnValue) = DoSingleQaoIteration(aContext->_qaoRuntime,
-                                                    QAO_EVENT_MASK_ALL_EXCEPT_DRAW_AND_DISPLAY);
+                                                       QAO_EVENT_MASK_ALL_EXCEPT_DRAW_AND_DISPLAY);
                 DebugLog("_runImpl - UPDATE end (status = {})", *aReturnValue);
                 if ((*aReturnValue) != 0) {
                     return;
@@ -354,7 +354,7 @@ void GameContext::_runImpl(hg::NeverNull<GameContext*> aContext,
                 Stopwatch drawStopwatch;
                 DebugLog("_runImpl - DRAW start");
                 (*aReturnValue) = DoSingleQaoIteration(aContext->_qaoRuntime,
-                                                    QAO_EVENT_MASK_ALL_DRAWS);
+                                                       QAO_EVENT_MASK_ALL_DRAWS);
                 DebugLog("_runImpl - DRAW end (status = {})", *aReturnValue);
                 if ((*aReturnValue) != 0) {
                     return;

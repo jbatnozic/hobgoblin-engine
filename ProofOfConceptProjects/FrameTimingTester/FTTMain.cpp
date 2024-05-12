@@ -26,9 +26,12 @@ using namespace hg::in;
 
 constexpr auto LOG_ID = "FTT";
 
+#define FRAMERATE 60
+
 void SimpleTest() {
-  gr::RenderWindow window{hg::win::VideoMode{800, 800}, "FTT"};
-  window.setFramerateLimit(60);
+  gr::RenderWindow window{hg::win::VideoMode{800, 800}, "FTT (Simple)"};
+  window.getView().setCenter({0.f, 0.f});
+  window.setFramerateLimit(FRAMERATE);
   //window.setVerticalSyncEnabled(true);
 
   gr::CircleShape circle{32.f};
@@ -46,7 +49,7 @@ void SimpleTest() {
     const auto lr = (float)CheckPressedPK(PK_D) - (float)CheckPressedPK(PK_A);
     const auto ud = (float)CheckPressedPK(PK_S) - (float)CheckPressedPK(PK_W);
     const auto multiplier = 8.f;
-    window.getView().move({lr * multiplier, ud * multiplier});
+    window.getView().move({-lr * multiplier, -ud * multiplier});
 
     window.clear();
     window.draw(circle);
@@ -59,7 +62,7 @@ void SimpleTest() {
 
 std::unique_ptr<spe::GameContext> CreateContex() {
     spe::GameContext::RuntimeConfig rtConfig;
-    rtConfig.deltaTime = std::chrono::duration<double>{1.0 / 60.0};
+    rtConfig.deltaTime = std::chrono::duration<double>{1.0 / FRAMERATE};
     rtConfig.maxFramesBetweenDisplays = 2;
     auto ctx = std::make_unique<spe::GameContext>(rtConfig);
 
@@ -68,7 +71,7 @@ std::unique_ptr<spe::GameContext> CreateContex() {
     // clang-format off
     spe::WindowManagerInterface::WindowConfig windowConfig{
         hg::win::VideoMode{800, 800},
-        "Antimony Animator",
+        "FTT (SPeMPE)",
         hg::win::WindowStyle::Default
     };
     spe::WindowManagerInterface::MainRenderTextureConfig mrtConfig{
@@ -76,11 +79,13 @@ std::unique_ptr<spe::GameContext> CreateContex() {
         /* SMOOTH*/ true
     };
     spe::WindowManagerInterface::TimingConfig timingConfig{
-        60, true, false, false
+        FRAMERATE, true, false, false
     };
     // clang-format on
     winMgr->setToNormalMode(windowConfig, mrtConfig, timingConfig);
     winMgr->setMainRenderTextureDrawPosition(spe::WindowManagerInterface::DrawPosition::Fit);
+    winMgr->setStopIfCloseClicked(true);
+    winMgr->getView().setCenter({0.f, 0.f});
 
     ctx->attachAndOwnComponent(std::move(winMgr));
 
@@ -101,7 +106,7 @@ public:
       const auto ud = (float)input.checkPressed(PK_S) - (float)input.checkPressed(PK_W);
       const auto multiplier = 8.f;
       
-      winMgr.getView().move({lr * multiplier, ud * multiplier});
+      winMgr.getView().move({-lr * multiplier, -ud * multiplier});
     }
 
     void _eventDraw1() override {
@@ -112,8 +117,6 @@ public:
       circle.setFillColor(gr::COLOR_RED);
       winMgr.getCanvas().draw(circle);
     }
-
-private:
 };
 
 void TestWithSPeMPE() {
@@ -125,6 +128,6 @@ void TestWithSPeMPE() {
 }
 
 int main(int argc, char* argv[]) {
-  // SimpleTest();
+  SimpleTest();
   TestWithSPeMPE();
 }

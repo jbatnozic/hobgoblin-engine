@@ -112,6 +112,10 @@ hobgoblin::math::Vector2pz DefaultWindowManager::getWindowSize() const {
     return _window->getSize();
 }
 
+void DefaultWindowManager::setStopIfCloseClicked(bool aStop) {
+    _stopIfCloseClicked = aStop;
+}
+
 ///////////////////////////////////////////////////////////////////////////
 // GRAPHICS & DRAWING                                                    //
 ///////////////////////////////////////////////////////////////////////////
@@ -236,7 +240,7 @@ WindowFrameInputView DefaultWindowManager::getInput() const {
 
 void DefaultWindowManager::_eventPreDraw() {
     if (!_headless) {
-        _mainRenderTexture->clear(hg::gr::COLOR_DARK_GRAY); // TODO Parametrize colour
+        _mainRenderTexture->clear({55, 55, 55}); // TODO Parametrize colour
     }
 }
 
@@ -351,7 +355,9 @@ void DefaultWindowManager::_finalizeFrameByDisplayingWindow() {
 
         ev.visit(
             [this](const hg::win::Event::Closed& aEventData) {
-                // TODO
+                if (_stopIfCloseClicked) {
+                    ctx().stop();
+                }
             },
             [this](const hg::win::Event::Resized& aEventData) {
                 hg::math::Rectangle<float> visibleArea{

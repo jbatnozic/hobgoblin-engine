@@ -92,6 +92,8 @@ public:
     //_window.setMouseCursorVisible();
     //framerate limiter
 
+    virtual void setStopIfCloseClicked(bool aStop) = 0;
+
     ///////////////////////////////////////////////////////////////////////////
     // GRAPHICS & DRAWING                                                    //
     ///////////////////////////////////////////////////////////////////////////

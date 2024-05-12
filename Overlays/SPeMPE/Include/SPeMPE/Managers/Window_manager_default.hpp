@@ -47,6 +47,8 @@ public:
 
     hg::math::Vector2pz getWindowSize() const override;
 
+    void setStopIfCloseClicked(bool aStop) override;
+
     ///////////////////////////////////////////////////////////////////////////
     // GRAPHICS & DRAWING                                                    //
     ///////////////////////////////////////////////////////////////////////////
@@ -110,6 +112,7 @@ private:
     // Window management:
     std::optional<hg::gr::RenderWindow> _window;
     std::optional<hg::gr::DrawBatcher> _windowDrawBatcher;
+    bool _stopIfCloseClicked = false;
 
     // Main render texture:
     std::optional<hg::gr::RenderTexture> _mainRenderTexture;
