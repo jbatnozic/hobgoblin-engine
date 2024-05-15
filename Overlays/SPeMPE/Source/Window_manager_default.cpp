@@ -238,6 +238,35 @@ WindowFrameInputView DefaultWindowManager::getInput() const {
 // PRIVATE METHODS                                                       //
 ///////////////////////////////////////////////////////////////////////////
 
+void DefaultWindowManager::_eventPreUpdate() {
+    for (const auto& ev : _events) {
+        const auto rmlUiDidConsumeEvent = _rmlUiContextDriver->processEvent(ev);
+        if (rmlUiDidConsumeEvent) {
+            continue;
+        }
+
+        _inputTracker.eventOccurred(ev);
+
+        ev.visit(
+            [this](const hg::win::Event::Closed& aEventData) {
+                if (_stopIfCloseClicked) {
+                    ctx().stop();
+                }
+            },
+            [this](const hg::win::Event::Resized& aEventData) {
+                hg::math::Rectangle<float> visibleArea{
+                    0.f,
+                    0.f,
+                    static_cast<float>(aEventData.width),
+                    static_cast<float>(aEventData.height)
+                };
+                _window->setView(hg::gr::View(visibleArea));
+            }
+        );
+    }
+    _events.clear();
+}
+
 void DefaultWindowManager::_eventPreDraw() {
     if (!_headless) {
         _mainRenderTexture->clear({55, 55, 55}); // TODO Parametrize colour
@@ -346,29 +375,7 @@ void DefaultWindowManager::_finalizeFrameByDisplayingWindow() {
 
     hg::win::Event ev;
     while (_window->pollEvent(ev)) {
-        const auto rmlUiDidConsumeEvent = _rmlUiContextDriver->processEvent(ev);
-        if (rmlUiDidConsumeEvent) {
-            continue;
-        }
-
-        _inputTracker.eventOccurred(ev);
-
-        ev.visit(
-            [this](const hg::win::Event::Closed& aEventData) {
-                if (_stopIfCloseClicked) {
-                    ctx().stop();
-                }
-            },
-            [this](const hg::win::Event::Resized& aEventData) {
-                hg::math::Rectangle<float> visibleArea{
-                    0.f,
-                    0.f,
-                    static_cast<float>(aEventData.width),
-                    static_cast<float>(aEventData.height)
-                };
-                _window->setView(hg::gr::View(visibleArea));
-            }
-        );
+        _events.push_back(std::move(ev));
     }
 
     if (_preciseTiming) {
@@ -380,15 +387,26 @@ void DefaultWindowManager::_finalizeFrameByDisplayingWindow() {
 }
 
 void DefaultWindowManager::_finalizeFrameBySleeping() {
-    using Time = std::chrono::microseconds;
-    const auto deltaTime = std::chrono::duration_cast<Time>(ctx().getRuntimeConfig().deltaTime);
-    const auto timePassed = _frameDurationStopwatch.getElapsedTime<Time>();
+    using std::chrono::duration_cast;
+    using Duration = std::chrono::microseconds;
+    const auto now = std::chrono::steady_clock::now();
 
-    if (timePassed < deltaTime) {
-        hg::util::SuperPreciseSleep(deltaTime - timePassed);
+    const auto updateDeltaTime = duration_cast<Duration>(ctx().getRuntimeConfig().tickRate.getDeltaTime());
+    auto timeUntilUpdate = updateDeltaTime - duration_cast<Duration>(now - ctx().getPerformanceInfo().updateStart);
+
+    if (!_headless) {
+        const auto displayDeltaTime = duration_cast<Duration>(ctx().getRuntimeConfig().displayRate.getDeltaTime());
+        auto timeUntilDisplay = displayDeltaTime - duration_cast<Duration>(now - ctx().getPerformanceInfo().displayStart);
+
+        if (timeUntilUpdate > Duration{0} || timeUntilDisplay > Duration{0}) {
+            const auto max_ = std::max(timeUntilUpdate, timeUntilDisplay);
+            hg::util::SuperPreciseSleep(max_);
+        }
+    } else {
+        if (timeUntilUpdate > Duration{0}) {
+            hg::util::SuperPreciseSleep(timeUntilUpdate);
+        }
     }
-
-    _frameDurationStopwatch.restart();
 }
 
 sf::Vector2f DefaultWindowManager::_getViewRelativeMousePos(hobgoblin::PZInteger aViewIndex) const {

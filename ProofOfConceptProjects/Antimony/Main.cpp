@@ -203,11 +203,13 @@ private:
 #define PRIORITY_EDITOR_DRIVER  1
 #define PRIORITY_WINDOW_MANAGER 0
 
-#define FRAMERATE 120
+#define TICK_RATE     60
+#define DISPLAY_RATE 240
 
 std::unique_ptr<spe::GameContext> CreateContex() {
     spe::GameContext::RuntimeConfig rtConfig;
-    rtConfig.deltaTime = std::chrono::duration<double>{1.0 / FRAMERATE};
+    rtConfig.tickRate = spe::TickRate{TICK_RATE};
+    rtConfig.displayRate = spe::DisplayRate{DISPLAY_RATE};
     rtConfig.maxFramesBetweenDisplays = 2;
     auto ctx = std::make_unique<spe::GameContext>(rtConfig);
 
@@ -217,14 +219,14 @@ std::unique_ptr<spe::GameContext> CreateContex() {
     spe::WindowManagerInterface::WindowConfig windowConfig{
         hg::win::VideoMode{900, 900},
         "Antimony Animator",
-        hg::win::WindowStyle::Default
+        hg::win::WindowStyle::Fullscreen
     };
     spe::WindowManagerInterface::MainRenderTextureConfig mrtConfig{
         /* SIZE */  {1024, 1024},
         /* SMOOTH*/ true
     };
     spe::WindowManagerInterface::TimingConfig timingConfig{
-        FRAMERATE, true, true, false
+        TICK_RATE, /* limiter */ false, /* vsync */ true, /* pt */ true
     };
     // clang-format on
     winMgr->setToNormalMode(windowConfig, mrtConfig, timingConfig);

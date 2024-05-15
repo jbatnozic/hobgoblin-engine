@@ -285,11 +285,15 @@ void GameContext::_runImpl(hg::NeverNull<GameContext*> aContext,
     }
 
     const auto maxConsecutiveSteps = aContext->_runtimeConfig.maxFramesBetweenDisplays;
-    const TimingDuration deltaTime = aContext->_runtimeConfig.deltaTime;
+    const TimingDuration deltaTime = aContext->_runtimeConfig.tickRate.getDeltaTime();
 
     DebugLog("_runImpl - CONFIG - maxConsecutiveSteps={}, deltaTime={}ms.",
              maxConsecutiveSteps,
              MsCount(deltaTime));
+
+    aContext->_performanceInfo.updateStart  = std::chrono::steady_clock::now();
+    aContext->_performanceInfo.drawStart    = std::chrono::steady_clock::now();
+    aContext->_performanceInfo.displayStart = std::chrono::steady_clock::now();
 
     int iterationsCovered = 0;
     TimingDuration accumulator = deltaTime;
@@ -328,6 +332,7 @@ void GameContext::_runImpl(hg::NeverNull<GameContext*> aContext,
             // UPDATE
             {
                 Stopwatch updateStopwatch;
+                aContext->_performanceInfo.updateStart = std::chrono::steady_clock::now();
                 DebugLog("_runImpl - UPDATE start");
                 (*aReturnValue) = DoSingleQaoIteration(aContext->_qaoRuntime,
                                                        QAO_EVENT_MASK_ALL_EXCEPT_DRAW_AND_DISPLAY);
@@ -352,6 +357,7 @@ void GameContext::_runImpl(hg::NeverNull<GameContext*> aContext,
             // DRAW
             {
                 Stopwatch drawStopwatch;
+                aContext->_performanceInfo.drawStart = std::chrono::steady_clock::now();
                 DebugLog("_runImpl - DRAW start");
                 (*aReturnValue) = DoSingleQaoIteration(aContext->_qaoRuntime,
                                                        QAO_EVENT_MASK_ALL_DRAWS);
@@ -378,6 +384,7 @@ void GameContext::_runImpl(hg::NeverNull<GameContext*> aContext,
         // DISPLAY
         {
             Stopwatch displayStopwatch;
+            aContext->_performanceInfo.displayStart = std::chrono::steady_clock::now();
             DebugLog("_runImpl - DISPLAY start");
             (*aReturnValue) = DoSingleQaoIteration(aContext->_qaoRuntime, QAO_EVENT_MASK_DISPLAY);
             DebugLog("_runImpl - DISPLAY end (status = {})", *aReturnValue);

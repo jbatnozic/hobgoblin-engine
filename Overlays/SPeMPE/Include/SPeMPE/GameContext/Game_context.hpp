@@ -41,6 +41,59 @@ constexpr int GCM_SOLO = GCMF_PRIV;
 constexpr int GCM_GMAS = GCMF_PRIV | GCMF_NETW;
 } // namespace detail
 
+//! Represents a number of seconds (integral or fractional) in a type-safe manner.
+using FloatSeconds = std::chrono::duration<double>;
+
+//! Represents the desired number of ticks per second for your game.
+//! 'Ticks' are logical steps in the game, where game world simulation happens, separated
+//! from the number of literal frames the game produces per second.
+//! One tick corresponds to one QAO Update step, usually (but not necessarily) followed by
+//! a QAO Draw step.
+class TickRate {
+public:
+    explicit TickRate(hg::PZInteger aTicksPerSecond = 60)
+        : _value{aTicksPerSecond} {}
+
+    //! Returns the number of ticks per second.
+    hg::PZInteger getValue() const {
+        return _value;
+    }
+
+    //! Returns the duration of one tick in seconds.
+    FloatSeconds getDeltaTime() const {
+        return FloatSeconds{1.0 / static_cast<double>(_value)};
+    }
+
+private:
+    hg::PZInteger _value;
+};
+
+//! Represents the desired number of display intervals per second for your game.
+//! One display interval corresponds to one QAO Display step, or to one frame as far as your
+//! GPU and monitor are concerned.
+//! This is decoupled from TickRate and does not affect the simulation speed of the game.
+class DisplayRate {
+public:
+    explicit DisplayRate(hg::PZInteger aDisplayIntervalsPerSecond = 120)
+        : _value{aDisplayIntervalsPerSecond} {}
+
+    //! Returns the number of display intervals per second.
+    hg::PZInteger getValue() const {
+        return _value;
+    }
+
+    //! Returns the duration of one display interval in seconds.
+    FloatSeconds getDeltaTime() const {
+        return FloatSeconds{1.0 / static_cast<double>(_value)};
+    }
+
+private:
+    hg::PZInteger _value;
+};
+
+constexpr bool VSYNC_ON  = true;
+constexpr bool VSYNC_OFF = false;
+
 //! TODO: Components included by default: WindowManager, LoggingManager, (NetworkingManager?)
 class GameContext {
 public:
@@ -58,8 +111,11 @@ public:
     };
 
     struct RuntimeConfig {
-        //! The amount of time one frame should last = 1.0 / framerate.
-        std::chrono::duration<double> deltaTime{1.0 / 60};
+        //! TODO(dexcription)
+        TickRate tickRate;
+
+        //! TODO(description)
+        DisplayRate displayRate;
 
         //! The maximum number of frames that can be simulated between two
         //! render/draw steps, in case the application isn't achieving the
@@ -137,17 +193,26 @@ public:
     void stop();
 
     struct PerformanceInfo {
+        using microseconds = std::chrono::microseconds;
+        using steady_clock = std::chrono::steady_clock;
+
+        steady_clock::time_point updateStart;
+
         //! Duration of the last finished Update step.
-        std::chrono::microseconds updateTime{0};
+        microseconds updateTime{0};
+
+        steady_clock::time_point drawStart;
 
         //! Duration of the last finished Draw step.
-        std::chrono::microseconds drawTime{0};
+        microseconds drawTime{0};
+
+        steady_clock::time_point displayStart;
 
         //! Duration of the last finished Display step.
-        std::chrono::microseconds displayTime{0};
+        microseconds displayTime{0};
 
         //! Duration of the last fully finished iteration.
-        std::chrono::microseconds iterationTime{0};
+        microseconds iterationTime{0};
         
         //! Number of consecutive Update steps in an iteration.
         //! During the first Update step in an iteration, this variable

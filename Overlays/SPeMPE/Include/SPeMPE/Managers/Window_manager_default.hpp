@@ -114,6 +114,8 @@ private:
     std::optional<hg::gr::DrawBatcher> _windowDrawBatcher;
     bool _stopIfCloseClicked = false;
 
+    std::vector<hg::win::Event> _events;
+
     // Main render texture:
     std::optional<hg::gr::RenderTexture> _mainRenderTexture;
     std::optional<hg::gr::DrawBatcher> _mainRenderTextureDrawBatcher;
@@ -127,6 +129,7 @@ private:
     // Input:
     detail::WindowInputTracker _inputTracker;
 
+    void _eventPreUpdate() override;
     void _eventPreDraw() override;
     void _eventDraw2() override;
     void _eventDisplay() override;
