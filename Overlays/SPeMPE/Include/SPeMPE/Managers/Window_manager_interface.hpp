@@ -79,9 +79,10 @@ public:
         //!                                   iterations to preserve system resources.
         //! \param aVerticalSyncEnabled When set to `true` (VSYNC_ON), the window will use
         //!                             vertical synchronization to prevent screen tearing. It is
-        //!                             recommended to only turn this on in Fullscreen mode.
+        //!                             recommended to only turn this on in fullscreen mode (real
+        //!                             or windowed fullscreen).
         //!
-        //! \note This is the recommended constructor to use when compiling for Windows.
+        //! \note This is the recommended constructor to use when running on Windows.
         TimingConfig(FrameRate aFramerateLimit,
                      bool aBusyWaitPreventionEnabled = PREVENT_BUSY_WAIT_ON,
                      bool aVerticalSyncEnabled = VSYNC_OFF);
@@ -99,12 +100,13 @@ public:
         //!                                   iterations to preserve system resources.
         //! \param aVerticalSyncEnabled When set to `true` (VSYNC_ON), the window will use
         //!                             vertical synchronization to prevent screen tearing. It is
-        //!                             recommended to only turn this on in Fullscreen mode.
+        //!                             recommended to only turn this on in fullscreen mode (real
+        //!                             or windowed fullscreen).
         //!
         //! \note When using this blocking low-level framerate limiter, it's recommended to leave
         //!       both busy wait prevention and vsync off, as they can interfere with each other.
         //!
-        //! \note This is the recommended constructor to use when compiling for Mac.
+        //! \note This is the recommended constructor to use when running on Mac.
         TimingConfig(hg::PZInteger aLowLevelFramerateLimiter = 60,
                      bool aBusyWaitPreventionEnabled = PREVENT_BUSY_WAIT_OFF,
                      bool aVerticalSyncEnabled = VSYNC_OFF);
