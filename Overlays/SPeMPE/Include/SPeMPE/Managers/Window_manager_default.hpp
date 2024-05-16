@@ -128,6 +128,8 @@ private:
     // Input:
     detail::WindowInputTracker _inputTracker;
 
+    bool _x = false;
+
     void _eventPreUpdate() override;
     void _eventPreDraw() override;
     void _eventDraw2() override;

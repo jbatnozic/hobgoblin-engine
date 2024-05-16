@@ -280,7 +280,8 @@ void DefaultWindowManager::_eventDrawGUI() {
     if (!_headless) {
         _windowDrawBatcher->flush();
         _rmlUiContextDriver->update();
-        _rmlUiContextDriver->render();     
+        _rmlUiContextDriver->render();
+        _x = true;
     }
 }
 
@@ -370,12 +371,16 @@ void DefaultWindowManager::_drawMainRenderTexture() {
 void DefaultWindowManager::_displayWindowAndPollEvents() {
     if (_timingConfig.framerateLimit.has_value() &&
         _timeSinceLastDisplay.getElapsedTime() < _getFrameDeltaTime()) {
-        return;
+        goto EVENTS;
     }
 
     _timeSinceLastDisplay.restart();
-    _window->display();    
+    if (_x) {
+        _window->display();
+    }
+    _x = false;
 
+    EVENTS:
     hg::win::Event ev;
     while (_window->pollEvent(ev)) {
         _events.push_back(std::move(ev));

@@ -204,7 +204,7 @@ private:
 #define PRIORITY_WINDOW_MANAGER 0
 
 #define TICK_RATE   60
-#define FRAME_RATE  90
+#define FRAME_RATE 120
 
 std::unique_ptr<spe::GameContext> CreateContex() {
     spe::GameContext::RuntimeConfig rtConfig{spe::TickRate{TICK_RATE}};
