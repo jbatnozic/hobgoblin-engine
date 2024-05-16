@@ -26,14 +26,18 @@ using namespace hg::in;
 
 constexpr auto LOG_ID = "FTT";
 
+#ifdef _MSC_VER
 #define TICK_RATE   60
-#define FRAME_RATE  90
+#define FRAME_RATE 120
+#else
+#define TICK_RATE  60
+#define FRAME_RATE 60
+#endif
 
 void SimpleTest() {
   gr::RenderWindow window{hg::win::VideoMode{800, 800}, "FTT (Simple)"};
   window.getView().setCenter({0.f, 0.f});
   window.setFramerateLimit(TICK_RATE);
-  //window.setVerticalSyncEnabled(true);
 
   gr::CircleShape circle{32.f};
   circle.setOrigin({32.f, 32.f});
@@ -78,9 +82,15 @@ std::unique_ptr<spe::GameContext> CreateContex() {
         /* SMOOTH*/ true
     };
     spe::WindowManagerInterface::TimingConfig timingConfig{
+    #ifdef _MSC_VER
         spe::FrameRate{FRAME_RATE},
         spe::PREVENT_BUSY_WAIT_ON,
         spe::VSYNC_OFF
+    #else
+        FRAME_RATE,
+        spe::PREVENT_BUSY_WAIT_OFF,
+        spe::VSYNC_OFF
+    #endif
     };
     // clang-format on
     winMgr->setToNormalMode(windowConfig, mrtConfig, timingConfig);

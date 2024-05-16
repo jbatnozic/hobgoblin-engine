@@ -71,6 +71,7 @@ void DefaultWindowManager::setToNormalMode(const WindowConfig& aWindowConfig,
         static_cast<float>(aWindowConfig.videoMode.height)
     }});
 
+    _window->setFramerateLimit(_timingConfig.lowLevelFramerateLimiter);
     _window->setVerticalSyncEnabled(_timingConfig.verticalSyncEnabled);
 
     // Create main render texture:
@@ -208,7 +209,6 @@ hg::math::Vector2i DefaultWindowManager::mapCoordsToPixel(const hg::math::Vector
     const auto yy = mrtPositioning.position.y + (mrtPos.y - mrtPositioning.origin.y) * mrtPositioning.scale.y;
 
     return {(int)xx, (int)yy};
-    //return _window->mapCoordsToPixel({xx, yy}, _window->getView());
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -250,13 +250,12 @@ void DefaultWindowManager::_eventPreUpdate() {
                 }
             },
             [this](const hg::win::Event::Resized& aEventData) {
-                hg::math::Rectangle<float> visibleArea{
+                _window->setView(hg::gr::View{{
                     0.f,
                     0.f,
                     static_cast<float>(aEventData.width),
                     static_cast<float>(aEventData.height)
-                };
-                _window->setView(hg::gr::View(visibleArea));
+                }});
             }
         );
     }
@@ -281,7 +280,7 @@ void DefaultWindowManager::_eventDrawGUI() {
         _windowDrawBatcher->flush();
         _rmlUiContextDriver->update();
         _rmlUiContextDriver->render();
-        _x = true;
+        _frameReady = true;
     }
 }
 
@@ -294,11 +293,12 @@ void DefaultWindowManager::_eventDisplay() {
     }
 }
 
-DefaultWindowManager::MainRenderTexturePositioningData DefaultWindowManager::_getMainRenderTexturePositioningData() const {
+DefaultWindowManager::MainRenderTexturePositioningData
+DefaultWindowManager::_getMainRenderTexturePositioningData() const {
     MainRenderTexturePositioningData result;
 
     const auto mrtSize = _mainRenderTexture->getSize();
-    const auto winSize = _window->getSize();
+    const auto winSize = _window->getView().getSize();
 
     switch (_mainRenderTextureDrawPos) {
     case DrawPosition::None:
@@ -375,10 +375,10 @@ void DefaultWindowManager::_displayWindowAndPollEvents() {
     }
 
     _timeSinceLastDisplay.restart();
-    if (_x) {
+    if (_frameReady) {
         _window->display();
     }
-    _x = false;
+    _frameReady = false;
 
     EVENTS:
     hg::win::Event ev;

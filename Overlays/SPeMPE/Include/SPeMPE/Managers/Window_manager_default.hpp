@@ -128,7 +128,7 @@ private:
     // Input:
     detail::WindowInputTracker _inputTracker;
 
-    bool _x = false;
+    bool _frameReady = false;
 
     void _eventPreUpdate() override;
     void _eventPreDraw() override;

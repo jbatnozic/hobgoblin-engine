@@ -203,8 +203,13 @@ private:
 #define PRIORITY_EDITOR_DRIVER  1
 #define PRIORITY_WINDOW_MANAGER 0
 
+#ifdef _MSC_VER
 #define TICK_RATE   60
 #define FRAME_RATE 120
+#else
+#define TICK_RATE  60
+#define FRAME_RATE 60
+#endif
 
 std::unique_ptr<spe::GameContext> CreateContex() {
     spe::GameContext::RuntimeConfig rtConfig{spe::TickRate{TICK_RATE}};
@@ -214,7 +219,7 @@ std::unique_ptr<spe::GameContext> CreateContex() {
     auto winMgr = std::make_unique<spe::DefaultWindowManager>(ctx->getQAORuntime().nonOwning(), PRIORITY_WINDOW_MANAGER);
     // clang-format off
     spe::WindowManagerInterface::WindowConfig windowConfig{
-        hg::win::VideoMode{900, 900},
+        hg::win::VideoMode::getDesktopMode(),
         "Antimony Animator",
         hg::win::WindowStyle::Default
     };
@@ -223,9 +228,15 @@ std::unique_ptr<spe::GameContext> CreateContex() {
         /* SMOOTH*/ true
     };
     spe::WindowManagerInterface::TimingConfig timingConfig{
+    #ifdef _MSC_VER
         spe::FrameRate{FRAME_RATE},
         spe::PREVENT_BUSY_WAIT_ON,
         spe::VSYNC_OFF
+    #else
+        FRAME_RATE,
+        spe::PREVENT_BUSY_WAIT_OFF,
+        spe::VSYNC_OFF
+    #endif
     };
     // clang-format on
     winMgr->setToNormalMode(windowConfig, mrtConfig, timingConfig);

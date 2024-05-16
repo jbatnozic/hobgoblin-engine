@@ -36,7 +36,13 @@ public:
     ///////////////////////////////////////////////////////////////////////////
 
     enum class Mode {
+        //! In this mode no window is actually opened.
+        //! (This mode exists to make writing headless servers and
+        //!  their clients more uniform.)
         Headless,
+
+        //! The 'usual' mode in which a single window is opened and
+        //! operated by the WindowManager to display the game. 
         Normal
     };
 
@@ -63,14 +69,48 @@ public:
     };
 
     struct TimingConfig {
+        //! Constructs the configuration with the 'usual' framerate limiter.
+        //!
+        //! \param aFramerateLimit The maximum number of times per second that the window can
+        //!                        be displayed (refreshed by the game). This is decoupled from the
+        //!                        tick rate of the game and won't affect simulation speed.
+        //! \param aBusyWaitPreventionEnabled When set to `true` (PREVENT_BUSY_WAIT_ON), the
+        //!                                   WindowManager will sleep between GameContext/QAO
+        //!                                   iterations to preserve system resources.
+        //! \param aVerticalSyncEnabled When set to `true` (VSYNC_ON), the window will use
+        //!                             vertical synchronization to prevent screen tearing. It is
+        //!                             recommended to only turn this on in Fullscreen mode.
+        //!
+        //! \note This is the recommended constructor to use when compiling for Windows.
         TimingConfig(FrameRate aFramerateLimit,
                      bool aBusyWaitPreventionEnabled = PREVENT_BUSY_WAIT_ON,
                      bool aVerticalSyncEnabled = VSYNC_OFF);
 
-        TimingConfig(bool aBusyWaitPreventionEnabled = PREVENT_BUSY_WAIT_ON,
+        //! Constructs the configuration with the low level framerate limiter, which will block
+        //! the application if the window is being displayed too quickly.
+        //!
+        //! \param aLowLevelFramerateLimiter The maximum number of times per second that the window can
+        //!                                  be displayed (refreshed by the game). If this is set lower
+        //!                                  than the tick rate of the game, it could slow down the
+        //!                                  simulation. A value of 0 will leave the framerate
+        //!                                  unlimited (which is not recommended).
+        //! \param aBusyWaitPreventionEnabled When set to `true` (PREVENT_BUSY_WAIT_ON), the
+        //!                                   WindowManager will sleep between GameContext/QAO
+        //!                                   iterations to preserve system resources.
+        //! \param aVerticalSyncEnabled When set to `true` (VSYNC_ON), the window will use
+        //!                             vertical synchronization to prevent screen tearing. It is
+        //!                             recommended to only turn this on in Fullscreen mode.
+        //!
+        //! \note When using this blocking low-level framerate limiter, it's recommended to leave
+        //!       both busy wait prevention and vsync off, as they can interfere with each other.
+        //!
+        //! \note This is the recommended constructor to use when compiling for Mac.
+        TimingConfig(hg::PZInteger aLowLevelFramerateLimiter = 60,
+                     bool aBusyWaitPreventionEnabled = PREVENT_BUSY_WAIT_OFF,
                      bool aVerticalSyncEnabled = VSYNC_OFF);
 
         std::optional<FrameRate> framerateLimit;
+        hg::PZInteger lowLevelFramerateLimiter;
         bool busyWaitPreventionEnabled;
         bool verticalSyncEnabled;
     };
@@ -189,17 +229,20 @@ WindowManagerInterface::MainRenderTextureConfig::MainRenderTextureConfig(
 }
 
 inline
-WindowManagerInterface::TimingConfig::TimingConfig(FrameRate aFramerateLimit,
+WindowManagerInterface::TimingConfig::TimingConfig(FrameRate aFrameRateLimit,
                                                    bool aBusyWaitPreventionEnabled,
                                                    bool aVerticalSyncEnabled)
-    : framerateLimit{aFramerateLimit}
+    : framerateLimit{aFrameRateLimit}
+    , lowLevelFramerateLimiter{0}
     , busyWaitPreventionEnabled{aBusyWaitPreventionEnabled}
     , verticalSyncEnabled{aVerticalSyncEnabled} {}
 
 inline
-WindowManagerInterface::TimingConfig::TimingConfig(bool aBusyWaitPreventionEnabled,
+WindowManagerInterface::TimingConfig::TimingConfig(hg::PZInteger aLowLevelFramerateLimiter,
+                                                   bool aBusyWaitPreventionEnabled,
                                                    bool aVerticalSyncEnabled)
     : framerateLimit{std::nullopt}
+    , lowLevelFramerateLimiter{aLowLevelFramerateLimiter}
     , busyWaitPreventionEnabled{aBusyWaitPreventionEnabled}
     , verticalSyncEnabled{aVerticalSyncEnabled} {}
 
