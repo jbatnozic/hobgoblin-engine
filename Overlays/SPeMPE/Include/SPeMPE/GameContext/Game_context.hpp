@@ -12,6 +12,7 @@
 
 #include <SPeMPE/GameContext/Context_components.hpp>
 #include <SPeMPE/GameObjectFramework/Synchronized_object_registry.hpp>
+#include <SPeMPE/Utility/Timing.hpp>
 
 #include <atomic>
 #include <chrono>
@@ -41,59 +42,6 @@ constexpr int GCM_SOLO = GCMF_PRIV;
 constexpr int GCM_GMAS = GCMF_PRIV | GCMF_NETW;
 } // namespace detail
 
-//! Represents a number of seconds (integral or fractional) in a type-safe manner.
-using FloatSeconds = std::chrono::duration<double>;
-
-//! Represents the desired number of ticks per second for your game.
-//! 'Ticks' are logical steps in the game, where game world simulation happens, separated
-//! from the number of literal frames the game produces per second.
-//! One tick corresponds to one QAO Update step, usually (but not necessarily) followed by
-//! a QAO Draw step.
-class TickRate {
-public:
-    explicit TickRate(hg::PZInteger aTicksPerSecond = 60)
-        : _value{aTicksPerSecond} {}
-
-    //! Returns the number of ticks per second.
-    hg::PZInteger getValue() const {
-        return _value;
-    }
-
-    //! Returns the duration of one tick in seconds.
-    FloatSeconds getDeltaTime() const {
-        return FloatSeconds{1.0 / static_cast<double>(_value)};
-    }
-
-private:
-    hg::PZInteger _value;
-};
-
-//! Represents the desired number of display intervals per second for your game.
-//! One display interval corresponds to one QAO Display step, or to one frame as far as your
-//! GPU and monitor are concerned.
-//! This is decoupled from TickRate and does not affect the simulation speed of the game.
-class DisplayRate {
-public:
-    explicit DisplayRate(hg::PZInteger aDisplayIntervalsPerSecond = 120)
-        : _value{aDisplayIntervalsPerSecond} {}
-
-    //! Returns the number of display intervals per second.
-    hg::PZInteger getValue() const {
-        return _value;
-    }
-
-    //! Returns the duration of one display interval in seconds.
-    FloatSeconds getDeltaTime() const {
-        return FloatSeconds{1.0 / static_cast<double>(_value)};
-    }
-
-private:
-    hg::PZInteger _value;
-};
-
-constexpr bool VSYNC_ON  = true;
-constexpr bool VSYNC_OFF = false;
-
 //! TODO: Components included by default: WindowManager, LoggingManager, (NetworkingManager?)
 class GameContext {
 public:
@@ -112,15 +60,12 @@ public:
 
     struct RuntimeConfig {
         //! TODO(dexcription)
-        TickRate tickRate;
-
-        //! TODO(description)
-        DisplayRate displayRate;
+        TickRate tickRate = TickRate{60};
 
         //! The maximum number of frames that can be simulated between two
         //! render/draw steps, in case the application isn't achieving the
         //! desired framerate. The recommended value is 2.
-        hg::PZInteger maxFramesBetweenDisplays{2};
+        hg::PZInteger maxConsecutiveUpdates{2};
     };
 
     GameContext(const RuntimeConfig& aRuntimeConfig,

@@ -26,8 +26,8 @@ using namespace hg::in;
 
 constexpr auto LOG_ID = "FTT";
 
-#define TICK_RATE     60
-#define DISPLAY_RATE 240
+#define TICK_RATE   60
+#define FRAME_RATE  90
 
 void SimpleTest() {
   gr::RenderWindow window{hg::win::VideoMode{800, 800}, "FTT (Simple)"};
@@ -62,10 +62,7 @@ void SimpleTest() {
 #define PRIORITY_WINDOW_MANAGER 0
 
 std::unique_ptr<spe::GameContext> CreateContex() {
-    spe::GameContext::RuntimeConfig rtConfig;
-    rtConfig.tickRate = spe::TickRate{TICK_RATE};
-    rtConfig.displayRate = spe::DisplayRate{DISPLAY_RATE};
-    rtConfig.maxFramesBetweenDisplays = 2;
+    spe::GameContext::RuntimeConfig rtConfig{spe::TickRate{TICK_RATE}};
     auto ctx = std::make_unique<spe::GameContext>(rtConfig);
 
     // Add a WindowManager
@@ -81,7 +78,9 @@ std::unique_ptr<spe::GameContext> CreateContex() {
         /* SMOOTH*/ true
     };
     spe::WindowManagerInterface::TimingConfig timingConfig{
-        TICK_RATE, true, false, false
+        spe::FrameRate{FRAME_RATE},
+        spe::PREVENT_BUSY_WAIT_ON,
+        spe::VSYNC_OFF
     };
     // clang-format on
     winMgr->setToNormalMode(windowConfig, mrtConfig, timingConfig);

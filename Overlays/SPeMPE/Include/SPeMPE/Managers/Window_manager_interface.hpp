@@ -12,11 +12,20 @@
 #include <Hobgoblin/Window.hpp>
 
 #include <SPeMPE/GameContext/Context_components.hpp>
+#include <SPeMPE/Utility/Timing.hpp>
 #include <SPeMPE/Utility/Window_frame_input_view.hpp>
 #include <SPeMPE/Utility/Window_input_tracker.hpp>
 
+#include <optional>
+
 namespace jbatnozic {
 namespace spempe {
+
+constexpr bool PREVENT_BUSY_WAIT_ON  = true;
+constexpr bool PREVENT_BUSY_WAIT_OFF = false;
+
+constexpr bool VSYNC_ON  = true;
+constexpr bool VSYNC_OFF = false;
 
 class WindowManagerInterface : public ContextComponent {
 public:
@@ -54,15 +63,16 @@ public:
     };
 
     struct TimingConfig {
-        TimingConfig(hg::PZInteger aTargetFramerate = 60,
-                     bool aFramerateLimiter = false,
-                     bool aVerticalSync = true,
-                     bool aPreciseTiming = true);
+        TimingConfig(FrameRate aFramerateLimit,
+                     bool aBusyWaitPreventionEnabled = PREVENT_BUSY_WAIT_ON,
+                     bool aVerticalSyncEnabled = VSYNC_OFF);
 
-        hg::PZInteger targetFramerate;
-        bool framerateLimiter;
-        bool verticalSync;
-        bool preciseTiming;
+        TimingConfig(bool aBusyWaitPreventionEnabled = PREVENT_BUSY_WAIT_ON,
+                     bool aVerticalSyncEnabled = VSYNC_OFF);
+
+        std::optional<FrameRate> framerateLimit;
+        bool busyWaitPreventionEnabled;
+        bool verticalSyncEnabled;
     };
 
     virtual void setToHeadlessMode(const TimingConfig& aTimingConfig) = 0;
@@ -179,17 +189,19 @@ WindowManagerInterface::MainRenderTextureConfig::MainRenderTextureConfig(
 }
 
 inline
-WindowManagerInterface::TimingConfig::TimingConfig(
-    hg::PZInteger aTargetFramerate,
-    bool aFramerateLimiter,
-    bool aVerticalSync,
-    bool aPreciseTiming)
-    : targetFramerate{aTargetFramerate}
-    , framerateLimiter{aFramerateLimiter}
-    , verticalSync{aVerticalSync}
-    , preciseTiming{aPreciseTiming}
-{
-}
+WindowManagerInterface::TimingConfig::TimingConfig(FrameRate aFramerateLimit,
+                                                   bool aBusyWaitPreventionEnabled,
+                                                   bool aVerticalSyncEnabled)
+    : framerateLimit{aFramerateLimit}
+    , busyWaitPreventionEnabled{aBusyWaitPreventionEnabled}
+    , verticalSyncEnabled{aVerticalSyncEnabled} {}
+
+inline
+WindowManagerInterface::TimingConfig::TimingConfig(bool aBusyWaitPreventionEnabled,
+                                                   bool aVerticalSyncEnabled)
+    : framerateLimit{std::nullopt}
+    , busyWaitPreventionEnabled{aBusyWaitPreventionEnabled}
+    , verticalSyncEnabled{aVerticalSyncEnabled} {}
 
 } // namespace spempe
 } // namespace jbatnozic

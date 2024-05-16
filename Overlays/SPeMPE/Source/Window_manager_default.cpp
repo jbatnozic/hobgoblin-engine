@@ -42,15 +42,12 @@ void DefaultWindowManager::setToHeadlessMode(const TimingConfig& aTimingConfig) 
     SPEMPE_VALIDATE_GAME_CONTEXT_FLAGS(ctx(), headless==true);
 
     _headless = true;
+    _timingConfig = aTimingConfig;
 
     _mainRenderTextureDrawBatcher.reset();
     _mainRenderTexture.reset();
     _windowDrawBatcher.reset();
     _window.reset();
-
-    // Set timing parameters:
-    _deltaTime = std::chrono::microseconds{1'000'000 / aTimingConfig.targetFramerate};
-    _preciseTiming = aTimingConfig.preciseTiming;
 }
 
 void DefaultWindowManager::setToNormalMode(const WindowConfig& aWindowConfig,
@@ -59,6 +56,7 @@ void DefaultWindowManager::setToNormalMode(const WindowConfig& aWindowConfig,
     SPEMPE_VALIDATE_GAME_CONTEXT_FLAGS(ctx(), headless==false);
 
     _headless = false;
+    _timingConfig = aTimingConfig;
 
     // Create window:
     _window.emplace(aWindowConfig.videoMode, 
@@ -72,6 +70,8 @@ void DefaultWindowManager::setToNormalMode(const WindowConfig& aWindowConfig,
         static_cast<float>(aWindowConfig.videoMode.width),
         static_cast<float>(aWindowConfig.videoMode.height)
     }});
+
+    _window->setVerticalSyncEnabled(_timingConfig.verticalSyncEnabled);
 
     // Create main render texture:
     _mainRenderTexture.emplace();
@@ -95,13 +95,7 @@ void DefaultWindowManager::setToNormalMode(const WindowConfig& aWindowConfig,
 
     // Create GUI:
     _rmlUiBackendLifecycleGuard = hg::rml::HobgoblinBackend::initialize();
-    _rmlUiContextDriver.emplace("DefaultWindowManager::RmlContext", *_window);
-
-    // Set timing parameters:
-    _deltaTime = std::chrono::microseconds{1'000'000 / aTimingConfig.targetFramerate};
-    _window->setFramerateLimit(aTimingConfig.framerateLimiter ? aTimingConfig.targetFramerate : 0);
-    _window->setVerticalSyncEnabled(aTimingConfig.verticalSync);
-    _preciseTiming = aTimingConfig.preciseTiming;
+    _rmlUiContextDriver.emplace("DefaultWindowManager::RmlContext", *_window);  
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -239,6 +233,8 @@ WindowFrameInputView DefaultWindowManager::getInput() const {
 ///////////////////////////////////////////////////////////////////////////
 
 void DefaultWindowManager::_eventPreUpdate() {
+    _inputTracker.prepForEvents();
+
     for (const auto& ev : _events) {
         const auto rmlUiDidConsumeEvent = _rmlUiContextDriver->processEvent(ev);
         if (rmlUiDidConsumeEvent) {
@@ -276,18 +272,24 @@ void DefaultWindowManager::_eventPreDraw() {
 void DefaultWindowManager::_eventDraw2() {
     if (!_headless) {
         _window->clear(hg::gr::COLOR_BLACK); // TODO Parametrize colour
-        _drawMainRenderTexture();
+        _drawMainRenderTexture(); 
+    }
+}
+
+void DefaultWindowManager::_eventDrawGUI() {
+    if (!_headless) {
+        _windowDrawBatcher->flush();
+        _rmlUiContextDriver->update();
+        _rmlUiContextDriver->render();     
     }
 }
 
 void DefaultWindowManager::_eventDisplay() {
     if (!_headless) {
-        _finalizeFrameByDisplayingWindow();
+        _displayWindowAndPollEvents();
     }
-    else {
-        if (_preciseTiming) {
-            _finalizeFrameBySleeping();
-        }
+    if (_timingConfig.busyWaitPreventionEnabled) {
+        _sleepUntilNextStep();
     }
 }
 
@@ -335,7 +337,7 @@ DefaultWindowManager::MainRenderTexturePositioningData DefaultWindowManager::_ge
         result.position = {0.f, 0.f};
         result.origin   = {0.f, 0.f};
         result.scale    = {static_cast<float>(winSize.x) / mrtSize.x,
-                            static_cast<float>(winSize.y) / mrtSize.y};
+                           static_cast<float>(winSize.y) / mrtSize.y};
         break;
 
     case DrawPosition::TopLeft:
@@ -365,48 +367,48 @@ void DefaultWindowManager::_drawMainRenderTexture() {
     _window->draw(mrtSprite);
 }
 
-void DefaultWindowManager::_finalizeFrameByDisplayingWindow() {
-    _windowDrawBatcher->flush();
-    _rmlUiContextDriver->update();
-    _rmlUiContextDriver->render();
-    _window->display();
+void DefaultWindowManager::_displayWindowAndPollEvents() {
+    if (_timingConfig.framerateLimit.has_value() &&
+        _timeSinceLastDisplay.getElapsedTime() < _getFrameDeltaTime()) {
+        return;
+    }
 
-    _inputTracker.prepForEvents();
+    _timeSinceLastDisplay.restart();
+    _window->display();    
 
     hg::win::Event ev;
     while (_window->pollEvent(ev)) {
         _events.push_back(std::move(ev));
     }
-
-    if (_preciseTiming) {
-        // I don't know if this is a good idea, but with vSync on, it waits in random places, including
-        // in the draw events, which screws up timing measurements. So with this call, we force it to
-        // synchronize during the finalizeFrame event.
-        _finalizeFrameBySleeping();
-    }
 }
 
-void DefaultWindowManager::_finalizeFrameBySleeping() {
+void DefaultWindowManager::_sleepUntilNextStep() {
     using std::chrono::duration_cast;
     using Duration = std::chrono::microseconds;
     const auto now = std::chrono::steady_clock::now();
 
-    const auto updateDeltaTime = duration_cast<Duration>(ctx().getRuntimeConfig().tickRate.getDeltaTime());
+    const auto updateDeltaTime = duration_cast<Duration>(_getTickDeltaTime());
     auto timeUntilUpdate = updateDeltaTime - duration_cast<Duration>(now - ctx().getPerformanceInfo().updateStart);
 
     if (!_headless) {
-        const auto displayDeltaTime = duration_cast<Duration>(ctx().getRuntimeConfig().displayRate.getDeltaTime());
-        auto timeUntilDisplay = displayDeltaTime - duration_cast<Duration>(now - ctx().getPerformanceInfo().displayStart);
+        if (_timingConfig.framerateLimit.has_value()) {
+            const auto displayDeltaTime = duration_cast<Duration>(_getFrameDeltaTime());
+            auto timeUntilDisplay = displayDeltaTime - duration_cast<Duration>(now - ctx().getPerformanceInfo().displayStart);
 
-        if (timeUntilUpdate > Duration{0} || timeUntilDisplay > Duration{0}) {
-            const auto max_ = std::max(timeUntilUpdate, timeUntilDisplay);
-            hg::util::SuperPreciseSleep(max_);
+            const auto min_ = std::min(timeUntilUpdate, timeUntilDisplay);
+            hg::util::SuperPreciseSleep(min_);
         }
     } else {
-        if (timeUntilUpdate > Duration{0}) {
-            hg::util::SuperPreciseSleep(timeUntilUpdate);
-        }
+        hg::util::SuperPreciseSleep(timeUntilUpdate);
     }
+}
+
+FloatSeconds DefaultWindowManager::_getTickDeltaTime() const {
+    return ctx().getRuntimeConfig().tickRate.getDeltaTime();
+}
+
+FloatSeconds DefaultWindowManager::_getFrameDeltaTime() const {
+    return _timingConfig.framerateLimit.value().getDeltaTime();
 }
 
 sf::Vector2f DefaultWindowManager::_getViewRelativeMousePos(hobgoblin::PZInteger aViewIndex) const {

@@ -25,11 +25,8 @@ GameContext::GameContext(const RuntimeConfig& aRuntimeConfig, hg::PZInteger aCom
     , _qaoRuntime{this}
     , _components{aComponentTableSize}
 { 
-    if ((_runtimeConfig.deltaTime <= decltype(_runtimeConfig.deltaTime){0.0}) ||
-        (_runtimeConfig.maxFramesBetweenDisplays <= 0)) {
-        HG_THROW_TRACED(hg::InvalidArgumentError, 0,
-                        "Invalid RuntimeConfig provided.");
-    }
+    HG_VALIDATE_ARGUMENT(_runtimeConfig.tickRate.getValue() > 0);
+    HG_VALIDATE_ARGUMENT(_runtimeConfig.maxConsecutiveUpdates > 0);
 }
 
 GameContext::~GameContext() {
@@ -284,11 +281,11 @@ void GameContext::_runImpl(hg::NeverNull<GameContext*> aContext,
         return;
     }
 
-    const auto maxConsecutiveSteps = aContext->_runtimeConfig.maxFramesBetweenDisplays;
-    const TimingDuration deltaTime = aContext->_runtimeConfig.tickRate.getDeltaTime();
+    const auto maxConsecutiveUpdates = aContext->_runtimeConfig.maxConsecutiveUpdates;
+    const TimingDuration deltaTime   = aContext->_runtimeConfig.tickRate.getDeltaTime();
 
-    DebugLog("_runImpl - CONFIG - maxConsecutiveSteps={}, deltaTime={}ms.",
-             maxConsecutiveSteps,
+    DebugLog("_runImpl - CONFIG - maxConsecutiveUpdates={}, deltaTime={}ms.",
+             maxConsecutiveUpdates,
              MsCount(deltaTime));
 
     aContext->_performanceInfo.updateStart  = std::chrono::steady_clock::now();
@@ -312,7 +309,7 @@ void GameContext::_runImpl(hg::NeverNull<GameContext*> aContext,
         }
 
         aContext->_performanceInfo.consecutiveUpdateSteps = 0;
-        for (int i = 0; i < maxConsecutiveSteps; i += 1) {
+        for (int i = 0; i < maxConsecutiveUpdates; i += 1) {
             if (aMaxIterations > 0 && iterationsCovered >= aMaxIterations) {
                 DebugLog("_runImpl - Inner for loop breaking because aMaxIterations was reached.");
                 break;

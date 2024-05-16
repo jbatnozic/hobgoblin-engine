@@ -26,20 +26,19 @@ double SecondsCnt(taDuration aDuration) {
 }
 
 TEST(SPeMPE_TimingTest,
-     RunningContextProducesCorrectFramerateWithoutWindowManager_1) {
+     RunningContextProducesCorrectTickRateWithoutWindowManager_1) {
     hobgoblin::log::SetMinimalLogSeverity(hobgoblin::log::Severity::Info);
 
     static constexpr auto TEST_DURATION = std::chrono::seconds{2};
-    static constexpr auto DESIRED_FRAMERATE = 60.0;
+    static constexpr auto TICK_RATE     = 60;
 
-    GameContext::RuntimeConfig runtimeConfig;
-    runtimeConfig.deltaTime = std::chrono::duration<double>(1.0 / DESIRED_FRAMERATE);
+    GameContext::RuntimeConfig runtimeConfig{TickRate{TICK_RATE}};
     GameContext context{runtimeConfig};
 
     hobgoblin::util::Stopwatch stopwatch;
-    // Need to add +1 because the delta time comes *between* every two steps,
-    // so in order to have a delay of N delta times, we need N+1 steps.
-    context.runFor(static_cast<int>(SecondsCnt(TEST_DURATION) * DESIRED_FRAMERATE) + 1);
+    // Need to add +1 because the delta time comes *between* every two ticks,
+    // so in order to have a delay of N delta times, we need N+1 ticks.
+    context.runFor(static_cast<int>(SecondsCnt(TEST_DURATION) * TICK_RATE) + 1);
     const auto elapsedTime = stopwatch.getElapsedTime<std::chrono::microseconds>();
 
     EXPECT_NEAR(
@@ -52,14 +51,13 @@ TEST(SPeMPE_TimingTest,
 }
 
 TEST(SPeMPE_TimingTest,
-     RunningContextProducesCorrectFramerateWithoutWindowManager_2) {
+     RunningContextProducesCorrectTickRateWithoutWindowManager_2) {
     hobgoblin::log::SetMinimalLogSeverity(hobgoblin::log::Severity::Info);
 
     static constexpr auto TEST_DURATION = std::chrono::seconds{2};
-    static constexpr auto DESIRED_FRAMERATE = 60.0;
+    static constexpr auto TICK_RATE     = 60;
 
-    GameContext::RuntimeConfig runtimeConfig;
-    runtimeConfig.deltaTime = std::chrono::duration<double>(1.0 / DESIRED_FRAMERATE);
+    GameContext::RuntimeConfig runtimeConfig{TickRate{TICK_RATE}};
     GameContext context{runtimeConfig};
 
     auto helper = std::thread{[&]() {
@@ -71,10 +69,10 @@ TEST(SPeMPE_TimingTest,
 
     EXPECT_NEAR(
         context.getCurrentIterationOrdinal(),
-        // Need to add +1 because the delta time comes *between* every two steps,
-        // so in a timeframe of N delta times, we get N+1 steps.
-        static_cast<int>(SecondsCnt(TEST_DURATION) * DESIRED_FRAMERATE) + 1,
-        2 // 2 steps tolerance
+        // Need to add +1 because the delta time comes *between* every two ticks,
+        // so in a timeframe of N delta times, we get N+1 ticks.
+        static_cast<int>(SecondsCnt(TEST_DURATION) * TICK_RATE) + 1,
+        2 // 2 ticks tolerance
     );
 
     helper.join();

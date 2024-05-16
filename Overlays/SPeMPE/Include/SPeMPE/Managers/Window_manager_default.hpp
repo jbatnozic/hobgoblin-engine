@@ -15,6 +15,7 @@
 
 #include <SPeMPE/GameObjectFramework/Game_object_bases.hpp>
 #include <SPeMPE/Managers/Window_manager_interface.hpp>
+#include <SPeMPE/Utility/Timing.hpp>
 #include <SPeMPE/Utility/Window_frame_input_view.hpp>
 #include <SPeMPE/Utility/Window_input_tracker.hpp>
 
@@ -29,7 +30,7 @@ class DefaultWindowManager
     , public NonstateObject {
 public:
     DefaultWindowManager(hg::QAO_RuntimeRef aRuntimeRef,
-                     int aExecutionPriority);
+                         int aExecutionPriority);
 
     ///////////////////////////////////////////////////////////////////////////
     // CONFIGURATION                                                         //
@@ -102,16 +103,14 @@ private:
         sf::Vector2f scale;
     };
 
-    // Configuration:
+    // Configuration:  
     bool _headless;
-
-    std::chrono::microseconds _deltaTime;
-    bool _preciseTiming = true;
-    hg::util::Stopwatch _frameDurationStopwatch;
+    TimingConfig _timingConfig;
 
     // Window management:
     std::optional<hg::gr::RenderWindow> _window;
     std::optional<hg::gr::DrawBatcher> _windowDrawBatcher;
+    hg::util::Stopwatch _timeSinceLastDisplay;
     bool _stopIfCloseClicked = false;
 
     std::vector<hg::win::Event> _events;
@@ -132,13 +131,17 @@ private:
     void _eventPreUpdate() override;
     void _eventPreDraw() override;
     void _eventDraw2() override;
+    void _eventDrawGUI() override;
     void _eventDisplay() override;
 
     MainRenderTexturePositioningData _getMainRenderTexturePositioningData() const;
 
     void _drawMainRenderTexture();
-    void _finalizeFrameByDisplayingWindow();
-    void _finalizeFrameBySleeping();
+    void _displayWindowAndPollEvents();
+    void _sleepUntilNextStep();
+
+    FloatSeconds _getTickDeltaTime() const;
+    FloatSeconds _getFrameDeltaTime() const;
 
     sf::Vector2f _getViewRelativeMousePos(hobgoblin::PZInteger aViewIndex) const;
     sf::Vector2i _getWindowRelativeMousePos() const;

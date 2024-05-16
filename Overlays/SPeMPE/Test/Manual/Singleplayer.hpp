@@ -18,7 +18,7 @@ namespace singleplayer {
 inline
 std::unique_ptr<spe::GameContext> CreateGameContext() {
     auto context = std::make_unique<spe::GameContext>(
-        spe::GameContext::RuntimeConfig{std::chrono::duration<double>(1.0 / DESIRED_FRAMERATE)});
+        spe::GameContext::RuntimeConfig{spe::TickRate{TICK_RATE}});
     context->setToMode(spe::GameContext::Mode::GameMaster);
 
     // Create and attach a Networking manager
@@ -40,10 +40,9 @@ std::unique_ptr<spe::GameContext> CreateGameContext() {
         },
         spe::WindowManagerInterface::MainRenderTextureConfig{{WINDOW_WIDTH, WINDOW_HEIGHT}},
         spe::WindowManagerInterface::TimingConfig{
-            DESIRED_FRAMERATE,
-            false, /* Framerate limiter */
-            false, /* V-Sync */
-            true   /* Precise timing */
+            spe::FrameRate{FRAME_RATE},
+            spe::PREVENT_BUSY_WAIT_ON,
+            spe::VSYNC_OFF
         }
     );
 
