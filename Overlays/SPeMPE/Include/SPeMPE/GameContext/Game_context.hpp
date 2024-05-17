@@ -59,7 +59,11 @@ public:
     };
 
     struct RuntimeConfig {
-        //! TODO(dexcription)
+        //! The desired number of ticks per second for your game. 'Ticks' are
+        //! logical steps in the game, where game world simulation happens, separated
+        //! from the number of literal frames the game produces per second. One
+        //! tick corresponds to one QAO Update step, usually (but not necessarily)
+        //! followed by a QAO Draw step.
         TickRate tickRate = TickRate{60};
 
         //! The maximum number of frames that can be simulated between two
@@ -239,7 +243,6 @@ private:
     hg::QAO_Runtime _qaoRuntime;
 
     // Context components:
-    // TODO: Owned components should be destroyed in a defined order (opposite of insertion)
     std::vector<std::unique_ptr<ContextComponent>> _ownedComponents;
     detail::ComponentTable _components;
 
