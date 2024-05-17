@@ -41,10 +41,11 @@ private:
     hg::PZInteger _value;
 };
 
-//! Represents the desired number of frames per second for your game.
-//! One frame corresponds to one QAO Display step, or to one frame as far as your
-//! GPU and monitor are concerned.
-//! This is decoupled from TickRate and does not affect the simulation speed of the game.
+//! Represents a number of frames per second that a game can produce.
+//! One frame corresponds to display() call to a window - which sends 
+//! a rendered frame buffer to your GPU/Monitor.
+//! This is different from TickRate and does not affect the simulation
+//! speed of the game.
 class FrameRate {
 public:
     explicit FrameRate(hg::PZInteger aFramesPerSecond = 120)
