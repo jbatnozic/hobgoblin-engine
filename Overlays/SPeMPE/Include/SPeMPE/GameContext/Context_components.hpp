@@ -1,8 +1,6 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-// clang-format off
-
 #ifndef SPEMPE_GAME_CONTEXT_CONTEXT_COMPONENTS_HPP
 #define SPEMPE_GAME_CONTEXT_CONTEXT_COMPONENTS_HPP
 
@@ -28,15 +26,12 @@ public:
 
 //! Define a component's tag.
 //! For example: SPEMPE_CTXCOMP_TAG("PhysicsManager"); (can be in the private section)
-#define SPEMPE_CTXCOMP_TAG(_tag_string_) \
-    ::std::string __spempeimpl_getComponentTag() const { \
-        return ::std::string{_tag_string_}; \
-    } \
-    ::jbatnozic::spempe::ContextComponent::TagHash __spempeimpl_getComponentTagHash() const { \
-        constexpr static auto TAG_HASH_ = \
-            ::jbatnozic::hobgoblin::util::HornerHash(_tag_string_); \
-        return TAG_HASH_; \
-    } \
+#define SPEMPE_CTXCOMP_TAG(_tag_string_)                                                          \
+    ::std::string __spempeimpl_getComponentTag() const { return ::std::string{_tag_string_}; }    \
+    ::jbatnozic::spempe::ContextComponent::TagHash __spempeimpl_getComponentTagHash() const {     \
+        constexpr static auto TAG_HASH_ = ::jbatnozic::hobgoblin::util::HornerHash(_tag_string_); \
+        return TAG_HASH_;                                                                         \
+    }                                                                                             \
     friend class ::jbatnozic::spempe::detail::ComponentTable
 
 namespace detail {
@@ -65,15 +60,15 @@ public:
 
 private:
     struct Node {
-        ContextComponent* component = nullptr;
-        ContextComponent::TagHash tagHash = 0;
-        std::string tag;
+        ContextComponent*         component = nullptr;
+        ContextComponent::TagHash tagHash   = 0;
+        std::string               tag;
     };
 
     std::vector<Node> _table;
 
-    void _attachComponent(ContextComponent& aComponent,
-                          std::string aTag,
+    void _attachComponent(ContextComponent&         aComponent,
+                          std::string               aTag,
                           ContextComponent::TagHash aTagHash);
 
     ContextComponent* _getComponentPtr(ContextComponent::TagHash aTagHash) const;
@@ -82,7 +77,7 @@ private:
 
 template <class taComponent>
 void ComponentTable::attachComponent(taComponent& aComponent) {
-    const auto tag = aComponent.__spempeimpl_getComponentTag();
+    const auto tag     = aComponent.__spempeimpl_getComponentTag();
     const auto tagHash = aComponent.__spempeimpl_getComponentTagHash();
     _attachComponent(aComponent, std::move(tag), tagHash);
 }
@@ -91,8 +86,7 @@ template <class taComponent>
 taComponent& ComponentTable::getComponent() const {
     //! Ugly hack that relies on the fact that __spempeimpl_getComponentTagHash
     //! doesn't actually at any point dereference 'this'.
-    const auto tagHash = 
-        reinterpret_cast<taComponent*>(0x12345678)->__spempeimpl_getComponentTagHash();
+    const auto tagHash = reinterpret_cast<taComponent*>(0x12345678)->__spempeimpl_getComponentTagHash();
     return static_cast<taComponent&>(_getComponent(tagHash));
 }
 
@@ -100,8 +94,7 @@ template <class taComponent>
 taComponent* ComponentTable::getComponentPtr() const {
     //! Ugly hack that relies on the fact that __spempeimpl_getComponentTagHash
     //! doesn't actually at any point dereference 'this'.
-    const auto tagHash =
-        reinterpret_cast<taComponent*>(0x12345678)->__spempeimpl_getComponentTagHash();
+    const auto tagHash = reinterpret_cast<taComponent*>(0x12345678)->__spempeimpl_getComponentTagHash();
     return static_cast<taComponent*>(_getComponentPtr(tagHash));
 }
 
@@ -111,5 +104,3 @@ taComponent* ComponentTable::getComponentPtr() const {
 } // namespace jbatnozic
 
 #endif // !SPEMPE_GAME_CONTEXT_CONTEXT_COMPONENTS_HPP
-
-// clang-format on

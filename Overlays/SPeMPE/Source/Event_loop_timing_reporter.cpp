@@ -55,7 +55,7 @@ void EventLoopTimingReporter::_eventPreUpdate() {
 
     const auto elapsedTime = _stopwatch.restart();
     const auto expectedDuration =
-        ctx().getRuntimeConfig().deltaTime * 
+        ctx().getRuntimeConfig().tickRate.getDeltaTime() * 
             (ctx().getCurrentIterationOrdinal() - _ordinalAtStartOfCycle);
     const auto percentAccurracy =
         (1.0 - std::abs(MsCount(elapsedTime) - MsCount(expectedDuration)) / MsCount(expectedDuration)) * 100.0;

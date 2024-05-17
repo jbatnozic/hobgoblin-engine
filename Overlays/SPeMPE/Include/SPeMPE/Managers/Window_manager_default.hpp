@@ -1,19 +1,19 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-// clang-format off
-
 #ifndef SPEMPE_MANAGERS_WINDOW_MANAGER_DEFAULT_HPP
 #define SPEMPE_MANAGERS_WINDOW_MANAGER_DEFAULT_HPP
 
 #include <Hobgoblin/Graphics.hpp>
 #include <Hobgoblin/RmlUi.hpp>
 #include <Hobgoblin/Utility/Time_utils.hpp>
+
 #include <Hobgoblin/Graphics.hpp>
 #include <Hobgoblin/Window.hpp>
 
 #include <SPeMPE/GameObjectFramework/Game_object_bases.hpp>
 #include <SPeMPE/Managers/Window_manager_interface.hpp>
+#include <SPeMPE/Utility/Timing.hpp>
 #include <SPeMPE/Utility/Window_frame_input_view.hpp>
 #include <SPeMPE/Utility/Window_input_tracker.hpp>
 
@@ -23,12 +23,11 @@
 namespace jbatnozic {
 namespace spempe {
 
-class DefaultWindowManager 
+class DefaultWindowManager
     : public WindowManagerInterface
     , public NonstateObject {
 public:
-    DefaultWindowManager(hg::QAO_RuntimeRef aRuntimeRef,
-                     int aExecutionPriority);
+    DefaultWindowManager(hg::QAO_RuntimeRef aRuntimeRef, int aExecutionPriority);
 
     ///////////////////////////////////////////////////////////////////////////
     // CONFIGURATION                                                         //
@@ -36,13 +35,17 @@ public:
 
     void setToHeadlessMode(const TimingConfig& aTimingConfig) override;
 
-    void setToNormalMode(const WindowConfig& aWindowConfig,
+    void setToNormalMode(const WindowConfig&            aWindowConfig,
                          const MainRenderTextureConfig& aMainRenderTextureConfig,
-                         const TimingConfig& aTimingConfig) override;
+                         const TimingConfig&            aTimingConfig) override;
 
     ///////////////////////////////////////////////////////////////////////////
     // WINDOW MANAGEMENT                                                     //
     ///////////////////////////////////////////////////////////////////////////
+
+    hg::math::Vector2pz getWindowSize() const override;
+
+    void setStopIfCloseClicked(bool aStop) override;
 
     ///////////////////////////////////////////////////////////////////////////
     // GRAPHICS & DRAWING                                                    //
@@ -66,6 +69,18 @@ public:
 
     const hg::gr::View& getView(hg::PZInteger aViewIndex = 0) const override;
 
+    hg::math::Vector2f mapPixelToCoords(const hg::math::Vector2i& aPoint,
+                                        const hg::gr::View&       aView) const override;
+
+    hg::math::Vector2f mapPixelToCoords(const hg::math::Vector2i& aPoint,
+                                        hg::PZInteger             aViewIdx = 0) const override;
+
+    hg::math::Vector2i mapCoordsToPixel(const hg::math::Vector2f& aPoint,
+                                        const hg::gr::View&       aView) const override;
+
+    hg::math::Vector2i mapCoordsToPixel(const hg::math::Vector2f& aPoint,
+                                        hg::PZInteger             aViewIdx = 0) const override;
+
     ///////////////////////////////////////////////////////////////////////////
     // GUI                                                                   //
     ///////////////////////////////////////////////////////////////////////////
@@ -75,7 +90,7 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     // INPUT                                                                 //
     ///////////////////////////////////////////////////////////////////////////
-    
+
     WindowFrameInputView getInput() const override;
 
 private:
@@ -86,38 +101,46 @@ private:
     };
 
     // Configuration:
-    bool _headless;
-
-    std::chrono::microseconds _deltaTime;
-    bool _preciseTiming = true;
-    hg::util::Stopwatch _frameDurationStopwatch;
+    bool         _headless;
+    TimingConfig _timingConfig;
 
     // Window management:
     std::optional<hg::gr::RenderWindow> _window;
-    std::optional<hg::gr::DrawBatcher> _windowDrawBatcher;
+    std::optional<hg::gr::DrawBatcher>  _windowDrawBatcher;
+    hg::util::Stopwatch                 _timeSinceLastDisplay;
+    bool                                _stopIfCloseClicked = false;
+
+    std::vector<hg::win::Event> _events;
 
     // Main render texture:
     std::optional<hg::gr::RenderTexture> _mainRenderTexture;
-    std::optional<hg::gr::DrawBatcher> _mainRenderTextureDrawBatcher;
+    std::optional<hg::gr::DrawBatcher>   _mainRenderTextureDrawBatcher;
 
     DrawPosition _mainRenderTextureDrawPos = DrawPosition::Fit;
 
     // GUI:
     std::unique_ptr<hg::rml::HobgoblinBackend::BackendLifecycleGuard> _rmlUiBackendLifecycleGuard;
-    std::optional<hg::rml::ContextDriver> _rmlUiContextDriver;
+    std::optional<hg::rml::ContextDriver>                             _rmlUiContextDriver;
 
     // Input:
     detail::WindowInputTracker _inputTracker;
 
+    bool _frameReady = false;
+
+    void _eventPreUpdate() override;
     void _eventPreDraw() override;
     void _eventDraw2() override;
+    void _eventDrawGUI() override;
     void _eventDisplay() override;
 
     MainRenderTexturePositioningData _getMainRenderTexturePositioningData() const;
 
     void _drawMainRenderTexture();
-    void _finalizeFrameByDisplayingWindow();
-    void _finalizeFrameBySleeping();
+    void _displayWindowAndPollEvents();
+    void _sleepUntilNextStep();
+
+    FloatSeconds _getTickDeltaTime() const;
+    FloatSeconds _getFrameDeltaTime() const;
 
     sf::Vector2f _getViewRelativeMousePos(hobgoblin::PZInteger aViewIndex) const;
     sf::Vector2i _getWindowRelativeMousePos() const;
@@ -127,5 +150,3 @@ private:
 } // namespace jbatnozic
 
 #endif // !SPEMPE_MANAGERS_WINDOW_MANAGER_DEFAULT_HPP
-
-// clang-format on

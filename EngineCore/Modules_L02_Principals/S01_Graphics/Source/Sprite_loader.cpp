@@ -98,8 +98,8 @@ public:
 
         auto& req = _indexedRequests[aSpriteId];
         req.subsprites.emplace_back();
-        req.subsprites.back().image = std::move(loadedImage.image);
-        req.subsprites.back().offset = loadedImage.originOffset;
+        req.subsprites.back().image    = std::move(loadedImage.image);
+        req.subsprites.back().offset   = loadedImage.originOffset;
         req.subsprites.back().occupied = true;
 
         return this;
@@ -124,8 +124,8 @@ public:
                         aSubspriteIndex,
                         aSpriteId);
         }
-        subsprite.image = std::move(loadedImage.image);
-        subsprite.offset = loadedImage.originOffset;
+        subsprite.image    = std::move(loadedImage.image);
+        subsprite.offset   = loadedImage.originOffset;
         subsprite.occupied = true;
 
         return this;
@@ -139,8 +139,8 @@ public:
 
         auto& req = _indexedRequests[aSpriteId];
         req.subsprites.emplace_back();
-        req.subsprites.back().image = std::move(loadedImage.image);
-        req.subsprites.back().offset = loadedImage.originOffset;
+        req.subsprites.back().image    = std::move(loadedImage.image);
+        req.subsprites.back().offset   = loadedImage.originOffset;
         req.subsprites.back().occupied = true;
 
         return this;
@@ -158,8 +158,8 @@ public:
 
         auto& req = _mappedRequests[aSpriteId];
         req.subsprites.emplace_back();
-        req.subsprites.back().image = std::move(loadedImage.image);
-        req.subsprites.back().offset = loadedImage.originOffset;
+        req.subsprites.back().image    = std::move(loadedImage.image);
+        req.subsprites.back().offset   = loadedImage.originOffset;
         req.subsprites.back().occupied = true;
 
         return this;
@@ -184,8 +184,8 @@ public:
                         aSubspriteIndex,
                         aSpriteId);
         }
-        subsprite.image = std::move(loadedImage.image);
-        subsprite.offset = loadedImage.originOffset;
+        subsprite.image    = std::move(loadedImage.image);
+        subsprite.offset   = loadedImage.originOffset;
         subsprite.occupied = true;
 
         return this;
@@ -199,8 +199,8 @@ public:
 
         auto& req = _mappedRequests[aSpriteId];
         req.subsprites.emplace_back();
-        req.subsprites.back().image = std::move(loadedImage.image);
-        req.subsprites.back().offset = loadedImage.originOffset;
+        req.subsprites.back().image    = std::move(loadedImage.image);
+        req.subsprites.back().offset   = loadedImage.originOffset;
         req.subsprites.back().occupied = true;
 
         return this;

@@ -14,7 +14,7 @@ namespace util {
 
 class Latch {
 public:
-    static constexpr bool OPEN = true;
+    static constexpr bool OPEN   = true;
     static constexpr bool CLOSED = false;
 
     Latch(bool aInitialValue = CLOSED)

@@ -25,7 +25,7 @@ using WorldCostFunction = std::uint8_t (*)(math::Vector2pz aWorldPosition, const
 
 struct WorldCostFunctionWithArg {
     WorldCostFunction func = nullptr;
-    const void*       arg = nullptr;
+    const void*       arg  = nullptr;
 };
 
 //! Map of (CostProviderId -> WorldCostFunctionWithArg[arg = pointer to cost provider]).

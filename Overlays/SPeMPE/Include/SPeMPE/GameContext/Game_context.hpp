@@ -1,8 +1,6 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-// clang-format off
-
 #ifndef SPEMPE_GAME_CONTEXT_GAME_CONTEXT_HPP
 #define SPEMPE_GAME_CONTEXT_GAME_CONTEXT_HPP
 
@@ -12,6 +10,7 @@
 
 #include <SPeMPE/GameContext/Context_components.hpp>
 #include <SPeMPE/GameObjectFramework/Synchronized_object_registry.hpp>
+#include <SPeMPE/Utility/Timing.hpp>
 
 #include <atomic>
 #include <chrono>
@@ -48,6 +47,7 @@ public:
     // CONFIGURATION                                                         //
     ///////////////////////////////////////////////////////////////////////////
 
+    // clang-format off
     enum class Mode {
                                        // PRIVILEGED | HEADLESS | NETWORKING
         Initial    = detail::GCM_INIT, //            |          |           
@@ -56,19 +56,23 @@ public:
         Solo       = detail::GCM_SOLO, //      +     |          |           
         GameMaster = detail::GCM_GMAS, //      +     |          |      +    
     };
+    // clang-format on
 
     struct RuntimeConfig {
-        //! The amount of time one frame should last = 1.0 / framerate.
-        std::chrono::duration<double> deltaTime{1.0 / 60};
+        //! The desired number of ticks per second for your game. 'Ticks' are
+        //! logical steps in the game, where game world simulation happens, separated
+        //! from the number of literal frames the game produces per second. One
+        //! tick corresponds to one QAO Update step, usually (but not necessarily)
+        //! followed by a QAO Draw step.
+        TickRate tickRate = TickRate{60};
 
         //! The maximum number of frames that can be simulated between two
         //! render/draw steps, in case the application isn't achieving the
         //! desired framerate. The recommended value is 2.
-        hg::PZInteger maxFramesBetweenDisplays{2};
+        hg::PZInteger maxConsecutiveUpdates{2};
     };
 
-    GameContext(const RuntimeConfig& aRuntimeConfig,
-                hg::PZInteger aComponentTableSize = 32);
+    GameContext(const RuntimeConfig& aRuntimeConfig, hg::PZInteger aComponentTableSize = 32);
     ~GameContext();
 
     //! Only transitions between Initial and other modes (and the other way
@@ -89,7 +93,7 @@ public:
         bool isPaused = false;
     };
 
-    GameState& getGameState();
+    GameState&       getGameState();
     const GameState& getGameState() const;
 
     ///////////////////////////////////////////////////////////////////////////
@@ -137,18 +141,42 @@ public:
     void stop();
 
     struct PerformanceInfo {
+        using microseconds = std::chrono::microseconds;
+        using steady_clock = std::chrono::steady_clock;
+
+        //! Time point showing the time when the most recent QAO Update step was
+        //! started (undefined if no Update step was started yet).
+        //! This time point is relative to the start of an undefined epoch, so
+        //! only comparing to another `std::chrono::steady_clock::time_point`
+        //! makes sense.
+        steady_clock::time_point updateStart;
+
         //! Duration of the last finished Update step.
-        std::chrono::microseconds updateTime{0};
+        microseconds updateTime{0};
+
+        //! Time point showing the time when the most recent QAO Draw step was
+        //! started (undefined if no Draw step was started yet).
+        //! This time point is relative to the start of an undefined epoch, so
+        //! only comparing to another `std::chrono::steady_clock::time_point`
+        //! makes sense.
+        steady_clock::time_point drawStart;
 
         //! Duration of the last finished Draw step.
-        std::chrono::microseconds drawTime{0};
+        microseconds drawTime{0};
+
+        //! Time point showing the time when the most recent QAO Display step was
+        //! started (undefined if no Display step was started yet).
+        //! This time point is relative to the start of an undefined epoch, so
+        //! only comparing to another `std::chrono::steady_clock::time_point`
+        //! makes sense.
+        steady_clock::time_point displayStart;
 
         //! Duration of the last finished Display step.
-        std::chrono::microseconds displayTime{0};
+        microseconds displayTime{0};
 
         //! Duration of the last fully finished iteration.
-        std::chrono::microseconds iterationTime{0};
-        
+        microseconds iterationTime{0};
+
         //! Number of consecutive Update steps in an iteration.
         //! During the first Update step in an iteration, this variable
         //! will be set to 1, then during the next consecutive Update step
@@ -196,15 +224,15 @@ public:
     void startChildContext(int aIterations);
 
     //! If a child context is currently attached and is currently running, this
-    //! method stops it and joins the background thread. Otherwise, it does 
+    //! method stops it and joins the background thread. Otherwise, it does
     //! nothing. The return value is the status of the execution of the last
     //! stopped child context (0 = success), which will be undefined if no child
     //! contexts were ever started.
     int stopAndJoinChildContext();
-    
+
 private:
     // Configuration:
-    Mode _mode = Mode::Initial;
+    Mode          _mode = Mode::Initial;
     RuntimeConfig _runtimeConfig;
 
     // State:
@@ -214,25 +242,24 @@ private:
     hg::QAO_Runtime _qaoRuntime;
 
     // Context components:
-    // TODO: Owned components should be destroyed in a defined order (opposite of insertion)
     std::vector<std::unique_ptr<ContextComponent>> _ownedComponents;
-    detail::ComponentTable _components;
+    detail::ComponentTable                         _components;
 
     // Execution:
-    PerformanceInfo _performanceInfo;
-    std::uint64_t _iterationCounter = 0;
+    PerformanceInfo   _performanceInfo;
+    std::uint64_t     _iterationCounter = 0;
     std::atomic<bool> _quit;
 
     // Child context support:
-    GameContext* _parentContext = nullptr;
-    std::unique_ptr<GameContext> _childContext = nullptr;
-    std::thread _childContextThread;
-    int _childContextReturnValue = 0;
+    GameContext*                 _parentContext = nullptr;
+    std::unique_ptr<GameContext> _childContext  = nullptr;
+    std::thread                  _childContextThread;
+    int                          _childContextReturnValue = 0;
 
     static void _runImpl(hg::NeverNull<GameContext*> aContext,
-                         hg::NeverNull<int*> aReturnValue,
-                         int aMaxIterations,
-                         bool aDebugLoggingActive = false);
+                         hg::NeverNull<int*>         aReturnValue,
+                         int                         aMaxIterations,
+                         bool                        aDebugLoggingActive = false);
 };
 
 template <class taComponent>
@@ -265,5 +292,3 @@ taComponent* GameContext::getComponentPtr() const {
 #include <SPeMPE/GameContext/Game_context_flag_validation.hpp>
 
 #endif // !SPEMPE_GAME_CONTEXT_GAME_CONTEXT_HPP
-
-// clang-format on

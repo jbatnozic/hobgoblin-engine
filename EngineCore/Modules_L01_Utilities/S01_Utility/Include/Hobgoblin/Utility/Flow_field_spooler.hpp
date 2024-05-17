@@ -199,7 +199,7 @@ private:
         detail::WCFMap result;
 
         for (const auto& pair : aCostProviderMap) {
-            const std::int32_t         id = pair.first;
+            const std::int32_t         id       = pair.first;
             const taWorldCostProvider* provider = pair.second;
 
             result[id] = {&_worldCostFunction, provider};
@@ -259,7 +259,7 @@ std::optional<OffsetFlowField> FlowFieldSpooler<taWorldCostProvider>::collectRes
 
     OffsetFlowField result;
     result.flowField = std::move(implResult->flowField);
-    result.offset = implResult->offset;
+    result.offset    = implResult->offset;
     return {std::move(result)};
 }
 

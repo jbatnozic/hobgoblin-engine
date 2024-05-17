@@ -20,8 +20,8 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
-using ImplType = sf::Text;
-constexpr auto IMPL_SIZE = sizeof(ImplType);
+using ImplType            = sf::Text;
+constexpr auto IMPL_SIZE  = sizeof(ImplType);
 constexpr auto IMPL_ALIGN = alignof(ImplType);
 #define IMPLOF(_obj_)  (reinterpret_cast<ImplType*>(&((_obj_)._storage)))
 #define CIMPLOF(_obj_) (reinterpret_cast<const ImplType*>(&((_obj_)._storage)))
@@ -56,7 +56,7 @@ Text::Text(const Text& aOther)
 Text& Text::operator=(const Text& aOther) {
     if (this != &aOther) {
         *SELF_IMPL = *CIMPLOF(aOther);
-        _font = aOther._font;
+        _font      = aOther._font;
     }
     return SELF;
 }
@@ -69,7 +69,7 @@ Text::Text(Text&& aOther) noexcept
 Text& Text::operator=(Text&& aOther) noexcept {
     if (this != &aOther) {
         *SELF_IMPL = std::move(*IMPLOF(aOther));
-        _font = aOther._font;
+        _font      = aOther._font;
     }
     return SELF;
 }

@@ -18,8 +18,8 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
-using ImplType = sf::Font;
-constexpr auto IMPL_SIZE = sizeof(ImplType);
+using ImplType            = sf::Font;
+constexpr auto IMPL_SIZE  = sizeof(ImplType);
 constexpr auto IMPL_ALIGN = alignof(ImplType);
 #define IMPLOF(_obj_)  (reinterpret_cast<ImplType*>(&((_obj_)._storage)))
 #define CIMPLOF(_obj_) (reinterpret_cast<const ImplType*>(&((_obj_)._storage)))

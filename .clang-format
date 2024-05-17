@@ -93,3 +93,5 @@ BraceWrapping:
 BreakBeforeTernaryOperators: true
 
 PenaltyReturnTypeOnItsOwnLine: 1000
+
+AlignConsecutiveAssignments: true
