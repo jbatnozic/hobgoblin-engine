@@ -78,9 +78,9 @@ struct RPCReceiverContextTemplate {
         , meanLatency{aClient.getServerConnector().getRemoteInfo().meanLatency / 2}
         , optimisticLatency{aClient.getServerConnector().getRemoteInfo().optimisticLatency / 2}
         , pessimisticLatency{aClient.getServerConnector().getRemoteInfo().pessimisticLatency / 2}
-        , meanLatencyInSteps{ROUND2INT(meanLatency / gameContext.getRuntimeConfig().deltaTime)}
-        , optimisticLatencyInSteps{ROUND2INT(optimisticLatency / gameContext.getRuntimeConfig().deltaTime)}
-        , pessimisticLatencyInSteps{ROUND2INT(pessimisticLatency / gameContext.getRuntimeConfig().deltaTime)}
+        , meanLatencyInSteps{ROUND2INT(meanLatency / gameContext.getRuntimeConfig().tickRate.getDeltaTime())}
+        , optimisticLatencyInSteps{ROUND2INT(optimisticLatency / gameContext.getRuntimeConfig().tickRate.getDeltaTime())}
+        , pessimisticLatencyInSteps{ROUND2INT(pessimisticLatency / gameContext.getRuntimeConfig().tickRate.getDeltaTime())}
     {
     }
 
@@ -91,9 +91,9 @@ struct RPCReceiverContextTemplate {
         , meanLatency{aServer.getClientConnector(senderIndex).getRemoteInfo().meanLatency / 2}
         , optimisticLatency{aServer.getClientConnector(senderIndex).getRemoteInfo().optimisticLatency / 2}
         , pessimisticLatency{aServer.getClientConnector(senderIndex).getRemoteInfo().pessimisticLatency / 2}
-        , meanLatencyInSteps{ROUND2INT(meanLatency / gameContext.getRuntimeConfig().deltaTime)}
-        , optimisticLatencyInSteps{ROUND2INT(optimisticLatency / gameContext.getRuntimeConfig().deltaTime)}
-        , pessimisticLatencyInSteps{ROUND2INT(pessimisticLatency / gameContext.getRuntimeConfig().deltaTime)}
+        , meanLatencyInSteps{ROUND2INT(meanLatency / gameContext.getRuntimeConfig().tickRate.getDeltaTime())}
+        , optimisticLatencyInSteps{ROUND2INT(optimisticLatency / gameContext.getRuntimeConfig().tickRate.getDeltaTime())}
+        , pessimisticLatencyInSteps{ROUND2INT(pessimisticLatency / gameContext.getRuntimeConfig().tickRate.getDeltaTime())}
     {
     }
 

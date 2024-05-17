@@ -276,6 +276,8 @@ private:
 
 #if defined(UHOBGOBLIN_DEBUG) && defined(_MSC_VER)
     static constexpr std::size_t STORAGE_SIZE = 144;
+#elif defined(__linux__)
+    static constexpr std::size_t STORAGE_SIZE = 152;
 #else
     static constexpr std::size_t STORAGE_SIZE = 120;
 #endif

@@ -19,7 +19,7 @@ namespace multiplayer {
 inline
 std::unique_ptr<spe::GameContext> CreateHostGameContext() {
     auto context = std::make_unique<spe::GameContext>(
-        spe::GameContext::RuntimeConfig{std::chrono::duration<double>(1.0 / DESIRED_FRAMERATE)});
+        spe::GameContext::RuntimeConfig{spe::TickRate{TICK_RATE}});
     context->setToMode(spe::GameContext::Mode::GameMaster);
 
     // Create and attach a Multiplayer manager
@@ -44,10 +44,9 @@ std::unique_ptr<spe::GameContext> CreateHostGameContext() {
         },
         spe::WindowManagerInterface::MainRenderTextureConfig{{WINDOW_WIDTH, WINDOW_HEIGHT}},
         spe::WindowManagerInterface::TimingConfig{
-            DESIRED_FRAMERATE,
-            false, /* Framerate limiter */
-            false, /* V-Sync */
-            true   /* Precise timing */
+            spe::FrameRate{FRAME_RATE},
+            spe::PREVENT_BUSY_WAIT_ON,
+            spe::VSYNC_OFF
         }
     );
 
@@ -65,7 +64,7 @@ std::unique_ptr<spe::GameContext> CreateHostGameContext() {
 inline
 std::unique_ptr<spe::GameContext> CreateClientGameContext(std::uint16_t aServerPort) {
     auto context = std::make_unique<spe::GameContext>(
-        spe::GameContext::RuntimeConfig{std::chrono::duration<double>(1.0 / DESIRED_FRAMERATE)});
+        spe::GameContext::RuntimeConfig{spe::TickRate{TICK_RATE}});
     context->setToMode(spe::GameContext::Mode::Client);
 
     // Create and attach a Multiplayer manager
@@ -90,10 +89,9 @@ std::unique_ptr<spe::GameContext> CreateClientGameContext(std::uint16_t aServerP
         },
         spe::WindowManagerInterface::MainRenderTextureConfig{{WINDOW_WIDTH, WINDOW_HEIGHT}},
         spe::WindowManagerInterface::TimingConfig{
-            DESIRED_FRAMERATE,
-            false, /* Framerate limiter */
-            false, /* V-Sync */
-            true   /* Precise timing */
+            spe::FrameRate{FRAME_RATE},
+            spe::PREVENT_BUSY_WAIT_ON,
+            spe::VSYNC_OFF
         }
     );
 

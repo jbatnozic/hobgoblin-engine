@@ -403,6 +403,8 @@ private:
     #else
         static constexpr std::size_t STORAGE_SIZE = 368;
     #endif
+#elif defined(__linux__)
+    static constexpr std::size_t STORAGE_SIZE = 368;
 #else
     static constexpr std::size_t STORAGE_SIZE = 360;
 #endif
