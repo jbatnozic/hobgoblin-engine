@@ -141,16 +141,31 @@ public:
         using microseconds = std::chrono::microseconds;
         using steady_clock = std::chrono::steady_clock;
 
+        //! Time point showing the time when the most recent QAO Update step was
+        //! started (undefined if no Update step was started yet).
+        //! This time point is relative to the start of an undefined epoch, so
+        //! only comparing to another `std::chrono::steady_clock::time_point`
+        //! makes sense.
         steady_clock::time_point updateStart;
 
         //! Duration of the last finished Update step.
         microseconds updateTime{0};
 
+        //! Time point showing the time when the most recent QAO Draw step was
+        //! started (undefined if no Draw step was started yet).
+        //! This time point is relative to the start of an undefined epoch, so
+        //! only comparing to another `std::chrono::steady_clock::time_point`
+        //! makes sense.
         steady_clock::time_point drawStart;
 
         //! Duration of the last finished Draw step.
         microseconds drawTime{0};
 
+        //! Time point showing the time when the most recent QAO Display step was
+        //! started (undefined if no Display step was started yet).
+        //! This time point is relative to the start of an undefined epoch, so
+        //! only comparing to another `std::chrono::steady_clock::time_point`
+        //! makes sense.
         steady_clock::time_point displayStart;
 
         //! Duration of the last finished Display step.
