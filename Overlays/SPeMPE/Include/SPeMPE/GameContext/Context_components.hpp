@@ -61,7 +61,7 @@ public:
 private:
     struct Node {
         ContextComponent*         component = nullptr;
-        ContextComponent::TagHash tagHash = 0;
+        ContextComponent::TagHash tagHash   = 0;
         std::string               tag;
     };
 
@@ -77,7 +77,7 @@ private:
 
 template <class taComponent>
 void ComponentTable::attachComponent(taComponent& aComponent) {
-    const auto tag = aComponent.__spempeimpl_getComponentTag();
+    const auto tag     = aComponent.__spempeimpl_getComponentTag();
     const auto tagHash = aComponent.__spempeimpl_getComponentTagHash();
     _attachComponent(aComponent, std::move(tag), tagHash);
 }

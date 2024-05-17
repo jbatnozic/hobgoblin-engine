@@ -19,10 +19,10 @@
 namespace jbatnozic {
 namespace spempe {
 
-constexpr bool PREVENT_BUSY_WAIT_ON = true;
+constexpr bool PREVENT_BUSY_WAIT_ON  = true;
 constexpr bool PREVENT_BUSY_WAIT_OFF = false;
 
-constexpr bool VSYNC_ON = true;
+constexpr bool VSYNC_ON  = true;
 constexpr bool VSYNC_OFF = false;
 
 class WindowManagerInterface : public ContextComponent {
@@ -48,7 +48,7 @@ public:
         WindowConfig(
             const hg::win::VideoMode&       aVideoMode,
             const std::string&              aTitle,
-            hg::win::WindowStyle            aStyle = hg::win::WindowStyle::Default,
+            hg::win::WindowStyle            aStyle                 = hg::win::WindowStyle::Default,
             const hg::win::ContextSettings& aOpenGlContextSettings = hg::win::ContextSettings{});
 
         hg::win::VideoMode       videoMode;
@@ -60,7 +60,7 @@ public:
     struct MainRenderTextureConfig {
         MainRenderTextureConfig(
             const hg::math::Vector2pz&      aSize,
-            const bool                      aSmooth = true,
+            const bool                      aSmooth                = true,
             const hg::win::ContextSettings& aOpenGlContextSettings = hg::win::ContextSettings{});
 
         hg::math::Vector2pz      size;
@@ -85,7 +85,7 @@ public:
         //! \note This is the recommended constructor to use when running on Windows.
         TimingConfig(FrameRate aFramerateLimit,
                      bool      aBusyWaitPreventionEnabled = PREVENT_BUSY_WAIT_ON,
-                     bool      aVerticalSyncEnabled = VSYNC_OFF);
+                     bool      aVerticalSyncEnabled       = VSYNC_OFF);
 
         //! Constructs the configuration with the low level framerate limiter, which will block
         //! the application if the window is being displayed too quickly.
@@ -107,9 +107,9 @@ public:
         //!       both busy wait prevention and vsync off, as they can interfere with each other.
         //!
         //! \note This is the recommended constructor to use when running on Mac.
-        TimingConfig(hg::PZInteger aLowLevelFramerateLimiter = 60,
+        TimingConfig(hg::PZInteger aLowLevelFramerateLimiter  = 60,
                      bool          aBusyWaitPreventionEnabled = PREVENT_BUSY_WAIT_OFF,
-                     bool          aVerticalSyncEnabled = VSYNC_OFF);
+                     bool          aVerticalSyncEnabled       = VSYNC_OFF);
 
         std::optional<FrameRate> framerateLimit;
         hg::PZInteger            lowLevelFramerateLimiter;

@@ -136,7 +136,7 @@ void GameContext::attachChildContext(std::unique_ptr<GameContext> aChildContext)
     if (hasChildContext()) {
         HG_THROW_TRACED(hg::TracedLogicError, 0, "A child context is already attached.");
     }
-    _childContext = std::move(aChildContext);
+    _childContext                 = std::move(aChildContext);
     _childContext->_parentContext = this;
 }
 
@@ -281,18 +281,18 @@ void GameContext::_runImpl(hg::NeverNull<GameContext*> aContext,
     }
 
     const auto           maxConsecutiveUpdates = aContext->_runtimeConfig.maxConsecutiveUpdates;
-    const TimingDuration deltaTime = aContext->_runtimeConfig.tickRate.getDeltaTime();
+    const TimingDuration deltaTime             = aContext->_runtimeConfig.tickRate.getDeltaTime();
 
     DebugLog("_runImpl - CONFIG - maxConsecutiveUpdates={}, deltaTime={}ms.",
              maxConsecutiveUpdates,
              MsCount(deltaTime));
 
-    aContext->_performanceInfo.updateStart = std::chrono::steady_clock::now();
-    aContext->_performanceInfo.drawStart = std::chrono::steady_clock::now();
+    aContext->_performanceInfo.updateStart  = std::chrono::steady_clock::now();
+    aContext->_performanceInfo.drawStart    = std::chrono::steady_clock::now();
     aContext->_performanceInfo.displayStart = std::chrono::steady_clock::now();
 
     int            iterationsCovered = 0;
-    TimingDuration accumulator = deltaTime;
+    TimingDuration accumulator       = deltaTime;
     Stopwatch      frameToFrameStopwatch;
 
     while (true) {
@@ -368,7 +368,7 @@ void GameContext::_runImpl(hg::NeverNull<GameContext*> aContext,
             // Prevent excessive buildup in accumulator in case
             // the program is not meeting time requirements
             const auto accBefore = accumulator;
-            accumulator = std::min(accumulator, deltaTime * 0.5);
+            accumulator          = std::min(accumulator, deltaTime * 0.5);
             if (accumulator != accBefore) {
                 DebugLog("_runImpl - Accumulator clamped from {}ms to {}ms.",
                          MsCount(accBefore),

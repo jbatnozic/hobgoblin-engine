@@ -20,7 +20,7 @@
 #include <string>
 #include <vector>
 
-namespace gr = hg::gr;
+namespace gr  = hg::gr;
 namespace spe = ::jbatnozic::spempe;
 using namespace hg::in;
 
@@ -54,8 +54,8 @@ void SimpleTest() {
             });
         }
 
-        const auto lr = (float)CheckPressedPK(PK_D) - (float)CheckPressedPK(PK_A);
-        const auto ud = (float)CheckPressedPK(PK_S) - (float)CheckPressedPK(PK_W);
+        const auto lr         = (float)CheckPressedPK(PK_D) - (float)CheckPressedPK(PK_A);
+        const auto ud         = (float)CheckPressedPK(PK_S) - (float)CheckPressedPK(PK_W);
         const auto multiplier = 8.f;
         window.getView().move({-lr * multiplier, -ud * multiplier});
 
@@ -114,10 +114,10 @@ public:
 
     void _eventUpdate1() override {
         auto&       winMgr = ccomp<spe::WindowManagerInterface>();
-        const auto& input = winMgr.getInput();
+        const auto& input  = winMgr.getInput();
 
-        const auto lr = (float)input.checkPressed(PK_D) - (float)input.checkPressed(PK_A);
-        const auto ud = (float)input.checkPressed(PK_S) - (float)input.checkPressed(PK_W);
+        const auto lr         = (float)input.checkPressed(PK_D) - (float)input.checkPressed(PK_A);
+        const auto ud         = (float)input.checkPressed(PK_S) - (float)input.checkPressed(PK_W);
         const auto multiplier = 8.f;
 
         winMgr.getView().move({-lr * multiplier, -ud * multiplier});

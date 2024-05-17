@@ -121,16 +121,16 @@ public:
 
 public:
     // prevents compilation when someone attempts to assign a null pointer constant
-    NeverNull(std::nullptr_t) = delete;
+    NeverNull(std::nullptr_t)            = delete;
     NeverNull& operator=(std::nullptr_t) = delete;
 
     // unwanted operators...pointers only point to single objects!
-    NeverNull& operator++() = delete;
-    NeverNull& operator--() = delete;
-    NeverNull  operator++(int) = delete;
-    NeverNull  operator--(int) = delete;
-    NeverNull& operator+=(std::ptrdiff_t) = delete;
-    NeverNull& operator-=(std::ptrdiff_t) = delete;
+    NeverNull& operator++()                     = delete;
+    NeverNull& operator--()                     = delete;
+    NeverNull  operator++(int)                  = delete;
+    NeverNull  operator--(int)                  = delete;
+    NeverNull& operator+=(std::ptrdiff_t)       = delete;
+    NeverNull& operator-=(std::ptrdiff_t)       = delete;
     void       operator[](std::ptrdiff_t) const = delete;
 
 protected:

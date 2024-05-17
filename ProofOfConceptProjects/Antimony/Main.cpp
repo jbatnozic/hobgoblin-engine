@@ -20,7 +20,7 @@
 #include <string>
 #include <vector>
 
-namespace gr = hg::gr;
+namespace gr  = hg::gr;
 namespace spe = ::jbatnozic::spempe;
 
 constexpr auto LOG_ID = "Antimony";
@@ -35,7 +35,7 @@ public:
                  hg::PZInteger                aSpriteCount) {
         for (hg::PZInteger i = 0; i < aSpriteCount; i += 1) {
             std::filesystem::path specificSpriteName = {aBaseSpriteName + std::to_string(i) + ".png"};
-            const auto&           texture = _loader.startTexture(2048, 2048)
+            const auto&           texture            = _loader.startTexture(2048, 2048)
                                       ->addSprite(i, aDirectory / specificSpriteName)
                                       ->finalize(gr::TexturePackingHeuristic::BestAreaFit);
             _textures.push_back(&texture);
@@ -69,7 +69,7 @@ public:
 
         // Draw master
         const auto blueprint = _masterLoader.getMasterBlueprint(_stage);
-        auto       sprite = blueprint.spr();
+        auto       sprite    = blueprint.spr();
         canvas.draw(sprite);
 
         // Draw origin
@@ -111,7 +111,7 @@ private:
         SUBSTAGE_COUNT
     };
 
-    int _stage = 0;
+    int _stage    = 0;
     int _substage = 0;
 
     void _previousStage() {}
@@ -121,7 +121,7 @@ private:
     void _drawCrosshairs(spe::WindowManagerInterface& aWinMgr,
                          hg::math::Vector2f           aCenter,
                          gr::Color                    aColor) {
-        auto&      canvas = aWinMgr.getCanvas();
+        auto&      canvas    = aWinMgr.getCanvas();
         const auto screenPos = aWinMgr.mapCoordsToPixel({aCenter.x, aCenter.y});
 
         gr::RectangleShape rect;
@@ -152,7 +152,7 @@ public:
         HG_HARD_ASSERT(_editor != nullptr);
 
         auto&       winMgr = ccomp<spe::WindowManagerInterface>();
-        const auto& input = winMgr.getInput();
+        const auto& input  = winMgr.getInput();
 
         _editorZoom -= input.getVerticalMouseWheelScroll() * 0.1f;
         if (_editorZoom < 0.1f) {
@@ -253,10 +253,10 @@ int main(int argc, char* argv[]) try {
                     "Usage:\n    antimony.exe dir/to/sprites sprite_base_name master_cnt lerp_cnt");
         return EXIT_SUCCESS;
     }
-    const std::filesystem::path spriteDir = argv[1];
+    const std::filesystem::path spriteDir      = argv[1];
     const std::string           spriteBaseName = argv[2];
-    const hg::PZInteger         masterCount = std::stoi(argv[3]);
-    const hg::PZInteger         lerpCount = std::stoi(argv[3]);
+    const hg::PZInteger         masterCount    = std::stoi(argv[3]);
+    const hg::PZInteger         lerpCount      = std::stoi(argv[3]);
 
     auto context = CreateContex();
 

@@ -252,7 +252,7 @@ private:
 
     // Child context support:
     GameContext*                 _parentContext = nullptr;
-    std::unique_ptr<GameContext> _childContext = nullptr;
+    std::unique_ptr<GameContext> _childContext  = nullptr;
     std::thread                  _childContextThread;
     int                          _childContextReturnValue = 0;
 

@@ -37,7 +37,7 @@ DefaultWindowManager::DefaultWindowManager(hg::QAO_RuntimeRef aRuntimeRef, int a
 void DefaultWindowManager::setToHeadlessMode(const TimingConfig& aTimingConfig) {
     SPEMPE_VALIDATE_GAME_CONTEXT_FLAGS(ctx(), headless == true);
 
-    _headless = true;
+    _headless     = true;
     _timingConfig = aTimingConfig;
 
     _mainRenderTextureDrawBatcher.reset();
@@ -51,7 +51,7 @@ void DefaultWindowManager::setToNormalMode(const WindowConfig&            aWindo
                                            const TimingConfig&            aTimingConfig) {
     SPEMPE_VALIDATE_GAME_CONTEXT_FLAGS(ctx(), headless == false);
 
-    _headless = false;
+    _headless     = false;
     _timingConfig = aTimingConfig;
 
     // Create window:
@@ -260,8 +260,7 @@ void DefaultWindowManager::_eventPreUpdate() {
                     static_cast<float>(aEventData.height)
                 }});
                 // clang-format on
-            }
-        );
+            });
     }
     _events.clear();
 }
@@ -307,8 +306,8 @@ DefaultWindowManager::MainRenderTexturePositioningData DefaultWindowManager::
     switch (_mainRenderTextureDrawPos) {
     case DrawPosition::None:
         result.position = {0.f, 0.f};
-        result.origin = {0.f, 0.f};
-        result.scale = {0.f, 0.f};
+        result.origin   = {0.f, 0.f};
+        result.scale    = {0.f, 0.f};
         break;
 
     case DrawPosition::Fill:
@@ -332,20 +331,20 @@ DefaultWindowManager::MainRenderTexturePositioningData DefaultWindowManager::
         }
 
         result.position = {static_cast<float>(winSize.x) * 0.5f, static_cast<float>(winSize.y) * 0.5f};
-        result.origin = {static_cast<float>(mrtSize.x) * 0.5f, static_cast<float>(mrtSize.y) * 0.5f};
+        result.origin   = {static_cast<float>(mrtSize.x) * 0.5f, static_cast<float>(mrtSize.y) * 0.5f};
         break;
 
     case DrawPosition::Stretch:
         result.position = {0.f, 0.f};
-        result.origin = {0.f, 0.f};
-        result.scale = {static_cast<float>(winSize.x) / mrtSize.x,
-                        static_cast<float>(winSize.y) / mrtSize.y};
+        result.origin   = {0.f, 0.f};
+        result.scale    = {static_cast<float>(winSize.x) / mrtSize.x,
+                           static_cast<float>(winSize.y) / mrtSize.y};
         break;
 
     case DrawPosition::TopLeft:
         result.position = {0.f, 0.f};
-        result.origin = {0.f, 0.f};
-        result.scale = {1.f, 1.f};
+        result.origin   = {0.f, 0.f};
+        result.scale    = {1.f, 1.f};
         break;
 
     default: assert(false && "Unreachable");
@@ -425,7 +424,7 @@ sf::Vector2f DefaultWindowManager::_getViewRelativeMousePos(hobgoblin::PZInteger
     }
 
     const auto mrtPositioning = _getMainRenderTexturePositioningData();
-    const auto pixelPos = hg::win::GetMousePositionRelativeToWindow(*_window);
+    const auto pixelPos       = hg::win::GetMousePositionRelativeToWindow(*_window);
 
     auto windowPos = _window->mapPixelToCoords(pixelPos, _window->getView());
     windowPos.x =
