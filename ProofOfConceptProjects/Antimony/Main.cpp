@@ -3,12 +3,12 @@
 
 #define HOBGOBLIN_SHORT_NAMESPACE
 #include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/Format.hpp>
+#include <Hobgoblin/Graphics.hpp>
 #include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Logging.hpp>
-#include <Hobgoblin/Unicode.hpp>
-#include <Hobgoblin/Format.hpp>
 #include <Hobgoblin/Math.hpp>
-#include <Hobgoblin/Graphics.hpp>
+#include <Hobgoblin/Unicode.hpp>
 
 #include <SPeMPE/SPeMPE.hpp>
 
@@ -49,15 +49,14 @@ public:
 private:
     static constexpr gr::SpriteIdNumerical SPRITE_ID = 0;
 
-    gr::SpriteLoader _loader;
+    gr::SpriteLoader                _loader;
     std::vector<const gr::Texture*> _textures;
 };
 
 class Editor {
 public:
     Editor(const MasterLoader& aMasterLoader, hg::PZInteger aMasterCount, hg::PZInteger aLerpCount)
-        : _masterLoader{aMasterLoader}
-    {
+        : _masterLoader{aMasterLoader} {
         _offsets.resize(static_cast<std::size_t>(aMasterCount * (aLerpCount + 1)));
     }
 
@@ -70,27 +69,24 @@ public:
 
         // Draw master
         const auto blueprint = _masterLoader.getMasterBlueprint(_stage);
-        auto sprite = blueprint.spr();
+        auto       sprite = blueprint.spr();
         canvas.draw(sprite);
 
         // Draw origin
-
     }
 
     void drawGui(spe::WindowManagerInterface& aWinMgr) {
         auto& canvas = aWinMgr.getCanvas();
 
-        const auto string = hg::UFormat(
-            HG_UNIFMT("Stage: {} / {} \n"
-                      "Origin: {}, {}"),
-            _stage,
-            _substage,
-            (_origin) ? _origin->x : 0.f,
-            (_origin) ? _origin->y : 0.f
-        );
+        const auto string = hg::UFormat(HG_UNIFMT("Stage: {} / {} \n"
+                                                  "Origin: {}, {}"),
+                                        _stage,
+                                        _substage,
+                                        (_origin) ? _origin->x : 0.f,
+                                        (_origin) ? _origin->y : 0.f);
 
         const auto& font = gr::BuiltInFonts::getFont(gr::BuiltInFonts::TITILLIUM_REGULAR);
-        gr::Text text{font, string};
+        gr::Text    text{font, string};
         text.setPosition({32.f, 32.f});
         text.setFillColor(gr::COLOR_RED);
         text.setStyle(gr::Text::REGULAR);
@@ -104,7 +100,7 @@ public:
 private:
     const MasterLoader& _masterLoader;
 
-    std::optional<hg::math::Vector2f> _origin;
+    std::optional<hg::math::Vector2f>              _origin;
     std::vector<std::optional<hg::math::Vector2f>> _offsets;
 
     enum class Substage {
@@ -118,18 +114,14 @@ private:
     int _stage = 0;
     int _substage = 0;
 
-    void _previousStage() {
+    void _previousStage() {}
 
-    }
-
-    void _nextStage() {
-
-    }
+    void _nextStage() {}
 
     void _drawCrosshairs(spe::WindowManagerInterface& aWinMgr,
                          hg::math::Vector2f           aCenter,
                          gr::Color                    aColor) {
-        auto& canvas = aWinMgr.getCanvas();
+        auto&      canvas = aWinMgr.getCanvas();
         const auto screenPos = aWinMgr.mapCoordsToPixel({aCenter.x, aCenter.y});
 
         gr::RectangleShape rect;
@@ -150,8 +142,7 @@ private:
 class EditorDriver : public spe::NonstateObject {
 public:
     EditorDriver(hg::QAO_RuntimeRef aRuntimeRef, int aExecutionPriority)
-        : spe::NonstateObject{aRuntimeRef, SPEMPE_TYPEID_SELF, aExecutionPriority, "EditorDriver"}
-    {}
+        : spe::NonstateObject{aRuntimeRef, SPEMPE_TYPEID_SELF, aExecutionPriority, "EditorDriver"} {}
 
     void init(Editor& aEditor) {
         _editor = &aEditor;
@@ -160,7 +151,7 @@ public:
     void _eventUpdate1() override {
         HG_HARD_ASSERT(_editor != nullptr);
 
-        auto& winMgr = ccomp<spe::WindowManagerInterface>();
+        auto&       winMgr = ccomp<spe::WindowManagerInterface>();
         const auto& input = winMgr.getInput();
 
         _editorZoom -= input.getVerticalMouseWheelScroll() * 0.1f;
@@ -175,8 +166,10 @@ public:
         winMgr.getView().setSize({1024.f, 1024.f});
         winMgr.getView().zoom(_editorZoom);
 
-        const auto xOff = ((float)input.checkPressed(hg::in::PK_D) - (float)input.checkPressed(hg::in::PK_A)) * 8.f;
-        const auto yOff = ((float)input.checkPressed(hg::in::PK_S) - (float)input.checkPressed(hg::in::PK_W)) * 8.f;
+        const auto xOff =
+            ((float)input.checkPressed(hg::in::PK_D) - (float)input.checkPressed(hg::in::PK_A)) * 8.f;
+        const auto yOff =
+            ((float)input.checkPressed(hg::in::PK_S) - (float)input.checkPressed(hg::in::PK_W)) * 8.f;
         winMgr.getView().move({xOff, yOff});
     }
 
@@ -204,7 +197,7 @@ private:
 #define PRIORITY_WINDOW_MANAGER 0
 
 #ifdef _MSC_VER
-#define TICK_RATE   60
+#define TICK_RATE  60
 #define FRAME_RATE 120
 #else
 #define TICK_RATE  60
@@ -213,10 +206,11 @@ private:
 
 std::unique_ptr<spe::GameContext> CreateContex() {
     spe::GameContext::RuntimeConfig rtConfig{spe::TickRate{TICK_RATE}};
-    auto ctx = std::make_unique<spe::GameContext>(rtConfig);
+    auto                            ctx = std::make_unique<spe::GameContext>(rtConfig);
 
     // Add a WindowManager
-    auto winMgr = std::make_unique<spe::DefaultWindowManager>(ctx->getQAORuntime().nonOwning(), PRIORITY_WINDOW_MANAGER);
+    auto winMgr = std::make_unique<spe::DefaultWindowManager>(ctx->getQAORuntime().nonOwning(),
+                                                              PRIORITY_WINDOW_MANAGER);
     // clang-format off
     spe::WindowManagerInterface::WindowConfig windowConfig{
         hg::win::VideoMode::getDesktopMode(),
@@ -255,7 +249,8 @@ int main(int argc, char* argv[]) try {
     hg::log::SetMinimalLogSeverity(hg::log::Severity::Info);
 
     if (argc != 5) {
-        HG_LOG_INFO(LOG_ID, "Usage:\n    antimony.exe dir/to/sprites sprite_base_name master_cnt lerp_cnt");
+        HG_LOG_INFO(LOG_ID,
+                    "Usage:\n    antimony.exe dir/to/sprites sprite_base_name master_cnt lerp_cnt");
         return EXIT_SUCCESS;
     }
     const std::filesystem::path spriteDir = argv[1];
@@ -266,7 +261,7 @@ int main(int argc, char* argv[]) try {
     auto context = CreateContex();
 
     MasterLoader loader{spriteDir, spriteBaseName, masterCount};
-    Editor editor{loader, masterCount, lerpCount};
+    Editor       editor{loader, masterCount, lerpCount};
 
     EditorDriver editorDriver{context->getQAORuntime().nonOwning(), PRIORITY_EDITOR_DRIVER};
     editorDriver.init(editor);

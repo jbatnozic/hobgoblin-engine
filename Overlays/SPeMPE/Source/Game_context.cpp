@@ -1,8 +1,6 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-// clang-format off
-
 #include <SPeMPE/GameContext/Game_context.hpp>
 
 #include <Hobgoblin/HGExcept.hpp>
@@ -23,8 +21,7 @@ constexpr const char* LOG_ID = "SPeMPE";
 GameContext::GameContext(const RuntimeConfig& aRuntimeConfig, hg::PZInteger aComponentTableSize)
     : _runtimeConfig{aRuntimeConfig}
     , _qaoRuntime{this}
-    , _components{aComponentTableSize}
-{ 
+    , _components{aComponentTableSize} {
     HG_VALIDATE_ARGUMENT(_runtimeConfig.tickRate.getValue() > 0);
     HG_VALIDATE_ARGUMENT(_runtimeConfig.maxConsecutiveUpdates > 0);
 }
@@ -91,11 +88,12 @@ hg::QAO_Runtime& GameContext::getQAORuntime() {
 void GameContext::detachComponent(ContextComponent& aComponent) {
     _components.detachComponent(aComponent);
 
-    _ownedComponents.erase(
-        std::remove_if(_ownedComponents.begin(), _ownedComponents.end(),
-                       [&aComponent](std::unique_ptr<ContextComponent>& aCurr) {
-                           return aCurr.get() == &aComponent;
-                       }), _ownedComponents.end());
+    _ownedComponents.erase(std::remove_if(_ownedComponents.begin(),
+                                          _ownedComponents.end(),
+                                          [&aComponent](std::unique_ptr<ContextComponent>& aCurr) {
+                                              return aCurr.get() == &aComponent;
+                                          }),
+                           _ownedComponents.end());
 }
 
 std::string GameContext::getComponentTableString(char aSeparator) const {
@@ -136,8 +134,7 @@ std::uint64_t GameContext::getCurrentIterationOrdinal() const {
 
 void GameContext::attachChildContext(std::unique_ptr<GameContext> aChildContext) {
     if (hasChildContext()) {
-        HG_THROW_TRACED(hg::TracedLogicError, 0,
-                        "A child context is already attached.");
+        HG_THROW_TRACED(hg::TracedLogicError, 0, "A child context is already attached.");
     }
     _childContext = std::move(aChildContext);
     _childContext->_parentContext = this;
@@ -145,7 +142,8 @@ void GameContext::attachChildContext(std::unique_ptr<GameContext> aChildContext)
 
 std::unique_ptr<GameContext> GameContext::detachChildContext() {
     if (hasChildContext() && isChildContextJoinable()) {
-        HG_THROW_TRACED(hg::TracedLogicError, 0,
+        HG_THROW_TRACED(hg::TracedLogicError,
+                        0,
                         "Cannot detach a running child context - stop and join it first.");
     }
 
@@ -158,8 +156,7 @@ bool GameContext::hasChildContext() const {
 
 bool GameContext::isChildContextJoinable() const {
     if (!hasChildContext()) {
-        HG_THROW_TRACED(hg::TracedLogicError, 0,
-                        "No child context is currently attached.");
+        HG_THROW_TRACED(hg::TracedLogicError, 0, "No child context is currently attached.");
     }
     return _childContextThread.joinable();
 }
@@ -170,19 +167,18 @@ GameContext* GameContext::getChildContext() const {
 
 void GameContext::startChildContext(int aIterations) {
     if (!hasChildContext()) {
-        HG_THROW_TRACED(hg::TracedLogicError, 0,
-                        "No child context is currently attached");
+        HG_THROW_TRACED(hg::TracedLogicError, 0, "No child context is currently attached");
     }
 
     if (_childContextThread.joinable()) {
-        HG_THROW_TRACED(hg::TracedLogicError, 0,
+        HG_THROW_TRACED(hg::TracedLogicError,
+                        0,
                         "The previous child context must be stopped and joined first.");
     }
 
     _childContext->_quit.store(false);
-    _childContextThread = std::thread{
-        _runImpl, _childContext.get(), &_childContextReturnValue, aIterations, false
-    };
+    _childContextThread =
+        std::thread{_runImpl, _childContext.get(), &_childContextReturnValue, aIterations, false};
 }
 
 int GameContext::stopAndJoinChildContext() {
@@ -206,42 +202,41 @@ int GameContext::stopAndJoinChildContext() {
 namespace {
 
 #ifndef UHOBGOBLIN_DEBUG
-    // If we're in Debug mode, we don't want to catch and handle
-    // exceptions, but rather let the IDE break the program.
-    #define CATCH_EXCEPTIONS_TOP_LEVEL
+// If we're in Debug mode, we don't want to catch and handle
+// exceptions, but rather let the IDE break the program.
+#define CATCH_EXCEPTIONS_TOP_LEVEL
 #endif // !UHOBGOBLIN_DEBUG
 
 int DoSingleQaoIteration(hg::QAO_Runtime& runtime, std::int32_t eventFlags) {
     runtime.startStep();
     bool done = false;
     do {
-    #ifdef CATCH_EXCEPTIONS_TOP_LEVEL
+#ifdef CATCH_EXCEPTIONS_TOP_LEVEL
         try {
             runtime.advanceStep(done, eventFlags);
-        }
-        catch (std::exception& ex) {
+        } catch (std::exception& ex) {
             HG_LOG_ERROR(LOG_ID, "Exception caught: {}", ex.what());
             return 1;
-        }
-        catch (...) {
+        } catch (...) {
             HG_LOG_ERROR(LOG_ID, "Unknown exception caught!");
             return 2;
         }
-    #else
+#else
         runtime.advanceStep(done, eventFlags);
-    #endif
+#endif
     } while (!done);
 
     return 0;
 }
 
-using hg::QAO_Event;
 using hg::QAO_ALL_EVENT_FLAGS;
+using hg::QAO_Event;
 
 constexpr std::int32_t ToEventMask(QAO_Event::Enum ev) {
     return (1 << static_cast<std::int32_t>(ev));
 }
 
+// clang-format off
 constexpr std::int32_t QAO_EVENT_MASK_ALL_DRAWS = ToEventMask(QAO_Event::PRE_DRAW)
                                                 | ToEventMask(QAO_Event::DRAW_1)
                                                 | ToEventMask(QAO_Event::DRAW_2)
@@ -256,11 +251,12 @@ constexpr std::int32_t QAO_EVENT_MASK_ALL_EXCEPT_DISPLAY = QAO_ALL_EVENT_FLAGS &
 
 constexpr std::int32_t QAO_EVENT_MASK_ALL_EXCEPT_DRAW_AND_DISPLAY = QAO_EVENT_MASK_ALL_EXCEPT_DRAW
                                                                   & QAO_EVENT_MASK_ALL_EXCEPT_DISPLAY;
+// clang-format on
 
 using TimingDuration = std::chrono::duration<double, std::micro>;
-using std::chrono::milliseconds;
-using std::chrono::microseconds;
 using std::chrono::duration_cast;
+using std::chrono::microseconds;
+using std::chrono::milliseconds;
 
 template <class taDuration>
 double MsCount(taDuration aDuration) {
@@ -269,34 +265,37 @@ double MsCount(taDuration aDuration) {
 } // namespace
 
 void GameContext::_runImpl(hg::NeverNull<GameContext*> aContext,
-                           hg::NeverNull<int*> aReturnValue,
-                           int aMaxIterations,
-                           bool aDebugLoggingActive) {
+                           hg::NeverNull<int*>         aReturnValue,
+                           int                         aMaxIterations,
+                           bool                        aDebugLoggingActive) {
     using hobgoblin::util::Stopwatch;
-    #define DebugLog(...) \
-        do { if (aDebugLoggingActive) HG_LOG_DEBUG(LOG_ID, __VA_ARGS__); } while (false)
+#define DebugLog(...)                          \
+    do {                                       \
+        if (aDebugLoggingActive)               \
+            HG_LOG_DEBUG(LOG_ID, __VA_ARGS__); \
+    } while (false)
 
     if (aMaxIterations == 0) {
         (*aReturnValue) = 0;
         return;
     }
 
-    const auto maxConsecutiveUpdates = aContext->_runtimeConfig.maxConsecutiveUpdates;
-    const TimingDuration deltaTime   = aContext->_runtimeConfig.tickRate.getDeltaTime();
+    const auto           maxConsecutiveUpdates = aContext->_runtimeConfig.maxConsecutiveUpdates;
+    const TimingDuration deltaTime = aContext->_runtimeConfig.tickRate.getDeltaTime();
 
     DebugLog("_runImpl - CONFIG - maxConsecutiveUpdates={}, deltaTime={}ms.",
              maxConsecutiveUpdates,
              MsCount(deltaTime));
 
-    aContext->_performanceInfo.updateStart  = std::chrono::steady_clock::now();
-    aContext->_performanceInfo.drawStart    = std::chrono::steady_clock::now();
+    aContext->_performanceInfo.updateStart = std::chrono::steady_clock::now();
+    aContext->_performanceInfo.drawStart = std::chrono::steady_clock::now();
     aContext->_performanceInfo.displayStart = std::chrono::steady_clock::now();
 
-    int iterationsCovered = 0;
+    int            iterationsCovered = 0;
     TimingDuration accumulator = deltaTime;
-    Stopwatch frameToFrameStopwatch;
+    Stopwatch      frameToFrameStopwatch;
 
-    while (true) {    
+    while (true) {
         DebugLog("_runImpl - ITERATION start");
 
         if (aMaxIterations > 0 && iterationsCovered >= aMaxIterations) {
@@ -344,7 +343,7 @@ void GameContext::_runImpl(hg::NeverNull<GameContext*> aContext,
 
             iterationsCovered += 1;
             aContext->_iterationCounter += 1;
-            
+
             // TODO(poll post step actions)
         } // End for
 
@@ -356,8 +355,7 @@ void GameContext::_runImpl(hg::NeverNull<GameContext*> aContext,
                 Stopwatch drawStopwatch;
                 aContext->_performanceInfo.drawStart = std::chrono::steady_clock::now();
                 DebugLog("_runImpl - DRAW start");
-                (*aReturnValue) = DoSingleQaoIteration(aContext->_qaoRuntime,
-                                                       QAO_EVENT_MASK_ALL_DRAWS);
+                (*aReturnValue) = DoSingleQaoIteration(aContext->_qaoRuntime, QAO_EVENT_MASK_ALL_DRAWS);
                 DebugLog("_runImpl - DRAW end (status = {})", *aReturnValue);
                 if ((*aReturnValue) != 0) {
                     return;
@@ -367,15 +365,15 @@ void GameContext::_runImpl(hg::NeverNull<GameContext*> aContext,
         }
 
         if (didAtLeastOneUpdate) {
-             // Prevent excessive buildup in accumulator in case
-             // the program is not meeting time requirements
-             const auto accBefore = accumulator;
-             accumulator = std::min(accumulator, deltaTime * 0.5);
-             if (accumulator != accBefore) {
-                 DebugLog("_runImpl - Accumulator clamped from {}ms to {}ms.",
-                          MsCount(accBefore),
-                          MsCount(accumulator));
-             }
+            // Prevent excessive buildup in accumulator in case
+            // the program is not meeting time requirements
+            const auto accBefore = accumulator;
+            accumulator = std::min(accumulator, deltaTime * 0.5);
+            if (accumulator != accBefore) {
+                DebugLog("_runImpl - Accumulator clamped from {}ms to {}ms.",
+                         MsCount(accBefore),
+                         MsCount(accumulator));
+            }
         }
 
         // DISPLAY
@@ -402,10 +400,8 @@ void GameContext::_runImpl(hg::NeverNull<GameContext*> aContext,
     } // End while
 
     (*aReturnValue) = 0;
-    #undef DebugLog
+#undef DebugLog
 }
 
 } // namespace spempe
 } // namespace jbatnozic
-
-// clang-format on

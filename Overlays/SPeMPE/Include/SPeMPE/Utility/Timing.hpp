@@ -42,7 +42,7 @@ private:
 };
 
 //! Represents a number of frames per second that a game can produce.
-//! One frame corresponds to display() call to a window - which sends 
+//! One frame corresponds to display() call to a window - which sends
 //! a rendered frame buffer to your GPU/Monitor.
 //! This is different from TickRate and does not affect the simulation
 //! speed of the game.

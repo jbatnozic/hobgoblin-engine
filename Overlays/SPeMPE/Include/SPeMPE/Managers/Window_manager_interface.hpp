@@ -1,14 +1,12 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-// clang-format off
-
 #ifndef SPEMPE_MANAGERS_WINDOW_MANAGER_INTERFACE_HPP
 #define SPEMPE_MANAGERS_WINDOW_MANAGER_INTERFACE_HPP
 
+#include <Hobgoblin/Graphics.hpp>
 #include <Hobgoblin/Math/Vector.hpp>
 #include <Hobgoblin/RmlUi.hpp>
-#include <Hobgoblin/Graphics.hpp>
 #include <Hobgoblin/Window.hpp>
 
 #include <SPeMPE/GameContext/Context_components.hpp>
@@ -21,10 +19,10 @@
 namespace jbatnozic {
 namespace spempe {
 
-constexpr bool PREVENT_BUSY_WAIT_ON  = true;
+constexpr bool PREVENT_BUSY_WAIT_ON = true;
 constexpr bool PREVENT_BUSY_WAIT_OFF = false;
 
-constexpr bool VSYNC_ON  = true;
+constexpr bool VSYNC_ON = true;
 constexpr bool VSYNC_OFF = false;
 
 class WindowManagerInterface : public ContextComponent {
@@ -42,29 +40,31 @@ public:
         Headless,
 
         //! The 'usual' mode in which a single window is opened and
-        //! operated by the WindowManager to display the game. 
+        //! operated by the WindowManager to display the game.
         Normal
     };
 
     struct WindowConfig {
-        WindowConfig(const hg::win::VideoMode& aVideoMode,
-                     const std::string& aTitle,
-                     hg::win::WindowStyle aStyle = hg::win::WindowStyle::Default,
-                     const hg::win::ContextSettings& aOpenGlContextSettings = hg::win::ContextSettings{});
+        WindowConfig(
+            const hg::win::VideoMode&       aVideoMode,
+            const std::string&              aTitle,
+            hg::win::WindowStyle            aStyle = hg::win::WindowStyle::Default,
+            const hg::win::ContextSettings& aOpenGlContextSettings = hg::win::ContextSettings{});
 
-        hg::win::VideoMode videoMode;
-        std::string title;
-        hg::win::WindowStyle style;
+        hg::win::VideoMode       videoMode;
+        std::string              title;
+        hg::win::WindowStyle     style;
         hg::win::ContextSettings openGlContextSettings;
     };
 
     struct MainRenderTextureConfig {
-        MainRenderTextureConfig(const hg::math::Vector2pz& aSize,
-                                const bool aSmooth = true,
-                                const hg::win::ContextSettings& aOpenGlContextSettings = hg::win::ContextSettings{});
+        MainRenderTextureConfig(
+            const hg::math::Vector2pz&      aSize,
+            const bool                      aSmooth = true,
+            const hg::win::ContextSettings& aOpenGlContextSettings = hg::win::ContextSettings{});
 
-        hg::math::Vector2pz size;
-        bool smooth;
+        hg::math::Vector2pz      size;
+        bool                     smooth;
         hg::win::ContextSettings openGlContextSettings;
     };
 
@@ -84,8 +84,8 @@ public:
         //!
         //! \note This is the recommended constructor to use when running on Windows.
         TimingConfig(FrameRate aFramerateLimit,
-                     bool aBusyWaitPreventionEnabled = PREVENT_BUSY_WAIT_ON,
-                     bool aVerticalSyncEnabled = VSYNC_OFF);
+                     bool      aBusyWaitPreventionEnabled = PREVENT_BUSY_WAIT_ON,
+                     bool      aVerticalSyncEnabled = VSYNC_OFF);
 
         //! Constructs the configuration with the low level framerate limiter, which will block
         //! the application if the window is being displayed too quickly.
@@ -108,20 +108,20 @@ public:
         //!
         //! \note This is the recommended constructor to use when running on Mac.
         TimingConfig(hg::PZInteger aLowLevelFramerateLimiter = 60,
-                     bool aBusyWaitPreventionEnabled = PREVENT_BUSY_WAIT_OFF,
-                     bool aVerticalSyncEnabled = VSYNC_OFF);
+                     bool          aBusyWaitPreventionEnabled = PREVENT_BUSY_WAIT_OFF,
+                     bool          aVerticalSyncEnabled = VSYNC_OFF);
 
         std::optional<FrameRate> framerateLimit;
-        hg::PZInteger lowLevelFramerateLimiter;
-        bool busyWaitPreventionEnabled;
-        bool verticalSyncEnabled;
+        hg::PZInteger            lowLevelFramerateLimiter;
+        bool                     busyWaitPreventionEnabled;
+        bool                     verticalSyncEnabled;
     };
 
     virtual void setToHeadlessMode(const TimingConfig& aTimingConfig) = 0;
 
-    virtual void setToNormalMode(const WindowConfig& aWindowConfig,
+    virtual void setToNormalMode(const WindowConfig&            aWindowConfig,
                                  const MainRenderTextureConfig& aMainRenderTextureConfig,
-                                 const TimingConfig& aTimingConfig) = 0;
+                                 const TimingConfig&            aTimingConfig) = 0;
 
     ///////////////////////////////////////////////////////////////////////////
     // WINDOW MANAGEMENT                                                     //
@@ -142,7 +142,7 @@ public:
     //_window.setMouseCursor();
     //_window.setMouseCursorGrabbed();
     //_window.setMouseCursorVisible();
-    //framerate limiter
+    // framerate limiter
 
     virtual void setStopIfCloseClicked(bool aStop) = 0;
 
@@ -157,9 +157,9 @@ public:
     enum class DrawPosition {
         None,    //! Not drawn at all.
         Fill,    //! Scaled (keeping aspect ratio) and centred so that the whole window is filled.
-        Fit,     //! Scaled (keeping aspect ratio) and centred so that the whole texture is visible.        
+        Fit,     //! Scaled (keeping aspect ratio) and centred so that the whole texture is visible.
         Centre,  //! Kept at original size and just centred in the window.
-        Stretch, //! Stretched (or compressed) to the window's exact size. 
+        Stretch, //! Stretched (or compressed) to the window's exact size.
         TopLeft, //! Kept at original size and top left corner aligned with window's top left corner.
     };
 
@@ -179,16 +179,16 @@ public:
     virtual const hg::gr::View& getView(hg::PZInteger aViewIndex = 0) const = 0;
 
     virtual hg::math::Vector2f mapPixelToCoords(const hg::math::Vector2i& aPoint,
-                                                const hg::gr::View& aView) const = 0;
+                                                const hg::gr::View&       aView) const = 0;
 
     virtual hg::math::Vector2f mapPixelToCoords(const hg::math::Vector2i& aPoint,
-                                                hg::PZInteger aViewIdx = 0) const = 0;
+                                                hg::PZInteger             aViewIdx = 0) const = 0;
 
     virtual hg::math::Vector2i mapCoordsToPixel(const hg::math::Vector2f& aPoint,
-                                                const hg::gr::View& aView) const = 0;
+                                                const hg::gr::View&       aView) const = 0;
 
     virtual hg::math::Vector2i mapCoordsToPixel(const hg::math::Vector2f& aPoint,
-                                                hg::PZInteger aViewIdx = 0) const = 0;
+                                                hg::PZInteger             aViewIdx = 0) const = 0;
 
     ///////////////////////////////////////////////////////////////////////////
     // GUI                                                                   //
@@ -206,43 +206,35 @@ private:
     SPEMPE_CTXCOMP_TAG("jbatnozic::spempe::WindowManagerInterface");
 };
 
-inline
-WindowManagerInterface::WindowConfig::WindowConfig(
-    const hg::win::VideoMode& aVideoMode,
-    const std::string& aTitle,
-    hg::win::WindowStyle aStyle,
-    const hg::win::ContextSettings& aOpenGlContextSettings) 
+inline WindowManagerInterface::WindowConfig::WindowConfig(
+    const hg::win::VideoMode&       aVideoMode,
+    const std::string&              aTitle,
+    hg::win::WindowStyle            aStyle,
+    const hg::win::ContextSettings& aOpenGlContextSettings)
     : videoMode{aVideoMode}
     , title{aTitle}
     , style{aStyle}
-    , openGlContextSettings{aOpenGlContextSettings}
-{
-}
+    , openGlContextSettings{aOpenGlContextSettings} {}
 
-inline
-WindowManagerInterface::MainRenderTextureConfig::MainRenderTextureConfig(
-    const hg::math::Vector2pz& aSize,
-    const bool aSmooth,
+inline WindowManagerInterface::MainRenderTextureConfig::MainRenderTextureConfig(
+    const hg::math::Vector2pz&      aSize,
+    const bool                      aSmooth,
     const hg::win::ContextSettings& aOpenGlContextSettings)
     : size{aSize}
     , smooth{aSmooth}
-    , openGlContextSettings{aOpenGlContextSettings}
-{
-}
+    , openGlContextSettings{aOpenGlContextSettings} {}
 
-inline
-WindowManagerInterface::TimingConfig::TimingConfig(FrameRate aFrameRateLimit,
-                                                   bool aBusyWaitPreventionEnabled,
-                                                   bool aVerticalSyncEnabled)
+inline WindowManagerInterface::TimingConfig::TimingConfig(FrameRate aFrameRateLimit,
+                                                          bool      aBusyWaitPreventionEnabled,
+                                                          bool      aVerticalSyncEnabled)
     : framerateLimit{aFrameRateLimit}
     , lowLevelFramerateLimiter{0}
     , busyWaitPreventionEnabled{aBusyWaitPreventionEnabled}
     , verticalSyncEnabled{aVerticalSyncEnabled} {}
 
-inline
-WindowManagerInterface::TimingConfig::TimingConfig(hg::PZInteger aLowLevelFramerateLimiter,
-                                                   bool aBusyWaitPreventionEnabled,
-                                                   bool aVerticalSyncEnabled)
+inline WindowManagerInterface::TimingConfig::TimingConfig(hg::PZInteger aLowLevelFramerateLimiter,
+                                                          bool          aBusyWaitPreventionEnabled,
+                                                          bool          aVerticalSyncEnabled)
     : framerateLimit{std::nullopt}
     , lowLevelFramerateLimiter{aLowLevelFramerateLimiter}
     , busyWaitPreventionEnabled{aBusyWaitPreventionEnabled}
@@ -252,5 +244,3 @@ WindowManagerInterface::TimingConfig::TimingConfig(hg::PZInteger aLowLevelFramer
 } // namespace jbatnozic
 
 #endif // !SPEMPE_MANAGERS_WINDOW_MANAGER_INTERFACE_HPP
-
-// clang-format on

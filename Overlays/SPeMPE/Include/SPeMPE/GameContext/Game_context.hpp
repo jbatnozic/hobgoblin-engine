@@ -1,8 +1,6 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-// clang-format off
-
 #ifndef SPEMPE_GAME_CONTEXT_GAME_CONTEXT_HPP
 #define SPEMPE_GAME_CONTEXT_GAME_CONTEXT_HPP
 
@@ -49,6 +47,7 @@ public:
     // CONFIGURATION                                                         //
     ///////////////////////////////////////////////////////////////////////////
 
+    // clang-format off
     enum class Mode {
                                        // PRIVILEGED | HEADLESS | NETWORKING
         Initial    = detail::GCM_INIT, //            |          |           
@@ -57,6 +56,7 @@ public:
         Solo       = detail::GCM_SOLO, //      +     |          |           
         GameMaster = detail::GCM_GMAS, //      +     |          |      +    
     };
+    // clang-format on
 
     struct RuntimeConfig {
         //! The desired number of ticks per second for your game. 'Ticks' are
@@ -72,8 +72,7 @@ public:
         hg::PZInteger maxConsecutiveUpdates{2};
     };
 
-    GameContext(const RuntimeConfig& aRuntimeConfig,
-                hg::PZInteger aComponentTableSize = 32);
+    GameContext(const RuntimeConfig& aRuntimeConfig, hg::PZInteger aComponentTableSize = 32);
     ~GameContext();
 
     //! Only transitions between Initial and other modes (and the other way
@@ -94,7 +93,7 @@ public:
         bool isPaused = false;
     };
 
-    GameState& getGameState();
+    GameState&       getGameState();
     const GameState& getGameState() const;
 
     ///////////////////////////////////////////////////////////////////////////
@@ -177,7 +176,7 @@ public:
 
         //! Duration of the last fully finished iteration.
         microseconds iterationTime{0};
-        
+
         //! Number of consecutive Update steps in an iteration.
         //! During the first Update step in an iteration, this variable
         //! will be set to 1, then during the next consecutive Update step
@@ -225,15 +224,15 @@ public:
     void startChildContext(int aIterations);
 
     //! If a child context is currently attached and is currently running, this
-    //! method stops it and joins the background thread. Otherwise, it does 
+    //! method stops it and joins the background thread. Otherwise, it does
     //! nothing. The return value is the status of the execution of the last
     //! stopped child context (0 = success), which will be undefined if no child
     //! contexts were ever started.
     int stopAndJoinChildContext();
-    
+
 private:
     // Configuration:
-    Mode _mode = Mode::Initial;
+    Mode          _mode = Mode::Initial;
     RuntimeConfig _runtimeConfig;
 
     // State:
@@ -244,23 +243,23 @@ private:
 
     // Context components:
     std::vector<std::unique_ptr<ContextComponent>> _ownedComponents;
-    detail::ComponentTable _components;
+    detail::ComponentTable                         _components;
 
     // Execution:
-    PerformanceInfo _performanceInfo;
-    std::uint64_t _iterationCounter = 0;
+    PerformanceInfo   _performanceInfo;
+    std::uint64_t     _iterationCounter = 0;
     std::atomic<bool> _quit;
 
     // Child context support:
-    GameContext* _parentContext = nullptr;
+    GameContext*                 _parentContext = nullptr;
     std::unique_ptr<GameContext> _childContext = nullptr;
-    std::thread _childContextThread;
-    int _childContextReturnValue = 0;
+    std::thread                  _childContextThread;
+    int                          _childContextReturnValue = 0;
 
     static void _runImpl(hg::NeverNull<GameContext*> aContext,
-                         hg::NeverNull<int*> aReturnValue,
-                         int aMaxIterations,
-                         bool aDebugLoggingActive = false);
+                         hg::NeverNull<int*>         aReturnValue,
+                         int                         aMaxIterations,
+                         bool                        aDebugLoggingActive = false);
 };
 
 template <class taComponent>
@@ -293,5 +292,3 @@ taComponent* GameContext::getComponentPtr() const {
 #include <SPeMPE/GameContext/Game_context_flag_validation.hpp>
 
 #endif // !SPEMPE_GAME_CONTEXT_GAME_CONTEXT_HPP
-
-// clang-format on

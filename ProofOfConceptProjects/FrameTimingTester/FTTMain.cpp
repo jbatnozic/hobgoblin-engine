@@ -3,12 +3,12 @@
 
 #define HOBGOBLIN_SHORT_NAMESPACE
 #include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/Format.hpp>
+#include <Hobgoblin/Graphics.hpp>
 #include <Hobgoblin/HGExcept.hpp>
+#include <Hobgoblin/Input.hpp>
 #include <Hobgoblin/Logging.hpp>
 #include <Hobgoblin/Unicode.hpp>
-#include <Hobgoblin/Format.hpp>
-#include <Hobgoblin/Input.hpp>
-#include <Hobgoblin/Graphics.hpp>
 
 #include <SPeMPE/SPeMPE.hpp>
 
@@ -27,7 +27,7 @@ using namespace hg::in;
 constexpr auto LOG_ID = "FTT";
 
 #ifdef _MSC_VER
-#define TICK_RATE   60
+#define TICK_RATE  60
 #define FRAME_RATE 120
 #else
 #define TICK_RATE  60
@@ -35,31 +35,34 @@ constexpr auto LOG_ID = "FTT";
 #endif
 
 void SimpleTest() {
-  gr::RenderWindow window{hg::win::VideoMode{800, 800}, "FTT (Simple)"};
-  window.getView().setCenter({0.f, 0.f});
-  window.setFramerateLimit(TICK_RATE);
+    gr::RenderWindow window{
+        hg::win::VideoMode{800, 800},
+        "FTT (Simple)"
+    };
+    window.getView().setCenter({0.f, 0.f});
+    window.setFramerateLimit(TICK_RATE);
 
-  gr::CircleShape circle{32.f};
-  circle.setOrigin({32.f, 32.f});
-  circle.setFillColor(gr::COLOR_RED);
+    gr::CircleShape circle{32.f};
+    circle.setOrigin({32.f, 32.f});
+    circle.setFillColor(gr::COLOR_RED);
 
-  while (window.isOpen()) {
-    hg::win::Event ev;
-    while (window.pollEvent(ev)) {
-      ev.visit([&](const hg::win::Event::Closed&) {
-        window.close();
-      });
+    while (window.isOpen()) {
+        hg::win::Event ev;
+        while (window.pollEvent(ev)) {
+            ev.visit([&](const hg::win::Event::Closed&) {
+                window.close();
+            });
+        }
+
+        const auto lr = (float)CheckPressedPK(PK_D) - (float)CheckPressedPK(PK_A);
+        const auto ud = (float)CheckPressedPK(PK_S) - (float)CheckPressedPK(PK_W);
+        const auto multiplier = 8.f;
+        window.getView().move({-lr * multiplier, -ud * multiplier});
+
+        window.clear();
+        window.draw(circle);
+        window.display();
     }
-
-    const auto lr = (float)CheckPressedPK(PK_D) - (float)CheckPressedPK(PK_A);
-    const auto ud = (float)CheckPressedPK(PK_S) - (float)CheckPressedPK(PK_W);
-    const auto multiplier = 8.f;
-    window.getView().move({-lr * multiplier, -ud * multiplier});
-
-    window.clear();
-    window.draw(circle);
-    window.display();
-  }
 }
 
 #define PRIORITY_EDITOR_DRIVER  1
@@ -67,10 +70,11 @@ void SimpleTest() {
 
 std::unique_ptr<spe::GameContext> CreateContex() {
     spe::GameContext::RuntimeConfig rtConfig{spe::TickRate{TICK_RATE}};
-    auto ctx = std::make_unique<spe::GameContext>(rtConfig);
+    auto                            ctx = std::make_unique<spe::GameContext>(rtConfig);
 
     // Add a WindowManager
-    auto winMgr = std::make_unique<spe::DefaultWindowManager>(ctx->getQAORuntime().nonOwning(), PRIORITY_WINDOW_MANAGER);
+    auto winMgr = std::make_unique<spe::DefaultWindowManager>(ctx->getQAORuntime().nonOwning(),
+                                                              PRIORITY_WINDOW_MANAGER);
     // clang-format off
     spe::WindowManagerInterface::WindowConfig windowConfig{
         hg::win::VideoMode{800, 800},
@@ -106,39 +110,38 @@ std::unique_ptr<spe::GameContext> CreateContex() {
 class Driver : spe::NonstateObject {
 public:
     Driver(hg::QAO_RuntimeRef aRuntimeRef, int aExecutionPriority)
-      : spe::NonstateObject{aRuntimeRef, SPEMPE_TYPEID_SELF, aExecutionPriority, "Driver"}
-    {}
+        : spe::NonstateObject{aRuntimeRef, SPEMPE_TYPEID_SELF, aExecutionPriority, "Driver"} {}
 
     void _eventUpdate1() override {
-      auto& winMgr = ccomp<spe::WindowManagerInterface>();
-      const auto& input = winMgr.getInput();
+        auto&       winMgr = ccomp<spe::WindowManagerInterface>();
+        const auto& input = winMgr.getInput();
 
-      const auto lr = (float)input.checkPressed(PK_D) - (float)input.checkPressed(PK_A);
-      const auto ud = (float)input.checkPressed(PK_S) - (float)input.checkPressed(PK_W);
-      const auto multiplier = 8.f;
-      
-      winMgr.getView().move({-lr * multiplier, -ud * multiplier});
+        const auto lr = (float)input.checkPressed(PK_D) - (float)input.checkPressed(PK_A);
+        const auto ud = (float)input.checkPressed(PK_S) - (float)input.checkPressed(PK_W);
+        const auto multiplier = 8.f;
+
+        winMgr.getView().move({-lr * multiplier, -ud * multiplier});
     }
 
     void _eventDraw1() override {
-      auto& winMgr = ccomp<spe::WindowManagerInterface>();
+        auto& winMgr = ccomp<spe::WindowManagerInterface>();
 
-      gr::CircleShape circle{32.f};
-      circle.setOrigin({32.f, 32.f});
-      circle.setFillColor(gr::COLOR_RED);
-      winMgr.getCanvas().draw(circle);
+        gr::CircleShape circle{32.f};
+        circle.setOrigin({32.f, 32.f});
+        circle.setFillColor(gr::COLOR_RED);
+        winMgr.getCanvas().draw(circle);
     }
 };
 
 void TestWithSPeMPE() {
-  auto context = CreateContex();
+    auto context = CreateContex();
 
-  Driver driver{context->getQAORuntime().nonOwning(), PRIORITY_EDITOR_DRIVER};
+    Driver driver{context->getQAORuntime().nonOwning(), PRIORITY_EDITOR_DRIVER};
 
-  context->runFor(-1);
+    context->runFor(-1);
 }
 
 int main(int argc, char* argv[]) {
-  SimpleTest();
-  TestWithSPeMPE();
+    SimpleTest();
+    TestWithSPeMPE();
 }
