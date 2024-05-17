@@ -22,11 +22,11 @@ public:
     // TODO: static create methods
 
     //! Prevent copying.
-    Constraint(const Constraint&) = delete;
+    Constraint(const Constraint&)            = delete;
     Constraint& operator=(const Constraint&) = delete;
 
     //! Allow cheap moving.
-    Constraint(Constraint&&) = default;
+    Constraint(Constraint&&)            = default;
     Constraint& operator=(Constraint&&) = default;
 
     //! Automatic conversion to `cpConstraint*` for

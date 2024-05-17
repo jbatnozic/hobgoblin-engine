@@ -50,7 +50,7 @@ private:
 
     //! Only for base Entity
     template <class taEntityType,
-        T_ENABLE_IF(std::is_same_v<typename taEntityType::EntitySuperclass, void>)>
+              T_ENABLE_IF(std::is_same_v<typename taEntityType::EntitySuperclass, void>)>
     void _registerEntityType() {
         const auto pair =
             _registry.insert(std::make_pair(taEntityType::ENTITY_TYPE_ID, ENTITY_TYPE_ID_VOID));
@@ -88,7 +88,7 @@ private:
     void _initCols(cpSpace* aSpace) {
         using namespace detail;
 
-        auto* handler = cpSpaceAddDefaultCollisionHandler(aSpace);
+        auto* handler     = cpSpaceAddDefaultCollisionHandler(aSpace);
         handler->userData = this;
 
         handler->beginFunc =
@@ -115,7 +115,7 @@ private:
             return (result1 && result2);
         };
 
-        handler->preSolveFunc = 
+        handler->preSolveFunc =
             [](cpArbiter* aArbiter, cpSpace* aSpace, cpDataPointer aUserData) -> cpBool {
             // Note: AnyPtr::get guarantees not-null
             auto* dispatcher = aUserData.get<MainCollisionDispatcher>();
@@ -139,8 +139,7 @@ private:
             return (result1 && result2);
         };
 
-        handler->postSolveFunc = 
-            [](cpArbiter* aArbiter, cpSpace* aSpace, cpDataPointer aUserData) {
+        handler->postSolveFunc = [](cpArbiter* aArbiter, cpSpace* aSpace, cpDataPointer aUserData) {
             // Note: AnyPtr::get guarantees not-null
             auto* dispatcher = aUserData.get<MainCollisionDispatcher>();
 
@@ -163,8 +162,7 @@ private:
             }
         };
 
-        handler->separateFunc = 
-            [](cpArbiter* aArbiter, cpSpace* aSpace, cpDataPointer aUserData) {
+        handler->separateFunc = [](cpArbiter* aArbiter, cpSpace* aSpace, cpDataPointer aUserData) {
             // Note: AnyPtr::get guarantees not-null
             auto* dispatcher = aUserData.get<MainCollisionDispatcher>();
 

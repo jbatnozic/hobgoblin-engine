@@ -38,10 +38,10 @@ public:
     template <class taEntity>
     void bind(taEntity&                aEntity,
               Shape&                   aShape,
-              std::optional<cpGroup>   aGroup = std::nullopt,
-              std::optional<cpBitmask> aCategory = std::nullopt,
+              std::optional<cpGroup>   aGroup        = std::nullopt,
+              std::optional<cpBitmask> aCategory     = std::nullopt,
               std::optional<cpBitmask> aCollidesWith = std::nullopt) {
-        _entity = &aEntity;
+        _entity       = &aEntity;
         _entityTypeId = taEntity::ENTITY_TYPE_ID;
         cpShapeSetUserData(aShape, this);
 
@@ -56,12 +56,12 @@ public:
     void bind(taEntity&                aEntity,
               taShapeBeginIterator     aShapeBeginIterator,
               taShapeEndIterator       aShapeEndIterator,
-              std::optional<cpGroup>   aGroup = std::nullopt,
-              std::optional<cpBitmask> aCategory = std::nullopt,
+              std::optional<cpGroup>   aGroup        = std::nullopt,
+              std::optional<cpBitmask> aCategory     = std::nullopt,
               std::optional<cpBitmask> aCollidesWith = std::nullopt) {
-        _entity = &aEntity;
+        _entity       = &aEntity;
         _entityTypeId = taEntity::ENTITY_TYPE_ID;
-        
+
         const auto filter = cpShapeFilterNew(aGroup.value_or(CP_NO_GROUP),
                                              aCategory.value_or(taEntity::ENTITY_DEFAULT_CATEGORY),
                                              aCollidesWith.value_or(taEntity::ENTITY_DEFAULT_MASK));

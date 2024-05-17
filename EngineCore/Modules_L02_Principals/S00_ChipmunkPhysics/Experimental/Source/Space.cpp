@@ -4,8 +4,8 @@
 #include <Hobgoblin/Alvin/Space.hpp>
 
 #include <Hobgoblin/Alvin/Body.hpp>
-#include <Hobgoblin/Alvin/Shape.hpp>
 #include <Hobgoblin/Alvin/Constraint.hpp>
+#include <Hobgoblin/Alvin/Shape.hpp>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
