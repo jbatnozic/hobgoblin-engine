@@ -85,7 +85,7 @@ public:
         return _entityTypeId;
     }
 
-    bool getDefaultDecision() const {
+    Decision getDefaultDecision() const {
         return _defaultDecision;
     }
 
@@ -100,7 +100,7 @@ private:
 
     EntityBase*  _entity = nullptr;
     EntityTypeId _entityTypeId;
-    bool         _defaultDecision = true; // TODO: initialize
+    Decision     _defaultDecision = Decision::ACCEPT_COLLISION; // TODO: initialize
 
     //! Returns `true` if the delegate contains no collision
     //! functions whatsoever; `false` otherwise.
