@@ -14,6 +14,7 @@
 
 #define WINDOW_WIDTH  800
 #define WINDOW_HEIGHT 600
-#define DESIRED_FRAMERATE 60
+#define TICK_RATE      60
+#define FRAME_RATE    120
 
 // clang-format on

@@ -35,11 +35,11 @@ public:
     }
 
     //! Prevent copying.
-    Shape(const Shape&) = delete;
+    Shape(const Shape&)            = delete;
     Shape& operator=(const Shape&) = delete;
 
     //! Allow cheap moving.
-    Shape(Shape&&) = default;
+    Shape(Shape&&)            = default;
     Shape& operator=(Shape&&) = default;
 
     //! Automatic conversion to `cpShape*` for

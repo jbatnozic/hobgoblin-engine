@@ -32,11 +32,11 @@ public:
     }
 
     //! Prevent copying.
-    Body(const Body&) = delete;
+    Body(const Body&)            = delete;
     Body& operator=(const Body&) = delete;
 
     //! Allow cheap moving.
-    Body(Body&&) = default;
+    Body(Body&&)            = default;
     Body& operator=(Body&&) = default;
 
     //! Automatic conversion to `cpBody*` for

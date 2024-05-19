@@ -35,29 +35,25 @@ public:
     template <class taOther>
     CollisionDelegateBuilder& addInteraction(
         COLLISION_CONTACT_Tag,
-        std::function<bool(taOther&, HG_NEVER_NULL(cpArbiter*), HG_NEVER_NULL(cpSpace*), PZInteger)>
-            aFunc);
+        std::function<Decision(taOther&, NeverNull<cpArbiter*>, NeverNull<cpSpace*>, PZInteger)> aFunc);
 
     //! TODO(description)
     template <class taOther>
     CollisionDelegateBuilder& addInteraction(
         COLLISION_PRE_SOLVE_Tag,
-        std::function<bool(taOther&, HG_NEVER_NULL(cpArbiter*), HG_NEVER_NULL(cpSpace*), PZInteger)>
-            aFunc);
+        std::function<Decision(taOther&, NeverNull<cpArbiter*>, NeverNull<cpSpace*>, PZInteger)> aFunc);
 
     //! TODO(description)
     template <class taOther>
     CollisionDelegateBuilder& addInteraction(
         COLLISION_POST_SOLVE_Tag,
-        std::function<void(taOther&, HG_NEVER_NULL(cpArbiter*), HG_NEVER_NULL(cpSpace*), PZInteger)>
-            aFunc);
+        std::function<void(taOther&, NeverNull<cpArbiter*>, NeverNull<cpSpace*>, PZInteger)> aFunc);
 
     //! TODO(description)
     template <class taOther>
     CollisionDelegateBuilder& addInteraction(
         COLLISION_SEPARATION_Tag,
-        std::function<void(taOther&, HG_NEVER_NULL(cpArbiter*), HG_NEVER_NULL(cpSpace*), PZInteger)>
-            aFunc);
+        std::function<void(taOther&, NeverNull<cpArbiter*>, NeverNull<cpSpace*>, PZInteger)> aFunc);
 
     //! TODO(description)
     CollisionDelegate finalize() {
@@ -74,7 +70,8 @@ private:
 ///////////////////////////////////////////////////////////////////////////
 
 #ifdef UHOBGOBLIN_DEBUG // TODO
-#define down_cast dynamic_cast
+// #define down_cast dynamic_cast TODO
+#define down_cast static_cast
 #else
 #define down_cast static_cast
 #endif
@@ -82,13 +79,13 @@ private:
 template <class taOther>
 CollisionDelegateBuilder& CollisionDelegateBuilder::addInteraction(
     COLLISION_CONTACT_Tag,
-    std::function<bool(taOther&, HG_NEVER_NULL(cpArbiter*), HG_NEVER_NULL(cpSpace*), PZInteger)> aFunc) {
+    std::function<Decision(taOther&, HG_NEVER_NULL(cpArbiter*), HG_NEVER_NULL(cpSpace*), PZInteger)> aFunc) {
     detail::EntityTypeIdAndUsage specifier{taOther::ENTITY_TYPE_ID, detail::USAGE_COL_BEGIN};
     _collisionFunctions.emplace_back(
         [func = std::move(aFunc)](EntityBase& aEntity,
                                   HG_NEVER_NULL(cpArbiter*) aArbiter,
                                   HG_NEVER_NULL(cpSpace*) aSpace,
-                                  PZInteger aOrder) -> bool {
+                                  PZInteger aOrder) -> Decision {
             return func(down_cast<taOther&>(aEntity), aArbiter, aSpace, aOrder);
         },
         specifier);
@@ -98,13 +95,13 @@ CollisionDelegateBuilder& CollisionDelegateBuilder::addInteraction(
 template <class taOther>
 CollisionDelegateBuilder& CollisionDelegateBuilder::addInteraction(
     COLLISION_PRE_SOLVE_Tag,
-    std::function<bool(taOther&, HG_NEVER_NULL(cpArbiter*), HG_NEVER_NULL(cpSpace*), PZInteger)> aFunc) {
+    std::function<Decision(taOther&, HG_NEVER_NULL(cpArbiter*), HG_NEVER_NULL(cpSpace*), PZInteger)> aFunc) {
     detail::EntityTypeIdAndUsage specifier{taOther::ENTITY_TYPE_ID, detail::USAGE_COL_PRESOLVE};
     _collisionFunctions.emplace_back(
         [func = std::move(aFunc)](EntityBase& aEntity,
                                   HG_NEVER_NULL(cpArbiter*) aArbiter,
                                   HG_NEVER_NULL(cpSpace*) aSpace,
-                                  PZInteger aOrder) -> bool {
+                                  PZInteger aOrder) -> Decision {
             return func(down_cast<taOther&>(aEntity), aArbiter, aSpace, aOrder);
         },
         specifier);
@@ -120,9 +117,9 @@ CollisionDelegateBuilder& CollisionDelegateBuilder::addInteraction(
         [func = std::move(aFunc)](EntityBase& aEntity,
                                   HG_NEVER_NULL(cpArbiter*) aArbiter,
                                   HG_NEVER_NULL(cpSpace*) aSpace,
-                                  PZInteger aOrder) -> bool {
+                                  PZInteger aOrder) -> Decision {
             func(down_cast<taOther&>(aEntity), aArbiter, aSpace, aOrder);
-            return false;
+            return Decision::ACCEPT_COLLISION; // Return value doesn't matter here
         },
         specifier);
     return SELF;
@@ -137,9 +134,9 @@ CollisionDelegateBuilder& CollisionDelegateBuilder::addInteraction(
         [func = std::move(aFunc)](EntityBase& aEntity,
                                   HG_NEVER_NULL(cpArbiter*) aArbiter,
                                   HG_NEVER_NULL(cpSpace*) aSpace,
-                                  PZInteger aOrder) -> bool {
+                                  PZInteger aOrder) -> Decision {
             func(down_cast<taOther&>(aEntity), aArbiter, aSpace, aOrder);
-            return false;
+            return Decision::ACCEPT_COLLISION; // Return value doesn't matter here
         },
         specifier);
     return SELF;

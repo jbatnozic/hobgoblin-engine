@@ -9,6 +9,8 @@
 #include <Hobgoblin/Alvin/Body.hpp>
 #include <Hobgoblin/Alvin/Collision_delegate.hpp>
 #include <Hobgoblin/Alvin/Collision_delegate_builder.hpp>
+#include <Hobgoblin/Alvin/Constraint.hpp>
+#include <Hobgoblin/Alvin/Decision.hpp>
 #include <Hobgoblin/Alvin/Entity_base.hpp>
 #include <Hobgoblin/Alvin/Main_collision_dispatcher.hpp>
 #include <Hobgoblin/Alvin/Shape.hpp>
@@ -29,20 +31,23 @@ enum Tags {
 
 class Character : public alvin::EntityBase {
 public:
-    static constexpr std::int32_t ENTITY_TYPE_ID = TAG_CHARACTER;
     using EntitySuperclass = alvin::EntityBase;
+
+    static constexpr alvin::EntityTypeId ENTITY_TYPE_ID = TAG_CHARACTER;
 };
 
 class Player : public Character {
 public:
-    static constexpr std::int32_t ENTITY_TYPE_ID = TAG_PLAYER;
     using EntitySuperclass = Character;
+
+    static constexpr alvin::EntityTypeId ENTITY_TYPE_ID = TAG_PLAYER;
 };
 
 class Terrain : public alvin::EntityBase {
 public:
-    static constexpr std::int32_t ENTITY_TYPE_ID = TAG_TERRAIN;
     using EntitySuperclass = alvin::EntityBase;
+
+    static constexpr alvin::EntityTypeId ENTITY_TYPE_ID = TAG_TERRAIN;
 };
 
 static_assert(Character::ENTITY_TYPE_ID == TAG_CHARACTER);
@@ -98,8 +103,8 @@ private:
                                      [](Terrain&,
                                         HG_NEVER_NULL(cpArbiter*),
                                         HG_NEVER_NULL(cpSpace*),
-                                        hg::PZInteger aOrder) -> bool {
-                                         return true;
+                                        hg::PZInteger aOrder) -> alvin::Decision {
+                                         return alvin::Decision::ACCEPT_COLLISION;
                                      })
             .finalize();
     }

@@ -5,7 +5,7 @@
 #define UHOBGOBLIN_ALVIN_PRIVATE_HELPERS_HPP
 
 #include <Hobgoblin/Alvin/Entity_base.hpp>
-#include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/Alvin/Decision.hpp>
 
 #include <cstdint>
 #include <functional>
@@ -17,7 +17,7 @@ namespace alvin {
 namespace detail {
 
 using GenericEntityCollisionFunc =
-    std::function<bool(EntityBase&, HG_NEVER_NULL(cpArbiter*), HG_NEVER_NULL(cpSpace*), PZInteger)>;
+    std::function<Decision(EntityBase&, HG_NEVER_NULL(cpArbiter*), HG_NEVER_NULL(cpSpace*), PZInteger)>;
 
 enum Usage : std::uint32_t {
     USAGE_COL_BEGIN,

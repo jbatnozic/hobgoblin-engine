@@ -38,10 +38,10 @@ public:
     template <class taEntity>
     void bind(taEntity&                aEntity,
               Shape&                   aShape,
-              std::optional<cpGroup>   aGroup = std::nullopt,
-              std::optional<cpBitmask> aCategory = std::nullopt,
+              std::optional<cpGroup>   aGroup        = std::nullopt,
+              std::optional<cpBitmask> aCategory     = std::nullopt,
               std::optional<cpBitmask> aCollidesWith = std::nullopt) {
-        _entity = &aEntity;
+        _entity       = &aEntity;
         _entityTypeId = taEntity::ENTITY_TYPE_ID;
         cpShapeSetUserData(aShape, this);
 
@@ -56,10 +56,10 @@ public:
     void bind(taEntity&                aEntity,
               taShapeBeginIterator     aShapeBeginIterator,
               taShapeEndIterator       aShapeEndIterator,
-              std::optional<cpGroup>   aGroup = std::nullopt,
-              std::optional<cpBitmask> aCategory = std::nullopt,
+              std::optional<cpGroup>   aGroup        = std::nullopt,
+              std::optional<cpBitmask> aCategory     = std::nullopt,
               std::optional<cpBitmask> aCollidesWith = std::nullopt) {
-        _entity = &aEntity;
+        _entity       = &aEntity;
         _entityTypeId = taEntity::ENTITY_TYPE_ID;
 
         const auto filter = cpShapeFilterNew(aGroup.value_or(CP_NO_GROUP),
@@ -85,7 +85,7 @@ public:
         return _entityTypeId;
     }
 
-    bool getDefaultDecision() const {
+    Decision getDefaultDecision() const {
         return _defaultDecision;
     }
 
@@ -100,7 +100,7 @@ private:
 
     EntityBase*  _entity = nullptr;
     EntityTypeId _entityTypeId;
-    bool         _defaultDecision = true; // TODO: initialize
+    Decision     _defaultDecision = Decision::ACCEPT_COLLISION; // TODO: initialize
 
     //! Returns `true` if the delegate contains no collision
     //! functions whatsoever; `false` otherwise.

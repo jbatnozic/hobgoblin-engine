@@ -33,10 +33,10 @@ public:
         std::lock_guard<decltype(_mutex)> lock{_mutex};
     }
 
-    Monitor(const Monitor&) = delete;
+    Monitor(const Monitor&)            = delete;
     Monitor& operator=(const Monitor&) = delete;
-    Monitor(Monitor&&) = delete;
-    Monitor& operator=(Monitor&&) = delete;
+    Monitor(Monitor&&)                 = delete;
+    Monitor& operator=(Monitor&&)      = delete;
 
     //! Calls the provided callable (providing a reference to the protected
     //! object) while holding the internal mutex locked.
@@ -60,7 +60,7 @@ public:
     T Exchange(T aNewValue) {
         std::lock_guard<decltype(_mutex)> lock{_mutex};
         auto                              tmp = std::move(_protectedObject);
-        _protectedObject = std::move(aNewValue);
+        _protectedObject                      = std::move(aNewValue);
         return tmp;
     }
 

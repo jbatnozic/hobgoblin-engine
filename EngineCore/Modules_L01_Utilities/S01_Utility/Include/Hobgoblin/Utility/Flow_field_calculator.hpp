@@ -122,10 +122,10 @@ public:
     FlowField takeFlowField();
 
 private:
-    using NeighbourArray = std::array<std::optional<math::Vector2i>, 8>;
+    using NeighbourArray   = std::array<std::optional<math::Vector2i>, 8>;
     using IntegrationField = util::RowMajorGrid<std::int32_t>;
     static constexpr std::int32_t INTEGRATION_FIELD_MAX_COST = 0x7FFFFFFF;
-    static constexpr PZInteger    VERY_MANY_ITERATIONS = 0x7FFFFFFF;
+    static constexpr PZInteger    VERY_MANY_ITERATIONS       = 0x7FFFFFFF;
 
     math::Vector2pz _fieldDimensions;
     math::Vector2pz _source;
@@ -196,8 +196,8 @@ void FlowFieldCalculator<taCostProvider>::reset(math::Vector2pz       aFieldDime
                          "Target must be within the field.");
 
     _fieldDimensions = aFieldDimensions;
-    _target = aTarget;
-    _costProvider = &aCostProvider;
+    _target          = aTarget;
+    _costProvider    = &aCostProvider;
 
     _flowField.emplace(_fieldDimensions.x, _fieldDimensions.y, CompactAngle{});
 
@@ -267,9 +267,9 @@ bool FlowFieldCalculator<taCostProvider>::_calculateIntegrationField(PZInteger a
                 continue;
             }
 
-            const auto neighbourOffset = neighbours[pztos(i)];
+            const auto neighbourOffset   = neighbours[pztos(i)];
             const auto neighbourPosition = curr + *neighbourOffset;
-            const auto neighbourCost = _getCostAt(neighbourPosition);
+            const auto neighbourCost     = _getCostAt(neighbourPosition);
             if (neighbourCost == COST_IMPASSABLE) {
                 continue; // Impassable cell
             }
@@ -379,7 +379,7 @@ void FlowFieldCalculator<taCostProvider>::_calculateFlowField(PZInteger aStartin
 
                 const auto cost = GRID_U_AT(_integrationField, *neighbourOffset + math::Vector2pz(x, y));
                 if (cost < minCost) {
-                    minCost = cost;
+                    minCost             = cost;
                     (*_flowField)[y][x] = detail::GetDirectionTowardsNeighbour(i);
                 }
             }

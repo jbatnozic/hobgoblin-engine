@@ -20,10 +20,11 @@ constexpr EntityTypeId ENTITY_TYPE_ID_BASE = 0xFFFF'FFFEu; // (UINT32_MAX - 1)
 class EntityBase {
 public:
     using EntitySuperclass = void;
-    static constexpr std::int32_t ENTITY_TYPE_ID = ENTITY_TYPE_ID_BASE;
+
+    static constexpr EntityTypeId ENTITY_TYPE_ID = ENTITY_TYPE_ID_BASE;
 
     static constexpr cpBitmask ENTITY_DEFAULT_CATEGORY = CP_ALL_CATEGORIES;
-    static constexpr cpBitmask ENTITY_DEFAULT_MASK = CP_ALL_CATEGORIES;
+    static constexpr cpBitmask ENTITY_DEFAULT_MASK     = CP_ALL_CATEGORIES;
 };
 
 } // namespace alvin

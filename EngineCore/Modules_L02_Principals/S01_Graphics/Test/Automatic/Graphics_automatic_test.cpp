@@ -12,7 +12,7 @@
 #include <array>
 #include <cmath>
 
-namespace gr = hg::gr;
+namespace gr   = hg::gr;
 namespace math = hg::math;
 
 namespace {
@@ -21,7 +21,7 @@ void CheckOriginCorrectness(const taSprite& aSprite, const gr::OriginOffset& aEx
     static constexpr float EPSILON = 0.001f;
 
     const auto origin = aSprite.getOrigin();
-    const auto size = aSprite.getLocalBounds();
+    const auto size   = aSprite.getLocalBounds();
 
     switch (aExpectedOffset.kind) {
     case gr::OriginOffset::RELATIVE_TO_TOP_LEFT:

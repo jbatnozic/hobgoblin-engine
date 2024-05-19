@@ -25,21 +25,24 @@ public:
     }
 
     template <class taEntityType,
-              T_ENABLE_IF(!std::is_same_v<typename taEntityType::EntitySuperclass, void>)>
+              T_ENABLE_IF(std::is_base_of_v<EntityBase, taEntityType> &&
+                          !std::is_same_v<typename taEntityType::EntitySuperclass, void>)>
     MainCollisionDispatcher& registerEntityType() {
         const auto pair =
             _registry.insert(std::make_pair(taEntityType::ENTITY_TYPE_ID,
                                             taEntityType::EntitySuperclass::ENTITY_TYPE_ID));
+
         if (!pair.second) {
             HG_THROW_TRACED(TracedLogicError,
                             0,
                             "Entity type with ID {} was already registered.",
                             taEntityType::ENTITY_TYPE_ID);
         }
+
         return SELF;
     }
 
-    void configureSpace(HG_NEVER_NULL(cpSpace*) aSpace) {
+    void configureSpace(NeverNull<cpSpace*> aSpace) {
         _initCols(aSpace);
     }
 
@@ -48,7 +51,7 @@ private:
     //! Val: type ID of key's superclass
     std::unordered_map<EntityTypeId, EntityTypeId> _registry;
 
-    //! Only for base Entity
+    //! Register function for `EntityBase`.
     template <class taEntityType,
               T_ENABLE_IF(std::is_same_v<typename taEntityType::EntitySuperclass, void>)>
     void _registerEntityType() {
@@ -88,7 +91,7 @@ private:
     void _initCols(cpSpace* aSpace) {
         using namespace detail;
 
-        auto* handler = cpSpaceAddDefaultCollisionHandler(aSpace);
+        auto* handler     = cpSpaceAddDefaultCollisionHandler(aSpace);
         handler->userData = this;
 
         handler->beginFunc =
@@ -107,12 +110,12 @@ private:
             const auto* cf2 =
                 dispatcher->_findCollisionFunc(*del2, del1->getEntityTypeId(), USAGE_COL_BEGIN);
             // Get results of collision functions (or default values)
-            const bool result1 =
-                cf1 ? ((*cf1)(del1->getEntity(), aArbiter, aSpace, 1)) : del1->getDefaultDecision();
-            const bool result2 =
-                cf2 ? ((*cf2)(del2->getEntity(), aArbiter, aSpace, 2)) : del2->getDefaultDecision();
+            const Decision result1 =
+                cf1 ? ((*cf1)(del2->getEntity(), aArbiter, aSpace, 1)) : del1->getDefaultDecision();
+            const Decision result2 =
+                cf2 ? ((*cf2)(del1->getEntity(), aArbiter, aSpace, 2)) : del2->getDefaultDecision();
 
-            return (result1 && result2);
+            return (detail::ToBool(result1) && detail::ToBool(result2));
         };
 
         handler->preSolveFunc =
@@ -131,12 +134,12 @@ private:
             const auto* cf2 =
                 dispatcher->_findCollisionFunc(*del2, del1->getEntityTypeId(), USAGE_COL_PRESOLVE);
             // Get results of collision functions (or default values)
-            const bool result1 =
-                cf1 ? ((*cf1)(del1->getEntity(), aArbiter, aSpace, 1)) : del1->getDefaultDecision();
-            const bool result2 =
-                cf2 ? ((*cf2)(del2->getEntity(), aArbiter, aSpace, 2)) : del2->getDefaultDecision();
+            const Decision result1 =
+                cf1 ? ((*cf1)(del2->getEntity(), aArbiter, aSpace, 1)) : del1->getDefaultDecision();
+            const Decision result2 =
+                cf2 ? ((*cf2)(del1->getEntity(), aArbiter, aSpace, 2)) : del2->getDefaultDecision();
 
-            return (result1 && result2);
+            return (detail::ToBool(result1) && detail::ToBool(result2));
         };
 
         handler->postSolveFunc = [](cpArbiter* aArbiter, cpSpace* aSpace, cpDataPointer aUserData) {
@@ -155,10 +158,10 @@ private:
                 dispatcher->_findCollisionFunc(*del2, del1->getEntityTypeId(), USAGE_COL_POSTSOLVE);
             // Get results of collision functions (or default values)
             if (cf1) {
-                (*cf1)(del1->getEntity(), aArbiter, aSpace, 1);
+                (*cf1)(del2->getEntity(), aArbiter, aSpace, 1);
             }
             if (cf2) {
-                (*cf2)(del2->getEntity(), aArbiter, aSpace, 2);
+                (*cf2)(del1->getEntity(), aArbiter, aSpace, 2);
             }
         };
 
@@ -178,10 +181,10 @@ private:
                 dispatcher->_findCollisionFunc(*del2, del1->getEntityTypeId(), USAGE_COL_SEPARATE);
             // Get results of collision functions (or default values)
             if (cf1) {
-                (*cf1)(del1->getEntity(), aArbiter, aSpace, 1);
+                (*cf1)(del2->getEntity(), aArbiter, aSpace, 1);
             }
             if (cf2) {
-                (*cf2)(del2->getEntity(), aArbiter, aSpace, 2);
+                (*cf2)(del1->getEntity(), aArbiter, aSpace, 2);
             }
         };
     }

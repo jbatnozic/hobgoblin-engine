@@ -1,7 +1,7 @@
-project("Alvin")
+project("Hobgoblin.Alvin")
 
-add_executable(${PROJECT_NAME}
-    "Alvin.cpp"
+add_library(${PROJECT_NAME} STATIC
+    # "Alvin.cpp"
 
     "Source/Space.cpp"
 )

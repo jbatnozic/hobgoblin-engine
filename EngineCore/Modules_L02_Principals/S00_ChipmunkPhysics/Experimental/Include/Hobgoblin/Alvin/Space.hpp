@@ -27,11 +27,11 @@ public:
         : _space{aSpace} {}
 
     //! Prevent copying.
-    Space(const Space&) = delete;
+    Space(const Space&)            = delete;
     Space& operator=(const Space&) = delete;
 
     //! Allow cheap moving.
-    Space(Space&&) = default;
+    Space(Space&&)            = default;
     Space& operator=(Space&&) = default;
 
     //! Automatic conversion to `cpSpace*` for
