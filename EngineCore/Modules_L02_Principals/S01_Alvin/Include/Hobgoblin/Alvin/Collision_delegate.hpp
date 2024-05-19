@@ -112,7 +112,7 @@ private:
                                                                  detail::Usage aUsage) const {
         const auto target = detail::EntityTypeIdAndUsage{aEntityTypeId, aUsage};
 
-        std::size_t low = 0;
+        std::size_t low  = 0;
         std::size_t high = _collisionFunctions.size();
 
         while (low < high) {

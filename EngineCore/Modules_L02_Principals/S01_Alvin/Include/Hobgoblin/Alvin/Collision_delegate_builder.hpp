@@ -79,7 +79,8 @@ private:
 template <class taOther>
 CollisionDelegateBuilder& CollisionDelegateBuilder::addInteraction(
     COLLISION_CONTACT_Tag,
-    std::function<Decision(taOther&, HG_NEVER_NULL(cpArbiter*), HG_NEVER_NULL(cpSpace*), PZInteger)> aFunc) {
+    std::function<Decision(taOther&, HG_NEVER_NULL(cpArbiter*), HG_NEVER_NULL(cpSpace*), PZInteger)>
+        aFunc) {
     detail::EntityTypeIdAndUsage specifier{taOther::ENTITY_TYPE_ID, detail::USAGE_COL_BEGIN};
     _collisionFunctions.emplace_back(
         [func = std::move(aFunc)](EntityBase& aEntity,
@@ -95,7 +96,8 @@ CollisionDelegateBuilder& CollisionDelegateBuilder::addInteraction(
 template <class taOther>
 CollisionDelegateBuilder& CollisionDelegateBuilder::addInteraction(
     COLLISION_PRE_SOLVE_Tag,
-    std::function<Decision(taOther&, HG_NEVER_NULL(cpArbiter*), HG_NEVER_NULL(cpSpace*), PZInteger)> aFunc) {
+    std::function<Decision(taOther&, HG_NEVER_NULL(cpArbiter*), HG_NEVER_NULL(cpSpace*), PZInteger)>
+        aFunc) {
     detail::EntityTypeIdAndUsage specifier{taOther::ENTITY_TYPE_ID, detail::USAGE_COL_PRESOLVE};
     _collisionFunctions.emplace_back(
         [func = std::move(aFunc)](EntityBase& aEntity,

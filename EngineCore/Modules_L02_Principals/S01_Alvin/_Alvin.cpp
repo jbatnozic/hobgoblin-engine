@@ -20,7 +20,7 @@
 #include <iostream>
 #include <stdexcept>
 
-namespace hg = jbatnozic::hobgoblin;
+namespace hg    = jbatnozic::hobgoblin;
 namespace alvin = hg::alvin;
 
 enum Tags {

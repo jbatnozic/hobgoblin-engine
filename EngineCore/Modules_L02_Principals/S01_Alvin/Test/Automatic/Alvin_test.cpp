@@ -5,8 +5,8 @@
 #include <Hobgoblin/ChipmunkPhysics.hpp>
 #include <Hobgoblin/Math.hpp>
 
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 #include <iostream>
 
@@ -137,8 +137,7 @@ public:
         : _colDelegate{_initColDelegate()}
         , _body{alvin::Body::createDynamic(100.0, cpMomentForCircle(100.0, 0.0, 16.0, cpvzero))}
         //, _body{alvin::Body::createKinematic()}
-        , _shape{alvin::Shape::createCircle(_body, 16.0, cpvzero)}  
-    {
+        , _shape{alvin::Shape::createCircle(_body, 16.0, cpvzero)} {
         _colDelegate.bind(*this, _shape);
         cpSpaceAddBody(aSpace, _body);
         setPosition(aPosition);
@@ -161,8 +160,8 @@ private:
     testing::StrictMock<CollisionCallback> _colCallback;
 
     alvin::CollisionDelegate _colDelegate;
-    alvin::Body _body;
-    alvin::Shape _shape;  
+    alvin::Body              _body;
+    alvin::Shape             _shape;
 
     alvin::CollisionDelegate _initColDelegate() {
         return alvin::CollisionDelegateBuilder{}
@@ -207,12 +206,11 @@ public:
     Wall(NeverNull<cpSpace*> aSpace, math::Vector2d aPosition)
         : _colDelegate{_initColDelegate()}
         , _body{alvin::Body::createStatic()}
-        , _shape{alvin::Shape::createBox(_body, 32.0, 32.0, 0.0)}
-    {
+        , _shape{alvin::Shape::createBox(_body, 32.0, 32.0, 0.0)} {
         _colDelegate.bind(*this, _shape);
         cpSpaceAddBody(aSpace, _body);
         setPosition(aPosition);
-        cpSpaceAddShape(aSpace, _shape);      
+        cpSpaceAddShape(aSpace, _shape);
     }
 
     void setPosition(math::Vector2d aPosition) {
@@ -231,8 +229,8 @@ private:
     testing::StrictMock<CollisionCallback> _colCallback;
 
     alvin::CollisionDelegate _colDelegate;
-    alvin::Body _body;
-    alvin::Shape _shape;
+    alvin::Body              _body;
+    alvin::Shape             _shape;
 
     alvin::CollisionDelegate _initColDelegate() {
         return alvin::CollisionDelegateBuilder{}
@@ -291,25 +289,33 @@ public:
     }
 
 protected:
-    alvin::Space _space;
+    alvin::Space                   _space;
     alvin::MainCollisionDispatcher _colDispatcher;
 };
 
 TEST_F(AlvinCollisionTest, Test_1) {
-    Player player{_space, {16.0, 16.0}};
-    Wall wall{_space, {100.0, 16.0}};
+    Player player{
+        _space,
+        {16.0, 16.0}
+    };
+    Wall wall{
+        _space,
+        {100.0, 16.0}
+    };
 
     DoSpaceStep();
 
-    NeverNull<const alvin::EntityBase*> playerPtr = &player;
-    NeverNull<const cpShape*> playerShapePtr = player.getShape();
-    NeverNull<const alvin::EntityBase*> wallPtr = &wall;
-    NeverNull<const cpShape*> wallShapePtr = wall.getShape();
+    NeverNull<const alvin::EntityBase*> playerPtr      = &player;
+    NeverNull<const cpShape*>           playerShapePtr = player.getShape();
+    NeverNull<const alvin::EntityBase*> wallPtr        = &wall;
+    NeverNull<const cpShape*>           wallShapePtr   = wall.getShape();
 
     std::cout << "player = " << std::hex << reinterpret_cast<std::uintptr_t>(playerPtr.get()) << '\n';
-    std::cout << "player.shape = " << std::hex << reinterpret_cast<std::uintptr_t>(playerShapePtr.get()) << '\n';
+    std::cout << "player.shape = " << std::hex << reinterpret_cast<std::uintptr_t>(playerShapePtr.get())
+              << '\n';
     std::cout << "wall = " << std::hex << reinterpret_cast<std::uintptr_t>(wallPtr.get()) << '\n';
-    std::cout << "wall.shape = " << std::hex << reinterpret_cast<std::uintptr_t>(wallShapePtr.get()) << '\n';
+    std::cout << "wall.shape = " << std::hex << reinterpret_cast<std::uintptr_t>(wallShapePtr.get())
+              << '\n';
 
     // 1
     {

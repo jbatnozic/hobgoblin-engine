@@ -4,8 +4,8 @@
 #ifndef UHOBGOBLIN_ALVIN_PRIVATE_HELPERS_HPP
 #define UHOBGOBLIN_ALVIN_PRIVATE_HELPERS_HPP
 
-#include <Hobgoblin/Alvin/Entity_base.hpp>
 #include <Hobgoblin/Alvin/Decision.hpp>
+#include <Hobgoblin/Alvin/Entity_base.hpp>
 
 #include <cstdint>
 #include <functional>
@@ -57,6 +57,10 @@ private:
 };
 
 struct SpecificCollisionFunc {
+    SpecificCollisionFunc(GenericEntityCollisionFunc aFunc, EntityTypeIdAndUsage aSpecifier)
+        : func{std::move(aFunc)}
+        , specifier{aSpecifier} {}
+
     GenericEntityCollisionFunc func;
     EntityTypeIdAndUsage       specifier;
 
