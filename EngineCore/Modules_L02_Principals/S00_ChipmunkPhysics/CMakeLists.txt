@@ -65,3 +65,4 @@ PUBLIC
 add_library("Hobgoblin_L02_S00_ChipmunkPhysics" ALIAS ${COMPONENT_NAME})
 
 add_subdirectory("Experimental")
+add_subdirectory("Test")

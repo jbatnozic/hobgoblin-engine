@@ -111,9 +111,9 @@ private:
                 dispatcher->_findCollisionFunc(*del2, del1->getEntityTypeId(), USAGE_COL_BEGIN);
             // Get results of collision functions (or default values)
             const Decision result1 =
-                cf1 ? ((*cf1)(del1->getEntity(), aArbiter, aSpace, 1)) : del1->getDefaultDecision();
+                cf1 ? ((*cf1)(del2->getEntity(), aArbiter, aSpace, 1)) : del1->getDefaultDecision();
             const Decision result2 =
-                cf2 ? ((*cf2)(del2->getEntity(), aArbiter, aSpace, 2)) : del2->getDefaultDecision();
+                cf2 ? ((*cf2)(del1->getEntity(), aArbiter, aSpace, 2)) : del2->getDefaultDecision();
 
             return (detail::ToBool(result1) && detail::ToBool(result2));
         };
@@ -135,9 +135,9 @@ private:
                 dispatcher->_findCollisionFunc(*del2, del1->getEntityTypeId(), USAGE_COL_PRESOLVE);
             // Get results of collision functions (or default values)
             const Decision result1 =
-                cf1 ? ((*cf1)(del1->getEntity(), aArbiter, aSpace, 1)) : del1->getDefaultDecision();
+                cf1 ? ((*cf1)(del2->getEntity(), aArbiter, aSpace, 1)) : del1->getDefaultDecision();
             const Decision result2 =
-                cf2 ? ((*cf2)(del2->getEntity(), aArbiter, aSpace, 2)) : del2->getDefaultDecision();
+                cf2 ? ((*cf2)(del1->getEntity(), aArbiter, aSpace, 2)) : del2->getDefaultDecision();
 
             return (detail::ToBool(result1) && detail::ToBool(result2));
         };
@@ -158,10 +158,10 @@ private:
                 dispatcher->_findCollisionFunc(*del2, del1->getEntityTypeId(), USAGE_COL_POSTSOLVE);
             // Get results of collision functions (or default values)
             if (cf1) {
-                (*cf1)(del1->getEntity(), aArbiter, aSpace, 1);
+                (*cf1)(del2->getEntity(), aArbiter, aSpace, 1);
             }
             if (cf2) {
-                (*cf2)(del2->getEntity(), aArbiter, aSpace, 2);
+                (*cf2)(del1->getEntity(), aArbiter, aSpace, 2);
             }
         };
 
@@ -181,10 +181,10 @@ private:
                 dispatcher->_findCollisionFunc(*del2, del1->getEntityTypeId(), USAGE_COL_SEPARATE);
             // Get results of collision functions (or default values)
             if (cf1) {
-                (*cf1)(del1->getEntity(), aArbiter, aSpace, 1);
+                (*cf1)(del2->getEntity(), aArbiter, aSpace, 1);
             }
             if (cf2) {
-                (*cf2)(del2->getEntity(), aArbiter, aSpace, 2);
+                (*cf2)(del1->getEntity(), aArbiter, aSpace, 2);
             }
         };
     }
