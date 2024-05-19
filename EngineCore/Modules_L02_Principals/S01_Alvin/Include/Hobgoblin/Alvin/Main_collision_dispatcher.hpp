@@ -7,7 +7,9 @@
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/HGExcept.hpp>
 
+#include <Hobgoblin/Alvin/Collision_delegate.hpp>
 #include <Hobgoblin/Alvin/Entity_base.hpp>
+#include <Hobgoblin/Alvin/Private/Helpers.hpp>
 
 #include <type_traits>
 #include <unordered_map>

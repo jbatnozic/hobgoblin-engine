@@ -123,7 +123,7 @@ public:
     MOCK_METHOD(void, onSeparate, (NeverNull<const alvin::EntityBase*>, NeverNull<const cpShape*>));
 };
 
-NeverNull<cpShape*> GetOtherShape(NeverNull<cpArbiter*> aArbiter, NeverNull<cpShape*> aMyShape) {
+NeverNull<cpShape*> GetOtherShape(NeverNull<cpArbiter*> aArbiter, cpShape* aMyShape) {
     CP_ARBITER_GET_SHAPES(aArbiter, shape1, shape2);
     if (shape1 == aMyShape) {
         return shape2;
@@ -276,6 +276,7 @@ constexpr auto REJECT_COLLISION = alvin::Decision::REJECT_COLLISION;
 } // namespace
 
 using ::testing::Eq;
+using ::testing::Mock;
 using ::testing::Return;
 
 class AlvinCollisionTest : public ::testing::Test {
@@ -293,80 +294,156 @@ protected:
     alvin::MainCollisionDispatcher _colDispatcher;
 };
 
-TEST_F(AlvinCollisionTest, Test_1) {
-    Player player{
+#define CONTACT    (0x01 << alvin::detail::USAGE_COL_BEGIN)
+#define PRE_SOLVE  (0x01 << alvin::detail::USAGE_COL_PRESOLVE)
+#define POST_SOLVE (0x01 << alvin::detail::USAGE_COL_POSTSOLVE)
+#define SEPARATE   (0x01 << alvin::detail::USAGE_COL_SEPARATE)
+
+template <class taEntity>
+class TestDecorator : public taEntity {
+public:
+    using taEntity::taEntity;
+
+    template <class taOther>
+    void expectCollisionWith(const taOther&  aOther,
+                             int             aCollisionTypeMask,
+                             alvin::Decision aContactDecision  = ACCEPT_COLLISION,
+                             alvin::Decision aPreSolveDecision = ACCEPT_COLLISION) {
+        auto& cb = this->getColllisionCallback();
+
+        if (aCollisionTypeMask & CONTACT) {
+            EXPECT_CALL(cb, onContact(Eq(&aOther), Eq(aOther.getShape())))
+                .WillOnce(Return(aContactDecision));
+        }
+        if (aCollisionTypeMask & PRE_SOLVE) {
+            EXPECT_CALL(cb, onPreSolve(Eq(&aOther), Eq(aOther.getShape())))
+                .WillOnce(Return(aPreSolveDecision));
+        }
+        if (aCollisionTypeMask & POST_SOLVE) {
+            EXPECT_CALL(cb, onPostSolve(Eq(&aOther), Eq(aOther.getShape())));
+        }
+        if (aCollisionTypeMask & SEPARATE) {
+            EXPECT_CALL(cb, onSeparate(Eq(&aOther), Eq(aOther.getShape())));
+        }
+    }
+};
+
+// NeverNull<const alvin::EntityBase*> playerPtr      = &player;
+// NeverNull<const cpShape*>           playerShapePtr = player.getShape();
+// NeverNull<const alvin::EntityBase*> wallPtr        = &wall;
+// NeverNull<const cpShape*>           wallShapePtr   = wall.getShape();
+
+// std::cout << "player = " << std::hex << reinterpret_cast<std::uintptr_t>(playerPtr.get()) << '\n';
+// std::cout << "player.shape = " << std::hex << reinterpret_cast<std::uintptr_t>(playerShapePtr.get())
+//           << '\n';
+// std::cout << "wall = " << std::hex << reinterpret_cast<std::uintptr_t>(wallPtr.get()) << '\n';
+// std::cout << "wall.shape = " << std::hex << reinterpret_cast<std::uintptr_t>(wallShapePtr.get())
+//           << '\n';
+
+TEST_F(AlvinCollisionTest, PlayerAndWall_PlayerCollidesWithWall_ThenMovesAway) {
+    TestDecorator<Player> player{
         _space,
         {16.0, 16.0}
     };
-    Wall wall{
+    TestDecorator<Wall> wall{
         _space,
         {100.0, 16.0}
     };
 
+    DoSpaceStep(); // First step
+
+    player.expectCollisionWith(wall, CONTACT | PRE_SOLVE | POST_SOLVE);
+    wall.expectCollisionWith(player, CONTACT | PRE_SOLVE | POST_SOLVE);
+    player.setPosition({90.0, 16.0}); // Bodies come in contact
     DoSpaceStep();
+    Mock::VerifyAndClearExpectations(&player.getColllisionCallback());
+    Mock::VerifyAndClearExpectations(&wall.getColllisionCallback());
 
-    NeverNull<const alvin::EntityBase*> playerPtr      = &player;
-    NeverNull<const cpShape*>           playerShapePtr = player.getShape();
-    NeverNull<const alvin::EntityBase*> wallPtr        = &wall;
-    NeverNull<const cpShape*>           wallShapePtr   = wall.getShape();
-
-    std::cout << "player = " << std::hex << reinterpret_cast<std::uintptr_t>(playerPtr.get()) << '\n';
-    std::cout << "player.shape = " << std::hex << reinterpret_cast<std::uintptr_t>(playerShapePtr.get())
-              << '\n';
-    std::cout << "wall = " << std::hex << reinterpret_cast<std::uintptr_t>(wallPtr.get()) << '\n';
-    std::cout << "wall.shape = " << std::hex << reinterpret_cast<std::uintptr_t>(wallShapePtr.get())
-              << '\n';
-
-    // 1
-    {
-        auto& cb = player.getColllisionCallback();
-        EXPECT_CALL(cb, onContact(Eq(&wall), Eq(wall.getShape()))).WillOnce(Return(ACCEPT_COLLISION));
-        EXPECT_CALL(cb, onPreSolve(Eq(&wall), Eq(wall.getShape()))).WillOnce(Return(ACCEPT_COLLISION));
-        EXPECT_CALL(cb, onPostSolve(Eq(&wall), Eq(wall.getShape())));
-    }
-    {
-        // clang-format off
-        auto& cb = wall.getColllisionCallback();
-        EXPECT_CALL(cb, onContact(Eq(&player), Eq(player.getShape().get()))).WillOnce(Return(ACCEPT_COLLISION));
-        EXPECT_CALL(cb, onPreSolve(Eq(&player), Eq(player.getShape().get()))).WillOnce(Return(ACCEPT_COLLISION));
-        EXPECT_CALL(cb, onPostSolve(Eq(&player), Eq(player.getShape().get())));
-        // clang-format on
-    }
-    player.setPosition({90.0, 16.0});
+    player.expectCollisionWith(wall, SEPARATE);
+    wall.expectCollisionWith(player, SEPARATE);
+    player.setPosition({16.0, 16.0}); // Bodies separate
     DoSpaceStep();
-    ::testing::Mock::VerifyAndClearExpectations(&player.getColllisionCallback());
-    ::testing::Mock::VerifyAndClearExpectations(&wall.getColllisionCallback());
+    Mock::VerifyAndClearExpectations(&player.getColllisionCallback());
+    Mock::VerifyAndClearExpectations(&wall.getColllisionCallback());
+}
 
-    // 2
-#if 0
-    {
-        auto& cb = player.getColllisionCallback();
-        EXPECT_CALL(cb, onPreSolve(Eq(&wall), Eq(wall.getShape()))).WillOnce(Return(ACCEPT_COLLISION));
-        EXPECT_CALL(cb, onPostSolve(Eq(&wall), Eq(wall.getShape())));
-    }
-    {
-        // clang-format off
-        auto& cb = wall.getColllisionCallback();
-        EXPECT_CALL(cb, onPreSolve(Eq(&player), Eq(player.getShape()))).WillOnce(Return(ACCEPT_COLLISION));
-        EXPECT_CALL(cb, onPostSolve(Eq(&player), Eq(player.getShape())));
-        // clang-format on
-    }
+TEST_F(AlvinCollisionTest, PlayerAndWall_PlayerCollidesWithWall_BothDestroyedWhileInContact) {
+    TestDecorator<Player> player{
+        _space,
+        {16.0, 16.0}
+    };
+    TestDecorator<Wall> wall{
+        _space,
+        {100.0, 16.0}
+    };
+
+    DoSpaceStep(); // First step
+
+    player.expectCollisionWith(wall, CONTACT | PRE_SOLVE | POST_SOLVE);
+    wall.expectCollisionWith(player, CONTACT | PRE_SOLVE | POST_SOLVE);
+    player.setPosition({90.0, 16.0}); // Bodies come in contact
     DoSpaceStep();
-    ::testing::Mock::VerifyAndClearExpectations(&player.getColllisionCallback());
-    ::testing::Mock::VerifyAndClearExpectations(&wall.getColllisionCallback());
-#endif
+    Mock::VerifyAndClearExpectations(&player.getColllisionCallback());
+    Mock::VerifyAndClearExpectations(&wall.getColllisionCallback());
 
-    // 3
+    player.expectCollisionWith(wall, SEPARATE);
+    wall.expectCollisionWith(player, SEPARATE);
+}
 
-    // Expect SEPARATION callback on both when the wall is removed from the space
-    {
-        auto& cb = player.getColllisionCallback();
-        EXPECT_CALL(cb, onSeparate(Eq(&wall), Eq(wall.getShape())));
-    }
-    {
-        auto& cb = wall.getColllisionCallback();
-        EXPECT_CALL(cb, onSeparate(Eq(&player), Eq(player.getShape())));
-    }
+TEST_F(AlvinCollisionTest, PlayerAndWall_PlayerCollidesWithWall_PlayerRejectsCollisionInContact) {
+    TestDecorator<Player> player{
+        _space,
+        {16.0, 16.0}
+    };
+    TestDecorator<Wall> wall{
+        _space,
+        {100.0, 16.0}
+    };
+
+    DoSpaceStep(); // First step
+
+    player.expectCollisionWith(wall, CONTACT, REJECT_COLLISION);
+    wall.expectCollisionWith(player, CONTACT);
+    player.setPosition({90.0, 16.0}); // Bodies come in contact
+    DoSpaceStep();
+    Mock::VerifyAndClearExpectations(&player.getColllisionCallback());
+    Mock::VerifyAndClearExpectations(&wall.getColllisionCallback());
+
+    DoSpaceStep(); // We simulate more steps but the collision isn't processed
+
+    // Objects are notified of the separation anyway
+    player.expectCollisionWith(wall, SEPARATE);
+    wall.expectCollisionWith(player, SEPARATE);
+}
+
+TEST_F(AlvinCollisionTest, PlayerAndWall_PlayerCollidesWithWall_WallRejectsCollisionInPreSolve) {
+    TestDecorator<Player> player{
+        _space,
+        {16.0, 16.0}
+    };
+    TestDecorator<Wall> wall{
+        _space,
+        {100.0, 16.0}
+    };
+
+    DoSpaceStep(); // First step
+
+    player.expectCollisionWith(wall, CONTACT | PRE_SOLVE);
+    wall.expectCollisionWith(player, CONTACT | PRE_SOLVE, ACCEPT_COLLISION, REJECT_COLLISION);
+    player.setPosition({90.0, 16.0}); // Bodies come in contact
+    DoSpaceStep();
+    Mock::VerifyAndClearExpectations(&player.getColllisionCallback());
+    Mock::VerifyAndClearExpectations(&wall.getColllisionCallback());
+
+    player.expectCollisionWith(wall, PRE_SOLVE | POST_SOLVE);
+    wall.expectCollisionWith(player, PRE_SOLVE | POST_SOLVE); // In 2nd step we'll accept the collision
+    DoSpaceStep();
+    Mock::VerifyAndClearExpectations(&player.getColllisionCallback());
+    Mock::VerifyAndClearExpectations(&wall.getColllisionCallback());
+
+    // Objects are notified of the separation anyway
+    player.expectCollisionWith(wall, SEPARATE);
+    wall.expectCollisionWith(player, SEPARATE);
 }
 
 } // namespace hobgoblin
