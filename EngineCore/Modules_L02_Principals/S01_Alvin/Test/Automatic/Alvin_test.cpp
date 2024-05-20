@@ -65,7 +65,7 @@ public:
 };
 
 //! Special case of Loot.
-class HealthPickUp : public LootInterface {
+class HealthPickUpInterface : public LootInterface {
 public:
     using EntitySuperclass = LootInterface;
 
@@ -86,11 +86,11 @@ public:
     static constexpr cpBitmask ENTITY_DEFAULT_MASK     = CAT_PLAYER | CAT_ENEMY | CAT_LOOT | CAT_WALL;
 };
 
-void Init(alvin::MainCollisionDispatcher aDispatcher, NeverNull<cpSpace*> aSpace) {
+void Init(alvin::MainCollisionDispatcher& aDispatcher, NeverNull<cpSpace*> aSpace) {
     aDispatcher.registerEntityType<PlayerInterface>();
     aDispatcher.registerEntityType<EnemyInterface>();
     aDispatcher.registerEntityType<LootInterface>();
-    aDispatcher.registerEntityType<HealthPickUp>();
+    aDispatcher.registerEntityType<HealthPickUpInterface>();
     aDispatcher.registerEntityType<WallInterface>();
     aDispatcher.configureSpace(aSpace);
 }
@@ -131,12 +131,115 @@ NeverNull<cpShape*> GetOtherShape(NeverNull<cpArbiter*> aArbiter, cpShape* aMySh
     return shape1;
 }
 
+#define ADD_CONTACT_INTERACTION(_other_type_, _delegate_, _shape_)                          \
+    (_delegate_)                                                                            \
+        .addInteraction<_other_type_>(                                                      \
+            alvin::COLLISION_CONTACT,                                                       \
+            [this](_other_type_&         aOther,                                            \
+                   NeverNull<cpArbiter*> aArbiter,                                          \
+                   NeverNull<cpSpace*>   aSpace,                                            \
+                   PZInteger             aOrder) -> alvin::Decision {                       \
+                return _colCallback.onContact(&aOther, GetOtherShape(aArbiter, (_shape_))); \
+            })
+
+#define ADD_PRESOLVE_INTERACTION(_other_type_, _delegate_, _shape_)                          \
+    (_delegate_)                                                                             \
+        .addInteraction<_other_type_>(                                                       \
+            alvin::COLLISION_PRE_SOLVE,                                                      \
+            [this](_other_type_&         aOther,                                             \
+                   NeverNull<cpArbiter*> aArbiter,                                           \
+                   NeverNull<cpSpace*>   aSpace,                                             \
+                   PZInteger             aOrder) -> alvin::Decision {                        \
+                return _colCallback.onPreSolve(&aOther, GetOtherShape(aArbiter, (_shape_))); \
+            })
+
+#define ADD_POSTSOLVE_INTERACTION(_other_type_, _delegate_, _shape_)                                    \
+    (_delegate_)                                                                                        \
+        .addInteraction<_other_type_>(alvin::COLLISION_POST_SOLVE,                                      \
+                                      [this](_other_type_&         aOther,                              \
+                                             NeverNull<cpArbiter*> aArbiter,                            \
+                                             NeverNull<cpSpace*>   aSpace,                              \
+                                             PZInteger             aOrder) {                            \
+                                          _colCallback.onPostSolve(&aOther,                             \
+                                                                   GetOtherShape(aArbiter, (_shape_))); \
+                                      })
+
+#define ADD_SEPARATE_INTERACTION(_other_type_, _delegate_, _shape_)                                    \
+    (_delegate_)                                                                                       \
+        .addInteraction<_other_type_>(alvin::COLLISION_SEPARATION,                                     \
+                                      [this](_other_type_&         aOther,                             \
+                                             NeverNull<cpArbiter*> aArbiter,                           \
+                                             NeverNull<cpSpace*>   aSpace,                             \
+                                             PZInteger             aOrder) {                           \
+                                          _colCallback.onSeparate(&aOther,                             \
+                                                                  GetOtherShape(aArbiter, (_shape_))); \
+                                      })
+
+#define ADD_ALL_INTERACTIONS(_other_type_, _delegate_, _shape_)   \
+    ADD_CONTACT_INTERACTION(_other_type_, _delegate_, _shape_);   \
+    ADD_PRESOLVE_INTERACTION(_other_type_, _delegate_, _shape_);  \
+    ADD_POSTSOLVE_INTERACTION(_other_type_, _delegate_, _shape_); \
+    ADD_SEPARATE_INTERACTION(_other_type_, _delegate_, _shape_);
+
 class Player : public PlayerInterface {
 public:
     Player(NeverNull<cpSpace*> aSpace, math::Vector2d aPosition)
         : _colDelegate{_initColDelegate()}
         , _body{alvin::Body::createDynamic(100.0, cpMomentForCircle(100.0, 0.0, 16.0, cpvzero))}
-        //, _body{alvin::Body::createKinematic()}
+        , _shape{alvin::Shape::createCircle(_body, 16.0, cpvzero)} {
+        _colDelegate.bind(*this, _shape);
+        cpSpaceAddBody(aSpace, _body);
+        setPosition(aPosition);
+        cpSpaceAddShape(aSpace, _shape);
+    }
+
+    void setPosition(math::Vector2d aPosition) {
+        cpBodySetPosition(_body, cpv(aPosition.x, aPosition.y));
+    }
+
+    testing::StrictMock<CollisionCallback>& getColllisionCallback() {
+        return _colCallback;
+    }
+
+    NeverNull<const cpShape*> getShape() const {
+        return _shape;
+    }
+
+    int getHealth() const {
+        return _health;
+    }
+
+private:
+    testing::StrictMock<CollisionCallback> _colCallback;
+
+    alvin::CollisionDelegate _colDelegate;
+    alvin::Body              _body;
+    alvin::Shape             _shape;
+
+    int _health = 100;
+
+    alvin::CollisionDelegate _initColDelegate() {
+        auto builder = alvin::CollisionDelegateBuilder{};
+        ADD_ALL_INTERACTIONS(WallInterface, builder, _shape);
+        ADD_ALL_INTERACTIONS(LootInterface, builder, _shape);
+        builder.addInteraction<HealthPickUpInterface>(
+            alvin::COLLISION_POST_SOLVE,
+            [this](HealthPickUpInterface& aHealth,
+                   NeverNull<cpArbiter*>  aArbiter,
+                   NeverNull<cpSpace*>    aSpace,
+                   PZInteger              aOrder) {
+                _health += 10;
+                _colCallback.onPostSolve(&aHealth, GetOtherShape(aArbiter, _shape));
+            });
+        return builder.finalize();
+    }
+};
+
+class Loot : public LootInterface {
+public:
+    Loot(NeverNull<cpSpace*> aSpace, math::Vector2d aPosition)
+        : _colDelegate{_initColDelegate()}
+        , _body{alvin::Body::createDynamic(100.0, cpMomentForCircle(100.0, 0.0, 16.0, cpvzero))}
         , _shape{alvin::Shape::createCircle(_body, 16.0, cpvzero)} {
         _colDelegate.bind(*this, _shape);
         cpSpaceAddBody(aSpace, _body);
@@ -164,40 +267,48 @@ private:
     alvin::Shape             _shape;
 
     alvin::CollisionDelegate _initColDelegate() {
-        return alvin::CollisionDelegateBuilder{}
-            .addInteraction<WallInterface>(
-                alvin::COLLISION_CONTACT,
-                [this](WallInterface&        aWall,
-                       NeverNull<cpArbiter*> aArbiter,
-                       NeverNull<cpSpace*>   aSpace,
-                       PZInteger             aOrder) -> alvin::Decision {
-                    return _colCallback.onContact(&aWall, GetOtherShape(aArbiter, _shape));
-                })
-            .addInteraction<WallInterface>(
-                alvin::COLLISION_PRE_SOLVE,
-                [this](WallInterface&        aWall,
-                       NeverNull<cpArbiter*> aArbiter,
-                       NeverNull<cpSpace*>   aSpace,
-                       PZInteger             aOrder) -> alvin::Decision {
-                    return _colCallback.onPreSolve(&aWall, GetOtherShape(aArbiter, _shape));
-                })
-            .addInteraction<WallInterface>(alvin::COLLISION_POST_SOLVE,
-                                           [this](WallInterface&        aWall,
-                                                  NeverNull<cpArbiter*> aArbiter,
-                                                  NeverNull<cpSpace*>   aSpace,
-                                                  PZInteger             aOrder) {
-                                               _colCallback.onPostSolve(&aWall,
-                                                                        GetOtherShape(aArbiter, _shape));
-                                           })
-            .addInteraction<WallInterface>(alvin::COLLISION_SEPARATION,
-                                           [this](WallInterface&        aWall,
-                                                  NeverNull<cpArbiter*> aArbiter,
-                                                  NeverNull<cpSpace*>   aSpace,
-                                                  PZInteger             aOrder) {
-                                               _colCallback.onSeparate(&aWall,
-                                                                       GetOtherShape(aArbiter, _shape));
-                                           })
-            .finalize();
+        auto builder = alvin::CollisionDelegateBuilder{};
+        ADD_ALL_INTERACTIONS(WallInterface, builder, _shape);
+        return builder.finalize();
+    }
+};
+
+class Health : public HealthPickUpInterface {
+public:
+    Health(NeverNull<cpSpace*> aSpace, math::Vector2d aPosition)
+        : _colDelegate{_initColDelegate()}
+        , _body{alvin::Body::createDynamic(100.0, cpMomentForCircle(100.0, 0.0, 16.0, cpvzero))}
+        , _shape{alvin::Shape::createCircle(_body, 16.0, cpvzero)} {
+        _colDelegate.bind(*this, _shape);
+        cpSpaceAddBody(aSpace, _body);
+        setPosition(aPosition);
+        cpSpaceAddShape(aSpace, _shape);
+    }
+
+    void setPosition(math::Vector2d aPosition) {
+        cpBodySetPosition(_body, cpv(aPosition.x, aPosition.y));
+    }
+
+    testing::StrictMock<CollisionCallback>& getColllisionCallback() {
+        return _colCallback;
+    }
+
+    NeverNull<const cpShape*> getShape() const {
+        return _shape;
+    }
+
+private:
+    testing::StrictMock<CollisionCallback> _colCallback;
+
+    alvin::CollisionDelegate _colDelegate;
+    alvin::Body              _body;
+    alvin::Shape             _shape;
+
+    alvin::CollisionDelegate _initColDelegate() {
+        auto builder = alvin::CollisionDelegateBuilder{};
+        ADD_ALL_INTERACTIONS(PlayerInterface, builder, _shape);
+        ADD_ALL_INTERACTIONS(WallInterface, builder, _shape);
+        return builder.finalize();
     }
 };
 
@@ -233,40 +344,9 @@ private:
     alvin::Shape             _shape;
 
     alvin::CollisionDelegate _initColDelegate() {
-        return alvin::CollisionDelegateBuilder{}
-            .addInteraction<PlayerInterface>(
-                alvin::COLLISION_CONTACT,
-                [this](PlayerInterface&      aPlayer,
-                       NeverNull<cpArbiter*> aArbiter,
-                       NeverNull<cpSpace*>   aSpace,
-                       PZInteger             aOrder) -> alvin::Decision {
-                    return _colCallback.onContact(&aPlayer, GetOtherShape(aArbiter, _shape));
-                })
-            .addInteraction<PlayerInterface>(
-                alvin::COLLISION_PRE_SOLVE,
-                [this](PlayerInterface&      aPlayer,
-                       NeverNull<cpArbiter*> aArbiter,
-                       NeverNull<cpSpace*>   aSpace,
-                       PZInteger             aOrder) -> alvin::Decision {
-                    return _colCallback.onPreSolve(&aPlayer, GetOtherShape(aArbiter, _shape));
-                })
-            .addInteraction<PlayerInterface>(
-                alvin::COLLISION_POST_SOLVE,
-                [this](PlayerInterface&      aPlayer,
-                       NeverNull<cpArbiter*> aArbiter,
-                       NeverNull<cpSpace*>   aSpace,
-                       PZInteger             aOrder) {
-                    _colCallback.onPostSolve(&aPlayer, GetOtherShape(aArbiter, _shape));
-                })
-            .addInteraction<PlayerInterface>(
-                alvin::COLLISION_SEPARATION,
-                [this](PlayerInterface&      aPlayer,
-                       NeverNull<cpArbiter*> aArbiter,
-                       NeverNull<cpSpace*>   aSpace,
-                       PZInteger             aOrder) {
-                    _colCallback.onSeparate(&aPlayer, GetOtherShape(aArbiter, _shape));
-                })
-            .finalize();
+        auto builder = alvin::CollisionDelegateBuilder{};
+        ADD_ALL_INTERACTIONS(alvin::EntityBase, builder, _shape);
+        return builder.finalize();
     }
 };
 
@@ -444,6 +524,53 @@ TEST_F(AlvinCollisionTest, PlayerAndWall_PlayerCollidesWithWall_WallRejectsColli
     // Objects are notified of the separation anyway
     player.expectCollisionWith(wall, SEPARATE);
     wall.expectCollisionWith(player, SEPARATE);
+}
+
+TEST_F(AlvinCollisionTest, PlayerAndHealth_PlayerCollidesWithHealth_ThenMovesAway) {
+    TestDecorator<Player> player{
+        _space,
+        {16.0, 16.0}
+    };
+    TestDecorator<Health> health{
+        _space,
+        {100.0, 16.0}
+    };
+
+    DoSpaceStep(); // First step
+    EXPECT_EQ(player.getHealth(), 100);
+
+    player.expectCollisionWith(health, CONTACT | PRE_SOLVE | POST_SOLVE);
+    health.expectCollisionWith(player, CONTACT | PRE_SOLVE | POST_SOLVE);
+    player.setPosition({90.0, 16.0}); // Bodies come in contact
+    DoSpaceStep();
+    Mock::VerifyAndClearExpectations(&player.getColllisionCallback());
+    Mock::VerifyAndClearExpectations(&health.getColllisionCallback());
+    EXPECT_EQ(player.getHealth(), 110);
+
+    player.expectCollisionWith(health, SEPARATE);
+    health.expectCollisionWith(player, SEPARATE);
+    player.setPosition({16.0, 16.0}); // Bodies separate
+    DoSpaceStep();
+    Mock::VerifyAndClearExpectations(&player.getColllisionCallback());
+    Mock::VerifyAndClearExpectations(&health.getColllisionCallback());
+}
+
+TEST_F(AlvinCollisionTest, TwoLoots_TheyDontCollide) {
+    TestDecorator<Loot> loot1{
+        _space,
+        {16.0, 16.0}
+    };
+    TestDecorator<Loot> loot2{
+        _space,
+        {16.0, 16.0}
+    };
+
+    DoSpaceStep();
+    DoSpaceStep();
+    DoSpaceStep();
+
+    Mock::VerifyAndClearExpectations(&loot1.getColllisionCallback());
+    Mock::VerifyAndClearExpectations(&loot2.getColllisionCallback());
 }
 
 } // namespace hobgoblin
