@@ -19,6 +19,15 @@ public:
     Shape(NeverNull<cpShape*> aShape)
         : _shape{aShape} {}
 
+    ~Shape() {
+        if (_shape) {
+            auto* space = cpShapeGetSpace(_shape.get());
+            if (space) {
+                cpSpaceRemoveShape(space, _shape.get());
+            }
+        }
+    }
+
     static Shape createBox(NeverNull<cpBody*> aBody,
                            cpFloat            aWidth,
                            cpFloat            aHeight,

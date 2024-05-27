@@ -6,6 +6,7 @@
 
 #include <Hobgoblin/ChipmunkPhysics.hpp>
 
+#include <cassert>
 #include <memory>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
@@ -15,26 +16,17 @@ namespace alvin {
 namespace detail {
 
 inline void CleanUpAndDelete(cpShape* aShape) {
-    cpSpace* space = cpShapeGetSpace(aShape);
-    if (space) {
-        cpSpaceRemoveShape(space, aShape);
-    }
+    assert(aShape != nullptr && cpShapeGetSpace(aShape) != nullptr);
     cpShapeFree(aShape);
 }
 
 inline void CleanUpAndDelete(cpBody* aBody) {
-    cpSpace* space = cpBodyGetSpace(aBody);
-    if (space) {
-        cpSpaceRemoveBody(space, aBody);
-    }
+    assert(aBody != nullptr && cpBodyGetSpace(aBody) != nullptr);
     cpBodyFree(aBody);
 }
 
 inline void CleanUpAndDelete(cpConstraint* aConstraint) {
-    cpSpace* space = cpConstraintGetSpace(aConstraint);
-    if (space) {
-        cpSpaceRemoveConstraint(space, aConstraint);
-    }
+    assert(aConstraint != nullptr && cpConstraintGetSpace(aConstraint) != nullptr);
     cpConstraintFree(aConstraint);
 }
 

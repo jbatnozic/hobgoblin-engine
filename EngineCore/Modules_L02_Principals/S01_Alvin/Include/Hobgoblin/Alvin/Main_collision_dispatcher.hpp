@@ -173,6 +173,7 @@ private:
 
             // Get pointers to shapes
             CP_ARBITER_GET_SHAPES(aArbiter, shape1, shape2);
+            HG_HARD_ASSERT(shape1 != shape2);
             // Get pointers to collision delegates
             const auto* del1 = cpShapeGetUserData(shape1).get<CollisionDelegate>();
             const auto* del2 = cpShapeGetUserData(shape2).get<CollisionDelegate>();

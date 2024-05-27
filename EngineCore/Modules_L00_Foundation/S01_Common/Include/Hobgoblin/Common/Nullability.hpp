@@ -77,7 +77,7 @@ public:
     //! Construct from a value of type `NeverNull<U>` where `U` is convertible to `taPointer`.
     template <typename U, typename = std::enable_if_t<std::is_convertible<U, taPointer>::value>>
     constexpr NeverNull(const NeverNull<U>& aOther)
-        : NeverNull{aOther.get()} {}
+        : _ptr{aOther._ptr} {}
 
     //! ???
     template <typename = std::enable_if_t<!std::is_same<std::nullptr_t, taPointer>::value>>

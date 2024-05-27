@@ -6,11 +6,12 @@ project("Hobgoblin.Alvin")
 add_library(${PROJECT_NAME} STATIC
     # "Alvin.cpp"
 
+    "Source/Alvin_dummy.cpp"
     "Source/Space.cpp"
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC "Include/")
-target_include_directories(${PROJECT_NAME} PUBLIC "Include/Hobgoblin/Private")
+target_include_directories(${PROJECT_NAME} PUBLIC "Include/Hobgoblin/Private/")
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
     # Foundation

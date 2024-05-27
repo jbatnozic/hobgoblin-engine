@@ -1,4 +1,4 @@
-
+#if 0
 #include <Hobgoblin/ChipmunkPhysics.hpp>
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/HGExcept.hpp>
@@ -208,3 +208,4 @@ int main(int argc, char* argv[]) try {
 } catch (const std::exception& ex) {
     std::cerr << "Exception caught: " << ex.what() << std::endl;
 }
+#endif

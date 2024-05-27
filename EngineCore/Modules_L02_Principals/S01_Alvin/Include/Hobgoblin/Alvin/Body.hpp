@@ -19,6 +19,15 @@ public:
     Body(NeverNull<cpBody*> aBody)
         : _body{aBody} {}
 
+    ~Body() {
+        if (_body) {
+            auto* space = cpBodyGetSpace(_body.get());
+            if (space) {
+                cpSpaceRemoveBody(space, _body.get());
+            }
+        }
+    }
+
     static Body createDynamic(cpFloat aMass, cpFloat aMoment) {
         return {cpBodyNew(aMass, aMoment)};
     }

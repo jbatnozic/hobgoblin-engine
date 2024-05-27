@@ -35,6 +35,7 @@ public:
     CollisionDelegate& operator=(CollisionDelegate&&) = default;
 
     //! Binds to a single shape
+    //! DO NOT move after binding!
     template <class taEntity>
     void bind(taEntity&                aEntity,
               Shape&                   aShape,
@@ -52,13 +53,14 @@ public:
     }
 
     //! Binds to multiple shapes
+    //! DO NOT move after binding!
     template <class taEntity, class taShapeBeginIterator, class taShapeEndIterator>
-    void bind(taEntity&                aEntity,
-              taShapeBeginIterator     aShapeBeginIterator,
-              taShapeEndIterator       aShapeEndIterator,
-              std::optional<cpGroup>   aGroup        = std::nullopt,
-              std::optional<cpBitmask> aCategory     = std::nullopt,
-              std::optional<cpBitmask> aCollidesWith = std::nullopt) {
+    void bindMultiple(taEntity&                aEntity,
+                      taShapeBeginIterator     aShapeBeginIterator,
+                      taShapeEndIterator       aShapeEndIterator,
+                      std::optional<cpGroup>   aGroup        = std::nullopt,
+                      std::optional<cpBitmask> aCategory     = std::nullopt,
+                      std::optional<cpBitmask> aCollidesWith = std::nullopt) {
         _entity       = &aEntity;
         _entityTypeId = taEntity::ENTITY_TYPE_ID;
 

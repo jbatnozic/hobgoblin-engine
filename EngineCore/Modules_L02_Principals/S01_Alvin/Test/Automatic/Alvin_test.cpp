@@ -13,6 +13,10 @@
 namespace jbatnozic {
 namespace hobgoblin {
 
+using ::testing::Eq;
+using ::testing::Mock;
+using ::testing::Return;
+
 namespace {
 
 enum EntityIds {
@@ -38,7 +42,7 @@ public:
     static constexpr alvin::EntityTypeId ENTITY_TYPE_ID = EID_PLAYER;
 
     static constexpr cpBitmask ENTITY_DEFAULT_CATEGORY = CAT_PLAYER;
-    static constexpr cpBitmask ENTITY_DEFAULT_MASK     = CAT_ENEMY | CAT_LOOT | CAT_WALL;
+    static constexpr cpBitmask ENTITY_DEFAULT_MASK     = CAT_PLAYER | CAT_ENEMY | CAT_LOOT | CAT_WALL;
 };
 
 //! The enemies collide with the player, with walls and with each other.
@@ -138,7 +142,7 @@ NeverNull<cpShape*> GetOtherShape(NeverNull<cpArbiter*> aArbiter, cpShape* aMySh
             [this](_other_type_&         aOther,                                            \
                    NeverNull<cpArbiter*> aArbiter,                                          \
                    NeverNull<cpSpace*>   aSpace,                                            \
-                   PZInteger             aOrder) -> alvin::Decision {                       \
+                   PZInteger             aOrder) -> alvin::Decision {                                   \
                 return _colCallback.onContact(&aOther, GetOtherShape(aArbiter, (_shape_))); \
             })
 
@@ -149,7 +153,7 @@ NeverNull<cpShape*> GetOtherShape(NeverNull<cpArbiter*> aArbiter, cpShape* aMySh
             [this](_other_type_&         aOther,                                             \
                    NeverNull<cpArbiter*> aArbiter,                                           \
                    NeverNull<cpSpace*>   aSpace,                                             \
-                   PZInteger             aOrder) -> alvin::Decision {                        \
+                   PZInteger             aOrder) -> alvin::Decision {                                    \
                 return _colCallback.onPreSolve(&aOther, GetOtherShape(aArbiter, (_shape_))); \
             })
 
@@ -159,7 +163,7 @@ NeverNull<cpShape*> GetOtherShape(NeverNull<cpArbiter*> aArbiter, cpShape* aMySh
                                       [this](_other_type_&         aOther,                              \
                                              NeverNull<cpArbiter*> aArbiter,                            \
                                              NeverNull<cpSpace*>   aSpace,                              \
-                                             PZInteger             aOrder) {                            \
+                                             PZInteger             aOrder) {                                        \
                                           _colCallback.onPostSolve(&aOther,                             \
                                                                    GetOtherShape(aArbiter, (_shape_))); \
                                       })
@@ -170,7 +174,7 @@ NeverNull<cpShape*> GetOtherShape(NeverNull<cpArbiter*> aArbiter, cpShape* aMySh
                                       [this](_other_type_&         aOther,                             \
                                              NeverNull<cpArbiter*> aArbiter,                           \
                                              NeverNull<cpSpace*>   aSpace,                             \
-                                             PZInteger             aOrder) {                           \
+                                             PZInteger             aOrder) {                                       \
                                           _colCallback.onSeparate(&aOther,                             \
                                                                   GetOtherShape(aArbiter, (_shape_))); \
                                       })
@@ -183,15 +187,26 @@ NeverNull<cpShape*> GetOtherShape(NeverNull<cpArbiter*> aArbiter, cpShape* aMySh
 
 class Player : public PlayerInterface {
 public:
-    Player(NeverNull<cpSpace*> aSpace, math::Vector2d aPosition)
+    Player(NeverNull<cpSpace*> aSpace,
+           math::Vector2d      aPosition,
+           cpGroup             aGroup,
+           cpBitmask           aCategory,
+           cpBitmask           aCollidesWith)
         : _colDelegate{_initColDelegate()}
         , _body{alvin::Body::createDynamic(100.0, cpMomentForCircle(100.0, 0.0, 16.0, cpvzero))}
         , _shape{alvin::Shape::createCircle(_body, 16.0, cpvzero)} {
-        _colDelegate.bind(*this, _shape);
+        _colDelegate.bind(*this, _shape, aGroup, aCategory, aCollidesWith);
         cpSpaceAddBody(aSpace, _body);
         setPosition(aPosition);
         cpSpaceAddShape(aSpace, _shape);
     }
+
+    Player(NeverNull<cpSpace*> aSpace, math::Vector2d aPosition)
+        : Player{aSpace,
+                 aPosition,
+                 CP_NO_GROUP,
+                 PlayerInterface::ENTITY_DEFAULT_CATEGORY,
+                 PlayerInterface::ENTITY_DEFAULT_MASK} {}
 
     void setPosition(math::Vector2d aPosition) {
         cpBodySetPosition(_body, cpv(aPosition.x, aPosition.y));
@@ -220,6 +235,7 @@ private:
 
     alvin::CollisionDelegate _initColDelegate() {
         auto builder = alvin::CollisionDelegateBuilder{};
+        ADD_ALL_INTERACTIONS(PlayerInterface, builder, _shape);
         ADD_ALL_INTERACTIONS(WallInterface, builder, _shape);
         ADD_ALL_INTERACTIONS(LootInterface, builder, _shape);
         builder.addInteraction<HealthPickUpInterface>(
@@ -353,27 +369,6 @@ private:
 constexpr auto ACCEPT_COLLISION = alvin::Decision::ACCEPT_COLLISION;
 constexpr auto REJECT_COLLISION = alvin::Decision::REJECT_COLLISION;
 
-} // namespace
-
-using ::testing::Eq;
-using ::testing::Mock;
-using ::testing::Return;
-
-class AlvinCollisionTest : public ::testing::Test {
-public:
-    void SetUp() override {
-        Init(_colDispatcher, _space);
-    }
-
-    void DoSpaceStep() {
-        _space.step(1.0 / 60.0);
-    }
-
-protected:
-    alvin::Space                   _space;
-    alvin::MainCollisionDispatcher _colDispatcher;
-};
-
 #define CONTACT    (0x01 << alvin::detail::USAGE_COL_BEGIN)
 #define PRE_SOLVE  (0x01 << alvin::detail::USAGE_COL_PRESOLVE)
 #define POST_SOLVE (0x01 << alvin::detail::USAGE_COL_POSTSOLVE)
@@ -406,6 +401,23 @@ public:
             EXPECT_CALL(cb, onSeparate(Eq(&aOther), Eq(aOther.getShape())));
         }
     }
+};
+
+} // namespace
+
+class AlvinCollisionTest : public ::testing::Test {
+public:
+    void SetUp() override {
+        Init(_colDispatcher, _space);
+    }
+
+    void DoSpaceStep() {
+        _space.step(1.0 / 60.0);
+    }
+
+protected:
+    alvin::Space                   _space;
+    alvin::MainCollisionDispatcher _colDispatcher;
 };
 
 // NeverNull<const alvin::EntityBase*> playerPtr      = &player;
@@ -562,7 +574,7 @@ TEST_F(AlvinCollisionTest, TwoLoots_TheyDontCollide) {
     };
     TestDecorator<Loot> loot2{
         _space,
-        {16.0, 16.0}
+        {17.0, 17.0}
     };
 
     DoSpaceStep();
@@ -571,6 +583,53 @@ TEST_F(AlvinCollisionTest, TwoLoots_TheyDontCollide) {
 
     Mock::VerifyAndClearExpectations(&loot1.getColllisionCallback());
     Mock::VerifyAndClearExpectations(&loot2.getColllisionCallback());
+}
+
+TEST_F(AlvinCollisionTest, TwoPlayers_CreatedInSameSpot_Collide) {
+    TestDecorator<Player> player1{
+        _space,
+        {16.0, 16.0}
+    };
+    TestDecorator<Player> player2{
+        _space,
+        {17.0, 17.0}
+    };
+
+    player1.expectCollisionWith(player2, CONTACT | PRE_SOLVE | POST_SOLVE);
+    player2.expectCollisionWith(player1, CONTACT | PRE_SOLVE | POST_SOLVE);
+    DoSpaceStep();
+
+    Mock::VerifyAndClearExpectations(&player1.getColllisionCallback());
+    Mock::VerifyAndClearExpectations(&player2.getColllisionCallback());
+
+    player1.expectCollisionWith(player2, SEPARATE);
+    player2.expectCollisionWith(player1, SEPARATE);
+}
+
+TEST_F(AlvinCollisionTest, TwoPlayersInSameGroup_TheyDontCollide) {
+    static constexpr cpGroup GROUP = 123;
+
+    TestDecorator<Player> player1{
+        _space,
+        {16.0, 16.0},
+        GROUP,
+        PlayerInterface::ENTITY_DEFAULT_CATEGORY,
+        PlayerInterface::ENTITY_DEFAULT_MASK
+    };
+    TestDecorator<Player> player2{
+        _space,
+        {17.0, 17.0},
+        GROUP,
+        PlayerInterface::ENTITY_DEFAULT_CATEGORY,
+        PlayerInterface::ENTITY_DEFAULT_MASK
+    };
+
+    DoSpaceStep();
+    DoSpaceStep();
+    DoSpaceStep();
+
+    Mock::VerifyAndClearExpectations(&player2.getColllisionCallback());
+    Mock::VerifyAndClearExpectations(&player1.getColllisionCallback());
 }
 
 } // namespace hobgoblin

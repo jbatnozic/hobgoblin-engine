@@ -23,9 +23,21 @@ public:
 
     static constexpr EntityTypeId ENTITY_TYPE_ID = ENTITY_TYPE_ID_BASE;
 
+    //! Bitmask of categories the entity belongs to (by default; it can be overriden
+    //! for each specific entity if needed).
+    //! For example, if bits 1, 3 and 7 are set, the entity belongs to categories
+    //! 1, 3 and 7. As `cpBitmask` is guaranteed to be at least 64 bits, you will
+    //! have at least 64 distinct categories to work with.
     static constexpr cpBitmask ENTITY_DEFAULT_CATEGORY = CP_ALL_CATEGORIES;
-    static constexpr cpBitmask ENTITY_DEFAULT_MASK     = CP_ALL_CATEGORIES;
+
+    //! Bitmask of categories the entity can colllide with (by default; it can be overriden
+    //! for each specific entity if needed).
+    //! For example, if bits 2 and 4 are set, the entity will collide with all other entities
+    //! that have either bit 2 or bit 4 (or both) set in their category bitmask.
+    static constexpr cpBitmask ENTITY_DEFAULT_MASK = CP_ALL_CATEGORIES;
 };
+
+static_assert(sizeof(cpBitmask) >= sizeof(std::int64_t), "cpBitmask must support at least 64 bits.");
 
 } // namespace alvin
 HOBGOBLIN_NAMESPACE_END

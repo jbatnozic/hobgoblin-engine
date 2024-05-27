@@ -19,6 +19,15 @@ public:
     Constraint(NeverNull<cpConstraint*> aConstraint)
         : _constraint{aConstraint} {}
 
+    ~Constraint() {
+        if (_constraint) {
+            auto* space = cpConstraintGetSpace(_constraint.get());
+            if (space) {
+                cpSpaceRemoveConstraint(space, _constraint.get());
+            }
+        }
+    }
+
     // TODO: static create methods
 
     //! Prevent copying.
