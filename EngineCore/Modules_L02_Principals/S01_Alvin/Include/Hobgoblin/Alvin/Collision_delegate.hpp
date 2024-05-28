@@ -29,9 +29,9 @@ public:
     //! Prevent copying.
     CollisionDelegate& operator=(const CollisionDelegate&) = delete;
 
-    //! Allow cheap moving.
+    //! Allow cheap moving. (TODO: throw if bound)
     CollisionDelegate(CollisionDelegate&&) = default;
-    //! Allow cheap moving.
+    //! Allow cheap moving. (TODO: throw if bound)
     CollisionDelegate& operator=(CollisionDelegate&&) = default;
 
     //! Binds to a single shape

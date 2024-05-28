@@ -36,8 +36,10 @@ public:
     //! that have either bit 2 or bit 4 (or both) set in their category bitmask.
     static constexpr cpBitmask ENTITY_DEFAULT_MASK = CP_ALL_CATEGORIES;
 
-    virtual ~EntityBase() = default;
+    virtual ~EntityBase() = 0;
 };
+
+inline EntityBase::~EntityBase() = default;
 
 static_assert(sizeof(cpBitmask) >= sizeof(std::int64_t), "cpBitmask must support at least 64 bits.");
 

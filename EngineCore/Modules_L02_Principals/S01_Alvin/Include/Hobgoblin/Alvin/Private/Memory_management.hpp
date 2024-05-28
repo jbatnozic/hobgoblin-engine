@@ -15,22 +15,22 @@ HOBGOBLIN_NAMESPACE_BEGIN
 namespace alvin {
 namespace detail {
 
-inline void CleanUpAndDelete(cpShape* aShape) {
-    assert(aShape != nullptr && cpShapeGetSpace(aShape) != nullptr);
+inline void Free(cpShape* aShape) {
+    assert(aShape != nullptr && cpShapeGetSpace(aShape) == nullptr);
     cpShapeFree(aShape);
 }
 
-inline void CleanUpAndDelete(cpBody* aBody) {
-    assert(aBody != nullptr && cpBodyGetSpace(aBody) != nullptr);
+inline void Free(cpBody* aBody) {
+    assert(aBody != nullptr && cpBodyGetSpace(aBody) == nullptr);
     cpBodyFree(aBody);
 }
 
-inline void CleanUpAndDelete(cpConstraint* aConstraint) {
-    assert(aConstraint != nullptr && cpConstraintGetSpace(aConstraint) != nullptr);
+inline void Free(cpConstraint* aConstraint) {
+    assert(aConstraint != nullptr && cpConstraintGetSpace(aConstraint) == nullptr);
     cpConstraintFree(aConstraint);
 }
 
-inline void CleanUpAndDelete(cpSpace* aSpace) {
+inline void Free(cpSpace* aSpace) {
     cpSpaceFree(aSpace);
 }
 
@@ -44,7 +44,7 @@ struct GenericChipmunkDeleter {
                   "Incompatible type provided");
 
     void operator()(T* aObject) {
-        CleanUpAndDelete(aObject);
+        Free(aObject);
     }
 };
 
