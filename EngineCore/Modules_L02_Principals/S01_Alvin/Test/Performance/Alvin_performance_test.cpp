@@ -303,6 +303,8 @@ int main(int argc, char* argv[]) {
 
     hg::gr::RenderWindow window{hg::win::VideoMode::getDesktopMode(), "Wallz & Ballz"};
     window.setFramerateLimit(60);
+    window.getView().setSize({100 * CELL_RESOLUTION, 50 * CELL_RESOLUTION});
+    window.getView().setCenter({100 * CELL_RESOLUTION / 2.0, 50 * CELL_RESOLUTION / 2.0});
 
     alvin::Space space;
     cpSpaceSetGravity(space, cpv(0.0, 500.0));
@@ -346,7 +348,7 @@ int main(int argc, char* argv[]) {
                 });
         }
 
-        const auto worldPos = window.mapPixelToCoords(mousePos);
+        const auto worldPos = window.mapPixelToCoords(mousePos, window.getView());
         if (lmbPressed) {
             balls.emplace_back(space, math::Vector2d{worldPos.x, worldPos.y});
             balls.back().addListInfo(balls, std::prev(balls.end()));
