@@ -55,23 +55,28 @@ public:
         COLLISION_SEPARATION_Tag,
         std::function<void(taOther&, NeverNull<cpArbiter*>, NeverNull<cpSpace*>, PZInteger)> aFunc);
 
+    CollisionDelegateBuilder& setDefaultDecision(Decision aDecision) {
+        _defaultDecision = aDecision;
+        return SELF;
+    }
+
     //! TODO(description)
     CollisionDelegate finalize() {
         std::sort(_collisionFunctions.begin(), _collisionFunctions.end());
-        return CollisionDelegate{std::move(_collisionFunctions)};
+        return CollisionDelegate{std::move(_collisionFunctions), _defaultDecision};
     }
 
 private:
     std::vector<detail::SpecificCollisionFunc> _collisionFunctions;
+    Decision                                   _defaultDecision = Decision::ACCEPT_COLLISION;
 };
 
 ///////////////////////////////////////////////////////////////////////////
 // IMPLEMENTATIONS                                                       //
 ///////////////////////////////////////////////////////////////////////////
 
-#ifdef UHOBGOBLIN_DEBUG // TODO
-// #define down_cast dynamic_cast TODO
-#define down_cast static_cast
+#ifdef UHOBGOBLIN_DEBUG
+#define down_cast dynamic_cast
 #else
 #define down_cast static_cast
 #endif
@@ -81,7 +86,7 @@ CollisionDelegateBuilder& CollisionDelegateBuilder::addInteraction(
     COLLISION_CONTACT_Tag,
     std::function<Decision(taOther&, HG_NEVER_NULL(cpArbiter*), HG_NEVER_NULL(cpSpace*), PZInteger)>
         aFunc) {
-    detail::EntityTypeIdAndUsage specifier{taOther::ENTITY_TYPE_ID, detail::USAGE_COL_BEGIN};
+    detail::EntityTypeIdAndUsage specifier{taOther::ENTITY_TYPE_ID, detail::Usage::BEGIN};
     _collisionFunctions.emplace_back(
         [func = std::move(aFunc)](EntityBase& aEntity,
                                   HG_NEVER_NULL(cpArbiter*) aArbiter,
@@ -98,7 +103,7 @@ CollisionDelegateBuilder& CollisionDelegateBuilder::addInteraction(
     COLLISION_PRE_SOLVE_Tag,
     std::function<Decision(taOther&, HG_NEVER_NULL(cpArbiter*), HG_NEVER_NULL(cpSpace*), PZInteger)>
         aFunc) {
-    detail::EntityTypeIdAndUsage specifier{taOther::ENTITY_TYPE_ID, detail::USAGE_COL_PRESOLVE};
+    detail::EntityTypeIdAndUsage specifier{taOther::ENTITY_TYPE_ID, detail::Usage::PRESOLVE};
     _collisionFunctions.emplace_back(
         [func = std::move(aFunc)](EntityBase& aEntity,
                                   HG_NEVER_NULL(cpArbiter*) aArbiter,
@@ -114,7 +119,7 @@ template <class taOther>
 CollisionDelegateBuilder& CollisionDelegateBuilder::addInteraction(
     COLLISION_POST_SOLVE_Tag,
     std::function<void(taOther&, HG_NEVER_NULL(cpArbiter*), HG_NEVER_NULL(cpSpace*), PZInteger)> aFunc) {
-    detail::EntityTypeIdAndUsage specifier{taOther::ENTITY_TYPE_ID, detail::USAGE_COL_POSTSOLVE};
+    detail::EntityTypeIdAndUsage specifier{taOther::ENTITY_TYPE_ID, detail::Usage::POSTSOLVE};
     _collisionFunctions.emplace_back(
         [func = std::move(aFunc)](EntityBase& aEntity,
                                   HG_NEVER_NULL(cpArbiter*) aArbiter,
@@ -131,7 +136,7 @@ template <class taOther>
 CollisionDelegateBuilder& CollisionDelegateBuilder::addInteraction(
     COLLISION_SEPARATION_Tag,
     std::function<void(taOther&, HG_NEVER_NULL(cpArbiter*), HG_NEVER_NULL(cpSpace*), PZInteger)> aFunc) {
-    detail::EntityTypeIdAndUsage specifier{taOther::ENTITY_TYPE_ID, detail::USAGE_COL_SEPARATE};
+    detail::EntityTypeIdAndUsage specifier{taOther::ENTITY_TYPE_ID, detail::Usage::SEPARATE};
     _collisionFunctions.emplace_back(
         [func = std::move(aFunc)](EntityBase& aEntity,
                                   HG_NEVER_NULL(cpArbiter*) aArbiter,

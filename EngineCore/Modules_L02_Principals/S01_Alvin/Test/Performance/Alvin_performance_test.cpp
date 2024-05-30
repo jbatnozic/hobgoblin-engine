@@ -75,14 +75,6 @@ void Init(alvin::MainCollisionDispatcher& aDispatcher, NeverNull<cpSpace*> aSpac
 
 ///////////////////////////////////////////////////////////////////////////////
 
-NeverNull<cpShape*> GetOtherShape(NeverNull<cpArbiter*> aArbiter, cpShape* aMyShape) {
-    CP_ARBITER_GET_SHAPES(aArbiter, shape1, shape2);
-    if (shape1 == aMyShape) {
-        return shape2;
-    }
-    return shape1;
-}
-
 class Ball : public BallInterface {
 public:
     Ball(NeverNull<cpSpace*> aSpace, math::Vector2d aPosition)
@@ -138,34 +130,33 @@ private:
     std::list<Ball>::iterator _ballListIter = {};
 
     alvin::CollisionDelegate _initColDelegate() {
-        auto builder = alvin::CollisionDelegateBuilder{};
-        builder.addInteraction<WallInterface>(alvin::COLLISION_CONTACT,
-                                              [](WallInterface&        aOther,
-                                                 NeverNull<cpArbiter*> aArbiter,
-                                                 NeverNull<cpSpace*>   aSpace,
-                                                 hg::PZInteger         aOrder) -> alvin::Decision {
-                                                  return alvin::Decision::ACCEPT_COLLISION;
-                                              });
-        builder.addInteraction<WallInterface>(alvin::COLLISION_PRE_SOLVE,
-                                              [](WallInterface&        aOther,
-                                                 NeverNull<cpArbiter*> aArbiter,
-                                                 NeverNull<cpSpace*>   aSpace,
-                                                 hg::PZInteger         aOrder) -> alvin::Decision {
-                                                  return alvin::Decision::ACCEPT_COLLISION;
-                                              });
-        builder.addInteraction<WallInterface>(alvin::COLLISION_POST_SOLVE,
-                                              [](WallInterface&        aOther,
-                                                 NeverNull<cpArbiter*> aArbiter,
-                                                 NeverNull<cpSpace*>   aSpace,
-                                                 hg::PZInteger         aOrder) {
-
-                                              });
-        builder.addInteraction<WallInterface>(alvin::COLLISION_SEPARATION,
-                                              [](WallInterface&        aOther,
-                                                 NeverNull<cpArbiter*> aArbiter,
-                                                 NeverNull<cpSpace*>   aSpace,
-                                                 hg::PZInteger         aOrder) {});
-        return builder.finalize();
+        return alvin::CollisionDelegateBuilder{}
+            .addInteraction<WallInterface>(alvin::COLLISION_CONTACT,
+                                           [](WallInterface&        aOther,
+                                              NeverNull<cpArbiter*> aArbiter,
+                                              NeverNull<cpSpace*>   aSpace,
+                                              hg::PZInteger         aOrder) -> alvin::Decision {
+                                               return alvin::Decision::ACCEPT_COLLISION;
+                                           })
+            .addInteraction<WallInterface>(alvin::COLLISION_PRE_SOLVE,
+                                           [](WallInterface&        aOther,
+                                              NeverNull<cpArbiter*> aArbiter,
+                                              NeverNull<cpSpace*>   aSpace,
+                                              hg::PZInteger         aOrder) -> alvin::Decision {
+                                               return alvin::Decision::ACCEPT_COLLISION;
+                                           })
+            .addInteraction<WallInterface>(alvin::COLLISION_POST_SOLVE,
+                                           [](WallInterface&        aOther,
+                                              NeverNull<cpArbiter*> aArbiter,
+                                              NeverNull<cpSpace*>   aSpace,
+                                              hg::PZInteger         aOrder) {})
+            .addInteraction<WallInterface>(alvin::COLLISION_SEPARATION,
+                                           [](WallInterface&        aOther,
+                                              NeverNull<cpArbiter*> aArbiter,
+                                              NeverNull<cpSpace*>   aSpace,
+                                              hg::PZInteger         aOrder) {})
+            .setDefaultDecision(alvin::Decision::ACCEPT_COLLISION)
+            .finalize();
     }
 };
 
@@ -210,8 +201,9 @@ private:
     alvin::Shape             _shape;
 
     alvin::CollisionDelegate _initColDelegate() {
-        auto builder = alvin::CollisionDelegateBuilder{};
-        return builder.finalize();
+        return alvin::CollisionDelegateBuilder{}
+            .setDefaultDecision(alvin::Decision::ACCEPT_COLLISION)
+            .finalize();
     }
 };
 
@@ -274,11 +266,6 @@ private:
         ball->destroy();
     }
 };
-
-#define CONTACT    (0x01 << alvin::detail::USAGE_COL_BEGIN)
-#define PRE_SOLVE  (0x01 << alvin::detail::USAGE_COL_PRESOLVE)
-#define POST_SOLVE (0x01 << alvin::detail::USAGE_COL_POSTSOLVE)
-#define SEPARATE   (0x01 << alvin::detail::USAGE_COL_SEPARATE)
 
 std::list<Wall> SetUpArenaEdges(hg::NeverNull<cpSpace*> aSpace,
                                 hg::PZInteger           aWidth,

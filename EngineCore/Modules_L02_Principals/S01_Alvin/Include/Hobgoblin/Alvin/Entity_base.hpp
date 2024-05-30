@@ -36,6 +36,7 @@ public:
     //! that have either bit 2 or bit 4 (or both) set in their category bitmask.
     static constexpr cpBitmask ENTITY_DEFAULT_MASK = CP_ALL_CATEGORIES;
 
+    //! Pure virtual destructor.
     virtual ~EntityBase() = 0;
 };
 

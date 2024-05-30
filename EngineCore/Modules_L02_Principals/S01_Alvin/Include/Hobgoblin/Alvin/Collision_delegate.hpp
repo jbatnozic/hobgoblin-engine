@@ -95,14 +95,16 @@ private:
     friend class CollisionDelegateBuilder;
     friend class MainCollisionDispatcher;
 
-    explicit CollisionDelegate(std::vector<detail::SpecificCollisionFunc> aCollisionFunctions)
-        : _collisionFunctions{std::move(aCollisionFunctions)} {}
+    CollisionDelegate(std::vector<detail::SpecificCollisionFunc> aCollisionFunctions,
+                      Decision                                   aDefaultDecision)
+        : _collisionFunctions{std::move(aCollisionFunctions)}
+        , _defaultDecision{aDefaultDecision} {}
 
     std::vector<detail::SpecificCollisionFunc> _collisionFunctions;
 
     EntityBase*  _entity = nullptr;
     EntityTypeId _entityTypeId;
-    Decision     _defaultDecision = Decision::ACCEPT_COLLISION; // TODO: initialize
+    Decision     _defaultDecision;
 
     //! Returns `true` if the delegate contains no collision
     //! functions whatsoever; `false` otherwise.

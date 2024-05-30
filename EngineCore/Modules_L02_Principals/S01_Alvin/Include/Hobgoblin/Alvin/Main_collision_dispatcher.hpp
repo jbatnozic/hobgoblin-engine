@@ -44,7 +44,7 @@ public:
         return SELF;
     }
 
-    void configureSpace(NeverNull<cpSpace*> aSpace) {
+    void configureSpace(NeverNull<cpSpace*> aSpace) { // TODO: bind?
         _initCols(aSpace);
     }
 

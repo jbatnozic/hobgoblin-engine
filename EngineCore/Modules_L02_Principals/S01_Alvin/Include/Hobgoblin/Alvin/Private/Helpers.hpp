@@ -17,13 +17,13 @@ namespace alvin {
 namespace detail {
 
 using GenericEntityCollisionFunc =
-    std::function<Decision(EntityBase&, HG_NEVER_NULL(cpArbiter*), HG_NEVER_NULL(cpSpace*), PZInteger)>;
+    std::function<Decision(EntityBase&, NeverNull<cpArbiter*>, NeverNull<cpSpace*>, PZInteger)>;
 
-enum Usage : std::uint32_t {
-    USAGE_COL_BEGIN,
-    USAGE_COL_PRESOLVE,
-    USAGE_COL_POSTSOLVE,
-    USAGE_COL_SEPARATE
+enum class Usage : std::uint32_t {
+    BEGIN,
+    PRESOLVE,
+    POSTSOLVE,
+    SEPARATE
 };
 
 struct EntityTypeIdAndUsage {
