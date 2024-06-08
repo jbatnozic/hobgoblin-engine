@@ -7,6 +7,7 @@
 #include <Hobgoblin/ChipmunkPhysics.hpp>
 #include <Hobgoblin/Common.hpp>
 
+#include <Hobgoblin/Alvin/Collision_data.hpp>
 #include <Hobgoblin/Alvin/Collision_delegate.hpp>
 #include <Hobgoblin/Alvin/Entity_base.hpp>
 #include <Hobgoblin/Alvin/Private/Helpers.hpp>
@@ -31,30 +32,73 @@ class MainCollisionDispatcher;
 
 class CollisionDelegateBuilder {
 public:
-    //! TODO(description)
+    //! \brief Defines a CONTACT interaction with an entity type.
+    //!
+    //! \tparam taOther Type of the entity with which the interaction is being defined.
+    //!
+    //! \param aFunc The function which will be called once when the shapes first come
+    //!              into contact.
+    //!              The parameters which will be passed into this function are:
+    //!              - a reference to the entity to which the other shape is bound;
+    //!              - a reference to an instance of CollisionData which can provide
+    //!                more detailed information about the collision;
+    //!              The function must return a decision to accept the collision or reject
+    //!              it. If the collision is rejected, no other callback will be called
+    //!              (including the SEPARATE one) until the shapes separate and come into
+    //!              contact again.
     template <class taOther>
     CollisionDelegateBuilder& addInteraction(
         COLLISION_CONTACT_Tag,
-        std::function<Decision(taOther&, NeverNull<cpArbiter*>, NeverNull<cpSpace*>, PZInteger)> aFunc);
+        std::function<Decision(taOther&, const CollisionData&)> aFunc);
 
-    //! TODO(description)
+    //! \brief Defines a PRE_SOLVE interaction with an entity type.
+    //!
+    //! \tparam taOther Type of the entity with which the interaction is being defined.
+    //!
+    //! \param aFunc The function which will be called once every step while the shapes
+    //!              are touching.
+    //!              The parameters which will be passed into this function are:
+    //!              - a reference to the entity to which the other shape is bound;
+    //!              - a reference to an instance of CollisionData which can provide
+    //!                more detailed information about the collision, including a pointer
+    //!                to the arbiter governing the collision - the PRE_SOLVE function can
+    //!                use this arbiter to override the various collision values (friction,
+    //!                elasticity and velocity);
+    //!              The function must return a decision to accept the collision or reject
+    //!              it. If the collision is rejected a POST_SOLVE callback won't be called
+    //!              during the current step.
     template <class taOther>
     CollisionDelegateBuilder& addInteraction(
         COLLISION_PRE_SOLVE_Tag,
-        std::function<Decision(taOther&, NeverNull<cpArbiter*>, NeverNull<cpSpace*>, PZInteger)> aFunc);
+        std::function<Decision(taOther&, const CollisionData&)> aFunc);
+
+    //! \brief Defines a POST_SOLVE interaction with an entity type.
+    //!
+    //! \tparam taOther Type of the entity with which the interaction is being defined.
+    //!
+    //! \param aFunc The function which will be called once every step after the collision
+    //!              has been solved.
+    //!              The parameters which will be passed into this function are:
+    //!              - a reference to the entity to which the other shape is bound;
+    //!              - a reference to an instance of CollisionData which can provide
+    //!                more detailed information about the collision, including a pointer
+    //!                to the arbiter governing the collision - the POST_SOLVE function can
+    //!                use this arbiter to retrieve information about the collision, such as
+    //!                the impulse or kinetic energy;
+    template <class taOther>
+    CollisionDelegateBuilder& addInteraction(COLLISION_POST_SOLVE_Tag,
+                                             std::function<void(taOther&, const CollisionData&)> aFunc);
 
     //! TODO(description)
     template <class taOther>
-    CollisionDelegateBuilder& addInteraction(
-        COLLISION_POST_SOLVE_Tag,
-        std::function<void(taOther&, NeverNull<cpArbiter*>, NeverNull<cpSpace*>, PZInteger)> aFunc);
+    CollisionDelegateBuilder& addInteraction(COLLISION_SEPARATION_Tag,
+                                             std::function<void(taOther&, const CollisionData&)> aFunc);
 
-    //! TODO(description)
-    template <class taOther>
-    CollisionDelegateBuilder& addInteraction(
-        COLLISION_SEPARATION_Tag,
-        std::function<void(taOther&, NeverNull<cpArbiter*>, NeverNull<cpSpace*>, PZInteger)> aFunc);
-
+    //! Sets the default decision for CONTACT and PRE_SOLVE interactions for which
+    //! there is no explicitly set callback.
+    //!
+    //! \note if this method is never called, the delegate will be configured to
+    //!       accept all collisions.
     CollisionDelegateBuilder& setDefaultDecision(Decision aDecision) {
         _defaultDecision = aDecision;
         return SELF;
@@ -84,15 +128,11 @@ private:
 template <class taOther>
 CollisionDelegateBuilder& CollisionDelegateBuilder::addInteraction(
     COLLISION_CONTACT_Tag,
-    std::function<Decision(taOther&, HG_NEVER_NULL(cpArbiter*), HG_NEVER_NULL(cpSpace*), PZInteger)>
-        aFunc) {
+    std::function<Decision(taOther&, const CollisionData&)> aFunc) {
     detail::EntityTypeIdAndUsage specifier{taOther::ENTITY_TYPE_ID, detail::USAGE_COL_BEGIN};
     _collisionFunctions.emplace_back(
-        [func = std::move(aFunc)](EntityBase& aEntity,
-                                  HG_NEVER_NULL(cpArbiter*) aArbiter,
-                                  HG_NEVER_NULL(cpSpace*) aSpace,
-                                  PZInteger aOrder) -> Decision {
-            return func(down_cast<taOther&>(aEntity), aArbiter, aSpace, aOrder);
+        [func = std::move(aFunc)](EntityBase& aEntity, const CollisionData& aCollisonData) -> Decision {
+            return func(down_cast<taOther&>(aEntity), aCollisonData);
         },
         specifier);
     return SELF;
@@ -101,15 +141,11 @@ CollisionDelegateBuilder& CollisionDelegateBuilder::addInteraction(
 template <class taOther>
 CollisionDelegateBuilder& CollisionDelegateBuilder::addInteraction(
     COLLISION_PRE_SOLVE_Tag,
-    std::function<Decision(taOther&, HG_NEVER_NULL(cpArbiter*), HG_NEVER_NULL(cpSpace*), PZInteger)>
-        aFunc) {
+    std::function<Decision(taOther&, const CollisionData&)> aFunc) {
     detail::EntityTypeIdAndUsage specifier{taOther::ENTITY_TYPE_ID, detail::USAGE_COL_PRESOLVE};
     _collisionFunctions.emplace_back(
-        [func = std::move(aFunc)](EntityBase& aEntity,
-                                  HG_NEVER_NULL(cpArbiter*) aArbiter,
-                                  HG_NEVER_NULL(cpSpace*) aSpace,
-                                  PZInteger aOrder) -> Decision {
-            return func(down_cast<taOther&>(aEntity), aArbiter, aSpace, aOrder);
+        [func = std::move(aFunc)](EntityBase& aEntity, const CollisionData& aCollisonData) -> Decision {
+            return func(down_cast<taOther&>(aEntity), aCollisonData);
         },
         specifier);
     return SELF;
@@ -118,14 +154,11 @@ CollisionDelegateBuilder& CollisionDelegateBuilder::addInteraction(
 template <class taOther>
 CollisionDelegateBuilder& CollisionDelegateBuilder::addInteraction(
     COLLISION_POST_SOLVE_Tag,
-    std::function<void(taOther&, HG_NEVER_NULL(cpArbiter*), HG_NEVER_NULL(cpSpace*), PZInteger)> aFunc) {
+    std::function<void(taOther&, const CollisionData&)> aFunc) {
     detail::EntityTypeIdAndUsage specifier{taOther::ENTITY_TYPE_ID, detail::USAGE_COL_POSTSOLVE};
     _collisionFunctions.emplace_back(
-        [func = std::move(aFunc)](EntityBase& aEntity,
-                                  HG_NEVER_NULL(cpArbiter*) aArbiter,
-                                  HG_NEVER_NULL(cpSpace*) aSpace,
-                                  PZInteger aOrder) -> Decision {
-            func(down_cast<taOther&>(aEntity), aArbiter, aSpace, aOrder);
+        [func = std::move(aFunc)](EntityBase& aEntity, const CollisionData& aCollisonData) -> Decision {
+            func(down_cast<taOther&>(aEntity), aCollisonData);
             return Decision::ACCEPT_COLLISION; // Return value doesn't matter here
         },
         specifier);
@@ -135,14 +168,11 @@ CollisionDelegateBuilder& CollisionDelegateBuilder::addInteraction(
 template <class taOther>
 CollisionDelegateBuilder& CollisionDelegateBuilder::addInteraction(
     COLLISION_SEPARATION_Tag,
-    std::function<void(taOther&, HG_NEVER_NULL(cpArbiter*), HG_NEVER_NULL(cpSpace*), PZInteger)> aFunc) {
+    std::function<void(taOther&, const CollisionData&)> aFunc) {
     detail::EntityTypeIdAndUsage specifier{taOther::ENTITY_TYPE_ID, detail::USAGE_COL_SEPARATE};
     _collisionFunctions.emplace_back(
-        [func = std::move(aFunc)](EntityBase& aEntity,
-                                  HG_NEVER_NULL(cpArbiter*) aArbiter,
-                                  HG_NEVER_NULL(cpSpace*) aSpace,
-                                  PZInteger aOrder) -> Decision {
-            func(down_cast<taOther&>(aEntity), aArbiter, aSpace, aOrder);
+        [func = std::move(aFunc)](EntityBase& aEntity, const CollisionData& aCollisonData) -> Decision {
+            func(down_cast<taOther&>(aEntity), aCollisonData);
             return Decision::ACCEPT_COLLISION; // Return value doesn't matter here
         },
         specifier);

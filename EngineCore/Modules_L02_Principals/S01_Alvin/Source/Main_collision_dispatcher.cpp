@@ -72,7 +72,7 @@ void MainCollisionDispatcher::bind(NeverNull<cpSpace*> aSpace) {
         const auto* cf1 = ca.dispatcher->_findCollisionFunc(*ca.delegate1,
                                                             ca.delegate2->getEntityTypeId(),
                                                             USAGE);
-        const Decision result1 = cf1 ? ((*cf1)(ca.delegate2->getEntity(), aArbiter, aSpace, 1))
+        const Decision result1 = cf1 ? ((*cf1)(ca.delegate2->getEntity(), {aArbiter, aSpace, 1}))
                                      : ca.delegate1->getDefaultDecision();
 
         if (!ToBool(result1)) {
@@ -82,7 +82,7 @@ void MainCollisionDispatcher::bind(NeverNull<cpSpace*> aSpace) {
         const auto* cf2 = ca.dispatcher->_findCollisionFunc(*ca.delegate2,
                                                             ca.delegate1->getEntityTypeId(),
                                                             USAGE);
-        const Decision result2 = cf2 ? ((*cf2)(ca.delegate1->getEntity(), aArbiter, aSpace, 2))
+        const Decision result2 = cf2 ? ((*cf2)(ca.delegate1->getEntity(), {aArbiter, aSpace, 2}))
                                      : ca.delegate2->getDefaultDecision();
 
         return ToBool(result2);
@@ -96,7 +96,7 @@ void MainCollisionDispatcher::bind(NeverNull<cpSpace*> aSpace) {
         const auto* cf1 = ca.dispatcher->_findCollisionFunc(*ca.delegate1,
                                                             ca.delegate2->getEntityTypeId(),
                                                             USAGE);
-        const Decision result1 = cf1 ? ((*cf1)(ca.delegate2->getEntity(), aArbiter, aSpace, 1))
+        const Decision result1 = cf1 ? ((*cf1)(ca.delegate2->getEntity(), {aArbiter, aSpace, 1}))
                                      : ca.delegate1->getDefaultDecision();
 
         if (!ToBool(result1)) {
@@ -106,7 +106,7 @@ void MainCollisionDispatcher::bind(NeverNull<cpSpace*> aSpace) {
         const auto* cf2 = ca.dispatcher->_findCollisionFunc(*ca.delegate2,
                                                             ca.delegate1->getEntityTypeId(),
                                                             USAGE);
-        const Decision result2 = cf2 ? ((*cf2)(ca.delegate1->getEntity(), aArbiter, aSpace, 2))
+        const Decision result2 = cf2 ? ((*cf2)(ca.delegate1->getEntity(), {aArbiter, aSpace, 2}))
                                      : ca.delegate2->getDefaultDecision();
 
         return ToBool(result2);
@@ -125,10 +125,10 @@ void MainCollisionDispatcher::bind(NeverNull<cpSpace*> aSpace) {
                                                             USAGE);
 
         if (cf1) {
-            (*cf1)(ca.delegate2->getEntity(), aArbiter, aSpace, 1);
+            (*cf1)(ca.delegate2->getEntity(), {aArbiter, aSpace, 1});
         }
         if (cf2) {
-            (*cf2)(ca.delegate1->getEntity(), aArbiter, aSpace, 2);
+            (*cf2)(ca.delegate1->getEntity(), {aArbiter, aSpace, 2});
         }
     };
 
@@ -145,10 +145,10 @@ void MainCollisionDispatcher::bind(NeverNull<cpSpace*> aSpace) {
                                                             USAGE);
 
         if (cf1) {
-            (*cf1)(ca.delegate2->getEntity(), aArbiter, aSpace, 1);
+            (*cf1)(ca.delegate2->getEntity(), {aArbiter, aSpace, 1});
         }
         if (cf2) {
-            (*cf2)(ca.delegate1->getEntity(), aArbiter, aSpace, 2);
+            (*cf2)(ca.delegate1->getEntity(), {aArbiter, aSpace, 2});
         }
     };
     // clang-format on

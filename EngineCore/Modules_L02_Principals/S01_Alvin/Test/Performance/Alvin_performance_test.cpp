@@ -131,30 +131,24 @@ private:
 
     alvin::CollisionDelegate _initColDelegate() {
         return alvin::CollisionDelegateBuilder{}
-            .addInteraction<WallInterface>(alvin::COLLISION_CONTACT,
-                                           [](WallInterface&        aOther,
-                                              NeverNull<cpArbiter*> aArbiter,
-                                              NeverNull<cpSpace*>   aSpace,
-                                              hg::PZInteger         aOrder) -> alvin::Decision {
-                                               return alvin::Decision::ACCEPT_COLLISION;
-                                           })
-            .addInteraction<WallInterface>(alvin::COLLISION_PRE_SOLVE,
-                                           [](WallInterface&        aOther,
-                                              NeverNull<cpArbiter*> aArbiter,
-                                              NeverNull<cpSpace*>   aSpace,
-                                              hg::PZInteger         aOrder) -> alvin::Decision {
-                                               return alvin::Decision::ACCEPT_COLLISION;
-                                           })
-            .addInteraction<WallInterface>(alvin::COLLISION_POST_SOLVE,
-                                           [](WallInterface&        aOther,
-                                              NeverNull<cpArbiter*> aArbiter,
-                                              NeverNull<cpSpace*>   aSpace,
-                                              hg::PZInteger         aOrder) {})
-            .addInteraction<WallInterface>(alvin::COLLISION_SEPARATION,
-                                           [](WallInterface&        aOther,
-                                              NeverNull<cpArbiter*> aArbiter,
-                                              NeverNull<cpSpace*>   aSpace,
-                                              hg::PZInteger         aOrder) {})
+            .addInteraction<WallInterface>(
+                alvin::COLLISION_CONTACT,
+                [](WallInterface&              aOther,
+                   const alvin::CollisionData& aCollisionData) -> alvin::Decision {
+                    return alvin::Decision::ACCEPT_COLLISION;
+                })
+            .addInteraction<WallInterface>(
+                alvin::COLLISION_PRE_SOLVE,
+                [](WallInterface&              aOther,
+                   const alvin::CollisionData& aCollisionData) -> alvin::Decision {
+                    return alvin::Decision::ACCEPT_COLLISION;
+                })
+            .addInteraction<WallInterface>(
+                alvin::COLLISION_POST_SOLVE,
+                [](WallInterface& aOther, const alvin::CollisionData& aCollisionData) {})
+            .addInteraction<WallInterface>(
+                alvin::COLLISION_SEPARATION,
+                [](WallInterface& aOther, const alvin::CollisionData& aCollisionData) {})
             .setDefaultDecision(alvin::Decision::ACCEPT_COLLISION)
             .finalize();
     }
@@ -250,12 +244,9 @@ private:
         auto builder = alvin::CollisionDelegateBuilder{};
         builder.addInteraction<BallInterface>(
             alvin::COLLISION_PRE_SOLVE,
-            [](BallInterface&        aOther,
-               NeverNull<cpArbiter*> aArbiter,
-               NeverNull<cpSpace*>   aSpace,
-               hg::PZInteger         aOrder) -> alvin::Decision {
+            [](BallInterface& aOther, const alvin::CollisionData& aCollisionData) -> alvin::Decision {
                 if (hg::in::CheckPressedPK(hg::in::PK_D)) {
-                    cpSpaceAddPostStepCallback(aSpace, &_ps, &aOther, nullptr);
+                    cpSpaceAddPostStepCallback(aCollisionData.space, &_ps, &aOther, nullptr);
                 }
                 return alvin::Decision::ACCEPT_COLLISION;
             });

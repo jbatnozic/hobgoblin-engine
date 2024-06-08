@@ -135,49 +135,41 @@ NeverNull<cpShape*> GetOtherShape(NeverNull<cpArbiter*> aArbiter, cpShape* aMySh
     return shape1;
 }
 
-#define ADD_CONTACT_INTERACTION(_other_type_, _delegate_, _shape_)                          \
-    (_delegate_)                                                                            \
-        .addInteraction<_other_type_>(                                                      \
-            alvin::COLLISION_CONTACT,                                                       \
-            [this](_other_type_&         aOther,                                            \
-                   NeverNull<cpArbiter*> aArbiter,                                          \
-                   NeverNull<cpSpace*>   aSpace,                                            \
-                   PZInteger             aOrder) -> alvin::Decision {                                   \
-                return _colCallback.onContact(&aOther, GetOtherShape(aArbiter, (_shape_))); \
+#define ADD_CONTACT_INTERACTION(_other_type_, _delegate_, _shape_)                               \
+    (_delegate_)                                                                                 \
+        .addInteraction<_other_type_>(                                                           \
+            alvin::COLLISION_CONTACT,                                                            \
+            [this](_other_type_&               aOther,                                           \
+                   const alvin::CollisionData& aCollisionData) -> alvin::Decision {              \
+                return _colCallback.onContact(&aOther,                                           \
+                                              GetOtherShape(aCollisionData.arbiter, (_shape_))); \
             })
 
-#define ADD_PRESOLVE_INTERACTION(_other_type_, _delegate_, _shape_)                          \
-    (_delegate_)                                                                             \
-        .addInteraction<_other_type_>(                                                       \
-            alvin::COLLISION_PRE_SOLVE,                                                      \
-            [this](_other_type_&         aOther,                                             \
-                   NeverNull<cpArbiter*> aArbiter,                                           \
-                   NeverNull<cpSpace*>   aSpace,                                             \
-                   PZInteger             aOrder) -> alvin::Decision {                                    \
-                return _colCallback.onPreSolve(&aOther, GetOtherShape(aArbiter, (_shape_))); \
+#define ADD_PRESOLVE_INTERACTION(_other_type_, _delegate_, _shape_)                               \
+    (_delegate_)                                                                                  \
+        .addInteraction<_other_type_>(                                                            \
+            alvin::COLLISION_PRE_SOLVE,                                                           \
+            [this](_other_type_&               aOther,                                            \
+                   const alvin::CollisionData& aCollisionData) -> alvin::Decision {               \
+                return _colCallback.onPreSolve(&aOther,                                           \
+                                               GetOtherShape(aCollisionData.arbiter, (_shape_))); \
             })
 
-#define ADD_POSTSOLVE_INTERACTION(_other_type_, _delegate_, _shape_)                                    \
-    (_delegate_)                                                                                        \
-        .addInteraction<_other_type_>(alvin::COLLISION_POST_SOLVE,                                      \
-                                      [this](_other_type_&         aOther,                              \
-                                             NeverNull<cpArbiter*> aArbiter,                            \
-                                             NeverNull<cpSpace*>   aSpace,                              \
-                                             PZInteger             aOrder) {                                        \
-                                          _colCallback.onPostSolve(&aOther,                             \
-                                                                   GetOtherShape(aArbiter, (_shape_))); \
-                                      })
+#define ADD_POSTSOLVE_INTERACTION(_other_type_, _delegate_, _shape_)                                 \
+    (_delegate_)                                                                                     \
+        .addInteraction<_other_type_>(                                                               \
+            alvin::COLLISION_POST_SOLVE,                                                             \
+            [this](_other_type_& aOther, const alvin::CollisionData& aCollisionData) {               \
+                _colCallback.onPostSolve(&aOther, GetOtherShape(aCollisionData.arbiter, (_shape_))); \
+            })
 
-#define ADD_SEPARATE_INTERACTION(_other_type_, _delegate_, _shape_)                                    \
-    (_delegate_)                                                                                       \
-        .addInteraction<_other_type_>(alvin::COLLISION_SEPARATION,                                     \
-                                      [this](_other_type_&         aOther,                             \
-                                             NeverNull<cpArbiter*> aArbiter,                           \
-                                             NeverNull<cpSpace*>   aSpace,                             \
-                                             PZInteger             aOrder) {                                       \
-                                          _colCallback.onSeparate(&aOther,                             \
-                                                                  GetOtherShape(aArbiter, (_shape_))); \
-                                      })
+#define ADD_SEPARATE_INTERACTION(_other_type_, _delegate_, _shape_)                                 \
+    (_delegate_)                                                                                    \
+        .addInteraction<_other_type_>(                                                              \
+            alvin::COLLISION_SEPARATION,                                                            \
+            [this](_other_type_& aOther, const alvin::CollisionData& aCollisionData) {              \
+                _colCallback.onSeparate(&aOther, GetOtherShape(aCollisionData.arbiter, (_shape_))); \
+            })
 
 #define ADD_ALL_INTERACTIONS(_other_type_, _delegate_, _shape_)   \
     ADD_CONTACT_INTERACTION(_other_type_, _delegate_, _shape_);   \
@@ -240,12 +232,9 @@ private:
         ADD_ALL_INTERACTIONS(LootInterface, builder, _shape);
         builder.addInteraction<HealthPickUpInterface>(
             alvin::COLLISION_POST_SOLVE,
-            [this](HealthPickUpInterface& aHealth,
-                   NeverNull<cpArbiter*>  aArbiter,
-                   NeverNull<cpSpace*>    aSpace,
-                   PZInteger              aOrder) {
+            [this](HealthPickUpInterface& aHealth, const alvin::CollisionData& aCollisionData) {
                 _health += 10;
-                _colCallback.onPostSolve(&aHealth, GetOtherShape(aArbiter, _shape));
+                _colCallback.onPostSolve(&aHealth, GetOtherShape(aCollisionData.arbiter, _shape));
             });
         return builder.finalize();
     }
@@ -484,7 +473,7 @@ TEST_F(AlvinCollisionTest, PlayerAndWall_PlayerCollidesWithWall_PlayerRejectsCol
 
     player.expectCollisionWith(wall, CONTACT, REJECT_COLLISION);
     wall.expectCollisionWith(player, 0); // Player will reject it so no need to call the other func
-    player.setPosition({90.0, 16.0}); // Bodies come in contact
+    player.setPosition({90.0, 16.0});    // Bodies come in contact
     DoSpaceStep();
     Mock::VerifyAndClearExpectations(&player.getColllisionCallback());
     Mock::VerifyAndClearExpectations(&wall.getColllisionCallback());

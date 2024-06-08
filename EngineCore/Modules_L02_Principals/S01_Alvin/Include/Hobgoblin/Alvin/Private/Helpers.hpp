@@ -4,6 +4,7 @@
 #ifndef UHOBGOBLIN_ALVIN_PRIVATE_HELPERS_HPP
 #define UHOBGOBLIN_ALVIN_PRIVATE_HELPERS_HPP
 
+#include <Hobgoblin/Alvin/Collision_data.hpp>
 #include <Hobgoblin/Alvin/Decision.hpp>
 #include <Hobgoblin/Alvin/Entity_base.hpp>
 
@@ -16,8 +17,7 @@ HOBGOBLIN_NAMESPACE_BEGIN
 namespace alvin {
 namespace detail {
 
-using GenericEntityCollisionFunc =
-    std::function<Decision(EntityBase&, NeverNull<cpArbiter*>, NeverNull<cpSpace*>, PZInteger)>;
+using GenericEntityCollisionFunc = std::function<Decision(EntityBase&, const CollisionData&)>;
 
 enum Usage : std::uint32_t {
     USAGE_COL_BEGIN,
