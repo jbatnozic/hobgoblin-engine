@@ -3,9 +3,9 @@
 
 #define HOBGOBLIN_SHORT_NAMESPACE
 #include <Hobgoblin/Alvin.hpp>
-#include <Hobgoblin/Logging.hpp>
 #include <Hobgoblin/ChipmunkPhysics.hpp>
 #include <Hobgoblin/Graphics.hpp>
+#include <Hobgoblin/Logging.hpp>
 #include <Hobgoblin/Math.hpp>
 
 #include <chrono>
@@ -70,7 +70,7 @@ public:
 void Init(alvin::MainCollisionDispatcher& aDispatcher, NeverNull<cpSpace*> aSpace) {
     aDispatcher.registerEntityType<BallInterface>();
     aDispatcher.registerEntityType<WallInterface>();
-    aDispatcher.configureSpace(aSpace);
+    aDispatcher.bind(aSpace);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -256,16 +256,17 @@ private:
 
     alvin::CollisionDelegate _initColDelegate() {
         auto builder = alvin::CollisionDelegateBuilder{};
-        builder.addInteraction<BallInterface>(alvin::COLLISION_PRE_SOLVE,
-                                              [](BallInterface&        aOther,
-                                                 NeverNull<cpArbiter*> aArbiter,
-                                                 NeverNull<cpSpace*>   aSpace,
-                                                 hg::PZInteger         aOrder) -> alvin::Decision {
-                                                  if (hg::in::CheckPressedPK(hg::in::PK_D)) {
-                                                    cpSpaceAddPostStepCallback(aSpace, &_ps, &aOther, nullptr);
-                                                  }
-                                                  return alvin::Decision::ACCEPT_COLLISION;
-                                              });
+        builder.addInteraction<BallInterface>(
+            alvin::COLLISION_PRE_SOLVE,
+            [](BallInterface&        aOther,
+               NeverNull<cpArbiter*> aArbiter,
+               NeverNull<cpSpace*>   aSpace,
+               hg::PZInteger         aOrder) -> alvin::Decision {
+                if (hg::in::CheckPressedPK(hg::in::PK_D)) {
+                    cpSpaceAddPostStepCallback(aSpace, &_ps, &aOther, nullptr);
+                }
+                return alvin::Decision::ACCEPT_COLLISION;
+            });
         return builder.finalize();
     }
 
@@ -314,7 +315,11 @@ int main(int argc, char* argv[]) {
 
     std::list<Wall> walls = SetUpArenaEdges(space, 100, 50);
     std::list<Ball> balls = {};
-    Sensor          sensor{space, {0.0, 0.0}};
+
+    Sensor sensor{
+        space,
+        {0.0, 0.0}
+    };
 
     math::Vector2i mousePos   = {0, 0};
     bool           lmbPressed = false;
@@ -361,7 +366,8 @@ int main(int argc, char* argv[]) {
         space.step(1.0 / 60.0);
         const auto end = std::chrono::steady_clock::now();
         if (hg::in::CheckPressedPK(hg::in::PK_SPACE)) {
-            const auto ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000.0;
+            const auto ms =
+                std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000.0;
             HG_LOG_INFO(LOG_ID, "Step took {}ms.", ms);
         }
 

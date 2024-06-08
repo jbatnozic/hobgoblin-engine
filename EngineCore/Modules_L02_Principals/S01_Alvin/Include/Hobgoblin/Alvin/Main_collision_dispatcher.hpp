@@ -44,9 +44,7 @@ public:
         return SELF;
     }
 
-    void configureSpace(NeverNull<cpSpace*> aSpace) {
-        _initCols(aSpace);
-    }
+    void bind(NeverNull<cpSpace*> aSpace);
 
 private:
     //! Key: type ID of entity
@@ -70,8 +68,6 @@ private:
     const detail::GenericEntityCollisionFunc* _findCollisionFunc(const CollisionDelegate& aDelegate,
                                                                  EntityTypeId             aEntityTypeId,
                                                                  detail::Usage            aUsage);
-
-    void _initCols(cpSpace* aSpace);
 };
 
 } // namespace alvin

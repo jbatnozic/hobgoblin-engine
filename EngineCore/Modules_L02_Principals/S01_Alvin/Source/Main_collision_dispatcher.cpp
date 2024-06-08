@@ -3,10 +3,33 @@
 
 #include <Hobgoblin/Alvin/Main_collision_dispatcher.hpp>
 
+#include <Hobgoblin/HGExcept.hpp>
+
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace alvin {
+
+namespace {
+template <class taPointer>
+taPointer AssertNotNull(taPointer aPtr) {
+    HG_ASSERT(aPtr != nullptr);
+    return aPtr;
+}
+
+struct CollisionActors {
+    CollisionActors(cpArbiter* aArbiter, const cpDataPointer& aUserData)
+        : dispatcher{AssertNotNull(aUserData.get<MainCollisionDispatcher>())} {
+        CP_ARBITER_GET_SHAPES(aArbiter, shape1, shape2);
+        delegate1 = AssertNotNull(cpShapeGetUserData(shape1).get<CollisionDelegate>());
+        delegate2 = AssertNotNull(cpShapeGetUserData(shape2).get<CollisionDelegate>());
+    }
+
+    MainCollisionDispatcher* dispatcher;
+    CollisionDelegate*       delegate1;
+    CollisionDelegate*       delegate2;
+};
+} // namespace
 
 const detail::GenericEntityCollisionFunc* MainCollisionDispatcher::_findCollisionFunc(
     const CollisionDelegate& aDelegate,
@@ -32,105 +55,103 @@ const detail::GenericEntityCollisionFunc* MainCollisionDispatcher::_findCollisio
     return nullptr;
 }
 
-void MainCollisionDispatcher::_initCols(cpSpace* aSpace) {
+void MainCollisionDispatcher::bind(NeverNull<cpSpace*> aSpace) {
     using namespace detail;
 
-    auto* handler     = cpSpaceAddDefaultCollisionHandler(aSpace);
+    auto* handler = cpSpaceAddDefaultCollisionHandler(aSpace);
+
+    HG_HARD_ASSERT(handler->userData == nullptr);
     handler->userData = this;
 
+    // clang-format off
     handler->beginFunc = [](cpArbiter* aArbiter, cpSpace* aSpace, cpDataPointer aUserData) -> cpBool {
-        // Note: AnyPtr::get guarantees not-null
-        auto* dispatcher = aUserData.get<MainCollisionDispatcher>();
+        static constexpr auto USAGE = USAGE_COL_BEGIN;
 
-        // Get pointers to shapes
-        CP_ARBITER_GET_SHAPES(aArbiter, shape1, shape2);
-        // Get pointers to collision delegates
-        const auto* del1 = cpShapeGetUserData(shape1).get<CollisionDelegate>();
-        const auto* del2 = cpShapeGetUserData(shape2).get<CollisionDelegate>();
-        // Get pointers to collision functions
-        const auto* cf1 =
-            dispatcher->_findCollisionFunc(*del1, del2->getEntityTypeId(), USAGE_COL_BEGIN);
-        const auto* cf2 =
-            dispatcher->_findCollisionFunc(*del2, del1->getEntityTypeId(), USAGE_COL_BEGIN);
-        // Get results of collision functions (or default values)
-        const Decision result1 =
-            cf1 ? ((*cf1)(del2->getEntity(), aArbiter, aSpace, 1)) : del1->getDefaultDecision();
-        const Decision result2 =
-            cf2 ? ((*cf2)(del1->getEntity(), aArbiter, aSpace, 2)) : del2->getDefaultDecision();
+        const auto ca = CollisionActors{aArbiter, aUserData};
 
-        return (detail::ToBool(result1) && detail::ToBool(result2));
+        const auto* cf1 = ca.dispatcher->_findCollisionFunc(*ca.delegate1,
+                                                            ca.delegate2->getEntityTypeId(),
+                                                            USAGE);
+        const Decision result1 = cf1 ? ((*cf1)(ca.delegate2->getEntity(), aArbiter, aSpace, 1))
+                                     : ca.delegate1->getDefaultDecision();
+
+        if (!ToBool(result1)) {
+            return cpFalse;
+        }
+
+        const auto* cf2 = ca.dispatcher->_findCollisionFunc(*ca.delegate2,
+                                                            ca.delegate1->getEntityTypeId(),
+                                                            USAGE);
+        const Decision result2 = cf2 ? ((*cf2)(ca.delegate1->getEntity(), aArbiter, aSpace, 2))
+                                     : ca.delegate2->getDefaultDecision();
+
+        return ToBool(result2);
     };
 
     handler->preSolveFunc = [](cpArbiter* aArbiter, cpSpace* aSpace, cpDataPointer aUserData) -> cpBool {
-        // Note: AnyPtr::get guarantees not-null
-        auto* dispatcher = aUserData.get<MainCollisionDispatcher>();
+        static constexpr auto USAGE = USAGE_COL_PRESOLVE;
 
-        // Get pointers to shapes
-        CP_ARBITER_GET_SHAPES(aArbiter, shape1, shape2);
-        // Get pointers to collision delegates
-        const auto* del1 = cpShapeGetUserData(shape1).get<CollisionDelegate>();
-        const auto* del2 = cpShapeGetUserData(shape2).get<CollisionDelegate>();
-        // Get pointers to collision functions
-        const auto* cf1 =
-            dispatcher->_findCollisionFunc(*del1, del2->getEntityTypeId(), USAGE_COL_PRESOLVE);
-        const auto* cf2 =
-            dispatcher->_findCollisionFunc(*del2, del1->getEntityTypeId(), USAGE_COL_PRESOLVE);
-        // Get results of collision functions (or default values)
-        const Decision result1 =
-            cf1 ? ((*cf1)(del2->getEntity(), aArbiter, aSpace, 1)) : del1->getDefaultDecision();
-        const Decision result2 =
-            cf2 ? ((*cf2)(del1->getEntity(), aArbiter, aSpace, 2)) : del2->getDefaultDecision();
+        const auto ca = CollisionActors{aArbiter, aUserData};
 
-        return (detail::ToBool(result1) && detail::ToBool(result2));
+        const auto* cf1 = ca.dispatcher->_findCollisionFunc(*ca.delegate1,
+                                                            ca.delegate2->getEntityTypeId(),
+                                                            USAGE);
+        const Decision result1 = cf1 ? ((*cf1)(ca.delegate2->getEntity(), aArbiter, aSpace, 1))
+                                     : ca.delegate1->getDefaultDecision();
+
+        if (!ToBool(result1)) {
+            return cpFalse;
+        }
+
+        const auto* cf2 = ca.dispatcher->_findCollisionFunc(*ca.delegate2,
+                                                            ca.delegate1->getEntityTypeId(),
+                                                            USAGE);
+        const Decision result2 = cf2 ? ((*cf2)(ca.delegate1->getEntity(), aArbiter, aSpace, 2))
+                                     : ca.delegate2->getDefaultDecision();
+
+        return ToBool(result2);
     };
 
     handler->postSolveFunc = [](cpArbiter* aArbiter, cpSpace* aSpace, cpDataPointer aUserData) {
-        // Note: AnyPtr::get guarantees not-null
-        auto* dispatcher = aUserData.get<MainCollisionDispatcher>();
+        static constexpr auto USAGE = USAGE_COL_POSTSOLVE;
 
-        // Get pointers to shapes
-        CP_ARBITER_GET_SHAPES(aArbiter, shape1, shape2);
-        // Get pointers to collision delegates
-        const auto* del1 = cpShapeGetUserData(shape1).get<CollisionDelegate>();
-        const auto* del2 = cpShapeGetUserData(shape2).get<CollisionDelegate>();
-        // Get pointers to collision functions
-        const auto* cf1 =
-            dispatcher->_findCollisionFunc(*del1, del2->getEntityTypeId(), USAGE_COL_POSTSOLVE);
-        const auto* cf2 =
-            dispatcher->_findCollisionFunc(*del2, del1->getEntityTypeId(), USAGE_COL_POSTSOLVE);
-        // Get results of collision functions (or default values)
+        const auto ca = CollisionActors{aArbiter, aUserData};
+
+        const auto* cf1 = ca.dispatcher->_findCollisionFunc(*ca.delegate1,
+                                                            ca.delegate2->getEntityTypeId(),
+                                                            USAGE);
+        const auto* cf2 = ca.dispatcher->_findCollisionFunc(*ca.delegate2,
+                                                            ca.delegate1->getEntityTypeId(),
+                                                            USAGE);
+
         if (cf1) {
-            (*cf1)(del2->getEntity(), aArbiter, aSpace, 1);
+            (*cf1)(ca.delegate2->getEntity(), aArbiter, aSpace, 1);
         }
         if (cf2) {
-            (*cf2)(del1->getEntity(), aArbiter, aSpace, 2);
+            (*cf2)(ca.delegate1->getEntity(), aArbiter, aSpace, 2);
         }
     };
 
     handler->separateFunc = [](cpArbiter* aArbiter, cpSpace* aSpace, cpDataPointer aUserData) {
-        // Note: AnyPtr::get guarantees not-null
-        //           no it doesn't
-        auto* dispatcher = aUserData.get<MainCollisionDispatcher>();
+        static constexpr auto USAGE = USAGE_COL_SEPARATE;
 
-        // Get pointers to shapes
-        CP_ARBITER_GET_SHAPES(aArbiter, shape1, shape2);
-        HG_HARD_ASSERT(shape1 != shape2);
-        // Get pointers to collision delegates
-        const auto* del1 = cpShapeGetUserData(shape1).get<CollisionDelegate>();
-        const auto* del2 = cpShapeGetUserData(shape2).get<CollisionDelegate>();
-        // Get pointers to collision functions
-        const auto* cf1 =
-            dispatcher->_findCollisionFunc(*del1, del2->getEntityTypeId(), USAGE_COL_SEPARATE);
-        const auto* cf2 =
-            dispatcher->_findCollisionFunc(*del2, del1->getEntityTypeId(), USAGE_COL_SEPARATE);
-        // Get results of collision functions (or default values)
+        const auto ca = CollisionActors{aArbiter, aUserData};
+
+        const auto* cf1 = ca.dispatcher->_findCollisionFunc(*ca.delegate1,
+                                                            ca.delegate2->getEntityTypeId(),
+                                                            USAGE);
+        const auto* cf2 = ca.dispatcher->_findCollisionFunc(*ca.delegate2,
+                                                            ca.delegate1->getEntityTypeId(),
+                                                            USAGE);
+
         if (cf1) {
-            (*cf1)(del2->getEntity(), aArbiter, aSpace, 1);
+            (*cf1)(ca.delegate2->getEntity(), aArbiter, aSpace, 1);
         }
         if (cf2) {
-            (*cf2)(del1->getEntity(), aArbiter, aSpace, 2);
+            (*cf2)(ca.delegate1->getEntity(), aArbiter, aSpace, 2);
         }
     };
+    // clang-format on
 }
 
 } // namespace alvin

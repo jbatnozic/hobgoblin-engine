@@ -96,7 +96,7 @@ void Init(alvin::MainCollisionDispatcher& aDispatcher, NeverNull<cpSpace*> aSpac
     aDispatcher.registerEntityType<LootInterface>();
     aDispatcher.registerEntityType<HealthPickUpInterface>();
     aDispatcher.registerEntityType<WallInterface>();
-    aDispatcher.configureSpace(aSpace);
+    aDispatcher.bind(aSpace);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -420,18 +420,6 @@ protected:
     alvin::MainCollisionDispatcher _colDispatcher;
 };
 
-// NeverNull<const alvin::EntityBase*> playerPtr      = &player;
-// NeverNull<const cpShape*>           playerShapePtr = player.getShape();
-// NeverNull<const alvin::EntityBase*> wallPtr        = &wall;
-// NeverNull<const cpShape*>           wallShapePtr   = wall.getShape();
-
-// std::cout << "player = " << std::hex << reinterpret_cast<std::uintptr_t>(playerPtr.get()) << '\n';
-// std::cout << "player.shape = " << std::hex << reinterpret_cast<std::uintptr_t>(playerShapePtr.get())
-//           << '\n';
-// std::cout << "wall = " << std::hex << reinterpret_cast<std::uintptr_t>(wallPtr.get()) << '\n';
-// std::cout << "wall.shape = " << std::hex << reinterpret_cast<std::uintptr_t>(wallShapePtr.get())
-//           << '\n';
-
 TEST_F(AlvinCollisionTest, PlayerAndWall_PlayerCollidesWithWall_ThenMovesAway) {
     TestDecorator<Player> player{
         _space,
@@ -495,7 +483,7 @@ TEST_F(AlvinCollisionTest, PlayerAndWall_PlayerCollidesWithWall_PlayerRejectsCol
     DoSpaceStep(); // First step
 
     player.expectCollisionWith(wall, CONTACT, REJECT_COLLISION);
-    wall.expectCollisionWith(player, CONTACT);
+    wall.expectCollisionWith(player, 0); // Player will reject it so no need to call the other func
     player.setPosition({90.0, 16.0}); // Bodies come in contact
     DoSpaceStep();
     Mock::VerifyAndClearExpectations(&player.getColllisionCallback());

@@ -69,9 +69,8 @@ private:
 // IMPLEMENTATIONS                                                       //
 ///////////////////////////////////////////////////////////////////////////
 
-#ifdef UHOBGOBLIN_DEBUG // TODO
-// #define down_cast dynamic_cast TODO
-#define down_cast static_cast
+#ifdef UHOBGOBLIN_DEBUG
+#define down_cast dynamic_cast
 #else
 #define down_cast static_cast
 #endif

@@ -17,7 +17,7 @@ namespace alvin {
 namespace detail {
 
 using GenericEntityCollisionFunc =
-    std::function<Decision(EntityBase&, HG_NEVER_NULL(cpArbiter*), HG_NEVER_NULL(cpSpace*), PZInteger)>;
+    std::function<Decision(EntityBase&, NeverNull<cpArbiter*>, NeverNull<cpSpace*>, PZInteger)>;
 
 enum Usage : std::uint32_t {
     USAGE_COL_BEGIN,

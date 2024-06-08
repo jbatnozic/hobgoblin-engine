@@ -6,7 +6,7 @@ project("Hobgoblin.Alvin.AutomaticTest")
 find_package(GTest CONFIG REQUIRED)
 
 add_executable(${PROJECT_NAME}
-    "Alvin_test.cpp"
+    "Alvin_automatic_test.cpp"
 )
 
 target_link_libraries(${PROJECT_NAME}
