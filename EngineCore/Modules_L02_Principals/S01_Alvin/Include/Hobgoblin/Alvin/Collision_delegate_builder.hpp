@@ -55,14 +55,20 @@ public:
         COLLISION_SEPARATION_Tag,
         std::function<void(taOther&, NeverNull<cpArbiter*>, NeverNull<cpSpace*>, PZInteger)> aFunc);
 
+    CollisionDelegateBuilder& setDefaultDecision(Decision aDecision) {
+        _defaultDecision = aDecision;
+        return SELF;
+    }
+
     //! TODO(description)
     CollisionDelegate finalize() {
         std::sort(_collisionFunctions.begin(), _collisionFunctions.end());
-        return CollisionDelegate{std::move(_collisionFunctions)};
+        return CollisionDelegate{std::move(_collisionFunctions), _defaultDecision};
     }
 
 private:
     std::vector<detail::SpecificCollisionFunc> _collisionFunctions;
+    Decision                                   _defaultDecision = Decision::ACCEPT_COLLISION;
 };
 
 ///////////////////////////////////////////////////////////////////////////
