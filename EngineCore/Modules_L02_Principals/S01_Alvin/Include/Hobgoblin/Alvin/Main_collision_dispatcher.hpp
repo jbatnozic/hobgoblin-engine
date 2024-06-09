@@ -22,28 +22,29 @@ namespace alvin {
 // to have one per context
 class MainCollisionDispatcher {
 public:
-    MainCollisionDispatcher() {
-        _registerEntityType<EntityBase>();
-    }
+    MainCollisionDispatcher();
 
+    //! Prevent copying.
+    MainCollisionDispatcher(const MainCollisionDispatcher&) = delete;
+
+    //! Prevent copying.
+    MainCollisionDispatcher& operator=(const MainCollisionDispatcher&) = delete;
+
+    //! Allow cheap moving.
+    //!
+    //! \throws TracedLogicError if `aOther` is already bound to one or more shapes.
+    MainCollisionDispatcher(MainCollisionDispatcher&& aOther);
+
+    //! Prevent move assignment.
+    MainCollisionDispatcher& operator=(MainCollisionDispatcher&&) = delete;
+
+    //! TODO(add description)
     template <class taEntityType,
               T_ENABLE_IF(std::is_base_of_v<EntityBase, taEntityType> &&
                           !std::is_same_v<typename taEntityType::EntitySuperclass, void>)>
-    MainCollisionDispatcher& registerEntityType() {
-        const auto pair =
-            _registry.insert(std::make_pair(taEntityType::ENTITY_TYPE_ID,
-                                            taEntityType::EntitySuperclass::ENTITY_TYPE_ID));
+    MainCollisionDispatcher& registerEntityType();
 
-        if (!pair.second) {
-            HG_THROW_TRACED(TracedLogicError,
-                            0,
-                            "Entity type with ID {} was already registered.",
-                            taEntityType::ENTITY_TYPE_ID);
-        }
-
-        return SELF;
-    }
-
+    //! TODO(add description)
     void bind(NeverNull<cpSpace*> aSpace);
 
 private:
@@ -69,6 +70,27 @@ private:
                                                                  EntityTypeId             aEntityTypeId,
                                                                  detail::Usage            aUsage);
 };
+
+///////////////////////////////////////////////////////////////////////////
+// IMPLEMENTATIONS                                                       //
+///////////////////////////////////////////////////////////////////////////
+
+template <class taEntityType,
+          T_ENABLE_IF_OOC(std::is_base_of_v<EntityBase, taEntityType> &&
+                          !std::is_same_v<typename taEntityType::EntitySuperclass, void>)>
+MainCollisionDispatcher& MainCollisionDispatcher::registerEntityType() {
+    const auto pair = _registry.insert(
+        std::make_pair(taEntityType::ENTITY_TYPE_ID, taEntityType::EntitySuperclass::ENTITY_TYPE_ID));
+
+    if (!pair.second) {
+        HG_THROW_TRACED(TracedLogicError,
+                        0,
+                        "Entity type with ID {} was already registered.",
+                        taEntityType::ENTITY_TYPE_ID);
+    }
+
+    return SELF;
+}
 
 } // namespace alvin
 HOBGOBLIN_NAMESPACE_END

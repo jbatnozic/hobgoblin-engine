@@ -31,6 +31,10 @@ struct CollisionActors {
 };
 } // namespace
 
+MainCollisionDispatcher::MainCollisionDispatcher() {
+    _registerEntityType<EntityBase>();
+}
+
 const detail::GenericEntityCollisionFunc* MainCollisionDispatcher::_findCollisionFunc(
     const CollisionDelegate& aDelegate,
     EntityTypeId             aEntityTypeId,

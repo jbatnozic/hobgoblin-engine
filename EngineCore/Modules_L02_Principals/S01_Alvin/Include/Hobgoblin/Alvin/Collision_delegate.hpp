@@ -22,26 +22,38 @@ namespace alvin {
 class CollisionDelegateBuilder;
 class MainCollisionDispatcher;
 
+using Group = cpGroup;
+
 class CollisionDelegate {
 public:
+    //! Deleted constructor.
+    //!
+    //! To construct an instance of this class, use a `CollisionDelegateBuilder`.
+    CollisionDelegate() = delete;
+
     //! Prevent copying.
     CollisionDelegate(const CollisionDelegate&) = delete;
+
     //! Prevent copying.
     CollisionDelegate& operator=(const CollisionDelegate&) = delete;
 
-    //! Allow cheap moving. (TODO: throw if bound)
-    CollisionDelegate(CollisionDelegate&&) = default;
-    //! Allow cheap moving. (TODO: throw if bound)
-    CollisionDelegate& operator=(CollisionDelegate&&) = default;
+    //! Allow cheap moving.
+    //!
+    //! \throws TracedLogicError if `aOther` is already bound to one or more shapes.
+    CollisionDelegate(CollisionDelegate&& aOther);
 
-    //! Binds to a single shape
-    //! DO NOT move after binding!
+    //! Prevent move assignment.
+    CollisionDelegate& operator=(CollisionDelegate&&) = delete;
+
+    //! Binds to a single shape.
+    //!
+    //! \note Once a delegate is bound, it cannot be moved anymore!
     template <class taEntity>
-    void bind(taEntity&                aEntity,
-              Shape&                   aShape,
-              std::optional<cpGroup>   aGroup        = std::nullopt,
-              std::optional<cpBitmask> aCategory     = std::nullopt,
-              std::optional<cpBitmask> aCollidesWith = std::nullopt) {
+    void bind(taEntity&              aEntity,
+              Shape&                 aShape,
+              std::optional<Group>   aGroup        = std::nullopt,
+              std::optional<Bitmask> aCategory     = std::nullopt,
+              std::optional<Bitmask> aCollidesWith = std::nullopt) {
         _entity       = &aEntity;
         _entityTypeId = taEntity::ENTITY_TYPE_ID;
         cpShapeSetUserData(aShape, this);
@@ -52,15 +64,20 @@ public:
         cpShapeSetFilter(aShape, filter);
     }
 
-    //! Binds to multiple shapes
-    //! DO NOT move after binding!
+    //! Binds to multiple shapes.
+    //!
+    //! \note Once a delegate is bound:
+    //!       - it cannot be moved anymore,
+    //!       - it has to outlive the shapes it is bound to.
     template <class taEntity, class taShapeBeginIterator, class taShapeEndIterator>
-    void bindMultiple(taEntity&                aEntity,
-                      taShapeBeginIterator     aShapeBeginIterator,
-                      taShapeEndIterator       aShapeEndIterator,
-                      std::optional<cpGroup>   aGroup        = std::nullopt,
-                      std::optional<cpBitmask> aCategory     = std::nullopt,
-                      std::optional<cpBitmask> aCollidesWith = std::nullopt) {
+    void bindMultiple(taEntity&              aEntity,
+                      taShapeBeginIterator   aShapeBeginIterator,
+                      taShapeEndIterator     aShapeEndIterator,
+                      std::optional<Group>   aGroup        = std::nullopt,
+                      std::optional<Bitmask> aCategory     = std::nullopt,
+                      std::optional<Bitmask> aCollidesWith = std::nullopt) {
+        HG_HARD_ASSERT(aShapeBeginIterator != aShapeEndIterator);
+
         _entity       = &aEntity;
         _entityTypeId = taEntity::ENTITY_TYPE_ID;
 
@@ -105,6 +122,7 @@ private:
     EntityBase*  _entity = nullptr;
     EntityTypeId _entityTypeId;
     Decision     _defaultDecision;
+    bool         _isBound = false;
 
     //! Returns `true` if the delegate contains no collision
     //! functions whatsoever; `false` otherwise.
@@ -137,6 +155,38 @@ private:
         return nullptr;
     }
 };
+
+///////////////////////////////////////////////////////////////////////////
+// IMPLEMENTATIONS                                                       //
+///////////////////////////////////////////////////////////////////////////
+
+inline CollisionDelegate::CollisionDelegate(CollisionDelegate&& aOther)
+    : _collisionFunctions{}
+    , _entity{aOther._entity}
+    , _entityTypeId{aOther._entityTypeId}
+    , _defaultDecision{aOther._defaultDecision}
+    , _isBound{false} {
+    if (aOther._isBound) {
+        HG_THROW_TRACED(TracedLogicError, 0, "Attempting to move a bound CollisionDelegate.");
+    }
+    _collisionFunctions = std::move(aOther._collisionFunctions);
+}
+
+#ifdef COLLISION_DELEGATE_ENABLE_MOVE_ASSIGNMENT
+inline CollisionDelegate& CollisionDelegate::operator=(CollisionDelegate&& aOther) {
+    if (aOther._isBound) {
+        HG_THROW_TRACED(TracedLogicError, 0, "Attempting to move a bound CollisionDelegate.");
+    }
+    if (this != &aOther) {
+        _collisionFunctions = std::move(aOther._collisionFunctions);
+        _entity             = aOther._entity;
+        _entityTypeId       = aOther._entityTypeId;
+        _defaultDecision    = aOther._defaultDecision;
+        _isBound            = false;
+    }
+    return SELF;
+}
+#endif
 
 } // namespace alvin
 HOBGOBLIN_NAMESPACE_END
