@@ -23,8 +23,6 @@ namespace alvin {
 class CollisionDelegateBuilder;
 class MainCollisionDispatcher;
 
-using Group = cpGroup;
-
 class CollisionDelegate {
 public:
     //! Deleted constructor.
@@ -50,11 +48,11 @@ public:
     //!
     //! \note Once a delegate is bound, it cannot be moved anymore!
     template <class taEntity>
-    void bind(taEntity&              aEntity,
-              Shape&                 aShape,
-              std::optional<Group>   aGroup        = std::nullopt,
-              std::optional<Bitmask> aCategory     = std::nullopt,
-              std::optional<Bitmask> aCollidesWith = std::nullopt) {
+    void bind(taEntity&                aEntity,
+              Shape&                   aShape,
+              std::optional<cpGroup>   aGroup        = std::nullopt,
+              std::optional<cpBitmask> aCategory     = std::nullopt,
+              std::optional<cpBitmask> aCollidesWith = std::nullopt) {
         _entity       = &aEntity;
         _entityTypeId = taEntity::ENTITY_TYPE_ID;
         cpShapeSetUserData(aShape, this);
@@ -71,12 +69,12 @@ public:
     //!       - it cannot be moved anymore,
     //!       - it has to outlive the shapes it is bound to.
     template <class taEntity, class taShapeBeginIterator, class taShapeEndIterator>
-    void bindMultiple(taEntity&              aEntity,
-                      taShapeBeginIterator   aShapeBeginIterator,
-                      taShapeEndIterator     aShapeEndIterator,
-                      std::optional<Group>   aGroup        = std::nullopt,
-                      std::optional<Bitmask> aCategory     = std::nullopt,
-                      std::optional<Bitmask> aCollidesWith = std::nullopt) {
+    void bindMultiple(taEntity&                aEntity,
+                      taShapeBeginIterator     aShapeBeginIterator,
+                      taShapeEndIterator       aShapeEndIterator,
+                      std::optional<cpGroup>   aGroup        = std::nullopt,
+                      std::optional<cpBitmask> aCategory     = std::nullopt,
+                      std::optional<cpBitmask> aCollidesWith = std::nullopt) {
         HG_HARD_ASSERT(aShapeBeginIterator != aShapeEndIterator);
 
         _entity       = &aEntity;

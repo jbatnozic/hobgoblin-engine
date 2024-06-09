@@ -5,6 +5,7 @@
 #define UHOBGOBLIN_ALVIN_ALVIN_HPP
 
 #include <Hobgoblin/Alvin/Body.hpp>
+#include <Hobgoblin/Alvin/Collision_data.hpp>
 #include <Hobgoblin/Alvin/Collision_delegate.hpp>
 #include <Hobgoblin/Alvin/Collision_delegate_builder.hpp>
 #include <Hobgoblin/Alvin/Constraint.hpp>

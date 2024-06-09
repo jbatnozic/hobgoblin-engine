@@ -41,8 +41,8 @@ public:
 
     static constexpr alvin::EntityTypeId ENTITY_TYPE_ID = EID_PLAYER;
 
-    static constexpr alvin::Bitmask ENTITY_DEFAULT_CATEGORY = CAT_PLAYER;
-    static constexpr alvin::Bitmask ENTITY_DEFAULT_MASK = CAT_PLAYER | CAT_ENEMY | CAT_LOOT | CAT_WALL;
+    static constexpr cpBitmask ENTITY_DEFAULT_CATEGORY = CAT_PLAYER;
+    static constexpr cpBitmask ENTITY_DEFAULT_MASK     = CAT_PLAYER | CAT_ENEMY | CAT_LOOT | CAT_WALL;
 };
 
 //! The enemies collide with the player, with walls and with each other.
@@ -52,8 +52,8 @@ public:
 
     static constexpr alvin::EntityTypeId ENTITY_TYPE_ID = EID_ENEMY;
 
-    static constexpr alvin::Bitmask ENTITY_DEFAULT_CATEGORY = CAT_ENEMY;
-    static constexpr alvin::Bitmask ENTITY_DEFAULT_MASK     = CAT_PLAYER | CAT_ENEMY | CAT_WALL;
+    static constexpr cpBitmask ENTITY_DEFAULT_CATEGORY = CAT_ENEMY;
+    static constexpr cpBitmask ENTITY_DEFAULT_MASK     = CAT_PLAYER | CAT_ENEMY | CAT_WALL;
 };
 
 //! Loot is meant to be picked up by the player. It collides only with the
@@ -64,8 +64,8 @@ public:
 
     static constexpr alvin::EntityTypeId ENTITY_TYPE_ID = EID_LOOT;
 
-    static constexpr alvin::Bitmask ENTITY_DEFAULT_CATEGORY = CAT_LOOT;
-    static constexpr alvin::Bitmask ENTITY_DEFAULT_MASK     = CAT_PLAYER | CAT_ENEMY | CAT_WALL;
+    static constexpr cpBitmask ENTITY_DEFAULT_CATEGORY = CAT_LOOT;
+    static constexpr cpBitmask ENTITY_DEFAULT_MASK     = CAT_PLAYER | CAT_ENEMY | CAT_WALL;
 };
 
 //! Special case of Loot.
@@ -86,8 +86,8 @@ public:
 
     static constexpr alvin::EntityTypeId ENTITY_TYPE_ID = EID_WALL;
 
-    static constexpr alvin::Bitmask ENTITY_DEFAULT_CATEGORY = EID_WALL;
-    static constexpr alvin::Bitmask ENTITY_DEFAULT_MASK = CAT_PLAYER | CAT_ENEMY | CAT_LOOT | CAT_WALL;
+    static constexpr cpBitmask ENTITY_DEFAULT_CATEGORY = EID_WALL;
+    static constexpr cpBitmask ENTITY_DEFAULT_MASK     = CAT_PLAYER | CAT_ENEMY | CAT_LOOT | CAT_WALL;
 };
 
 void Init(alvin::MainCollisionDispatcher& aDispatcher, NeverNull<cpSpace*> aSpace) {
@@ -182,8 +182,8 @@ public:
     Player(NeverNull<cpSpace*> aSpace,
            math::Vector2d      aPosition,
            cpGroup             aGroup,
-           alvin::Bitmask      aCategory,
-           alvin::Bitmask      aCollidesWith)
+           cpBitmask           aCategory,
+           cpBitmask           aCollidesWith)
         : _colDelegate{_initColDelegate()}
         , _body{alvin::Body::createDynamic(100.0, cpMomentForCircle(100.0, 0.0, 16.0, cpvzero))}
         , _shape{alvin::Shape::createCircle(_body, 16.0, cpvzero)} {
