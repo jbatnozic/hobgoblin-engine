@@ -13,6 +13,7 @@
 #include <Hobgoblin/Alvin/Private/Helpers.hpp>
 
 #include <algorithm>
+#include <cstdint>
 #include <functional>
 #include <utility>
 #include <vector>
@@ -116,12 +117,13 @@ public:
     //! TODO(description)
     CollisionDelegate finalize() {
         std::sort(_collisionFunctions.begin(), _collisionFunctions.end());
-        return CollisionDelegate{std::move(_collisionFunctions), _defaultDecision};
+        return CollisionDelegate{std::move(_collisionFunctions), _defaultDecision, _funcBitmask};
     }
 
 private:
     std::vector<detail::SpecificCollisionFunc> _collisionFunctions;
     Decision                                   _defaultDecision = Decision::ACCEPT_COLLISION;
+    std::uint8_t                               _funcBitmask     = 0;
 };
 
 ///////////////////////////////////////////////////////////////////////////
@@ -144,6 +146,7 @@ CollisionDelegateBuilder& CollisionDelegateBuilder::addInteraction(
             return func(down_cast<taOther&>(aEntity), aCollisonData);
         },
         specifier);
+    _funcBitmask |= (0x01 << detail::USAGE_COL_BEGIN);
     return SELF;
 }
 
@@ -157,6 +160,7 @@ CollisionDelegateBuilder& CollisionDelegateBuilder::addInteraction(
             return func(down_cast<taOther&>(aEntity), aCollisonData);
         },
         specifier);
+    _funcBitmask |= (0x01 << detail::USAGE_COL_PRESOLVE);
     return SELF;
 }
 
@@ -171,6 +175,7 @@ CollisionDelegateBuilder& CollisionDelegateBuilder::addInteraction(
             return Decision::ACCEPT_COLLISION; // Return value doesn't matter here
         },
         specifier);
+    _funcBitmask |= (0x01 << detail::USAGE_COL_POSTSOLVE);
     return SELF;
 }
 
@@ -185,6 +190,7 @@ CollisionDelegateBuilder& CollisionDelegateBuilder::addInteraction(
             return Decision::ACCEPT_COLLISION; // Return value doesn't matter here
         },
         specifier);
+    _funcBitmask |= (0x01 << detail::USAGE_COL_SEPARATE);
     return SELF;
 }
 

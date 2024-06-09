@@ -12,6 +12,7 @@
 #include <Hobgoblin/Alvin/Private/Helpers.hpp>
 #include <Hobgoblin/Alvin/Shape.hpp>
 
+#include <cstdint>
 #include <optional>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
@@ -113,21 +114,22 @@ private:
     friend class MainCollisionDispatcher;
 
     CollisionDelegate(std::vector<detail::SpecificCollisionFunc> aCollisionFunctions,
-                      Decision                                   aDefaultDecision)
+                      Decision                                   aDefaultDecision,
+                      std::uint8_t                               aFuncBitmask)
         : _collisionFunctions{std::move(aCollisionFunctions)}
-        , _defaultDecision{aDefaultDecision} {}
+        , _defaultDecision{aDefaultDecision}
+        , _funcBitmask{aFuncBitmask} {}
 
     std::vector<detail::SpecificCollisionFunc> _collisionFunctions;
 
     EntityBase*  _entity = nullptr;
     EntityTypeId _entityTypeId;
     Decision     _defaultDecision;
-    bool         _isBound = false;
+    std::uint8_t _funcBitmask = 0;
+    bool         _isBound     = false;
 
-    //! Returns `true` if the delegate contains no collision
-    //! functions whatsoever; `false` otherwise.
-    bool _isTrivial() const {
-        return _collisionFunctions.empty();
+    bool _hasNoFunctionsForUsage(detail::Usage aUsage) const {
+        return (_funcBitmask & (0x01 << aUsage)) == 0;
     }
 
     const detail::GenericEntityCollisionFunc* _findCollisionFunc(EntityTypeId  aEntityTypeId,

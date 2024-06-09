@@ -39,7 +39,7 @@ const detail::GenericEntityCollisionFunc* MainCollisionDispatcher::_findCollisio
     const CollisionDelegate& aDelegate,
     EntityTypeId             aEntityTypeId,
     detail::Usage            aUsage) {
-    if (aDelegate._isTrivial()) { // TODO: if (aDelegate.funcCount(aUsage) == 0) return nullptr;
+    if (aDelegate._hasNoFunctionsForUsage(aUsage)) {
         return nullptr;
     }
 
