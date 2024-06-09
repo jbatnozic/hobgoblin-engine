@@ -4,8 +4,6 @@
 project("Hobgoblin.Alvin")
 
 add_library(${PROJECT_NAME} STATIC
-    # "Alvin.cpp"
-
     "Source/Alvin_dummy.cpp"
     "Source/Main_collision_dispatcher.cpp"
     "Source/Space.cpp"

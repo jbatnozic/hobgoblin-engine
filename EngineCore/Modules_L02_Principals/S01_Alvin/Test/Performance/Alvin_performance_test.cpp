@@ -43,7 +43,7 @@ public:
 
     static constexpr cpBitmask ENTITY_DEFAULT_CATEGORY = CAT_BALL;
     static constexpr cpBitmask ENTITY_DEFAULT_MASK     = CP_ALL_CATEGORIES;
-    virtual void destroy() = 0;
+    virtual void               destroy()               = 0;
 };
 
 class WallInterface : public alvin::EntityBase {

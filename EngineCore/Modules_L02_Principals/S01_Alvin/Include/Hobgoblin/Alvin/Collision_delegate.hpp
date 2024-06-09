@@ -46,7 +46,9 @@ public:
 
     //! Binds to a single shape.
     //!
-    //! \note Once a delegate is bound, it cannot be moved anymore!
+    //! \note Once a delegate is bound:
+    //!       - it cannot be moved anymore,
+    //!       - it has to outlive the shapes it is bound to.
     template <class taEntity>
     void bind(taEntity&                aEntity,
               Shape&                   aShape,
@@ -61,6 +63,8 @@ public:
                                              aCategory.value_or(taEntity::ENTITY_DEFAULT_CATEGORY),
                                              aCollidesWith.value_or(taEntity::ENTITY_DEFAULT_MASK));
         cpShapeSetFilter(aShape, filter);
+
+        _isBound = true;
     }
 
     //! Binds to multiple shapes.
@@ -91,6 +95,8 @@ public:
             cpShapeSetFilter(shape, filter);
             iter = std::next(iter);
         }
+
+        _isBound = true;
     }
 
     EntityBase& getEntity() const {
