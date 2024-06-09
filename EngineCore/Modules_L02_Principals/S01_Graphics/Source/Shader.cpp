@@ -236,7 +236,7 @@ void Shader::setUniform(const std::string& aName, const glsl::Mat4& aMatrix) {
 
 void Shader::setUniform(const std::string& aName, const Texture& aTexture) {
     const auto& sfTexture = detail::GraphicsImplAccessor::getImplOf<sf::Texture>(aTexture);
-    SELF_IMPL->setUniform(aName, &sfTexture);
+    SELF_IMPL->setUniform(aName, sfTexture);
 }
 
 void Shader::setUniform(const std::string& aName, CurrentTextureType) {
