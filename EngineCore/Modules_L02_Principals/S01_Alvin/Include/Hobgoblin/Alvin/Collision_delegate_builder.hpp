@@ -26,7 +26,7 @@ namespace alvin {
 HG_DECLARE_TAG_TYPE(COLLISION_CONTACT);
 HG_DECLARE_TAG_TYPE(COLLISION_PRE_SOLVE);
 HG_DECLARE_TAG_TYPE(COLLISION_POST_SOLVE);
-HG_DECLARE_TAG_TYPE(COLLISION_SEPARATION);
+HG_DECLARE_TAG_TYPE(COLLISION_SEPARATE);
 
 class MainCollisionDispatcher;
 
@@ -89,9 +89,18 @@ public:
     CollisionDelegateBuilder& addInteraction(COLLISION_POST_SOLVE_Tag,
                                              std::function<void(taOther&, const CollisionData&)> aFunc);
 
-    //! TODO(description)
+    //! \brief Defines a SEPARATE interaction with an entity type.
+    //!
+    //! \tparam taOther Type of the entity with which the interaction is being defined.
+    //!
+    //! \param aFunc The function which will be called once when the shapes are no longer
+    //!              touching.
+    //!              The parameters which will be passed into this function are:
+    //!              - a reference to the entity to which the other shape is bound;
+    //!              - a reference to an instance of CollisionData which can provide
+    //!                more detailed information about the collision;
     template <class taOther>
-    CollisionDelegateBuilder& addInteraction(COLLISION_SEPARATION_Tag,
+    CollisionDelegateBuilder& addInteraction(COLLISION_SEPARATE_Tag,
                                              std::function<void(taOther&, const CollisionData&)> aFunc);
 
     //! Sets the default decision for CONTACT and PRE_SOLVE interactions for which
@@ -167,7 +176,7 @@ CollisionDelegateBuilder& CollisionDelegateBuilder::addInteraction(
 
 template <class taOther>
 CollisionDelegateBuilder& CollisionDelegateBuilder::addInteraction(
-    COLLISION_SEPARATION_Tag,
+    COLLISION_SEPARATE_Tag,
     std::function<void(taOther&, const CollisionData&)> aFunc) {
     detail::EntityTypeIdAndUsage specifier{taOther::ENTITY_TYPE_ID, detail::USAGE_COL_SEPARATE};
     _collisionFunctions.emplace_back(

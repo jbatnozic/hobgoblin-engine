@@ -41,8 +41,8 @@ public:
 
     static constexpr alvin::EntityTypeId ENTITY_TYPE_ID = EID_BALL;
 
-    static constexpr cpBitmask ENTITY_DEFAULT_CATEGORY = CAT_BALL;
-    static constexpr cpBitmask ENTITY_DEFAULT_MASK     = CP_ALL_CATEGORIES;
+    static constexpr alvin::Bitmask ENTITY_DEFAULT_CATEGORY = CAT_BALL;
+    static constexpr alvin::Bitmask ENTITY_DEFAULT_MASK     = alvin::ALL_CATEGORIES;
 
     virtual void destroy() = 0;
 };
@@ -53,8 +53,8 @@ public:
 
     static constexpr alvin::EntityTypeId ENTITY_TYPE_ID = EID_WALL;
 
-    static constexpr cpBitmask ENTITY_DEFAULT_CATEGORY = EID_WALL;
-    static constexpr cpBitmask ENTITY_DEFAULT_MASK     = CAT_BALL;
+    static constexpr alvin::Bitmask ENTITY_DEFAULT_CATEGORY = EID_WALL;
+    static constexpr alvin::Bitmask ENTITY_DEFAULT_MASK     = CAT_BALL;
 };
 
 class SensorInterface : public alvin::EntityBase {
@@ -63,8 +63,8 @@ public:
 
     static constexpr alvin::EntityTypeId ENTITY_TYPE_ID = EID_SENSOR;
 
-    static constexpr cpBitmask ENTITY_DEFAULT_CATEGORY = CAT_SENSOR;
-    static constexpr cpBitmask ENTITY_DEFAULT_MASK     = CP_ALL_CATEGORIES;
+    static constexpr alvin::Bitmask ENTITY_DEFAULT_CATEGORY = CAT_SENSOR;
+    static constexpr alvin::Bitmask ENTITY_DEFAULT_MASK     = alvin::ALL_CATEGORIES;
 };
 
 void Init(alvin::MainCollisionDispatcher& aDispatcher, NeverNull<cpSpace*> aSpace) {
@@ -147,7 +147,7 @@ private:
                 alvin::COLLISION_POST_SOLVE,
                 [](WallInterface& aOther, const alvin::CollisionData& aCollisionData) {})
             .addInteraction<WallInterface>(
-                alvin::COLLISION_SEPARATION,
+                alvin::COLLISION_SEPARATE,
                 [](WallInterface& aOther, const alvin::CollisionData& aCollisionData) {})
             .setDefaultDecision(alvin::Decision::ACCEPT_COLLISION)
             .finalize();
