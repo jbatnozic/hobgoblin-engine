@@ -6,18 +6,18 @@
 
 namespace gridworld {
 
-SpatialInfo SpatialInfo::fromCentreAndSize(WorldPosition aCentre,
+SpatialInfo SpatialInfo::fromCentreAndSize(WorldPosition      aCentre,
                                            hg::math::Vector2f aSize,
-                                           Shape aShape) {
+                                           Shape              aShape) {
     SpatialInfo result;
     result.centre = aCentre;
     result.setSizeMaintainingCentre(aSize);
     return result;
 }
 
-SpatialInfo SpatialInfo::fromTopLeftAndSize(WorldPosition aTopLeft,
+SpatialInfo SpatialInfo::fromTopLeftAndSize(WorldPosition      aTopLeft,
                                             hg::math::Vector2f aSize,
-                                            Shape aShape) {
+                                            Shape              aShape) {
     SpatialInfo result;
     result.bbox.x = aTopLeft->x;
     result.bbox.y = aTopLeft->y;
@@ -26,13 +26,12 @@ SpatialInfo SpatialInfo::fromTopLeftAndSize(WorldPosition aTopLeft,
 }
 
 #define IS_BEHIND_USE_HOBGOBLIN_COORDINATE_SYSTEM 1
-#define IS_BEHIND_USE_LOOKUP_TABLE 1
+#define IS_BEHIND_USE_LOOKUP_TABLE                1
 
 namespace {
 #if IS_BEHIND_USE_LOOKUP_TABLE
-std::array<int, 16> IS_BEHIND_RESULT_LOOKUP_TABLE = {
-    1, 1, -1, -1, 1, 1, 0, 0, -1, 0, -1, 0, -1, 0, 0, 0
-};
+std::array<int, 16> IS_BEHIND_RESULT_LOOKUP_TABLE =
+    {1, 1, -1, -1, 1, 1, 0, 0, -1, 0, -1, 0, -1, 0, 0, 0};
 #endif
 
 constexpr float Half(float aF) {
@@ -77,16 +76,21 @@ WorldPosition SpatialInfo::getCentre() const {
 }
 
 WorldPosition SpatialInfo::getTopLeft() const {
-    return WorldPosition{{bbox.getLeft(), bbox.getTop()}};
+    return WorldPosition{
+        {bbox.getLeft(), bbox.getTop()}
+    };
 }
 
 hg::math::Vector2f SpatialInfo::getSize() const {
     return {bbox.w, bbox.h};
 }
 
-SpatialInfo::CheckDrawingOrderResult SpatialInfo::checkDimetricDrawingOrder(const SpatialInfo& aOther) const {
+// clang-format off
+SpatialInfo::CheckDrawingOrderResult SpatialInfo::checkDimetricDrawingOrder(
+    const SpatialInfo& aOther) const {
     if (overlaps(aOther)) {
-        return ((centre->x - centre->y) > (aOther.centre->x - aOther.centre->y)) ? DRAW_THIS_FIRST : DRAW_OTHER_FIRST;
+        return ((centre->x - centre->y) > (aOther.centre->x - aOther.centre->y)) ? DRAW_THIS_FIRST
+                                                                                 : DRAW_OTHER_FIRST;
     }
 
     // Algorithm reference: https://stackoverflow.com/a/69088148
@@ -120,6 +124,7 @@ SpatialInfo::CheckDrawingOrderResult SpatialInfo::checkDimetricDrawingOrder(cons
     return (CheckDrawingOrderResult)IS_BEHIND_RESULT_LOOKUP_TABLE[cmpX1u | cmpX2u | cmpY1u | cmpY2u];
 #endif
 }
+// clang-format on
 
 bool SpatialInfo::overlaps(const SpatialInfo& aOther) const {
     return bbox.overlaps(aOther.bbox);

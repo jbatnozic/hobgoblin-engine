@@ -1,8 +1,8 @@
 #pragma once
 
 #include <Hobgoblin/Common.hpp>
-#include <Hobgoblin/Graphics/Sprite_loader.hpp>
 #include <Hobgoblin/Graphics/Render_texture.hpp>
+#include <Hobgoblin/Graphics/Sprite_loader.hpp>
 #include <Hobgoblin/Math.hpp>
 #include <Hobgoblin/Utility/Grids.hpp>
 
@@ -25,9 +25,7 @@ class World {
 public:
     World(hg::PZInteger aWidth, hg::PZInteger aHeight, float aCellResolution)
         : _grid{aWidth, aHeight}
-        , _cellResolution{aCellResolution}
-    {
-    }
+        , _cellResolution{aCellResolution} {}
 
     // Cell height (z)
 
@@ -57,35 +55,32 @@ public:
 
     // Floor
 
-    void updateCellAt(hg::PZInteger aX,
-                      hg::PZInteger aY,
+    void updateCellAt(hg::PZInteger                          aX,
+                      hg::PZInteger                          aY,
                       const std::optional<CellModel::Floor>& aFloorOpt);
 
-    void updateCellAt(hg::math::Vector2pz aPos,
-                      const std::optional<CellModel::Floor>& aFloorOpt);
+    void updateCellAt(hg::math::Vector2pz aPos, const std::optional<CellModel::Floor>& aFloorOpt);
 
-    void updateCellAtUnchecked(hg::PZInteger aX,
-                               hg::PZInteger aY,
+    void updateCellAtUnchecked(hg::PZInteger                          aX,
+                               hg::PZInteger                          aY,
                                const std::optional<CellModel::Floor>& aFloorOpt);
 
-    void updateCellAtUnchecked(hg::math::Vector2pz aPos,
+    void updateCellAtUnchecked(hg::math::Vector2pz                    aPos,
                                const std::optional<CellModel::Floor>& aFloorOpt);
 
     // Wall
 
-    void updateCellAt(hg::PZInteger aX,
-                      hg::PZInteger aY,
+    void updateCellAt(hg::PZInteger                         aX,
+                      hg::PZInteger                         aY,
                       const std::optional<CellModel::Wall>& aWallOpt);
 
-    void updateCellAt(hg::math::Vector2pz aPos,
-                      const std::optional<CellModel::Wall>& aWallOpt);
+    void updateCellAt(hg::math::Vector2pz aPos, const std::optional<CellModel::Wall>& aWallOpt);
 
-    void updateCellAtUnchecked(hg::PZInteger aX,
-                               hg::PZInteger aY,
+    void updateCellAtUnchecked(hg::PZInteger                         aX,
+                               hg::PZInteger                         aY,
                                const std::optional<CellModel::Wall>& aWallOpt);
 
-    void updateCellAtUnchecked(hg::math::Vector2pz aPos,
-                               const std::optional<CellModel::Wall>& aWallOpt);
+    void updateCellAtUnchecked(hg::math::Vector2pz aPos, const std::optional<CellModel::Wall>& aWallOpt);
 
     ///////////////////////////////////////////////////////////////////////////
     // LIGHTS                                                                //
@@ -113,12 +108,12 @@ private:
     // ===== Cells =====
 
     hg::util::RowMajorGrid<detail::CellModelExt> _grid;
-    float _cellResolution;
+    float                                        _cellResolution;
 
     // ===== Lights =====
 
     std::unordered_map<LightId, detail::LightModelExt> _lights;
-    LightId _lightIdCounter = 0;
+    LightId                                            _lightIdCounter = 0;
 
     // ===== Other =====
 
@@ -127,4 +122,4 @@ private:
     void _refreshCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY);
 };
 
-} // namespace gridw
+} // namespace gridworld

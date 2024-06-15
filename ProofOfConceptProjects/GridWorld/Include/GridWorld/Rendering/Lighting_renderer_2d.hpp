@@ -6,8 +6,8 @@
 #include <Hobgoblin/Math.hpp>
 #include <Hobgoblin/Utility/Grids.hpp>
 
-#include <GridWorld/Positions.hpp>
 #include <GridWorld/Model/Lights.hpp>
+#include <GridWorld/Positions.hpp>
 #include <GridWorld/World/World.hpp>
 
 #include <array>
@@ -27,16 +27,14 @@ public:
         FOR_DIMETRIC
     };
 
-    LightingRenderer2D(const World& aWorld,
+    LightingRenderer2D(const World&                aWorld,
                        const hg::gr::SpriteLoader& aSpriteLoader,
-                       hg::PZInteger aTextureSize,
-                       Purpose aPurpose);
+                       hg::PZInteger               aTextureSize,
+                       Purpose                     aPurpose);
 
     ~LightingRenderer2D();
 
-    void start(WorldPosition aViewPosition,
-               hg::math::Vector2f aViewSize,
-               float aPadding);
+    void start(WorldPosition aViewPosition, hg::math::Vector2f aViewSize, float aPadding);
 
     void render();
 
@@ -45,7 +43,7 @@ public:
     const hg::gr::Texture& getTexture(hg::math::Vector2f* aRecommendedScale = nullptr) const;
 
 private:
-    const World& _world;
+    const World&                _world;
     const hg::gr::SpriteLoader& _spriteLoader;
 
     mutable std::unordered_map<SpriteId, hg::gr::Sprite> _spriteCache;

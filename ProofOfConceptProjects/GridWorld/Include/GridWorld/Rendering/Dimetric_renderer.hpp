@@ -18,16 +18,16 @@ namespace gridworld {
 namespace hg = jbatnozic::hobgoblin;
 
 enum RenderOptions {
-    RENDOPT_NONE = 0x00,
+    RENDOPT_NONE       = 0x00,
     RENDOPT_LOWER_MORE = 0x01,
 };
 
 class DimetricRenderer /*: public Renderer*/ {
 public:
-    DimetricRenderer(const World& aWorld,
+    DimetricRenderer(const World&                aWorld,
                      const hg::gr::SpriteLoader& aSpriteLoader,
-                     LightingRenderer2D& aLightingRenderer,
-                     LineOfSightRenderer2D& aLineOfSightRenderer);
+                     LightingRenderer2D&         aLightingRenderer,
+                     LineOfSightRenderer2D&      aLineOfSightRenderer);
 
     void start(const hg::gr::View& aView, WorldPosition aPointOfView);
 
@@ -36,10 +36,10 @@ public:
 private:
     // ===== Injected dependencies =====
 
-    const World& _world;
+    const World&                _world;
     const hg::gr::SpriteLoader& _spriteLoader;
-    LightingRenderer2D& _lightingRenderer;
-    LineOfSightRenderer2D& _losRenderer;
+    LightingRenderer2D&         _lightingRenderer;
+    LineOfSightRenderer2D&      _losRenderer;
 
     // ===== Sprite cache =====
 
@@ -69,8 +69,7 @@ private:
 
     class CellToRenderedObjectAdapter : public RenderedObject {
     public:
-        CellToRenderedObjectAdapter(const CellModel& aCell,
-                                    const SpatialInfo& aSpatialInfo);
+        CellToRenderedObjectAdapter(const CellModel& aCell, const SpatialInfo& aSpatialInfo);
 
         void draw(hg::gr::Canvas& aCanvas, hg::math::Vector2f aScreenPosition) const override;
 
@@ -85,8 +84,8 @@ private:
 
     struct CellInfo {
         hg::NeverNull<const CellModel*> cell;
-        hg::PZInteger gridX;
-        hg::PZInteger gridY;
+        hg::PZInteger                   gridX;
+        hg::PZInteger                   gridY;
     };
 
     // ===== Private methods =====
@@ -99,7 +98,7 @@ private:
     void _renderFloor(hg::gr::Canvas& aCanvas) const;
     void _renderLighting(hg::gr::Canvas& aCanvas) const;
 
-    //! A cell is obstructed if it contains a wall or line of sight to 
+    //! A cell is obstructed if it contains a wall or line of sight to
     //! all of its parts is blocked by other cells.
     bool _isCellObstructed(const CellInfo& aCellInfo) const;
 

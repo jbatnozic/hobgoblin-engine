@@ -6,8 +6,8 @@
 #include <Hobgoblin/Math.hpp>
 #include <Hobgoblin/Utility/Grids.hpp>
 
-#include <GridWorld/Positions.hpp>
 #include <GridWorld/Model/Lights.hpp>
+#include <GridWorld/Positions.hpp>
 #include <GridWorld/World/World.hpp>
 
 #include <array>
@@ -26,16 +26,14 @@ public:
         FOR_DIMETRIC
     };
 
-    LineOfSightRenderer2D(const World& aWorld,
-                          hg::PZInteger aTextureSize,
-                          Purpose aPurpose);
+    LineOfSightRenderer2D(const World& aWorld, hg::PZInteger aTextureSize, Purpose aPurpose);
 
     ~LineOfSightRenderer2D();
 
-    void start(WorldPosition aViewPosition,
+    void start(WorldPosition      aViewPosition,
                hg::math::Vector2f aViewSize,
-               WorldPosition aLineOfSightOrigin,
-               float aPadding);
+               WorldPosition      aLineOfSightOrigin,
+               float              aPadding);
 
     void render();
 
@@ -47,9 +45,9 @@ public:
 private:
     const World& _world;
 
-    float _sizeMultiplier;
-    float _recommendedScale = 1.f;
-    WorldPosition _losOrigin;
+    float              _sizeMultiplier;
+    float              _recommendedScale = 1.f;
+    WorldPosition      _losOrigin;
     hg::math::Vector2f _viewCenterOffset;
 
     //! Texture to which visibility is rendered.

@@ -23,15 +23,13 @@ struct WorldPosition {
     WorldPosition& operator=(WorldPosition&&) = default;
 
     WorldPosition(hg::math::Vector2f aPos)
-        : pos{aPos}
-    {
-    }
+        : pos{aPos} {}
 
-    //template <class... taArgs>
-    //WorldPosition(taArgs&&... aArgs)
-    //    : pos{std::forward<taArgs>(aArgs)...}
+    // template <class... taArgs>
+    // WorldPosition(taArgs&&... aArgs)
+    //     : pos{std::forward<taArgs>(aArgs)...}
     //{
-    //}
+    // }
 
     hg::math::Vector2f pos;
 

@@ -1,15 +1,15 @@
 
 #include <GridWorld/Coord_conversion.hpp>
-#include <GridWorld/Rendering/Dimetric_renderer.hpp>
 #include <GridWorld/Dimetric_transform.hpp>
+#include <GridWorld/Rendering/Dimetric_renderer.hpp>
 #include <GridWorld/Rendering/Lighting_renderer_2d.hpp>
 #include <GridWorld/Rendering/Line_of_sight_renderer_2d.hpp>
 
-#include <Hobgoblin/Math.hpp>
-#include <Hobgoblin/Window.hpp>
 #include <Hobgoblin/Graphics.hpp>
 #include <Hobgoblin/Input.hpp>
+#include <Hobgoblin/Math.hpp>
 #include <Hobgoblin/Utility/Time_utils.hpp>
+#include <Hobgoblin/Window.hpp>
 
 #include <GL/glew.h>
 
@@ -21,13 +21,16 @@
 
 namespace hg = jbatnozic::hobgoblin;
 
-void DrawIsometricSquareAt(hg::gr::Canvas& aCanvas, float aSize, hg::gr::Color aColor, hg::math::Vector2f aPosition) {
+void DrawIsometricSquareAt(hg::gr::Canvas&    aCanvas,
+                           float              aSize,
+                           hg::gr::Color      aColor,
+                           hg::math::Vector2f aPosition) {
     const float coords[5][2] = {
-        {0.f, 0.f},
-        {0.f, aSize},
+        {  0.f,   0.f},
+        {  0.f, aSize},
         {aSize, aSize},
-        {aSize, 0.f},
-        {0.f, 0.f}
+        {aSize,   0.f},
+        {  0.f,   0.f}
     };
 
     using hg::gr::Vertex;
@@ -37,8 +40,8 @@ void DrawIsometricSquareAt(hg::gr::Canvas& aCanvas, float aSize, hg::gr::Color a
     va.primitiveType = hg::gr::PrimitiveType::LineStrip;
 
     for (int i = 0; i < 5; i += 1) {
-        auto iso = gridworld::IsometricCoordinatesToScreen({coords[i][0] + aPosition.x, 
-                                                            coords[i][1] + aPosition.y});
+        auto iso = gridworld::IsometricCoordinatesToScreen(
+            {coords[i][0] + aPosition.x, coords[i][1] + aPosition.y});
         va.vertices.push_back(Vertex{iso, aColor});
     }
 
@@ -56,9 +59,9 @@ int main() try {
     hg::gr::SpriteLoader loader;
     loader.startTexture(1024, 1024)
         ->addSprite(SPR_STONE_TILE, (HG_TEST_ASSET_DIR "/isometric-stone-tile.png"))
-        ->addSprite(SPR_WALL,       (HG_TEST_ASSET_DIR "/isometric-wall.png"))
+        ->addSprite(SPR_WALL, (HG_TEST_ASSET_DIR "/isometric-wall.png"))
         ->addSprite(SPR_WALL_SHORT, (HG_TEST_ASSET_DIR "/isometric-wall-short.png"))
-        ->addSprite(SPR_LIGHT,      (HG_TEST_ASSET_DIR "/light.png"))
+        ->addSprite(SPR_LIGHT, (HG_TEST_ASSET_DIR "/light.png"))
         ->finalize(hg::gr::TexturePackingHeuristic::BestAreaFit);
 
     gridworld::World world{40, 40, 32.f};
@@ -71,17 +74,26 @@ int main() try {
             }
         }
         for (int y = 2; y < 20; y += 3) {
-            world.updateCellAt(2, y, gridworld::CellModel::Wall{SPR_WALL, SPR_WALL_SHORT, gridworld::Shape::FULL_SQUARE});
-            world.updateCellAt(7, y, gridworld::CellModel::Wall{SPR_WALL, SPR_WALL_SHORT, gridworld::Shape::FULL_SQUARE});
+            world.updateCellAt(
+                2,
+                y,
+                gridworld::CellModel::Wall{SPR_WALL, SPR_WALL_SHORT, gridworld::Shape::FULL_SQUARE});
+            world.updateCellAt(
+                7,
+                y,
+                gridworld::CellModel::Wall{SPR_WALL, SPR_WALL_SHORT, gridworld::Shape::FULL_SQUARE});
         }
         world.toggleGeneratorMode(false);
     }
 
     const auto light = world.createLight(SPR_LIGHT, {300, 300});
 
-    hg::gr::RenderWindow window{hg::win::VideoMode{1280, 950}, "GridWorld"};
+    hg::gr::RenderWindow window{
+        hg::win::VideoMode{1280, 950},
+        "GridWorld"
+    };
     window.setFramerateLimit(120);
-    //window.setVerticalSyncEnabled(true);
+    // window.setVerticalSyncEnabled(true);
     window.getView().setSize({1280, 950});
 
     GLenum err = glewInit();
@@ -89,17 +101,22 @@ int main() try {
         fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
     }
 
-    gridworld::LightingRenderer2D lightRenderer{world, loader, 1024, gridworld::LightingRenderer2D::FOR_DIMETRIC};
-    gridworld::LineOfSightRenderer2D losRenderer{world, 1024, gridworld::LineOfSightRenderer2D::FOR_DIMETRIC};
-    gridworld::DimetricRenderer renderer{world, loader, lightRenderer, losRenderer};    
+    gridworld::LightingRenderer2D    lightRenderer{world,
+                                                loader,
+                                                1024,
+                                                gridworld::LightingRenderer2D::FOR_DIMETRIC};
+    gridworld::LineOfSightRenderer2D losRenderer{world,
+                                                 1024,
+                                                 gridworld::LineOfSightRenderer2D::FOR_DIMETRIC};
+    gridworld::DimetricRenderer      renderer{world, loader, lightRenderer, losRenderer};
 
     hg::util::Stopwatch swatch;
 
     while (window.isOpen()) {
         const auto frameTime = swatch.restart<std::chrono::microseconds>();
 
-        bool mouseLClick = false;
-        bool mouseRClick = false;
+        bool           mouseLClick = false;
+        bool           mouseRClick = false;
         hg::win::Event ev;
         while (window.pollEvent(ev)) {
             ev.visit(
@@ -113,8 +130,7 @@ int main() try {
                     if (aButton.button == hg::in::MB_RIGHT) {
                         mouseRClick = true;
                     }
-                }
-            );
+                });
         } // end event processing
 
         {
@@ -126,21 +142,23 @@ int main() try {
 
         window.clear(hg::gr::Color{0, 0, 55});
 
-        const auto mousePos  = hg::win::GetMousePositionRelativeToWindow(window);
-        const auto isoCoords = gridworld::ScreenCoordinatesToIsometric(window.mapPixelToCoords(mousePos));
+        const auto mousePos = hg::win::GetMousePositionRelativeToWindow(window);
+        const auto isoCoords =
+            gridworld::ScreenCoordinatesToIsometric(window.mapPixelToCoords(mousePos));
         world.updateLight(light, isoCoords, hg::math::AngleF::zero());
 
         {
             const auto xx = static_cast<int>(isoCoords.x / world.getCellResolution());
             const auto yy = static_cast<int>(isoCoords.y / world.getCellResolution());
 
-            if (xx >= 0 && xx < world.getCellCountX() &&
-                yy >= 0 && yy < world.getCellCountY()) {
+            if (xx >= 0 && xx < world.getCellCountX() && yy >= 0 && yy < world.getCellCountY()) {
 
                 if (mouseLClick) {
-                    world.updateCellAtUnchecked({xx, yy}, gridworld::CellModel::Wall{
-                        SPR_WALL, SPR_WALL_SHORT, gridworld::Shape::FULL_SQUARE
-                    });
+                    world.updateCellAtUnchecked(
+                        {xx, yy},
+                        gridworld::CellModel::Wall{SPR_WALL,
+                                                   SPR_WALL_SHORT,
+                                                   gridworld::Shape::FULL_SQUARE});
                 } else if (mouseRClick) {
                     world.updateCellAtUnchecked({xx, yy}, std::optional<gridworld::CellModel::Wall>{});
                 }
@@ -149,15 +167,18 @@ int main() try {
 
         const auto t1 = std::chrono::steady_clock::now();
         renderer.start(window.getView(0), /* POV */ isoCoords);
-        renderer.render(window, hg::in::CheckPressedPK(hg::in::PK_SPACE) ? gridworld::RENDOPT_LOWER_MORE : gridworld::RENDOPT_NONE);
+        renderer.render(window,
+                        hg::in::CheckPressedPK(hg::in::PK_SPACE) ? gridworld::RENDOPT_LOWER_MORE
+                                                                 : gridworld::RENDOPT_NONE);
         const auto t2 = std::chrono::steady_clock::now();
-        //std::cout << "Time to render: " << std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() / 1000.0 << "ms "
-        //          << "frame time: " << frameTime.count() / 1000.0 << "ms.\n";
+        // std::cout << "Time to render: " << std::chrono::duration_cast<std::chrono::microseconds>(t2 -
+        // t1).count() / 1000.0 << "ms "
+        //           << "frame time: " << frameTime.count() / 1000.0 << "ms.\n";
 
         if (false) {
             hg::math::Vector2f scale;
-            const auto& tex = losRenderer.__gwimpl_getTexture(&scale);
-            hg::gr::Sprite spr2{&tex};
+            const auto&        tex = losRenderer.__gwimpl_getTexture(&scale);
+            hg::gr::Sprite     spr2{&tex};
             spr2.setOrigin({tex.getSize().x * 0.5f, tex.getSize().y * 0.5f});
             spr2.setScale(scale);
             spr2.setPosition(gridworld::ScreenCoordinatesToIsometric(window.getView(0).getCenter()));
@@ -184,7 +205,6 @@ int main() try {
     world.destroyLight(light);
 
     return 0;
-}
-catch (const std::exception& ex) {
+} catch (const std::exception& ex) {
     std::cout << "Exception caught: " << ex.what() << '\n';
 }

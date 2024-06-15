@@ -2,8 +2,8 @@
 #include <GridWorld/Rendering/Line_of_sight_renderer_2d.hpp>
 
 #include <Hobgoblin/Format.hpp>
-#include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Graphics.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Logging.hpp>
 #include <Hobgoblin/Math.hpp>
 
@@ -21,29 +21,26 @@ constexpr auto LOG_ID = "gridworld";
 
 float MultiplierForPurpose(LineOfSightRenderer2D::Purpose aPurpose) {
     switch (aPurpose) {
-        case LineOfSightRenderer2D::FOR_TOPDOWN:
-            return 1.f;
+    case LineOfSightRenderer2D::FOR_TOPDOWN: return 1.f;
 
-        case LineOfSightRenderer2D::FOR_DIMETRIC:
-            {
-                // (17/16) * sqrt(2)
-                static constexpr float MAGIC_DIMETRIC_MULTIPLIER = 1.41421356237f * 17.f / 16.f;
-                return MAGIC_DIMETRIC_MULTIPLIER;
-            }
+    case LineOfSightRenderer2D::FOR_DIMETRIC:
+        {
+            // (17/16) * sqrt(2)
+            static constexpr float MAGIC_DIMETRIC_MULTIPLIER = 1.41421356237f * 17.f / 16.f;
+            return MAGIC_DIMETRIC_MULTIPLIER;
+        }
 
-        default:
-            HG_UNREACHABLE("Invalid value for LineOfSightRenderer2D::Purpose ({}).", (int)aPurpose);
+    default: HG_UNREACHABLE("Invalid value for LineOfSightRenderer2D::Purpose ({}).", (int)aPurpose);
     }
 }
 } // namespace
 
-LineOfSightRenderer2D::LineOfSightRenderer2D(const World& aWorld,
+LineOfSightRenderer2D::LineOfSightRenderer2D(const World&  aWorld,
                                              hg::PZInteger aTextureSize,
-                                             Purpose aPurpose)
+                                             Purpose       aPurpose)
     : _world{aWorld}
     , _sizeMultiplier{MultiplierForPurpose(aPurpose)}
-    , _textureSize{aTextureSize}
-{
+    , _textureSize{aTextureSize} {
     _renderTexture.create({aTextureSize, aTextureSize});
 
     // Allocate Texture RAM Buffer:
@@ -58,12 +55,12 @@ LineOfSightRenderer2D::~LineOfSightRenderer2D() {
     DualPBO_Destroy(_pboNames);
 }
 
-void LineOfSightRenderer2D::start(WorldPosition aViewPosition,
+void LineOfSightRenderer2D::start(WorldPosition      aViewPosition,
                                   hg::math::Vector2f aViewSize,
-                                  WorldPosition aLineOfSightOrigin,
-                                  float aPadding) {
-    const float width  = aViewSize.x + aPadding;
-    const float height = aViewSize.y + aPadding;
+                                  WorldPosition      aLineOfSightOrigin,
+                                  float              aPadding) {
+    const float width           = aViewSize.x + aPadding;
+    const float height          = aViewSize.y + aPadding;
     const float largerDimension = std::max(width, height);
 
     _recommendedScale = largerDimension * _sizeMultiplier / _renderTexture.getSize().x;
@@ -100,7 +97,7 @@ void LineOfSightRenderer2D::render() {
     _renderTexture.display();
 
     {
-        const unsigned targetPbo = (_stepCounter % 2);       
+        const unsigned targetPbo = (_stepCounter % 2);
         DualPBO_StartTransfer(_pboNames, targetPbo, _renderTexture.getTexture().getNativeHandle());
     }
 
@@ -113,19 +110,19 @@ void LineOfSightRenderer2D::render() {
 std::optional<bool> LineOfSightRenderer2D::testVisibilityAt(WorldPosition aPos) const {
     const auto pixelPos = _renderTexture.mapCoordsToPixel(*aPos + _viewCenterOffset, 0);
 
-    if (pixelPos.x < 0 || pixelPos.x >= _textureSize ||
-        pixelPos.y < 0 || pixelPos.y >= _textureSize)
-    {
+    if (pixelPos.x < 0 || pixelPos.x >= _textureSize || pixelPos.y < 0 || pixelPos.y >= _textureSize) {
         return {};
     }
 
     // Note: The calculation is as such because the pixel data we get from OpenGL is flipped vertically.
-    const auto* p = _textureRamBuffer.data() + ((_textureSize - 1 - pixelPos.y) * _textureSize + pixelPos.x) * 4;
+    const auto* p =
+        _textureRamBuffer.data() + ((_textureSize - 1 - pixelPos.y) * _textureSize + pixelPos.x) * 4;
 
     return (hg::gr::Color{p[0], p[1], p[2], 255} != hg::gr::COLOR_BLACK);
 }
 
-const hg::gr::Texture& LineOfSightRenderer2D::__gwimpl_getTexture(hg::math::Vector2f* aRecommendedScale) const {
+const hg::gr::Texture& LineOfSightRenderer2D::__gwimpl_getTexture(
+    hg::math::Vector2f* aRecommendedScale) const {
     if (aRecommendedScale != nullptr) {
         aRecommendedScale->x = _recommendedScale;
         aRecommendedScale->y = _recommendedScale;
@@ -133,46 +130,44 @@ const hg::gr::Texture& LineOfSightRenderer2D::__gwimpl_getTexture(hg::math::Vect
     return _renderTexture.getTexture();
 }
 
-void LineOfSightRenderer2D::_renderOcclusion() {  
+void LineOfSightRenderer2D::_renderOcclusion() {
     const auto cellResolution = _world.getCellResolution();
-    const auto position = _renderTexture.getView().getCenter();
-    const auto size = _renderTexture.getView().getSize();
+    const auto position       = _renderTexture.getView().getCenter();
+    const auto size           = _renderTexture.getView().getSize();
 
     hg::gr::Vertex vertices[10];
     for (auto& vertex : vertices) {
         vertex.color = hg::gr::COLOR_BLACK;
     }
 
-    const auto startGridX = 
-        hg::math::Clamp(static_cast<int>(trunc((position.x - size.x / 2.f) / cellResolution)), 
-                        0, 
-                        _world.getCellCountX() - 1
-        );
+    const auto startGridX =
+        hg::math::Clamp(static_cast<int>(trunc((position.x - size.x / 2.f) / cellResolution)),
+                        0,
+                        _world.getCellCountX() - 1);
     const auto startGridY =
         hg::math::Clamp(static_cast<int>(trunc((position.y - size.y / 2.f) / cellResolution)),
                         0,
-                        _world.getCellCountY() - 1
-        );
-    const auto endGridX = 
-        hg::math::Clamp(static_cast<int>(trunc((position.x + size.x / 2.f) / cellResolution)), 
-                        0, 
-                        _world.getCellCountX() - 1
-        );
+                        _world.getCellCountY() - 1);
+    const auto endGridX =
+        hg::math::Clamp(static_cast<int>(trunc((position.x + size.x / 2.f) / cellResolution)),
+                        0,
+                        _world.getCellCountX() - 1);
     const auto endGridY =
         hg::math::Clamp(static_cast<int>(trunc((position.y + size.y / 2.f) / cellResolution)),
                         0,
-                        _world.getCellCountY() - 1
-        );
+                        _world.getCellCountY() - 1);
 
     for (hg::PZInteger y = startGridY; y <= endGridY; y += 1) {
         for (hg::PZInteger x = startGridX; x <= endGridX; x += 1) {
             // ****************************************************
             if (auto wall = _world.getCellAtUnchecked(x, y).wall) {
+                // clang-format off
                 vertices[0].position = { x      * cellResolution,  y      * cellResolution};
                 vertices[2].position = { x      * cellResolution, (y + 1) * cellResolution};
                 vertices[4].position = {(x + 1) * cellResolution, (y + 1) * cellResolution};
                 vertices[6].position = {(x + 1) * cellResolution,  y      * cellResolution};
                 vertices[8] = vertices[0];
+                // clang-format on
 
                 for (int i = 1; i < 10; i += 2) {
                     hg::math::Vector2f diff = {vertices[i - 1].position.x - _losOrigin->x,

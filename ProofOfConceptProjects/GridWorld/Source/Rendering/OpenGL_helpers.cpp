@@ -36,8 +36,8 @@ void DualPBO_Destroy(DualPBONames& aPboNames) {
 }
 
 void DualPBO_StartTransfer(const DualPBONames& aPboNames,
-                           unsigned int aWhich,
-                           unsigned int aTextureName) {
+                           unsigned int        aWhich,
+                           unsigned int        aTextureName) {
     OpenGLErrorContext ectx;
 
     GLCALL(ectx, glBindBuffer(GL_PIXEL_PACK_BUFFER, aPboNames[aWhich]));
@@ -46,11 +46,13 @@ void DualPBO_StartTransfer(const DualPBONames& aPboNames,
     // Starts the asychronous transfer of texture pixel data into the PBO.
     // This transfer will happen whenever is suitable for the GPU, as to now
     // stall the graphics pipeline.
+    // clang-format off
     GLCALL(ectx, glGetTexImage(/* target */      GL_TEXTURE_2D,
                                /* level */       0,
                                /* pixelformat */ GL_RGBA,
                                /* pixeltype */   GL_UNSIGNED_BYTE,
                                /* offset */      nullptr));
+    // clang-format on
 
     GLCALL(ectx, glBindTexture(GL_TEXTURE_2D, 0));
     GLCALL(ectx, glBindBuffer(GL_PIXEL_PACK_BUFFER, 0));
@@ -59,9 +61,9 @@ void DualPBO_StartTransfer(const DualPBONames& aPboNames,
 }
 
 void DualPBO_LoadIntoRam(const DualPBONames& aPboNames,
-                         unsigned int aWhich,
-                         void* aRamBufferAddress,
-                         std::size_t aRamBufferSize) {
+                         unsigned int        aWhich,
+                         void*               aRamBufferAddress,
+                         std::size_t         aRamBufferSize) {
     OpenGLErrorContext ectx;
 
     const void* p = nullptr;
@@ -71,9 +73,7 @@ void DualPBO_LoadIntoRam(const DualPBONames& aPboNames,
     // not yet complete, 'glMapBuffer' will wait until it is.
     // Note: Where the PBO holds pixel data and whether 'glMapBuffer' involves
     // copying the data is up to the specific OpenGL implementation.
-    GLCALL(ectx, {
-        p = glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
-           });
+    GLCALL(ectx, { p = glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY); });
 
     if (p != nullptr) {
         std::memcpy(aRamBufferAddress, p, aRamBufferSize);

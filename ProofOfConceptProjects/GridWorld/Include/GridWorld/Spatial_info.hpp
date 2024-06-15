@@ -1,7 +1,7 @@
 #pragma once
 
-#include <GridWorld/Positions.hpp>
 #include <GridWorld/Model/Shape.hpp>
+#include <GridWorld/Positions.hpp>
 
 #include <Hobgoblin/Math.hpp>
 
@@ -22,10 +22,14 @@ enum class Layer {
 class SpatialInfo {
 public:
     SpatialInfo() = default;
-    
-    static SpatialInfo fromCentreAndSize(WorldPosition aCentre, hg::math::Vector2f aSize, Shape aShape = Shape::FULL_SQUARE);
 
-    static SpatialInfo fromTopLeftAndSize(WorldPosition aTopLeft, hg::math::Vector2f aSize, Shape aShape = Shape::FULL_SQUARE);
+    static SpatialInfo fromCentreAndSize(WorldPosition      aCentre,
+                                         hg::math::Vector2f aSize,
+                                         Shape              aShape = Shape::FULL_SQUARE);
+
+    static SpatialInfo fromTopLeftAndSize(WorldPosition      aTopLeft,
+                                          hg::math::Vector2f aSize,
+                                          Shape              aShape = Shape::FULL_SQUARE);
 
     void setCentre(WorldPosition aPoint);
 
@@ -46,8 +50,8 @@ public:
 
     enum CheckDrawingOrderResult {
         DRAW_OTHER_FIRST = -1,
-        DOES_NOT_MATTER  =  0,
-        DRAW_THIS_FIRST  =  1
+        DOES_NOT_MATTER  = 0,
+        DRAW_THIS_FIRST  = 1
     };
 
     //! Checks whether `this` should be drawn before `aOther` as per the dimetric rendering order.
@@ -55,7 +59,7 @@ public:
     //! - DRAW_OTHER_FIRST: `aOther` should be drawn before `this`.
     //! - DOES_NOT_MATTER : it doesn't matter which one is drawn first.
     //! - DRAW_THIS_FIRST : `this` should be drawn before `aOther`.
-    //! 
+    //!
     //! Note: if the bounding boxes overlap, there is technically no correct answer, so a simple
     //!       check is done to see which centre is lower on the screen.
     CheckDrawingOrderResult checkDimetricDrawingOrder(const SpatialInfo& aOther) const;

@@ -8,4 +8,4 @@ namespace hg = ::jbatnozic::hobgoblin;
 
 using SpriteId = hg::gr::SpriteIdNumerical;
 
-} // namespace gridw
+} // namespace gridworld

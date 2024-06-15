@@ -53,9 +53,9 @@ enum class DrawMode {
     // TODO: LoS blocker bitmask
 };
 
-using DrawModePredicate = DrawMode(*)(float aCellResolution,
-                                      hg::math::Vector2f aCellPosition,
-                                      hg::math::Vector2f aPointOfView);
+using DrawModePredicate = DrawMode (*)(float              aCellResolution,
+                                       hg::math::Vector2f aCellPosition,
+                                       hg::math::Vector2f aPointOfView);
 
 //! Cell model extended with optimization data.
 class CellModelExt : public CellModel {
@@ -78,14 +78,15 @@ public:
                      const CellModelExt* aEastNeighbour,
                      const CellModelExt* aSouthNeighbour);
 
-        DrawMode determineDrawMode(float aCellResolution,
+        DrawMode determineDrawMode(float              aCellResolution,
                                    hg::math::Vector2f aCellPosition,
-                                   hg::math::Vector2f aPointOfView) const; // TODO: needs also to return locations from which to pick up light
+                                   hg::math::Vector2f aPointOfView)
+            const; // TODO: needs also to return locations from which to pick up light
 
     private:
         DrawModePredicate _drawModePredicate;
-        bool _visible = false;
-        bool _lowered = false;
+        bool              _visible = false;
+        bool              _lowered = false;
     };
 
     mutable ExtensionData mutableExtensionData;
@@ -93,4 +94,4 @@ public:
 
 } // namespace detail
 
-} // namespace gridw
+} // namespace gridworld

@@ -3,8 +3,8 @@
 #include <GridWorld/Positions.hpp>
 #include <GridWorld/Spatial_info.hpp>
 
-#include <Hobgoblin/Math.hpp>
 #include <Hobgoblin/Graphics.hpp>
+#include <Hobgoblin/Math.hpp>
 
 #include <functional>
 
@@ -24,16 +24,16 @@ public:
     virtual WorldPosition getPointOfView() const = 0;
 
     //! Tests whether a point is visible from the main Point of View.
-    //! 
+    //!
     //! If `true` is returned, the point is visible; if `false` is returned, the point
     //! is not visible. If `std::none` is returned, visibility could not be determined
     //! (point likely too far away from PoV).
-    //! 
+    //!
     //! \see getPointOfView
     virtual std::optional<bool> testVisibilityAt(WorldPosition aPos) const = 0;
 
     //! Returns the ambient color (based on lighting rendering) at a certain point.
-    //! 
+    //!
     //! If `std::none` is returned, the ambient colour could not be determined (point
     //! likely too far away from the view centre - remember that only the minimum
     //! lighting required to cover the view is rendered).
@@ -45,9 +45,7 @@ public:
     RenderedObject() = default;
 
     RenderedObject(const SpatialInfo& aSpatialInfo)
-        : _spatialInfo{aSpatialInfo}
-    {
-    }
+        : _spatialInfo{aSpatialInfo} {}
 
     const SpatialInfo& getSpatialInfo() const {
         return _spatialInfo;
@@ -67,7 +65,6 @@ struct RendererConfiguration {
 // TODO(unused)
 class Renderer {
 public:
-
     virtual void startFrame(/*viewport, pov*/) = 0;
 
     virtual void addObject() = 0;
@@ -75,4 +72,4 @@ public:
     virtual void render() = 0;
 };
 
-} // namespace gridw
+} // namespace gridworld

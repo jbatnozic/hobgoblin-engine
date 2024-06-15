@@ -15,8 +15,8 @@ namespace hg = jbatnozic::hobgoblin;
 using LightId = std::int32_t;
 
 struct LightModel {
-    SpriteId spriteId = 0;
-    hg::math::AngleF angle = hg::math::AngleF::zero();
+    SpriteId           spriteId = 0;
+    hg::math::AngleF   angle    = hg::math::AngleF::zero();
     hg::math::Vector2f position = {0.f, 0.f};
 };
 

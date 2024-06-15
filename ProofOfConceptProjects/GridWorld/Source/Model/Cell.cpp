@@ -12,39 +12,29 @@ constexpr float Half(float aVal) {
     return aVal * 0.5;
 }
 
-bool IsPovCloserThanCell(hg::math::Vector2f aCellPosition,
-                         hg::math::Vector2f aPointOfView) {
+bool IsPovCloserThanCell(hg::math::Vector2f aCellPosition, hg::math::Vector2f aPointOfView) {
     return ((aCellPosition.x - aCellPosition.y) > (aPointOfView.x - aPointOfView.y));
 }
 
-DrawMode FullWhenPovIsCloserToCamera(
-    float aCellResolution,
-    hg::math::Vector2f aCellPosition,
-    hg::math::Vector2f aPointOfView)
-{
+DrawMode FullWhenPovIsCloserToCamera(float              aCellResolution,
+                                     hg::math::Vector2f aCellPosition,
+                                     hg::math::Vector2f aPointOfView) {
     if (IsPovCloserThanCell(aCellPosition, aPointOfView)) {
         return DrawMode::FULL;
     }
     return DrawMode::LOWERED;
 }
 
-DrawMode X1(
-    float aCellResolution,
-    hg::math::Vector2f aCellPosition,
-    hg::math::Vector2f aPointOfView)
-{
-    if (aPointOfView.y <= aCellPosition.y ||
-        aPointOfView.x >= aCellPosition.x + aCellResolution) {
+DrawMode X1(float aCellResolution, hg::math::Vector2f aCellPosition, hg::math::Vector2f aPointOfView) {
+    if (aPointOfView.y <= aCellPosition.y || aPointOfView.x >= aCellPosition.x + aCellResolution) {
         return DrawMode::LOWERED;
     }
     return DrawMode::FULL;
 }
 
-DrawMode FullWhenPovIsSouthOrCloserToCamera(
-    float aCellResolution,
-    hg::math::Vector2f aCellPosition,
-    hg::math::Vector2f aPointOfView)
-{
+DrawMode FullWhenPovIsSouthOrCloserToCamera(float              aCellResolution,
+                                            hg::math::Vector2f aCellPosition,
+                                            hg::math::Vector2f aPointOfView) {
     if ((aPointOfView.y >= aCellPosition.y + aCellResolution) ||
         IsPovCloserThanCell(aCellPosition, aPointOfView)) {
         return DrawMode::FULL;
@@ -52,79 +42,63 @@ DrawMode FullWhenPovIsSouthOrCloserToCamera(
     return DrawMode::LOWERED;
 }
 
-DrawMode FullWhenPovIsWestOrCloserToCamera(
-    float aCellResolution,
-    hg::math::Vector2f aCellPosition,
-    hg::math::Vector2f aPointOfView)
-{
-    if ((aPointOfView.x <= aCellPosition.x) ||
-        IsPovCloserThanCell(aCellPosition, aPointOfView)) {
+DrawMode FullWhenPovIsWestOrCloserToCamera(float              aCellResolution,
+                                           hg::math::Vector2f aCellPosition,
+                                           hg::math::Vector2f aPointOfView) {
+    if ((aPointOfView.x <= aCellPosition.x) || IsPovCloserThanCell(aCellPosition, aPointOfView)) {
         return DrawMode::FULL;
     }
     return DrawMode::LOWERED;
 }
 
-DrawMode FullWhenPovIsWestOrSouth(
-    float aCellResolution,
-    hg::math::Vector2f aCellPosition,
-    hg::math::Vector2f aPointOfView)
-{
-    if ((aPointOfView.x <= aCellPosition.x) ||
-        (aPointOfView.y >= aCellPosition.y + aCellResolution)) {
+DrawMode FullWhenPovIsWestOrSouth(float              aCellResolution,
+                                  hg::math::Vector2f aCellPosition,
+                                  hg::math::Vector2f aPointOfView) {
+    if ((aPointOfView.x <= aCellPosition.x) || (aPointOfView.y >= aCellPosition.y + aCellResolution)) {
         return DrawMode::FULL;
     }
     return DrawMode::LOWERED;
 }
 
-DrawMode FullWhenPovIsWest(
-    float aCellResolution,
-    hg::math::Vector2f aCellPosition,
-    hg::math::Vector2f aPointOfView)
-{
+DrawMode FullWhenPovIsWest(float              aCellResolution,
+                           hg::math::Vector2f aCellPosition,
+                           hg::math::Vector2f aPointOfView) {
     if (aPointOfView.x <= aCellPosition.x) {
         return DrawMode::FULL;
     }
     return DrawMode::LOWERED;
 }
 
-DrawMode FullWhenPovIsWest2(
-    float aCellResolution,
-    hg::math::Vector2f aCellPosition,
-    hg::math::Vector2f aPointOfView)
-{
+DrawMode FullWhenPovIsWest2(float              aCellResolution,
+                            hg::math::Vector2f aCellPosition,
+                            hg::math::Vector2f aPointOfView) {
     if (aPointOfView.x <= aCellPosition.x + aCellResolution) {
         return DrawMode::FULL;
     }
     return DrawMode::LOWERED;
 }
 
-DrawMode FullWhenPovIsSouth(
-    float aCellResolution,
-    hg::math::Vector2f aCellPosition,
-    hg::math::Vector2f aPointOfView)
-{
+DrawMode FullWhenPovIsSouth(float              aCellResolution,
+                            hg::math::Vector2f aCellPosition,
+                            hg::math::Vector2f aPointOfView) {
     if (aPointOfView.y >= aCellPosition.y + aCellResolution) {
         return DrawMode::FULL;
     }
     return DrawMode::LOWERED;
 }
 
-DrawMode FullWhenPovIsSouth2(
-    float aCellResolution,
-    hg::math::Vector2f aCellPosition,
-    hg::math::Vector2f aPointOfView)
-{
+DrawMode FullWhenPovIsSouth2(float              aCellResolution,
+                             hg::math::Vector2f aCellPosition,
+                             hg::math::Vector2f aPointOfView) {
     if (aPointOfView.y >= aCellPosition.y + aCellResolution) {
         return DrawMode::FULL;
     }
     return DrawMode::LOWERED;
 }
 
-DrawMode FullWhenPovIsSouthAndCloserToCamera(
-    float aCellResolution,
-    hg::math::Vector2f aCellPosition,
-    hg::math::Vector2f aPointOfView)
-{
+DrawMode FullWhenPovIsSouthAndCloserToCamera(float              aCellResolution,
+                                             hg::math::Vector2f aCellPosition,
+                                             hg::math::Vector2f aPointOfView) {
     if ((aPointOfView.y >= aCellPosition.y + aCellResolution) &&
         IsPovCloserThanCell(aCellPosition, aPointOfView)) {
         return DrawMode::FULL;
@@ -132,31 +106,24 @@ DrawMode FullWhenPovIsSouthAndCloserToCamera(
     return DrawMode::LOWERED;
 }
 
-DrawMode FullWhenPovIsWestAndCloserToCamera(
-    float aCellResolution,
-    hg::math::Vector2f aCellPosition,
-    hg::math::Vector2f aPointOfView)
-{
-    if ((aPointOfView.x <= aCellPosition.x) &&
-        IsPovCloserThanCell(aCellPosition, aPointOfView)) {
+DrawMode FullWhenPovIsWestAndCloserToCamera(float              aCellResolution,
+                                            hg::math::Vector2f aCellPosition,
+                                            hg::math::Vector2f aPointOfView) {
+    if ((aPointOfView.x <= aCellPosition.x) && IsPovCloserThanCell(aCellPosition, aPointOfView)) {
         return DrawMode::FULL;
     }
     return DrawMode::LOWERED;
 }
 
-DrawMode AlwaysLowered(
-    float aCellResolution,
-    hg::math::Vector2f aCellPosition,
-    hg::math::Vector2f aPointOfView)
-{
+DrawMode AlwaysLowered(float              aCellResolution,
+                       hg::math::Vector2f aCellPosition,
+                       hg::math::Vector2f aPointOfView) {
     return DrawMode::LOWERED;
 }
 
-DrawMode AlwaysNone(
-    float aCellResolution,
-    hg::math::Vector2f aCellPosition,
-    hg::math::Vector2f aPointOfView)
-{
+DrawMode AlwaysNone(float              aCellResolution,
+                    hg::math::Vector2f aCellPosition,
+                    hg::math::Vector2f aPointOfView) {
     return DrawMode::NONE;
 }
 
@@ -264,9 +231,7 @@ std::array<decltype(&AlwaysNone), 16> SELCTION_TABLE = {
 } // namespace predicate
 
 CellModelExt::ExtensionData::ExtensionData()
-    : _drawModePredicate{&predicate::AlwaysNone}
-{
-}
+    : _drawModePredicate{&predicate::AlwaysNone} {}
 
 void CellModelExt::ExtensionData::setVisible(bool aIsVisible) {
     _visible = aIsVisible;
@@ -285,25 +250,24 @@ bool CellModelExt::ExtensionData::isLowered() const {
 }
 
 void CellModelExt::ExtensionData::refresh(const CellModelExt* aNorthNeighbour,
-                                            const CellModelExt* aWestNeighbour,
-                                            const CellModelExt* aEastNeighbour,
-                                            const CellModelExt* aSouthNeighbour)
+                                          const CellModelExt* aWestNeighbour,
+                                          const CellModelExt* aEastNeighbour,
+                                          const CellModelExt* aSouthNeighbour)
 {
+    // clang-format off
     const bool blockedFromNorth = !aNorthNeighbour || aNorthNeighbour->wall.has_value(); // TODO(temporary)
     const bool blockedFromWest  = !aWestNeighbour  || aWestNeighbour->wall.has_value();  // TODO(temporary)
     const bool blockedFromEast  = !aEastNeighbour  || aEastNeighbour->wall.has_value();  // TODO(temporary)
     const bool blockedFromSouth = !aSouthNeighbour || aSouthNeighbour->wall.has_value(); // TODO(temporary)
 
-    const auto selector =
-        (blockedFromEast  ? 0x01 : 0) |
-        (blockedFromNorth ? 0x02 : 0) |
-        (blockedFromWest  ? 0x04 : 0) |
-        (blockedFromSouth ? 0x08 : 0);
+    const auto selector = (blockedFromEast ? 0x01 : 0) | (blockedFromNorth ? 0x02 : 0) |
+                          (blockedFromWest ? 0x04 : 0) | (blockedFromSouth ? 0x08 : 0);
 
     _drawModePredicate = predicate::SELCTION_TABLE[static_cast<std::size_t>(selector)];
+    // clang-format on
 }
 
-DrawMode CellModelExt::ExtensionData::determineDrawMode(float aCellResolution,
+DrawMode CellModelExt::ExtensionData::determineDrawMode(float              aCellResolution,
                                                         hg::math::Vector2f aCellPosition,
                                                         hg::math::Vector2f aPointOfView) const {
     return _drawModePredicate(aCellResolution, aCellPosition, aPointOfView);

@@ -18,7 +18,7 @@ namespace {
 std::string SlurpFileContents(std::filesystem::path aPath) {
     std::ifstream fileStream{aPath, std::ios::in | std::ios::binary};
     std::string   fileContents{std::istreambuf_iterator<char>{fileStream},
-                               std::istreambuf_iterator<char>()};
+                             std::istreambuf_iterator<char>()};
     return fileContents;
 }
 } // namespace
