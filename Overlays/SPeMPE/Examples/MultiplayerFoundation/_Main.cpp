@@ -26,9 +26,10 @@ static constexpr auto LOG_ID = "MultiplayerFoundation";
 // GAME CONFIG                                                           //
 ///////////////////////////////////////////////////////////////////////////
 
-#define WINDOW_WIDTH          1200
-#define WINDOW_HEIGHT          800
-#define FRAMERATE               60
+#define WINDOW_WIDTH  1200
+#define WINDOW_HEIGHT  800
+#define TICK_RATE       60
+#define FRAME_RATE     120
 
 bool MyRetransmitPredicate(hg::PZInteger aCyclesSinceLastTransmit,
                            std::chrono::microseconds aTimeSinceLastSend,
@@ -52,7 +53,7 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
                                                   hg::PZInteger aPlayerCount)
 {
     auto context = std::make_unique<spe::GameContext>(
-        spe::GameContext::RuntimeConfig{std::chrono::duration<double>(1.0 / FRAMERATE)});
+        spe::GameContext::RuntimeConfig{spe::TickRate{TICK_RATE}});
     context->setToMode((aGameMode == GameMode::Server) ? spe::GameContext::Mode::Server
                        : spe::GameContext::Mode::Client);
 
@@ -60,7 +61,12 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
     auto winMgr = std::make_unique<spe::DefaultWindowManager>(context->getQAORuntime().nonOwning(),
                                                               PRIORITY_WINDOWMGR);
     if (aGameMode == GameMode::Server) {
-        winMgr->setToHeadlessMode(spe::WindowManagerInterface::TimingConfig{FRAMERATE});
+        winMgr->setToHeadlessMode(
+            spe::WindowManagerInterface::TimingConfig{
+                spe::PREVENT_BUSY_WAIT_ON,
+                spe::VSYNC_OFF
+            }
+        );
     }
     else {
         winMgr->setToNormalMode(
@@ -71,10 +77,9 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
             },
             spe::WindowManagerInterface::MainRenderTextureConfig{{WINDOW_WIDTH, WINDOW_HEIGHT}},
             spe::WindowManagerInterface::TimingConfig{
-                FRAMERATE,
-                false,                                           /* Framerate limiter */
-                (aGameMode == GameMode::Server) ? false : true , /* V-Sync */
-                (aGameMode == GameMode::Server) ? true : true    /* Precise timing */
+                spe::FrameRate{FRAME_RATE},
+                spe::PREVENT_BUSY_WAIT_ON,
+                spe::VSYNC_OFF
             }
         );
 

@@ -56,6 +56,9 @@
 #define SELF (*this)
 
 // SFINAE:
+// For in-class method declarations or definitions
 #define T_ENABLE_IF(...)     typename ::std::enable_if<__VA_ARGS__, bool>::type = true
+// For out-of-class (OOC) method definitions
+#define T_ENABLE_IF_OOC(...) typename ::std::enable_if<__VA_ARGS__, bool>::type
 
 // clang-format on

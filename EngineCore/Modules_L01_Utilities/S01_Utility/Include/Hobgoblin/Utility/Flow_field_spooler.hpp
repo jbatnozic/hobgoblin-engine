@@ -199,7 +199,7 @@ private:
         detail::WCFMap result;
 
         for (const auto& pair : aCostProviderMap) {
-            const std::int32_t         id = pair.first;
+            const std::int32_t         id       = pair.first;
             const taWorldCostProvider* provider = pair.second;
 
             result[id] = {&_worldCostFunction, provider};
@@ -235,12 +235,12 @@ void FlowFieldSpooler<taWorldCostProvider>::unpause() {
 }
 
 template <class taWorldCostProvider>
-FlowFieldSpooler<taWorldCostProvider>::RequestId
-FlowFieldSpooler<taWorldCostProvider>::addRequest(math::Vector2pz aFieldTopLeft,
-                                                  math::Vector2pz aFieldDimensions,
-                                                  math::Vector2pz aTarget,
-                                                  CostProviderId  aCostProviderId,
-                                                  PZInteger       aMaxIterations) {
+FlowFieldSpooler<taWorldCostProvider>::RequestId FlowFieldSpooler<taWorldCostProvider>::addRequest(
+    math::Vector2pz aFieldTopLeft,
+    math::Vector2pz aFieldDimensions,
+    math::Vector2pz aTarget,
+    CostProviderId  aCostProviderId,
+    PZInteger       aMaxIterations) {
     return _impl->addRequest(aFieldTopLeft, aFieldDimensions, aTarget, aCostProviderId, aMaxIterations);
 }
 
@@ -250,8 +250,8 @@ void FlowFieldSpooler<taWorldCostProvider>::cancelRequest(RequestId aRequestId) 
 }
 
 template <class taWorldCostProvider>
-std::optional<OffsetFlowField>
-FlowFieldSpooler<taWorldCostProvider>::collectResult(RequestId aRequestId) {
+std::optional<OffsetFlowField> FlowFieldSpooler<taWorldCostProvider>::collectResult(
+    RequestId aRequestId) {
     auto implResult = _impl->collectResult(aRequestId);
     if (!implResult.has_value()) {
         return {};
@@ -259,7 +259,7 @@ FlowFieldSpooler<taWorldCostProvider>::collectResult(RequestId aRequestId) {
 
     OffsetFlowField result;
     result.flowField = std::move(implResult->flowField);
-    result.offset = implResult->offset;
+    result.offset    = implResult->offset;
     return {std::move(result)};
 }
 

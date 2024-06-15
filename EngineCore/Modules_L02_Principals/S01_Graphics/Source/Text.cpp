@@ -1,6 +1,8 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-#include <Hobgoblin/Graphics/Text.hpp>
 #include <Hobgoblin/Graphics/Font.hpp>
+#include <Hobgoblin/Graphics/Text.hpp>
 #include <Hobgoblin/HGExcept.hpp>
 
 #include <SFML/Graphics/Text.hpp>
@@ -18,67 +20,56 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
-using ImplType = sf::Text;
-constexpr auto IMPL_SIZE = sizeof(ImplType);
+using ImplType            = sf::Text;
+constexpr auto IMPL_SIZE  = sizeof(ImplType);
 constexpr auto IMPL_ALIGN = alignof(ImplType);
-#define  IMPLOF(_obj_) (reinterpret_cast<ImplType*>(&((_obj_)._storage)))
+#define IMPLOF(_obj_)  (reinterpret_cast<ImplType*>(&((_obj_)._storage)))
 #define CIMPLOF(_obj_) (reinterpret_cast<const ImplType*>(&((_obj_)._storage)))
-#define  SELF_IMPL (IMPLOF(SELF))
-#define SELF_CIMPL (CIMPLOF(SELF))
+#define SELF_IMPL      (IMPLOF(SELF))
+#define SELF_CIMPL     (CIMPLOF(SELF))
 
-Text::Text(const Font& aFont,
-           const char* aString,
-           PZInteger aCharacterSize)
-    : Text{aFont, std::string{aString}, aCharacterSize}
-{
-    static_assert(STORAGE_SIZE  == IMPL_SIZE,  "Text::STORAGE_SIZE is inadequate.");
+Text::Text(const Font& aFont, const char* aString, PZInteger aCharacterSize)
+    : Text{aFont, std::string{aString}, aCharacterSize} {
+    static_assert(STORAGE_SIZE == IMPL_SIZE, "Text::STORAGE_SIZE is inadequate.");
     static_assert(STORAGE_ALIGN == IMPL_ALIGN, "Text::STORAGE_ALIGN is inadequate.");
 }
 
-Text::Text(const Font& aFont,
-           const std::string& aString,
-           PZInteger aCharacterSize)
-    : _font{&aFont}
-{
+Text::Text(const Font& aFont, const std::string& aString, PZInteger aCharacterSize)
+    : _font{&aFont} {
     const auto& sfFont = detail::GraphicsImplAccessor::getImplOf<sf::Font>(aFont);
     new (&_storage) ImplType(aString, sfFont, static_cast<unsigned>(aCharacterSize));
 }
 
-Text::Text(const Font& aFont,
-           const UnicodeString& aString,
-           PZInteger aCharacterSize)
-    : _font{&aFont}
-{
+Text::Text(const Font& aFont, const UnicodeString& aString, PZInteger aCharacterSize)
+    : _font{&aFont} {
     const auto& sfFont = detail::GraphicsImplAccessor::getImplOf<sf::Font>(aFont);
-    sf::String sfString;
+    sf::String  sfString;
     hobgoblin::detail::StoreUStringInSfString(aString, &sfString);
     new (&_storage) ImplType(sfString, sfFont, static_cast<unsigned>(aCharacterSize));
 }
 
 Text::Text(const Text& aOther)
-    : _font{aOther._font}
-{
+    : _font{aOther._font} {
     new (&_storage) ImplType(*CIMPLOF(aOther));
 }
 
 Text& Text::operator=(const Text& aOther) {
     if (this != &aOther) {
         *SELF_IMPL = *CIMPLOF(aOther);
-        _font = aOther._font;
+        _font      = aOther._font;
     }
     return SELF;
 }
 
 Text::Text(Text&& aOther) noexcept
-    : _font{aOther._font}
-{
+    : _font{aOther._font} {
     new (&_storage) ImplType(std::move(*IMPLOF(aOther)));
 }
 
 Text& Text::operator=(Text&& aOther) noexcept {
     if (this != &aOther) {
         *SELF_IMPL = std::move(*IMPLOF(aOther));
-        _font = aOther._font;
+        _font      = aOther._font;
     }
     return SELF;
 }
@@ -131,7 +122,7 @@ void Text::setOutlineThickness(float aThickness) {
 }
 
 UnicodeString Text::getString() const {
-    const auto& sfStr = SELF_CIMPL->getString();
+    const auto&   sfStr = SELF_CIMPL->getString();
     UnicodeString result;
     hobgoblin::detail::LoadUStringFromSfString(result, &sfStr);
     return result;
@@ -187,8 +178,7 @@ Drawable::BatchingType Text::getBatchingType() const {
 }
 
 void Text::_draw(Canvas& aCanvas, const RenderStates& aStates) const {
-    const auto drawingWasSuccessful = 
-        Draw(aCanvas, [this, &aStates](sf::RenderTarget& aSfRenderTarget) {
+    const auto drawingWasSuccessful = Draw(aCanvas, [this, &aStates](sf::RenderTarget& aSfRenderTarget) {
         aSfRenderTarget.draw(*CIMPLOF(*this), ToSf(aStates));
     });
     assert(drawingWasSuccessful);

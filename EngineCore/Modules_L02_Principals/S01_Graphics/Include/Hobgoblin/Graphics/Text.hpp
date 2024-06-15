@@ -397,10 +397,16 @@ private:
     void* _getSFMLImpl();
     const void* _getSFMLImpl() const;
 
-#ifdef UHOBGOBLIN_DEBUG
-    static constexpr std::size_t STORAGE_SIZE = 392;
-#else
+#ifdef _MSC_VER
+    #ifdef UHOBGOBLIN_DEBUG
+        static constexpr std::size_t STORAGE_SIZE = 392;
+    #else
+        static constexpr std::size_t STORAGE_SIZE = 368;
+    #endif
+#elif defined(__linux__)
     static constexpr std::size_t STORAGE_SIZE = 368;
+#else
+    static constexpr std::size_t STORAGE_SIZE = 360;
 #endif
 
     static constexpr std::size_t STORAGE_ALIGN = 8;

@@ -22,7 +22,7 @@ void DimetricRenderer::CellToRenderedObjectAdapter::draw(hg::gr::Canvas& aRender
 }
 
 template <class taCallable>
-static void DimetricRenderer::_diagonalTraverse(const World& aWorld,
+void DimetricRenderer::_diagonalTraverse(const World& aWorld,
                                                 const DimetricRenderer::ViewData& aViewData,
                                                 taCallable&& aFunc) {
     const float cellRes = aWorld.getCellResolution();

@@ -72,6 +72,18 @@ void SpatialInfo::setSizeMaintainingCentre(hg::math::Vector2f aSize) {
     bbox.y = centre->y - Half(aSize.y);
 }
 
+WorldPosition SpatialInfo::getCentre() const {
+    return centre;
+}
+
+WorldPosition SpatialInfo::getTopLeft() const {
+    return WorldPosition{{bbox.getLeft(), bbox.getTop()}};
+}
+
+hg::math::Vector2f SpatialInfo::getSize() const {
+    return {bbox.w, bbox.h};
+}
+
 SpatialInfo::CheckDrawingOrderResult SpatialInfo::checkDimetricDrawingOrder(const SpatialInfo& aOther) const {
     if (overlaps(aOther)) {
         return ((centre->x - centre->y) > (aOther.centre->x - aOther.centre->y)) ? DRAW_THIS_FIRST : DRAW_OTHER_FIRST;

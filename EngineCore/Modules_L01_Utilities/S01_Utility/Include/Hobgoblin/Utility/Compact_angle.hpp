@@ -38,7 +38,7 @@ public:
     }
 
 private:
-    static constexpr float        INCREMENT = 2.5f;
+    static constexpr float        INCREMENT  = 2.5f;
     static constexpr std::uint8_t VALUE_NONE = 255;
 
     std::uint8_t _value = VALUE_NONE;

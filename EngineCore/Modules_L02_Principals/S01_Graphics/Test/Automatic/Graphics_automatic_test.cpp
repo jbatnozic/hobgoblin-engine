@@ -1,3 +1,5 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
 #define HOBGOBLIN_SHORT_NAMESPACE
 #include <Hobgoblin/Graphics.hpp>
@@ -10,7 +12,7 @@
 #include <array>
 #include <cmath>
 
-namespace gr = hg::gr;
+namespace gr   = hg::gr;
 namespace math = hg::math;
 
 namespace {
@@ -19,7 +21,7 @@ void CheckOriginCorrectness(const taSprite& aSprite, const gr::OriginOffset& aEx
     static constexpr float EPSILON = 0.001f;
 
     const auto origin = aSprite.getOrigin();
-    const auto size = aSprite.getLocalBounds();
+    const auto size   = aSprite.getLocalBounds();
 
     switch (aExpectedOffset.kind) {
     case gr::OriginOffset::RELATIVE_TO_TOP_LEFT:
@@ -28,26 +30,27 @@ void CheckOriginCorrectness(const taSprite& aSprite, const gr::OriginOffset& aEx
         EXPECT_NEAR(origin.y, aExpectedOffset.offset.y, EPSILON);
         break;
 
-    default:
-        HG_UNREACHABLE("Invalid value for OriginOffset::Kind ({}).", (int)aExpectedOffset.kind);
+    default: HG_UNREACHABLE("Invalid value for OriginOffset::Kind ({}).", (int)aExpectedOffset.kind);
     }
 }
 } // namespace
 
 TEST(SpriteLoadingTest, LoadOriginOffset_SingleSubspriteExamples) {
     struct Case {
-        const char16_t* path;
+        const char16_t*  path;
         gr::OriginOffset expectedOffset;
     };
 
     const auto SPRITE_SIZE = hg::math::Vector2f{64.f, 32.f};
 
+    // clang-format off
     const std::array<const Case, 4> CASES = {
         Case{HG_UNILIT("tile-0.png"), {{0.f, 0.f}, gr::OriginOffset::RELATIVE_TO_TOP_LEFT}},
         Case{HG_UNILIT("tile-1.png"), {{1.5f, 123.456f}, gr::OriginOffset::RELATIVE_TO_TOP_LEFT}},
         Case{HG_UNILIT("tile-2.png"), {{SPRITE_SIZE.x / 2.f, SPRITE_SIZE.y / 2.f}, gr::OriginOffset::RELATIVE_TO_CENTER}},
         Case{HG_UNILIT("tile-3.png"), {{SPRITE_SIZE.x / 2.f - 10.f, SPRITE_SIZE.y / 2.f + 15.f}, gr::OriginOffset::RELATIVE_TO_CENTER}}
     };
+    // clang-format on
 
     constexpr gr::SpriteIdNumerical SPRITE_ID = 49;
 
@@ -66,7 +69,6 @@ TEST(SpriteLoadingTest, LoadOriginOffset_SingleSubspriteExamples) {
         {
             const auto blueprint = loader.getBlueprint(SPRITE_ID);
             EXPECT_TRUE(blueprint.hasExplicitOrigin());
-        
             const auto sprite = blueprint.spr();
             CheckOriginCorrectness(sprite, _case.expectedOffset);
         }

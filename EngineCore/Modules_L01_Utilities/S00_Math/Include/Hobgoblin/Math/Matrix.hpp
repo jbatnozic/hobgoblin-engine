@@ -1,3 +1,6 @@
+// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
+// See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
+
 #ifndef UHOBGOBLIN_MATH_MATRIX_HPP
 #define UHOBGOBLIN_MATH_MATRIX_HPP
 
@@ -9,6 +12,7 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace math {
 
+// clang-format off
 template <class taArithmetic, PZInteger taWidth, PZInteger taHeight>
 class Matrix {
 public:
@@ -17,6 +21,7 @@ public:
 
     std::array<taArithmetic, static_cast<std::size_t>(WIDTH * HEIGHT)> data;
 };
+// clang-format on
 
 } // namespace math
 HOBGOBLIN_NAMESPACE_END

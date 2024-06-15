@@ -1,8 +1,8 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-#include <Hobgoblin/Graphics/Sprite_loader.hpp>
 #include <Hobgoblin/Graphics/Origin_offset.hpp>
+#include <Hobgoblin/Graphics/Sprite_loader.hpp>
 
 #include <Hobgoblin/Logging.hpp>
 #include <Hobgoblin/Unicode.hpp>
@@ -28,47 +28,52 @@ namespace {
 constexpr auto LOG_ID = "Hobgoblin.Graphics";
 
 std::optional<OriginOffset> LoadOriginOffset(const std::filesystem::path& aOriginFilePath) {
-	if (!std::filesystem::exists(aOriginFilePath)) {
-		return {};
-	}
+    if (!std::filesystem::exists(aOriginFilePath)) {
+        return {};
+    }
 
-	const auto contents = LoadWholeFile(aOriginFilePath);
+    const auto contents = LoadWholeFile(aOriginFilePath);
 
-	// TAG x: +/-123.456 y: +/-123.456
-	const auto* pattern = uR"_(\s*([a-z]+)[\s]+x:[\s]*([+-]?[0-9]+[.]?[0-9]*)[\s]+y:[\s]*([+-]?[0-9]+[.]?[0-9]*)[\s]*)_";
+    // TAG x: +/-123.456 y: +/-123.456
+    const auto* pattern =
+        uR"_(\s*([a-z]+)[\s]+x:[\s]*([+-]?[0-9]+[.]?[0-9]*)[\s]+y:[\s]*([+-]?[0-9]+[.]?[0-9]*)[\s]*)_";
 
-	UErrorCode status;
-	auto matcher = icu::RegexMatcher(pattern, UREGEX_CASE_INSENSITIVE, status);
-	HG_HARD_ASSERT(U_SUCCESS(status));
+    UErrorCode status  = U_ZERO_ERROR;
+    auto       matcher = icu::RegexMatcher(pattern, UREGEX_CASE_INSENSITIVE, status);
+    HG_HARD_ASSERT(U_SUCCESS(status));
 
-	matcher.reset(contents);
+    matcher.reset(contents);
 
-	if (matcher.matches(status)) {
-		HG_HARD_ASSERT(U_SUCCESS(status));
-		HG_HARD_ASSERT(matcher.groupCount() == 3);
+    if (matcher.matches(status)) {
+        HG_HARD_ASSERT(U_SUCCESS(status));
+        HG_HARD_ASSERT(matcher.groupCount() == 3);
 
-		const auto tag = matcher.group(1, status);
-		HG_HARD_ASSERT(U_SUCCESS(status));
+        const auto tag = matcher.group(1, status);
+        HG_HARD_ASSERT(U_SUCCESS(status));
 
-		const auto x = matcher.group(2, status);
-		HG_HARD_ASSERT(U_SUCCESS(status));
-		const auto xnum = std::stof(UniStrConv(TO_ASCII_STD_STRING, x));
+        const auto x = matcher.group(2, status);
+        HG_HARD_ASSERT(U_SUCCESS(status));
+        const auto xnum = std::stof(UniStrConv(TO_ASCII_STD_STRING, x));
 
-		const auto y = matcher.group(3, status);
-		HG_HARD_ASSERT(U_SUCCESS(status));
-		const auto ynum = std::stof(UniStrConv(TO_ASCII_STD_STRING, y));
+        const auto y = matcher.group(3, status);
+        HG_HARD_ASSERT(U_SUCCESS(status));
+        const auto ynum = std::stof(UniStrConv(TO_ASCII_STD_STRING, y));
 
-		const auto offset = math::Vector2f{xnum, ynum};
+        const auto offset = math::Vector2f{xnum, ynum};
 
-		if (tag.caseCompare(HG_UNILIT("TOPLEFT"), U_FOLD_CASE_DEFAULT) == 0) {
-			return {{offset, OriginOffset::RELATIVE_TO_TOP_LEFT}};
-		}
-		if (tag.caseCompare(HG_UNILIT("CENTER"), U_FOLD_CASE_DEFAULT) == 0) {
-			return {{offset, OriginOffset::RELATIVE_TO_CENTER}};
-		}
-	}
+        if (tag.caseCompare(HG_UNILIT("TOPLEFT"), U_FOLD_CASE_DEFAULT) == 0) {
+            return {
+                {offset, OriginOffset::RELATIVE_TO_TOP_LEFT}
+            };
+        }
+        if (tag.caseCompare(HG_UNILIT("CENTER"), U_FOLD_CASE_DEFAULT) == 0) {
+            return {
+                {offset, OriginOffset::RELATIVE_TO_CENTER}
+            };
+        }
+    }
 
-	return {};
+    return {};
 }
 } // namespace
 
@@ -89,13 +94,13 @@ public:
             HG_THROW_TRACED(TracedLogicError, 0, "Sprite with this ID ({}) already exists!", aSpriteId);
         }
 
-		auto loadedImage = _loadImage(aFilePath);
+        auto loadedImage = _loadImage(aFilePath);
 
-		auto& req = _indexedRequests[aSpriteId];
-		req.subsprites.emplace_back();
-		req.subsprites.back().image = std::move(loadedImage.image);
-		req.subsprites.back().offset = loadedImage.originOffset;
-		req.subsprites.back().occupied = true;
+        auto& req = _indexedRequests[aSpriteId];
+        req.subsprites.emplace_back();
+        req.subsprites.back().image    = std::move(loadedImage.image);
+        req.subsprites.back().offset   = loadedImage.originOffset;
+        req.subsprites.back().occupied = true;
 
         return this;
     }
@@ -105,23 +110,23 @@ public:
                                             const std::filesystem::path& aFilePath) override {
         _assertNotFinalized();
 
-		auto loadedImage = _loadImage(aFilePath);
+        auto loadedImage = _loadImage(aFilePath);
 
-		auto& req = _indexedRequests[aSpriteId];
-		if (req.subsprites.size() <= pztos(aSubspriteIndex)) {
-			req.subsprites.resize(pztos(aSubspriteIndex) + 1);
-		}
-		auto& subsprite = req.subsprites[pztos(aSubspriteIndex)];
-		if (subsprite.occupied) {
-			HG_LOG_WARN(LOG_ID, 
-						"addSubsprite() overwriting previously loaded subsprite at index "
-						"{} of sprite by ID {}.",
-						aSubspriteIndex,
-						aSpriteId);
-		}
-		subsprite.image = std::move(loadedImage.image);
-		subsprite.offset = loadedImage.originOffset;
-		subsprite.occupied = true;
+        auto& req = _indexedRequests[aSpriteId];
+        if (req.subsprites.size() <= pztos(aSubspriteIndex)) {
+            req.subsprites.resize(pztos(aSubspriteIndex) + 1);
+        }
+        auto& subsprite = req.subsprites[pztos(aSubspriteIndex)];
+        if (subsprite.occupied) {
+            HG_LOG_WARN(LOG_ID,
+                        "addSubsprite() overwriting previously loaded subsprite at index "
+                        "{} of sprite by ID {}.",
+                        aSubspriteIndex,
+                        aSpriteId);
+        }
+        subsprite.image    = std::move(loadedImage.image);
+        subsprite.offset   = loadedImage.originOffset;
+        subsprite.occupied = true;
 
         return this;
     }
@@ -130,16 +135,16 @@ public:
                                             const std::filesystem::path& aFilePath) override {
         _assertNotFinalized();
 
-		auto loadedImage = _loadImage(aFilePath);
+        auto loadedImage = _loadImage(aFilePath);
 
-		auto& req = _indexedRequests[aSpriteId];
-		req.subsprites.emplace_back();
-		req.subsprites.back().image = std::move(loadedImage.image);
-		req.subsprites.back().offset = loadedImage.originOffset;
-		req.subsprites.back().occupied = true;
-		
-		return this;
-	}
+        auto& req = _indexedRequests[aSpriteId];
+        req.subsprites.emplace_back();
+        req.subsprites.back().image    = std::move(loadedImage.image);
+        req.subsprites.back().offset   = loadedImage.originOffset;
+        req.subsprites.back().occupied = true;
+
+        return this;
+    }
 
     NeverNull<TextureBuilder*> addSprite(const SpriteIdTextual&       aSpriteId,
                                          const std::filesystem::path& aFilePath) override {
@@ -149,133 +154,133 @@ public:
             HG_THROW_TRACED(TracedLogicError, 0, "Sprite with this ID ({}) already exists!", aSpriteId);
         }
 
-		auto loadedImage = _loadImage(aFilePath);
+        auto loadedImage = _loadImage(aFilePath);
 
-		auto& req = _mappedRequests[aSpriteId];
-		req.subsprites.emplace_back();
-		req.subsprites.back().image = std::move(loadedImage.image);
-		req.subsprites.back().offset = loadedImage.originOffset;
-		req.subsprites.back().occupied = true;
+        auto& req = _mappedRequests[aSpriteId];
+        req.subsprites.emplace_back();
+        req.subsprites.back().image    = std::move(loadedImage.image);
+        req.subsprites.back().offset   = loadedImage.originOffset;
+        req.subsprites.back().occupied = true;
 
         return this;
     }
-    
-	NeverNull<TextureBuilder*> addSubsprite(const SpriteIdTextual& aSpriteId,
-                                          PZInteger aSubspriteIndex,
-                                          const std::filesystem::path& aFilePath) override {
-		_assertNotFinalized();
 
-		auto loadedImage = _loadImage(aFilePath);
+    NeverNull<TextureBuilder*> addSubsprite(const SpriteIdTextual&       aSpriteId,
+                                            PZInteger                    aSubspriteIndex,
+                                            const std::filesystem::path& aFilePath) override {
+        _assertNotFinalized();
 
-		auto& req = _mappedRequests[aSpriteId];
-		if (req.subsprites.size() <= pztos(aSubspriteIndex)) {
-			req.subsprites.resize(pztos(aSubspriteIndex) + 1);
-		}
-		auto& subsprite = req.subsprites[pztos(aSubspriteIndex)];
-		if (subsprite.occupied) {
-			HG_LOG_WARN(LOG_ID, 
-						"addSubsprite() overwriting previously loaded subsprite at index "
-						"{} of sprite by ID {}.",
-						aSubspriteIndex,
-						aSpriteId);
-		}
-		subsprite.image = std::move(loadedImage.image);
-		subsprite.offset = loadedImage.originOffset;
-		subsprite.occupied = true;
+        auto loadedImage = _loadImage(aFilePath);
 
-		return this;
-	}
+        auto& req = _mappedRequests[aSpriteId];
+        if (req.subsprites.size() <= pztos(aSubspriteIndex)) {
+            req.subsprites.resize(pztos(aSubspriteIndex) + 1);
+        }
+        auto& subsprite = req.subsprites[pztos(aSubspriteIndex)];
+        if (subsprite.occupied) {
+            HG_LOG_WARN(LOG_ID,
+                        "addSubsprite() overwriting previously loaded subsprite at index "
+                        "{} of sprite by ID {}.",
+                        aSubspriteIndex,
+                        aSpriteId);
+        }
+        subsprite.image    = std::move(loadedImage.image);
+        subsprite.offset   = loadedImage.originOffset;
+        subsprite.occupied = true;
 
-	NeverNull<TextureBuilder*> addSubsprite(const SpriteIdTextual& aSpriteId,
-										  const std::filesystem::path& aFilePath) override {
-		_assertNotFinalized();
+        return this;
+    }
 
-		auto loadedImage = _loadImage(aFilePath);
+    NeverNull<TextureBuilder*> addSubsprite(const SpriteIdTextual&       aSpriteId,
+                                            const std::filesystem::path& aFilePath) override {
+        _assertNotFinalized();
 
-		auto& req = _mappedRequests[aSpriteId];
-		req.subsprites.emplace_back();
-		req.subsprites.back().image = std::move(loadedImage.image);
-		req.subsprites.back().offset = loadedImage.originOffset;
-		req.subsprites.back().occupied = true;
+        auto loadedImage = _loadImage(aFilePath);
 
-		return this;
-	}
+        auto& req = _mappedRequests[aSpriteId];
+        req.subsprites.emplace_back();
+        req.subsprites.back().image    = std::move(loadedImage.image);
+        req.subsprites.back().offset   = loadedImage.originOffset;
+        req.subsprites.back().occupied = true;
 
-	const Texture& finalize(TexturePackingHeuristic aHeuristic, float* aOccupancy) override {
-		_assertNotFinalized();
+        return this;
+    }
 
-		const Texture* result = _texture.get();
+    const Texture& finalize(TexturePackingHeuristic aHeuristic, float* aOccupancy) override {
+        _assertNotFinalized();
 
-		// Part 1: Pack the texture
-		{
-			std::vector<SubspriteData*> subspritePointers;
-			std::vector<Image*>         imagePointers;
+        const Texture* result = _texture.get();
 
-			for (auto& pair : _indexedRequests) {
-				for (auto& subsprite : pair.second.subsprites) {
-					subspritePointers.push_back(std::addressof(subsprite));
-					imagePointers.push_back(std::addressof(subsprite.image));
-				}
-			}
+        // Part 1: Pack the texture
+        {
+            std::vector<SubspriteData*> subspritePointers;
+            std::vector<Image*>         imagePointers;
 
-			for (auto& pair : _mappedRequests) {
-				for (auto& subsprite : pair.second.subsprites) {
-					subspritePointers.push_back(std::addressof(subsprite));
-					imagePointers.push_back(std::addressof(subsprite.image));
-				}
-			}
+            for (auto& pair : _indexedRequests) {
+                for (auto& subsprite : pair.second.subsprites) {
+                    subspritePointers.push_back(std::addressof(subsprite));
+                    imagePointers.push_back(std::addressof(subsprite.image));
+                }
+            }
 
-			// Invoke packing algorithm
-			const auto textureRects = PackTexture(*_texture, imagePointers, aHeuristic, aOccupancy);
-			assert(subspritePointers.size() == imagePointers.size() &&
-				   imagePointers.size() == textureRects.size());
+            for (auto& pair : _mappedRequests) {
+                for (auto& subsprite : pair.second.subsprites) {
+                    subspritePointers.push_back(std::addressof(subsprite));
+                    imagePointers.push_back(std::addressof(subsprite.image));
+                }
+            }
 
-			for (std::size_t i = 0; i < textureRects.size(); i += 1) {
-				subspritePointers[i]->rect = textureRects[i];
-			}
-		}
+            // Invoke packing algorithm
+            const auto textureRects = PackTexture(*_texture, imagePointers, aHeuristic, aOccupancy);
+            assert(subspritePointers.size() == imagePointers.size() &&
+                   imagePointers.size() == textureRects.size());
 
-		// Part 2: Make blueprints and push to the loader
-		{
-			std::vector<TextureRect> rects;
+            for (std::size_t i = 0; i < textureRects.size(); i += 1) {
+                subspritePointers[i]->rect = textureRects[i];
+            }
+        }
 
-			for (auto& pair : _indexedRequests) {
-				rects.clear();
+        // Part 2: Make blueprints and push to the loader
+        {
+            std::vector<TextureRect> rects;
 
-				std::optional<OriginOffset> originOffset;
-				for (const auto& subsprite : pair.second.subsprites) {
-					rects.push_back(subsprite.rect);
-					if (!originOffset.has_value()) {
-						originOffset = subsprite.offset;
-					}
-				}
+            for (auto& pair : _indexedRequests) {
+                rects.clear();
 
-				_loader._pushBlueprint(pair.first, {*_texture, rects, originOffset});
-			}
+                std::optional<OriginOffset> originOffset;
+                for (const auto& subsprite : pair.second.subsprites) {
+                    rects.push_back(subsprite.rect);
+                    if (!originOffset.has_value()) {
+                        originOffset = subsprite.offset;
+                    }
+                }
 
-			for (auto& pair : _mappedRequests) {
-				rects.clear();
+                _loader._pushBlueprint(pair.first, {*_texture, rects, originOffset});
+            }
 
-				std::optional<OriginOffset> originOffset;
-				for (const auto& subsprite : pair.second.subsprites) {
-					rects.push_back(subsprite.rect);
-					if (!originOffset.has_value()) {
-						originOffset = subsprite.offset;
-					}
-				}
+            for (auto& pair : _mappedRequests) {
+                rects.clear();
 
-				_loader._pushBlueprint(pair.first, {*_texture, rects, originOffset});
-			}
+                std::optional<OriginOffset> originOffset;
+                for (const auto& subsprite : pair.second.subsprites) {
+                    rects.push_back(subsprite.rect);
+                    if (!originOffset.has_value()) {
+                        originOffset = subsprite.offset;
+                    }
+                }
 
-			_loader._pushTexture(std::move(_texture));
-		}
+                _loader._pushBlueprint(pair.first, {*_texture, rects, originOffset});
+            }
 
-		_indexedRequests.clear();
-		_mappedRequests.clear();
-		_finalized = true;
+            _loader._pushTexture(std::move(_texture));
+        }
 
-		return *result;
-	}
+        _indexedRequests.clear();
+        _mappedRequests.clear();
+        _finalized = true;
+
+        return *result;
+    }
 
     ~TextureBuilderImpl() override {
         if (!_finalized) {
@@ -288,12 +293,12 @@ private:
 
     std::unique_ptr<Texture> _texture;
 
-	struct SubspriteData {
-		Image image;
-		TextureRect rect;
-		std::optional<OriginOffset> offset;
-		bool occupied = false;
-	};
+    struct SubspriteData {
+        Image                       image;
+        TextureRect                 rect;
+        std::optional<OriginOffset> offset;
+        bool                        occupied = false;
+    };
 
     struct AddMultispriteRequest {
         std::vector<SubspriteData> subsprites;
@@ -308,21 +313,21 @@ private:
         HG_HARD_ASSERT(!_finalized);
     }
 
-	struct LoadedImage {
-		Image image;
-		std::optional<OriginOffset> originOffset;
-	};
+    struct LoadedImage {
+        Image                       image;
+        std::optional<OriginOffset> originOffset;
+    };
 
-	static LoadedImage _loadImage(const std::filesystem::path& aPath) {
-		LoadedImage result;
-		result.image.loadFromFile(FilesystemPathToSfPath(aPath));
-		{
-			auto originPath = aPath;
-			originPath.replace_extension(".origin");
-			result.originOffset = LoadOriginOffset(originPath);
-		}
-		return result;
-	}
+    static LoadedImage _loadImage(const std::filesystem::path& aPath) {
+        LoadedImage result;
+        result.image.loadFromFile(FilesystemPathToSfPath(aPath));
+        {
+            auto originPath = aPath;
+            originPath.replace_extension(".origin");
+            result.originOffset = LoadOriginOffset(originPath);
+        }
+        return result;
+    }
 };
 } // namespace detail
 

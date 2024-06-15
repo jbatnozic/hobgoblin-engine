@@ -80,10 +80,10 @@ struct Request {
 
     // Prevent copying and moving because `Job` has to be
     // able to hold a pointer to an instance of `Request.
-    Request(const Request&) = delete;
+    Request(const Request&)            = delete;
     Request& operator=(const Request&) = delete;
-    Request(Request&&) = delete;
-    Request& operator=(Request&&) = delete;
+    Request(Request&&)                 = delete;
+    Request& operator=(Request&&)      = delete;
 
     ///////////////////////////////////////
 
@@ -140,12 +140,12 @@ Job CreateCalcIntegrationFieldJob(std::shared_ptr<Request> aRequest,
                                   math::Vector2pz          aFieldDimensions,
                                   math::Vector2pz          aTarget) {
     Job job;
-    job.kind = Job::CALCULATE_INTEGRATION_FIELD;
+    job.kind    = Job::CALCULATE_INTEGRATION_FIELD;
     job.request = std::move(aRequest);
 
-    job.calcIntegrationFieldData.fieldTopLeft = aFieldTopLeft;
+    job.calcIntegrationFieldData.fieldTopLeft    = aFieldTopLeft;
     job.calcIntegrationFieldData.fieldDimensions = aFieldDimensions;
-    job.calcIntegrationFieldData.target = aTarget;
+    job.calcIntegrationFieldData.target          = aTarget;
 
     return job;
 }
@@ -156,13 +156,13 @@ Job CreateCalcFlowFieldPartJob(std::shared_ptr<Request> aRequest,
                                PZInteger                aStartingRow,
                                PZInteger                aRowCount) {
     Job job;
-    job.kind = Job::CALCULATE_FLOW_FIELD_PART;
+    job.kind    = Job::CALCULATE_FLOW_FIELD_PART;
     job.request = std::move(aRequest);
 
-    job.calcFlowFieldPartData.station = aStation;
+    job.calcFlowFieldPartData.station           = aStation;
     job.calcFlowFieldPartData.preferredWorkerId = aPreferredWorkerId;
-    job.calcFlowFieldPartData.startingRow = aStartingRow;
-    job.calcFlowFieldPartData.rowCount = aRowCount;
+    job.calcFlowFieldPartData.startingRow       = aStartingRow;
+    job.calcFlowFieldPartData.rowCount          = aRowCount;
 
     return job;
 }
@@ -230,7 +230,7 @@ private:
     ///////////////////////////////////////
 
     using StationList = std::list<Station>;
-    using RequestMap = std::unordered_map<std::uint64_t, std::shared_ptr<Request>>;
+    using RequestMap  = std::unordered_map<std::uint64_t, std::shared_ptr<Request>>;
 
     Monitor<StationList> _stations;
     Monitor<RequestMap>  _requests;
@@ -305,13 +305,13 @@ private:
     Job _takeJob(PZInteger aWorkerId, const std::unique_lock<Mutex>&) {
         HG_ASSERT(!_jobs.empty());
 
-        std::size_t  pickedJobIdx = 0;
+        std::size_t  pickedJobIdx   = 0;
         std::int32_t pickedJobScore = _calcJobScore(_jobs[0], aWorkerId);
         for (std::size_t i = 1; i < _jobs.size(); i += 1) {
             const auto& current = _jobs[i];
-            const auto  score = _calcJobScore(current, aWorkerId);
+            const auto  score   = _calcJobScore(current, aWorkerId);
             if (score > pickedJobScore) {
-                pickedJobIdx = i;
+                pickedJobIdx   = i;
                 pickedJobScore = score;
             }
         }
@@ -329,7 +329,7 @@ private:
         auto wcfIter = _wcfMap.find(aJob.request->costProviderId);
         HG_HARD_ASSERT(wcfIter != _wcfMap.end());
 
-        const auto& jobData = aJob.calcIntegrationFieldData;
+        const auto& jobData   = aJob.calcIntegrationFieldData;
         aStation.costProvider = OffsetCostProvider{wcfIter->second, jobData.fieldTopLeft};
         aStation.flowFieldCalculator.reset(jobData.fieldDimensions,
                                            jobData.target,
@@ -372,7 +372,7 @@ private:
                         "Worker {} starting a CALCULATE_INTEGRATION_FIELD job for request {}...",
                         aWorkerId,
                         requestId);
-                    Station*   station = _workCalculateIntegrationFieldJob(job, aWorkerId);
+                    Station*   station          = _workCalculateIntegrationFieldJob(job, aWorkerId);
                     const bool requestCancelled = job.request->cancelled.load();
                     HG_LOG_DEBUG(
                         LOG_ID,
@@ -391,7 +391,7 @@ private:
             case Job::CALCULATE_FLOW_FIELD_PART:
                 {
                     const auto startRow = job.calcFlowFieldPartData.startingRow;
-                    const auto endRow = startRow + job.calcFlowFieldPartData.rowCount - 1;
+                    const auto endRow   = startRow + job.calcFlowFieldPartData.rowCount - 1;
                     HG_LOG_DEBUG(
                         LOG_ID,
                         "Worker {} starting a CALCULATE_FLOW_FIELD_PART ({}-{}) job for request {}...",
@@ -468,7 +468,7 @@ private:
     //! Note: call without holding the mutex.
     void _finalizeCalculateIntegrationFieldJob(Job& aJob, PZInteger aWorkerId, Station* aStation) {
         const auto totalRowCount = aJob.calcIntegrationFieldData.fieldDimensions.y;
-        const auto rowsPerJob = (totalRowCount + (_concurrencyLimit - 1)) / _concurrencyLimit;
+        const auto rowsPerJob    = (totalRowCount + (_concurrencyLimit - 1)) / _concurrencyLimit;
 
         std::vector<Job> newJobs;
         PZInteger        rowsCovered = 0;
@@ -496,7 +496,7 @@ private:
         static constexpr PZInteger ROWS_PER_ITER = 4;
 
         const auto startingRow = aJob.calcFlowFieldPartData.startingRow;
-        const auto rowCount = aJob.calcFlowFieldPartData.rowCount;
+        const auto rowCount    = aJob.calcFlowFieldPartData.rowCount;
 
         for (PZInteger y = startingRow; y < startingRow + rowCount; y += ROWS_PER_ITER) {
             /* SYNCHRONIZATION */
@@ -533,12 +533,12 @@ private:
         HG_ASSERT(aJob.kind == Job::CALCULATE_FLOW_FIELD_PART);
 
         const auto& jobData = aJob.calcFlowFieldPartData;
-        const auto  fsRes = jobData.station->remainingJobCount.fetch_sub(1);
+        const auto  fsRes   = jobData.station->remainingJobCount.fetch_sub(1);
 
         HG_LOG_DEBUG(LOG_ID, "Worker {} fsRes = {}.", aWorkerId, fsRes);
         if (fsRes == 1) {
             // There was exactly one job left - this one - so the calculation is finished
-            auto flowField = jobData.station->flowFieldCalculator.takeFlowField();
+            auto flowField       = jobData.station->flowFieldCalculator.takeFlowField();
             aJob.request->result = {std::move(flowField)};
             HG_LOG_DEBUG(LOG_ID, "Worker {} signalling latch.", aWorkerId);
             aJob.request->latch.open();
@@ -597,9 +597,9 @@ std::uint64_t FlowFieldSpoolerImpl::addRequest(math::Vector2pz aFieldTopLeft,
     HG_VALIDATE_ARGUMENT(_wcfMap.find(aCostProviderId) != _wcfMap.end(),
                          "Invalid cost provider ID provided.");
 
-    const auto id = _requestIdCounter.fetch_add(1);
-    auto       request = std::make_shared<Request>(id, aCostProviderId);
-    request->fieldTopLeft = aFieldTopLeft;
+    const auto id                = _requestIdCounter.fetch_add(1);
+    auto       request           = std::make_shared<Request>(id, aCostProviderId);
+    request->fieldTopLeft        = aFieldTopLeft;
     request->remainingIterations = aMaxIterations;
 
     HG_LOG_DEBUG(LOG_ID,
@@ -657,7 +657,7 @@ std::optional<OffsetFlowField> FlowFieldSpoolerImpl::collectResult(std::uint64_t
 
         OffsetFlowField result;
         result.flowField = std::move(*(request->result));
-        result.offset = request->fieldTopLeft;
+        result.offset    = request->fieldTopLeft;
 
         aIt.erase(iter);
 
@@ -667,8 +667,9 @@ std::optional<OffsetFlowField> FlowFieldSpoolerImpl::collectResult(std::uint64_t
 
 } // namespace
 
-std::unique_ptr<FlowFieldSpoolerImplInterface>
-CreateDefaultFlowFieldSpoolerImpl(WCFMap aWcfMap, PZInteger aConcurrencyLimit) {
+std::unique_ptr<FlowFieldSpoolerImplInterface> CreateDefaultFlowFieldSpoolerImpl(
+    WCFMap    aWcfMap,
+    PZInteger aConcurrencyLimit) {
     return std::make_unique<FlowFieldSpoolerImpl>(std::move(aWcfMap), aConcurrencyLimit);
 }
 

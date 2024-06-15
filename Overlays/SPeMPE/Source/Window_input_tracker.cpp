@@ -83,6 +83,10 @@ void WindowInputTracker::eventOccurred(const hg::win::Event& aEvent) {
 
             case hg::in::MW_HORIZONTAL:
                 _horizontalScrollDelta = aEventData.delta;
+                break;
+
+            default:
+                HG_UNREACHABLE("Invalid mouse wheel identifier ({}).", (int)aEventData.wheel.val());
             }
         },
         [this](const hg::win::Event::TextEntered& aEventData) {

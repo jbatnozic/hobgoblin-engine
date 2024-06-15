@@ -25,7 +25,7 @@ using WorldCostFunction = std::uint8_t (*)(math::Vector2pz aWorldPosition, const
 
 struct WorldCostFunctionWithArg {
     WorldCostFunction func = nullptr;
-    const void*       arg = nullptr;
+    const void*       arg  = nullptr;
 };
 
 //! Map of (CostProviderId -> WorldCostFunctionWithArg[arg = pointer to cost provider]).
@@ -58,8 +58,9 @@ public:
 };
 
 //! Creates a default implementation of FlowFieldSpoolerImplInterface.
-extern std::unique_ptr<FlowFieldSpoolerImplInterface>
-CreateDefaultFlowFieldSpoolerImpl(WCFMap aWcfMap, PZInteger aConcurrencyLimit);
+extern std::unique_ptr<FlowFieldSpoolerImplInterface> CreateDefaultFlowFieldSpoolerImpl(
+    WCFMap    aWcfMap,
+    PZInteger aConcurrencyLimit);
 
 } // namespace detail
 } // namespace util

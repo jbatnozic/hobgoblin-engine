@@ -28,3 +28,4 @@ add_subdirectory("EngineCore")
 add_subdirectory("Overlays")
 
 add_subdirectory("ProofOfConceptProjects")
+add_subdirectory("Tools")

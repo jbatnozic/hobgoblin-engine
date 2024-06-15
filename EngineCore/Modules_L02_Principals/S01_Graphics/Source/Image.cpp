@@ -1,9 +1,6 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-// clang-format off
-
-
 #include <Hobgoblin/Graphics/Image.hpp>
 #include <Hobgoblin/HGExcept.hpp>
 
@@ -20,16 +17,16 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
-using ImplType = sf::Image;
+using ImplType            = sf::Image;
 constexpr auto IMPL_SIZE  = sizeof(ImplType);
 constexpr auto IMPL_ALIGN = alignof(ImplType);
-#define  IMPLOF(_obj_) (reinterpret_cast<ImplType*>(&((_obj_)._storage)))
+#define IMPLOF(_obj_)  (reinterpret_cast<ImplType*>(&((_obj_)._storage)))
 #define CIMPLOF(_obj_) (reinterpret_cast<const ImplType*>(&((_obj_)._storage)))
-#define  SELF_IMPL (IMPLOF(SELF))
-#define SELF_CIMPL (CIMPLOF(SELF))
+#define SELF_IMPL      (IMPLOF(SELF))
+#define SELF_CIMPL     (CIMPLOF(SELF))
 
 Image::Image() {
-    static_assert(STORAGE_SIZE  == IMPL_SIZE,  "Image::STORAGE_SIZE is inadequate.");
+    static_assert(STORAGE_SIZE == IMPL_SIZE, "Image::STORAGE_SIZE is inadequate.");
     static_assert(STORAGE_ALIGN == IMPL_ALIGN, "Image::STORAGE_ALIGN is inadequate.");
 
     new (&_storage) ImplType();
@@ -62,19 +59,11 @@ Image::~Image() {
 }
 
 void Image::create(PZInteger aWidth, PZInteger aHeight, const Color& aColor) {
-    SELF_IMPL->create(
-        static_cast<unsigned>(aWidth),
-        static_cast<unsigned>(aHeight),
-        ToSf(aColor)
-    );
+    SELF_IMPL->create(static_cast<unsigned>(aWidth), static_cast<unsigned>(aHeight), ToSf(aColor));
 }
 
 void Image::create(PZInteger aWidth, PZInteger aHeight, const std::uint8_t* aPixels) {
-    SELF_IMPL->create(
-        static_cast<unsigned>(aWidth),
-        static_cast<unsigned>(aHeight),
-        aPixels
-    );
+    SELF_IMPL->create(static_cast<unsigned>(aWidth), static_cast<unsigned>(aHeight), aPixels);
 }
 
 void Image::loadFromFile(const std::filesystem::path& aPath) {
@@ -100,24 +89,20 @@ void Image::saveToFile(const std::filesystem::path& aPath) const {
 
 math::Vector2pz Image::getSize() const {
     const auto size = SELF_CIMPL->getSize();
-    return {
-        static_cast<PZInteger>(size.x),
-        static_cast<PZInteger>(size.y)
-    };
+    return {static_cast<PZInteger>(size.x), static_cast<PZInteger>(size.y)};
 }
 
 void Image::createMaskFromColor(const Color& aColor, std::uint8_t aAlpha) {
     SELF_IMPL->createMaskFromColor(ToSf(aColor), aAlpha);
 }
 
-void Image::copy(
-    const Image& aSource,
-    PZInteger aDestX,
-    PZInteger aDestY,
-    TextureRect aSourceRect,
-    bool aApplyAlpha
-) {
+void Image::copy(const Image& aSource,
+                 PZInteger    aDestX,
+                 PZInteger    aDestY,
+                 TextureRect  aSourceRect,
+                 bool         aApplyAlpha) {
     const auto& sfSourceImage = detail::GraphicsImplAccessor::getImplOf<sf::Image>(aSource);
+    // clang-format off
     SELF_IMPL->copy(sfSourceImage,
                     static_cast<unsigned>(aDestX),
                     static_cast<unsigned>(aDestY),
@@ -128,6 +113,7 @@ void Image::copy(
                         static_cast<int>(aSourceRect.h)
                     },
                     aApplyAlpha);
+    // clang-format on
 }
 
 void Image::setPixel(PZInteger aX, PZInteger aY, const Color& aColor) {
@@ -162,5 +148,3 @@ const void* Image::_getSFMLImpl() const {
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
-
-// clang-format on

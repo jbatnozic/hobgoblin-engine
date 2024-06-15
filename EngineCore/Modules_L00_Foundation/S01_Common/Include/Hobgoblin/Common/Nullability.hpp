@@ -77,7 +77,7 @@ public:
     //! Construct from a value of type `NeverNull<U>` where `U` is convertible to `taPointer`.
     template <typename U, typename = std::enable_if_t<std::is_convertible<U, taPointer>::value>>
     constexpr NeverNull(const NeverNull<U>& aOther)
-        : NeverNull{aOther.get()} {}
+        : _ptr{aOther._ptr} {}
 
     //! ???
     template <typename = std::enable_if_t<!std::is_same<std::nullptr_t, taPointer>::value>>
@@ -121,16 +121,16 @@ public:
 
 public:
     // prevents compilation when someone attempts to assign a null pointer constant
-    NeverNull(std::nullptr_t) = delete;
+    NeverNull(std::nullptr_t)            = delete;
     NeverNull& operator=(std::nullptr_t) = delete;
 
     // unwanted operators...pointers only point to single objects!
-    NeverNull& operator++() = delete;
-    NeverNull& operator--() = delete;
-    NeverNull  operator++(int) = delete;
-    NeverNull  operator--(int) = delete;
-    NeverNull& operator+=(std::ptrdiff_t) = delete;
-    NeverNull& operator-=(std::ptrdiff_t) = delete;
+    NeverNull& operator++()                     = delete;
+    NeverNull& operator--()                     = delete;
+    NeverNull  operator++(int)                  = delete;
+    NeverNull  operator--(int)                  = delete;
+    NeverNull& operator+=(std::ptrdiff_t)       = delete;
+    NeverNull& operator-=(std::ptrdiff_t)       = delete;
     void       operator[](std::ptrdiff_t) const = delete;
 
 protected:

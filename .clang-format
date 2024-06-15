@@ -69,10 +69,7 @@ AllowAllParametersOfDeclarationOnNextLine: false
 AllowShortBlocksOnASingleLine: Empty
 AllowShortCaseLabelsOnASingleLine: true
 AllowShortEnumsOnASingleLine: false
-AllowShortFunctionsOnASingleLine: Empty
-AllowShortIfStatementsOnASingleLine: Never
 AllowShortLoopsOnASingleLine: false
-AlwaysBreakTemplateDeclarations: Yes
 # AlignAfterOpenBracket: BlockIndent
 
 AlignArrayOfStructures: Right
@@ -94,3 +91,7 @@ BraceWrapping:
   SplitEmptyRecord: true
   SplitEmptyNamespace: true
 BreakBeforeTernaryOperators: true
+
+PenaltyReturnTypeOnItsOwnLine: 1000
+
+AlignConsecutiveAssignments: true
