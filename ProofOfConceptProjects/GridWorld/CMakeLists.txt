@@ -5,6 +5,7 @@ find_package(GLEW CONFIG REQUIRED)
 
 add_library(${PROJECT_NAME}
     "Source/Model/Cell.cpp"
+    "Source/Model/Chunk_spooler_default.cpp"
 
     "Source/Rendering/Dimetric_renderer.cpp"
     "Source/Rendering/Lighting_renderer_2d.cpp"
@@ -19,7 +20,7 @@ add_library(${PROJECT_NAME}
     "Source/Dimetric_transform.cpp"
     "Source/Main.cpp"
     "Source/Spatial_info.cpp"
- )
+)
 
 target_link_libraries(${PROJECT_NAME}
 PUBLIC

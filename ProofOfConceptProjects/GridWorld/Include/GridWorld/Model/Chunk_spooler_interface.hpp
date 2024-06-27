@@ -12,6 +12,8 @@ namespace detail {
 
 class ChunkSpoolerInterface { // ChunkLoader?
 public:
+    virtual ~ChunkSpoolerInterface() = default;
+
     virtual void pause() = 0;
 
     virtual void unpause() = 0;
@@ -20,7 +22,7 @@ public:
 
     struct LoadRequest {
         ChunkId chunkId;
-        int     priority;
+        int     priority; //!< Lower number = higher priority
     };
 
     virtual void setChunksToLoad(std::vector<LoadRequest> aLoadRequests) = 0;
