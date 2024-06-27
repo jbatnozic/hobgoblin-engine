@@ -127,7 +127,7 @@ DrawMode AlwaysNone(float              aCellResolution,
     return DrawMode::NONE;
 }
 
-std::array<decltype(&AlwaysNone), 16> SELCTION_TABLE = {
+std::array<decltype(&AlwaysNone), 16> SELECTION_TABLE = {
     // b0000
     //   _
     // _ O _
@@ -252,8 +252,7 @@ bool CellModelExt::ExtensionData::isLowered() const {
 void CellModelExt::ExtensionData::refresh(const CellModelExt* aNorthNeighbour,
                                           const CellModelExt* aWestNeighbour,
                                           const CellModelExt* aEastNeighbour,
-                                          const CellModelExt* aSouthNeighbour)
-{
+                                          const CellModelExt* aSouthNeighbour) {
     // clang-format off
     const bool blockedFromNorth = !aNorthNeighbour || aNorthNeighbour->wall.has_value(); // TODO(temporary)
     const bool blockedFromWest  = !aWestNeighbour  || aWestNeighbour->wall.has_value();  // TODO(temporary)
@@ -263,7 +262,7 @@ void CellModelExt::ExtensionData::refresh(const CellModelExt* aNorthNeighbour,
     const auto selector = (blockedFromEast ? 0x01 : 0) | (blockedFromNorth ? 0x02 : 0) |
                           (blockedFromWest ? 0x04 : 0) | (blockedFromSouth ? 0x08 : 0);
 
-    _drawModePredicate = predicate::SELCTION_TABLE[static_cast<std::size_t>(selector)];
+    _drawModePredicate = predicate::SELECTION_TABLE[static_cast<std::size_t>(selector)];
     // clang-format on
 }
 
