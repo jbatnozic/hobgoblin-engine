@@ -2,6 +2,7 @@
 project(GridWorld)
 
 find_package(GLEW CONFIG REQUIRED)
+find_package(RapidJSON CONFIG REQUIRED)
 
 add_library(${PROJECT_NAME}
     "Source/Model/Cell.cpp"
@@ -42,6 +43,7 @@ PUBLIC
 
     # External
     "GLEW::GLEW"
+    "rapidjson"
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC "Include/")

@@ -21,8 +21,8 @@ public:
     virtual bool isPaused() const = 0;
 
     struct LoadRequest {
-        ChunkId chunkId;
-        int     priority; //!< Lower number = higher priority
+        ChunkId       chunkId;
+        hg::PZInteger priority; //!< Lower number = higher priority
     };
 
     virtual void setChunksToLoad(std::vector<LoadRequest> aLoadRequests) = 0;
@@ -32,14 +32,23 @@ public:
     virtual std::optional<Chunk> loadImmediately(ChunkId aChunkId) = 0;
 
     // only works if spooler is paused
-    virtual void unloadChunk(ChunkId aChunkId, Chunk aChunk) = 0;
+    virtual hg::PZInteger unloadChunk(ChunkId aChunkId, Chunk aChunk) = 0;
 
     virtual void unloadRuntimeCache() = 0;
 
+    struct LoadedChunk {
+        std::optional<Chunk> chunk;
+        ChunkId              id;
+
+        LoadedChunk(std::optional<Chunk> aChunk, ChunkId aId)
+            : chunk{std::move(aChunk)}
+            , id{aId} {}
+    };
+
     // returns all chunks that have been loaded so far
-    virtual std::vector<Chunk> getLoaded() = 0;
+    virtual std::vector<LoadedChunk> getLoaded() = 0;
 };
 
-} // namespace
+} // namespace detail
 
 } // namespace gridworld

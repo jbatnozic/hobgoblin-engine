@@ -93,6 +93,7 @@ class HobgoblinConan(ConanFile):
         # Private
         self.requires("glew/2.2.0")
         self.requires("gtest/1.14.0")
+        self.requires("rapidjson/cci.20230929")
         self.requires("ztcpp/3.0.2@jbatnozic/stable")
         
         # Overrides (transitive dependencies)

@@ -17,32 +17,29 @@ namespace detail {
 
 class ChunkHolder {
 public:
+    CellModelExt& getCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) {
+        const auto chunkX = aX / _chunkWidth;
+        const auto chunkY = aY / _chunkHeight;
 
-  CellModelExt& getCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) {
-    const auto chunkX = aX / _chunkWidth;
-    const auto chunkY = aY / _chunkHeight;
-
-    if (auto& chunk = _chunks[chunkY][chunkX]; chunk != nullptr) {
-      [[likely]];
-      return chunk->getCellAtUnchecked(aX % _chunkWidth, aY % _chunkHeight);
-    } else {
-      [[unlikely]];
-      // TODO: load it
-      return chunk->getCellAtUnchecked(aX % _chunkWidth, aY % _chunkHeight);
+        if (auto& chunk = _chunks[chunkY][chunkX]; chunk != nullptr) {
+            [[likely]];
+            return chunk->getCellAtUnchecked(aX % _chunkWidth, aY % _chunkHeight);
+        } else {
+            [[unlikely]];
+            // TODO: load it
+            return chunk->getCellAtUnchecked(aX % _chunkWidth, aY % _chunkHeight);
+        }
     }
-  }
 
-  const CellModelExt& getCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) const {
-    
-  }
+    const CellModelExt& getCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) const {}
 
 private:
-  hg::util::RowMajorGrid<std::unique_ptr<Chunk>> _chunks;
+    hg::util::RowMajorGrid<std::unique_ptr<Chunk>> _chunks;
 
-  hg::PZInteger _chunkWidth;
-  hg::PZInteger _chunkHeight;
+    hg::PZInteger _chunkWidth;
+    hg::PZInteger _chunkHeight;
 };
 
-} // namespace
+} // namespace detail
 
 } // namespace gridworld
