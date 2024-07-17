@@ -31,7 +31,7 @@ public:
 
     std::optional<Chunk> loadImmediately(ChunkId aChunkId) override;
 
-    hg::PZInteger unloadChunk(ChunkId aChunkId, Chunk aChunk) override;
+    hg::PZInteger unloadChunk(ChunkId aChunkId, Chunk&& aChunk) override;
 
     void unloadRuntimeCache() override;
 
@@ -41,7 +41,7 @@ private:
     hg::NeverNull<ChunkDiskIoHandlerInterface*> _diskIoHandler;
 
     using Mutex = std::mutex;
-    mutable Mutex           _mutex;
+    mutable Mutex _mutex;
 
     bool _paused  = false;
     bool _stopped = false;

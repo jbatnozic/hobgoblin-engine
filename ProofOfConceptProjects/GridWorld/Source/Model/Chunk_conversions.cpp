@@ -5,8 +5,8 @@
 #include <Hobgoblin/Common.hpp>
 
 #include <rapidjson/document.h>
-#include <rapidjson/stringbuffer.h>
 #include <rapidjson/prettywriter.h>
+#include <rapidjson/stringbuffer.h>
 
 #include <string>
 
@@ -18,22 +18,22 @@ namespace detail {
 namespace json = rapidjson;
 
 std::string ChunkToJson(const Chunk& aChunk) {
-  json::Document doc;
-  doc.SetObject();
-  doc.AddMember("width", json::Value{aChunk.getWidth()}, doc.GetAllocator());
-  doc.AddMember("height", json::Value{aChunk.getHeight()}, doc.GetAllocator());
-  // ...
-  json::StringBuffer stringbuf;
-  json::PrettyWriter<json::StringBuffer> writer(stringbuf);
-  doc.Accept(writer);
-  return stringbuf.GetString();
+    json::Document doc;
+    doc.SetObject();
+    doc.AddMember("width", json::Value{aChunk.getWidth()}, doc.GetAllocator());
+    doc.AddMember("height", json::Value{aChunk.getHeight()}, doc.GetAllocator());
+    // ...
+    json::StringBuffer                     stringbuf;
+    json::PrettyWriter<json::StringBuffer> writer(stringbuf);
+    doc.Accept(writer);
+    return stringbuf.GetString();
 }
 
 Chunk JsonToChunk(std::string aJsonString) {
-  json::Document doc;
-  doc.ParseInsitu(aJsonString.data());
+    json::Document doc;
+    doc.ParseInsitu(aJsonString.data());
 
-  Chunk chunk{};
+    Chunk chunk{};
 }
 
 /*

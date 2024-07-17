@@ -32,7 +32,7 @@ public:
     virtual std::optional<Chunk> loadImmediately(ChunkId aChunkId) = 0;
 
     // only works if spooler is paused
-    virtual hg::PZInteger unloadChunk(ChunkId aChunkId, Chunk aChunk) = 0;
+    virtual hg::PZInteger unloadChunk(ChunkId aChunkId, Chunk&& aChunk) = 0;
 
     virtual void unloadRuntimeCache() = 0;
 

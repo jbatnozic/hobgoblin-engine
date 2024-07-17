@@ -104,7 +104,7 @@ std::optional<Chunk> DefaultChunkSpooler::loadImmediately(ChunkId aChunkId) {
     return LoadChunk(aChunkId, *_diskIoHandler);
 }
 
-hg::PZInteger DefaultChunkSpooler::unloadChunk(ChunkId aChunkId, Chunk aChunk) {
+hg::PZInteger DefaultChunkSpooler::unloadChunk(ChunkId aChunkId, Chunk&& aChunk) {
     std::unique_lock<Mutex> lock{_mutex};
 
     HG_VALIDATE_PRECONDITION(_paused && "Spooler must be paused when this method is called");
