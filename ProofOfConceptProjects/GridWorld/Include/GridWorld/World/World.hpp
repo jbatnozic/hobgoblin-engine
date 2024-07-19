@@ -10,6 +10,7 @@
 #include <GridWorld/Model/Lights.hpp>
 #include <GridWorld/Model/Sprites.hpp>
 
+#include <memory>
 #include <optional>
 #include <unordered_map>
 
@@ -38,16 +39,41 @@ public:
     void toggleGeneratorMode(bool aGeneratorModeActive);
 
     ///////////////////////////////////////////////////////////////////////////
+    // LOCKING                                                               //
+    ///////////////////////////////////////////////////////////////////////////
+
+    struct LockInterface {
+
+    private:
+        LockInterface() = default;
+        friend class World;
+    };
+
+    std::unique_ptr<LockInterface> lock() const;
+
+    ///////////////////////////////////////////////////////////////////////////
     // CELL GETTERS                                                          //
     ///////////////////////////////////////////////////////////////////////////
 
-    const CellModel& getCellAt(hg::PZInteger aX, hg::PZInteger aY) const;
+    // Without locking (no on-demand loading)
 
-    const CellModel& getCellAt(hg::math::Vector2pz aPos) const;
+    const CellModel* getCellAt(hg::PZInteger aX, hg::PZInteger aY) const;
 
-    const CellModel& getCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) const;
+    const CellModel* getCellAt(hg::math::Vector2pz aPos) const;
 
-    const CellModel& getCellAtUnchecked(hg::math::Vector2pz aPos) const;
+    const CellModel* getCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) const;
+
+    const CellModel* getCellAtUnchecked(hg::math::Vector2pz aPos) const;
+
+    // With locking (on-demand loading enabled)
+
+    const CellModel& getCellAt(hg::PZInteger aX, hg::PZInteger aY, const LockInterface&) const;
+
+    const CellModel& getCellAt(hg::math::Vector2pz aPos, const LockInterface*) const;
+
+    const CellModel& getCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY, const LockInterface&) const;
+
+    const CellModel& getCellAtUnchecked(hg::math::Vector2pz aPos, const LockInterface&) const;
 
     ///////////////////////////////////////////////////////////////////////////
     // CELL UPDATERS                                                         //
@@ -106,6 +132,8 @@ public:
 
 private:
     // ===== Cells =====
+
+    // TODO: chunk holder, chunk spooler
 
     hg::util::RowMajorGrid<detail::CellModelExt> _grid;
     float                                        _cellResolution;
