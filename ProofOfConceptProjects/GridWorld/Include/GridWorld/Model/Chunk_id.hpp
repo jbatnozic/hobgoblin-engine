@@ -7,6 +7,7 @@ namespace gridworld {
 
 namespace detail {
 
+// TODO: shouldn't be in detail::
 struct ChunkId {
     std::uint16_t x;
     std::uint16_t y;

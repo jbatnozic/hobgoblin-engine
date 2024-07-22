@@ -87,6 +87,12 @@ void DefaultChunkSpooler::setChunksToLoad(std::vector<LoadRequest> aLoadRequests
               });
 
     std::unique_lock<Mutex> lock{_mutex};
+
+    HG_VALIDATE_PRECONDITION(_paused && "Spooler must be paused when this method is called");
+    if (!_loadedChunks.empty()) {
+        HG_LOG_WARN(LOG_ID, "setChunksToLoad() called but previously loaded chunks weren't collected.");
+    }
+
     _loadRequests = std::move(aLoadRequests);
     lock.unlock();
     _cv_workerSync.notify_one();
@@ -100,6 +106,8 @@ std::optional<Chunk> DefaultChunkSpooler::loadImmediately(ChunkId aChunkId) {
     std::erase_if(_loadRequests, [aChunkId](const LoadRequest& aLoadRequest) {
         return aLoadRequest.chunkId == aChunkId;
     });
+
+    // TODO: get from _loadedChunks or _unloadRequests if able
 
     return LoadChunk(aChunkId, *_diskIoHandler);
 }
@@ -121,6 +129,10 @@ hg::PZInteger DefaultChunkSpooler::unloadChunk(ChunkId aChunkId, Chunk&& aChunk)
 }
 
 void DefaultChunkSpooler::unloadRuntimeCache() {
+    std::unique_lock<Mutex> lock{_mutex};
+
+    HG_VALIDATE_PRECONDITION(_paused && "Spooler must be paused when this method is called");
+
     HG_NOT_IMPLEMENTED(); // TODO
 }
 
@@ -240,7 +252,7 @@ void DefaultChunkSpooler::_adjustUnloadPriority(const RequestVariant& aRequestVa
         return;
     }
 
-    // There are too many unload requests piles up: assuming there are no negative
+    // There are too many unload requests piled up: assuming there are no negative
     // priorities for load requests (the expected case), this will shed at least
     // [UNLOAD_REQUEST_THRESHOLD / LOADS_PER_UNLOAD] unload requests before
     // continuing with any loads.

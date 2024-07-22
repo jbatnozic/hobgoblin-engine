@@ -25,15 +25,21 @@ public:
         hg::PZInteger priority; //!< Lower number = higher priority
     };
 
+    //! 
+    //! \throws hg::PreconditionNotMetError if the spooler is not paused when this method is called.
     virtual void setChunksToLoad(std::vector<LoadRequest> aLoadRequests) = 0;
 
-    // loads a chunk immediately
-    // only works if spooler is paused
+    //! Loads a chunk immediately.
+    //! 
+    //! The spooler must be paused when this is called.
+    //! 
+    //! \throws hg::PreconditionNotMetError if the spooler is not paused when this method is called.
     virtual std::optional<Chunk> loadImmediately(ChunkId aChunkId) = 0;
 
-    // only works if spooler is paused
+    //! \throws hg::PreconditionNotMetError if the spooler is not paused when this method is called.
     virtual hg::PZInteger unloadChunk(ChunkId aChunkId, Chunk&& aChunk) = 0;
 
+    //! \throws hg::PreconditionNotMetError if the spooler is not paused when this method is called.
     virtual void unloadRuntimeCache() = 0;
 
     struct LoadedChunk {
@@ -45,7 +51,7 @@ public:
             , id{aId} {}
     };
 
-    // returns all chunks that have been loaded so far
+    //! Returns all chunks that have been loaded so far (since the last call to this method).
     virtual std::vector<LoadedChunk> getLoaded() = 0;
 };
 

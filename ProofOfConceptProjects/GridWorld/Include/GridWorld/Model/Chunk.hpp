@@ -18,11 +18,11 @@ public:
     Chunk(Chunk&&)                 = default;
     Chunk& operator=(Chunk&&)      = default;
 
-    hg::PZInteger getWidth() const {
+    hg::PZInteger cetCellCountX() const {
         return _data.getWidth();
     }
 
-    hg::PZInteger getHeight() const {
+    hg::PZInteger getCellCountY() const {
         return _data.getHeight();
     }
 
