@@ -183,7 +183,7 @@ inline bool CellModel::isFloorInitialized() const {
 }
 
 inline bool CellModel::isWallInitialized() const {
-    return (_flags & FLOOR_INITIALIZED) != 0;
+    return (_flags & WALL_INITIALIZED) != 0;
 }
 
 inline const CellModel::Floor& CellModel::getFloor() const {

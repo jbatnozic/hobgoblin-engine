@@ -2,7 +2,7 @@
 
 #include "Chunk_disk_io_handler_interface.hpp"
 
-#include <GridWorld/Model/Chunk_spooler_interface.hpp>
+#include <GridWorld/Private/Chunk_spooler_interface.hpp>
 
 #include <Hobgoblin/Common.hpp>
 

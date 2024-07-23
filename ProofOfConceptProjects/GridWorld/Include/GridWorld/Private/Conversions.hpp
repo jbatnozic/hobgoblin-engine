@@ -3,11 +3,9 @@
 #include <GridWorld/Model/Chunk.hpp>
 
 #include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 
 #include <rapidjson/document.h>
-#include <rapidjson/prettywriter.h>
-#include <rapidjson/stringbuffer.h>
-#include <rapidjson/writer.h>
 
 #include <string>
 
@@ -18,9 +16,17 @@ namespace detail {
 
 namespace json = rapidjson;
 
-json::Value CellToJson(const CellModel& aCell, RAPIDJSON_DEFAULT_ALLOCATOR& aAllocator);
+using JsonDocument  = json::Document;
+using JsonAllocator = JsonDocument::AllocatorType;
 
-CellModel JsonToCell(std::string aJsonString);
+class JsonParseError : public jbatnozic::hobgoblin::TracedRuntimeError {
+public:
+    using jbatnozic::hobgoblin::TracedRuntimeError::TracedRuntimeError;
+};
+
+json::Value CellToJson(const CellModel& aCell, JsonAllocator& aAllocator);
+
+CellModel JsonToCell(const json::Value& aJsonString);
 
 std::string ChunkToJson(const Chunk& aChunk);
 

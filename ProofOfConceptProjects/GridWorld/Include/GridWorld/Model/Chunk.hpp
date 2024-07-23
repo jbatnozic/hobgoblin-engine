@@ -18,20 +18,23 @@ public:
     Chunk(Chunk&&)                 = default;
     Chunk& operator=(Chunk&&)      = default;
 
+    Chunk(hg::PZInteger aWidth, hg::PZInteger aHeight, const CellModel& aInitialValue = {})
+        : _cells{aWidth, aHeight, CellModelExt{aInitialValue}} {}
+
     hg::PZInteger getCellCountX() const {
-        return _data.getWidth();
+        return _cells.getWidth();
     }
 
     hg::PZInteger getCellCountY() const {
-        return _data.getHeight();
+        return _cells.getHeight();
     }
 
     CellModelExt& getCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) {
-        return _data[aY][aX];
+        return _cells[aY][aX];
     }
 
     const CellModelExt& getCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) const {
-        return _data[aY][aX];
+        return _cells[aY][aX];
     }
 
     friend bool operator==(const Chunk& aLhs, const Chunk& aRhs) {
@@ -42,8 +45,8 @@ public:
 
         for (hg::PZInteger y = 0; y < aLhs.getCellCountY(); y += 1) {
             for (hg::PZInteger x = 0; x < aRhs.getCellCountX(); x += 1) {
-                const auto& lhsCell = static_cast<const CellModel&>(aLhs._data[y][x]);
-                const auto& rhsCell = static_cast<const CellModel&>(aRhs._data[y][x]);
+                const auto& lhsCell = static_cast<const CellModel&>(aLhs._cells[y][x]);
+                const auto& rhsCell = static_cast<const CellModel&>(aRhs._cells[y][x]);
                 if (lhsCell != rhsCell) {
                     return false;
                 }
@@ -60,7 +63,7 @@ public:
     }
 
 private:
-    hg::util::RowMajorGrid<CellModelExt> _data;
+    hg::util::RowMajorGrid<CellModelExt> _cells;
 };
 
 } // namespace detail

@@ -11,7 +11,7 @@
 #include <GridWorld/Model/Sprites.hpp>
 
 #include <GridWorld/Model/Chunk_state_listener_interface.hpp>
-#include <GridWorld/Model/Chunk_storage_handler.hpp>
+#include <GridWorld/Private/Chunk_storage_handler.hpp>
 
 #include <memory>
 #include <optional>

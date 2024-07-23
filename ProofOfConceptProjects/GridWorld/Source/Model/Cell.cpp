@@ -254,10 +254,10 @@ void CellModelExt::ExtensionData::refresh(const CellModelExt* aNorthNeighbour,
                                           const CellModelExt* aEastNeighbour,
                                           const CellModelExt* aSouthNeighbour) {
     // clang-format off
-    const bool blockedFromNorth = !aNorthNeighbour || aNorthNeighbour->wall.has_value(); // TODO(temporary)
-    const bool blockedFromWest  = !aWestNeighbour  || aWestNeighbour->wall.has_value();  // TODO(temporary)
-    const bool blockedFromEast  = !aEastNeighbour  || aEastNeighbour->wall.has_value();  // TODO(temporary)
-    const bool blockedFromSouth = !aSouthNeighbour || aSouthNeighbour->wall.has_value(); // TODO(temporary)
+    const bool blockedFromNorth = !aNorthNeighbour || aNorthNeighbour->isWallInitialized(); // TODO(temporary)
+    const bool blockedFromWest  = !aWestNeighbour  || aWestNeighbour->isWallInitialized();  // TODO(temporary)
+    const bool blockedFromEast  = !aEastNeighbour  || aEastNeighbour->isWallInitialized();  // TODO(temporary)
+    const bool blockedFromSouth = !aSouthNeighbour || aSouthNeighbour->isWallInitialized(); // TODO(temporary)
 
     const auto selector = (blockedFromEast ? 0x01 : 0) | (blockedFromNorth ? 0x02 : 0) |
                           (blockedFromWest ? 0x04 : 0) | (blockedFromSouth ? 0x08 : 0);
