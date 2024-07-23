@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <memory> // for std::hash
 #include <tuple>
 
 namespace gridworld {
@@ -20,3 +21,15 @@ struct ChunkId {
 } // namespace detail
 
 } // namespace gridworld
+
+#define CHUNK_ID gridworld::detail::ChunkId
+
+template <>
+struct std::hash<CHUNK_ID> {
+    std::size_t operator()(const CHUNK_ID& aChunkId) const noexcept {
+        const std::int32_t temp = (aChunkId.y << 16) | aChunkId.x;
+        return std::hash<std::int32_t>{}(temp);
+    }
+};
+
+#undef CHUNK_ID

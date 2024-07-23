@@ -20,7 +20,8 @@ std::optional<Chunk> LoadChunk(ChunkId aChunkId, ChunkDiskIoHandlerInterface& aD
     if (rtChunk.has_value()) {
         return rtChunk;
     }
-    return aDiskIoHandler.loadChunkFromPersistentCache(aChunkId); // TODO: store in runtime cache - noooooooo
+    return aDiskIoHandler.loadChunkFromPersistentCache(
+        aChunkId); // TODO: store in runtime cache - noooooooo
 }
 
 void UnloadChunk(const Chunk& aChunk, ChunkId aChunkId, ChunkDiskIoHandlerInterface& aDiskIoHandler) {
@@ -103,12 +104,38 @@ std::optional<Chunk> DefaultChunkSpooler::loadImmediately(ChunkId aChunkId) {
 
     HG_VALIDATE_PRECONDITION(_paused && "Spooler must be paused when this method is called");
 
+    // Erase from _loadRequests if it's present there
     std::erase_if(_loadRequests, [aChunkId](const LoadRequest& aLoadRequest) {
         return aLoadRequest.chunkId == aChunkId;
     });
 
-    // TODO: get from _loadedChunks or _unloadRequests if able
+    // Easy out: Try to get from _loadedChunks
+    {
+        const auto iter = std::find_if(_loadedChunks.begin(),
+                                       _loadedChunks.end(),
+                                       [aChunkId](LoadedChunk& aLoadedChunk) {
+                                           return aLoadedChunk.id == aChunkId;
+                                       });
 
+        if (iter != _loadedChunks.end()) {
+            std::optional<Chunk> result = std::move(iter->chunk);
+            _loadedChunks.erase(iter);
+            return result;
+        }
+    }
+
+    // Easy out: Try to get from _unloadRequests
+    {
+        const auto iter = _unloadRequests.find(aChunkId);
+
+        if (iter != _unloadRequests.end()) {
+            std::optional<Chunk> result = std::move(iter->second);
+            _unloadRequests.erase(iter);
+            return result;
+        }
+    }
+
+    // Most likely: load from disk
     return LoadChunk(aChunkId, *_diskIoHandler);
 }
 
@@ -118,7 +145,8 @@ hg::PZInteger DefaultChunkSpooler::unloadChunk(ChunkId aChunkId, Chunk&& aChunk)
     HG_VALIDATE_PRECONDITION(_paused && "Spooler must be paused when this method is called");
 
     const auto pair = _unloadRequests.emplace(std::make_pair(aChunkId, std::move(aChunk)));
-    HG_HARD_ASSERT(pair.second && "Duplicate unload request");
+    const bool newUnloadRequestInserted = pair.second;
+    HG_HARD_ASSERT(newUnloadRequestInserted && "Duplicate unload request");
 
     const auto result = hg::stopz(_unloadRequests.size());
 
@@ -180,7 +208,7 @@ void DefaultChunkSpooler::_workerBody() {
             const auto& loadRequest = std::get<LoadRequest>(requestVariant);
             {
                 std::unique_lock<Mutex> lock{_mutex};
-                const auto iter = _unloadRequests.find(loadRequest.chunkId);
+                const auto              iter = _unloadRequests.find(loadRequest.chunkId);
                 if (iter != _unloadRequests.end()) {
                     _loadedChunks.emplace_back(std::move(iter->second), loadRequest.chunkId);
                     _unloadRequests.erase(iter);

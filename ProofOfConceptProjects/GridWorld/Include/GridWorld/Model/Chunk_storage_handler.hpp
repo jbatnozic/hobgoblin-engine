@@ -28,6 +28,7 @@ HG_DECLARE_TAG_TYPE(LOAD_IF_MISSING);
 class ChunkStorageHandler {
 private:
     using Self = ChunkStorageHandler;
+
 public:
     hg::PZInteger getChunkCountX() const {
         return _chunks.getWidth();
@@ -84,8 +85,7 @@ public:
     //! Returns a const pointer to the cell at (aX, aY) WITHOUT CHECKING BOUNDS.
     //! If the containing chunk is already loaded, it will remain loaded until the next call
     //! to `prune()`. Otherwise, `nullptr` will be returned.
-    const CellModelExt* getCellAtUnchecked(hg::PZInteger aX,
-                                           hg::PZInteger aY) const {
+    const CellModelExt* getCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) const {
         return const_cast<Self*>(this)->getCellAtUnchecked(aX, aY);
     }
 

@@ -10,8 +10,8 @@
 #include <GridWorld/Model/Lights.hpp>
 #include <GridWorld/Model/Sprites.hpp>
 
-#include <GridWorld/Model/Chunk_storage_handler.hpp>
 #include <GridWorld/Model/Chunk_state_listener_interface.hpp>
+#include <GridWorld/Model/Chunk_storage_handler.hpp>
 
 #include <memory>
 #include <optional>
@@ -27,7 +27,7 @@ struct WorldConfiguration {
     hg::PZInteger chunkCountX; //!< Maximum number of chunks along the X axis
     hg::PZInteger chunkCountY; //!< Maximum number of chunks along the Y axix
 
-    hg::PZInteger chunkResolution;  //!< Number of cells per chunk along the X and Y axes
+    hg::PZInteger chunkResolution; //!< Number of cells per chunk along the X and Y axes
 
     float cellResolution; //!< Width and height of a single cell in the world
 
@@ -35,7 +35,6 @@ struct WorldConfiguration {
 
     // TODO: std::function to create empty extension
 };
-
 
 // TODO
 //    Idea: turn off tile refreshing (refresh all when turning on)
@@ -101,17 +100,17 @@ public:
         // Floor
 
         void updateFloorAt(hg::PZInteger                          aX,
-                          hg::PZInteger                          aY,
-                          const std::optional<CellModel::Floor>& aFloorOpt);
+                           hg::PZInteger                          aY,
+                           const std::optional<CellModel::Floor>& aFloorOpt);
 
         void updateFloorAt(hg::math::Vector2pz aPos, const std::optional<CellModel::Floor>& aFloorOpt);
 
         void updateFloorAtUnchecked(hg::PZInteger                          aX,
-                                   hg::PZInteger                          aY,
-                                   const std::optional<CellModel::Floor>& aFloorOpt);
+                                    hg::PZInteger                          aY,
+                                    const std::optional<CellModel::Floor>& aFloorOpt);
 
         void updateFloorAtUnchecked(hg::math::Vector2pz                    aPos,
-                                   const std::optional<CellModel::Floor>& aFloorOpt);
+                                    const std::optional<CellModel::Floor>& aFloorOpt);
 
         // Wall
 
@@ -125,7 +124,8 @@ public:
                                    hg::PZInteger                         aY,
                                    const std::optional<CellModel::Wall>& aWallOpt);
 
-        void updateWallAtUnchecked(hg::math::Vector2pz aPos, const std::optional<CellModel::Wall>& aWallOpt);
+        void updateWallAtUnchecked(hg::math::Vector2pz                   aPos,
+                                   const std::optional<CellModel::Wall>& aWallOpt);
 
     private:
         friend class World;

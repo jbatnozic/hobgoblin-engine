@@ -1,4 +1,5 @@
-#pragma once
+
+#include <GridWorld/Private/Conversions.hpp>
 
 #include <GridWorld/Model/Chunk.hpp>
 
@@ -7,6 +8,7 @@
 #include <rapidjson/document.h>
 #include <rapidjson/prettywriter.h>
 #include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
 
 #include <string>
 
@@ -17,14 +19,30 @@ namespace detail {
 
 namespace json = rapidjson;
 
+json::Value CellToJson(const CellModel& aCell, RAPIDJSON_DEFAULT_ALLOCATOR& aAllocator) {
+  json::Value value;
+  value.SetObject();
+  value.AddMember("flags", json::Value{aCell.getFlags()}.Move(), aAllocator);
+  return value;
+}
+
+CellModel JsonToCell(std::string aJsonString) {
+  return {};
+}
+
 std::string ChunkToJson(const Chunk& aChunk) {
     json::Document doc;
     doc.SetObject();
-    doc.AddMember("width", json::Value{aChunk.getWidth()}, doc.GetAllocator());
-    doc.AddMember("height", json::Value{aChunk.getHeight()}, doc.GetAllocator());
+    doc.AddMember("width", json::Value{aChunk.getCellCountX()}, doc.GetAllocator());
+    doc.AddMember("height", json::Value{aChunk.getCellCountY()}, doc.GetAllocator());
     // ...
+    json::Value cellArray{json::kArrayType};
+    cellArray.Reserve(1, doc.GetAllocator());
+    //cellArray.PushBack(<value>, doc.GetAllocator());
+    doc.AddMember("cells", cellArray, doc.GetAllocator());
+
     json::StringBuffer                     stringbuf;
-    json::PrettyWriter<json::StringBuffer> writer(stringbuf);
+    json::Writer<json::StringBuffer> writer(stringbuf); // another option: pretty writer
     doc.Accept(writer);
     return stringbuf.GetString();
 }
@@ -34,6 +52,8 @@ Chunk JsonToChunk(std::string aJsonString) {
     doc.ParseInsitu(aJsonString.data());
 
     Chunk chunk{};
+
+    return chunk;
 }
 
 /*

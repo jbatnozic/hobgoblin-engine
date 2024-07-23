@@ -21,24 +21,24 @@ hg::PZInteger World::getCellCountY() const {
     return _configuration.cellCountY;
 }
 
-//void World::toggleGeneratorMode(bool aGeneratorModeActive) {
-//    if (_generatorMode == aGeneratorModeActive) {
-//        return;
-//    }
+// void World::toggleGeneratorMode(bool aGeneratorModeActive) {
+//     if (_generatorMode == aGeneratorModeActive) {
+//         return;
+//     }
 //
-//    if (aGeneratorModeActive) {
-//        _generatorMode = true;
-//        return;
-//    }
+//     if (aGeneratorModeActive) {
+//         _generatorMode = true;
+//         return;
+//     }
 //
-//    _generatorMode = false;
+//     _generatorMode = false;
 //
-//    for (hg::PZInteger y = 0; y < getCellCountY(); y += 1) {
-//        for (hg::PZInteger x = 0; x < getCellCountX(); x += 1) {
-//            _refreshCellAtUnchecked(x, y);
-//        }
-//    }
-//}
+//     for (hg::PZInteger y = 0; y < getCellCountY(); y += 1) {
+//         for (hg::PZInteger x = 0; x < getCellCountX(); x += 1) {
+//             _refreshCellAtUnchecked(x, y);
+//         }
+//     }
+// }
 
 ///////////////////////////////////////////////////////////////////////////
 // CELL GETTERS                                                          //

@@ -1,2 +1,2 @@
+add_subdirectory("Automatic")
 add_subdirectory("Manual")
-add_subdirectory("Unit")
