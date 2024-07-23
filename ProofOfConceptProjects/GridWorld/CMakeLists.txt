@@ -6,7 +6,7 @@ find_package(RapidJSON CONFIG REQUIRED)
 
 add_library(${PROJECT_NAME}
     "Source/Model/Cell.cpp"
-    "Source/Model/Chunk_conversions.cpp"
+    "Source/Model/Model_conversions.cpp"
     "Source/Model/Chunk_spooler_default.cpp"
 
     # "Source/Rendering/Dimetric_renderer.cpp"

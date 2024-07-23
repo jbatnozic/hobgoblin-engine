@@ -1,4 +1,4 @@
-#include <GridWorld/Private/Conversions.hpp>
+#include <GridWorld/Private/Model_conversions.hpp>
 
 #include <rapidjson/document.h>
 #include <rapidjson/prettywriter.h>
@@ -13,17 +13,16 @@ namespace detail {
 
 class GriddyConversionsTest : public ::testing::Test {
 protected:
-    JsonDocument   _document;
-    JsonAllocator& _allocator = _document.GetAllocator();
+    json::Document _document;
 
-    JsonDocument _jsonDocumentFromString(const char* aJsonString) {
-        JsonDocument doc;
+    json::Document _jsonDocumentFromString(const char* aJsonString) {
+        json::Document doc;
         doc.Parse(aJsonString);
         return doc;
     }
 
 #if 1
-    void _print(const JsonDocument& aDoc) {
+    void _print(const json::Document& aDoc) {
         json::StringBuffer                     stringbuf;
         json::PrettyWriter<json::StringBuffer> writer(stringbuf);
         aDoc.Accept(writer);
@@ -42,7 +41,7 @@ protected:
 TEST_F(GriddyConversionsTest, EmptyCellConversionToJsonAndBack) {
     CellModel cell;
 
-    EXPECT_EQ(cell, JsonToCell(CellToJson(cell, _allocator)));
+    EXPECT_EQ(cell, JsonToCell(CellToJson(cell, _document)));
 }
 
 TEST_F(GriddyConversionsTest, EmptyCellConversionFromJson) {
@@ -67,14 +66,14 @@ TEST_F(GriddyConversionsTest, CellWithFloorConversionToJsonAndBack) {
     CellModel cell;
     cell.setFloor({111});
 
-    EXPECT_EQ(cell, JsonToCell(CellToJson(cell, _allocator)));
+    EXPECT_EQ(cell, JsonToCell(CellToJson(cell, _document)));
 }
 
 TEST_F(GriddyConversionsTest, CellWithWallConversionToJsonAndBack) {
     CellModel cell;
     cell.setWall({111, 222, Shape::CIRCLE});
 
-    EXPECT_EQ(cell, JsonToCell(CellToJson(cell, _allocator)));
+    EXPECT_EQ(cell, JsonToCell(CellToJson(cell, _document)));
 }
 
 TEST_F(GriddyConversionsTest, CellWithFloorAndWallConversionToJsonAndBack) {
@@ -82,10 +81,10 @@ TEST_F(GriddyConversionsTest, CellWithFloorAndWallConversionToJsonAndBack) {
     cell.setFloor({111});
     cell.setWall({111, 222, Shape::CIRCLE});
 
-    EXPECT_EQ(cell, JsonToCell(CellToJson(cell, _allocator)));
+    EXPECT_EQ(cell, JsonToCell(CellToJson(cell, _document)));
 }
 
-TEST_F(GriddyConversionsTest, Test1) {
+TEST_F(GriddyConversionsTest, ChunkConversionToJsonAndBack) {
     CellModel cell;
     cell.setFloor({111});
     cell.setWall({111, 222, Shape::FULL_SQUARE});
@@ -95,9 +94,7 @@ TEST_F(GriddyConversionsTest, Test1) {
     chunk.getCellAtUnchecked(3, 1).resetWall();
     chunk.getCellAtUnchecked(1, 2).resetFloor();
 
-    // std::cerr << ChunkToJson(chunk) << std::endl;
-
-    EXPECT_EQ(chunk, JsonToChunk(ChunkToJson(chunk)));
+    EXPECT_EQ(chunk, JsonStringToChunk(ChunkToJsonString(chunk)));
 }
 
 } // namespace detail
