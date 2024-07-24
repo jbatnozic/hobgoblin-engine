@@ -39,10 +39,11 @@ void DimetricRenderer::_diagonalTraverse(const World&                      aWorl
             const int y = startY + col;
 
             if (x >= 0 && x < aWorld.getCellCountX() && y >= 0 && y < aWorld.getCellCountY()) {
-                const auto& cell = aWorld.getCellAtUnchecked(x, y);
-                const auto  pos =
+                const auto* cell = aWorld.getCellAtUnchecked(x, y);
+                // TODO: what if cell is null?
+                const auto pos =
                     IsometricCoordinatesToScreen({(x + 0.5f) * cellRes, (y + 0.5f) * cellRes});
-                aFunc(CellInfo{&cell, x, y}, pos);
+                aFunc(CellInfo{cell, x, y}, pos);
             }
         }
 
@@ -132,10 +133,11 @@ void DimetricRenderer::_renderFloor(hg::gr::Canvas& aCanvas) const {
     _diagonalTraverse(_world,
                       _viewData,
                       [this, &aCanvas](const CellInfo& aCellInfo, hg::math::Vector2f aPos) {
-                          if (aCellInfo.cell->wall.has_value() || !aCellInfo.cell->floor.has_value()) {
+                          if (aCellInfo.cell->isWallInitialized() ||
+                              !aCellInfo.cell->isFloorInitialized()) {
                               return;
                           }
-                          auto& sprite = _getSprite(aCellInfo.cell->floor->spriteId);
+                          auto& sprite = _getSprite(aCellInfo.cell->getFloor().spriteId);
                           sprite.setPosition(aPos);
                           aCanvas.draw(sprite);
                       });
@@ -163,7 +165,7 @@ void DimetricRenderer::_renderLighting(hg::gr::Canvas& aCanvas) const {
 }
 
 bool DimetricRenderer::_isCellObstructed(const CellInfo& aCellInfo) const {
-    if (aCellInfo.cell->wall.has_value()) {
+    if (aCellInfo.cell->isWallInitialized()) {
         return true;
     }
 

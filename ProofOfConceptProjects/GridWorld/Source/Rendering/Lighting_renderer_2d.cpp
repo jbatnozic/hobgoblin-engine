@@ -191,7 +191,8 @@ void LightingRenderer2D::_renderLight(const LightModel& aLightModel) {
     for (hg::PZInteger y = startGridY; y <= endGridY; y += 1) {
         for (hg::PZInteger x = startGridX; x <= endGridX; x += 1) {
             // ****************************************************
-            if (auto wall = _world.getCellAtUnchecked(x, y).wall) {
+            if (const auto* cell = _world.getCellAtUnchecked(x, y);
+                cell != nullptr && cell->isWallInitialized()) {
                 // clang-format off
                 vertices[0].position = { x      * cellResolution,  y      * cellResolution};
                 vertices[2].position = { x      * cellResolution, (y + 1) * cellResolution};

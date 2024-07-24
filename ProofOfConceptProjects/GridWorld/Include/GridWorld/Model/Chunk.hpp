@@ -40,8 +40,8 @@ public:
     friend bool operator==(const Chunk& aLhs, const Chunk& aRhs) {
         if (aLhs.getCellCountX() != aRhs.getCellCountX() ||
             aLhs.getCellCountY() != aRhs.getCellCountY()) {
-                return false;
-            }
+            return false;
+        }
 
         for (hg::PZInteger y = 0; y < aLhs.getCellCountY(); y += 1) {
             for (hg::PZInteger x = 0; x < aRhs.getCellCountX(); x += 1) {

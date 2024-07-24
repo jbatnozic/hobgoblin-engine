@@ -169,13 +169,13 @@ void World::onChunkUnloaded(detail::ChunkId aChunkId, ChunkExtensionInterface*) 
 // ===== Updating cells =====
 
 void World::_refreshCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) {
-    //auto& cell = _grid[aY][aX];
+    // auto& cell = _grid[aY][aX];
 
-    //GetMutableExtensionData(cell).refresh(
-    //    (aY <= 0) ? nullptr : std::addressof(_grid[aY - 1][aX]),
-    //    (aX <= 0) ? nullptr : std::addressof(_grid[aY][aX - 1]),
-    //    (aX >= getCellCountX() - 1) ? nullptr : std::addressof(_grid[aY][aX + 1]),
-    //    (aY >= getCellCountY() - 1) ? nullptr : std::addressof(_grid[aY + 1][aX]));
+    // GetMutableExtensionData(cell).refresh(
+    //     (aY <= 0) ? nullptr : std::addressof(_grid[aY - 1][aX]),
+    //     (aX <= 0) ? nullptr : std::addressof(_grid[aY][aX - 1]),
+    //     (aX >= getCellCountX() - 1) ? nullptr : std::addressof(_grid[aY][aX + 1]),
+    //     (aY >= getCellCountY() - 1) ? nullptr : std::addressof(_grid[aY + 1][aX]));
 }
 
 void World::_updateFloorAt(hg::PZInteger                          aX,

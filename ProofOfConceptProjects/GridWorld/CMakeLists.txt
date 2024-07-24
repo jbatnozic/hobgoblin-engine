@@ -10,8 +10,8 @@ add_library(${PROJECT_NAME}
     "Source/Model/Chunk_spooler_default.cpp"
 
     # "Source/Rendering/Dimetric_renderer.cpp"
-    # "Source/Rendering/Lighting_renderer_2d.cpp"
-    # "Source/Rendering/Line_of_sight_renderer_2d.cpp"
+    "Source/Rendering/Lighting_renderer_2d.cpp"
+    "Source/Rendering/Line_of_sight_renderer_2d.cpp"
     "Source/Rendering/OpenGL_helpers.cpp"
     "Source/Rendering/OpenGL_helpers.hpp"
 
