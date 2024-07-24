@@ -245,7 +245,7 @@ DefaultChunkSpooler::LoadRequest DefaultChunkSpooler::_takeLoadRequestWithHighes
 
 DefaultChunkSpooler::UnloadRequest DefaultChunkSpooler::_takeUnloadRequestWithHighestPriority(
     const std::unique_lock<Mutex>&) {
-    const auto iter   = _unloadRequests.end();
+    const auto iter   = _unloadRequests.begin();
     auto       result = UnloadRequest{std::move(iter->second), iter->first};
     _unloadRequests.erase(iter);
     return {result};

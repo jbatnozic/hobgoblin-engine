@@ -79,7 +79,7 @@ private:
 
     hg::PZInteger  _countAvailableRequests(const std::unique_lock<Mutex>&) const;
     LoadRequest    _takeLoadRequestWithHighestPriority(const std::unique_lock<Mutex>&);
-    UnloadRequest  _takeUnloadRequestWithHighestPriority(const std::unique_lock<Mutex>&);
+    UnloadRequest  _takeUnloadRequestWithHighestPriority(const std::unique_lock<Mutex>&); // TODO: rename (they are unsorted)
     RequestVariant _takeRequestWithHighestPriority(const std::unique_lock<Mutex>&);
 
     void _adjustUnloadPriority(const RequestVariant& aRequestVariant, const std::unique_lock<Mutex>&);
