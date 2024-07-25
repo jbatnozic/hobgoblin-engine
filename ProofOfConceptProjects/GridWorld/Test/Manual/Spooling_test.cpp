@@ -1,6 +1,7 @@
 #include "../../Source/Model/Chunk_disk_io_handler_interface.hpp"
 #include "../../Source/Model/Chunk_spooler_default.hpp"
 
+#include <Hobgoblin/Logging.hpp>
 #include <Hobgoblin/Graphics.hpp>
 #include <Hobgoblin/Utility/Grids.hpp>
 #include <Hobgoblin/Window.hpp>
@@ -20,6 +21,8 @@ using gridworld::detail::ChunkSpoolerInterface;
 #define CHUNK_COUNT_Y 32
 
 namespace {
+constexpr auto LOG_ID = "Griddy.ManualTest";
+
 class FakeWorld {
 public:
     FakeWorld(hg::PZInteger          aWorldWidth,
@@ -40,9 +43,11 @@ public:
                 if (chunk.chunk) {
                     // TODO: check that this grid location is null
                     _chunkGrid.at(id.y, id.x) = std::make_unique<Chunk>(std::move(*chunk.chunk));
+                    HG_LOG_INFO(LOG_ID, "Loaded chunk {}, {} from disk.", id.x, id.y);
                 } else {
                     // create new one
                     _chunkGrid.at(id.y, id.x) = std::make_unique<Chunk>(1, 1);
+                    HG_LOG_INFO(LOG_ID, "Created chunk {}, {}.", id.x, id.y);
                 }
             }
         }
@@ -58,6 +63,7 @@ public:
                     if (std::abs(_playerPosition.x - x) > 2 || std::abs(_playerPosition.y - y) > 2) {
                         _chunkspool.unloadChunk({(std::uint16_t)x, (std::uint16_t)y}, std::move(*chunkPtr));
                         chunkPtr.reset();
+                        HG_LOG_INFO(LOG_ID, "Unloaded chunk {}, {}.", x, y);
                     }
                 }
             }

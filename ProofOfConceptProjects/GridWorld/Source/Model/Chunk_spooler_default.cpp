@@ -6,6 +6,7 @@
 #include <Hobgoblin/Logging.hpp>
 
 #include <algorithm>
+#include <chrono>
 
 // TODO: SetThreadName
 
@@ -51,14 +52,23 @@ DefaultChunkSpooler::~DefaultChunkSpooler() {
 }
 
 void DefaultChunkSpooler::pause() {
-    std::unique_lock<Mutex> lock{_mutex};
+    using namespace std::chrono;
+    const auto start = steady_clock::now();
+    {
+        std::unique_lock<Mutex> lock{_mutex};
 
-    _paused = true;
+        _paused = true;
 
-    _cv_workerStatus.wait(lock, [this]() -> bool {
-        // Return false to wait more, return true to continue
-        return (_workerStatus == WorkerStatus::PREP_OR_IDLE);
-    });
+        _cv_workerStatus.wait(lock, [this]() -> bool {
+            // Return false to wait more, return true to continue
+            return (_workerStatus == WorkerStatus::PREP_OR_IDLE || _workerStatus == WorkerStatus::LONG_OP);
+        });
+    }
+    const auto end = steady_clock::now();
+    const auto duration_us = duration_cast<microseconds>(end - start);
+    if (duration_us > milliseconds{1}) {
+        HG_LOG_WARN(LOG_ID, "Pausing spooler took a very long time ({}ms).", duration_us.count() / 1000.0);
+    }
 }
 
 void DefaultChunkSpooler::unpause() {
@@ -146,7 +156,9 @@ hg::PZInteger DefaultChunkSpooler::unloadChunk(ChunkId aChunkId, Chunk&& aChunk)
 
     const auto pair = _unloadRequests.emplace(std::make_pair(aChunkId, std::move(aChunk)));
     const bool newUnloadRequestInserted = pair.second;
-    HG_HARD_ASSERT(newUnloadRequestInserted && "Duplicate unload request");
+    if (!newUnloadRequestInserted) {
+        HG_THROW_TRACED(hg::TracedLogicError, 0, "Duplicate unload request for chunk {}, {}.", aChunkId.x, aChunkId.y);
+    }
 
     const auto result = hg::stopz(_unloadRequests.size());
 
@@ -215,14 +227,42 @@ void DefaultChunkSpooler::_workerBody() {
                     continue;
                 }
             }
+            _setWorkerStatus(WorkerStatus::LONG_OP);
             auto chunk = LoadChunk(loadRequest.chunkId, *_diskIoHandler);
+            {
+                std::unique_lock<Mutex> lock{_mutex};
+                while (true) {
+                    if (_stopped) {
+                        return; // Spooler is being destroyed
+                    }
+                    if (!_paused) {
+                        break; // Ready to work
+                    }
+                    _cv_workerSync.wait(lock);
+                }
+                _setWorkerStatus(WorkerStatus::WORKING);
+            }
             {
                 std::unique_lock<Mutex> lock{_mutex};
                 _loadedChunks.emplace_back(std::move(chunk), loadRequest.chunkId);
             }
         } else {
             const auto& unloadRequest = std::get<UnloadRequest>(requestVariant);
+            _setWorkerStatus(WorkerStatus::LONG_OP);
             UnloadChunk(unloadRequest.chunk, unloadRequest.id, *_diskIoHandler);
+            {
+                std::unique_lock<Mutex> lock{_mutex};
+                while (true) {
+                    if (_stopped) {
+                        return; // Spooler is being destroyed
+                    }
+                    if (!_paused) {
+                        break; // Ready to work
+                    }
+                    _cv_workerSync.wait(lock);
+                }
+                _setWorkerStatus(WorkerStatus::WORKING);
+            }
         }
     }
 }
@@ -248,7 +288,7 @@ DefaultChunkSpooler::UnloadRequest DefaultChunkSpooler::_takeUnloadRequestWithHi
     const auto iter   = _unloadRequests.begin();
     auto       result = UnloadRequest{std::move(iter->second), iter->first};
     _unloadRequests.erase(iter);
-    return {result};
+    return result;
 }
 
 DefaultChunkSpooler::RequestVariant DefaultChunkSpooler::_takeRequestWithHighestPriority(

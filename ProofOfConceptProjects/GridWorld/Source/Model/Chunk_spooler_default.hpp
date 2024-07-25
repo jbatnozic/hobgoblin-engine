@@ -48,7 +48,8 @@ private:
 
     enum class WorkerStatus : std::int8_t {
         PREP_OR_IDLE,
-        WORKING
+        WORKING,
+        LONG_OP,
     };
 
     WorkerStatus            _workerStatus;
