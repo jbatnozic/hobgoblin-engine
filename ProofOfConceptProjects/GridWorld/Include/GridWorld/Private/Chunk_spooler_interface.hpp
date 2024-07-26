@@ -27,11 +27,21 @@ public:
         hg::PZInteger priority; //!< Lower number = higher priority
     };
 
-    //! Sets a collection of chunks for the spooler's worker thread to load.
-    //!
-    //! The spooler must be paused when this is called.
-    //! \throws hg::PreconditionNotMetError if the spooler is not paused when this method is called.
-    virtual void setChunksToLoad(std::vector<LoadRequest> aLoadRequests) = 0;
+    class RequestHandleInterface {
+    public:
+        virtual ~RequestHandleInterface() = default;
+
+        virtual void cancel() = 0;
+
+        virtual ChunkId getChunkId() const = 0;
+
+        virtual bool isFinished() const = 0;
+
+        virtual std::optional<Chunk> takeChunk() = 0;
+    };
+
+    virtual std::vector<std::shared_ptr<RequestHandleInterface>> loadChunks(
+        const std::vector<LoadRequest>& aLoadRequests) = 0;
 
     //! Loads a chunk immediately.
     //!
@@ -50,18 +60,6 @@ public:
     //! The spooler must be paused when this is called.
     //! \throws hg::PreconditionNotMetError if the spooler is not paused when this method is called.
     virtual void unloadRuntimeCache() = 0;
-
-    struct LoadedChunk {
-        std::optional<Chunk> chunk;
-        ChunkId              id;
-
-        LoadedChunk(std::optional<Chunk> aChunk, ChunkId aId)
-            : chunk{std::move(aChunk)}
-            , id{aId} {}
-    };
-
-    //! Returns all chunks that have been loaded so far (since the last call to this method).
-    virtual std::vector<LoadedChunk> getLoaded() = 0;
 };
 
 } // namespace detail

@@ -18,6 +18,8 @@ namespace detail {
 
 namespace hg = ::jbatnozic::hobgoblin;
 
+class RequestHandleImpl;
+
 class DefaultChunkSpooler : public ChunkSpoolerInterface {
 public:
     DefaultChunkSpooler(ChunkDiskIoHandlerInterface& aDiskIoHandler);
@@ -27,7 +29,8 @@ public:
     void unpause() override;
     bool isPaused() const override;
 
-    void setChunksToLoad(std::vector<LoadRequest> aLoadRequests) override;
+    std::vector<std::shared_ptr<RequestHandleInterface>> loadChunks(
+        const std::vector<LoadRequest>& aLoadRequests) override;
 
     std::optional<Chunk> loadImmediately(ChunkId aChunkId) override;
 
@@ -35,9 +38,9 @@ public:
 
     void unloadRuntimeCache() override;
 
-    std::vector<LoadedChunk> getLoaded() override;
-
 private:
+    friend class RequestHandleImpl;
+
     hg::NeverNull<ChunkDiskIoHandlerInterface*> _diskIoHandler;
 
     using Mutex = std::mutex;
@@ -46,18 +49,7 @@ private:
     bool _paused  = false;
     bool _stopped = false;
 
-    enum class WorkerStatus : std::int8_t {
-        PREP_OR_IDLE,
-        WORKING,
-        LONG_OP,
-    };
-
-    WorkerStatus            _workerStatus;
-    std::condition_variable _cv_workerStatus;
     std::condition_variable _cv_workerSync;
-
-    std::vector<LoadRequest> _loadRequests;
-    std::vector<LoadedChunk> _loadedChunks;
 
     struct UnloadRequest {
         Chunk   chunk;
@@ -70,18 +62,31 @@ private:
 
     using RequestVariant = std::variant<std::monostate, LoadRequest, UnloadRequest>;
 
-    std::unordered_map<ChunkId, Chunk> _unloadRequests;
-    int                                _unloadPriority = 0;
+    struct RequestControlBlock {
+        RequestVariant                     request;
+        std::shared_ptr<RequestHandleImpl> handle;
+    };
+
+    std::unordered_map<ChunkId, RequestControlBlock> _requests;
+    using RequestIter = decltype(_requests)::iterator;
+
+    hg::PZInteger                                    _loadRequestCount   = 0;
+    hg::PZInteger                                    _unloadRequestCount = 0;
+    int                                              _unloadPriority     = 0;
 
     std::thread _worker;
 
     void _workerBody();
-    void _setWorkerStatus(WorkerStatus aWorkerStatus);
 
-    hg::PZInteger  _countAvailableRequests(const std::unique_lock<Mutex>&) const;
-    LoadRequest    _takeLoadRequestWithHighestPriority(const std::unique_lock<Mutex>&);
-    UnloadRequest  _takeUnloadRequestWithHighestPriority(const std::unique_lock<Mutex>&); // TODO: rename (they are unsorted)
-    RequestVariant _takeRequestWithHighestPriority(const std::unique_lock<Mutex>&);
+    std::shared_ptr<RequestHandleInterface> _onNewLoadRequest(LoadRequest aLoadRequest,
+                                                              const std::unique_lock<Mutex>&);
+    hg::PZInteger _countAvailableRequests(const std::unique_lock<Mutex>&) const;
+    RequestIter   _findLoadRequestWithBestPriority(const std::unique_lock<Mutex>&);
+    RequestIter   _findAnyUnloadRequest(const std::unique_lock<Mutex>&);
+    RequestIter   _findRequestWithBestPriority(const std::unique_lock<Mutex>&);
+    RequestControlBlock _eraseRequest(RequestIter aRequestIter, const std::unique_lock<Mutex>&);
+
+    void _cancelLoadRequest(ChunkId aChunkId);
 
     void _adjustUnloadPriority(const RequestVariant& aRequestVariant, const std::unique_lock<Mutex>&);
 };

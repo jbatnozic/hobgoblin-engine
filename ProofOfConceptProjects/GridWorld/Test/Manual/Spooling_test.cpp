@@ -33,21 +33,31 @@ public:
     }
 
     void update(hg::math::Vector2pz aPosition) {
+#if 1
         _chunkspool.pause();
+        _playerPosition = aPosition;
 
         // Collect loaded chunks
         {
-            auto loadedChunks = _chunkspool.getLoaded();
-            for (auto& chunk : loadedChunks) {
-                const auto id = chunk.id;
-                if (chunk.chunk) {
-                    // TODO: check that this grid location is null
-                    _chunkGrid.at(id.y, id.x) = std::make_unique<Chunk>(std::move(*chunk.chunk));
-                    HG_LOG_INFO(LOG_ID, "Loaded chunk {}, {} from disk.", id.x, id.y);
+            for (auto iter = _requests.begin(); iter != _requests.end();) {
+                auto& handle = iter->second;
+                HG_HARD_ASSERT(handle != nullptr);
+
+                if (handle->isFinished()) {
+                    const auto id = handle->getChunkId();
+                    auto chunk = handle->takeChunk();
+                    if (chunk) {
+                        // TODO: check that this grid location is null
+                        _chunkGrid.at(id.y, id.x) = std::make_unique<Chunk>(std::move(*chunk));
+                        HG_LOG_INFO(LOG_ID, "Loaded chunk {}, {} from disk.", id.x, id.y);
+                    } else {
+                        // create new one
+                        _chunkGrid.at(id.y, id.x) = std::make_unique<Chunk>(1, 1);
+                        HG_LOG_INFO(LOG_ID, "Created chunk {}, {}.", id.x, id.y);
+                    }
+                    iter = _requests.erase(iter);
                 } else {
-                    // create new one
-                    _chunkGrid.at(id.y, id.x) = std::make_unique<Chunk>(1, 1);
-                    HG_LOG_INFO(LOG_ID, "Created chunk {}, {}.", id.x, id.y);
+                    iter = std::next(iter);
                 }
             }
         }
@@ -69,28 +79,49 @@ public:
             }
         }
 
+        // Cancel requests we don't need anymore
+        {
+            for (auto iter = _requests.begin(); iter != _requests.end();) {
+                auto& handle = iter->second;
+                HG_HARD_ASSERT(handle != nullptr);
+
+                const auto id = handle->getChunkId();
+                if (std::abs(_playerPosition.x - id.x) > 2 || std::abs(_playerPosition.y - id.y) > 2) {
+                    handle->cancel();
+                    iter = _requests.erase(iter);
+                } else {
+                    iter = std::next(iter);
+                }
+            }
+        }
+
         // Set new chunks to load
         {
             std::vector<ChunkSpoolerInterface::LoadRequest> loadRequests;
             for (int yOff = -2; yOff <= 2; yOff += 1) {
                 for (int xOff = -2; xOff <= 2; xOff += 1) {
-                    const auto x = aPosition.x + xOff;
-                    const auto y = aPosition.y + yOff;
+                    const auto x = _playerPosition.x + xOff;
+                    const auto y = _playerPosition.y + yOff;
                     if (x >= 0 && x < CHUNK_COUNT_X && y >= 0 && y < CHUNK_COUNT_Y) {
-                        if (_chunkGrid[y][x] == nullptr) {
+                        if (_chunkGrid[y][x] == nullptr && _requests.count({(std::uint16_t)x, (std::uint16_t)y}) == 0) {
                             ChunkSpoolerInterface::LoadRequest lr;
                             lr.chunkId = {(std::uint16_t)x, (std::uint16_t)y};
-                            lr.priority = 0;
+                            lr.priority = (std::abs(xOff) + std::abs(yOff));
                             loadRequests.push_back(lr);
                         }
                     }
                 }
             }
-            _chunkspool.setChunksToLoad(std::move(loadRequests));
+            auto handles = _chunkspool.loadChunks(std::move(loadRequests));
+            for (auto& handle : handles) {
+                // TODO: some safety?
+                _requests[handle->getChunkId()] = std::move(handle);
+            }
         }
 
-        _playerPosition = aPosition;
+        
         _chunkspool.unpause();
+#endif
     }
 
     void draw(hg::gr::RenderTarget& aTarget) {
@@ -128,6 +159,8 @@ private:
     ChunkSpoolerInterface& _chunkspool;
 
     hg::util::RowMajorGrid<std::unique_ptr<Chunk>> _chunkGrid;
+
+    std::unordered_map<ChunkId, std::shared_ptr<ChunkSpoolerInterface::RequestHandleInterface>> _requests;
 
     hg::math::Vector2pz _playerPosition{0, 0};
 };
