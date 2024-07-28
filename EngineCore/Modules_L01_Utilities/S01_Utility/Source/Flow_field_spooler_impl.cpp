@@ -12,6 +12,7 @@
 #include <Hobgoblin/Utility/Monitor.hpp>
 
 #include <atomic>
+#include <chrono>
 #include <condition_variable>
 #include <cstdint>
 #include <limits>
@@ -91,7 +92,7 @@ struct Request {
     std::int32_t  costProviderId;
 
     math::Vector2pz fieldTopLeft{};
-    PZInteger       remainingIterations{0};
+    int             remainingIterations{0};
 
     std::optional<FlowField> result{};
 
@@ -169,9 +170,12 @@ Job CreateCalcFlowFieldPartJob(std::shared_ptr<Request> aRequest,
 
 class FlowFieldSpoolerImpl : public FlowFieldSpoolerImplInterface {
 public:
-    FlowFieldSpoolerImpl(WCFMap aWcfMap, PZInteger aConcurrencyLimit)
+    FlowFieldSpoolerImpl(WCFMap    aWcfMap,
+                         PZInteger aConcurrencyLimit,
+                         PZInteger aFinishedRequestExpirationLimit)
         : _wcfMap{std::move(aWcfMap)}
-        , _concurrencyLimit{aConcurrencyLimit} {
+        , _concurrencyLimit{aConcurrencyLimit}
+        , _finishedRequestExpirationLimit{aFinishedRequestExpirationLimit} {
         HG_VALIDATE_ARGUMENT(!_wcfMap.empty());
         HG_VALIDATE_ARGUMENT(aConcurrencyLimit > 0);
 
@@ -236,6 +240,7 @@ private:
     Monitor<RequestMap>  _requests;
 
     std::atomic_uint64_t _requestIdCounter{0};
+    int                  _finishedRequestExpirationLimit;
 
     ///////////////////////////////////////
 
@@ -538,8 +543,9 @@ private:
         HG_LOG_DEBUG(LOG_ID, "Worker {} fsRes = {}.", aWorkerId, fsRes);
         if (fsRes == 1) {
             // There was exactly one job left - this one - so the calculation is finished
-            auto flowField       = jobData.station->flowFieldCalculator.takeFlowField();
-            aJob.request->result = {std::move(flowField)};
+            auto flowField                    = jobData.station->flowFieldCalculator.takeFlowField();
+            aJob.request->result              = {std::move(flowField)};
+            aJob.request->remainingIterations = 0;
             HG_LOG_DEBUG(LOG_ID, "Worker {} signalling latch.", aWorkerId);
             aJob.request->latch.open();
             jobData.station->isOccupied = false;
@@ -550,33 +556,55 @@ private:
 void FlowFieldSpoolerImpl::tick() {
     HG_VALIDATE_PRECONDITION(_paused == false);
 
-    _requests.Do([](RequestMap& aIt) {
-        for (auto& pair : aIt) {
-            auto& request = *pair.second;
+    _requests.Do([this](RequestMap& aIt) {
+        for (auto iter = aIt.begin(); iter != aIt.end();) {
+            auto& request = *(iter->second);
 
             if (request.remainingIterations > 1) {
                 request.remainingIterations -= 1;
             } else if (request.remainingIterations == 1) {
                 request.remainingIterations -= 1;
                 request.latch.wait(); // Warning: will block all access to _requests until resolved!
+            } else {
+                request.remainingIterations -= 1;
+                if (request.remainingIterations == -(_finishedRequestExpirationLimit + 1)) {
+                    HG_LOG_WARN(
+                        LOG_ID,
+                        "Removing expired request (id: {}) - result calculated but never collected.",
+                        request.id);
+                    iter = aIt.erase(iter);
+                    continue;
+                }
             }
+            iter = std::next(iter);
         }
     });
 }
 
 void FlowFieldSpoolerImpl::pause() {
-    std::unique_lock<Mutex> lock{_mutex};
+    using namespace std::chrono;
+    const auto start_time = steady_clock::now();
+    {
+        std::unique_lock<Mutex> lock{_mutex};
 
-    _paused = true;
+        _paused = true;
 
-    _cv_workerStatuses.wait(lock, [this]() -> bool {
-        for (const auto status : _workerStatuses) {
-            if (status == WorkerStatus::WORKING) {
-                return false;
+        _cv_workerStatuses.wait(lock, [this]() -> bool {
+            for (const auto status : _workerStatuses) {
+                if (status == WorkerStatus::WORKING) {
+                    return false;
+                }
             }
-        }
-        return true;
-    });
+            return true;
+        });
+    }
+    const auto end_time = steady_clock::now();
+    const auto duration = duration_cast<microseconds>(end_time - start_time);
+    if (duration > microseconds{500}) {
+        HG_LOG_WARN(LOG_ID,
+                    "Pausing the spooler took too an unexpectedly long time {}ms.",
+                    duration.count() / 1000.0);
+    }
 }
 
 void FlowFieldSpoolerImpl::unpause() {
@@ -669,8 +697,11 @@ std::optional<OffsetFlowField> FlowFieldSpoolerImpl::collectResult(std::uint64_t
 
 std::unique_ptr<FlowFieldSpoolerImplInterface> CreateDefaultFlowFieldSpoolerImpl(
     WCFMap    aWcfMap,
-    PZInteger aConcurrencyLimit) {
-    return std::make_unique<FlowFieldSpoolerImpl>(std::move(aWcfMap), aConcurrencyLimit);
+    PZInteger aConcurrencyLimit,
+    PZInteger aFinishedRequestExpirationLimit) {
+    return std::make_unique<FlowFieldSpoolerImpl>(std::move(aWcfMap),
+                                                  aConcurrencyLimit,
+                                                  aFinishedRequestExpirationLimit);
 }
 
 } // namespace detail

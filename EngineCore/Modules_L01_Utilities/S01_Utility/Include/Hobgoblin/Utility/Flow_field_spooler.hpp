@@ -78,9 +78,15 @@ public:
     //!                          `FlowFieldCalculator`. At 2, they will be about on-par with each
     //!                          other. Thus at least 3 (and preferrably more) is recommended. But
     //!                          1 is the minimal required value.
+    //! \param aFinishedRequestExpirationLimit number of ticks (see `tick()`) after which successfully
+    //!                                        calculated flow fields that were never collected will
+    //!                                        be removed. The minimal allowed value is 1 but something
+    //!                                        like 4 or 4 is recommended.
     //!
     //! \throws InvalidArgumentError if `aCostProviderMap` is empty or if `aConcurrencyLimit` is 0.
-    FlowFieldSpooler(CostProviderMap aCostProviderMap, PZInteger aConcurrencyLimit = 8);
+    FlowFieldSpooler(CostProviderMap aCostProviderMap,
+                     PZInteger       aConcurrencyLimit               = 8,
+                     PZInteger       aFinishedRequestExpirationLimit = 5);
 
     //! \brief Pauses all of the spooler's operations.
     //!
@@ -215,9 +221,11 @@ private:
 
 template <class taWorldCostProvider>
 FlowFieldSpooler<taWorldCostProvider>::FlowFieldSpooler(CostProviderMap aCostProviderMap,
-                                                        PZInteger       aConcurrencyLimit)
+                                                        PZInteger       aConcurrencyLimit,
+                                                        PZInteger       aFinishedRequestExpirationLimit)
     : _impl{detail::CreateDefaultFlowFieldSpoolerImpl(_convertCostMap(aCostProviderMap),
-                                                      aConcurrencyLimit)} {}
+                                                      aConcurrencyLimit,
+                                                      aFinishedRequestExpirationLimit)} {}
 
 template <class taWorldCostProvider>
 void FlowFieldSpooler<taWorldCostProvider>::tick() {
