@@ -4,7 +4,6 @@
 
 #include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Logging.hpp>
-#include <Hobgoblin/Utility/Monitor.hpp>
 
 #include <algorithm>
 
@@ -14,15 +13,19 @@ namespace gridworld {
 namespace detail {
 
 namespace {
-constexpr auto LOG_ID = "gridworld";
+constexpr auto LOG_ID = "Griddy";
 
 std::optional<Chunk> LoadChunk(ChunkId aChunkId, ChunkDiskIoHandlerInterface& aDiskIoHandler) {
     auto rtChunk = aDiskIoHandler.loadChunkFromRuntimeCache(aChunkId);
     if (rtChunk.has_value()) {
+        HG_LOG_DEBUG(LOG_ID, "Chunk {}, {} loaded from runtime cache.", aChunkId.x, aChunkId.y);
         return rtChunk;
     }
-    return aDiskIoHandler.loadChunkFromPersistentCache(
-        aChunkId); // TODO: store in runtime cache - noooooooo
+    HG_LOG_DEBUG(LOG_ID,
+                 "Attempting to load Chunk {}, {} from persistent cache.",
+                 aChunkId.x,
+                 aChunkId.y);
+    return aDiskIoHandler.loadChunkFromPersistentCache(aChunkId);
 }
 
 void UnloadChunk(const Chunk& aChunk, ChunkId aChunkId, ChunkDiskIoHandlerInterface& aDiskIoHandler) {
@@ -30,7 +33,11 @@ void UnloadChunk(const Chunk& aChunk, ChunkId aChunkId, ChunkDiskIoHandlerInterf
 }
 } // namespace
 
-class RequestHandleImpl : public DefaultChunkSpooler::RequestHandleInterface {
+///////////////////////////////////////////////////////////////////////////
+// REQUEST HANDLE IMPL                                                   //
+///////////////////////////////////////////////////////////////////////////
+
+class RequestHandleImpl final : public DefaultChunkSpooler::RequestHandleInterface {
 public:
     RequestHandleImpl(DefaultChunkSpooler& aSpooler, ChunkId aChunkId)
         : _spooler{aSpooler}
@@ -39,6 +46,13 @@ public:
     ~RequestHandleImpl() override = default;
 
     void cancel() override {
+        {
+            std::unique_lock<std::mutex> lock{_mutex};
+            if (_isCancelled || _isFinished) {
+                return;
+            }
+            _isCancelled = true;
+        }
         _spooler._cancelLoadRequest(_chunkId);
     }
 
@@ -47,41 +61,45 @@ public:
     }
 
     bool isFinished() const override {
-        return _result.Do([](const auto& aIt) {
-            return aIt.isFinished;
-        });
+        std::unique_lock<std::mutex> lock{_mutex};
+        return _isFinished;
     }
 
     std::optional<Chunk> takeChunk() override {
         std::optional<Chunk> chunk;
-        _result.Do([&](auto& aIt) {
-            if (!aIt.isFinished) {
+        {
+            std::unique_lock<std::mutex> lock{_mutex};
+            if (!_isFinished) {
                 HG_THROW_TRACED(hg::TracedLogicError,
                                 0,
-                                "takeChunk() called but request was not finished.");
+                                "takeChunk() called but request was not finished, "
+                                "or the result was already taken.");
             }
-            chunk = std::move(aIt.chunk);
-        });
+            chunk       = std::move(_chunk);
+            _isFinished = false;
+        }
         return chunk;
     }
 
     void giveResult(std::optional<Chunk> aChunkOpt) {
-        _result.Do([&](auto& aIt) {
-            aIt.chunk      = std::move(aChunkOpt);
-            aIt.isFinished = true;
-        });
+        std::unique_lock<std::mutex> lock{_mutex};
+        _chunk      = std::move(aChunkOpt);
+        _isFinished = true;
     }
 
 private:
     DefaultChunkSpooler& _spooler;
     ChunkId              _chunkId;
 
-    struct Result {
-        std::optional<Chunk> chunk;
-        bool                 isFinished = false;
-    };
-    hg::util::Monitor<Result> _result;
+    mutable std::mutex   _mutex;
+    std::optional<Chunk> _chunk;
+    bool                 _isCancelled = false;
+    bool                 _isFinished  = false;
 };
+
+///////////////////////////////////////////////////////////////////////////
+// CHUNK SPOOLER                                                         //
+///////////////////////////////////////////////////////////////////////////
 
 #define HOLDS_LOAD_REQUEST(_variant_)   std::holds_alternative<LoadRequest>(_variant_)
 #define HOLDS_UNLOAD_REQUEST(_variant_) std::holds_alternative<UnloadRequest>(_variant_)
@@ -94,7 +112,7 @@ DefaultChunkSpooler::DefaultChunkSpooler(ChunkDiskIoHandlerInterface& aDiskIoHan
 }
 
 DefaultChunkSpooler::~DefaultChunkSpooler() {
-    HG_LOG_INFO(LOG_ID, "Stopping Spooler...");
+    HG_LOG_INFO(LOG_ID, "Spooler stopping...");
 
     {
         std::unique_lock<Mutex> lock{_mutex};
@@ -157,21 +175,6 @@ std::optional<Chunk> DefaultChunkSpooler::loadImmediately(ChunkId aChunkId) {
         return aLoadRequest.chunkId == aChunkId;
     });
 
-    // Easy out: Try to get from _loadedChunks
-    {
-        const auto iter = std::find_if(_loadedChunks.begin(),
-                                       _loadedChunks.end(),
-                                       [aChunkId](LoadedChunk& aLoadedChunk) {
-                                           return aLoadedChunk.id == aChunkId;
-                                       });
-
-        if (iter != _loadedChunks.end()) {
-            std::optional<Chunk> result = std::move(iter->chunk);
-            _loadedChunks.erase(iter);
-            return result;
-        }
-    }
-
     // Easy out: Try to get from _unloadRequests
     {
         const auto iter = _unloadRequests.find(aChunkId);
@@ -192,15 +195,26 @@ std::optional<Chunk> DefaultChunkSpooler::loadImmediately(ChunkId aChunkId) {
 hg::PZInteger DefaultChunkSpooler::unloadChunk(ChunkId aChunkId, Chunk&& aChunk) {
     std::unique_lock<Mutex> lock{_mutex};
 
+    // TODO: does it have to be paused?
     HG_VALIDATE_PRECONDITION(_paused && "Spooler must be paused when this method is called");
 
     const auto iter = _requests.find(aChunkId);
     if (iter != _requests.end()) {
         auto& existingRequest = iter->second.request;
         if (HOLDS_LOAD_REQUEST(existingRequest)) {
-            HG_NOT_IMPLEMENTED("~~~~~");
+            HG_THROW_TRACED(hg::TracedLogicError,
+                            0,
+                            "Unload request received but there is a load request for the "
+                            "same chunk ({}, {}) already in progress.",
+                            aChunkId.x,
+                            aChunkId.y);
         } else if (HOLDS_UNLOAD_REQUEST(existingRequest)) {
-            HG_NOT_IMPLEMENTED("Handling of duplicate load requests not implemented.");
+            HG_THROW_TRACED(hg::TracedLogicError,
+                            0,
+                            "Unload request received but there is an unload request for the "
+                            "same chunk ({}, {}) already in progress.",
+                            aChunkId.x,
+                            aChunkId.y);
         } else {
             HG_UNREACHABLE("Invalid request found in request map for chunk {}, {}.",
                            aChunkId.x,
@@ -251,7 +265,7 @@ void DefaultChunkSpooler::_workerBody() {
             }
 
             const auto requestIter = _findRequestWithBestPriority(lock);
-            cb = _eraseRequest(requestIter, lock);
+            cb                     = _eraseRequest(requestIter, lock);
             _adjustUnloadPriority(cb.request, lock);
         }
 
@@ -261,7 +275,7 @@ void DefaultChunkSpooler::_workerBody() {
 
         if (HOLDS_LOAD_REQUEST(requestVariant)) {
             const auto& loadRequest = std::get<LoadRequest>(requestVariant);
-            auto chunk = LoadChunk(loadRequest.chunkId, *_diskIoHandler);
+            auto        chunk       = LoadChunk(loadRequest.chunkId, *_diskIoHandler);
             if (cb.handle) {
                 cb.handle->giveResult(std::move(chunk));
             }
@@ -286,6 +300,11 @@ std::shared_ptr<DefaultChunkSpooler::RequestHandleInterface> DefaultChunkSpooler
             handle->giveResult(std::move(std::get<UnloadRequest>(existingRequest).chunk));
             _requests.erase(iter);
             _unloadRequestCount -= 1;
+            HG_LOG_DEBUG(LOG_ID,
+                         "Load request for chunk {}, {} resolved by moving the "
+                         "chunk out of a pending unload request.",
+                         aLoadRequest.chunkId.x,
+                         aLoadRequest.chunkId.y);
         } else {
             HG_UNREACHABLE("Invalid request found in request map for chunk {}, {}.",
                            aLoadRequest.chunkId.x,

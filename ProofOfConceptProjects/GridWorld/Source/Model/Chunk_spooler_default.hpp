@@ -20,7 +20,7 @@ namespace hg = ::jbatnozic::hobgoblin;
 
 class RequestHandleImpl;
 
-class DefaultChunkSpooler : public ChunkSpoolerInterface {
+class DefaultChunkSpooler final : public ChunkSpoolerInterface {
 public:
     DefaultChunkSpooler(ChunkDiskIoHandlerInterface& aDiskIoHandler);
     ~DefaultChunkSpooler() override;
@@ -70,9 +70,9 @@ private:
     std::unordered_map<ChunkId, RequestControlBlock> _requests;
     using RequestIter = decltype(_requests)::iterator;
 
-    hg::PZInteger                                    _loadRequestCount   = 0;
-    hg::PZInteger                                    _unloadRequestCount = 0;
-    int                                              _unloadPriority     = 0;
+    hg::PZInteger _loadRequestCount   = 0;
+    hg::PZInteger _unloadRequestCount = 0;
+    int           _unloadPriority     = 0;
 
     std::thread _worker;
 
@@ -80,10 +80,10 @@ private:
 
     std::shared_ptr<RequestHandleInterface> _onNewLoadRequest(LoadRequest aLoadRequest,
                                                               const std::unique_lock<Mutex>&);
-    hg::PZInteger _countAvailableRequests(const std::unique_lock<Mutex>&) const;
-    RequestIter   _findLoadRequestWithBestPriority(const std::unique_lock<Mutex>&);
-    RequestIter   _findAnyUnloadRequest(const std::unique_lock<Mutex>&);
-    RequestIter   _findRequestWithBestPriority(const std::unique_lock<Mutex>&);
+    hg::PZInteger       _countAvailableRequests(const std::unique_lock<Mutex>&) const;
+    RequestIter         _findLoadRequestWithBestPriority(const std::unique_lock<Mutex>&);
+    RequestIter         _findAnyUnloadRequest(const std::unique_lock<Mutex>&);
+    RequestIter         _findRequestWithBestPriority(const std::unique_lock<Mutex>&);
     RequestControlBlock _eraseRequest(RequestIter aRequestIter, const std::unique_lock<Mutex>&);
 
     void _cancelLoadRequest(ChunkId aChunkId);

@@ -10,7 +10,7 @@
 namespace hg = jbatnozic::hobgoblin;
 
 int main() try {
-    hg::log::SetMinimalLogSeverity(hg::log::Severity::Info);
+    hg::log::SetMinimalLogSeverity(hg::log::Severity::Debug);
 
     // RunLightingTest();
     RunSpoolingTest();
