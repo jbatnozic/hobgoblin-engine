@@ -312,17 +312,27 @@ int main(int argc, char* argv[]) {
                 [&](const hg::win::Event::MouseButtonPressed& aData) {
                     mousePos = {aData.x, aData.y};
                     switch (aData.button) {
-                    case hg::in::MB_LEFT: lmbPressed = true; break;
-                    case hg::in::MB_RIGHT: rmbPressed = true; break;
-                    default: break;
+                    case hg::in::MB_LEFT:
+                        lmbPressed = true;
+                        break;
+                    case hg::in::MB_RIGHT:
+                        rmbPressed = true;
+                        break;
+                    default:
+                        break;
                     }
                 },
                 [&](const hg::win::Event::MouseButtonReleased& aData) {
                     mousePos = {aData.x, aData.y};
                     switch (aData.button) {
-                    case hg::in::MB_LEFT: lmbPressed = false; break;
-                    case hg::in::MB_RIGHT: rmbPressed = false; break;
-                    default: break;
+                    case hg::in::MB_LEFT:
+                        lmbPressed = false;
+                        break;
+                    case hg::in::MB_RIGHT:
+                        rmbPressed = false;
+                        break;
+                    default:
+                        break;
                     }
                 },
                 [&](const hg::win::Event::MouseMoved& aData) {

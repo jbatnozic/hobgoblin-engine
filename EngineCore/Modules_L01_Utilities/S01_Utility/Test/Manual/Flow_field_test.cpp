@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
                         spooler.cancelRequest(id2);
                         spooler.tick();
                         (void)spooler.collectResult(id4)->flowField;
-                        (void)spooler.collectResult(id3)->flowField;
+                        // (void)spooler.collectResult(id3)->flowField; // test expiration
                         // (void)spooler.collectResult(id2)->flowField;
                         ff = spooler.collectResult(id1)->flowField;
                         const auto end = std::chrono::steady_clock::now();
@@ -104,6 +104,8 @@ int main(int argc, char* argv[]) {
                 }
             }
         }
+
+        spooler.tick();
 
         window.clear(sf::Color{125, 125, 125});
 

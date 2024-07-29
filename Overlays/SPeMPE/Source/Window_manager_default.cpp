@@ -347,7 +347,8 @@ DefaultWindowManager::MainRenderTexturePositioningData DefaultWindowManager::
         result.scale    = {1.f, 1.f};
         break;
 
-    default: assert(false && "Unreachable");
+    default:
+        HG_UNREACHABLE();
     }
 
     return result;

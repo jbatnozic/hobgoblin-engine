@@ -97,6 +97,16 @@ public:
         }
     }
 
+    void advance() {
+        _substage += 1;
+        if (_substage >= static_cast<int>(Substage::SUBSTAGE_COUNT)) {
+            _substage = 0;
+            _stage += 1;
+        }
+    }
+
+    void back() {}
+
 private:
     const MasterLoader& _masterLoader;
 
@@ -113,10 +123,6 @@ private:
 
     int _stage    = 0;
     int _substage = 0;
-
-    void _previousStage() {}
-
-    void _nextStage() {}
 
     void _drawCrosshairs(spe::WindowManagerInterface& aWinMgr,
                          hg::math::Vector2f           aCenter,
@@ -218,7 +224,7 @@ std::unique_ptr<spe::GameContext> CreateContex() {
         hg::win::WindowStyle::Default
     };
     spe::WindowManagerInterface::MainRenderTextureConfig mrtConfig{
-        /* SIZE */  {1024, 1024},
+        /* SIZE */  {800, 600},
         /* SMOOTH*/ true
     };
     spe::WindowManagerInterface::TimingConfig timingConfig{
