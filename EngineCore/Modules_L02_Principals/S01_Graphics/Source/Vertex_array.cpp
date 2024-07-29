@@ -44,7 +44,7 @@ Drawable::BatchingType VertexArray::getBatchingType() const {
     return BatchingType::VertexArray;
 }
 
-void VertexArray::_draw(Canvas& aCanvas, const RenderStates& aStates) const {
+void VertexArray::_drawOnto(Canvas& aCanvas, const RenderStates& aStates) const {
     SFMLVertices sfVertices{vertices.data(), vertices.size()};
     const auto sfPrimitiveType = ToSf(primitiveType);
 

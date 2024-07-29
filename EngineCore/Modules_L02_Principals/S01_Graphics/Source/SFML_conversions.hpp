@@ -357,12 +357,12 @@ sf::Glyph ToSf(const Glyph& aGlyph) {
 inline
 PrimitiveType ToHg(sf::PrimitiveType aType) {
     switch (aType) {
-    case sf::Points:        return PrimitiveType::Points;
-    case sf::Lines:         return PrimitiveType::Lines;
-    case sf::LineStrip:     return PrimitiveType::LineStrip;
-    case sf::Triangles:     return PrimitiveType::Triangles;
-    case sf::TriangleStrip: return PrimitiveType::TriangleStrip;
-    case sf::TriangleFan:   return PrimitiveType::TriangleFan;
+    case sf::Points:        return PrimitiveType::POINTS;
+    case sf::Lines:         return PrimitiveType::LINES;
+    case sf::LineStrip:     return PrimitiveType::LINE_STRIP;
+    case sf::Triangles:     return PrimitiveType::TRIANGLES;
+    case sf::TriangleStrip: return PrimitiveType::TRIANGLE_STRIP;
+    case sf::TriangleFan:   return PrimitiveType::TRIANGLE_FAN;
     default:
         HG_UNREACHABLE("Invalid sf::PrimitiveType value ({}).", (int)aType);
     }
@@ -371,12 +371,12 @@ PrimitiveType ToHg(sf::PrimitiveType aType) {
 inline
 sf::PrimitiveType ToSf(PrimitiveType aType) {
     switch (aType) {
-    case PrimitiveType::Points:        return sf::Points;
-    case PrimitiveType::Lines:         return sf::Lines;
-    case PrimitiveType::LineStrip:     return sf::LineStrip;
-    case PrimitiveType::Triangles:     return sf::Triangles;
-    case PrimitiveType::TriangleStrip: return sf::TriangleStrip;
-    case PrimitiveType::TriangleFan:   return sf::TriangleFan;
+    case PrimitiveType::POINTS:         return sf::Points;
+    case PrimitiveType::LINES:          return sf::Lines;
+    case PrimitiveType::LINE_STRIP:     return sf::LineStrip;
+    case PrimitiveType::TRIANGLES:      return sf::Triangles;
+    case PrimitiveType::TRIANGLE_STRIP: return sf::TriangleStrip;
+    case PrimitiveType::TRIANGLE_FAN:   return sf::TriangleFan;
     default:
         HG_UNREACHABLE("Invalid hg::gr::PrimitiveType value ({}).", (int)aType);
     }

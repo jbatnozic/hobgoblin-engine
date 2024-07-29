@@ -210,7 +210,7 @@ void TestDrawingVertexArrays() {
     window.getView().setEnabled(true);
 
     gr::VertexArray varr{};
-    varr.primitiveType = gr::PrimitiveType::TriangleStrip;
+    varr.primitiveType = gr::PrimitiveType::TRIANGLE_STRIP;
 
     varr.vertices.push_back(gr::Vertex{{32.f, 32.f}, gr::COLOR_RED});
     varr.vertices.push_back(gr::Vertex{{32.f, 64.f}, gr::COLOR_YELLOW});

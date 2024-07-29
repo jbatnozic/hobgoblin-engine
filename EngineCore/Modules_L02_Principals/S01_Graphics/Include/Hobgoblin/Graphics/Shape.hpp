@@ -295,7 +295,7 @@ private:
     const Texture* _texture;
     std::aligned_storage<STORAGE_SIZE, STORAGE_ALIGN>::type _storage;
 
-    void _draw(Canvas& aCanvas, const RenderStates& aStates) const override;
+    void _drawOnto(Canvas& aCanvas, const RenderStates& aStates) const override;
 };
 
 } // namespace gr

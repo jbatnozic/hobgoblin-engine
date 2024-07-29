@@ -1,11 +1,10 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-// clang-format off
-
 #include <Hobgoblin/Graphics/Draw_batcher.hpp>
 #include <Hobgoblin/HGExcept.hpp>
 
+#include <array>
 #include <cassert>
 #include <typeinfo>
 
@@ -17,6 +16,7 @@ namespace gr {
 // VERTICES ALWAYS CLOCKWISE!
 
 namespace {
+// clang-format off
 void AppendSpriteToVertexArray(const Sprite& aSprite, VertexArray& aVertexArray) {
     Vertex vert[6]; // FIRST: top-left, top-right, bottom-left
                     //  THEN: top-right, bottom-right, bottom-left
@@ -56,23 +56,45 @@ bool operator==(const RenderStates& aStates1, const RenderStates& aStates2) {
             aStates1.transform == aStates2.transform &&
             aStates1.shader    == aStates2.shader);
 }
+// clang-format on
 
 bool operator!=(const RenderStates& aStates1, const RenderStates& aStates2) {
     return (!(aStates1 == aStates2));
 }
+
+bool IsBatchable(PrimitiveType aPrimitiveType) {
+    struct Mapping {
+        std::array<bool, (unsigned)PrimitiveType::COUNT> table;
+
+        constexpr Mapping() {
+            table[(unsigned)PrimitiveType::POINTS]         = true;
+            table[(unsigned)PrimitiveType::LINES]          = true;
+            table[(unsigned)PrimitiveType::LINE_STRIP]     = false;
+            table[(unsigned)PrimitiveType::TRIANGLES]      = true;
+            table[(unsigned)PrimitiveType::TRIANGLE_STRIP] = false;
+            table[(unsigned)PrimitiveType::TRIANGLE_FAN]   = false;
+        }
+    };
+
+    static constexpr Mapping mapping{};
+
+#ifdef UHOBGOBLIN_DEBUG
+    return mapping.table.at((unsigned)aPrimitiveType);
+#else
+    return mapping.table[(unsigned)aPrimitiveType];
+#endif
+}
 } // namespace
 
 DrawBatcher::DrawBatcher(Canvas& aCanvas)
-    : _canvas{aCanvas}
-{
-}
+    : _canvas{aCanvas} {}
 
-void DrawBatcher::draw(const Drawable& aDrawable,
-                       const RenderStates& aStates) {
+void DrawBatcher::draw(const Drawable& aDrawable, const RenderStates& aStates) {
     const auto batchingType = aDrawable.getBatchingType();
     switch (batchingType) {
     case Drawable::BatchingType::VertexBuffer:
         // TODO - this branch should never happen
+        assert(false);
         break;
 
     case Drawable::BatchingType::VertexArray:
@@ -85,39 +107,32 @@ void DrawBatcher::draw(const Drawable& aDrawable,
         _drawSprite(static_cast<const Sprite&>(aDrawable), aStates);
         break;
 
-    case Drawable::BatchingType::Aggregate:
-        _canvas.draw(aDrawable, aStates);
-        break;
+    case Drawable::BatchingType::Aggregate: _canvas.draw(aDrawable, aStates); break;
 
     case Drawable::BatchingType::Custom:
         _flush();
         _canvas.draw(aDrawable, aStates);
         break;
 
-    default:
-        HG_UNREACHABLE("Invalid batching type encountered ({}).", (int)batchingType);
+    default: HG_UNREACHABLE("Invalid batching type encountered ({}).", (int)batchingType);
     }
 }
 
-void DrawBatcher::draw(const Vertex* aVertices,
-                       PZInteger aVertexCount,
-                       PrimitiveType aType,
+void DrawBatcher::draw(const Vertex*       aVertices,
+                       PZInteger           aVertexCount,
+                       PrimitiveType       aType,
                        const RenderStates& aStates) {
     switch (_status) {
-    default:
-        _flush();
-        SWITCH_FALLTHROUGH;
+    default: _flush(); SWITCH_FALLTHROUGH;
 
-    case Status::Empty:
-        SWITCH_FALLTHROUGH;
+    case Status::Empty: SWITCH_FALLTHROUGH;
 
     case Status::BatchingVertices:
         if (_status == Status::Empty) {
             _prepForBatchingVertices(aStates, aType);
-        }
-        else {
+        } else {
             // If batches are not compatible, flush and start a new batch
-            if (_vertexArray.primitiveType != aType || aStates != _renderStates) { // TODO: not all primitive types are "continuable"
+            if (_vertexArray.primitiveType != aType || !IsBatchable(aType) || aStates != _renderStates) {
                 _flush();
                 _prepForBatchingVertices(aStates, aType);
             }
@@ -130,16 +145,15 @@ void DrawBatcher::draw(const Vertex* aVertices,
     }
 }
 
-void DrawBatcher::draw(const VertexBuffer& aVertexBuffer,
-                       const RenderStates& aStates) {
+void DrawBatcher::draw(const VertexBuffer& aVertexBuffer, const RenderStates& aStates) {
     // Always draw vertex buffers individually
     _flush();
     _canvas.draw(aVertexBuffer, aStates);
 }
 
 void DrawBatcher::draw(const VertexBuffer& aVertexBuffer,
-                       PZInteger aFirstVertex,
-                       PZInteger aVertexCount,
+                       PZInteger           aFirstVertex,
+                       PZInteger           aVertexCount,
                        const RenderStates& aStates) {
     // Always draw vertex buffers individually
     _flush();
@@ -157,8 +171,7 @@ void DrawBatcher::getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) 
 
 void DrawBatcher::_flush() {
     switch (_status) {
-    case Status::Empty:
-        return;
+    case Status::Empty: return;
 
     case Status::BatchingSprites:
         _renderStates.texture = _texture;
@@ -171,51 +184,44 @@ void DrawBatcher::_flush() {
         _vertexArray.vertices.clear();
         break;
 
-    default:
-        break;
+    default: break;
     }
 
     _status = Status::Empty;
 }
 
 void DrawBatcher::_prepForBatchingSprites(const RenderStates& aStates, const Texture* aTexture) {
-    _vertexArray.primitiveType = PrimitiveType::Triangles;
-    _renderStates = aStates;
-    _texture = aTexture;
+    _vertexArray.primitiveType = PrimitiveType::TRIANGLES;
+    _renderStates              = aStates;
+    _texture                   = aTexture;
 
     _status = Status::BatchingSprites;
 }
 
 void DrawBatcher::_prepForBatchingVertices(const RenderStates& aStates, PrimitiveType aType) {
     _vertexArray.primitiveType = aType;
-    _renderStates = aStates;
+    _renderStates              = aStates;
 
     _status = Status::BatchingVertices;
 }
 
 void DrawBatcher::_drawVertexArray(const VertexArray& aVertexArray, const RenderStates& aStates) {
-    this->draw(
-        aVertexArray.vertices.data(),
-        stopz(aVertexArray.vertices.size()),
-        aVertexArray.primitiveType,
-        aStates
-    );
+    this->draw(aVertexArray.vertices.data(),
+               stopz(aVertexArray.vertices.size()),
+               aVertexArray.primitiveType,
+               aStates);
 }
 
 void DrawBatcher::_drawSprite(const Sprite& aSprite, const RenderStates& aStates) {
     switch (_status) {
-    default:
-        _flush();
-        SWITCH_FALLTHROUGH;
+    default: _flush(); SWITCH_FALLTHROUGH;
 
-    case Status::Empty:
-        SWITCH_FALLTHROUGH;
+    case Status::Empty: SWITCH_FALLTHROUGH;
 
     case Status::BatchingSprites:
         if (_status == Status::Empty) {
             _prepForBatchingSprites(aStates, aSprite.getTexture());
-        }
-        else {
+        } else {
             // If batches are not compatible, flush and start a new batch
             if (aSprite.getTexture() != _texture || aStates != _renderStates) {
                 _flush();
@@ -232,5 +238,3 @@ void DrawBatcher::_drawSprite(const Sprite& aSprite, const RenderStates& aStates
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
-
-// clang-format on

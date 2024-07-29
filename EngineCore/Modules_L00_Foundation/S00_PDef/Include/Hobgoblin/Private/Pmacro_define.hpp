@@ -11,11 +11,11 @@
 ///////////////////////////////////////////////////////////////////////////
 
 #if defined(_MSC_VER)
-#define CURRENT_FUNCTION __FUNCSIG__
-#define SWITCH_FALLTHROUGH (void)0
+#define CURRENT_FUNCTION   __FUNCSIG__
+#define SWITCH_FALLTHROUGH [[fallthrough]]
 #else
-#define CURRENT_FUNCTION __PRETTY_FUNCTION__
-#define SWITCH_FALLTHROUGH (void)0 /* TEMP */
+#define CURRENT_FUNCTION   __PRETTY_FUNCTION__
+#define SWITCH_FALLTHROUGH [[fallthrough]]
 #endif
 
 ///////////////////////////////////////////////////////////////////////////

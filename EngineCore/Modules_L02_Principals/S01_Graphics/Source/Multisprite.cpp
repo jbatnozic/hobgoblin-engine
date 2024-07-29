@@ -330,7 +330,7 @@ math::Rectangle<float> Multisprite::Subsprite::getLocalBounds() const {
 // PROTECTED/PRIVATE                                                     //
 ///////////////////////////////////////////////////////////////////////////
 
-void Multisprite::_draw(Canvas& aCanvas, const RenderStates& aStates) const {
+void Multisprite::_drawOnto(Canvas& aCanvas, const RenderStates& aStates) const {
     if (_subspriteCount == 0 || _texture == nullptr) {
         return;
     }
@@ -353,7 +353,7 @@ void Multisprite::_draw(Canvas& aCanvas, const RenderStates& aStates) const {
     RenderStates statesCopy{aStates};
     statesCopy.texture = _texture;
 
-    aCanvas.draw(vertices, VERTEXT_COUNT, PrimitiveType::Triangles, statesCopy);
+    aCanvas.draw(vertices, VERTEXT_COUNT, PrimitiveType::TRIANGLES, statesCopy);
 }
 
 Multisprite::Subsprite* Multisprite::_firstSubspritePtr() {

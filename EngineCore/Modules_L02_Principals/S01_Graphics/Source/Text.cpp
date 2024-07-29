@@ -177,7 +177,7 @@ Drawable::BatchingType Text::getBatchingType() const {
     return Drawable::BatchingType::Custom;
 }
 
-void Text::_draw(Canvas& aCanvas, const RenderStates& aStates) const {
+void Text::_drawOnto(Canvas& aCanvas, const RenderStates& aStates) const {
     const auto drawingWasSuccessful = Draw(aCanvas, [this, &aStates](sf::RenderTarget& aSfRenderTarget) {
         aSfRenderTarget.draw(*CIMPLOF(*this), ToSf(aStates));
     });

@@ -122,7 +122,7 @@ math::Rectangle<float> Sprite::getGlobalBounds() const {
     return {bounds.left, bounds.top, bounds.width, bounds.height};
 }
 
-void Sprite::_draw(Canvas& aCanvas, const RenderStates& aStates) const {
+void Sprite::_drawOnto(Canvas& aCanvas, const RenderStates& aStates) const {
     if (_texture == nullptr) {
         return;
     }

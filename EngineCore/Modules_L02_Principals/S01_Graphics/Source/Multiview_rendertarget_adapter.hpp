@@ -65,9 +65,9 @@ private:
     std::variant<View, Views> _views;
     PZInteger _viewCount;
 
-    View* addressOfFirstView();
+    View* _addressOfFirstView();
 
-    const View* addressOfFirstView() const;
+    const View* _addressOfFirstView() const;
 };
 
 } // namespace gr

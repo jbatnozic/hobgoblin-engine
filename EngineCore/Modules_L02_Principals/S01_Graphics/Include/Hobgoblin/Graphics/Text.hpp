@@ -389,7 +389,7 @@ public:
     Transform getInverseTransform() const override;
 
 protected:
-    void _draw(Canvas& aCanvas, const RenderStates& aStates) const override;
+    void _drawOnto(Canvas& aCanvas, const RenderStates& aStates) const override;
 
 private:
     friend class detail::GraphicsImplAccessor;
