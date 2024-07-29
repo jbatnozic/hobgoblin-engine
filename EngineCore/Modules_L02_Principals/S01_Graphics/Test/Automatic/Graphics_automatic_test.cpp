@@ -13,7 +13,6 @@
 #include <cmath>
 
 namespace gr   = hg::gr;
-namespace math = hg::math;
 
 namespace {
 template <class taSprite>
@@ -30,7 +29,8 @@ void CheckOriginCorrectness(const taSprite& aSprite, const gr::OriginOffset& aEx
         EXPECT_NEAR(origin.y, aExpectedOffset.offset.y, EPSILON);
         break;
 
-    default: HG_UNREACHABLE("Invalid value for OriginOffset::Kind ({}).", (int)aExpectedOffset.kind);
+    default:
+        HG_UNREACHABLE("Invalid value for OriginOffset::Kind ({}).", (int)aExpectedOffset.kind);
     }
 }
 } // namespace

@@ -37,13 +37,21 @@ UnicodeString LoadWholeFile(const std::filesystem::path& aPath, std::optional<Ch
 
     const char* codepage = nullptr;
     switch (charset) {
-    case Charset::ISO_8859_1: codepage = "ISO-8859-1"; break;
+    case Charset::ISO_8859_1:
+        codepage = "ISO-8859-1";
+        break;
 
-    case Charset::UTF_8: codepage = "UTF-8"; break;
+    case Charset::UTF_8:
+        codepage = "UTF-8";
+        break;
 
-    case Charset::UTF_16_LE: codepage = "UTF-16LE"; break;
+    case Charset::UTF_16_LE:
+        codepage = "UTF-16LE";
+        break;
 
-    case Charset::UTF_16_BE: codepage = "UTF-16BE"; break;
+    case Charset::UTF_16_BE:
+        codepage = "UTF-16BE";
+        break;
 
     default:
         HG_THROW_TRACED(TracedRuntimeError,

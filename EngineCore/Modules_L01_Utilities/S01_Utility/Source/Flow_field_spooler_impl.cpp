@@ -419,7 +419,8 @@ private:
                 }
                 break;
 
-            default: HG_UNREACHABLE("Invalid Job::Kind value ({}).", (int)job.kind);
+            default:
+                HG_UNREACHABLE("Invalid Job::Kind value ({}).", (int)job.kind);
             }
         }
     }

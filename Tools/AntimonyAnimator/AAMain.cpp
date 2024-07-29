@@ -105,9 +105,7 @@ public:
         }
     }
 
-    void back() {
-    
-    }
+    void back() {}
 
 private:
     const MasterLoader& _masterLoader;
