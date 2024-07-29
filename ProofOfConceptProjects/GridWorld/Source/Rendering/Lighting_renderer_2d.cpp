@@ -24,7 +24,8 @@ const auto ADDITIVE_DRAW = hg::gr::RenderStates{hg::gr::BLEND_ADD};
 
 float MultiplierForPurpose(LightingRenderer2D::Purpose aPurpose) {
     switch (aPurpose) {
-    case LightingRenderer2D::FOR_TOPDOWN: return 1.f;
+    case LightingRenderer2D::FOR_TOPDOWN:
+        return 1.f;
 
     case LightingRenderer2D::FOR_DIMETRIC:
         {
@@ -33,7 +34,8 @@ float MultiplierForPurpose(LightingRenderer2D::Purpose aPurpose) {
             return MAGIC_DIMETRIC_MULTIPLIER;
         }
 
-    default: HG_UNREACHABLE("Invalid value for LightingRenderer2D::Purpose ({}).", (int)aPurpose);
+    default:
+        HG_UNREACHABLE("Invalid value for LightingRenderer2D::Purpose ({}).", (int)aPurpose);
     }
 }
 } // namespace

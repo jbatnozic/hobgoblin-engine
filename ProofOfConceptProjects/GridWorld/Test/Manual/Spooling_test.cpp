@@ -263,7 +263,8 @@ void RunSpoolingTest() {
                         }
                         break;
 
-                    default: break;
+                    default:
+                        break;
                     }
                 });
         }

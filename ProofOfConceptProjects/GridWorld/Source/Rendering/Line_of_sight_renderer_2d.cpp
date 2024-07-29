@@ -21,7 +21,8 @@ constexpr auto LOG_ID = "gridworld";
 
 float MultiplierForPurpose(LineOfSightRenderer2D::Purpose aPurpose) {
     switch (aPurpose) {
-    case LineOfSightRenderer2D::FOR_TOPDOWN: return 1.f;
+    case LineOfSightRenderer2D::FOR_TOPDOWN:
+        return 1.f;
 
     case LineOfSightRenderer2D::FOR_DIMETRIC:
         {
@@ -30,7 +31,8 @@ float MultiplierForPurpose(LineOfSightRenderer2D::Purpose aPurpose) {
             return MAGIC_DIMETRIC_MULTIPLIER;
         }
 
-    default: HG_UNREACHABLE("Invalid value for LineOfSightRenderer2D::Purpose ({}).", (int)aPurpose);
+    default:
+        HG_UNREACHABLE("Invalid value for LineOfSightRenderer2D::Purpose ({}).", (int)aPurpose);
     }
 }
 } // namespace

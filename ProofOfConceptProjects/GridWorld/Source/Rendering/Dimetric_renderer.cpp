@@ -74,11 +74,16 @@ bool DimetricRenderer::RenderedObjectPtrLess::operator()(const RenderedObject* a
                                                          const RenderedObject* aRhs) const {
     const auto order = aLhs->getSpatialInfo().checkDimetricDrawingOrder(aRhs->getSpatialInfo());
     switch (order) {
-    case SpatialInfo::DRAW_OTHER_FIRST: return false;
-    case SpatialInfo::DOES_NOT_MATTER: return (aLhs < aRhs);
-    case SpatialInfo::DRAW_THIS_FIRST: return true;
+    case SpatialInfo::DRAW_OTHER_FIRST:
+        return false;
+    case SpatialInfo::DOES_NOT_MATTER:
+        return (aLhs < aRhs);
+    case SpatialInfo::DRAW_THIS_FIRST:
+        return true;
 
-    default: HG_UNREACHABLE("Invalid value for drawing order ({}).", (int)order); return {};
+    default:
+        HG_UNREACHABLE("Invalid value for drawing order ({}).", (int)order);
+        return {};
     }
 }
 
@@ -353,7 +358,8 @@ void DimetricRenderer::_renderWalls(hg::gr::Canvas& aCanvas, int aRenderOptions)
 #endif
 
             switch (drawMode) {
-            case detail::DrawMode::NONE: break;
+            case detail::DrawMode::NONE:
+                break;
 
             case detail::DrawMode::LOWERED:
                 {
@@ -373,7 +379,8 @@ void DimetricRenderer::_renderWalls(hg::gr::Canvas& aCanvas, int aRenderOptions)
                 }
                 break;
 
-            default: HG_UNREACHABLE("Invalid value for DrawMode ({}).", (int)drawMode);
+            default:
+                HG_UNREACHABLE("Invalid value for DrawMode ({}).", (int)drawMode);
             }
         });
 }
