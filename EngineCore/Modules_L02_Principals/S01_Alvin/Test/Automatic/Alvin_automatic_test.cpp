@@ -281,17 +281,22 @@ private:
 class Health : public HealthPickUpInterface {
 public:
     Health(NeverNull<cpSpace*> aSpace, math::Vector2d aPosition)
-        : _colDelegate{_initColDelegate()}
-        , _body{alvin::Body::createDynamic(100.0, cpMomentForCircle(100.0, 0.0, 16.0, cpvzero))}
-        , _shape{alvin::Shape::createCircle(_body, 16.0, cpvzero)} {
-        _colDelegate.bind(*this, _shape);
-        cpSpaceAddBody(aSpace, _body);
-        setPosition(aPosition);
-        cpSpaceAddShape(aSpace, _shape);
+        : _unibody{[this]() {
+                       return _initColDelegate();
+                   },
+                   [this]() {
+                       return alvin::Body::createDynamic(100.0,
+                                                         cpMomentForCircle(100.0, 0.0, 16.0, cpvzero));
+                   },
+                   [this]() {
+                       return alvin::Shape::createCircle(_unibody, 16.0, cpvzero);
+                   }} {
+        _unibody.bindDelegate(*this);
+        _unibody.addToSpace(aSpace, aPosition);
     }
 
     void setPosition(math::Vector2d aPosition) {
-        cpBodySetPosition(_body, cpv(aPosition.x, aPosition.y));
+        cpBodySetPosition(_unibody, cpv(aPosition.x, aPosition.y));
     }
 
     testing::StrictMock<CollisionCallback>& getColllisionCallback() {
@@ -299,20 +304,18 @@ public:
     }
 
     NeverNull<const cpShape*> getShape() const {
-        return _shape;
+        return _unibody;
     }
 
 private:
     testing::StrictMock<CollisionCallback> _colCallback;
 
-    alvin::CollisionDelegate _colDelegate;
-    alvin::Body              _body;
-    alvin::Shape             _shape;
+    alvin::Unibody _unibody;
 
     alvin::CollisionDelegate _initColDelegate() {
         auto builder = alvin::CollisionDelegateBuilder{};
-        ADD_ALL_INTERACTIONS(PlayerInterface, builder, _shape);
-        ADD_ALL_INTERACTIONS(WallInterface, builder, _shape);
+        ADD_ALL_INTERACTIONS(PlayerInterface, builder, _unibody.shape);
+        ADD_ALL_INTERACTIONS(WallInterface, builder, _unibody.shape);
         return builder.finalize();
     }
 };
