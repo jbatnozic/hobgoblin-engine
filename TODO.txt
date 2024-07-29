@@ -1,6 +1,0 @@
-Graphics:
-  - figure out RenderTarget vs Canvas
-
-General:
-  - clang format no single-line cases in switch
-
