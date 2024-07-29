@@ -214,7 +214,7 @@ public:
     Transform getInverseTransform() const override final;
 
 protected:
-    void _draw(Canvas& aCanvas, const RenderStates& aStates) const override;
+    void _drawOnto(Canvas& aCanvas, const RenderStates& aStates) const override;
     BatchingType getBatchingType() const final override;
 
 private:

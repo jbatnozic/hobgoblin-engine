@@ -27,7 +27,7 @@ SfmlRenderTargetAdapter::SfmlRenderTargetAdapter(sf::RenderTarget& aRenderTarget
 
 void SfmlRenderTargetAdapter::draw(const Drawable& aDrawable,
                                    const RenderStates& aStates) {
-    aDrawable._draw(SELF, aStates);
+    aDrawable._drawOnto(SELF, aStates);
 }
 
 void SfmlRenderTargetAdapter::draw(const Vertex* aVertices,

@@ -38,7 +38,7 @@ public:
     virtual BatchingType getBatchingType() const = 0;
 
 private:
-    virtual void _draw(Canvas& aCanvas, const RenderStates& aStates) const = 0;
+    virtual void _drawOnto(Canvas& aCanvas, const RenderStates& aStates) const = 0;
 
     friend class DrawBatcher;
     friend class SfmlRenderTargetAdapter;

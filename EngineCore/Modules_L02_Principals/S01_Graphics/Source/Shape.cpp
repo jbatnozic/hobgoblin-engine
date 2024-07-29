@@ -273,7 +273,7 @@ const void* Shape::_getSFMLImpl() const {
     return SELF_CIMPL;
 }
 
-void Shape::_draw(Canvas& aCanvas, const RenderStates& aStates) const {
+void Shape::_drawOnto(Canvas& aCanvas, const RenderStates& aStates) const {
     const auto drawingWasSuccessful = 
         Draw(aCanvas, [this, &aStates](sf::RenderTarget& aSfRenderTarget) {
         aSfRenderTarget.draw(*CIMPLOF(*this), ToSf(aStates));

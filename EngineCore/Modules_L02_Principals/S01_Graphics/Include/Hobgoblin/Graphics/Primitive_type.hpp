@@ -42,12 +42,13 @@ namespace gr {
 //! will always be 1 pixel, regardless the current transform
 //! and view.
 enum class PrimitiveType {
-    Points,        //!< List of individual points
-    Lines,         //!< List of individual lines
-    LineStrip,     //!< List of connected lines, a point uses the previous point to form a line
-    Triangles,     //!< List of individual triangles
-    TriangleStrip, //!< List of connected triangles, a point uses the two previous points to form a triangle
-    TriangleFan,   //!< List of connected triangles, a point uses the common center and the previous point to form a triangle
+    POINTS,         //!< List of individual points
+    LINES,          //!< List of individual lines
+    LINE_STRIP,     //!< List of connected lines, a point uses the previous point to form a line
+    TRIANGLES,      //!< List of individual triangles
+    TRIANGLE_STRIP, //!< List of connected triangles, a point uses the two previous points to form a triangle
+    TRIANGLE_FAN,   //!< List of connected triangles, a point uses the common center and the previous point to form a triangle
+    COUNT,          //!< Number of different primitive types. Always keep last in the enum.
 };
 
 } // namespace gr

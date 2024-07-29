@@ -36,14 +36,14 @@ void MultiViewRenderTargetAdapter::setViewCount(PZInteger aViewCount) {
             std::get<Views>(_views).resize(pztos(aViewCount));
         }
         else {
-            View currentView = *addressOfFirstView();
+            View currentView = *_addressOfFirstView();
             _views = Views{};
             std::get<Views>(_views).resize(pztos(aViewCount));
             std::get<Views>(_views)[0] = currentView;
         }
     }
     else {
-        _views = *addressOfFirstView();
+        _views = *_addressOfFirstView();
     }
 
     _viewCount = aViewCount;
@@ -55,12 +55,12 @@ PZInteger MultiViewRenderTargetAdapter::getViewCount() const noexcept {
 
 View& MultiViewRenderTargetAdapter::getView(PZInteger aViewIdx) {
     assert(aViewIdx < _viewCount);
-    return *(addressOfFirstView() + aViewIdx);
+    return *(_addressOfFirstView() + aViewIdx);
 }
 
 const View& MultiViewRenderTargetAdapter::getView(PZInteger aViewIdx) const {
     assert(aViewIdx < _viewCount);
-    return *(addressOfFirstView() + aViewIdx);
+    return *(_addressOfFirstView() + aViewIdx);
 }
 
 void MultiViewRenderTargetAdapter::draw(const Drawable& aDrawable,
@@ -120,7 +120,7 @@ void MultiViewRenderTargetAdapter::flush() {
     _renderTarget->flush();
 }
 
-View* MultiViewRenderTargetAdapter::addressOfFirstView() {
+View* MultiViewRenderTargetAdapter::_addressOfFirstView() {
     if (_viewCount > 1) {
         return std::get<Views>(_views).data();
     }
@@ -129,7 +129,7 @@ View* MultiViewRenderTargetAdapter::addressOfFirstView() {
     }
 }
 
-const View* MultiViewRenderTargetAdapter::addressOfFirstView() const {
+const View* MultiViewRenderTargetAdapter::_addressOfFirstView() const {
     if (_viewCount > 1) {
         return std::get<Views>(_views).data();
     }

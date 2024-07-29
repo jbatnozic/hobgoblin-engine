@@ -3,7 +3,6 @@
 
 // clang-format off
 
-
 #include <Hobgoblin/Graphics/Vertex_buffer.hpp>
 
 #include <SFML/Graphics/VertexBuffer.hpp>

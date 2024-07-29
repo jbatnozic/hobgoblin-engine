@@ -54,7 +54,7 @@ public:
 
     //! The type of primitives to draw. This field defines how the 
     //! vertices must be interpreted when it's time to draw them.
-    PrimitiveType primitiveType = PrimitiveType::Points;
+    PrimitiveType primitiveType = PrimitiveType::POINTS;
 
     //! \brief Compute the bounding rectangle of the vertex array
     //!
@@ -67,7 +67,7 @@ public:
     BatchingType getBatchingType() const override;
 
 private:
-    void _draw(Canvas& aCanvas, const RenderStates& aStates) const override;
+    void _drawOnto(Canvas& aCanvas, const RenderStates& aStates) const override;
 };
 
 } // namespace gr
