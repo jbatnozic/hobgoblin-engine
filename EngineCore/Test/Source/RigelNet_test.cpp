@@ -1,13 +1,11 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-// clang-format off
-
-
 #include <gtest/gtest.h>
 
 #define HOBGOBLIN_SHORT_NAMESPACE
 #include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/RigelNet.hpp>
 #include <Hobgoblin/RigelNet_macros.hpp>
 using namespace hg::rn;
@@ -20,29 +18,22 @@ using namespace hg::rn;
 #include <vector>
 
 namespace {
-const std::string PASS = "beetlejuice";
-constexpr hg::PZInteger CLIENT_COUNT = 1;
+const std::string       PASS            = "beetlejuice";
+constexpr hg::PZInteger CLIENT_COUNT    = 1;
 constexpr hg::PZInteger MAX_PACKET_SIZE = 200;
 
 struct EventCount {
-    hg::PZInteger badPassphrase = 0;
+    hg::PZInteger badPassphrase        = 0;
     hg::PZInteger connectAttemptFailed = 0;
-    hg::PZInteger connected = 0;
-    hg::PZInteger disconnected = 0;
+    hg::PZInteger connected            = 0;
+    hg::PZInteger disconnected         = 0;
 };
 } // namespace
 
 // Check that the whole RPC machinery compiles:
 RN_DEFINE_RPC(TestHandler, RN_ARGS(int, a, std::string, s)) {
-    RN_NODE_IN_HANDLER().callIfServer(
-        [](RN_ServerInterface& /*server*/) {
-
-        });
-
-    RN_NODE_IN_HANDLER().callIfClient(
-        [](RN_ClientInterface& /*client*/) {
-
-        });
+    RN_NODE_IN_HANDLER().callIfServer([](RN_ServerInterface& /*server*/) {});
+    RN_NODE_IN_HANDLER().callIfClient([](RN_ClientInterface& /*client*/) {});
 }
 
 // Check that the compose function for TestHandler is generated:
@@ -52,9 +43,9 @@ void DummyFuncCallsComposeForTestHandler() {
 }
 
 // Check that a handler with up to 10 arguments can be compiled
-RN_DEFINE_RPC(HandlerWithTenArguments,
-              RN_ARGS(int, i0, int, i1, int, i2, int, i3, int, i4,
-                      int, i5, int, i6, int, i7, int, i8, int, i9)) {
+RN_DEFINE_RPC(
+    HandlerWithTenArguments,
+    RN_ARGS(int, i0, int, i1, int, i2, int, i3, int, i4, int, i5, int, i6, int, i7, int, i8, int, i9)) {
     i0 = i1 = i2 = i3 = i4 = i5 = i6 = i7 = i8 = i9 = 666;
 }
 
@@ -62,38 +53,66 @@ class RigelNetTest : public ::testing::Test {
 public:
     RigelNetTest()
         : _server{RN_ServerFactory::createServer(RN_Protocol::UDP, PASS, CLIENT_COUNT, MAX_PACKET_SIZE)}
-        , _client{RN_ClientFactory::createClient(RN_Protocol::UDP, PASS, MAX_PACKET_SIZE)}
-    {
+        , _client{RN_ClientFactory::createClient(RN_Protocol::UDP, PASS, MAX_PACKET_SIZE)} {
         RN_IndexHandlers();
+    }
+
+    void SetUp() override {
+        _server->addEventListener(&_eventListenerServer);
+        _client->addEventListener(&_eventListenerClient);
+    }
+
+    void TearDown() override {
+        _server->removeEventListener(&_eventListenerServer);
+        _client->removeEventListener(&_eventListenerClient);
     }
 
 protected:
     std::unique_ptr<RN_ServerInterface> _server;
     std::unique_ptr<RN_ClientInterface> _client;
 
-    EventCount pollAndCountEvents(RN_NodeInterface& node) {
-        EventCount cnt;
+    const EventCount& _getEventCount(const RN_NodeInterface& aNode) const {
+        if (&aNode == _server.get()) {
+            return _eventCountServer;
+        }
+        if (&aNode == _client.get()) {
+            return _eventCountClient;
+        }
+        HG_UNREACHABLE();
+        return _eventCountServer;
+    }
 
-        RN_Event ev;
-        while (node.pollEvent(ev)) {
-            ev.strictVisit(
+private:
+    EventCount _eventCountServer;
+    EventCount _eventCountClient;
+
+    class EventListener : public RN_EventListener {
+    public:
+        explicit EventListener(EventCount& aEventCount)
+            : _cnt{aEventCount} {}
+
+        void onNetworkingEvent(const RN_Event& aEvent) override {
+            aEvent.strictVisit(
                 [&](const RN_Event::BadPassphrase& ev) {
-                    cnt.badPassphrase += 1;
+                    _cnt.badPassphrase += 1;
                 },
                 [&](const RN_Event::ConnectAttemptFailed& ev) {
-                    cnt.connectAttemptFailed += 1;
+                    _cnt.connectAttemptFailed += 1;
                 },
                 [&](const RN_Event::Connected& ev) {
-                    cnt.connected += 1;
+                    _cnt.connected += 1;
                 },
                 [&](const RN_Event::Disconnected& ev) {
-                    cnt.disconnected += 1;
-                }
-                );
+                    _cnt.disconnected += 1;
+                });
         }
 
-        return cnt;
-    }
+    private:
+        EventCount& _cnt;
+    };
+
+    EventListener _eventListenerServer{_eventCountServer};
+    EventListener _eventListenerClient{_eventCountClient};
 };
 
 TEST_F(RigelNetTest, ClientConnectsAndDisconnects) {
@@ -119,13 +138,13 @@ TEST_F(RigelNetTest, ClientConnectsAndDisconnects) {
                 _client->getServerConnector().getStatus() == RN_ConnectorStatus::Connected);
 
     {
-        auto cnt = pollAndCountEvents(*_server);
-        ASSERT_EQ(cnt.connected, 1);
+        auto cnt = _getEventCount(*_server);
+        EXPECT_EQ(cnt.connected, 1);
     }
 
     {
-        auto cnt = pollAndCountEvents(*_client);
-        ASSERT_EQ(cnt.connected, 1);
+        auto cnt = _getEventCount(*_client);
+        EXPECT_EQ(cnt.connected, 1);
     }
 
     _client->disconnect(true);
@@ -146,8 +165,8 @@ TEST_F(RigelNetTest, ClientConnectsAndDisconnects) {
     ASSERT_TRUE(_server->getClientConnector(0).getStatus() == RN_ConnectorStatus::Disconnected);
 
     {
-        auto cnt = pollAndCountEvents(*_server);
-        ASSERT_EQ(cnt.disconnected, 1);
+        auto cnt = _getEventCount(*_server);
+        EXPECT_EQ(cnt.disconnected, 1);
     }
 }
 
@@ -183,17 +202,15 @@ TEST_F(RigelNetTest, LocalConnectToUnstartedServerFails) {
 }
 
 RN_DEFINE_RPC_P(SendBinaryBuffer, PREF_, RN_ARGS(RN_RawDataView, bytes)) {
-    RN_NODE_IN_HANDLER().callIfServer(
-        [](RN_ServerInterface& /*server*/) {
-            std::abort();
-        });
+    RN_NODE_IN_HANDLER().callIfServer([](RN_ServerInterface& /*server*/) {
+        std::abort();
+    });
 
-    RN_NODE_IN_HANDLER().callIfClient(
-        [&](RN_ClientInterface& client) {
-            auto& vec = *client.getUserDataOrThrow<std::vector<std::int32_t>>();
-            vec.resize((bytes.getDataSize() + 3) / 4);
-            std::memcpy(vec.data(), bytes.getData(), bytes.getDataSize());
-        });
+    RN_NODE_IN_HANDLER().callIfClient([&](RN_ClientInterface& client) {
+        auto& vec = *client.getUserDataOrThrow<std::vector<std::int32_t>>();
+        vec.resize((bytes.getDataSize() + 3) / 4);
+        std::memcpy(vec.data(), bytes.getData(), bytes.getDataSize());
+    });
 }
 
 TEST_F(RigelNetTest, FragmentedPacketReceived) {
@@ -208,11 +225,13 @@ TEST_F(RigelNetTest, FragmentedPacketReceived) {
     _server->start(0);
     _client->connectLocal(*_server);
 
-    ASSERT_EQ(_client->getServerConnector().getStatus(),  RN_ConnectorStatus::Connected);
+    ASSERT_EQ(_client->getServerConnector().getStatus(), RN_ConnectorStatus::Connected);
     ASSERT_EQ(_server->getClientConnector(0).getStatus(), RN_ConnectorStatus::Connected);
 
-    PREF_Compose_SendBinaryBuffer(*_server, RN_COMPOSE_FOR_ALL,
-                                  RN_RawDataView(serverVector.data(), serverVector.size() * sizeof(std::int32_t)));
+    PREF_Compose_SendBinaryBuffer(
+        *_server,
+        RN_COMPOSE_FOR_ALL,
+        RN_RawDataView(serverVector.data(), serverVector.size() * sizeof(std::int32_t)));
 
     _server->update(RN_UpdateMode::Send);
     _client->update(RN_UpdateMode::Receive);
@@ -224,16 +243,14 @@ TEST_F(RigelNetTest, FragmentedPacketReceived) {
 }
 
 RN_DEFINE_HANDLER(PiecemealHandler, RN_ARGS()) {
-    RN_NODE_IN_HANDLER().callIfServer(
-        [](RN_ServerInterface& /*server*/) {
-            std::abort();
-        });
+    RN_NODE_IN_HANDLER().callIfServer([](RN_ServerInterface& /*server*/) {
+        std::abort();
+    });
 
-    RN_NODE_IN_HANDLER().callIfClient(
-        [](RN_ClientInterface& client) {
-            auto& flag = *client.getUserDataOrThrow<bool>();
-            flag = true;
-        });
+    RN_NODE_IN_HANDLER().callIfClient([](RN_ClientInterface& client) {
+        auto& flag = *client.getUserDataOrThrow<bool>();
+        flag       = true;
+    });
 }
 RN_DEFINE_COMPOSEFUNC(PiecemealHandler, RN_ARGS());
 RN_REGISTER_HANDLER_BEFORE_MAIN(PiecemealHandler);
@@ -245,7 +262,7 @@ TEST_F(RigelNetTest, PiecemealHandlerWorks) {
     _server->start(0);
     _client->connectLocal(*_server);
 
-    ASSERT_EQ(_client->getServerConnector().getStatus(),  RN_ConnectorStatus::Connected);
+    ASSERT_EQ(_client->getServerConnector().getStatus(), RN_ConnectorStatus::Connected);
     ASSERT_EQ(_server->getClientConnector(0).getStatus(), RN_ConnectorStatus::Connected);
 
     Compose_PiecemealHandler(*_server, 0);
@@ -255,5 +272,3 @@ TEST_F(RigelNetTest, PiecemealHandlerWorks) {
 
     ASSERT_EQ(flag, true);
 }
-
-// clang-format on

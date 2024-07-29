@@ -29,7 +29,7 @@ RN_UdpClientImpl::RN_UdpClientImpl(std::string aPassphrase,
                 , _timeoutLimit
                 , _passphrase
                 , _retransmitPredicate
-                , rn_detail::EventFactory{_eventQueue}
+                , rn_detail::EventFactory{_eventListeners}
                 , _maxPacketSize 
                 }
     , _passphrase{std::move(aPassphrase)}
@@ -100,13 +100,12 @@ RN_Telemetry RN_UdpClientImpl::update(RN_UpdateMode mode) {
     }
 }
 
-bool RN_UdpClientImpl::pollEvent(RN_Event& ev) {
-    if (_eventQueue.empty()) {
-        return false;
-    }
-    ev = _eventQueue.front();
-    _eventQueue.pop_front();
-    return true;
+void RN_UdpClientImpl::addEventListener(NeverNull<RN_EventListener*> aEventListener) {
+    _addEventListener(aEventListener);
+}
+
+void RN_UdpClientImpl::removeEventListener(NeverNull<RN_EventListener*> aEventListener) {
+    _removeEventListener(aEventListener);
 }
 
 ///////////////////////////////////////////////////////////////////////////

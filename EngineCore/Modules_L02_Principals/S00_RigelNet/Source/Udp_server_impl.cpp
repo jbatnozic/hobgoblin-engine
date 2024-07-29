@@ -39,7 +39,7 @@ RN_UdpServerImpl::RN_UdpServerImpl(std::string passphrase,
             _timeoutLimit,
             _passphrase,
             _retransmitPredicate,
-            rn_detail::EventFactory{_eventQueue, i},
+            rn_detail::EventFactory{_eventListeners, i},
             _maxPacketSize);
 
         _clients.push_back(std::move(connector));
@@ -90,7 +90,7 @@ void RN_UdpServerImpl::resize(PZInteger newSize) {
             _timeoutLimit,
             _passphrase,
             _retransmitPredicate,
-            rn_detail::EventFactory{_eventQueue, i},
+            rn_detail::EventFactory{_eventListeners, i},
             _maxPacketSize);
 
         _clients.push_back(std::move(connector));
@@ -124,13 +124,12 @@ RN_Telemetry RN_UdpServerImpl::update(RN_UpdateMode mode) {
     }
 }
 
-bool RN_UdpServerImpl::pollEvent(RN_Event& ev) {
-    if (_eventQueue.empty()) {
-        return false;
-    }
-    ev = _eventQueue.front();
-    _eventQueue.pop_front();
-    return true;
+void RN_UdpServerImpl::addEventListener(NeverNull<RN_EventListener*> aEventListener) {
+    _addEventListener(aEventListener);
+}
+
+void RN_UdpServerImpl::removeEventListener(NeverNull<RN_EventListener*> aEventListener) {
+    _removeEventListener(aEventListener);
 }
 
 ///////////////////////////////////////////////////////////////////////////
