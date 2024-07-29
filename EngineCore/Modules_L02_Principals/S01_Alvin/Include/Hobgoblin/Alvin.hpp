@@ -14,5 +14,6 @@
 #include <Hobgoblin/Alvin/Main_collision_dispatcher.hpp>
 #include <Hobgoblin/Alvin/Shape.hpp>
 #include <Hobgoblin/Alvin/Space.hpp>
+#include <Hobgoblin/Alvin/Unibody.hpp>
 
 #endif // !UHOBGOBLIN_ALVIN_ALVIN_HPP
