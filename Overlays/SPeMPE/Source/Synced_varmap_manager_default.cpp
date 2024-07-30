@@ -1,11 +1,8 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-// clang-format off
-
-
-#include <SPeMPE/Managers/Synced_varmap_manager_default.hpp>
 #include <SPeMPE/Managers/Networking_manager_interface.hpp>
+#include <SPeMPE/Managers/Synced_varmap_manager_default.hpp>
 #include <SPeMPE/Utility/Rpc_receiver_context_template.hpp>
 
 #include <Hobgoblin/HGExcept.hpp>
@@ -20,7 +17,7 @@ namespace spempe {
 using namespace hobgoblin::rn;
 
 void USPEMPE_DefaultSyncedVarmapManager_SetValues(DefaultSyncedVarmapManager& aMgr,
-                                                  hobgoblin::util::Packet& aPacket) {
+                                                  hobgoblin::util::Packet&    aPacket) {
     if (aMgr._mode != DefaultSyncedVarmapManager::Mode::Client) {
         throw RN_IllegalMessage{"DefaultSyncedVarmapManager_SetValues - Called on non-Client."};
     }
@@ -28,8 +25,8 @@ void USPEMPE_DefaultSyncedVarmapManager_SetValues(DefaultSyncedVarmapManager& aM
 }
 
 void USPEMPE_DefaultSyncedVarmapManager_SetValueRequested(DefaultSyncedVarmapManager& aMgr,
-                                                          hobgoblin::PZInteger aPlayerIndex,
-                                                          hobgoblin::util::Packet& aPacket) {
+                                                          hobgoblin::PZInteger        aPlayerIndex,
+                                                          hobgoblin::util::Packet&    aPacket) {
     if (aMgr._mode != DefaultSyncedVarmapManager::Mode::Host) {
         throw RN_IllegalMessage{"DefaultSyncedVarmapManager_SetValueRequested - Called on non-Host."};
     }
@@ -44,59 +41,49 @@ constexpr char TYPE_TAG_DOUBLE = 'D';
 constexpr char TYPE_TAG_STRING = 'S';
 
 RN_DEFINE_RPC(USPEMPE_DefaultSyncedVarmapManager_SetValues, RN_ARGS(hobgoblin::util::Packet&, aPacket)) {
-    RN_NODE_IN_HANDLER().callIfServer(
-        [&](RN_ServerInterface& aServer) {
-            const auto rc = SPEMPE_GET_RPC_RECEIVER_CONTEXT(aServer);
-            auto& svmMgr = dynamic_cast<DefaultSyncedVarmapManager&>(
-                rc.gameContext.getComponent<SyncedVarmapManagerInterface>()
-            );
-            USPEMPE_DefaultSyncedVarmapManager_SetValues(svmMgr, aPacket);
-        });
-    RN_NODE_IN_HANDLER().callIfClient(
-        [&](RN_ClientInterface& aClient) {
-            const auto rc = SPEMPE_GET_RPC_RECEIVER_CONTEXT(aClient);
-            auto& svmMgr = dynamic_cast<DefaultSyncedVarmapManager&>(
-                rc.gameContext.getComponent<SyncedVarmapManagerInterface>()
-            );
-            USPEMPE_DefaultSyncedVarmapManager_SetValues(svmMgr, aPacket);
-        });
+    RN_NODE_IN_HANDLER().callIfServer([&](RN_ServerInterface& aServer) {
+        const auto rc     = SPEMPE_GET_RPC_RECEIVER_CONTEXT(aServer);
+        auto&      svmMgr = dynamic_cast<DefaultSyncedVarmapManager&>(
+            rc.gameContext.getComponent<SyncedVarmapManagerInterface>());
+        USPEMPE_DefaultSyncedVarmapManager_SetValues(svmMgr, aPacket);
+    });
+    RN_NODE_IN_HANDLER().callIfClient([&](RN_ClientInterface& aClient) {
+        const auto rc     = SPEMPE_GET_RPC_RECEIVER_CONTEXT(aClient);
+        auto&      svmMgr = dynamic_cast<DefaultSyncedVarmapManager&>(
+            rc.gameContext.getComponent<SyncedVarmapManagerInterface>());
+        USPEMPE_DefaultSyncedVarmapManager_SetValues(svmMgr, aPacket);
+    });
 }
 
-RN_DEFINE_RPC(USPEMPE_DefaultSyncedVarmapManager_RequestToSet, RN_ARGS(hobgoblin::util::Packet&, aPacket)) {
-    RN_NODE_IN_HANDLER().callIfServer(
-        [&](RN_ServerInterface& aServer) {
-            const auto rc = SPEMPE_GET_RPC_RECEIVER_CONTEXT(aServer);
-            auto& svmMgr = dynamic_cast<DefaultSyncedVarmapManager&>(
-                rc.gameContext.getComponent<SyncedVarmapManagerInterface>()
-            );
-            USPEMPE_DefaultSyncedVarmapManager_SetValueRequested(svmMgr, rc.senderIndex + 1, aPacket);
-        });
-    RN_NODE_IN_HANDLER().callIfClient(
-        [&](RN_ClientInterface& aClient) {
-            const auto rc = SPEMPE_GET_RPC_RECEIVER_CONTEXT(aClient);
-            auto& svmMgr = dynamic_cast<DefaultSyncedVarmapManager&>(
-                rc.gameContext.getComponent<SyncedVarmapManagerInterface>()
-            );
-            USPEMPE_DefaultSyncedVarmapManager_SetValueRequested(svmMgr, 0, aPacket);
-        });
+RN_DEFINE_RPC(USPEMPE_DefaultSyncedVarmapManager_RequestToSet,
+              RN_ARGS(hobgoblin::util::Packet&, aPacket)) {
+    RN_NODE_IN_HANDLER().callIfServer([&](RN_ServerInterface& aServer) {
+        const auto rc     = SPEMPE_GET_RPC_RECEIVER_CONTEXT(aServer);
+        auto&      svmMgr = dynamic_cast<DefaultSyncedVarmapManager&>(
+            rc.gameContext.getComponent<SyncedVarmapManagerInterface>());
+        USPEMPE_DefaultSyncedVarmapManager_SetValueRequested(svmMgr, rc.senderIndex + 1, aPacket);
+    });
+    RN_NODE_IN_HANDLER().callIfClient([&](RN_ClientInterface& aClient) {
+        const auto rc     = SPEMPE_GET_RPC_RECEIVER_CONTEXT(aClient);
+        auto&      svmMgr = dynamic_cast<DefaultSyncedVarmapManager&>(
+            rc.gameContext.getComponent<SyncedVarmapManagerInterface>());
+        USPEMPE_DefaultSyncedVarmapManager_SetValueRequested(svmMgr, 0, aPacket);
+    });
 }
 } // namespace
 
 DefaultSyncedVarmapManager::DefaultSyncedVarmapManager(hg::QAO_RuntimeRef aRuntimeRef,
-                                                       int aExecutionPriority)
-    : NonstateObject{
-        aRuntimeRef,
-        SPEMPE_TYPEID_SELF,
-        aExecutionPriority,
-        "::jbatnozic::spempe::DefaultSyncedVarmapManager"
-    }
-    , _netMgr{ccomp<NetworkingManagerInterface>()}
-{
-    _netMgr.addEventListener(*this);
+                                                       int                aExecutionPriority)
+    : NonstateObject{aRuntimeRef,
+                     SPEMPE_TYPEID_SELF,
+                     aExecutionPriority,
+                     "::jbatnozic::spempe::DefaultSyncedVarmapManager"}
+    , _netMgr{ccomp<NetworkingManagerInterface>()} {
+    _netMgr.addEventListener(this);
 }
 
 DefaultSyncedVarmapManager::~DefaultSyncedVarmapManager() {
-    _netMgr.removeEventListener(*this);
+    _netMgr.removeEventListener(this);
 }
 
 void DefaultSyncedVarmapManager::setToMode(Mode aMode) {
@@ -105,9 +92,9 @@ void DefaultSyncedVarmapManager::setToMode(Mode aMode) {
     }
 
     if (aMode == Mode::Host) {
-        SPEMPE_VALIDATE_GAME_CONTEXT_FLAGS(ctx(), privileged==true, networking=true);
+        SPEMPE_VALIDATE_GAME_CONTEXT_FLAGS(ctx(), privileged == true, networking = true);
     } else if (aMode == Mode::Client) {
-        SPEMPE_VALIDATE_GAME_CONTEXT_FLAGS(ctx(), privileged==false, networking=true);
+        SPEMPE_VALIDATE_GAME_CONTEXT_FLAGS(ctx(), privileged == false, networking = true);
     }
 
     _mode = aMode;
@@ -127,18 +114,17 @@ void DefaultSyncedVarmapManager::onNetworkingEvent(const hg::RN_Event& aEvent) {
             // Don't care
         },
         [this](const RN_Event::Connected& aConnectedEvent) {
-            _netMgr.getNode().callIfServer(
-                [&, this](RN_ServerInterface& aServer) {
-                    const auto clientIndex = *(aConnectedEvent.clientIndex);
-                    if (aServer.getClientConnector(clientIndex).getStatus() == RN_ConnectorStatus::Connected) {
-                        this->_sendFullState(clientIndex);
-                    }
-                });
+            _netMgr.getNode().callIfServer([&, this](RN_ServerInterface& aServer) {
+                const auto clientIndex = *(aConnectedEvent.clientIndex);
+                if (aServer.getClientConnector(clientIndex).getStatus() ==
+                    RN_ConnectorStatus::Connected) {
+                    this->_sendFullState(clientIndex);
+                }
+            });
         },
         [](const RN_Event::Disconnected&) {
             // Don't care
-        }
-    );
+        });
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -184,8 +170,7 @@ void DefaultSyncedVarmapManager::setInt64(const std::string& aKey, std::int64_t 
             iter->second.value = aValue;
             _packValue(aKey, aValue, _stateUpdates);
         }
-    }
-    else {
+    } else {
         _int64Values[aKey].value = aValue;
         _packValue(aKey, aValue, _stateUpdates);
     }
@@ -202,8 +187,7 @@ void DefaultSyncedVarmapManager::setDouble(const std::string& aKey, double aValu
             iter->second.value = aValue;
             _packValue(aKey, aValue, _stateUpdates);
         }
-    }
-    else {
+    } else {
         _doubleValues[aKey].value = aValue;
         _packValue(aKey, aValue, _stateUpdates);
     }
@@ -220,8 +204,7 @@ void DefaultSyncedVarmapManager::setString(const std::string& aKey, const std::s
             iter->second.value = aValue;
             _packValue(aKey, aValue, _stateUpdates);
         }
-    }
-    else {
+    } else {
         _stringValues[aKey].value = aValue;
         _packValue(aKey, aValue, _stateUpdates);
     }
@@ -238,11 +221,9 @@ void DefaultSyncedVarmapManager::requestToSetInt64(const std::string& aKey, std:
 
     hobgoblin::util::Packet packet;
     _packValue(aKey, aValue, packet);
-    Compose_USPEMPE_DefaultSyncedVarmapManager_RequestToSet(
-        _netMgr.getNode(),
-        RN_COMPOSE_FOR_ALL,
-        packet
-    );
+    Compose_USPEMPE_DefaultSyncedVarmapManager_RequestToSet(_netMgr.getNode(),
+                                                            RN_COMPOSE_FOR_ALL,
+                                                            packet);
 }
 
 void DefaultSyncedVarmapManager::requestToSetDouble(const std::string& aKey, double aValue) {
@@ -252,11 +233,9 @@ void DefaultSyncedVarmapManager::requestToSetDouble(const std::string& aKey, dou
 
     hobgoblin::util::Packet packet;
     _packValue(aKey, aValue, packet);
-    Compose_USPEMPE_DefaultSyncedVarmapManager_RequestToSet(
-        _netMgr.getNode(),
-        RN_COMPOSE_FOR_ALL,
-        packet
-    );
+    Compose_USPEMPE_DefaultSyncedVarmapManager_RequestToSet(_netMgr.getNode(),
+                                                            RN_COMPOSE_FOR_ALL,
+                                                            packet);
 }
 
 void DefaultSyncedVarmapManager::requestToSetString(const std::string& aKey, const std::string& aValue) {
@@ -266,11 +245,9 @@ void DefaultSyncedVarmapManager::requestToSetString(const std::string& aKey, con
 
     hobgoblin::util::Packet packet;
     _packValue(aKey, aValue, packet);
-    Compose_USPEMPE_DefaultSyncedVarmapManager_RequestToSet(
-        _netMgr.getNode(),
-        RN_COMPOSE_FOR_ALL,
-        packet
-    );
+    Compose_USPEMPE_DefaultSyncedVarmapManager_RequestToSet(_netMgr.getNode(),
+                                                            RN_COMPOSE_FOR_ALL,
+                                                            packet);
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -278,8 +255,8 @@ void DefaultSyncedVarmapManager::requestToSetString(const std::string& aKey, con
 ///////////////////////////////////////////////////////////////////////////
 
 void DefaultSyncedVarmapManager::int64SetClientWritePermission(const std::string& aKey,
-                                                               hg::PZInteger aPlayerIndex,
-                                                               bool aAllowed) {
+                                                               hg::PZInteger      aPlayerIndex,
+                                                               bool               aAllowed) {
     if (_mode != Mode::Host) {
         HG_THROW_TRACED(hg::TracedLogicError, 0, "Can only set permissions while in Host mode.");
     }
@@ -287,15 +264,14 @@ void DefaultSyncedVarmapManager::int64SetClientWritePermission(const std::string
     auto& perms = _int64Values[aKey].permissions;
     if (aAllowed == ALLOWED) {
         perms.setBit(aPlayerIndex);
-    }
-    else {
+    } else {
         perms.clearBit(aPlayerIndex);
     }
 }
 
 void DefaultSyncedVarmapManager::doubleSetClientWritePermission(const std::string& aKey,
-                                                                hg::PZInteger aPlayerIndex,
-                                                                bool aAllowed) {
+                                                                hg::PZInteger      aPlayerIndex,
+                                                                bool               aAllowed) {
     if (_mode != Mode::Host) {
         HG_THROW_TRACED(hg::TracedLogicError, 0, "Can only set permissions while in Host mode.");
     }
@@ -303,15 +279,14 @@ void DefaultSyncedVarmapManager::doubleSetClientWritePermission(const std::strin
     auto& perms = _doubleValues[aKey].permissions;
     if (aAllowed == ALLOWED) {
         perms.setBit(aPlayerIndex);
-    }
-    else {
+    } else {
         perms.clearBit(aPlayerIndex);
     }
 }
 
 void DefaultSyncedVarmapManager::stringSetClientWritePermission(const std::string& aKey,
-                                                                hg::PZInteger aPlayerIndex,
-                                                                bool aAllowed) {
+                                                                hg::PZInteger      aPlayerIndex,
+                                                                bool               aAllowed) {
     if (_mode != Mode::Host) {
         HG_THROW_TRACED(hg::TracedLogicError, 0, "Can only set permissions while in Host mode.");
     }
@@ -319,8 +294,7 @@ void DefaultSyncedVarmapManager::stringSetClientWritePermission(const std::strin
     auto& perms = _stringValues[aKey].permissions;
     if (aAllowed == ALLOWED) {
         perms.setBit(aPlayerIndex);
-    }
-    else {
+    } else {
         perms.clearBit(aPlayerIndex);
     }
 }
@@ -332,29 +306,27 @@ void DefaultSyncedVarmapManager::stringSetClientWritePermission(const std::strin
 void DefaultSyncedVarmapManager::_eventEndUpdate() {
     using namespace hg::rn;
     if (_mode == Mode::Host) {
-        Compose_USPEMPE_DefaultSyncedVarmapManager_SetValues(
-            _netMgr.getNode(),
-            RN_COMPOSE_FOR_ALL,
-            _stateUpdates
-        );
+        Compose_USPEMPE_DefaultSyncedVarmapManager_SetValues(_netMgr.getNode(),
+                                                             RN_COMPOSE_FOR_ALL,
+                                                             _stateUpdates);
         _stateUpdates.clear();
     }
 }
 
-void DefaultSyncedVarmapManager::_packValue(const std::string& aKey,
-                                            std::int64_t aValue,
+void DefaultSyncedVarmapManager::_packValue(const std::string&       aKey,
+                                            std::int64_t             aValue,
                                             hobgoblin::util::Packet& aPacket) {
     aPacket << std::int8_t{TYPE_TAG_INT64} << aKey << aValue;
 }
 
-void DefaultSyncedVarmapManager::_packValue(const std::string& aKey,
-                                            double aValue,
+void DefaultSyncedVarmapManager::_packValue(const std::string&       aKey,
+                                            double                   aValue,
                                             hobgoblin::util::Packet& aPacket) {
     aPacket << std::int8_t{TYPE_TAG_DOUBLE} << aKey << aValue;
 }
 
-void DefaultSyncedVarmapManager::_packValue(const std::string& aKey,
-                                            const std::string& aValue,
+void DefaultSyncedVarmapManager::_packValue(const std::string&       aKey,
+                                            const std::string&       aValue,
                                             hobgoblin::util::Packet& aPacket) {
     aPacket << std::int8_t{TYPE_TAG_STRING} << aKey << aValue;
 }
@@ -378,16 +350,18 @@ void DefaultSyncedVarmapManager::_unpackValues(hobgoblin::util::Packet& aPacket)
             break;
 
         default:
-            HG_THROW_TRACED(hobgoblin::TracedRuntimeError, 0,
-                            "Unknown type tag ({}) encountered while unpacking.", (int)type);
+            HG_THROW_TRACED(hobgoblin::TracedRuntimeError,
+                            0,
+                            "Unknown type tag ({}) encountered while unpacking.",
+                            (int)type);
         }
     }
 }
 
-bool DefaultSyncedVarmapManager::_setValueRequested(hobgoblin::PZInteger aPlayerIndex, 
+bool DefaultSyncedVarmapManager::_setValueRequested(hobgoblin::PZInteger     aPlayerIndex,
                                                     hobgoblin::util::Packet& aPacket) {
     const auto type = aPacket.extract<std::int8_t>();
-    const auto key = aPacket.extract<std::string>();
+    const auto key  = aPacket.extract<std::string>();
 
     switch (type) {
     case TYPE_TAG_INT64:
@@ -462,5 +436,3 @@ void DefaultSyncedVarmapManager::_sendFullState(hg::PZInteger aClientIndex) cons
 
 } // namespace spempe
 } // namespace jbatnozic
-
-// clang-format on

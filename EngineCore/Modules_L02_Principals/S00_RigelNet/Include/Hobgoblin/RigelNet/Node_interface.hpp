@@ -6,6 +6,7 @@
 #ifndef UHOBGOBLIN_RN_NODE_INTERFACE_HPP
 #define UHOBGOBLIN_RN_NODE_INTERFACE_HPP
 
+#include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/RigelNet/Configuration.hpp>
 #include <Hobgoblin/RigelNet/Events.hpp>
 #include <Hobgoblin/RigelNet/Handlermgmt.hpp>
@@ -33,7 +34,9 @@ class RN_NodeInterface {
 public:
     virtual ~RN_NodeInterface();
 
-    virtual bool pollEvent(RN_Event& ev) = 0;
+    virtual void addEventListener(NeverNull<RN_EventListener*> aEventListener) = 0;
+
+    virtual void removeEventListener(NeverNull<RN_EventListener*> aEventListener) = 0;
 
     virtual bool isServer() const noexcept = 0;
 

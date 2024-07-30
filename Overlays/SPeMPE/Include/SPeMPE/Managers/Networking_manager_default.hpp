@@ -1,8 +1,6 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-// clang-format off
-
 #ifndef SPEMPE_MANAGERS_NETWORKING_MANAGER_DEFAULT_HPP
 #define SPEMPE_MANAGERS_NETWORKING_MANAGER_DEFAULT_HPP
 
@@ -18,28 +16,30 @@ namespace spempe {
 
 //! One concrete implementation of NetworkingManagerInterface.
 //! TODO: Tip on setting execution priority?
-class DefaultNetworkingManager 
+class DefaultNetworkingManager
     : public NetworkingManagerInterface
-    , public NonstateObject {
+    , public NonstateObject
+    , private hg::RN_EventListener {
 public:
     DefaultNetworkingManager(hg::QAO_RuntimeRef aRuntimeRef,
-                             int aExecutionPriority,
-                             hg::PZInteger aStateBufferingLength);
+                             int                aExecutionPriority,
+                             hg::PZInteger      aStateBufferingLength);
+
+    ~DefaultNetworkingManager() override;
 
     ///////////////////////////////////////////////////////////////////////////
     // CONFIGURATION                                                         //
     ///////////////////////////////////////////////////////////////////////////
 
-    void setToServerMode(hg::RN_Protocol aProtocol,
-                         std::string aPassphrase,
-                         hg::PZInteger aServerSize,
-                         hg::PZInteger aMaxPacketSize,
+    void setToServerMode(hg::RN_Protocol        aProtocol,
+                         std::string            aPassphrase,
+                         hg::PZInteger          aServerSize,
+                         hg::PZInteger          aMaxPacketSize,
                          hg::RN_NetworkingStack aNetworkingStack) override;
 
-
-    void setToClientMode(hg::RN_Protocol aProtocol,
-                         std::string aPassphrase,
-                         hg::PZInteger aMaxPacketSize,
+    void setToClientMode(hg::RN_Protocol        aProtocol,
+                         std::string            aPassphrase,
+                         hg::PZInteger          aMaxPacketSize,
                          hg::RN_NetworkingStack aNetworkingStack) override;
 
     Mode getMode() const override;
@@ -62,9 +62,9 @@ public:
     // LISTENER MANAGEMENT                                                   //
     ///////////////////////////////////////////////////////////////////////////
 
-    void addEventListener(NetworkingEventListener& aListener) override;
+    void addEventListener(hg::NeverNull<NetworkingEventListener*> aEventListener) override;
 
-    void removeEventListener(NetworkingEventListener& aListener) override;
+    void removeEventListener(hg::NeverNull<NetworkingEventListener*> aEventListener) override;
 
     ///////////////////////////////////////////////////////////////////////////
     // SYNCHRONIZATION                                                       //
@@ -102,22 +102,20 @@ protected:
     void _eventEndUpdate() override;
 
 private:
-    Mode _mode = Mode::Uninitialized;
-    int _localClientIndex = CLIENT_INDEX_UNKNOWN;
+    Mode _mode             = Mode::Uninitialized;
+    int  _localClientIndex = CLIENT_INDEX_UNKNOWN;
 
-    std::unique_ptr<NodeType> _node;
+    std::unique_ptr<NodeType>          _node;
     detail::SynchronizedObjectRegistry _syncObjReg;
 
     std::vector<NetworkingEventListener*> _eventListeners;
 
     std::deque<hg::RN_Telemetry> _telemetry;
 
-    void _handleEvents();
+    void onNetworkingEvent(const hg::RN_Event& aEvent) override;
 };
 
 } // namespace spempe
 } // namespace jbatnozic
 
 #endif // !SPEMPE_MANAGERS_NETWORKING_MANAGER_DEFAULT_HPP
-
-// clang-format on

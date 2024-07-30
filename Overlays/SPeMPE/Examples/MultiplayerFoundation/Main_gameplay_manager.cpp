@@ -32,12 +32,12 @@ MainGameplayManager::MainGameplayManager(QAO_RuntimeRef aRuntimeRef, int aExecut
     : NonstateObject{aRuntimeRef, SPEMPE_TYPEID_SELF, aExecutionPriority, "GameplayManager"}
 {
     auto& netMgr = ccomp<MNetworking>();
-    netMgr.addEventListener(*this);
+    netMgr.addEventListener(this);
     stateBufferingLength = netMgr.getStateBufferingLength();
 }
 
 MainGameplayManager::~MainGameplayManager() {
-    ccomp<MNetworking>().removeEventListener(*this);
+    ccomp<MNetworking>().removeEventListener(this);
 }
 
 void MainGameplayManager::_eventUpdate1() {

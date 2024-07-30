@@ -107,14 +107,17 @@ void DrawBatcher::draw(const Drawable& aDrawable, const RenderStates& aStates) {
         _drawSprite(static_cast<const Sprite&>(aDrawable), aStates);
         break;
 
-    case Drawable::BatchingType::Aggregate: _canvas.draw(aDrawable, aStates); break;
+    case Drawable::BatchingType::Aggregate:
+        _canvas.draw(aDrawable, aStates);
+        break;
 
     case Drawable::BatchingType::Custom:
         _flush();
         _canvas.draw(aDrawable, aStates);
         break;
 
-    default: HG_UNREACHABLE("Invalid batching type encountered ({}).", (int)batchingType);
+    default:
+        HG_UNREACHABLE("Invalid batching type encountered ({}).", (int)batchingType);
     }
 }
 
@@ -123,9 +126,12 @@ void DrawBatcher::draw(const Vertex*       aVertices,
                        PrimitiveType       aType,
                        const RenderStates& aStates) {
     switch (_status) {
-    default: _flush(); SWITCH_FALLTHROUGH;
+    default:
+        _flush();
+        SWITCH_FALLTHROUGH;
 
-    case Status::Empty: SWITCH_FALLTHROUGH;
+    case Status::Empty:
+        SWITCH_FALLTHROUGH;
 
     case Status::BatchingVertices:
         if (_status == Status::Empty) {
@@ -171,7 +177,8 @@ void DrawBatcher::getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) 
 
 void DrawBatcher::_flush() {
     switch (_status) {
-    case Status::Empty: return;
+    case Status::Empty:
+        return;
 
     case Status::BatchingSprites:
         _renderStates.texture = _texture;
@@ -184,7 +191,8 @@ void DrawBatcher::_flush() {
         _vertexArray.vertices.clear();
         break;
 
-    default: break;
+    default:
+        break;
     }
 
     _status = Status::Empty;
@@ -214,9 +222,12 @@ void DrawBatcher::_drawVertexArray(const VertexArray& aVertexArray, const Render
 
 void DrawBatcher::_drawSprite(const Sprite& aSprite, const RenderStates& aStates) {
     switch (_status) {
-    default: _flush(); SWITCH_FALLTHROUGH;
+    default:
+        _flush();
+        SWITCH_FALLTHROUGH;
 
-    case Status::Empty: SWITCH_FALLTHROUGH;
+    case Status::Empty:
+        SWITCH_FALLTHROUGH;
 
     case Status::BatchingSprites:
         if (_status == Status::Empty) {

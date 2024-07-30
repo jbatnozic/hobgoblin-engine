@@ -1,9 +1,6 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-// clang-format off
-
-
 #include "Udp_client_impl.hpp"
 
 #include <Hobgoblin/Common.hpp>
@@ -20,21 +17,19 @@ namespace {
 constexpr auto UDP_HEADER_BYTE_COUNT = 8u;
 } // namespace
 
-RN_UdpClientImpl::RN_UdpClientImpl(std::string aPassphrase,
+RN_UdpClientImpl::RN_UdpClientImpl(std::string        aPassphrase,
                                    RN_NetworkingStack aNetworkingStack,
-                                   PZInteger aMaxPacketSize)
+                                   PZInteger          aMaxPacketSize)
     : _socket{RN_Protocol::UDP, aNetworkingStack}
     , _maxPacketSize{aMaxPacketSize}
-    , _connector{ _socket
-                , _timeoutLimit
-                , _passphrase
-                , _retransmitPredicate
-                , rn_detail::EventFactory{_eventQueue}
-                , _maxPacketSize 
-                }
+    , _connector{_socket,
+                 _timeoutLimit,
+                 _passphrase,
+                 _retransmitPredicate,
+                 rn_detail::EventFactory{_eventListeners},
+                 _maxPacketSize}
     , _passphrase{std::move(aPassphrase)}
-    , _retransmitPredicate{RN_DefaultRetransmitPredicate}
-{
+    , _retransmitPredicate{RN_DefaultRetransmitPredicate} {
     _socket.init(_maxPacketSize);
 }
 
@@ -46,18 +41,20 @@ RN_UdpClientImpl::~RN_UdpClientImpl() {
 // CLIENT CONTROL                                                        //
 ///////////////////////////////////////////////////////////////////////////
 
-void RN_UdpClientImpl::connect(std::uint16_t localPort, sf::IpAddress serverIp, std::uint16_t serverPort) {
+void RN_UdpClientImpl::connect(std::uint16_t localPort,
+                               sf::IpAddress serverIp,
+                               std::uint16_t serverPort) {
     HG_VALIDATE_PRECONDITION(!_running || _connector.getStatus() == RN_ConnectorStatus::Disconnected);
-    
+
     _socket.bind(sf::IpAddress::Any, localPort);
-    _connector.connect(serverIp, serverPort);
     _running = true;
+    _connector.connect(serverIp, serverPort);
 }
 
 void RN_UdpClientImpl::connectLocal(RN_ServerInterface& server) {
     HG_VALIDATE_PRECONDITION(!_running || _connector.getStatus() == RN_ConnectorStatus::Disconnected);
-    _connector.connectLocal(server);
     _running = true;
+    _connector.connectLocal(server);
 }
 
 void RN_UdpClientImpl::disconnect(bool notifyRemote) {
@@ -81,8 +78,7 @@ void RN_UdpClientImpl::setRetransmitPredicate(RN_RetransmitPredicate pred) {
 RN_Telemetry RN_UdpClientImpl::update(RN_UpdateMode mode) {
     if (!_running) {
         return {};
-    }
-    else if (_connector.getStatus() == RN_ConnectorStatus::Disconnected) {
+    } else if (_connector.getStatus() == RN_ConnectorStatus::Disconnected) {
         _running = false;
         return {};
     }
@@ -100,13 +96,12 @@ RN_Telemetry RN_UdpClientImpl::update(RN_UpdateMode mode) {
     }
 }
 
-bool RN_UdpClientImpl::pollEvent(RN_Event& ev) {
-    if (_eventQueue.empty()) {
-        return false;
-    }
-    ev = _eventQueue.front();
-    _eventQueue.pop_front();
-    return true;
+void RN_UdpClientImpl::addEventListener(NeverNull<RN_EventListener*> aEventListener) {
+    _addEventListener(aEventListener);
+}
+
+void RN_UdpClientImpl::removeEventListener(NeverNull<RN_EventListener*> aEventListener) {
+    _removeEventListener(aEventListener);
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -156,11 +151,11 @@ RN_NetworkingStack RN_UdpClientImpl::getNetworkingStack() const noexcept {
 RN_Telemetry RN_UdpClientImpl::_updateReceive() {
     RN_Telemetry telemetry;
 
-    util::Packet packet;
+    util::Packet  packet;
     sf::IpAddress senderIp;
     std::uint16_t senderPort;
 
-    // When we connect the client locally, we don't initialize its 
+    // When we connect the client locally, we don't initialize its
     // socket so we must not try to use it
     bool keepReceiving = !_connector.isConnectedLocally();
 
@@ -169,11 +164,10 @@ RN_Telemetry RN_UdpClientImpl::_updateReceive() {
         switch (_socket.recv(packet, senderIp, senderPort)) {
         case decltype(_socket)::Status::OK:
             telemetry.downloadByteCount += stopz(packet.getDataSize() + UDP_HEADER_BYTE_COUNT);
-            if (senderIp == _connector.getRemoteInfo().ipAddress
-                && senderPort == _connector.getRemoteInfo().port) {
+            if (senderIp == _connector.getRemoteInfo().ipAddress &&
+                senderPort == _connector.getRemoteInfo().port) {
                 _connector.receivedPacket(packet);
-            }
-            else {
+            } else {
                 // handlePacketFromUnknownSender(senderIp, senderPort, packet); TODO
             }
             packet.clear();
@@ -187,7 +181,6 @@ RN_Telemetry RN_UdpClientImpl::_updateReceive() {
         case decltype(_socket)::Status::Disconnected:
             // Normally we wouldn't expect to get this status from UDP sockets. However,
             // in case it does somehow occur, it should be safe to ignore.
-            NO_OP();
             break;
 
         default:
@@ -216,12 +209,16 @@ RN_Telemetry RN_UdpClientImpl::_updateSend() {
 
 void RN_UdpClientImpl::_compose(int receiver, const void* data, std::size_t sizeInBytes) {
     if (_connector.getStatus() != RN_ConnectorStatus::Connected) {
-        HG_THROW_TRACED(TracedLogicError, 0, "Cannot compose messages to clients that are not connected.");
+        HG_THROW_TRACED(TracedLogicError,
+                        0,
+                        "Cannot compose messages to clients that are not connected.");
     }
     _connector.appendToNextOutgoingPacket(data, sizeInBytes);
 }
 
-void RN_UdpClientImpl::_compose(RN_ComposeForAllType receiver, const void* data, std::size_t sizeInBytes) {
+void RN_UdpClientImpl::_compose(RN_ComposeForAllType receiver,
+                                const void*          data,
+                                std::size_t          sizeInBytes) {
     if (_connector.getStatus() != RN_ConnectorStatus::Connected) {
         return;
     }
@@ -243,6 +240,4 @@ util::AnyPtr RN_UdpClientImpl::_getUserData() const {
 } // namespace rn
 HOBGOBLIN_NAMESPACE_END
 
-#include <Hobgoblin/Private/Pmacro_undef.hpp>
-
-// clang-format on
+#include <Hobgoblin/Private/Pmacro_undef.hpp>W
