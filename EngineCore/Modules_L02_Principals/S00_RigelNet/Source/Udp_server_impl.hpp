@@ -53,7 +53,9 @@ public:
 
     RN_Telemetry update(RN_UpdateMode mode) override;
 
-    bool pollEvent(RN_Event& ev) override;
+    void addEventListener(NeverNull<RN_EventListener*> aEventListener) override;
+
+    void removeEventListener(NeverNull<RN_EventListener*> aEventListener) override;
 
     ///////////////////////////////////////////////////////////////////////////
     // CLIENT MANAGEMENT                                                     //

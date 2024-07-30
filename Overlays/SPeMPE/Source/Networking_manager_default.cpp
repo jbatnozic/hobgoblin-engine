@@ -1,13 +1,10 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-// clang-format off
-
-
 #include <SPeMPE/Managers/Networking_manager_default.hpp>
 
-#include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Logging.hpp>
 
 #include <algorithm>
@@ -21,56 +18,60 @@ constexpr const char* LOG_ID = "SPeMPE";
 } // namespace
 
 DefaultNetworkingManager::DefaultNetworkingManager(hg::QAO_RuntimeRef aRuntimeRef,
-                                                   int aExecutionPriority,
-                                                   hg::PZInteger aStateBufferingLength)
-    : NonstateObject{aRuntimeRef, SPEMPE_TYPEID_SELF, aExecutionPriority, "::jbatnozic::spempe::DefaultNetworkingManager"}
+                                                   int                aExecutionPriority,
+                                                   hg::PZInteger      aStateBufferingLength)
+    : NonstateObject{aRuntimeRef,
+                     SPEMPE_TYPEID_SELF,
+                     aExecutionPriority,
+                     "::jbatnozic::spempe::DefaultNetworkingManager"}
     , _node{hg::RN_ServerFactory::createDummyServer()}
-    , _syncObjReg{*_node, aStateBufferingLength}
-{
+    , _syncObjReg{*_node, aStateBufferingLength} {}
+
+DefaultNetworkingManager::~DefaultNetworkingManager() {
+    if (_mode != Mode::Uninitialized) {
+        _node->removeEventListener(this);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////
 // CONFIGURATION                                                         //
 ///////////////////////////////////////////////////////////////////////////
 
-void DefaultNetworkingManager::setToServerMode(hg::RN_Protocol aProtocol,
-                                               std::string aPassphrase,
-                                               hg::PZInteger aServerSize,
-                                               hg::PZInteger aMaxPacketSize,
+void DefaultNetworkingManager::setToServerMode(hg::RN_Protocol        aProtocol,
+                                               std::string            aPassphrase,
+                                               hg::PZInteger          aServerSize,
+                                               hg::PZInteger          aMaxPacketSize,
                                                hg::RN_NetworkingStack aNetworkingStack) {
     assert(_mode == Mode::Uninitialized);
 
-    SPEMPE_VALIDATE_GAME_CONTEXT_FLAGS(ctx(), privileged==true, networking==true);
+    SPEMPE_VALIDATE_GAME_CONTEXT_FLAGS(ctx(), privileged == true, networking == true);
     _localClientIndex = CLIENT_INDEX_LOCAL;
-    _node = hg::RN_ServerFactory::createServer(
-        aProtocol,
-        std::move(aPassphrase),
-        aServerSize,
-        aMaxPacketSize,
-        aNetworkingStack
-    );
+    _node             = hg::RN_ServerFactory::createServer(aProtocol,
+                                               std::move(aPassphrase),
+                                               aServerSize,
+                                               aMaxPacketSize,
+                                               aNetworkingStack);
     _node->setUserData(&ctx());
+    _node->addEventListener(this);
     _syncObjReg.setNode(*_node);
 
     _mode = Mode::Server;
 }
 
-
-void DefaultNetworkingManager::setToClientMode(hg::RN_Protocol aProtocol,
-                                               std::string aPassphrase,
-                                               hg::PZInteger aMaxPacketSize,
+void DefaultNetworkingManager::setToClientMode(hg::RN_Protocol        aProtocol,
+                                               std::string            aPassphrase,
+                                               hg::PZInteger          aMaxPacketSize,
                                                hg::RN_NetworkingStack aNetworkingStack) {
     assert(_mode == Mode::Uninitialized);
 
-    SPEMPE_VALIDATE_GAME_CONTEXT_FLAGS(ctx(), privileged==false, networking==true);
+    SPEMPE_VALIDATE_GAME_CONTEXT_FLAGS(ctx(), privileged == false, networking == true);
     _localClientIndex = CLIENT_INDEX_UNKNOWN;
-    _node = hg::RN_ClientFactory::createClient(
-        aProtocol,
-        std::move(aPassphrase),
-        aMaxPacketSize,
-        aNetworkingStack
-    );
+    _node             = hg::RN_ClientFactory::createClient(aProtocol,
+                                               std::move(aPassphrase),
+                                               aMaxPacketSize,
+                                               aNetworkingStack);
     _node->setUserData(&ctx());
+    _node->addEventListener(this);
     _syncObjReg.setNode(*_node);
 
     _mode = Mode::Client;
@@ -114,21 +115,35 @@ NetworkingManagerInterface::ClientType& DefaultNetworkingManager::getClient() co
 // LISTENER MANAGEMENT                                                   //
 ///////////////////////////////////////////////////////////////////////////
 
-void DefaultNetworkingManager::addEventListener(NetworkingEventListener& aListener) {
-    for (const auto listener : _eventListeners) {
-        if (listener == &aListener) {
-            return;
-        }
+void DefaultNetworkingManager::addEventListener(hg::NeverNull<NetworkingEventListener*> aEventListener) {
+    const auto iter = std::find_if(_eventListeners.begin(),
+                                   _eventListeners.end(),
+                                   [=](hg::RN_EventListener* aFoundListener) {
+                                       return (aFoundListener == aEventListener);
+                                   });
+    if (iter == _eventListeners.end()) {
+        _eventListeners.push_back(aEventListener);
+    } else {
+        HG_LOG_WARN(LOG_ID,
+                    "Listener matching pointer {:#x} was already added.",
+                    reinterpret_cast<std::uintptr_t>(aEventListener.get()));
     }
-    _eventListeners.push_back(&aListener);
 }
 
-void DefaultNetworkingManager::removeEventListener(NetworkingEventListener& aListener) {
-    _eventListeners.erase(
-        std::remove_if(_eventListeners.begin(), _eventListeners.end(),
-                       [&aListener](const NetworkingEventListener* aCurr) {
-                           return aCurr == &aListener;
-                       }), _eventListeners.end());
+void DefaultNetworkingManager::removeEventListener(
+    hg::NeverNull<NetworkingEventListener*> aEventListener) {
+    const auto iter = std::find_if(_eventListeners.begin(),
+                                   _eventListeners.end(),
+                                   [=](hg::RN_EventListener* aFoundListener) {
+                                       return (aFoundListener == aEventListener);
+                                   });
+    if (iter != _eventListeners.end()) {
+        _eventListeners.erase(iter);
+    } else {
+        HG_LOG_WARN(LOG_ID,
+                    "No listener matching pointer {:#x} was found to remove.",
+                    reinterpret_cast<std::uintptr_t>(aEventListener.get()));
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -136,9 +151,7 @@ void DefaultNetworkingManager::removeEventListener(NetworkingEventListener& aLis
 ///////////////////////////////////////////////////////////////////////////
 
 RegistryId DefaultNetworkingManager::getRegistryId() {
-    return {
-        reinterpret_cast< decltype(std::declval<RegistryId>().address) >(&_syncObjReg)
-    };
+    return {reinterpret_cast< decltype(std::declval<RegistryId>().address) >(&_syncObjReg)};
 }
 
 hg::PZInteger DefaultNetworkingManager::getStateBufferingLength() const {
@@ -177,16 +190,17 @@ void DefaultNetworkingManager::setTelemetryCycleLimit(hg::PZInteger aCycleLimit)
 
 hg::RN_Telemetry DefaultNetworkingManager::getTelemetry(hg::PZInteger aCycleCount) const {
     if (aCycleCount > hg::stopz(_telemetry.size())) {
-        HG_THROW_TRACED(hg::TracedLogicError, 0,
+        HG_THROW_TRACED(hg::TracedLogicError,
+                        0,
                         "aCycleCount ({}) must not be greater than the telemetry cycle limit ({}).",
-                        aCycleCount, _telemetry.size());
+                        aCycleCount,
+                        _telemetry.size());
     }
 
     hg::RN_Telemetry result;
-    for ( int i = static_cast<int>(_telemetry.size()) - 1
-        ; i > static_cast<int>(_telemetry.size()) - 1 - aCycleCount
-        ; i -= 1
-        ) {
+    for (int i = static_cast<int>(_telemetry.size()) - 1;
+         i > static_cast<int>(_telemetry.size()) - 1 - aCycleCount;
+         i -= 1) {
         result += _telemetry[static_cast<std::size_t>(i)];
     }
     return result;
@@ -214,7 +228,6 @@ void DefaultNetworkingManager::_eventBeginUpdate() {
     if (!_telemetry.empty()) {
         _telemetry.back() += telemetry;
     }
-    _handleEvents();
 }
 
 void DefaultNetworkingManager::_eventEndUpdate() {
@@ -227,47 +240,40 @@ void DefaultNetworkingManager::_eventEndUpdate() {
     if (!_telemetry.empty()) {
         _telemetry.back() += telemetry;
     }
-    _handleEvents();
 }
 
-void DefaultNetworkingManager::_handleEvents() {
+void DefaultNetworkingManager::onNetworkingEvent(const hg::RN_Event& aEvent) {
     using hg::RN_Event;
 
-    RN_Event ev;
-
-    while (_node->pollEvent(ev)) {
-        ev.strictVisit(
-            [](const RN_Event::BadPassphrase&) {
-                HG_LOG_INFO(LOG_ID, "Received event: Bad passphrase.");
-            },
-            [](const RN_Event::ConnectAttemptFailed&) {
-                HG_LOG_INFO(LOG_ID, "Received event: Connection attempt failed ({}).", /*ev.reason*/ "?");
-            },
-            [this](const RN_Event::Connected& aEventData) {
-                if (_node->isServer()) {
-                    HG_LOG_INFO(LOG_ID, "Received event: New client ({}) connected.", *aEventData.clientIndex);
-                    _syncObjReg.syncCompleteState(*aEventData.clientIndex);
-                }
-                else {
-                    HG_LOG_INFO(LOG_ID, "Received event: Connected to server.");
-                    _localClientIndex = getClient().getClientIndex();
-                }
-            },
-            [this](const RN_Event::Disconnected& aEventData) {
-                HG_LOG_INFO(LOG_ID, "Received event: Disconnect ({}).", aEventData.message);
-                if (!_node->isServer()) {
-                    _localClientIndex = CLIENT_INDEX_UNKNOWN;
-                }
+    aEvent.strictVisit(
+        [](const RN_Event::BadPassphrase&) {
+            HG_LOG_INFO(LOG_ID, "Received event: Bad passphrase.");
+        },
+        [](const RN_Event::ConnectAttemptFailed&) {
+            HG_LOG_INFO(LOG_ID, "Received event: Connection attempt failed ({}).", /*ev.reason*/ "?");
+        },
+        [this](const RN_Event::Connected& aEventData) {
+            if (_node->isServer()) {
+                HG_LOG_INFO(LOG_ID,
+                            "Received event: New client ({}) connected.",
+                            *aEventData.clientIndex);
+                _syncObjReg.syncCompleteState(*aEventData.clientIndex);
+            } else {
+                HG_LOG_INFO(LOG_ID, "Received event: Connected to server.");
+                _localClientIndex = getClient().getClientIndex();
             }
-        );
+        },
+        [this](const RN_Event::Disconnected& aEventData) {
+            HG_LOG_INFO(LOG_ID, "Received event: Disconnect ({}).", aEventData.message);
+            if (!_node->isServer()) {
+                _localClientIndex = CLIENT_INDEX_UNKNOWN;
+            }
+        });
 
-        for (auto& listener : _eventListeners) {
-            listener->onNetworkingEvent(ev);
-        }
+    for (const auto& listener : _eventListeners) {
+        listener->onNetworkingEvent(aEvent);
     }
 }
 
 } // namespace spempe
 } // namespace jbatnozic
-
-// clang-format on

@@ -301,11 +301,11 @@ public:
     explicit GameplayManager(QAO_RuntimeRef aRuntimeRef)
         : NonstateObject{aRuntimeRef, SPEMPE_TYPEID_SELF, PRIPRITY_GAMEPLAYMGR, "GameplayManager"}
     {
-        ccomp<MNetworking>().addEventListener(*this);
+        ccomp<MNetworking>().addEventListener(this);
     }
 
     ~GameplayManager() override {
-        ccomp<MNetworking>().removeEventListener(*this);
+        ccomp<MNetworking>().removeEventListener(this);
     }
 
 private:
