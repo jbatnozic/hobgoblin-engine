@@ -12,7 +12,7 @@
 #include <array>
 #include <cmath>
 
-namespace gr   = hg::gr;
+namespace gr = hg::gr;
 
 namespace {
 template <class taSprite>

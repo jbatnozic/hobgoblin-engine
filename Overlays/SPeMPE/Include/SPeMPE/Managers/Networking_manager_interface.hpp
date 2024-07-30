@@ -1,11 +1,10 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-// clang-format off
-
 #ifndef SPEMPE_MANAGERS_NETWORKING_MANAGER_INTERFACE_HPP
 #define SPEMPE_MANAGERS_NETWORKING_MANAGER_INTERFACE_HPP
 
+#include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/RigelNet.hpp>
 
 #include <SPeMPE/GameContext/Context_components.hpp>
@@ -16,10 +15,7 @@ namespace spempe {
 
 namespace hg = ::jbatnozic::hobgoblin;
 
-class NetworkingEventListener {
-public:
-    virtual void onNetworkingEvent(const hg::RN_Event& ev) = 0;
-};
+using NetworkingEventListener = hg::RN_EventListener;
 
 constexpr int CLIENT_INDEX_UNKNOWN = -2; //! Client index not yet received from Server.
 constexpr int CLIENT_INDEX_LOCAL   = -1; //! Denotes the same machine/process that's also the host.
@@ -44,24 +40,24 @@ public:
 
     //! Sets the manager into Host/Server mode and initializes the underlying RigelNet Node as
     //! an implementation of RN_ServerInterface with the given parameters.
-    virtual void setToServerMode(hg::RN_Protocol aProtocol,
-                                 std::string aPassphrase,
-                                 hg::PZInteger aServerSize,
-                                 hg::PZInteger aMaxPacketSize,
+    virtual void setToServerMode(hg::RN_Protocol        aProtocol,
+                                 std::string            aPassphrase,
+                                 hg::PZInteger          aServerSize,
+                                 hg::PZInteger          aMaxPacketSize,
                                  hg::RN_NetworkingStack aNetworkingStack) = 0;
 
     //! Sets the manager into Client mode and initializes the underlying RigelNet Node as
     //! an implementation of RN_ClientInterface with the given parameters.
-    virtual void setToClientMode(hg::RN_Protocol aProtocol,
-                                 std::string aPassphrase,
-                                 hg::PZInteger aMaxPacketSize,
+    virtual void setToClientMode(hg::RN_Protocol        aProtocol,
+                                 std::string            aPassphrase,
+                                 hg::PZInteger          aMaxPacketSize,
                                  hg::RN_NetworkingStack aNetworkingStack) = 0;
 
     virtual Mode getMode() const = 0;
 
     virtual bool isUninitialized() const = 0;
-    virtual bool isServer() const = 0;
-    virtual bool isClient() const = 0;
+    virtual bool isServer() const        = 0;
+    virtual bool isClient() const        = 0;
 
     ///////////////////////////////////////////////////////////////////////////
     // NODE ACCESS                                                           //
@@ -77,9 +73,9 @@ public:
     // LISTENER MANAGEMENT                                                   //
     ///////////////////////////////////////////////////////////////////////////
 
-    virtual void addEventListener(NetworkingEventListener& listener) = 0;
+    virtual void addEventListener(hg::NeverNull<NetworkingEventListener*> aEventListener) = 0;
 
-    virtual void removeEventListener(NetworkingEventListener& listener) = 0;
+    virtual void removeEventListener(hg::NeverNull<NetworkingEventListener*> aEventListener) = 0;
 
     ///////////////////////////////////////////////////////////////////////////
     // SYNCHRONIZATION                                                       //
@@ -92,7 +88,7 @@ public:
     //! buffering = 0: no delay, everything displayed immediately
     //! buffering > 0: everything delayed by a number of steps to give time to
     //!                account for and amortize latency, reduce jittering etc.
-    //! WARNING: This only sets the value locally! If you want to have the same 
+    //! WARNING: This only sets the value locally! If you want to have the same
     //! buffering lengths for all players, you need to solve that problem manually
     //! (there are no hard blockers to everyone having different buffering
     //! lengths, everything will still work).
@@ -136,5 +132,3 @@ private:
 } // namespace jbatnozic
 
 #endif // !SPEMPE_MANAGERS_NETWORKING_MANAGER_INTERFACE_HPP
-
-// clang-format on
