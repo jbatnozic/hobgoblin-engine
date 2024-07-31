@@ -10,6 +10,8 @@
 #include <GridWorld/Model/Lights.hpp>
 #include <GridWorld/Model/Sprites.hpp>
 
+#include <GridWorld/World/Active_area.hpp>
+
 #include <GridWorld/Model/Chunk_state_listener_interface.hpp>
 #include <GridWorld/Private/Chunk_storage_handler.hpp>
 
@@ -173,6 +175,8 @@ public:
     }
 
 private:
+    friend class ActiveArea;
+
     // ===== Config =====
 
     struct WorldConfigurationExt : WorldConfiguration {
@@ -202,8 +206,13 @@ private:
 
     bool _generatorMode = false;
 
-    void onChunkLoaded(detail::ChunkId aChunkId, ChunkExtensionInterface* aExtension) override;
-    void onChunkUnloaded(detail::ChunkId aChunkId, ChunkExtensionInterface* aExtension) override;
+    void onChunkLoaded(ChunkId aChunkId, ChunkExtensionInterface* aExtension) override;
+    void onChunkUnloaded(ChunkId aChunkId, ChunkExtensionInterface* aExtension) override;
+
+    // ===== Active area management =====
+
+    void _incrementUsageOfChunks(const std::vector<ChunkId>& aChunks);
+    void _decrementUsageOfChunks(const std::vector<ChunkId>& aChunks);
 
     // ===== Updating cells =====
 

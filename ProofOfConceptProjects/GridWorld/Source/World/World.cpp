@@ -157,12 +157,12 @@ void World::Editor::updateWallAtUnchecked(hg::PZInteger                         
 // PRIVATE METHODS                                                       //
 ///////////////////////////////////////////////////////////////////////////
 
-void World::onChunkLoaded(detail::ChunkId aChunkId, ChunkExtensionInterface*) {
+void World::onChunkLoaded(ChunkId aChunkId, ChunkExtensionInterface*) {
     // TODO: update openness and stuff of surrounding chunks
     // TODO: inform user listeners
 }
 
-void World::onChunkUnloaded(detail::ChunkId aChunkId, ChunkExtensionInterface*) {
+void World::onChunkUnloaded(ChunkId aChunkId, ChunkExtensionInterface*) {
     // TODO: inform user listeners
 }
 

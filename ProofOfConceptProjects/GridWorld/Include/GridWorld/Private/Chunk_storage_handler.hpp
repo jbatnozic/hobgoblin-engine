@@ -3,11 +3,13 @@
 #include <Hobgoblin/Common.hpp>
 
 #include <GridWorld/Model/Chunk.hpp>
-#include <GridWorld/Model/Chunk_id.hpp>
+#include <GridWorld/World/Chunk_id.hpp>
+#include <GridWorld/Private/Chunk_spooler_interface.hpp>
 
 #include <Hobgoblin/Utility/Grids.hpp>
 
 #include <memory>
+#include <unordered_map>
 
 namespace gridworld {
 
@@ -15,9 +17,15 @@ namespace hg = jbatnozic::hobgoblin;
 
 namespace detail {
 
-// TODO
+// TODO: move definitions somewhere else
+
+#if defined(__GNUC__) && !defined(__clang__)
+#define HG_LIKELY_CONDITION(...)   __builtin_expect(!!(__VA_ARGS__), 1)
+#define HG_UNLIKELY_CONDITION(...) __builtin_expect(!!(__VA_ARGS__), 0)
+#else
 #define HG_LIKELY_CONDITION(...)   __VA_ARGS__
 #define HG_UNLIKELY_CONDITION(...) __VA_ARGS__
+#endif
 
 #define HG_LIKELY_BRANCH   [[likely]]
 #define HG_UNLIKELY_BRANCH [[unlikely]]
@@ -30,10 +38,16 @@ private:
     using Self = ChunkStorageHandler;
 
 public:
+    ChunkStorageHandler(ChunkSpoolerInterface& aChunkSpooler,
+                        hg::PZInteger          aChunkWidth,
+                        hg::PZInteger          aChunkHeight);
+
+    //! Returns the number of chunks along the X axis.
     hg::PZInteger getChunkCountX() const {
         return _chunks.getWidth();
     }
 
+    //! Returns the number of chunks along the Y axis.
     hg::PZInteger getChunkCountY() const {
         return _chunks.getHeight();
     }
@@ -92,7 +106,20 @@ public:
     void prune();
 
 private:
-    mutable hg::util::RowMajorGrid<std::unique_ptr<Chunk>> _chunks;
+    ChunkSpoolerInterface& _chunkSpooler;
+
+    mutable hg::util::RowMajorGrid<std::unique_ptr<Chunk>> _chunks; // TODO: make Chunk nullable and ditch the pointer
+    // clang-format off
+    mutable std::unordered_map<ChunkId, 
+                               std::shared_ptr<ChunkSpoolerInterface::RequestHandleInterface>>
+        _chunkRequestHandles;
+    // clang-format on
+
+    struct ChunkControlBlock {
+        // PZInteger usageCount
+        // std::shared_ptr<ChunkSpoolerInterface::RequestHandleInterface> request handle
+    };
+    // TODO: active areas
 
     hg::PZInteger _chunkWidth;
     hg::PZInteger _chunkHeight;

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <GridWorld/Model/Chunk.hpp>
-#include <GridWorld/Model/Chunk_id.hpp>
+#include <GridWorld/World/Chunk_id.hpp>
 
 #include <optional>
 #include <vector>

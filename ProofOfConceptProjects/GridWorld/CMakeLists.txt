@@ -15,6 +15,7 @@ add_library(${PROJECT_NAME}
     "Source/Rendering/OpenGL_helpers.cpp"
     "Source/Rendering/OpenGL_helpers.hpp"
 
+    "Source/World/Active_area.cpp"
     "Source/World/World.cpp"
 
     "Source/Coord_conversion.cpp"
@@ -22,7 +23,7 @@ add_library(${PROJECT_NAME}
     "Source/Dimetric_transform.cpp"
     "Source/Main.cpp"
     "Source/Spatial_info.cpp"
-)
+ )
 
 target_link_libraries(${PROJECT_NAME}
 PUBLIC
