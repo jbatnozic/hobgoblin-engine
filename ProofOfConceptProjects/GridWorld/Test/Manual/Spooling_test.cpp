@@ -12,9 +12,9 @@
 
 namespace hg = jbatnozic::hobgoblin;
 
+using gridworld::ChunkId;
 using gridworld::detail::Chunk;
 using gridworld::detail::ChunkDiskIoHandlerInterface;
-using gridworld::detail::ChunkId;
 using gridworld::detail::ChunkSpoolerInterface;
 
 #define CHUNK_COUNT_X 32

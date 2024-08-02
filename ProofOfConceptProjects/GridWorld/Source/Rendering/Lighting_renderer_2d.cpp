@@ -213,7 +213,7 @@ void LightingRenderer2D::_renderLight(const LightModel& aLightModel) {
                                             vertices[i - 1].position.y + diff.y};
                 }
 
-                texture.draw(vertices, 10, hg::gr::PrimitiveType::TriangleStrip);
+                texture.draw(vertices, 10, hg::gr::PrimitiveType::TRIANGLE_STRIP);
             }
             // ****************************************************
         }

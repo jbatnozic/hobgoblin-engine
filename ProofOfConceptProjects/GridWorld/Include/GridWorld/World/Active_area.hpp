@@ -29,7 +29,7 @@ public:
 
 private:
     friend class World;
-    private ActiveArea(hg::NeverNull<World*> aWorld)
+    explicit ActiveArea(hg::NeverNull<World*> aWorld)
         : _world{aWorld} {}
 
     hg::NeverNull<World*> _world;

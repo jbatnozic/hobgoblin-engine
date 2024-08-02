@@ -182,7 +182,7 @@ void LineOfSightRenderer2D::_renderOcclusion() {
                                             vertices[i - 1].position.y + diff.y};
                 }
 
-                _renderTexture.draw(vertices, 10, hg::gr::PrimitiveType::TriangleStrip);
+                _renderTexture.draw(vertices, 10, hg::gr::PrimitiveType::TRIANGLE_STRIP);
             }
             // ****************************************************
         }
