@@ -1,21 +1,32 @@
-@ECHO OFF
+SET PROJECT_NAME=SPeMPECMakeGame
 
-REM SFML implementation used std::auto_ptr (which was removed in C++17)
-REM so we have to build it as C++14 unlike the rest of the project.
-REM Luckily, it's ABI-compatible with C++17.
+SET PROFL_ARGS=--profile:host=hobgoblin-msvc ^
+               --profile:build=hobgoblin-msvc
 
-@ECHO ON
+SET BUILD_ARGS=--build=missing --build=outdated --build=cascade
 
-conan install . -if _Build/Debug/ ^
-    --profile=default ^
-    --build=outdated ^
-    -s build_type=Debug ^
-    -s compiler.cppstd=17 ^
-    -s sfml:compiler.cppstd=14
+:: libzt won't build with C++20 for some reason
+SET EXTRA_ARGS=--settings:host libzt*:compiler.cppstd=17 ^
+               --settings:build libzt*:compiler.cppstd=17
+
+conan install . -of _Build/%PROJECT_NAME%-x64/ ^
+    %PROFL_ARGS% ^
+    %BUILD_ARGS% ^
+    %EXTRA_ARGS% ^
+    -s:h build_type=Debug ^
+    -s:b build_type=Debug
     
-conan install . -if _Build/Release/ ^
-    --profile=default ^
-    --build=outdated ^
-    -s build_type=Release ^
-    -s compiler.cppstd=17 ^
-    -s sfml:compiler.cppstd=14
+conan install . -of _Build/%PROJECT_NAME%-x64/ ^
+    %PROFL_ARGS% ^
+    %BUILD_ARGS% ^
+    %EXTRA_ARGS% ^
+    -s:h build_type=Release ^
+    -s:b build_type=Release
+
+REM To install RelWithDebInfo profile edit Conan_install_dependencies.bat.
+
+:: conan install . -of _Build/%PROJECT_NAME%-x64/ ^
+::    %PROFL_ARGS% ^
+::    %BUILD_ARGS% ^
+::	  %EXTRA_ARGS% ^
+::    -s build_type=RelWithDebInfo

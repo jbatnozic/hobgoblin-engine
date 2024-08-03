@@ -75,7 +75,8 @@ class HobgoblinConan(ConanFile):
         "CMakeSettings.json",
         "CODEANALYSIS.ruleset",
         "EngineCore/*",
-        "Overlays/*"
+        "Overlays/*",
+        "Tools/*",
     ]
 
 
