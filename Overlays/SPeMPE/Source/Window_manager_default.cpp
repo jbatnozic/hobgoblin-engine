@@ -4,6 +4,7 @@
 #include <SPeMPE/Managers/Window_manager_default.hpp>
 
 #include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/Logging.hpp>
 #include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Math/Vector.hpp>
 #include <Hobgoblin/Window.hpp>

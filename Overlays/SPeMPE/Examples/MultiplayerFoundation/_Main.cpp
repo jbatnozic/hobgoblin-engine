@@ -60,13 +60,19 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
     // Create and attach a Window manager
     auto winMgr = std::make_unique<spe::DefaultWindowManager>(context->getQAORuntime().nonOwning(),
                                                               PRIORITY_WINDOWMGR);
+    spe::WindowManagerInterface::TimingConfig timingConfig{
+    #ifdef _MSC_VER
+        spe::FrameRate{FRAME_RATE},
+        spe::PREVENT_BUSY_WAIT_ON,
+        spe::VSYNC_OFF
+    #else
+        FRAME_RATE,
+        spe::PREVENT_BUSY_WAIT_OFF,
+        spe::VSYNC_OFF
+    #endif
+    };
     if (aGameMode == GameMode::Server) {
-        winMgr->setToHeadlessMode(
-            spe::WindowManagerInterface::TimingConfig{
-                spe::PREVENT_BUSY_WAIT_ON,
-                spe::VSYNC_OFF
-            }
-        );
+        winMgr->setToHeadlessMode(timingConfig);
     }
     else {
         winMgr->setToNormalMode(
@@ -76,11 +82,7 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
                 hg::win::WindowStyle::Default
             },
             spe::WindowManagerInterface::MainRenderTextureConfig{{WINDOW_WIDTH, WINDOW_HEIGHT}},
-            spe::WindowManagerInterface::TimingConfig{
-                spe::FrameRate{FRAME_RATE},
-                spe::PREVENT_BUSY_WAIT_ON,
-                spe::VSYNC_OFF
-            }
+            timingConfig
         );
 
         struct FontFace {
