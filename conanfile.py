@@ -86,10 +86,10 @@ class HobgoblinConan(ConanFile):
 
     def requirements(self):
         # Public
-        self.requires("fmt/10.0.0",   transitive_headers=True)
-        self.requires("sfml/2.6.0"  , transitive_headers=True)
-        self.requires("rmlui/4.4",    transitive_headers=True)
-        self.requires("icu/74.1",     transitive_headers=True)
+        self.requires("fmt/10.0.0",                 transitive_headers=True)
+        self.requires("sfml/2.6.0",                 transitive_headers=True)
+        self.requires("rmlui/5.1@jbatnozic/stable", transitive_headers=True)
+        self.requires("icu/74.1",                   transitive_headers=True)
 
         # Private
         self.requires("glew/2.2.0")

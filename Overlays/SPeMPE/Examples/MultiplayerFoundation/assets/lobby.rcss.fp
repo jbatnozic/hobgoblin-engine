@@ -70,7 +70,7 @@ tr {
 	box-sizing: border-box;
 	display: table-row;
 }
-tr:nth-child(odd) {
+tr:first-child {
 	background-color: #a1a1a1;
 }
 td {
