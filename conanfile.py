@@ -2,7 +2,7 @@
 # See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
 from conan import ConanFile
-from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain
+from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
 from conan.tools.files import copy
 from os.path import join, sep
 
@@ -116,6 +116,9 @@ class HobgoblinConan(ConanFile):
         self.options["sfml"].window   = True
 
         self.options["ztcpp"].shared  = True
+
+    def layout(self):
+        cmake_layout(self)
 
     def generate(self):
         # Import dynamic libraries
