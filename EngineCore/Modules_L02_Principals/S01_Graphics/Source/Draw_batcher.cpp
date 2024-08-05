@@ -93,8 +93,8 @@ math::Vector2pz DrawBatcher::getSize() const {
     return _canvas.getSize();
 }
 
-void DrawBatcher::getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) {
-    _canvas.getCanvasDetails(aType, aRenderingBackend);
+RenderingBackendRef DrawBatcher::getRenderingBackend() {
+    return _canvas.getRenderingBackend();
 }
 
 bool DrawBatcher::isSrgb() const {

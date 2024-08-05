@@ -16,8 +16,13 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
-enum class CanvasType {
+enum class RenderingBackendType {
     SFML //!< Rendering backend is sf::RenderTarget.
+};
+
+struct RenderingBackendRef {
+    void*                backendPtr;
+    RenderingBackendType backendType;
 };
 
 //! Abstracts away an object (such as a window or a texture) onto which 2D entities can be drawn.
@@ -39,14 +44,9 @@ public:
     //! \return Size in pixels.
     virtual math::Vector2pz getSize() const = 0;
 
-    //! Returns information about the type of the underlying implementation of the Canvas.
-    //!
-    //! \param aType reference to a variable of type `CanvasType` where the type of the
-    //!              canvas shall be written.
-    //! \param aRenderingBackend reference to a void pointer where the address of the
-    //!                          rendering backend (matching the type of the canvas)
-    //!                          shall be written.
-    virtual void getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) = 0;
+    //! Returns information about the underlying implementation of the Canvas
+    //! (the result of this is mostly only useful to the engine itself).
+    virtual RenderingBackendRef getRenderingBackend() = 0;
 
     //! \brief Tell if the render target will use sRGB encoding when drawing on it
     //!

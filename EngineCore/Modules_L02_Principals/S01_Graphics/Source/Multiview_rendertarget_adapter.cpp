@@ -17,18 +17,6 @@ MultiViewRenderTargetAdapter::MultiViewRenderTargetAdapter(RenderTarget& aRender
     , _views{_renderTarget->getDefaultView()}
     , _viewCount{1} {}
 
-math::Vector2pz MultiViewRenderTargetAdapter::getSize() const {
-    return _renderTarget->getSize();
-}
-
-void MultiViewRenderTargetAdapter::getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) {
-    _renderTarget->getCanvasDetails(aType, aRenderingBackend);
-}
-
-bool MultiViewRenderTargetAdapter::isSrgb() const {
-    return _renderTarget->isSrgb();
-}
-
 void MultiViewRenderTargetAdapter::setRenderTarget(RenderTarget& aRenderTarget) {
     _renderTarget = &aRenderTarget;
 }
@@ -66,6 +54,22 @@ View& MultiViewRenderTargetAdapter::getView(PZInteger aViewIdx) {
 const View& MultiViewRenderTargetAdapter::getView(PZInteger aViewIdx) const {
     assert(aViewIdx < _viewCount);
     return *(_addressOfFirstView() + aViewIdx);
+}
+
+///////////////////////////////////////////////////////////////////////////
+// CANVAS - BASIC                                                        //
+///////////////////////////////////////////////////////////////////////////
+
+math::Vector2pz MultiViewRenderTargetAdapter::getSize() const {
+    return _renderTarget->getSize();
+}
+
+RenderingBackendRef MultiViewRenderTargetAdapter::getRenderingBackend() {
+    return _renderTarget->getRenderingBackend();
+}
+
+bool MultiViewRenderTargetAdapter::isSrgb() const {
+    return _renderTarget->isSrgb();
 }
 
 ///////////////////////////////////////////////////////////////////////////

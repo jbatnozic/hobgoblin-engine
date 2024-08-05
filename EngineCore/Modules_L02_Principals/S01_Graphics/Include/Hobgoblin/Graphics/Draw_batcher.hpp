@@ -21,7 +21,7 @@ public:
 
     math::Vector2pz getSize() const override;
 
-    void getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) override;
+    RenderingBackendRef getRenderingBackend() override final;
 
     bool isSrgb() const override;
 

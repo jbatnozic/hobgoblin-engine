@@ -24,14 +24,6 @@ public:
 
     MultiViewRenderTargetAdapter(MultiViewRenderTargetAdapter&& aOther) = default;
 
-    math::Vector2pz getSize() const override;
-
-    void getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) override;
-
-    bool isSrgb() const override;
-
-    ////////////////////////////////////////////////////////////////////////////////
-
     void setRenderTarget(RenderTarget& aRenderTarget);
 
     void setViewCount(PZInteger aViewCount);
@@ -41,6 +33,16 @@ public:
     View& getView(PZInteger aViewIdx);
 
     const View& getView(PZInteger aViewIdx) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    // CANVAS - BASIC                                                        //
+    ///////////////////////////////////////////////////////////////////////////
+
+    math::Vector2pz getSize() const override;
+
+    RenderingBackendRef getRenderingBackend() override final;
+
+    bool isSrgb() const override;
 
     ///////////////////////////////////////////////////////////////////////////
     // CANVAS - DRAWING                                                      //

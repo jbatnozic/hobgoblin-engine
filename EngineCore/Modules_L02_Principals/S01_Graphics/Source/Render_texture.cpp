@@ -129,8 +129,8 @@ math::Vector2pz RenderTexture::getSize() const {
     return GetSRTA(const)->getSize();
 }
 
-void RenderTexture::getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) {
-    GetMVA()->getCanvasDetails(aType, aRenderingBackend);
+RenderingBackendRef RenderTexture::getRenderingBackend() {
+    return GetMVA()->getRenderingBackend();
 }
 
 bool RenderTexture::isSrgb() const {

@@ -107,7 +107,7 @@ public:
 
     bool isSrgb() const override;
 
-    void getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) override final;
+    RenderingBackendRef getRenderingBackend() override final;
 
     ///////////////////////////////////////////////////////////////////////////
     // CANVAS - DRAWING                                                      //

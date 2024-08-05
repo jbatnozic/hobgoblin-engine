@@ -118,8 +118,8 @@ math::Vector2pz RenderWindow::getSize() const {
     return GetSRTA(const)->getSize();
 }
 
-void RenderWindow::getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) {
-    GetMVA()->getCanvasDetails(aType, aRenderingBackend);
+RenderingBackendRef RenderWindow::getRenderingBackend() {
+    return GetMVA()->getRenderingBackend();
 }
 
 bool RenderWindow::isSrgb() const {
