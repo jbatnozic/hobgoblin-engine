@@ -22,7 +22,7 @@ namespace gr {
 
 //! Adapts a sf::RenderTarget to the hg::gr::RenderTarget interface.
 //! NO multiview support!
-class SfmlRenderTargetAdapter final : public RenderTarget {
+class SfmlRenderTargetAdapter : public RenderTarget {
 public:
     SfmlRenderTargetAdapter(sf::RenderTarget& aRenderTarget);
 
@@ -106,11 +106,15 @@ public:
     ///////////////////////////////////////////////////////////////////////////
 
     sf::RenderTarget& getSFMLRenderTarget() {
-        return _renderTarget;
+        return *_renderTarget;
+    }
+
+    void setSFMLRenderTarget(sf::RenderTarget& aRenderTarget) {
+        _renderTarget = &aRenderTarget;
     }
 
 private:
-    sf::RenderTarget& _renderTarget;
+    NeverNull<sf::RenderTarget*> _renderTarget;
 };
 
 } // namespace gr

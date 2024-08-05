@@ -5,7 +5,7 @@
 
 #include <SFML/Graphics/RenderWindow.hpp>
 
-#include "Multiview_rendertarget_adapter.hpp"
+#include "Multiview_decorator.hpp"
 #include "SFML_conversions.hpp"
 #include "SFML_rendertarget_adapter.hpp"
 
@@ -19,27 +19,26 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
+using ImplType            = MultiViewDecorator<SfmlRenderTargetAdapter>;
+constexpr auto IMPL_SIZE  = sizeof(ImplType);
+constexpr auto IMPL_ALIGN = alignof(ImplType);
+#define IMPLOF(_obj_)  (reinterpret_cast<ImplType*>(&((_obj_)._storage)))
+#define CIMPLOF(_obj_) (reinterpret_cast<const ImplType*>(&((_obj_)._storage)))
+#define SELF_IMPL      (IMPLOF(SELF))
+#define SELF_CIMPL     (CIMPLOF(SELF))
+
 // clang-format off
-#define GetSfRenderWindow(_cv_) \
-    (&detail::GraphicsImplAccessor::getImplOf<_cv_ sf::RenderWindow>(static_cast<_cv_ win::Window&>(SELF)))
-
-#define GetSRTA(_cv_) \
-    (reinterpret_cast<_cv_ SfmlRenderTargetAdapter*>(&_srtaStorage))
-
-#define GetMVA(_cv_) \
-    (reinterpret_cast<_cv_ MultiViewRenderTargetAdapter*>(&_mvaStorage))
+#define GetSfRenderWindow() \
+    (&detail::GraphicsImplAccessor::getImplOf<sf::RenderWindow>(static_cast<win::Window&>(SELF)))
 // clang-format on
 
 RenderWindow::RenderWindow() {
     // clang-format off
-    static_assert(MVA_STORAGE_SIZE  == sizeof(MultiViewRenderTargetAdapter),  "RenderWindow::MVA_STORAGE_SIZE is inadequate.");
-    static_assert(MVA_STORAGE_ALIGN == alignof(MultiViewRenderTargetAdapter), "RenderWindow::MVA_STORAGE_ALIGN is inadequate.");
-    static_assert(SRTA_STORAGE_SIZE  == sizeof(SfmlRenderTargetAdapter),      "RenderWindow::SRTA_STORAGE_SIZE is inadequate.");
-    static_assert(SRTA_STORAGE_ALIGN == alignof(SfmlRenderTargetAdapter),     "RenderWindow::SRTA_STORAGE_ALIGN is inadequate.");
+    static_assert(STORAGE_SIZE  == sizeof(ImplType),  "RenderWindow::STORAGE_SIZE is inadequate.");
+    static_assert(STORAGE_ALIGN == alignof(ImplType), "RenderWindow::STORAGE_ALIGN is inadequate.");
     // clang-format on
 
-    new (&_srtaStorage) SfmlRenderTargetAdapter(*GetSfRenderWindow());
-    new (&_mvaStorage) MultiViewRenderTargetAdapter(*GetSRTA());
+    new (&_storage) ImplType(*GetSfRenderWindow());
 }
 
 RenderWindow::RenderWindow(win::VideoMode              aMode,
@@ -68,14 +67,8 @@ RenderWindow::RenderWindow(win::WindowHandle aHandle, const win::ContextSettings
 
 RenderWindow::RenderWindow(RenderWindow&& aOther)
     : Window{std::move(aOther)} {
-    // Replace SfmlRenderTargetAdapter
-    new (&_srtaStorage) SfmlRenderTargetAdapter(*GetSfRenderWindow());
-
-    // Replace MultiViewRenderTargetAdapter
-    auto* otherMvaStoragePtr = &(aOther._mvaStorage);
-    auto* otherMvaPtr        = reinterpret_cast<MultiViewRenderTargetAdapter*>(otherMvaStoragePtr);
-    new (&_mvaStorage) MultiViewRenderTargetAdapter(std::move(*otherMvaPtr));
-    GetMVA()->setRenderTarget(*GetSRTA());
+    *SELF_IMPL = std::move(*IMPLOF(aOther));
+    SELF_IMPL->setSFMLRenderTarget(*GetSfRenderWindow());
 }
 
 RenderWindow& RenderWindow::operator=(RenderWindow&& aOther) {
@@ -83,23 +76,15 @@ RenderWindow& RenderWindow::operator=(RenderWindow&& aOther) {
         // Replace Window
         static_cast<Window&>(SELF) = std::move(static_cast<Window&>(aOther));
 
-        // Replace SfmlRenderTargetAdapter
-        GetSRTA()->~SfmlRenderTargetAdapter();
-        new (&_srtaStorage) SfmlRenderTargetAdapter(*GetSfRenderWindow());
-
-        // Replace MultiViewRenderTargetAdapter
-        GetMVA()->~MultiViewRenderTargetAdapter();
-        auto* otherMvaStoragePtr = &(aOther._mvaStorage);
-        auto* otherMvaPtr        = reinterpret_cast<MultiViewRenderTargetAdapter*>(otherMvaStoragePtr);
-        new (&_mvaStorage) MultiViewRenderTargetAdapter(std::move(*otherMvaPtr));
-        GetMVA()->setRenderTarget(*GetSRTA());
+        // Replace Adapter
+        *SELF_IMPL = std::move(*IMPLOF(aOther));
+        SELF_IMPL->setSFMLRenderTarget(*GetSfRenderWindow());
     }
     return SELF;
 }
 
 RenderWindow::~RenderWindow() {
-    GetSRTA()->~SfmlRenderTargetAdapter();
-    GetMVA()->~MultiViewRenderTargetAdapter();
+    SELF_IMPL->~ImplType();
 }
 
 void RenderWindow::onCreate() {
@@ -115,11 +100,11 @@ void RenderWindow::onResize() {
 ///////////////////////////////////////////////////////////////////////////
 
 math::Vector2pz RenderWindow::getSize() const {
-    return GetSRTA(const)->getSize();
+    return SELF_CIMPL->getSize();
 }
 
 RenderingBackendRef RenderWindow::getRenderingBackend() {
-    return GetMVA()->getRenderingBackend();
+    return SELF_IMPL->getRenderingBackend();
 }
 
 bool RenderWindow::isSrgb() const {
@@ -131,33 +116,33 @@ bool RenderWindow::isSrgb() const {
 ///////////////////////////////////////////////////////////////////////////
 
 void RenderWindow::clear(const Color& aColor) {
-    GetSRTA()->clear(aColor);
+    SELF_IMPL->clear(aColor);
 }
 
 void RenderWindow::draw(const Drawable& aDrawable, const RenderStates& aStates) {
-    GetMVA()->draw(aDrawable, aStates);
+    SELF_IMPL->draw(aDrawable, aStates);
 }
 
 void RenderWindow::draw(const Vertex*       aVertices,
                         PZInteger           aVertexCount,
                         PrimitiveType       aPrimitiveType,
                         const RenderStates& aStates) {
-    GetMVA()->draw(aVertices, aVertexCount, aPrimitiveType, aStates);
+    SELF_IMPL->draw(aVertices, aVertexCount, aPrimitiveType, aStates);
 }
 
 void RenderWindow::draw(const VertexBuffer& aVertexBuffer, const RenderStates& aStates) {
-    GetMVA()->draw(aVertexBuffer, aStates);
+    SELF_IMPL->draw(aVertexBuffer, aStates);
 }
 
 void RenderWindow::draw(const VertexBuffer& aVertexBuffer,
                         PZInteger           aFirstVertex,
                         PZInteger           aVertexCount,
                         const RenderStates& aStates) {
-    GetMVA()->draw(aVertexBuffer, aFirstVertex, aVertexCount, aStates);
+    SELF_IMPL->draw(aVertexBuffer, aFirstVertex, aVertexCount, aStates);
 }
 
 void RenderWindow::flush() {
-    GetMVA()->flush();
+    SELF_IMPL->flush();
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -165,19 +150,19 @@ void RenderWindow::flush() {
 ///////////////////////////////////////////////////////////////////////////
 
 bool RenderWindow::setActive(bool aActive) {
-    return GetSRTA()->setActive(aActive);
+    return SELF_IMPL->setActive(aActive);
 }
 
 void RenderWindow::pushGLStates() {
-    GetSRTA()->pushGLStates();
+    SELF_IMPL->pushGLStates();
 }
 
 void RenderWindow::popGLStates() {
-    GetSRTA()->popGLStates();
+    SELF_IMPL->popGLStates();
 }
 
 void RenderWindow::resetGLStates() {
-    GetSRTA()->resetGLStates();
+    SELF_IMPL->resetGLStates();
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -185,55 +170,55 @@ void RenderWindow::resetGLStates() {
 ///////////////////////////////////////////////////////////////////////////
 
 void RenderWindow::setViewCount(PZInteger aViewCount) {
-    GetMVA()->setViewCount(aViewCount);
+    SELF_IMPL->setViewCount(aViewCount);
 }
 
 void RenderWindow::setView(const View& aView) {
-    GetMVA()->getView(0) = aView;
+    SELF_IMPL->getView(0) = aView;
 }
 
 void RenderWindow::setView(PZInteger aViewIdx, const View& aView) {
-    GetMVA()->getView(aViewIdx) = aView;
+    SELF_IMPL->getView(aViewIdx) = aView;
 }
 
 PZInteger RenderWindow::getViewCount() const {
-    return GetMVA(const)->getViewCount();
+    return SELF_CIMPL->getViewCount();
 }
 
 const View& RenderWindow::getView(PZInteger aViewIdx) const {
-    return GetMVA(const)->getView(aViewIdx);
+    return SELF_CIMPL->getView(aViewIdx);
 }
 
 View& RenderWindow::getView(PZInteger aViewIdx) {
-    return GetMVA()->getView(aViewIdx);
+    return SELF_IMPL->getView(aViewIdx);
 }
 
 View RenderWindow::getDefaultView() const {
-    return GetSRTA(const)->getDefaultView();
+    return SELF_CIMPL->getDefaultView();
 }
 
 math::Rectangle<PZInteger> RenderWindow::getViewport(const View& aView) const {
-    return GetSRTA(const)->getViewport(aView);
+    return SELF_CIMPL->getViewport(aView);
 }
 
 math::Rectangle<PZInteger> RenderWindow::getViewport(PZInteger aViewIdx) const {
-    return GetSRTA(const)->getViewport(getView(aViewIdx));
+    return SELF_CIMPL->getViewport(getView(aViewIdx));
 }
 
 math::Vector2f RenderWindow::mapPixelToCoords(const math::Vector2i& aPoint, const View& aView) const {
-    return GetSRTA(const)->mapPixelToCoords(aPoint, aView);
+    return SELF_CIMPL->mapPixelToCoords(aPoint, aView);
 }
 
 math::Vector2f RenderWindow::mapPixelToCoords(const math::Vector2i& aPoint, PZInteger aViewIdx) const {
-    return GetSRTA(const)->mapPixelToCoords(aPoint, getView(aViewIdx));
+    return SELF_CIMPL->mapPixelToCoords(aPoint, getView(aViewIdx));
 }
 
 math::Vector2i RenderWindow::mapCoordsToPixel(const math::Vector2f& aPoint, const View& aView) const {
-    return GetSRTA(const)->mapCoordsToPixel(aPoint, aView);
+    return SELF_CIMPL->mapCoordsToPixel(aPoint, aView);
 }
 
 math::Vector2i RenderWindow::mapCoordsToPixel(const math::Vector2f& aPoint, PZInteger aViewIdx) const {
-    return GetSRTA(const)->mapCoordsToPixel(aPoint, getView(aViewIdx));
+    return SELF_CIMPL->mapCoordsToPixel(aPoint, getView(aViewIdx));
 }
 
 } // namespace gr

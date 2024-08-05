@@ -190,15 +190,9 @@ protected:
 
 private:
     // clang-format off
-    // SFML RenderTarget adapter:
-    static constexpr std::size_t SRTA_STORAGE_SIZE  = 24;
-    static constexpr std::size_t SRTA_STORAGE_ALIGN =  8;
-    std::aligned_storage<SRTA_STORAGE_SIZE, SRTA_STORAGE_ALIGN>::type _srtaStorage;
-
-    // Multiview adapter:
-    static constexpr std::size_t MVA_STORAGE_SIZE  = 208;
-    static constexpr std::size_t MVA_STORAGE_ALIGN = 8;
-    std::aligned_storage<MVA_STORAGE_SIZE, MVA_STORAGE_ALIGN>::type _mvaStorage;
+    static constexpr std::size_t STORAGE_SIZE  = 216;
+    static constexpr std::size_t STORAGE_ALIGN =   8;
+    std::aligned_storage<STORAGE_SIZE, STORAGE_ALIGN>::type _storage;
     // clang-format on
 };
 

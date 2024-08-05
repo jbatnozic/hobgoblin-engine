@@ -14,26 +14,26 @@ HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
 SfmlRenderTargetAdapter::SfmlRenderTargetAdapter(sf::RenderTarget& aRenderTarget)
-    : _renderTarget{aRenderTarget} {}
+    : _renderTarget{&aRenderTarget} {}
 
 ///////////////////////////////////////////////////////////////////////////
 // CANVAS - BASIC                                                        //
 ///////////////////////////////////////////////////////////////////////////
 
 math::Vector2pz SfmlRenderTargetAdapter::getSize() const {
-    const auto size = _renderTarget.getSize();
+    const auto size = _renderTarget->getSize();
     return {static_cast<PZInteger>(size.x), static_cast<PZInteger>(size.y)};
 }
 
 RenderingBackendRef SfmlRenderTargetAdapter::getRenderingBackend() {
     return {
-        .backendPtr  = &_renderTarget,
+        .backendPtr  = static_cast<sf::RenderTarget*>(_renderTarget),
         .backendType = RenderingBackendType::SFML,
     };
 }
 
 bool SfmlRenderTargetAdapter::isSrgb() const {
-    return _renderTarget.isSrgb();
+    return _renderTarget->isSrgb();
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -41,7 +41,7 @@ bool SfmlRenderTargetAdapter::isSrgb() const {
 ///////////////////////////////////////////////////////////////////////////
 
 void SfmlRenderTargetAdapter::clear(const Color& aColor) {
-    _renderTarget.clear(ToSf(aColor));
+    _renderTarget->clear(ToSf(aColor));
 }
 
 void SfmlRenderTargetAdapter::draw(const Drawable& aDrawable, const RenderStates& aStates) {
@@ -54,7 +54,7 @@ void SfmlRenderTargetAdapter::draw(const Vertex*       aVertices,
                                    const RenderStates& aStates) {
     SFMLVertices sfVertices{aVertices, pztos(aVertexCount)};
 
-    _renderTarget.draw(sfVertices.getVertices(),
+    _renderTarget->draw(sfVertices.getVertices(),
                        sfVertices.getVertexCount(),
                        ToSf(aPrimitiveType),
                        ToSf(aStates));
@@ -82,19 +82,19 @@ void SfmlRenderTargetAdapter::flush() {
 ///////////////////////////////////////////////////////////////////////////
 
 bool SfmlRenderTargetAdapter::setActive(bool aActive) {
-    return _renderTarget.setActive();
+    return _renderTarget->setActive();
 }
 
 void SfmlRenderTargetAdapter::pushGLStates() {
-    _renderTarget.pushGLStates();
+    _renderTarget->pushGLStates();
 }
 
 void SfmlRenderTargetAdapter::popGLStates() {
-    _renderTarget.popGLStates();
+    _renderTarget->popGLStates();
 }
 
 void SfmlRenderTargetAdapter::resetGLStates() {
-    _renderTarget.resetGLStates();
+    _renderTarget->resetGLStates();
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -106,7 +106,7 @@ void SfmlRenderTargetAdapter::setViewCount(PZInteger aViewCount) {
 }
 
 void SfmlRenderTargetAdapter::setView(const View& aView) {
-    _renderTarget.setView(ToSf(aView));
+    _renderTarget->setView(ToSf(aView));
 }
 
 void SfmlRenderTargetAdapter::setView(PZInteger aViewIdx, const View& aView) {
@@ -126,12 +126,12 @@ View& SfmlRenderTargetAdapter::getView(PZInteger aViewIdx) {
 }
 
 View SfmlRenderTargetAdapter::getDefaultView() const {
-    return ToHg(_renderTarget.getDefaultView());
+    return ToHg(_renderTarget->getDefaultView());
 }
 
 math::Rectangle<PZInteger> SfmlRenderTargetAdapter::getViewport(const View& aView) const {
     const auto& sfView   = ToSf(aView);
-    const auto  viewport = _renderTarget.getViewport(sfView);
+    const auto  viewport = _renderTarget->getViewport(sfView);
     return {static_cast<PZInteger>(viewport.left),
             static_cast<PZInteger>(viewport.top),
             static_cast<PZInteger>(viewport.width),
@@ -149,13 +149,13 @@ math::Vector2f SfmlRenderTargetAdapter::mapPixelToCoords(const math::Vector2i& a
 
 math::Vector2f SfmlRenderTargetAdapter::mapPixelToCoords(const math::Vector2i& aPoint,
                                                          const View&           aView) const {
-    const auto pt = _renderTarget.mapPixelToCoords(ToSf(aPoint), ToSf(aView));
+    const auto pt = _renderTarget->mapPixelToCoords(ToSf(aPoint), ToSf(aView));
     return ToHg(pt);
 }
 
 math::Vector2i SfmlRenderTargetAdapter::mapCoordsToPixel(const math::Vector2f& aPoint,
                                                          const View&           aView) const {
-    const auto pt = _renderTarget.mapCoordsToPixel(ToSf(aPoint), ToSf(aView));
+    const auto pt = _renderTarget->mapCoordsToPixel(ToSf(aPoint), ToSf(aView));
     return ToHg(pt);
 }
 
