@@ -229,15 +229,15 @@ public:
 
     math::Rectangle<PZInteger> getViewport(const View& aView) const override;
 
-    math::Rectangle<PZInteger> getViewport(PZInteger aViewIdx) const override;
+    math::Rectangle<PZInteger> getViewport(PZInteger aViewIdx = 0) const override;
 
     math::Vector2f mapPixelToCoords(const math::Vector2i& aPoint, const View& aView) const override;
 
-    math::Vector2f mapPixelToCoords(const math::Vector2i& aPoint, PZInteger aViewIdx) const override;
+    math::Vector2f mapPixelToCoords(const math::Vector2i& aPoint, PZInteger aViewIdx = 0) const override;
 
     math::Vector2i mapCoordsToPixel(const math::Vector2f& point, const View& view) const override;
 
-    math::Vector2i mapCoordsToPixel(const math::Vector2f& point, PZInteger aViewIdx) const override;
+    math::Vector2i mapCoordsToPixel(const math::Vector2f& point, PZInteger aViewIdx = 0) const override;
 
 private:
     friend class detail::GraphicsImplAccessor;

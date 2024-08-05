@@ -228,7 +228,7 @@ math::Vector2f RenderTexture::mapPixelToCoords(const math::Vector2i& aPoint, con
 }
 
 math::Vector2f RenderTexture::mapPixelToCoords(const math::Vector2i& aPoint, PZInteger aViewIdx) const {
-    return SELF_CIMPL->mapPixelToCoords(aPoint, getView(aViewIdx));
+    return SELF_CIMPL->mapPixelToCoords(aPoint, aViewIdx);
 }
 
 math::Vector2i RenderTexture::mapCoordsToPixel(const math::Vector2f& aPoint, const View& aView) const {
@@ -236,7 +236,7 @@ math::Vector2i RenderTexture::mapCoordsToPixel(const math::Vector2f& aPoint, con
 }
 
 math::Vector2i RenderTexture::mapCoordsToPixel(const math::Vector2f& aPoint, PZInteger aViewIdx) const {
-    return SELF_CIMPL->mapCoordsToPixel(aPoint, getView(aViewIdx));
+    return SELF_CIMPL->mapCoordsToPixel(aPoint, aViewIdx);
 }
 
 ///////////////////////////////////////////////////////////////////////////

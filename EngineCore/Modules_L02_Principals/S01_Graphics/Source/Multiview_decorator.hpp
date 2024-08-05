@@ -148,7 +148,7 @@ public:
     // math::Rectangle<PZInteger> getViewport(const View& aView) const override final; // Inherit
     using Super::getViewport;
 
-    math::Rectangle<PZInteger> getViewport(PZInteger aViewIdx) const override final {
+    math::Rectangle<PZInteger> getViewport(PZInteger aViewIdx = 0) const override final {
         return Super::getViewport(getView(aViewIdx));
     }
 
@@ -157,7 +157,7 @@ public:
     using Super::mapPixelToCoords;
 
     math::Vector2f mapPixelToCoords(const math::Vector2i& aPoint,
-                                    PZInteger             aViewIdx) const override final {
+                                    PZInteger             aViewIdx = 0) const override final {
         return Super::mapPixelToCoords(aPoint, getView(aViewIdx));
     }
 
@@ -166,7 +166,7 @@ public:
     using Super::mapCoordsToPixel;
 
     math::Vector2i mapCoordsToPixel(const math::Vector2f& aPoint,
-                                    PZInteger             aViewIdx) const override final {
+                                    PZInteger             aViewIdx = 0) const override final {
         return Super::mapCoordsToPixel(aPoint, getView(aViewIdx));
     }
 
