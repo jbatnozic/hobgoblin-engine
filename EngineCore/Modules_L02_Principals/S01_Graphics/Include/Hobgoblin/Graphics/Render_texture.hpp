@@ -249,17 +249,12 @@ private:
     // SFML RenderTexture:
     static constexpr std::size_t SFRT_STORAGE_SIZE  = 528;
     static constexpr std::size_t SFRT_STORAGE_ALIGN =   8;
-    std::aligned_storage<SFRT_STORAGE_SIZE, SFRT_STORAGE_ALIGN>::type _storage;
+    std::aligned_storage<SFRT_STORAGE_SIZE, SFRT_STORAGE_ALIGN>::type _sfrtStorage;
 
-    // SFML RenderTarget adapter:
-    static constexpr std::size_t SRTA_STORAGE_SIZE  = 24;
-    static constexpr std::size_t SRTA_STORAGE_ALIGN =  8;
-    std::aligned_storage<SRTA_STORAGE_SIZE, SRTA_STORAGE_ALIGN>::type _srtaStorage;
-
-    // Multiview adapter:
-    static constexpr std::size_t MVA_STORAGE_SIZE  = 208;
-    static constexpr std::size_t MVA_STORAGE_ALIGN =   8;
-    std::aligned_storage<MVA_STORAGE_SIZE, MVA_STORAGE_ALIGN>::type _mvaStorage;
+    // SFML RenderTarget adapter & MultiViewDecorator:
+    static constexpr std::size_t IMPL_STORAGE_SIZE  = 216;
+    static constexpr std::size_t IMPL_STORAGE_ALIGN =   8;
+    std::aligned_storage<IMPL_STORAGE_SIZE, IMPL_STORAGE_ALIGN>::type _implStorage;
     //clang-format on
 
     Texture _texture;

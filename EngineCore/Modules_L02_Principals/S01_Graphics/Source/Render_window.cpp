@@ -174,11 +174,11 @@ void RenderWindow::setViewCount(PZInteger aViewCount) {
 }
 
 void RenderWindow::setView(const View& aView) {
-    SELF_IMPL->getView(0) = aView;
+    SELF_IMPL->setView(aView);
 }
 
 void RenderWindow::setView(PZInteger aViewIdx, const View& aView) {
-    SELF_IMPL->getView(aViewIdx) = aView;
+    SELF_IMPL->setView(aViewIdx, aView);
 }
 
 PZInteger RenderWindow::getViewCount() const {
@@ -202,7 +202,7 @@ math::Rectangle<PZInteger> RenderWindow::getViewport(const View& aView) const {
 }
 
 math::Rectangle<PZInteger> RenderWindow::getViewport(PZInteger aViewIdx) const {
-    return SELF_CIMPL->getViewport(getView(aViewIdx));
+    return SELF_CIMPL->getViewport(aViewIdx);
 }
 
 math::Vector2f RenderWindow::mapPixelToCoords(const math::Vector2i& aPoint, const View& aView) const {
@@ -210,7 +210,7 @@ math::Vector2f RenderWindow::mapPixelToCoords(const math::Vector2i& aPoint, cons
 }
 
 math::Vector2f RenderWindow::mapPixelToCoords(const math::Vector2i& aPoint, PZInteger aViewIdx) const {
-    return SELF_CIMPL->mapPixelToCoords(aPoint, getView(aViewIdx));
+    return SELF_CIMPL->mapPixelToCoords(aPoint, aViewIdx);
 }
 
 math::Vector2i RenderWindow::mapCoordsToPixel(const math::Vector2f& aPoint, const View& aView) const {
@@ -218,7 +218,7 @@ math::Vector2i RenderWindow::mapCoordsToPixel(const math::Vector2f& aPoint, cons
 }
 
 math::Vector2i RenderWindow::mapCoordsToPixel(const math::Vector2f& aPoint, PZInteger aViewIdx) const {
-    return SELF_CIMPL->mapCoordsToPixel(aPoint, getView(aViewIdx));
+    return SELF_CIMPL->mapCoordsToPixel(aPoint, aViewIdx);
 }
 
 } // namespace gr

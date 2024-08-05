@@ -9,8 +9,6 @@
 #include <Hobgoblin/Graphics/View.hpp>
 #include <Hobgoblin/HGExcept.hpp>
 
-#include "Multiview_rendertarget_adapter.hpp"
-
 #include <cassert>
 #include <typeinfo>
 
