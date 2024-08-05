@@ -1,8 +1,6 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-// clang-format off
-
 #ifndef UHOBGOBLIN_GR_DRAW_BATCHER_HPP
 #define UHOBGOBLIN_GR_DRAW_BATCHER_HPP
 
@@ -21,25 +19,46 @@ class DrawBatcher : public Canvas {
 public:
     explicit DrawBatcher(Canvas& aCanvas);
 
-    void draw(const Drawable& aDrawable,
-              const RenderStates& aStates = RenderStates::DEFAULT) override;
+    math::Vector2pz getSize() const override;
 
-    void draw(const Vertex* aVertices, 
-              PZInteger aVertexCount, 
-              PrimitiveType aType,
+    RenderingBackendRef getRenderingBackend() override final;
+
+    bool isSrgb() const override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    // CANVAS - DRAWING                                                      //
+    ///////////////////////////////////////////////////////////////////////////
+
+    void clear(const Color& aColor = COLOR_BLACK) override;
+
+    void draw(const Drawable& aDrawable, const RenderStates& aStates = RenderStates::DEFAULT) override;
+
+    void draw(const Vertex*       aVertices,
+              PZInteger           aVertexCount,
+              PrimitiveType       aType,
               const RenderStates& aStates = RenderStates::DEFAULT) override;
 
     void draw(const VertexBuffer& aVertexBuffer,
               const RenderStates& aStates = RenderStates::DEFAULT) override;
 
-    void draw(const VertexBuffer& aVertexBuffer, 
-              PZInteger aFirstVertex, 
-              PZInteger aVertexCount,
+    void draw(const VertexBuffer& aVertexBuffer,
+              PZInteger           aFirstVertex,
+              PZInteger           aVertexCount,
               const RenderStates& aStates = RenderStates::DEFAULT) override;
 
     void flush() override;
 
-    void getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) override;
+    ///////////////////////////////////////////////////////////////////////////
+    // CANVAS - OPEN GL                                                      //
+    ///////////////////////////////////////////////////////////////////////////
+
+    [[nodiscard]] bool setActive(bool aActive = true) override;
+
+    void pushGLStates() override;
+
+    void popGLStates() override;
+
+    void resetGLStates() override;
 
 private:
     enum class Status {
@@ -52,8 +71,8 @@ private:
 
     Status _status = Status::Empty;
 
-    RenderStates _renderStates;
-    VertexArray _vertexArray;
+    RenderStates   _renderStates;
+    VertexArray    _vertexArray;
     const Texture* _texture = nullptr;
 
     void _flush();
@@ -72,5 +91,3 @@ HOBGOBLIN_NAMESPACE_END
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
 #endif // !UHOBGOBLIN_GR_DRAW_BATCHER_HPP
-
-// clang-format on

@@ -14,8 +14,7 @@ set(COMPONENT_SOURCES
   "Source/MaxRectsBinPack/Rbp_rect.cpp"
 
   "Source/Draw_bridge.hpp"
-  "Source/Multiview_rendertarget_adapter.cpp"
-  "Source/Multiview_rendertarget_adapter.hpp"
+  "Source/Multiview_decorator.hpp"
   "Source/SFML_conversions.hpp"
   "Source/SFML_err.hpp"
   "Source/SFML_rendertarget_adapter.cpp"

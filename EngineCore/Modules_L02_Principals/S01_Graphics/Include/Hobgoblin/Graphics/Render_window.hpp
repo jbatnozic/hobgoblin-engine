@@ -26,8 +26,6 @@
 //
 ////////////////////////////////////////////////////////////
 
-// clang-format off
-
 #ifndef UHOBGOBLIN_GRAPHICS_RENDER_WINDOW_HPP
 #define UHOBGOBLIN_GRAPHICS_RENDER_WINDOW_HPP
 
@@ -41,9 +39,11 @@
 
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
-  
+
 //! \brief Window that can serve as a target for 2D drawing.
-class RenderWindow : public win::Window, public RenderTarget {
+class RenderWindow
+    : public win::Window
+    , public RenderTarget {
 public:
     //! \brief Default constructor
     //!
@@ -51,7 +51,7 @@ public:
     //! use the other constructors or call create() to do so.
     RenderWindow();
 
-    RenderWindow(const RenderWindow& aOther) = delete;
+    RenderWindow(const RenderWindow& aOther)            = delete;
     RenderWindow& operator=(const RenderWindow& aOther) = delete;
 
     RenderWindow(RenderWindow&& aOther);
@@ -69,16 +69,14 @@ public:
     //! depth-buffer bits, etc. You shouldn't care about these
     //! parameters for a regular usage of the graphics module.
     //!
-    //! \param mode     Video mode to use (defines the width, height and depth of the rendering area of the window)
-    //! \param title    Title of the window
-    //! \param style    %Window style, a bitwise OR combination of sf::Style enumerators
-    //! \param settings Additional settings for the underlying OpenGL context
-    RenderWindow(
-        win::VideoMode aMode,
-        const std::string& aTitle,
-        win::WindowStyle aStyle = win::WindowStyle::Default,
-        const win::ContextSettings& aSettings = win::ContextSettings{}
-    );
+    //! \param mode     Video mode to use (defines the width, height and depth of the rendering area of
+    //! the window) \param title    Title of the window \param style    %Window style, a bitwise OR
+    //! combination of sf::Style enumerators \param settings Additional settings for the underlying
+    //! OpenGL context
+    RenderWindow(win::VideoMode              aMode,
+                 const std::string&          aTitle,
+                 win::WindowStyle            aStyle    = win::WindowStyle::Default,
+                 const win::ContextSettings& aSettings = win::ContextSettings{});
 
     //! \brief Construct the window from an existing control
     //!
@@ -93,50 +91,62 @@ public:
     //! \param handle   Platform-specific handle of the control (\a HWND on
     //!                 Windows, \a %Window on Linux/FreeBSD, \a NSWindow on OS X)
     //! \param settings Additional settings for the underlying OpenGL context
-    explicit RenderWindow(
-        win::WindowHandle aHandle,
-        const win::ContextSettings& aSettings = win::ContextSettings{}
-    );
+    explicit RenderWindow(win::WindowHandle           aHandle,
+                          const win::ContextSettings& aSettings = win::ContextSettings{});
 
     //! \brief Destructor
     //!
     //! Closes the window and frees all the resources attached to it.
     virtual ~RenderWindow();
 
-    //! \brief Tell if the window will use sRGB encoding when drawing on it
-    //!
-    //! You can request sRGB encoding for a window by having the sRgbCapable flag set in the ContextSettings
-    //!
-    //! \return True if the window use sRGB encoding, false otherwise
-    virtual bool isSrgb() const override;
-
     ///////////////////////////////////////////////////////////////////////////
-    // RENDER TARGET                                                         //
+    // CANVAS - BASIC                                                        //
     ///////////////////////////////////////////////////////////////////////////
 
-    // TODO: see which overriden methods should be final
+    math::Vector2pz getSize() const override;
 
-    void draw(const Drawable& aDrawable,
-              const RenderStates& aStates = RenderStates::DEFAULT) override;
+    bool isSrgb() const override;
 
-    void draw(const Vertex* aVertices,
-              PZInteger aVertexCount,
-              PrimitiveType aPrimitiveType,
+    RenderingBackendRef getRenderingBackend() override final;
+
+    ///////////////////////////////////////////////////////////////////////////
+    // CANVAS - DRAWING                                                      //
+    ///////////////////////////////////////////////////////////////////////////
+
+    void clear(const Color& aColor = COLOR_BLACK) override;
+
+    void draw(const Drawable& aDrawable, const RenderStates& aStates = RenderStates::DEFAULT) override;
+
+    void draw(const Vertex*       aVertices,
+              PZInteger           aVertexCount,
+              PrimitiveType       aPrimitiveType,
               const RenderStates& aStates = RenderStates::DEFAULT) override;
 
     void draw(const VertexBuffer& aVertexBuffer,
               const RenderStates& aStates = RenderStates::DEFAULT) override;
 
     void draw(const VertexBuffer& aVertexBuffer,
-              PZInteger aFirstVertex,
-              PZInteger aVertexCount,
+              PZInteger           aFirstVertex,
+              PZInteger           aVertexCount,
               const RenderStates& aStates = RenderStates::DEFAULT) override;
 
     void flush() override;
 
-    void getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) override;
+    ///////////////////////////////////////////////////////////////////////////
+    // CANVAS - OPEN GL                                                      //
+    ///////////////////////////////////////////////////////////////////////////
 
-    void clear(const Color& aColor = COLOR_BLACK) override;
+    [[nodiscard]] bool setActive(bool aActive = true) override;
+
+    void pushGLStates() override;
+
+    void popGLStates() override;
+
+    void resetGLStates() override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    // VIEW CONTROLLER                                                       //
+    ///////////////////////////////////////////////////////////////////////////
 
     void setViewCount(PZInteger aViewCount) override;
 
@@ -154,7 +164,7 @@ public:
 
     math::Rectangle<PZInteger> getViewport(const View& aView) const override;
 
-    math::Rectangle<PZInteger> getViewport(PZInteger aViewIdx) const override;
+    math::Rectangle<PZInteger> getViewport(PZInteger aViewIdx = 0) const override;
 
     math::Vector2f mapPixelToCoords(const math::Vector2i& aPoint, const View& aView) const override;
 
@@ -163,16 +173,6 @@ public:
     math::Vector2i mapCoordsToPixel(const math::Vector2f& point, const View& view) const override;
 
     math::Vector2i mapCoordsToPixel(const math::Vector2f& point, PZInteger aViewIdx = 0) const override;
-
-    math::Vector2pz getSize() const override;
-
-    bool setActive(bool aActive = true) override;
-
-    void pushGLStates() override;
-
-    void popGLStates() override;
-
-    void resetGLStates() override;
 
 protected:
     //! \brief Function called after the window has been created
@@ -189,15 +189,11 @@ protected:
     virtual void onResize() override;
 
 private:
-    // SFML RenderTarget adapter:
-    static constexpr std::size_t SRTA_STORAGE_SIZE  = 16;
-    static constexpr std::size_t SRTA_STORAGE_ALIGN =  8;
-    std::aligned_storage<SRTA_STORAGE_SIZE, SRTA_STORAGE_ALIGN>::type _srtaStorage;
-
-    // Multiview adapter:
-    static constexpr std::size_t MVA_STORAGE_SIZE  = 208;
-    static constexpr std::size_t MVA_STORAGE_ALIGN = 8;
-    std::aligned_storage<MVA_STORAGE_SIZE, MVA_STORAGE_ALIGN>::type _mvaStorage;
+    // clang-format off
+    static constexpr std::size_t STORAGE_SIZE  = 216;
+    static constexpr std::size_t STORAGE_ALIGN =   8;
+    std::aligned_storage<STORAGE_SIZE, STORAGE_ALIGN>::type _storage;
+    // clang-format on
 };
 
 } // namespace gr
@@ -233,5 +229,3 @@ HOBGOBLIN_NAMESPACE_END
 /// \see sf::RenderWindow, sf::RenderTexture, sf::View
 ///
 ////////////////////////////////////////////////////////////
-
-// clang-format on

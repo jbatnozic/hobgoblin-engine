@@ -1,8 +1,6 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-// clang-format off
-
 #ifndef UHOBGOBLIN_GRAPHICS_HPP
 #define UHOBGOBLIN_GRAPHICS_HPP
 
@@ -11,8 +9,8 @@
 #include <Hobgoblin/Graphics/Canvas.hpp>
 #include <Hobgoblin/Graphics/Circle_shape.hpp>
 #include <Hobgoblin/Graphics/Color.hpp>
-#include <Hobgoblin/Graphics/Drawable.hpp>
 #include <Hobgoblin/Graphics/Draw_batcher.hpp>
+#include <Hobgoblin/Graphics/Drawable.hpp>
 #include <Hobgoblin/Graphics/Font.hpp>
 #include <Hobgoblin/Graphics/Glyph.hpp>
 #include <Hobgoblin/Graphics/Image.hpp>
@@ -41,7 +39,6 @@
 #include <Hobgoblin/Graphics/Vertex_array.hpp>
 #include <Hobgoblin/Graphics/Vertex_buffer.hpp>
 #include <Hobgoblin/Graphics/View.hpp>
+#include <Hobgoblin/Graphics/View_controller.hpp>
 
 #endif // !UHOBGOBLIN_GRAPHICS_HPP
-
-// clang-format on
