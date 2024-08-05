@@ -26,15 +26,14 @@
 //
 ////////////////////////////////////////////////////////////
 
-// clang-format off
-
 #ifndef UHOBGOBLIN_GRAPHICS_RENDER_TEXTURE_HPP
 #define UHOBGOBLIN_GRAPHICS_RENDER_TEXTURE_HPP
 
-#include <Hobgoblin/Graphics/Render_target.hpp>
+#include <Hobgoblin/Graphics/Canvas.hpp>
 #include <Hobgoblin/Graphics/Texture.hpp>
-#include <Hobgoblin/Window/Context_settings.hpp>
+#include <Hobgoblin/Graphics/View_controller.hpp>
 #include <Hobgoblin/Math/Vector.hpp>
+#include <Hobgoblin/Window/Context_settings.hpp>
 
 #include <memory>
 
@@ -48,7 +47,9 @@ class GraphicsImplAccessor;
 } // namespace detail
 
 //! \brief Target for off-screen 2D rendering into a texture
-class RenderTexture : public RenderTarget {
+class RenderTexture
+    : public Canvas
+    , public ViewController {
 public:
     //! \brief Default constructor
     //!
@@ -87,7 +88,7 @@ public:
     //! \param settings Additional settings for the underlying OpenGL texture and context
     //!
     //! \return True if creation has been successful
-    void create(const math::Vector2pz& aSize,
+    void create(const math::Vector2pz&      aSize,
                 const win::ContextSettings& aSettings = win::ContextSettings{});
 
     //! \brief Get the maximum anti-aliasing level supported by the system
@@ -164,32 +165,53 @@ public:
     const Texture& getTexture() const;
 
     ///////////////////////////////////////////////////////////////////////////
-    // RENDER TARGET                                                         //
+    // CANVAS - BASIC                                                        //
     ///////////////////////////////////////////////////////////////////////////
 
-    // TODO: see which overriden methods should be final
+    math::Vector2pz getSize() const override;
 
-    void draw(const Drawable& aDrawable,
-              const RenderStates& aStates = RenderStates::DEFAULT) override;
+    bool isSrgb() const override;
 
-    void draw(const Vertex* aVertices,
-              PZInteger aVertexCount,
-              PrimitiveType aPrimitiveType,
+    void getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) override final;
+
+    ///////////////////////////////////////////////////////////////////////////
+    // CANVAS - DRAWING                                                      //
+    ///////////////////////////////////////////////////////////////////////////
+
+    void clear(const Color& aColor = COLOR_BLACK) override;
+
+    void draw(const Drawable& aDrawable, const RenderStates& aStates = RenderStates::DEFAULT) override;
+
+    void draw(const Vertex*       aVertices,
+              PZInteger           aVertexCount,
+              PrimitiveType       aPrimitiveType,
               const RenderStates& aStates = RenderStates::DEFAULT) override;
 
     void draw(const VertexBuffer& aVertexBuffer,
               const RenderStates& aStates = RenderStates::DEFAULT) override;
 
     void draw(const VertexBuffer& aVertexBuffer,
-              PZInteger aFirstVertex,
-              PZInteger aVertexCount,
+              PZInteger           aFirstVertex,
+              PZInteger           aVertexCount,
               const RenderStates& aStates = RenderStates::DEFAULT) override;
 
     void flush() override;
 
-    void getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) override final;
+    ///////////////////////////////////////////////////////////////////////////
+    // CANVAS - OPEN GL                                                      //
+    ///////////////////////////////////////////////////////////////////////////
 
-    void clear(const Color& aColor = COLOR_BLACK) override;
+    [[nodiscard]] bool setActive(bool aActive = true) override;
+
+    void pushGLStates() override;
+
+    void popGLStates() override;
+
+    void resetGLStates() override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    // VIEW CONTROLLER                                                       //
+    ///////////////////////////////////////////////////////////////////////////
 
     void setViewCount(PZInteger aViewCount) override;
 
@@ -217,38 +239,28 @@ public:
 
     math::Vector2i mapCoordsToPixel(const math::Vector2f& point, PZInteger aViewIdx) const override;
 
-    math::Vector2pz getSize() const override;
-
-    [[nodiscard]] bool setActive(bool aActive = true) override;
-
-    void pushGLStates() override;
-
-    void popGLStates() override;
-
-    void resetGLStates() override;
-
-    bool isSrgb() const override;
-
 private:
     friend class detail::GraphicsImplAccessor;
 
-    void* _getSFMLImpl();
+    void*       _getSFMLImpl();
     const void* _getSFMLImpl() const;
 
+    // clang-format off
     // SFML RenderTexture:
     static constexpr std::size_t SFRT_STORAGE_SIZE  = 528;
     static constexpr std::size_t SFRT_STORAGE_ALIGN =   8;
     std::aligned_storage<SFRT_STORAGE_SIZE, SFRT_STORAGE_ALIGN>::type _storage;
 
     // SFML RenderTarget adapter:
-    static constexpr std::size_t SRTA_STORAGE_SIZE  = 16;
+    static constexpr std::size_t SRTA_STORAGE_SIZE  = 24;
     static constexpr std::size_t SRTA_STORAGE_ALIGN =  8;
     std::aligned_storage<SRTA_STORAGE_SIZE, SRTA_STORAGE_ALIGN>::type _srtaStorage;
 
     // Multiview adapter:
     static constexpr std::size_t MVA_STORAGE_SIZE  = 208;
-    static constexpr std::size_t MVA_STORAGE_ALIGN = 8;
+    static constexpr std::size_t MVA_STORAGE_ALIGN =   8;
     std::aligned_storage<MVA_STORAGE_SIZE, MVA_STORAGE_ALIGN>::type _mvaStorage;
+    //clang-format on
 
     Texture _texture;
 };
@@ -325,5 +337,3 @@ HOBGOBLIN_NAMESPACE_END
 /// \see sf::RenderTarget, sf::RenderWindow, sf::View, sf::Texture
 ///
 ////////////////////////////////////////////////////////////
-
-// clang-format on

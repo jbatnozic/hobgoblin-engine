@@ -1,9 +1,6 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-// clang-format off
-
-
 #include "Multiview_rendertarget_adapter.hpp"
 
 #include <cassert>
@@ -18,8 +15,18 @@ namespace gr {
 MultiViewRenderTargetAdapter::MultiViewRenderTargetAdapter(RenderTarget& aRenderTarget)
     : _renderTarget{&aRenderTarget}
     , _views{_renderTarget->getDefaultView()}
-    , _viewCount{1}
-{
+    , _viewCount{1} {}
+
+math::Vector2pz MultiViewRenderTargetAdapter::getSize() const {
+    return _renderTarget->getSize();
+}
+
+void MultiViewRenderTargetAdapter::getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) {
+    _renderTarget->getCanvasDetails(aType, aRenderingBackend);
+}
+
+bool MultiViewRenderTargetAdapter::isSrgb() const {
+    return _renderTarget->isSrgb();
 }
 
 void MultiViewRenderTargetAdapter::setRenderTarget(RenderTarget& aRenderTarget) {
@@ -34,15 +41,13 @@ void MultiViewRenderTargetAdapter::setViewCount(PZInteger aViewCount) {
     if (aViewCount > 1) {
         if (_viewCount > 1) {
             std::get<Views>(_views).resize(pztos(aViewCount));
-        }
-        else {
+        } else {
             View currentView = *_addressOfFirstView();
-            _views = Views{};
+            _views           = Views{};
             std::get<Views>(_views).resize(pztos(aViewCount));
             std::get<Views>(_views)[0] = currentView;
         }
-    }
-    else {
+    } else {
         _views = *_addressOfFirstView();
     }
 
@@ -63,8 +68,15 @@ const View& MultiViewRenderTargetAdapter::getView(PZInteger aViewIdx) const {
     return *(_addressOfFirstView() + aViewIdx);
 }
 
-void MultiViewRenderTargetAdapter::draw(const Drawable& aDrawable,
-                                        const RenderStates& aStates) {
+///////////////////////////////////////////////////////////////////////////
+// CANVAS - DRAWING                                                      //
+///////////////////////////////////////////////////////////////////////////
+
+void MultiViewRenderTargetAdapter::clear(const Color& aColor) {
+    _renderTarget->clear(aColor);
+}
+
+void MultiViewRenderTargetAdapter::draw(const Drawable& aDrawable, const RenderStates& aStates) {
     for (PZInteger i = 0; i < _viewCount; i += 1) {
         const auto& view = getView(i);
         if (view.isEnabled()) {
@@ -74,26 +86,20 @@ void MultiViewRenderTargetAdapter::draw(const Drawable& aDrawable,
     }
 }
 
-void MultiViewRenderTargetAdapter::draw(const Vertex* aVertices,
-                                        PZInteger aVertexCount,
-                                        PrimitiveType aPrimitiveType,
+void MultiViewRenderTargetAdapter::draw(const Vertex*       aVertices,
+                                        PZInteger           aVertexCount,
+                                        PrimitiveType       aPrimitiveType,
                                         const RenderStates& aStates) {
     for (PZInteger i = 0; i < _viewCount; i += 1) {
         const auto& view = getView(i);
         if (view.isEnabled()) {
             _renderTarget->setView(view);
-            _renderTarget->draw(
-                aVertices,
-                aVertexCount,
-                aPrimitiveType,
-                aStates
-            );
+            _renderTarget->draw(aVertices, aVertexCount, aPrimitiveType, aStates);
         }
     }
 }
 
-void MultiViewRenderTargetAdapter::draw(const VertexBuffer& aVertexBuffer,
-                                        const RenderStates& aStates) {
+void MultiViewRenderTargetAdapter::draw(const VertexBuffer& aVertexBuffer, const RenderStates& aStates) {
     for (PZInteger i = 0; i < _viewCount; i += 1) {
         const auto& view = getView(i);
         if (view.isEnabled()) {
@@ -104,8 +110,8 @@ void MultiViewRenderTargetAdapter::draw(const VertexBuffer& aVertexBuffer,
 }
 
 void MultiViewRenderTargetAdapter::draw(const VertexBuffer& aVertexBuffer,
-                                        PZInteger aFirstVertex,
-                                        PZInteger aVertexCount,
+                                        PZInteger           aFirstVertex,
+                                        PZInteger           aVertexCount,
                                         const RenderStates& aStates) {
     for (PZInteger i = 0; i < _viewCount; i += 1) {
         const auto& view = getView(i);
@@ -120,11 +126,34 @@ void MultiViewRenderTargetAdapter::flush() {
     _renderTarget->flush();
 }
 
+///////////////////////////////////////////////////////////////////////////
+// CANVAS - OPEN GL                                                      //
+///////////////////////////////////////////////////////////////////////////
+
+[[nodiscard]] bool MultiViewRenderTargetAdapter::setActive(bool aActive) {
+    return _renderTarget->setActive(aActive);
+}
+
+void MultiViewRenderTargetAdapter::pushGLStates() {
+    _renderTarget->pushGLStates();
+}
+
+void MultiViewRenderTargetAdapter::popGLStates() {
+    _renderTarget->popGLStates();
+}
+
+void MultiViewRenderTargetAdapter::resetGLStates() {
+    _renderTarget->resetGLStates();
+}
+
+///////////////////////////////////////////////////////////////////////////
+// PRIVATE METHODS                                                       //
+///////////////////////////////////////////////////////////////////////////
+
 View* MultiViewRenderTargetAdapter::_addressOfFirstView() {
     if (_viewCount > 1) {
         return std::get<Views>(_views).data();
-    }
-    else {
+    } else {
         return std::addressof(std::get<View>(_views));
     }
 }
@@ -132,8 +161,7 @@ View* MultiViewRenderTargetAdapter::_addressOfFirstView() {
 const View* MultiViewRenderTargetAdapter::_addressOfFirstView() const {
     if (_viewCount > 1) {
         return std::get<Views>(_views).data();
-    }
-    else {
+    } else {
         return std::addressof(std::get<View>(_views));
     }
 }
@@ -142,5 +170,3 @@ const View* MultiViewRenderTargetAdapter::_addressOfFirstView() const {
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
-
-// clang-format on

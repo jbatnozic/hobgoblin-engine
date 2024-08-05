@@ -89,6 +89,26 @@ bool IsBatchable(PrimitiveType aPrimitiveType) {
 DrawBatcher::DrawBatcher(Canvas& aCanvas)
     : _canvas{aCanvas} {}
 
+math::Vector2pz DrawBatcher::getSize() const {
+    return _canvas.getSize();
+}
+
+void DrawBatcher::getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) {
+    _canvas.getCanvasDetails(aType, aRenderingBackend);
+}
+
+bool DrawBatcher::isSrgb() const {
+    return _canvas.isSrgb();
+}
+
+///////////////////////////////////////////////////////////////////////////
+// CANVAS - DRAWING                                                      //
+///////////////////////////////////////////////////////////////////////////
+
+void DrawBatcher::clear(const Color& aColor) {
+    _canvas.clear(aColor);
+}
+
 void DrawBatcher::draw(const Drawable& aDrawable, const RenderStates& aStates) {
     const auto batchingType = aDrawable.getBatchingType();
     switch (batchingType) {
@@ -171,9 +191,29 @@ void DrawBatcher::flush() {
     _canvas.flush();
 }
 
-void DrawBatcher::getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) {
-    _canvas.getCanvasDetails(aType, aRenderingBackend);
+///////////////////////////////////////////////////////////////////////////
+// CANVAS - OPEN GL                                                      //
+///////////////////////////////////////////////////////////////////////////
+
+[[nodiscard]] bool DrawBatcher::setActive(bool aActive) {
+    return _canvas.setActive(aActive);
 }
+
+void DrawBatcher::pushGLStates() {
+    _canvas.pushGLStates();
+}
+
+void DrawBatcher::popGLStates() {
+    _canvas.popGLStates();
+}
+
+void DrawBatcher::resetGLStates() {
+    _canvas.resetGLStates();
+}
+
+///////////////////////////////////////////////////////////////////////////
+// PRIVATE METHODS                                                       //
+///////////////////////////////////////////////////////////////////////////
 
 void DrawBatcher::_flush() {
     switch (_status) {

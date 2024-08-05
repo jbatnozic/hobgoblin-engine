@@ -1,8 +1,6 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-// clang-format off
-
 #include <Hobgoblin/Graphics/Render_window.hpp>
 
 #include <SFML/Graphics/RenderWindow.hpp>
@@ -21,6 +19,7 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
+// clang-format off
 #define GetSfRenderWindow(_cv_) \
     (&detail::GraphicsImplAccessor::getImplOf<_cv_ sf::RenderWindow>(static_cast<_cv_ win::Window&>(SELF)))
 
@@ -29,25 +28,25 @@ namespace gr {
 
 #define GetMVA(_cv_) \
     (reinterpret_cast<_cv_ MultiViewRenderTargetAdapter*>(&_mvaStorage))
+// clang-format on
 
 RenderWindow::RenderWindow() {
+    // clang-format off
     static_assert(MVA_STORAGE_SIZE  == sizeof(MultiViewRenderTargetAdapter),  "RenderWindow::MVA_STORAGE_SIZE is inadequate.");
     static_assert(MVA_STORAGE_ALIGN == alignof(MultiViewRenderTargetAdapter), "RenderWindow::MVA_STORAGE_ALIGN is inadequate.");
     static_assert(SRTA_STORAGE_SIZE  == sizeof(SfmlRenderTargetAdapter),      "RenderWindow::SRTA_STORAGE_SIZE is inadequate.");
     static_assert(SRTA_STORAGE_ALIGN == alignof(SfmlRenderTargetAdapter),     "RenderWindow::SRTA_STORAGE_ALIGN is inadequate.");
+    // clang-format on
 
     new (&_srtaStorage) SfmlRenderTargetAdapter(*GetSfRenderWindow());
     new (&_mvaStorage) MultiViewRenderTargetAdapter(*GetSRTA());
 }
 
-RenderWindow::RenderWindow(
-    win::VideoMode aMode,
-    const std::string& aTitle,
-    win::WindowStyle aStyle,
-    const win::ContextSettings& aSettings
-)
-    : RenderWindow{}
-{
+RenderWindow::RenderWindow(win::VideoMode              aMode,
+                           const std::string&          aTitle,
+                           win::WindowStyle            aStyle,
+                           const win::ContextSettings& aSettings)
+    : RenderWindow{} {
     Window::create(aMode, aTitle, aStyle, aSettings);
 
     auto& view = getView(0);
@@ -57,11 +56,10 @@ RenderWindow::RenderWindow(
 }
 
 RenderWindow::RenderWindow(win::WindowHandle aHandle, const win::ContextSettings& aSettings)
-    : RenderWindow{}
-{
+    : RenderWindow{} {
     Window::create(aHandle, aSettings);
 
-    auto& view = getView(0);
+    auto&       view = getView(0);
     const auto& size = getSize();
     view.setSize({static_cast<float>(size.x), static_cast<float>(size.y)});
     view.setCenter({static_cast<float>(size.x) / 2.f, static_cast<float>(size.y) / 2.f});
@@ -69,14 +67,13 @@ RenderWindow::RenderWindow(win::WindowHandle aHandle, const win::ContextSettings
 }
 
 RenderWindow::RenderWindow(RenderWindow&& aOther)
-    : Window{std::move(aOther)}
-{
+    : Window{std::move(aOther)} {
     // Replace SfmlRenderTargetAdapter
     new (&_srtaStorage) SfmlRenderTargetAdapter(*GetSfRenderWindow());
 
     // Replace MultiViewRenderTargetAdapter
     auto* otherMvaStoragePtr = &(aOther._mvaStorage);
-    auto* otherMvaPtr = reinterpret_cast<MultiViewRenderTargetAdapter*>(otherMvaStoragePtr);
+    auto* otherMvaPtr        = reinterpret_cast<MultiViewRenderTargetAdapter*>(otherMvaStoragePtr);
     new (&_mvaStorage) MultiViewRenderTargetAdapter(std::move(*otherMvaPtr));
     GetMVA()->setRenderTarget(*GetSRTA());
 }
@@ -93,7 +90,7 @@ RenderWindow& RenderWindow::operator=(RenderWindow&& aOther) {
         // Replace MultiViewRenderTargetAdapter
         GetMVA()->~MultiViewRenderTargetAdapter();
         auto* otherMvaStoragePtr = &(aOther._mvaStorage);
-        auto* otherMvaPtr = reinterpret_cast<MultiViewRenderTargetAdapter*>(otherMvaStoragePtr);
+        auto* otherMvaPtr        = reinterpret_cast<MultiViewRenderTargetAdapter*>(otherMvaStoragePtr);
         new (&_mvaStorage) MultiViewRenderTargetAdapter(std::move(*otherMvaPtr));
         GetMVA()->setRenderTarget(*GetSRTA());
     }
@@ -105,10 +102,6 @@ RenderWindow::~RenderWindow() {
     GetMVA()->~MultiViewRenderTargetAdapter();
 }
 
-bool RenderWindow::isSrgb() const {
-    return getSettings().sRgbCapable;
-}
-
 void RenderWindow::onCreate() {
     // TODO
 }
@@ -117,28 +110,48 @@ void RenderWindow::onResize() {
     // TODO
 }
 
-// RENDER TARGET INTERFACE
+///////////////////////////////////////////////////////////////////////////
+// CANVAS - BASIC                                                        //
+///////////////////////////////////////////////////////////////////////////
 
-void RenderWindow::draw(const Drawable& aDrawable,
-                        const RenderStates& aStates) {
+math::Vector2pz RenderWindow::getSize() const {
+    return GetSRTA(const)->getSize();
+}
+
+void RenderWindow::getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) {
+    GetMVA()->getCanvasDetails(aType, aRenderingBackend);
+}
+
+bool RenderWindow::isSrgb() const {
+    return getSettings().sRgbCapable;
+}
+
+///////////////////////////////////////////////////////////////////////////
+// CANVAS - DRAWING                                                      //
+///////////////////////////////////////////////////////////////////////////
+
+void RenderWindow::clear(const Color& aColor) {
+    GetSRTA()->clear(aColor);
+}
+
+void RenderWindow::draw(const Drawable& aDrawable, const RenderStates& aStates) {
     GetMVA()->draw(aDrawable, aStates);
 }
 
-void RenderWindow::draw(const Vertex* aVertices,
-                        PZInteger aVertexCount,
-                        PrimitiveType aPrimitiveType,
+void RenderWindow::draw(const Vertex*       aVertices,
+                        PZInteger           aVertexCount,
+                        PrimitiveType       aPrimitiveType,
                         const RenderStates& aStates) {
     GetMVA()->draw(aVertices, aVertexCount, aPrimitiveType, aStates);
 }
 
-void RenderWindow::draw(const VertexBuffer& aVertexBuffer,
-                        const RenderStates& aStates) {
+void RenderWindow::draw(const VertexBuffer& aVertexBuffer, const RenderStates& aStates) {
     GetMVA()->draw(aVertexBuffer, aStates);
 }
 
 void RenderWindow::draw(const VertexBuffer& aVertexBuffer,
-                        PZInteger aFirstVertex,
-                        PZInteger aVertexCount,
+                        PZInteger           aFirstVertex,
+                        PZInteger           aVertexCount,
                         const RenderStates& aStates) {
     GetMVA()->draw(aVertexBuffer, aFirstVertex, aVertexCount, aStates);
 }
@@ -147,13 +160,29 @@ void RenderWindow::flush() {
     GetMVA()->flush();
 }
 
-void RenderWindow::getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) {
-    GetMVA()->getCanvasDetails(aType, aRenderingBackend);
+///////////////////////////////////////////////////////////////////////////
+// CANVAS - OPEN GL                                                      //
+///////////////////////////////////////////////////////////////////////////
+
+bool RenderWindow::setActive(bool aActive) {
+    return GetSRTA()->setActive(aActive);
 }
 
-void RenderWindow::clear(const Color& aColor) {
-    GetSRTA()->clear(aColor);
+void RenderWindow::pushGLStates() {
+    GetSRTA()->pushGLStates();
 }
+
+void RenderWindow::popGLStates() {
+    GetSRTA()->popGLStates();
+}
+
+void RenderWindow::resetGLStates() {
+    GetSRTA()->resetGLStates();
+}
+
+///////////////////////////////////////////////////////////////////////////
+// VIEW CONTROLLER                                                       //
+///////////////////////////////////////////////////////////////////////////
 
 void RenderWindow::setViewCount(PZInteger aViewCount) {
     GetMVA()->setViewCount(aViewCount);
@@ -207,29 +236,7 @@ math::Vector2i RenderWindow::mapCoordsToPixel(const math::Vector2f& aPoint, PZIn
     return GetSRTA(const)->mapCoordsToPixel(aPoint, getView(aViewIdx));
 }
 
-math::Vector2pz RenderWindow::getSize() const {
-    return GetSRTA(const)->getSize();
-}
-
-bool RenderWindow::setActive(bool aActive) {
-    return GetSRTA()->setActive(aActive);
-}
-
-void RenderWindow::pushGLStates() {
-    GetSRTA()->pushGLStates();
-}
-
-void RenderWindow::popGLStates() {
-    GetSRTA()->popGLStates();
-}
-
-void RenderWindow::resetGLStates() {
-    GetSRTA()->resetGLStates();
-}
-
 } // namespace gr
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
-
-// clang-format on

@@ -1,8 +1,6 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-// clang-format off
-
 #include <Hobgoblin/Graphics/Render_texture.hpp>
 #include <Hobgoblin/HGExcept.hpp>
 
@@ -29,32 +27,30 @@ sf::Texture& GetUnderlyingTextureOf(sf::RenderTexture& aRenderTexture) {
 
 } // namespace
 
-#define GetSfRenderTarget(_cv_) \
-    (reinterpret_cast<_cv_ sf::RenderTarget*>(&_storage))
+#define GetSfRenderTarget(_cv_) (reinterpret_cast<_cv_ sf::RenderTarget*>(&_storage))
 
-#define GetSRTA(_cv_) \
-    (reinterpret_cast<_cv_ SfmlRenderTargetAdapter*>(&_srtaStorage))
+#define GetSRTA(_cv_) (reinterpret_cast<_cv_ SfmlRenderTargetAdapter*>(&_srtaStorage))
 
-#define GetMVA(_cv_) \
-    (reinterpret_cast<_cv_ MultiViewRenderTargetAdapter*>(&_mvaStorage))
+#define GetMVA(_cv_) (reinterpret_cast<_cv_ MultiViewRenderTargetAdapter*>(&_mvaStorage))
 
-using ImplType = sf::RenderTexture;
+using ImplType            = sf::RenderTexture;
 constexpr auto IMPL_SIZE  = sizeof(ImplType);
 constexpr auto IMPL_ALIGN = alignof(ImplType);
-#define  IMPLOF(_obj_) (reinterpret_cast<ImplType*>(&((_obj_)._storage)))
+#define IMPLOF(_obj_)  (reinterpret_cast<ImplType*>(&((_obj_)._storage)))
 #define CIMPLOF(_obj_) (reinterpret_cast<const ImplType*>(&((_obj_)._storage)))
-#define  SELF_IMPL (IMPLOF(SELF))
-#define SELF_CIMPL (CIMPLOF(SELF))
+#define SELF_IMPL      (IMPLOF(SELF))
+#define SELF_CIMPL     (CIMPLOF(SELF))
 
 RenderTexture::RenderTexture()
-    : _texture{nullptr}
-{
+    : _texture{nullptr} {
+    // clang-format off
     static_assert(SFRT_STORAGE_SIZE  == IMPL_SIZE,  "RenderTexture::SFRT_STORAGE_SIZE is inadequate.");
     static_assert(SFRT_STORAGE_ALIGN == IMPL_ALIGN, "RenderTexture::SFRT_STORAGE_ALIGN is inadequate.");
     static_assert(MVA_STORAGE_SIZE   == sizeof(MultiViewRenderTargetAdapter),  "RenderTexture::MVA_STORAGE_SIZE is inadequate.");
     static_assert(MVA_STORAGE_ALIGN  == alignof(MultiViewRenderTargetAdapter), "RenderTexture::MVA_STORAGE_ALIGN is inadequate.");
     static_assert(SRTA_STORAGE_SIZE  == sizeof(SfmlRenderTargetAdapter),       "RenderTexture::SRTA_STORAGE_SIZE is inadequate.");
     static_assert(SRTA_STORAGE_ALIGN == alignof(SfmlRenderTargetAdapter),      "RenderTexture::SRTA_STORAGE_ALIGN is inadequate.");
+    // clang-format on
 
     new (&_storage) ImplType();
     new (&_srtaStorage) SfmlRenderTargetAdapter(*GetSfRenderTarget());
@@ -81,8 +77,7 @@ RenderTexture& RenderTexture::operator=(RenderTexture&& aOther) noexcept {
 }
 #endif
 
-void RenderTexture::create(const math::Vector2pz& aSize,
-                           const win::ContextSettings& aSettings) {
+void RenderTexture::create(const math::Vector2pz& aSize, const win::ContextSettings& aSettings) {
     SFMLErrorCatcher sfErr;
     if (!SELF_IMPL->create(static_cast<unsigned>(aSize.x),
                            static_cast<unsigned>(aSize.y),
@@ -127,29 +122,47 @@ const Texture& RenderTexture::getTexture() const {
 }
 
 ///////////////////////////////////////////////////////////////////////////
-// RENDER TARGET                                                         //
+// CANVAS - BASIC                                                        //
 ///////////////////////////////////////////////////////////////////////////
 
-void RenderTexture::draw(const Drawable& aDrawable,
-                         const RenderStates& aStates) {
+math::Vector2pz RenderTexture::getSize() const {
+    return GetSRTA(const)->getSize();
+}
+
+void RenderTexture::getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) {
+    GetMVA()->getCanvasDetails(aType, aRenderingBackend);
+}
+
+bool RenderTexture::isSrgb() const {
+    return GetSRTA(const)->isSrgb();
+}
+
+///////////////////////////////////////////////////////////////////////////
+// CANVAS - DRAWING                                                      //
+///////////////////////////////////////////////////////////////////////////
+
+void RenderTexture::clear(const Color& aColor) {
+    GetSRTA()->clear(aColor);
+}
+
+void RenderTexture::draw(const Drawable& aDrawable, const RenderStates& aStates) {
     GetMVA()->draw(aDrawable, aStates);
 }
 
-void RenderTexture::draw(const Vertex* aVertices,
-                         PZInteger aVertexCount,
-                         PrimitiveType aPrimitiveType,
+void RenderTexture::draw(const Vertex*       aVertices,
+                         PZInteger           aVertexCount,
+                         PrimitiveType       aPrimitiveType,
                          const RenderStates& aStates) {
     GetMVA()->draw(aVertices, aVertexCount, aPrimitiveType, aStates);
 }
 
-void RenderTexture::draw(const VertexBuffer& aVertexBuffer,
-                         const RenderStates& aStates) {
+void RenderTexture::draw(const VertexBuffer& aVertexBuffer, const RenderStates& aStates) {
     GetMVA()->draw(aVertexBuffer, aStates);
 }
 
 void RenderTexture::draw(const VertexBuffer& aVertexBuffer,
-                         PZInteger aFirstVertex,
-                         PZInteger aVertexCount,
+                         PZInteger           aFirstVertex,
+                         PZInteger           aVertexCount,
                          const RenderStates& aStates) {
     GetMVA()->draw(aVertexBuffer, aFirstVertex, aVertexCount, aStates);
 }
@@ -158,13 +171,29 @@ void RenderTexture::flush() {
     GetMVA()->flush();
 }
 
-void RenderTexture::getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) {
-    GetMVA()->getCanvasDetails(aType, aRenderingBackend);
+///////////////////////////////////////////////////////////////////////////
+// CANVAS - OPEN GL                                                      //
+///////////////////////////////////////////////////////////////////////////
+
+bool RenderTexture::setActive(bool aActive) {
+    return GetSRTA()->setActive(aActive);
 }
 
-void RenderTexture::clear(const Color& aColor) {
-    GetSRTA()->clear(aColor);
+void RenderTexture::pushGLStates() {
+    GetSRTA()->pushGLStates();
 }
+
+void RenderTexture::popGLStates() {
+    GetSRTA()->popGLStates();
+}
+
+void RenderTexture::resetGLStates() {
+    GetSRTA()->resetGLStates();
+}
+
+///////////////////////////////////////////////////////////////////////////
+// VIEW CONTROLLER                                                       //
+///////////////////////////////////////////////////////////////////////////
 
 void RenderTexture::setViewCount(PZInteger aViewCount) {
     GetMVA()->setViewCount(aViewCount);
@@ -218,32 +247,8 @@ math::Vector2i RenderTexture::mapCoordsToPixel(const math::Vector2f& aPoint, PZI
     return GetSRTA(const)->mapCoordsToPixel(aPoint, getView(aViewIdx));
 }
 
-math::Vector2pz RenderTexture::getSize() const {
-    return GetSRTA(const)->getSize();
-}
-
-bool RenderTexture::setActive(bool aActive) {
-    return GetSRTA()->setActive(aActive);
-}
-
-void RenderTexture::pushGLStates() {
-    GetSRTA()->pushGLStates();
-}
-
-void RenderTexture::popGLStates() {
-    GetSRTA()->popGLStates();
-}
-
-void RenderTexture::resetGLStates() {
-    GetSRTA()->resetGLStates();
-}
-
-bool RenderTexture::isSrgb() const {
-    return GetSRTA(const)->isSrgb();
-}
-
 ///////////////////////////////////////////////////////////////////////////
-// RENDERTEXTURE - PRIVATE                                               //
+// PRIVATE METHODS                                                       //
 ///////////////////////////////////////////////////////////////////////////
 
 void* RenderTexture::_getSFMLImpl() {
@@ -258,5 +263,3 @@ const void* RenderTexture::_getSFMLImpl() const {
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
-
-// clang-format on

@@ -1,8 +1,6 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-// clang-format off
-
 #ifndef UHOBGOBLIN_GRAPHICS_MULTIVIEW_RENDERTARGET_ADAPTER_HPP
 #define UHOBGOBLIN_GRAPHICS_MULTIVIEW_RENDERTARGET_ADAPTER_HPP
 
@@ -26,6 +24,14 @@ public:
 
     MultiViewRenderTargetAdapter(MultiViewRenderTargetAdapter&& aOther) = default;
 
+    math::Vector2pz getSize() const override;
+
+    void getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) override;
+
+    bool isSrgb() const override;
+
+    ////////////////////////////////////////////////////////////////////////////////
+
     void setRenderTarget(RenderTarget& aRenderTarget);
 
     void setViewCount(PZInteger aViewCount);
@@ -36,34 +42,47 @@ public:
 
     const View& getView(PZInteger aViewIdx) const;
 
-    void draw(const Drawable& aDrawable,
-              const RenderStates& aStates = RenderStates::DEFAULT) override;
+    ///////////////////////////////////////////////////////////////////////////
+    // CANVAS - DRAWING                                                      //
+    ///////////////////////////////////////////////////////////////////////////
 
-    void draw(const Vertex* aVertices,
-              PZInteger aVertexCount,
-              PrimitiveType aPrimitiveType,
+    void clear(const Color& aColor = COLOR_BLACK) override;
+
+    void draw(const Drawable& aDrawable, const RenderStates& aStates = RenderStates::DEFAULT) override;
+
+    void draw(const Vertex*       aVertices,
+              PZInteger           aVertexCount,
+              PrimitiveType       aPrimitiveType,
               const RenderStates& aStates = RenderStates::DEFAULT) override;
 
     void draw(const VertexBuffer& aVertexBuffer,
               const RenderStates& aStates = RenderStates::DEFAULT) override;
 
     void draw(const VertexBuffer& aVertexBuffer,
-              PZInteger aFirstVertex,
-              PZInteger aVertexCount,
+              PZInteger           aFirstVertex,
+              PZInteger           aVertexCount,
               const RenderStates& aStates = RenderStates::DEFAULT) override;
 
     void flush() override;
 
-    void getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) override {
-        _renderTarget->getCanvasDetails(aType, aRenderingBackend);
-    }
+    ///////////////////////////////////////////////////////////////////////////
+    // CANVAS - OPEN GL                                                      //
+    ///////////////////////////////////////////////////////////////////////////
+
+    [[nodiscard]] bool setActive(bool aActive = true) override;
+
+    void pushGLStates() override;
+
+    void popGLStates() override;
+
+    void resetGLStates() override;
 
 private:
     using Views = std::vector<View>;
 
-    RenderTarget* _renderTarget;
+    RenderTarget*             _renderTarget;
     std::variant<View, Views> _views;
-    PZInteger _viewCount;
+    PZInteger                 _viewCount;
 
     View* _addressOfFirstView();
 
@@ -77,5 +96,3 @@ HOBGOBLIN_NAMESPACE_END
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
 #endif // !UHOBGOBLIN_GRAPHICS_MULTIVIEW_RENDERTARGET_ADAPTER_HPP
-
-// clang-format on
