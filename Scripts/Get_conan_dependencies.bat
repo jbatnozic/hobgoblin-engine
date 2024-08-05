@@ -65,3 +65,5 @@ REM Clean up
 CD ..
 DEL /f /s /q Build.Temp 1>NUL
 RMDIR /s /q Build.Temp
+
+PAUSE
