@@ -7,8 +7,9 @@
 #define UHOBGOBLIN_GRAPHICS_SFML_RENDERTARGET_ADAPTER_HPP
 
 #include <Hobgoblin/Common.hpp>
-#include <Hobgoblin/Graphics/Render_target.hpp>
+#include <Hobgoblin/Graphics/Canvas.hpp>
 #include <Hobgoblin/Graphics/View.hpp>
+#include <Hobgoblin/Graphics/View_controller.hpp>
 
 #include <SFML/Graphics/RenderTarget.hpp>
 
@@ -22,7 +23,7 @@ namespace gr {
 
 //! Adapts a sf::RenderTarget to the hg::gr::RenderTarget interface.
 //! NO multiview support!
-class SfmlRenderTargetAdapter : public RenderTarget {
+class SfmlRenderTargetAdapter : public Canvas, public ViewController {
 public:
     SfmlRenderTargetAdapter(sf::RenderTarget& aRenderTarget);
 

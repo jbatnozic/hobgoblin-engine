@@ -55,9 +55,9 @@ void SfmlRenderTargetAdapter::draw(const Vertex*       aVertices,
     SFMLVertices sfVertices{aVertices, pztos(aVertexCount)};
 
     _renderTarget->draw(sfVertices.getVertices(),
-                       sfVertices.getVertexCount(),
-                       ToSf(aPrimitiveType),
-                       ToSf(aStates));
+                        sfVertices.getVertexCount(),
+                        ToSf(aPrimitiveType),
+                        ToSf(aStates));
 }
 
 void SfmlRenderTargetAdapter::draw(const VertexBuffer& aVertexBuffer, const RenderStates& aStates) {

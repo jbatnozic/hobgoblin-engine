@@ -118,7 +118,8 @@ class HobgoblinConan(ConanFile):
         self.options["ztcpp"].shared  = True
 
     def layout(self):
-        cmake_layout(self)
+        self.folders.source = "."
+        self.folders.build  = ""
 
     def generate(self):
         # Import dynamic libraries

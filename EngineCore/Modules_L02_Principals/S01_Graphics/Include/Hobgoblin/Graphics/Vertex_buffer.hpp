@@ -48,7 +48,7 @@ namespace detail{
 class GraphicsImplAccessor;
 } // namespace detail
 
-class RenderTarget;
+class Canvas;
 class Vertex;
 
 // TODO(vertex buffers are unfinished and untested)
@@ -270,7 +270,7 @@ private:
     //!
     //! \param target Render target to draw to
     //! \param states Current render states
-    virtual void draw(RenderTarget& aTarget, RenderStates aStates) const;
+    virtual void _drawOnto(Canvas& aCanvas, RenderStates aStates) const;
 
 private:
     friend class detail::GraphicsImplAccessor;

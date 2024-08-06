@@ -6,7 +6,6 @@
 
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Graphics/Canvas.hpp>
-#include <Hobgoblin/Graphics/Render_target.hpp>
 #include <Hobgoblin/Graphics/View.hpp>
 
 #include <cassert>
@@ -19,9 +18,9 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
-template <class taRenderTarget>
-class MultiViewDecorator final : public taRenderTarget {
-    using Super = taRenderTarget;
+template <class T>
+class MultiViewDecorator final : public T {
+    using Super = T;
 
 public:
     template <class... taArgs>

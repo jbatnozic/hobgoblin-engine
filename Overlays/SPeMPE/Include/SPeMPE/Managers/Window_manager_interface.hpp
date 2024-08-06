@@ -171,7 +171,7 @@ public:
     ///////////////////////////////////////////////////////////////////////////
 
     //! Returns the view controller for the main render texture.
-    //! 
+    //!
     //! \warning unlike `getCanvas()`, which can return a different canvas depending on whether
     //!          it's called during a DRAW_GUI event or not, this method always returns the view
     //!          controller of the main render texture, so you can only ever set/get views into
@@ -179,7 +179,7 @@ public:
     virtual hg::gr::ViewController& getViewController() = 0;
 
     //! Returns the view controller for the main render texture.
-    //! 
+    //!
     //! \warning unlike `getCanvas()`, which can return a different canvas depending on whether
     //!          it's called during a DRAW_GUI event or not, this method always returns the view
     //!          controller of the main render texture, so you can only ever set/get views into

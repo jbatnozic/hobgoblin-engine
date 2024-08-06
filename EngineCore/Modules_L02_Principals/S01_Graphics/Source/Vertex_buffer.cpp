@@ -114,7 +114,7 @@ bool VertexBuffer::isAvailable() {
     return sf::VertexBuffer::isAvailable();
 }
 
-void VertexBuffer::draw(RenderTarget& target, RenderStates states) const {
+void VertexBuffer::_drawOnto(Canvas& aCanvas, RenderStates states) const {
     // TODO
 }
 

@@ -4,6 +4,7 @@
 // clang-format off
 
 #include <Hobgoblin/Logging.hpp>
+#include <Hobgoblin/Graphics/Texture.hpp>
 #include <Hobgoblin/RmlUi/Private/RmlUi_Hobgoblin_renderer.hpp>
 
 #include <RmlUi/Core.h>
@@ -19,12 +20,12 @@ namespace {
 constexpr auto LOG_ID = "Hobgoblin.RmlUi";
 } // namespace
 
-void RmlUiHobgoblinRenderer::setRenderTarget(gr::RenderTarget* aRenderTarget) {
-    _renderTarget = aRenderTarget;
+void RmlUiHobgoblinRenderer::setCanvas(gr::Canvas* aCanvas) {
+    _canvas = aCanvas;
 }
 
-gr::RenderTarget* RmlUiHobgoblinRenderer::getRenderTarget() const {
-    return _renderTarget;
+gr::Canvas* RmlUiHobgoblinRenderer::getCanvas() const {
+    return _canvas;
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -41,10 +42,10 @@ void RmlUiHobgoblinRenderer::RenderGeometry(
 ) {
 #define USE_NEW_IMPLEMENTATION
 #if defined(USE_NEW_IMPLEMENTATION)
-    if (!_renderTarget) {
+    if (!_canvas) {
         return;
     }
-    _renderTarget->pushGLStates();
+    _canvas->pushGLStates();
     _initViewport();
 
     glTranslatef(aTranslation.x, aTranslation.y, 0);
@@ -67,12 +68,12 @@ void RmlUiHobgoblinRenderer::RenderGeometry(
 
     glDrawElements(GL_TRIANGLES, aIndicesCount, GL_UNSIGNED_INT, aIndices);
 
-    _renderTarget->popGLStates();
+    _canvas->popGLStates();
 #else
-    if (!_renderTarget) {
+    if (!_canvas) {
         return;
     }
-    (*_renderTarget)->pushGLStates();
+    (*_canvas)->pushGLStates();
     _initViewport();
 
     glTranslatef(aTranslation.x, aTranslation.y, 0);
@@ -115,7 +116,7 @@ void RmlUiHobgoblinRenderer::RenderGeometry(
 
     glColor4f(1.f, 1.f, 1.f, 1.f);
 
-    (*_renderTarget)->popGLStates();
+    (*_canvas)->popGLStates();
 #endif
 
 }
@@ -202,10 +203,10 @@ void RmlUiHobgoblinRenderer::EnableScissorRegion(bool aEnable) {
 }
 
 void RmlUiHobgoblinRenderer::SetScissorRegion(int x, int y, int width, int height) {
-    if (!_renderTarget) {
+    if (!_canvas) {
         return;
     }
-    glScissor(x, _renderTarget->getSize().y - (y + height), width, height);
+    glScissor(x, _canvas->getSize().y - (y + height), width, height);
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -213,11 +214,11 @@ void RmlUiHobgoblinRenderer::SetScissorRegion(int x, int y, int width, int heigh
 ///////////////////////////////////////////////////////////////////////////
 
 void RmlUiHobgoblinRenderer::_initViewport() {
-    if (!_renderTarget) {
+    if (!_canvas) {
         return;
     }
 
-    const auto size = _renderTarget->getSize();
+    const auto size = _canvas->getSize();
 
     glViewport(0, 0, size.x, size.y);
 

@@ -52,11 +52,7 @@ namespace detail {
 class GraphicsImplAccessor;
 } // namespace detail
 
-class InputStream;
-class RenderTarget;
 class RenderTexture;
-class Text;
-class Window;
 
 //! \brief Image living on the graphics card that can be used for drawing.
 class Texture {
