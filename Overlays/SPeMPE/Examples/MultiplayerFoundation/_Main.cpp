@@ -3,7 +3,6 @@
 
 // clang-format off
 
-
 #include "Engine.h"
 #include "Lobby_frontend_manager.hpp"
 #include "Main_gameplay_manager.hpp"
@@ -67,7 +66,8 @@ std::unique_ptr<spe::GameContext> MakeGameContext(GameMode aGameMode,
         spe::VSYNC_OFF
     #else
         FRAME_RATE,
-        spe::PREVENT_BUSY_WAIT_OFF,
+        ((aGameMode == GameMode::Server) ? spe::PREVENT_BUSY_WAIT_ON
+                                         : spe::PREVENT_BUSY_WAIT_OFF),
         spe::VSYNC_OFF
     #endif
     };
