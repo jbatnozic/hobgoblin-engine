@@ -67,7 +67,6 @@ public:
     bool tryAcceptLocal(RN_UdpConnectorImpl& localPeer, const std::string& passphrase);
     void connect(sf::IpAddress addr, std::uint16_t port);
     void connectLocal(RN_ServerInterface& server);
-    void disconnect(bool notfiyRemote);
 
     void checkForTimeout();
     auto send() -> RN_Telemetry;
@@ -82,6 +81,7 @@ public:
 
     const RN_RemoteInfo& getRemoteInfo() const noexcept override;
     RN_ConnectorStatus getStatus() const noexcept override;
+    void disconnect(bool aNotfiyRemote = true, const std::string& aMessage = "") override;
     bool isConnectedLocally() const noexcept override;
     PZInteger getSendBufferSize() const override;
     PZInteger getRecvBufferSize() const override;

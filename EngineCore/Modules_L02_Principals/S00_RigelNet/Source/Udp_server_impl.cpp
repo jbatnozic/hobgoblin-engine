@@ -62,11 +62,10 @@ void RN_UdpServerImpl::start(std::uint16_t localPort) {
     _running = true;
 }
 
-void RN_UdpServerImpl::stop() {
-    // TODO disconnect all connectors
+void RN_UdpServerImpl::stop(bool aNotifyClients) {
     for (auto& client : _clients) {
         if (client->getStatus() != RN_ConnectorStatus::Disconnected) {
-            client->disconnect(false); // TODO make configurable
+            client->disconnect(aNotifyClients, "Server shutting down.");
         }
     }
 
@@ -137,15 +136,17 @@ void RN_UdpServerImpl::removeEventListener(NeverNull<RN_EventListener*> aEventLi
 ///////////////////////////////////////////////////////////////////////////
 
 const RN_ConnectorInterface& RN_UdpServerImpl::getClientConnector(PZInteger clientIndex) const {
-    return *(_clients[clientIndex]);
+    return *(_clients.at(clientIndex));
 }
 
-void RN_UdpServerImpl::swapClients(PZInteger index1, PZInteger index2) {
-    assert(false && "Not implemented (and not going to be)"); // TODO
+RN_ConnectorInterface& RN_UdpServerImpl::getClientConnector(PZInteger clientIndex) {
+    return *(_clients.at(clientIndex));
 }
 
-void RN_UdpServerImpl::kickClient(PZInteger index) {
-    assert(false && "Not implemented"); // TODO
+void RN_UdpServerImpl::kickClient(PZInteger          aClientIndex,
+                                  bool               aNotifyRemote,
+                                  const std::string& aMessage) {
+    getClientConnector(aClientIndex).disconnect(aNotifyRemote, aMessage);
 }
 
 ///////////////////////////////////////////////////////////////////////////

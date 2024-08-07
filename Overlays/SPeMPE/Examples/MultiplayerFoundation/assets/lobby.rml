@@ -45,13 +45,13 @@
                         <td colspan="5">{{player.lockedIn.name}}</td>
                         <td class="button" data-event-click="MoveUp(i)">Move /\</td>
                         <td class="button" data-event-click="MoveDown(i)">Move \/</td>
-                        <td class="button">Kick</td>
+                        <td class="button" data-event-click="Kick(i)">Kick</td>
                     </tr>
                     <tr data-if="i > 0 && player.showPending">
                         <td colspan="5">{{player.lockedIn.name}} &lt;= {{player.pending.name}}</td>
                         <td class="button" data-event-click="MoveUp(i)">Move /\</td>
                         <td class="button" data-event-click="MoveDown(i)">Move \/</td>
-                        <td class="button">Kick</td>
+                        <td class="button" data-event-click="Kick(i)">Kick</td>
                     </tr>
                 </tbody>
             </table>

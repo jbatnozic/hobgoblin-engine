@@ -5,6 +5,7 @@
 #include "Udp_server_impl.hpp"
 
 #include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/Format.hpp>
 #include <Hobgoblin/HGExcept.hpp>
 
 #include <cassert>
@@ -116,12 +117,14 @@ public:
     using std::runtime_error::runtime_error;
 };
 
-void HandleDataMessages(util::Packet&     receivedPacket,
-                        RN_NodeInterface& node,
-                        util::Packet*&    pointerToCurrentPacket) {
+void HandleDataMessages(util::Packet&        receivedPacket,
+                        RN_NodeInterface&    node,
+                        RN_UdpConnectorImpl& activeConnector,
+                        util::Packet*&       pointerToCurrentPacket) {
     pointerToCurrentPacket = &receivedPacket;
 
-    while (!receivedPacket.endOfPacket()) {
+    while (activeConnector.getStatus() != RN_ConnectorStatus::Disconnected &&
+           !receivedPacket.endOfPacket()) {
         const auto handlerId = receivedPacket.extract<rn_detail::RN_HandlerId>();
         auto handlerFunc     = rn_detail::RN_GlobalHandlerMapper::getInstance().handlerWithId(handlerId);
         if (handlerFunc == nullptr) {
@@ -246,22 +249,6 @@ void RN_UdpConnectorImpl::connectLocal(RN_ServerInterface& server) {
 
     _clientIndex = clientIndex;
     _eventFactory.createConnected();
-}
-
-void RN_UdpConnectorImpl::disconnect(bool notfiyRemote) {
-    assert(_status != RN_ConnectorStatus::Disconnected);
-
-    if (notfiyRemote && _status == RN_ConnectorStatus::Connected) {
-        if (!_isConnectedLocally()) {
-            util::Packet packet;
-            packet << UDP_PACKET_TYPE_DISCONNECT;
-
-            // Ignore all recoverable errors - The connector is getting disconnected anyway...
-            _socket.send(packet, _remoteInfo.ipAddress, _remoteInfo.port);
-        }
-    }
-
-    _resetAll();
 }
 
 void RN_UdpConnectorImpl::checkForTimeout() {
@@ -437,7 +424,12 @@ void RN_UdpConnectorImpl::handleDataMessages(RN_NodeInterface& node,
             if (_recvBuffer[0].tag == TaggedPacket::ReadyForUnpacking) {
                 HandleDataMessages(_recvBuffer[0].packet,
                                    node,
+                                   SELF,
                                    /* reference to pointer -> */ pointerToCurrentPacket);
+                if (getStatus() == RN_ConnectorStatus::Disconnected) {
+                    break; // Data messages can cause a disconnect in rare circumstances
+                           // (if the handler is explicitly programmed to do so)
+                }
                 _recvBuffer.pop_front();
                 _recvBufferHeadIndex++;
             } else if (_recvBuffer[0].tag == TaggedPacket::Unpacked) {
@@ -496,6 +488,24 @@ const RN_RemoteInfo& RN_UdpConnectorImpl::getRemoteInfo() const noexcept {
 
 RN_ConnectorStatus RN_UdpConnectorImpl::getStatus() const noexcept {
     return _status;
+}
+
+void RN_UdpConnectorImpl::disconnect(bool aNotfiyRemote, const std::string& aMessage) {
+    HG_VALIDATE_PRECONDITION(_status != RN_ConnectorStatus::Disconnected);
+
+    if (aNotfiyRemote && _status == RN_ConnectorStatus::Connected) {
+        if (!_isConnectedLocally()) {
+            util::Packet packet;
+            packet << UDP_PACKET_TYPE_DISCONNECT << aMessage;
+
+            // Ignore all recoverable errors - The connector is getting disconnected anyway...
+            _socket.send(packet, _remoteInfo.ipAddress, _remoteInfo.port);
+        }
+    }
+
+    _resetAll();
+
+    _eventFactory.createDisconnected(RN_Event::Disconnected::Reason::Graceful, aMessage);
 }
 
 bool RN_UdpConnectorImpl::isConnectedLocally() const noexcept {
@@ -910,10 +920,16 @@ void RN_UdpConnectorImpl::_processDisconnectPacket(util::Packet& packet) {
     case RN_ConnectorStatus::Connecting:
     case RN_ConnectorStatus::Accepting:
     case RN_ConnectorStatus::Connected:
-        // TODO - Extract reason
-        _resetAll();
-        _eventFactory.createDisconnected(RN_Event::Disconnected::Reason::Graceful,
-                                         "Remote terminated the connection");
+        {
+            auto message = packet.extractNoThrow<std::string>();
+            if (!packet) {
+                message = "No additional details available.";
+            }
+            _resetAll();
+            _eventFactory.createDisconnected(
+                RN_Event::Disconnected::Reason::Graceful,
+                fmt::format(FMT_STRING("Remote terminated the connection: {}"), message));
+        }
         break;
 
     default:

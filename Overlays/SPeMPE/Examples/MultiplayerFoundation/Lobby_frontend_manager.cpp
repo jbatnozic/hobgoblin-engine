@@ -121,7 +121,13 @@ void ActivateCommand(LobbyFrontendManager& aMgr, int aCommand, void* aArgs) {
 
     case COMMAND_KICK:
         {
-            //
+            const auto slotIndex   = *static_cast<hg::PZInteger*>(aArgs);
+            const auto clientIndex = lobbyBackendMgr.playerIdxToClientIdx(slotIndex);
+
+            if (clientIndex >= 0) {
+                auto& netMgr = aMgr.ccomp<MNetworking>();
+                netMgr.getServer().kickClient(clientIndex, true, "Kicked");
+            }
         }
         break;
 
@@ -393,7 +399,12 @@ private:
     }
 
     void _onKickClicked(Rml::DataModelHandle, Rml::Event&, const Rml::VariantList& aArguments) {
-        if (auto authToken = CCOMP<spe::AuthorizationManagerInterface>().getLocalAuthToken()) {}
+        if (auto authToken = CCOMP<spe::AuthorizationManagerInterface>().getLocalAuthToken()) {
+            Compose_LobbyFrontendManager_Kick(CCOMP<MNetworking>().getNode(),
+                                              RN_COMPOSE_FOR_ALL,
+                                              *authToken,
+                                              aArguments.at(0).Get<int>(-1));
+        }
     }
 
     std::optional<Rml::DataModelHandle> _setUpDataBinding(Rml::Context& aContext) {

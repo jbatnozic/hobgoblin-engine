@@ -1,8 +1,6 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-// clang-format off
-
 #ifndef UHOBGOBLIN_RN_SERVER_INTERFACE_HPP
 #define UHOBGOBLIN_RN_SERVER_INTERFACE_HPP
 
@@ -29,7 +27,7 @@ public:
 
     virtual void start(std::uint16_t localPort) = 0;
 
-    virtual void stop() = 0;
+    virtual void stop(bool aNotifyClients = true) = 0;
 
     virtual void resize(PZInteger newSize) = 0;
 
@@ -43,9 +41,12 @@ public:
 
     virtual const RN_ConnectorInterface& getClientConnector(PZInteger clientIndex) const = 0;
 
-    virtual void swapClients(PZInteger index1, PZInteger index2) = 0;
+    virtual RN_ConnectorInterface& getClientConnector(PZInteger clientIndex) = 0;
 
-    virtual void kickClient(PZInteger clientIndex) = 0;
+    //! Equivalent to `getClientConnector(aClientIndex).disconnect(aNotifyRemote, aMessage)`.
+    virtual void kickClient(PZInteger          aClientIndex,
+                            bool               aNotifyRemote = true,
+                            const std::string& aMessage      = "") = 0;
 
     ///////////////////////////////////////////////////////////////////////////
     // STATE INSPECTION                                                      //
@@ -59,7 +60,7 @@ public:
 
     virtual std::chrono::microseconds getTimeoutLimit() const = 0;
 
-    virtual std::uint16_t getLocalPort() const = 0;    
+    virtual std::uint16_t getLocalPort() const = 0;
 
     virtual int getSenderIndex() const = 0;
 };
@@ -71,5 +72,3 @@ HOBGOBLIN_NAMESPACE_END
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
 #endif // !UHOBGOBLIN_RN_SERVER_INTERFACE_HPP
-
-// clang-format on

@@ -57,9 +57,9 @@ void RN_UdpClientImpl::connectLocal(RN_ServerInterface& server) {
     _connector.connectLocal(server);
 }
 
-void RN_UdpClientImpl::disconnect(bool notifyRemote) {
+void RN_UdpClientImpl::disconnect(bool aNotifyRemote, const std::string& aMessage) {
     if (_connector.getStatus() != RN_ConnectorStatus::Disconnected) {
-        _connector.disconnect(notifyRemote);
+        _connector.disconnect(aNotifyRemote, aMessage);
     }
     _running = false;
 

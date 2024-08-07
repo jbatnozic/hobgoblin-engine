@@ -32,8 +32,8 @@ EventFactory::EventFactory(const std::vector<RN_EventListener*>& aEventListeners
         } \
     } while (0)
 
-void EventFactory::createBadPassphrase(std::string incorrectPassphrase) const {
-    DISPATCH_EVENT(RN_Event::BadPassphrase{_clientIndex, std::move(incorrectPassphrase)});
+void EventFactory::createBadPassphrase(const std::string& incorrectPassphrase) const {
+    DISPATCH_EVENT(RN_Event::BadPassphrase{_clientIndex, incorrectPassphrase});
 }
 
 void EventFactory::createConnectAttemptFailed(RN_Event::ConnectAttemptFailed::Reason reason) const {
@@ -44,8 +44,8 @@ void EventFactory::createConnected() const {
     DISPATCH_EVENT(RN_Event::Connected{_clientIndex});
 }
 
-void EventFactory::createDisconnected(RN_Event::Disconnected::Reason reason, std::string message) const {
-    DISPATCH_EVENT(RN_Event::Disconnected{_clientIndex, reason, std::move(message)});
+void EventFactory::createDisconnected(RN_Event::Disconnected::Reason reason, const std::string& message) const {
+    DISPATCH_EVENT(RN_Event::Disconnected{_clientIndex, reason, message});
 }
 
 } // namespace rn_detail
