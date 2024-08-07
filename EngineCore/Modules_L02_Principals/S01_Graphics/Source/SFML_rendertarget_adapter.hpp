@@ -30,9 +30,9 @@ public:
     // CANVAS - BASIC                                                        //
     ///////////////////////////////////////////////////////////////////////////
 
-    math::Vector2pz getSize() const override;
+    math::Vector2pz getSize() const override final;
 
-    bool isSrgb() const override;
+    bool isSrgb() const override final;
 
     RenderingBackendRef getRenderingBackend() override final;
 
@@ -63,13 +63,13 @@ public:
     // CANVAS - OPEN GL                                                      //
     ///////////////////////////////////////////////////////////////////////////
 
-    [[nodiscard]] bool setActive(bool aActive = true) override;
+    [[nodiscard]] bool setActive(bool aActive = true) override final;
 
-    void pushGLStates() override;
+    void pushGLStates() override final;
 
-    void popGLStates() override;
+    void popGLStates() override final;
 
-    void resetGLStates() override;
+    void resetGLStates() override final;
 
     ///////////////////////////////////////////////////////////////////////////
     // VIEW CONTROLLER                                                       //
@@ -87,7 +87,7 @@ public:
 
     View& getView(PZInteger aViewIdx = 0) override;
 
-    View getDefaultView() const override;
+    View getDefaultView() const override final;
 
     math::Rectangle<PZInteger> getViewport(const View& aView) const override;
 
