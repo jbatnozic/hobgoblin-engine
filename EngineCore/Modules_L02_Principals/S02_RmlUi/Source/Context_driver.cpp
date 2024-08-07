@@ -16,10 +16,10 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace rml {
 
-ContextDriver::ContextDriver(const std::string& aContextName, gr::RenderTarget& aRenderTarget)
-    : _renderTarget{&aRenderTarget} {
+ContextDriver::ContextDriver(const std::string& aContextName, gr::Canvas& aCanvas)
+    : _canvas{&aCanvas} {
     _context = Rml::CreateContext(aContextName,
-                                  Rml::Vector2i{_renderTarget->getSize().x, _renderTarget->getSize().y},
+                                  Rml::Vector2i{_canvas->getSize().x, _canvas->getSize().y},
                                   nullptr);
     if (!_context) {
         std::runtime_error{"ContextDriver - Could not create context " + aContextName};
@@ -52,11 +52,11 @@ void ContextDriver::render() {
     assert(renderer);
 
     // TODO Temp.
-    _context->SetDimensions({_renderTarget->getSize().x, _renderTarget->getSize().y});
+    _context->SetDimensions({_canvas->getSize().x, _canvas->getSize().y});
 
-    renderer->setRenderTarget(_renderTarget.get());
+    renderer->setCanvas(_canvas.get());
     _context->Render();
-    renderer->setRenderTarget(nullptr);
+    renderer->setCanvas(nullptr);
 }
 
 bool ContextDriver::processEvent(const win::Event& aEvent) {
@@ -120,8 +120,8 @@ void ContextDriver::update() {
     _context->Update();
 }
 
-void ContextDriver::setRenderTarget(gr::RenderTarget& aRenderTarget) {
-    _renderTarget = &aRenderTarget;
+void ContextDriver::setCanvas(gr::Canvas& aCanvas) {
+    _canvas = &aCanvas;
 }
 
 } // namespace rml

@@ -29,7 +29,8 @@
 #ifndef UHOBGOBLIN_GRAPHICS_RENDER_WINDOW_HPP
 #define UHOBGOBLIN_GRAPHICS_RENDER_WINDOW_HPP
 
-#include <Hobgoblin/Graphics/Render_target.hpp>
+#include <Hobgoblin/Graphics/Canvas.hpp>
+#include <Hobgoblin/Graphics/View_controller.hpp>
 #include <Hobgoblin/Math/Vector.hpp>
 #include <Hobgoblin/Window/Window.hpp>
 
@@ -43,7 +44,8 @@ namespace gr {
 //! \brief Window that can serve as a target for 2D drawing.
 class RenderWindow
     : public win::Window
-    , public RenderTarget {
+    , public Canvas
+    , public ViewController {
 public:
     //! \brief Default constructor
     //!

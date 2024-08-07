@@ -20,7 +20,6 @@
 #include <Hobgoblin/Graphics/Primitive_type.hpp>
 #include <Hobgoblin/Graphics/Rectangle_shape.hpp>
 #include <Hobgoblin/Graphics/Render_states.hpp>
-#include <Hobgoblin/Graphics/Render_target.hpp>
 #include <Hobgoblin/Graphics/Render_texture.hpp>
 #include <Hobgoblin/Graphics/Render_window.hpp>
 #include <Hobgoblin/Graphics/Shader.hpp>

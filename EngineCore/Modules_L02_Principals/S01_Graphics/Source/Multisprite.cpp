@@ -321,8 +321,8 @@ math::Rectangle<float> Multisprite::Subsprite::getLocalBounds() const {
     return {
         0.f,
         0.f,
-        static_cast<float>(std::abs(textureRect.w)),
-        static_cast<float>(std::abs(textureRect.h))
+        static_cast<float>(textureRect.w),
+        static_cast<float>(textureRect.h)
     };
 }
 

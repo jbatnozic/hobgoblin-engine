@@ -1,14 +1,12 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-// clang-format off
-
 #ifndef UHOBGOBLIN_RMLUI_PRIVATE_RMLUI_CONTEXT_DRIVER_HPP
 #define UHOBGOBLIN_RMLUI_PRIVATE_RMLUI_CONTEXT_DRIVER_HPP
 
 #include <RmlUi/Core.h>
 
-#include <Hobgoblin/Graphics.hpp>
+#include <Hobgoblin/Graphics/Canvas.hpp>
 #include <Hobgoblin/Math/Vector.hpp>
 #include <Hobgoblin/Window.hpp>
 
@@ -22,17 +20,13 @@ namespace rml {
 //! TODO(add description)
 class ContextDriver {
 public:
-    ContextDriver(const std::string& aContextName,
-                  gr::RenderTarget& aRenderTarget);
-
+    ContextDriver(const std::string& aContextName, gr::Canvas& aCanvas);
     ~ContextDriver();
 
     Rml::Context& operator*();
-
     const Rml::Context& operator*() const;
 
     Rml::Context* operator->();
-
     const Rml::Context* operator->() const;
 
     void render();
@@ -42,11 +36,11 @@ public:
 
     void update();
 
-    void setRenderTarget(gr::RenderTarget& aRenderTarget);
+    void setCanvas(gr::Canvas& aCanvas);
 
 private:
-    NeverNull<gr::RenderTarget*> _renderTarget;
-    Rml::Context* _context = nullptr;
+    NeverNull<gr::Canvas*> _canvas;
+    Rml::Context*          _context = nullptr;
 };
 
 } // namespace rml
@@ -55,5 +49,3 @@ HOBGOBLIN_NAMESPACE_END
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
 #endif // !UHOBGOBLIN_RMLUI_PRIVATE_RMLUI_CONTEXT_DRIVER_HPP
-
-// clang-format on
