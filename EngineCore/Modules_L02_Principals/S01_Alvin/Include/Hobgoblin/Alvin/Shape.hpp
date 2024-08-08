@@ -31,11 +31,13 @@ public:
     static Shape createBox(NeverNull<cpBody*> aBody,
                            cpFloat            aWidth,
                            cpFloat            aHeight,
-                           cpFloat            aCornerRadius) {
+                           cpFloat            aCornerRadius = 0.0) {
         return {cpBoxShapeNew(aBody, aWidth, aHeight, aCornerRadius)};
     }
 
-    static Shape createBox(NeverNull<cpBody*> aBody, const cpBB& aBoundingBox, cpFloat aCornerRadius) {
+    static Shape createBox(NeverNull<cpBody*> aBody,
+                           const cpBB&        aBoundingBox,
+                           cpFloat            aCornerRadius = 0.0) {
         return {cpBoxShapeNew2(aBody, aBoundingBox, aCornerRadius)};
     }
 
@@ -71,6 +73,12 @@ public:
     // add/remove space
     // get/set position
     // get/set rotation
+
+    ///////////////////////////////////////////////////////////////////////////
+    // QUERIES                                                               //
+    ///////////////////////////////////////////////////////////////////////////
+
+    // cpShapePointQuery()
 
 private:
     detail::ChipmunkShapeUPtr _shape;

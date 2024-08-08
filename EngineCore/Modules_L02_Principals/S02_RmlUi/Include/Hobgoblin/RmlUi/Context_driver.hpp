@@ -23,10 +23,10 @@ public:
     ContextDriver(const std::string& aContextName, gr::Canvas& aCanvas);
     ~ContextDriver();
 
-    Rml::Context& operator*();
+    Rml::Context&       operator*();
     const Rml::Context& operator*() const;
 
-    Rml::Context* operator->();
+    Rml::Context*       operator->();
     const Rml::Context* operator->() const;
 
     void render();
