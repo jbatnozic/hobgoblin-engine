@@ -8,6 +8,11 @@
 #include <Hobgoblin/ChipmunkPhysics.hpp>
 #include <Hobgoblin/Common.hpp>
 
+#include <Hobgoblin/Alvin/Collision_delegate.hpp>
+#include <Hobgoblin/Alvin/Query_info.hpp>
+
+#include <utility>
+
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_BEGIN
@@ -80,6 +85,39 @@ public:
     }
 
     // TODO: more convenience methods
+
+    ///////////////////////////////////////////////////////////////////////////
+    // QUERIES                                                               //
+    ///////////////////////////////////////////////////////////////////////////
+
+    // callable = void(const PointQueryInfo& info)
+    template <class taCallable>
+    void runPointQuery(cpVect        aPoint,
+                       cpFloat       aMaxDistance,
+                       cpShapeFilter aShapeFilter,
+                       taCallable&&  aCallable) const {
+        cpSpacePointQueryFunc cpFunc =
+            [](cpShape* aShape, cpVect aPoint, cpFloat aDistance, cpVect /*gradient*/, void* aData) {
+                auto* delegate =
+                    (aShape != nullptr) ? cpShapeGetUserData(aShape).get<CollisionDelegate>() : nullptr;
+                auto* callable = static_cast<taCallable*>(aData);
+                      (*callable)(PointQueryInfo{.shape        = aShape,
+                                                 .delegate     = delegate,
+                                                 .closestPoint = aPoint,
+                                                 .distance     = aDistance});
+            };
+        void* const cpFuncData = std::addressof(aCallable);
+        cpSpacePointQuery(_space.get(), aPoint, aMaxDistance, aShapeFilter, cpFunc, cpFuncData);
+    }
+
+    // callable = void(const PointQueryInfo& info)
+    template <class taCallable>
+    void runPointQuery(cpVect aPoint, cpFloat aMaxDistance, taCallable&& aCallable) const {
+        runPointQuery(aPoint,
+                      aMaxDistance,
+                      cpShapeFilterNew(CP_NO_GROUP, CP_ALL_CATEGORIES, CP_ALL_CATEGORIES),
+                      std::forward<taCallable>(aCallable));
+    }
 
 private:
     detail::ChipmunkSpaceUPtr _space;

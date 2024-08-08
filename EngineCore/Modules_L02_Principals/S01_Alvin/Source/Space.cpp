@@ -31,6 +31,14 @@ Constraint& Space::add(Constraint& aConstraint) {
     return aConstraint;
 }
 
+///////////////////////////////////////////////////////////////////////////
+// QUERIES                                                               //
+///////////////////////////////////////////////////////////////////////////
+
+//void* Space::queryPoint(cpVect aPoint, cpFloat aMaxDistance) const {
+//    cpSpacePointQuery(SELF, aPoint, aMaxDistance, cpShapeFilterNew(0, 0, 0),
+//}
+
 } // namespace alvin
 HOBGOBLIN_NAMESPACE_END
 

@@ -72,6 +72,12 @@ public:
     // get/set position
     // get/set rotation
 
+    ///////////////////////////////////////////////////////////////////////////
+    // QUERIES                                                               //
+    ///////////////////////////////////////////////////////////////////////////
+
+    //cpShapePointQuery()
+
 private:
     detail::ChipmunkShapeUPtr _shape;
 };
