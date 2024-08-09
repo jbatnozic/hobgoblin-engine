@@ -349,12 +349,6 @@ int main(int argc, char* argv[]) {
 
         sensor.setPosition({worldPos.x, worldPos.y});
 
-        if (false) {
-            space.runPointQuery(cpv(0.0, 0.0), 10.0, [&](const alvin::PointQueryInfo& aInfo) {
-
-            });
-        }
-
         const auto start = std::chrono::steady_clock::now();
         space.step(1.0 / 60.0);
         const auto end = std::chrono::steady_clock::now();
