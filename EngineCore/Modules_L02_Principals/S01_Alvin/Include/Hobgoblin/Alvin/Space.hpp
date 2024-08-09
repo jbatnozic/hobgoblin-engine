@@ -87,7 +87,10 @@ public:
     //! Add a constraint to the space.
     Constraint& add(Constraint& aConstraint);
 
-    //! TODO(add description)
+    //! Update the space for the given time step. Using a fixed time step is highly recommended.
+    //! Doing so can greatly increase the quality of the simulation.
+    //!
+    //! \param aDeltaTime delta time in seconds.
     void step(cpFloat aDeltaTime) {
         cpSpaceStep(SELF, aDeltaTime);
     }
@@ -101,7 +104,7 @@ public:
     //! Query the space to find all shapes intersecting a point or up to some distance from the point.
     //!
     //! \param aPoint coordinates of the point.
-    //! \param aMaxDistance maximum stance from the point after which shapes won't be included in
+    //! \param aMaxDistance maximum distance from the point after which shapes won't be included in
     //!                     the results (it's enough for a part of a shape to lie within this
     //!                     distance for it to be included). If 0.0 is used, the point must lie
     //!                     inside a shape. Negative `maxDistance` is also allowed meaning that the
@@ -123,7 +126,7 @@ public:
     //! Query the space to find all shapes intersecting a point or up to some distance from the point.
     //!
     //! \param aPoint coordinates of the point.
-    //! \param aMaxDistance maximum stance from the point after which shapes won't be included in
+    //! \param aMaxDistance maximum distance from the point after which shapes won't be included in
     //!                     the results (it's enough for a part of a shape to lie within this
     //!                     distance for it to be included). If 0.0 is used, the point must lie
     //!                     inside a shape. Negative `maxDistance` is also allowed meaning that the
@@ -140,12 +143,35 @@ public:
     template <class taCallable>
     void runPointQuery(cpVect aPoint, cpFloat aMaxDistance, taCallable&& aCallable) const;
 
-    //! TODO(add description)
+    //! Query the space to find the shape that's closest to the given point (up to some distance).
+    //!
+    //! \param aPoint coordinates of the point.
+    //! \param aMaxDistance maximum stance from the point after which shapes won't be included in
+    //!                     the results (it's enough for a part of a shape to lie within this
+    //!                     distance for it to be included). If 0.0 is used, the point must lie
+    //!                     inside a shape. Negative `maxDistance` is also allowed meaning that the
+    //!                     point must be a under a certain depth within a shape to be considered a
+    //!                     match.
+    //! \param aShapeFilter filter which can exclude certain groups or categories of shapes,
+    //!                     in the same way as it works for collision detection.
     PointQueryInfo runClosestToPointQuery(cpVect        aPoint,
                                           cpFloat       aMaxDistance,
                                           cpShapeFilter aShapeFilter) const;
 
-    //! TODO(add description)
+    //! Query the space to find the shape that's closest to the given point (up to some distance).
+    //!
+    //! \param aPoint coordinates of the point.
+    //! \param aMaxDistance maximum stance from the point after which shapes won't be included in
+    //!                     the results (it's enough for a part of a shape to lie within this
+    //!                     distance for it to be included). If 0.0 is used, the point must lie
+    //!                     inside a shape. Negative `maxDistance` is also allowed meaning that the
+    //!                     point must be a under a certain depth within a shape to be considered a
+    //!                     match.
+    //! \param aShapeFilter filter which can exclude certain groups or categories of shapes,
+    //!                     in the same way as it works for collision detection.
+    //!
+    //! \note this method is the same as the other one of the same name, except that this one does
+    //!       no shape filtering whatsoever.
     PointQueryInfo runClosestToPointQuery(cpVect aPoint, cpFloat aMaxDistance) const;
 
     ///////////////////////////////////////////////////////////////////////////
@@ -200,7 +226,26 @@ public:
                          cpFloat      aRadius,
                          taCallable&& aCallable) const;
 
-    //! TODO(add description)
+    //! Cast a ray (of finite length) into the space and invoke a callable for each shape
+    //! intersecting the ray.
+    //!
+    //! \param aRayOrigin position where the ray starts.
+    //! \param aRayDirection direction of the ray (0deg = towards positive X, 90deg = towards
+    //!                      negative Y, 180deg = towards negative X, 270deg = towards
+    //!                      positive Y).
+    //! \param aRayLength length of the ray.
+    //! \param aRadius radius of the ray. Setting the radius to a value greater than zero turns
+    //!                the ray into a kind of a "pill shape" and checks which shapes fall within
+    //!                it.
+    //! \param aShapeFilter filter which can exclude certain groups or categories of shapes,
+    //!                     in the same way as it works for collision detection.
+    //! \param aCallable callable object of type `void(const RaycastQueryInfo&)` which will be
+    //!                  invoked for every shape that intersects the ray (except the filtered out
+    //!                  shapes).
+    //!
+    //! \warning there are NO guarantees as to the order in which the callbacks will be invoked,
+    //!          so don't expect that you will get shapes in order of increasing distance from
+    //!          the start of the ray, nor anything similar.
     template <class taCallable>
     void runDirectedRaycastQuery(cpVect        aRayOrigin,
                                  math::AngleD  aRayDirection,
@@ -209,7 +254,27 @@ public:
                                  cpShapeFilter aShapeFilter,
                                  taCallable&&  aCallable) const;
 
-    //! TODO(add description)
+    //! Cast a ray (of finite length) into the space and invoke a callable for each shape
+    //! intersecting the ray.
+    //!
+    //! \param aRayOrigin position where the ray starts.
+    //! \param aRayDirection direction of the ray (0deg = towards positive X, 90deg = towards
+    //!                      negative Y, 180deg = towards negative X, 270deg = towards
+    //!                      positive Y).
+    //! \param aRayLength length of the ray.
+    //! \param aRadius radius of the ray. Setting the radius to a value greater than zero turns
+    //!                the ray into a kind of a "pill shape" and checks which shapes fall within
+    //!                it.
+    //! \param aCallable callable object of type `void(const RaycastQueryInfo&)` which will be
+    //!                  invoked for every shape that intersects the ray (except the filtered out
+    //!                  shapes).
+    //!
+    //! \note this method is the same as the other one of the same name, except that this one does
+    //!       no shape filtering whatsoever.
+    //!
+    //! \warning there are NO guarantees as to the order in which the callbacks will be invoked,
+    //!          so don't expect that you will get shapes in order of increasing distance from
+    //!          the start of the ray, nor anything similar.
     template <class taCallable>
     void runDirectedRaycastQuery(cpVect       aRayOrigin,
                                  math::AngleD aRayDirection,
@@ -217,33 +282,82 @@ public:
                                  cpFloat      aRadius,
                                  taCallable&& aCallable) const;
 
-    //! TODO(add description)
+    //! Cast a ray (of finite length) into the space and returns information about the first
+    //! shape the ray hits, if any.
+    //!
+    //! \param aRayStart position where the ray starts.
+    //! \param aRayEnd position where the ray ends.
+    //! \param aRadius radius of the ray. Setting the radius to a value greater than zero turns
+    //!                the ray into a kind of a "pill shape" and checks which shapes fall within
+    //!                it.
+    //! \param aShapeFilter filter which can exclude certain groups or categories of shapes,
+    //!                     in the same way as it works for collision detection.
     RaycastQueryInfo runClosestToRaycastQuery(cpVect        aRayStart,
                                               cpVect        aRayEnd,
                                               cpFloat       aRadius,
                                               cpShapeFilter aShapeFilter) const;
 
-    //! TODO(add description)
+    //! Cast a ray (of finite length) into the space and returns information about the first
+    //! shape the ray hits, if any.
+    //!
+    //! \param aRayStart position where the ray starts.
+    //! \param aRayEnd position where the ray ends.
+    //! \param aRadius radius of the ray. Setting the radius to a value greater than zero turns
+    //!                the ray into a kind of a "pill shape" and checks which shapes fall within
+    //!                it.
+    //!
+    //! \note this method is the same as the other one of the same name, except that this one does
+    //!       no shape filtering whatsoever.
     RaycastQueryInfo runClosestToRaycastQuery(cpVect aRayStart, cpVect aRayEnd, cpFloat aRadius) const;
 
-    //! TODO(add description)
+    //! Cast a ray (of finite length) into the space and returns information about the first
+    //! shape the ray hits, if any.
+    //!
+    //! \param aRayOrigin position where the ray starts.
+    //! \param aRayDirection direction of the ray (0deg = towards positive X, 90deg = towards
+    //!                      negative Y, 180deg = towards negative X, 270deg = towards
+    //!                      positive Y).
+    //! \param aRayLength length of the ray.
+    //! \param aRadius radius of the ray. Setting the radius to a value greater than zero turns
+    //!                the ray into a kind of a "pill shape" and checks which shapes fall within
+    //!                it.
+    //! \param aShapeFilter filter which can exclude certain groups or categories of shapes,
+    //!                     in the same way as it works for collision detection.
     RaycastQueryInfo runClosestToDirectedRaycastQuery(cpVect        aRayOrigin,
                                                       math::AngleD  aRayDirection,
                                                       cpFloat       aRayLength,
                                                       cpFloat       aRadius,
                                                       cpShapeFilter aShapeFilter) const;
 
-    //! TODO(add description)
+    //! Cast a ray (of finite length) into the space and returns information about the first
+    //! shape the ray hits, if any.
+    //!
+    //! \param aRayOrigin position where the ray starts.
+    //! \param aRayDirection direction of the ray (0deg = towards positive X, 90deg = towards
+    //!                      negative Y, 180deg = towards negative X, 270deg = towards
+    //!                      positive Y).
+    //! \param aRayLength length of the ray.
+    //! \param aRadius radius of the ray. Setting the radius to a value greater than zero turns
+    //!                the ray into a kind of a "pill shape" and checks which shapes fall within
+    //!                it.
+    //!
+    //! \note this method is the same as the other one of the same name, except that this one does
+    //!       no shape filtering whatsoever.
     RaycastQueryInfo runClosestToDirectedRaycastQuery(cpVect       aRayOrigin,
                                                       math::AngleD aRayDirection,
                                                       cpFloat      aRayLength,
                                                       cpFloat      aRadius) const;
 
     ///////////////////////////////////////////////////////////////////////////
-    // MARK: BBOX QUERIES                                                    //
+    // MARK: FAST BBOX QUERIES                                               //
     ///////////////////////////////////////////////////////////////////////////
 
-    //! Query the space to find all shapes intersecting a bounding box.
+    //! Query the space to find all shapes whose bounding boxes intersect the given bounding box.
+    //!
+    //! \warning notice that this function uses the bounding box of a shape and not the exact
+    //!          shape - this can give false positives whenever the shape isn't an axis-aligned
+    //!          rectangle. However, this behaviour makes this function quite fast and ideal
+    //!          for quick checks as to which shapes are roughly within an area.
     //!
     //! \param aBoundingBox bounding box to check for.
     //! \param aShapeFilter filter which can exclude certain groups or categories of shapes,
@@ -253,11 +367,16 @@ public:
     //!
     //! \warning there are NO guarantees as to the order in which the callbacks will be invoked.
     template <class taCallable>
-    void runBboxQuery(const cpBB&   aBoundingBox,
-                      cpShapeFilter aShapeFilter,
-                      taCallable&&  aCallable) const;
+    void runFastBboxQuery(const cpBB&   aBoundingBox,
+                          cpShapeFilter aShapeFilter,
+                          taCallable&&  aCallable) const;
 
-    //! Query the space to find all shapes intersecting a bounding box.
+    //! Query the space to find all shapes whose bounding boxes intersect the given bounding box.
+    //!
+    //! \warning notice that this function uses the bounding box of a shape and not the exact
+    //!          shape - this can give false positives whenever the shape isn't an axis-aligned
+    //!          rectangle. However, this behaviour makes this function quite fast and ideal
+    //!          for quick checks as to which shapes are roughly within an area.
     //!
     //! \param aBoundingBox bounding box to check for.
     //! \param aCallable callable object of type `void(const BboxQueryInfo&)` which will be invoked
@@ -268,7 +387,7 @@ public:
     //!
     //! \warning there are NO guarantees as to the order in which the callbacks will be invoked.
     template <class taCallable>
-    void runBboxQuery(const cpBB& aBoundingBox, taCallable&& aCallable) const;
+    void runFastBboxQuery(const cpBB& aBoundingBox, taCallable&& aCallable) const;
 
     ///////////////////////////////////////////////////////////////////////////
     // MARK: SHAPE QUERIES                                                   //
@@ -294,10 +413,10 @@ void Space::runPointQuery(cpVect        aPoint,
             auto* delegate =
                 (aShape != nullptr) ? cpShapeGetUserData(aShape).get<CollisionDelegate>() : nullptr;
             auto* callable = static_cast<taCallable*>(aData);
-            (*callable)(PointQueryInfo{.shape        = aShape,
-                                       .delegate     = delegate,
-                                       .closestPoint = aPoint,
-                                       .distance     = aDistance});
+                  (*callable)(PointQueryInfo{.shape        = aShape,
+                                             .delegate     = delegate,
+                                             .closestPoint = aPoint,
+                                             .distance     = aDistance});
         };
     void* const cpFuncData = std::addressof(aCallable);
     cpSpacePointQuery(_space.get(), aPoint, aMaxDistance, aShapeFilter, cpFunc, cpFuncData);
@@ -337,11 +456,11 @@ void Space::runRaycastQuery(cpVect        aRayStart,
             auto* delegate =
                 (aShape != nullptr) ? cpShapeGetUserData(aShape).get<CollisionDelegate>() : nullptr;
             auto* callable = static_cast<taCallable*>(aData);
-            (*callable)(RaycastQueryInfo{.shape              = aShape,
-                                         .delegate           = delegate,
-                                         .closestPoint       = aPoint,
-                                         .surfaceNormal      = aNormal,
-                                         .normalizedDistance = aAlpha});
+                  (*callable)(RaycastQueryInfo{.shape              = aShape,
+                                               .delegate           = delegate,
+                                               .closestPoint       = aPoint,
+                                               .surfaceNormal      = aNormal,
+                                               .normalizedDistance = aAlpha});
         };
     void* const cpFuncData = std::addressof(aCallable);
     cpSpaceSegmentQuery(_space.get(), aRayStart, aRayEnd, aRadius, aShapeFilter, cpFunc, cpFuncData);
@@ -430,22 +549,22 @@ inline RaycastQueryInfo Space::runClosestToDirectedRaycastQuery(cpVect       aRa
 }
 
 template <class taCallable>
-void Space::runBboxQuery(const cpBB&   aBoundingBox,
-                         cpShapeFilter aShapeFilter,
-                         taCallable&&  aCallable) const {
+void Space::runFastBboxQuery(const cpBB&   aBoundingBox,
+                             cpShapeFilter aShapeFilter,
+                             taCallable&&  aCallable) const {
     cpSpaceBBQueryFunc cpFunc = [](cpShape* aShape, void* aData) {
         auto* delegate =
             (aShape != nullptr) ? cpShapeGetUserData(aShape).get<CollisionDelegate>() : nullptr;
         auto* callable = static_cast<taCallable*>(aData);
-        (*callable)(BboxQueryInfo{.shape = aShape, .delegate = delegate});
+              (*callable)(BboxQueryInfo{.shape = aShape, .delegate = delegate});
     };
     void* const cpFuncData = std::addressof(aCallable);
     cpSpaceBBQuery(_space.get(), aBoundingBox, aShapeFilter, cpFunc, cpFuncData);
 }
 
 template <class taCallable>
-void Space::runBboxQuery(const cpBB& aBoundingBox, taCallable&& aCallable) const {
-    return runBboxQuery(aBoundingBox, CP_SHAPE_FILTER_ALL, std::forward<taCallable>(aCallable));
+void Space::runFastBboxQuery(const cpBB& aBoundingBox, taCallable&& aCallable) const {
+    runFastBboxQuery(aBoundingBox, CP_SHAPE_FILTER_ALL, std::forward<taCallable>(aCallable));
 }
 
 } // namespace alvin

@@ -15,10 +15,10 @@ namespace alvin {
 // MUST NOT REMOVE SHAPE DURING QUERY CALLBACK
 
 struct PointQueryInfo {
-    //! The nearest shape, NULL if no shape was within range.
+    //! The shape that was found by the query, or NULL if no shape was within range.
     cpShape* shape = nullptr;
 
-    //! Collision delegate of the nearest shape (or NULL if shape is NULL).
+    //! Collision delegate of the found shape (or NULL if shape is NULL).
     CollisionDelegate* delegate = nullptr;
 
     //! The closest point on the shape's surface (in world space coordinates).
@@ -32,10 +32,10 @@ struct PointQueryInfo {
 };
 
 struct RaycastQueryInfo {
-    //! TODO
+    //! The shape that was found by the query, or NULL if no shape was within range.
     cpShape* shape = nullptr;
 
-    //! TODO
+    //! Collision delegate of the found shape (or NULL if shape is NULL).
     CollisionDelegate* delegate = nullptr;
 
     //! Point (in world coordinates) where the ray hit the shape.
@@ -65,10 +65,10 @@ struct RaycastQueryInfo {
 };
 
 struct BboxQueryInfo {
-    //! TODO
+    //! The shape that was found by the query, or NULL if no shape was within range.
     cpShape* shape = nullptr;
 
-    //! TODO
+    //! Collision delegate of the found shape (or NULL if shape is NULL).
     CollisionDelegate* delegate = nullptr;
 };
 

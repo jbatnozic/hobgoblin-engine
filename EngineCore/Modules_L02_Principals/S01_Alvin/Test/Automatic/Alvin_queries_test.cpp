@@ -177,7 +177,7 @@ TEST_F(AlvinQueriesTest, OneShape_PointQuery_PointInsideOfShape_ShapeFound) {
     EXPECT_NEAR(queryInfo->distance, -Block::WIDTH / 2.0, EPSILON);
 }
 
-TEST_F(AlvinQueriesTest, OneShape_DirectedRaycastQuery_RayPassesByShape_ShapeNotFound) {
+TEST_F(AlvinQueriesTest, OneShape_RaycastQuery_RayPassesByShape_ShapeNotFound) {
     Block block{
         _space,
         {Block::WIDTH * 1.5, Block::HEIGHT * 0.75}
@@ -193,6 +193,70 @@ TEST_F(AlvinQueriesTest, OneShape_DirectedRaycastQuery_RayPassesByShape_ShapeNot
                                queryInfo = aQueryInfo;
                            });
     ASSERT_EQ(queryCallCount, 0);
+}
+
+TEST_F(AlvinQueriesTest, ThreeShapes_RaycastQuery_RayPassesThroughTwoShapes_BothShapesFound) {
+    Block block1{
+        _space,
+        {Block::WIDTH * 1.0, Block::HEIGHT * 0.5}
+    };
+    Block block2{
+        _space,
+        {Block::WIDTH * 2.0, Block::HEIGHT * 0.75}
+    };
+    Block block3{
+        _space,
+        {Block::WIDTH * 1.5, Block::HEIGHT * 3.0}
+    };
+
+    int                                  queryCallCount = 0;
+    std::vector<alvin::RaycastQueryInfo> queryInfos     = {};
+    _space.runRaycastQuery(cpv(0.0, 0.0),
+                           cpv(100.0, Block::HEIGHT),
+                           0.0,
+                           [&](const alvin::RaycastQueryInfo& aQueryInfo) {
+                               queryCallCount += 1;
+                               queryInfos.push_back(aQueryInfo);
+                           });
+    EXPECT_EQ(queryCallCount, 2);
+    EXPECT_TRUE(std::find_if(queryInfos.begin(),
+                             queryInfos.end(),
+                             [&](const alvin::RaycastQueryInfo& aQueryInfo) {
+                                 return &(aQueryInfo.delegate->getEntity()) ==
+                                        static_cast<alvin::EntityBase*>(&block1);
+                             }) != queryInfos.end());
+    EXPECT_TRUE(std::find_if(queryInfos.begin(),
+                             queryInfos.end(),
+                             [&](const alvin::RaycastQueryInfo& aQueryInfo) {
+                                 return &(aQueryInfo.delegate->getEntity()) ==
+                                        static_cast<alvin::EntityBase*>(&block2);
+                             }) != queryInfos.end());
+    EXPECT_TRUE(std::find_if(queryInfos.begin(),
+                             queryInfos.end(),
+                             [&](const alvin::RaycastQueryInfo& aQueryInfo) {
+                                 return &(aQueryInfo.delegate->getEntity()) ==
+                                        static_cast<alvin::EntityBase*>(&block3);
+                             }) == queryInfos.end());
+}
+
+TEST_F(AlvinQueriesTest, ThreeShapes_ClosestToRaycastQuery_RayPassesThroughTwoShapes_FirstShapeFound) {
+    Block block1{
+        _space,
+        {Block::WIDTH * 1.0, Block::HEIGHT * 0.5}
+    };
+    Block block2{
+        _space,
+        {Block::WIDTH * 2.0, Block::HEIGHT * 0.75}
+    };
+    Block block3{
+        _space,
+        {Block::WIDTH * 1.5, Block::HEIGHT * 3.0}
+    };
+
+    const auto queryInfo =
+        _space.runClosestToRaycastQuery(cpv(0.0, 0.0), cpv(100.0, Block::HEIGHT), 0.0);
+
+    EXPECT_EQ(&(queryInfo.delegate->getEntity()), static_cast<alvin::EntityBase*>(&block1));
 }
 
 TEST_F(AlvinQueriesTest, OneShape_DirectedRaycastQuery_RayPassesByShapeButHasRadius_ShapeFound) {
@@ -301,6 +365,54 @@ TEST_F(AlvinQueriesTest, FourShapes_DirectedRaycastQuery_ShapesFound) {
         EXPECT_EQ(&(queryInfo->delegate->getEntity()), static_cast<alvin::EntityBase*>(&blockEast));
         EXPECT_NEAR(queryInfo->normalizedDistance, 16.0 / 100.0, EPSILON);
     }
+}
+
+TEST_F(AlvinQueriesTest, FourShapes_BboxQuery_ThreeShapesFound) {
+    Block blockNorth{
+        _space,
+        {Block::WIDTH * 1.5, Block::HEIGHT * 0.5}
+    };
+    Block blockWest{
+        _space,
+        {Block::WIDTH * 0.5, Block::HEIGHT * 1.5}
+    };
+    Block blockSouth{
+        _space,
+        {Block::WIDTH * 1.5, Block::HEIGHT * 2.5}
+    };
+    Block blockEast{
+        _space,
+        {Block::WIDTH * 2.5, Block::HEIGHT * 1.5}
+    };
+
+    int                               queryCallCount = 0;
+    std::vector<alvin::BboxQueryInfo> queryInfos     = {};
+    _space.runFastBboxQuery(cpBB{.l = 0.0, .b = 0.0, .r = 100.0, .t = Block::HEIGHT * 1.5},
+                            [&](const alvin::BboxQueryInfo& aQueryInfo) {
+                                queryCallCount += 1;
+                                queryInfos.push_back(aQueryInfo);
+                            });
+    EXPECT_EQ(queryCallCount, 3);
+
+    EXPECT_TRUE(
+        std::find_if(queryInfos.begin(), queryInfos.end(), [&](const alvin::BboxQueryInfo& aQueryInfo) {
+            return &(aQueryInfo.delegate->getEntity()) == static_cast<alvin::EntityBase*>(&blockNorth);
+        }) != queryInfos.end());
+
+    EXPECT_TRUE(
+        std::find_if(queryInfos.begin(), queryInfos.end(), [&](const alvin::BboxQueryInfo& aQueryInfo) {
+            return &(aQueryInfo.delegate->getEntity()) == static_cast<alvin::EntityBase*>(&blockWest);
+        }) != queryInfos.end());
+
+    EXPECT_TRUE(
+        std::find_if(queryInfos.begin(), queryInfos.end(), [&](const alvin::BboxQueryInfo& aQueryInfo) {
+            return &(aQueryInfo.delegate->getEntity()) == static_cast<alvin::EntityBase*>(&blockEast);
+        }) != queryInfos.end());
+
+    EXPECT_TRUE(
+        std::find_if(queryInfos.begin(), queryInfos.end(), [&](const alvin::BboxQueryInfo& aQueryInfo) {
+            return &(aQueryInfo.delegate->getEntity()) == static_cast<alvin::EntityBase*>(&blockSouth);
+        }) == queryInfos.end());
 }
 
 } // namespace hobgoblin
