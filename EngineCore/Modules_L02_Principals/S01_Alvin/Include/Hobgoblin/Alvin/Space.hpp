@@ -117,11 +117,14 @@ public:
     //!                  the filtered out shapes).
     //!
     //! \warning there are NO guarantees as to the order in which the callbacks will be invoked.
+    //!
+    //! \warning you must not remove any shapes or bodies from the space from within the callback
+    //!          (aCallable), same as with collision handlers.
     template <class taCallable>
     void runPointQuery(cpVect        aPoint,
                        cpFloat       aMaxDistance,
                        cpShapeFilter aShapeFilter,
-                       taCallable&&  aCallable) const;
+                       taCallable&&  aCallable);
 
     //! Query the space to find all shapes intersecting a point or up to some distance from the point.
     //!
@@ -140,8 +143,11 @@ public:
     //!       no shape filtering whatsoever.
     //!
     //! \warning there are NO guarantees as to the order in which the callbacks will be invoked.
+    //!
+    //! \warning you must not remove any shapes or bodies from the space from within the callback
+    //!          (aCallable), same as with collision handlers.
     template <class taCallable>
-    void runPointQuery(cpVect aPoint, cpFloat aMaxDistance, taCallable&& aCallable) const;
+    void runPointQuery(cpVect aPoint, cpFloat aMaxDistance, taCallable&& aCallable);
 
     //! Query the space to find the shape that's closest to the given point (up to some distance).
     //!
@@ -156,7 +162,7 @@ public:
     //!                     in the same way as it works for collision detection.
     PointQueryInfo runClosestToPointQuery(cpVect        aPoint,
                                           cpFloat       aMaxDistance,
-                                          cpShapeFilter aShapeFilter) const;
+                                          cpShapeFilter aShapeFilter);
 
     //! Query the space to find the shape that's closest to the given point (up to some distance).
     //!
@@ -172,7 +178,7 @@ public:
     //!
     //! \note this method is the same as the other one of the same name, except that this one does
     //!       no shape filtering whatsoever.
-    PointQueryInfo runClosestToPointQuery(cpVect aPoint, cpFloat aMaxDistance) const;
+    PointQueryInfo runClosestToPointQuery(cpVect aPoint, cpFloat aMaxDistance);
 
     ///////////////////////////////////////////////////////////////////////////
     // MARK: RAY QUERIES                                                     //
@@ -195,12 +201,15 @@ public:
     //! \warning there are NO guarantees as to the order in which the callbacks will be invoked,
     //!          so don't expect that you will get shapes in order of increasing distance from
     //!          the start of the ray, nor anything similar.
+    //!
+    //! \warning you must not remove any shapes or bodies from the space from within the callback
+    //!          (aCallable), same as with collision handlers.
     template <class taCallable>
     void runRaycastQuery(cpVect        aRayStart,
                          cpVect        aRayEnd,
                          cpFloat       aRadius,
                          cpShapeFilter aShapeFilter,
-                         taCallable&&  aCallable) const;
+                         taCallable&&  aCallable);
 
     //! Cast a ray (of finite length) into the space and invoke a callable for each shape
     //! intersecting the ray.
@@ -220,11 +229,11 @@ public:
     //! \warning there are NO guarantees as to the order in which the callbacks will be invoked,
     //!          so don't expect that you will get shapes in order of increasing distance from
     //!          the start of the ray, nor anything similar.
+    //!
+    //! \warning you must not remove any shapes or bodies from the space from within the callback
+    //!          (aCallable), same as with collision handlers.
     template <class taCallable>
-    void runRaycastQuery(cpVect       aRayStart,
-                         cpVect       aRayEnd,
-                         cpFloat      aRadius,
-                         taCallable&& aCallable) const;
+    void runRaycastQuery(cpVect aRayStart, cpVect aRayEnd, cpFloat aRadius, taCallable&& aCallable);
 
     //! Cast a ray (of finite length) into the space and invoke a callable for each shape
     //! intersecting the ray.
@@ -246,13 +255,16 @@ public:
     //! \warning there are NO guarantees as to the order in which the callbacks will be invoked,
     //!          so don't expect that you will get shapes in order of increasing distance from
     //!          the start of the ray, nor anything similar.
+    //!
+    //! \warning you must not remove any shapes or bodies from the space from within the callback
+    //!          (aCallable), same as with collision handlers.
     template <class taCallable>
     void runDirectedRaycastQuery(cpVect        aRayOrigin,
                                  math::AngleD  aRayDirection,
                                  cpFloat       aRayLength,
                                  cpFloat       aRadius,
                                  cpShapeFilter aShapeFilter,
-                                 taCallable&&  aCallable) const;
+                                 taCallable&&  aCallable);
 
     //! Cast a ray (of finite length) into the space and invoke a callable for each shape
     //! intersecting the ray.
@@ -275,12 +287,15 @@ public:
     //! \warning there are NO guarantees as to the order in which the callbacks will be invoked,
     //!          so don't expect that you will get shapes in order of increasing distance from
     //!          the start of the ray, nor anything similar.
+    //!
+    //! \warning you must not remove any shapes or bodies from the space from within the callback
+    //!          (aCallable), same as with collision handlers.
     template <class taCallable>
     void runDirectedRaycastQuery(cpVect       aRayOrigin,
                                  math::AngleD aRayDirection,
                                  cpFloat      aRayLength,
                                  cpFloat      aRadius,
-                                 taCallable&& aCallable) const;
+                                 taCallable&& aCallable);
 
     //! Cast a ray (of finite length) into the space and returns information about the first
     //! shape the ray hits, if any.
@@ -295,7 +310,7 @@ public:
     RaycastQueryInfo runClosestToRaycastQuery(cpVect        aRayStart,
                                               cpVect        aRayEnd,
                                               cpFloat       aRadius,
-                                              cpShapeFilter aShapeFilter) const;
+                                              cpShapeFilter aShapeFilter);
 
     //! Cast a ray (of finite length) into the space and returns information about the first
     //! shape the ray hits, if any.
@@ -308,7 +323,7 @@ public:
     //!
     //! \note this method is the same as the other one of the same name, except that this one does
     //!       no shape filtering whatsoever.
-    RaycastQueryInfo runClosestToRaycastQuery(cpVect aRayStart, cpVect aRayEnd, cpFloat aRadius) const;
+    RaycastQueryInfo runClosestToRaycastQuery(cpVect aRayStart, cpVect aRayEnd, cpFloat aRadius);
 
     //! Cast a ray (of finite length) into the space and returns information about the first
     //! shape the ray hits, if any.
@@ -327,7 +342,7 @@ public:
                                                       math::AngleD  aRayDirection,
                                                       cpFloat       aRayLength,
                                                       cpFloat       aRadius,
-                                                      cpShapeFilter aShapeFilter) const;
+                                                      cpShapeFilter aShapeFilter);
 
     //! Cast a ray (of finite length) into the space and returns information about the first
     //! shape the ray hits, if any.
@@ -346,7 +361,7 @@ public:
     RaycastQueryInfo runClosestToDirectedRaycastQuery(cpVect       aRayOrigin,
                                                       math::AngleD aRayDirection,
                                                       cpFloat      aRayLength,
-                                                      cpFloat      aRadius) const;
+                                                      cpFloat      aRadius);
 
     ///////////////////////////////////////////////////////////////////////////
     // MARK: FAST BBOX QUERIES                                               //
@@ -366,10 +381,11 @@ public:
     //!                  for every shape that intersects the bbox (except the filtered out shapes).
     //!
     //! \warning there are NO guarantees as to the order in which the callbacks will be invoked.
+    //!
+    //! \warning you must not remove any shapes or bodies from the space from within the callback
+    //!          (aCallable), same as with collision handlers.
     template <class taCallable>
-    void runFastBboxQuery(const cpBB&   aBoundingBox,
-                          cpShapeFilter aShapeFilter,
-                          taCallable&&  aCallable) const;
+    void runFastBboxQuery(const cpBB& aBoundingBox, cpShapeFilter aShapeFilter, taCallable&& aCallable);
 
     //! Query the space to find all shapes whose bounding boxes intersect the given bounding box.
     //!
@@ -380,20 +396,52 @@ public:
     //!
     //! \param aBoundingBox bounding box to check for.
     //! \param aCallable callable object of type `void(const BboxQueryInfo&)` which will be invoked
-    //!                  for every shape that intersects the ray (except the filtered out shapes).
+    //!                  for every shape that intersects the bbox (except the filtered out shapes).
     //!
     //! \note this method is the same as the other one of the same name, except that this one does
     //!       no shape filtering whatsoever.
     //!
     //! \warning there are NO guarantees as to the order in which the callbacks will be invoked.
+    //!
+    //! \warning you must not remove any shapes or bodies from the space from within the callback
+    //!          (aCallable), same as with collision handlers.
     template <class taCallable>
-    void runFastBboxQuery(const cpBB& aBoundingBox, taCallable&& aCallable) const;
+    void runFastBboxQuery(const cpBB& aBoundingBox, taCallable&& aCallable);
 
     ///////////////////////////////////////////////////////////////////////////
     // MARK: SHAPE QUERIES                                                   //
     ///////////////////////////////////////////////////////////////////////////
 
-    // TODO
+    //! Query the space to find all shapes that intersect the given shape.
+    //!
+    //! \param aShape shape to check for.
+    //! \param aShapeFilter filter which can exclude certain groups or categories of shapes,
+    //!                     in the same way as it works for collision detection.
+    //! \param aCallable callable object of type `void(const ShapeQueryInfo&)` which will be invoked
+    //!                  for every shape that intersects the shape (except the filtered out shapes).
+    //!
+    //! \warning there are NO guarantees as to the order in which the callbacks will be invoked.
+    //!
+    //! \warning you must not remove any shapes or bodies from the space from within the callback
+    //!          (aCallable), same as with collision handlers.
+    template <class taCallable>
+    void runShapeQuery(NeverNull<cpShape*> aShape, cpShapeFilter aShapeFilter, taCallable&& aCallable);
+
+    //! Query the space to find all shapes that intersect the given shape.
+    //!
+    //! \param aShape shape to check for.
+    //! \param aCallable callable object of type `void(const ShapeQueryInfo&)` which will be invoked
+    //!                  for every shape that intersects the shape (except the filtered out shapes).
+    //!
+    //! \note this method is the same as the other one of the same name, except that this one does
+    //!       no shape filtering whatsoever.
+    //!
+    //! \warning there are NO guarantees as to the order in which the callbacks will be invoked.
+    //!
+    //! \warning you must not remove any shapes or bodies from the space from within the callback
+    //!          (aCallable), same as with collision handlers.
+    template <class taCallable>
+    void runShapeQuery(NeverNull<cpShape*> aShape, taCallable&& aCallable);
 
 private:
     detail::ChipmunkSpaceUPtr _space;
@@ -407,7 +455,7 @@ template <class taCallable>
 void Space::runPointQuery(cpVect        aPoint,
                           cpFloat       aMaxDistance,
                           cpShapeFilter aShapeFilter,
-                          taCallable&&  aCallable) const {
+                          taCallable&&  aCallable) {
     cpSpacePointQueryFunc cpFunc =
         [](cpShape* aShape, cpVect aPoint, cpFloat aDistance, cpVect /*gradient*/, void* aData) {
             auto* delegate =
@@ -423,13 +471,13 @@ void Space::runPointQuery(cpVect        aPoint,
 }
 
 template <class taCallable>
-void Space::runPointQuery(cpVect aPoint, cpFloat aMaxDistance, taCallable&& aCallable) const {
+void Space::runPointQuery(cpVect aPoint, cpFloat aMaxDistance, taCallable&& aCallable) {
     runPointQuery(aPoint, aMaxDistance, CP_SHAPE_FILTER_ALL, std::forward<taCallable>(aCallable));
 }
 
 inline PointQueryInfo Space::runClosestToPointQuery(cpVect        aPoint,
                                                     cpFloat       aMaxDistance,
-                                                    cpShapeFilter aShapeFilter) const {
+                                                    cpShapeFilter aShapeFilter) {
     cpPointQueryInfo info;
     cpShape* shape = cpSpacePointQueryNearest(_space.get(), aPoint, aMaxDistance, aShapeFilter, &info);
     if (shape == nullptr) {
@@ -441,7 +489,7 @@ inline PointQueryInfo Space::runClosestToPointQuery(cpVect        aPoint,
             .distance     = info.distance};
 }
 
-inline PointQueryInfo Space::runClosestToPointQuery(cpVect aPoint, cpFloat aMaxDistance) const {
+inline PointQueryInfo Space::runClosestToPointQuery(cpVect aPoint, cpFloat aMaxDistance) {
     return runClosestToPointQuery(aPoint, aMaxDistance, CP_SHAPE_FILTER_ALL);
 }
 
@@ -450,7 +498,7 @@ void Space::runRaycastQuery(cpVect        aRayStart,
                             cpVect        aRayEnd,
                             cpFloat       aRadius,
                             cpShapeFilter aShapeFilter,
-                            taCallable&&  aCallable) const {
+                            taCallable&&  aCallable) {
     cpSpaceSegmentQueryFunc cpFunc =
         [](cpShape* aShape, cpVect aPoint, cpVect aNormal, cpFloat aAlpha, void* aData) {
             auto* delegate =
@@ -467,10 +515,7 @@ void Space::runRaycastQuery(cpVect        aRayStart,
 }
 
 template <class taCallable>
-void Space::runRaycastQuery(cpVect       aRayStart,
-                            cpVect       aRayEnd,
-                            cpFloat      aRadius,
-                            taCallable&& aCallable) const {
+void Space::runRaycastQuery(cpVect aRayStart, cpVect aRayEnd, cpFloat aRadius, taCallable&& aCallable) {
     runRaycastQuery(aRayStart,
                     aRayEnd,
                     aRadius,
@@ -484,7 +529,7 @@ void Space::runDirectedRaycastQuery(cpVect        aRayOrigin,
                                     cpFloat       aRayLength,
                                     cpFloat       aRadius,
                                     cpShapeFilter aShapeFilter,
-                                    taCallable&&  aCallable) const {
+                                    taCallable&&  aCallable) {
     const cpVect rayEnd = cpv(aRayOrigin.x + aRayLength * aRayDirection.cos(),
                               aRayOrigin.y - aRayLength * aRayDirection.sin());
     runRaycastQuery(aRayOrigin, rayEnd, aRadius, aShapeFilter, std::forward<taCallable>(aCallable));
@@ -495,7 +540,7 @@ void Space::runDirectedRaycastQuery(cpVect       aRayOrigin,
                                     math::AngleD aRayDirection,
                                     cpFloat      aRayLength,
                                     cpFloat      aRadius,
-                                    taCallable&& aCallable) const {
+                                    taCallable&& aCallable) {
     runDirectedRaycastQuery(aRayOrigin,
                             aRayDirection,
                             aRayLength,
@@ -507,7 +552,7 @@ void Space::runDirectedRaycastQuery(cpVect       aRayOrigin,
 inline RaycastQueryInfo Space::runClosestToRaycastQuery(cpVect        aRayStart,
                                                         cpVect        aRayEnd,
                                                         cpFloat       aRadius,
-                                                        cpShapeFilter aShapeFilter) const {
+                                                        cpShapeFilter aShapeFilter) {
     cpSegmentQueryInfo info;
     cpShape*           shape =
         cpSpaceSegmentQueryFirst(_space.get(), aRayStart, aRayEnd, aRadius, aShapeFilter, &info);
@@ -523,7 +568,7 @@ inline RaycastQueryInfo Space::runClosestToRaycastQuery(cpVect        aRayStart,
 
 inline RaycastQueryInfo Space::runClosestToRaycastQuery(cpVect  aRayStart,
                                                         cpVect  aRayEnd,
-                                                        cpFloat aRadius) const {
+                                                        cpFloat aRadius) {
     return runClosestToRaycastQuery(aRayStart, aRayEnd, aRadius, CP_SHAPE_FILTER_ALL);
 }
 
@@ -531,7 +576,7 @@ inline RaycastQueryInfo Space::runClosestToDirectedRaycastQuery(cpVect        aR
                                                                 math::AngleD  aRayDirection,
                                                                 cpFloat       aRayLength,
                                                                 cpFloat       aRadius,
-                                                                cpShapeFilter aShapeFilter) const {
+                                                                cpShapeFilter aShapeFilter) {
     const cpVect rayEnd = cpv(aRayOrigin.x + aRayLength * aRayDirection.cos(),
                               aRayOrigin.y - aRayLength * aRayDirection.sin());
     return runClosestToRaycastQuery(aRayOrigin, rayEnd, aRadius, aShapeFilter);
@@ -540,7 +585,7 @@ inline RaycastQueryInfo Space::runClosestToDirectedRaycastQuery(cpVect        aR
 inline RaycastQueryInfo Space::runClosestToDirectedRaycastQuery(cpVect       aRayOrigin,
                                                                 math::AngleD aRayDirection,
                                                                 cpFloat      aRayLength,
-                                                                cpFloat      aRadius) const {
+                                                                cpFloat      aRadius) {
     return runClosestToDirectedRaycastQuery(aRayOrigin,
                                             aRayDirection,
                                             aRayLength,
@@ -551,7 +596,7 @@ inline RaycastQueryInfo Space::runClosestToDirectedRaycastQuery(cpVect       aRa
 template <class taCallable>
 void Space::runFastBboxQuery(const cpBB&   aBoundingBox,
                              cpShapeFilter aShapeFilter,
-                             taCallable&&  aCallable) const {
+                             taCallable&&  aCallable) {
     cpSpaceBBQueryFunc cpFunc = [](cpShape* aShape, void* aData) {
         auto* delegate =
             (aShape != nullptr) ? cpShapeGetUserData(aShape).get<CollisionDelegate>() : nullptr;
@@ -563,8 +608,29 @@ void Space::runFastBboxQuery(const cpBB&   aBoundingBox,
 }
 
 template <class taCallable>
-void Space::runFastBboxQuery(const cpBB& aBoundingBox, taCallable&& aCallable) const {
+void Space::runFastBboxQuery(const cpBB& aBoundingBox, taCallable&& aCallable) {
     runFastBboxQuery(aBoundingBox, CP_SHAPE_FILTER_ALL, std::forward<taCallable>(aCallable));
+}
+
+template <class taCallable>
+void Space::runShapeQuery(NeverNull<cpShape*> aShape,
+                          cpShapeFilter       aShapeFilter,
+                          taCallable&&        aCallable) {
+    cpSpaceShapeQueryFunc cpFunc = [](cpShape* aShape, cpContactPointSet* aPoints, void* aData) {
+        auto* delegate =
+            (aShape != nullptr) ? cpShapeGetUserData(aShape).get<CollisionDelegate>() : nullptr;
+
+        auto* callable = static_cast<taCallable*>(aData);
+
+        (*callable)(ShapeQueryInfo{.shape = aShape, .delegate = delegate, .points = aPoints});
+    };
+    void* const cpFuncData = std::addressof(aCallable);
+    cpSpaceShapeQuery(_space.get(), aShape, cpFunc, cpFuncData);
+}
+
+template <class taCallable>
+void Space::runShapeQuery(NeverNull<cpShape*> aShape, taCallable&& aCallable) {
+    runShapeQuery(aShape, CP_SHAPE_FILTER_ALL, std::forward<taCallable>(aCallable));
 }
 
 } // namespace alvin

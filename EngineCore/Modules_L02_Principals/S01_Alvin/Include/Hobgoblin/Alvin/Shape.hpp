@@ -78,7 +78,17 @@ public:
     // QUERIES                                                               //
     ///////////////////////////////////////////////////////////////////////////
 
-    // cpShapePointQuery()
+    // void Query1(cpVect aPoint) {
+    //     cpShapePointQuery(_shape.get(), aPoint, NULL);
+    // }
+
+    // void Query2(cpVect aPoint) {
+    //     // cpShapeSegmentQuery(_shape.get());
+    // }
+
+    // void Query3() {
+    //     // cpShapesCollide();
+    // }
 
 private:
     detail::ChipmunkShapeUPtr _shape;

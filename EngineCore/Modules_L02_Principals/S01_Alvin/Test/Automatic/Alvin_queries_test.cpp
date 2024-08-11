@@ -7,6 +7,7 @@
 
 #include <gtest/gtest.h>
 
+#include <array>
 #include <cmath>
 #include <optional>
 
@@ -413,6 +414,71 @@ TEST_F(AlvinQueriesTest, FourShapes_BboxQuery_ThreeShapesFound) {
         std::find_if(queryInfos.begin(), queryInfos.end(), [&](const alvin::BboxQueryInfo& aQueryInfo) {
             return &(aQueryInfo.delegate->getEntity()) == static_cast<alvin::EntityBase*>(&blockSouth);
         }) == queryInfos.end());
+}
+
+TEST_F(AlvinQueriesTest, FiveShapes_TriangleShapeQuery_ThreeShapesFound) {
+    Block block1{
+        _space,
+        {0.0, 0.0}
+    }; // Origin, won't intersect the triangle
+    Block block2{
+        _space,
+        {1.0 * 32.0, 3.5 * 32.0}
+    }; // Will intersect the bottom corner of the triangle
+    Block block3{
+        _space,
+        {3.0 * 32.0, 2.5 * 32.0}
+    }; // Will intersect the hypotenuse
+    Block block4{
+        _space,
+        {3.0 * 32.0, 1.0 * 32.0}
+    }; // Will intersect the top edge
+    Block block5{
+        _space,
+        {5.0 * 32.0, 2.5 * 32.0}
+    }; // Will be a bit too far away from the hypotenuse
+
+    std::array<cpVect, 3> vertices = {
+        cpv(0.0, 2.5 * 32.0), cpv(0.0, 0.0), cpv(5.0 * 32.0, 0.0)
+    };
+    alvin::Shape triangle{cpPolyShapeNew(NULL, 3, vertices.data(), cpTransformIdentity, 0.0)};
+    cpShapeUpdate(triangle, cpTransformNew(1.0, 0.0, 0.0, 1.0, 32.0, 32.0));
+    // About affine transforms:
+    // https://developer.apple.com/documentation/corefoundation/cgaffinetransform
+    
+    int                 queryCallCount = 0;
+    std::vector<Block*> foundBlocks    = {};
+    _space.runShapeQuery(triangle, [&](const alvin::ShapeQueryInfo& aQueryInfo) {
+        queryCallCount += 1;
+        foundBlocks.push_back(static_cast<Block*>(&(aQueryInfo.delegate->getEntity())));
+    });
+
+    EXPECT_EQ(queryCallCount, 3);
+
+    EXPECT_TRUE(
+        std::find_if(foundBlocks.begin(), foundBlocks.end(), [&](Block* aBlock) {
+        return aBlock == &block1;
+    }) == foundBlocks.end());
+
+    EXPECT_TRUE(
+        std::find_if(foundBlocks.begin(), foundBlocks.end(), [&](Block* aBlock) {
+        return aBlock == &block2;
+    }) != foundBlocks.end());
+
+    EXPECT_TRUE(
+        std::find_if(foundBlocks.begin(), foundBlocks.end(), [&](Block* aBlock) {
+        return aBlock == &block3;
+    }) != foundBlocks.end());
+
+    EXPECT_TRUE(
+        std::find_if(foundBlocks.begin(), foundBlocks.end(), [&](Block* aBlock) {
+        return aBlock == &block4;
+    }) != foundBlocks.end());
+
+    EXPECT_TRUE(
+        std::find_if(foundBlocks.begin(), foundBlocks.end(), [&](Block* aBlock) {
+        return aBlock == &block5;
+    }) == foundBlocks.end());
 }
 
 } // namespace hobgoblin

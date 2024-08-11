@@ -72,6 +72,18 @@ struct BboxQueryInfo {
     CollisionDelegate* delegate = nullptr;
 };
 
+struct ShapeQueryInfo {
+    //! The shape that was found by the query, or NULL if no shape was within range.
+    cpShape* shape = nullptr;
+
+    //! Collision delegate of the found shape (or NULL if shape is NULL).
+    CollisionDelegate* delegate = nullptr;
+
+    //! Information about the contact points between the found shape and the original shape
+    //! that was used to make the query.
+    cpContactPointSet* points = nullptr;
+};
+
 } // namespace alvin
 HOBGOBLIN_NAMESPACE_END
 
