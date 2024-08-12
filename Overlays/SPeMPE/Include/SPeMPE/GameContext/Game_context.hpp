@@ -44,7 +44,7 @@ constexpr int GCM_GMAS = GCMF_PRIV | GCMF_NETW;
 class GameContext {
 public:
     ///////////////////////////////////////////////////////////////////////////
-    // CONFIGURATION                                                         //
+    // MARK: CONFIGURATION                                                   //
     ///////////////////////////////////////////////////////////////////////////
 
     // clang-format off
@@ -86,7 +86,7 @@ public:
     const RuntimeConfig& getRuntimeConfig() const;
 
     ///////////////////////////////////////////////////////////////////////////
-    // GAME STATE MANAGEMENT                                                 //
+    // MARK: GAME STATE MANAGEMENT                                           //
     ///////////////////////////////////////////////////////////////////////////
 
     struct GameState {
@@ -97,13 +97,13 @@ public:
     const GameState& getGameState() const;
 
     ///////////////////////////////////////////////////////////////////////////
-    // GAME OBJECT MANAGEMENT                                                //
+    // MARK: GAME OBJECT MANAGEMENT                                          //
     ///////////////////////////////////////////////////////////////////////////
 
     hg::QAO_Runtime& getQAORuntime();
 
     ///////////////////////////////////////////////////////////////////////////
-    // COMPONENT MANAGEMENT                                                  //
+    // MARK: COMPONENT MANAGEMENT                                            //
     ///////////////////////////////////////////////////////////////////////////
 
     //! Throws hg::TracedLogicError in case of tagHash clash.
@@ -114,9 +114,18 @@ public:
     template <class taComponent>
     void attachAndOwnComponent(std::unique_ptr<taComponent> aComponent);
 
-    //! No-op if component isn't present.
-    //! If the component was owned by the context, it is destroyed.
-    void detachComponent(ContextComponent& aComponent);
+    //! Attempt to detach a context component from the context.
+    //! One of three things can happen:
+    //! - If component is found and owned by the context:
+    //!   `aDetachStatus` set to `DetachStatus::OK`, unique pointer to component returned.
+    //!
+    //! - If component is found but not owned by the context:
+    //!   `aDetachStatus` set to `DetachStatus::NOT_OWNED_BY_CONTEXT`, nullptr returned.
+    //!
+    //! - If component is not found:
+    //!   `aDetachStatus` set to `DetachStatus::NOT_FOUND`, nullptr returned.
+    template <class taComponent>
+    std::unique_ptr<taComponent> detachComponent(hg::NeverNull<DetachStatus*> aDetachStatus);
 
     //! Throws hg::TracedLogicError if the component isn't present.
     template <class taComponent>
@@ -129,7 +138,7 @@ public:
     std::string getComponentTableString(char aSeparator = '\n') const;
 
     ///////////////////////////////////////////////////////////////////////////
-    // EXECUTION                                                             //
+    // MARK: EXECUTION                                                       //
     ///////////////////////////////////////////////////////////////////////////
 
     //! Run for a number of iterations. A negative value will be taken as infinity.
@@ -192,7 +201,7 @@ public:
     std::uint64_t getCurrentIterationOrdinal() const;
 
     ///////////////////////////////////////////////////////////////////////////
-    // CHILD CONTEXT SUPPORT                                                 //
+    // MARK: CHILD CONTEXT SUPPORT                                           //
     ///////////////////////////////////////////////////////////////////////////
 
     //! Attach a child context.
@@ -273,6 +282,34 @@ void GameContext::attachAndOwnComponent(std::unique_ptr<taComponent> aComponent)
 
     _components.attachComponent(*aComponent);
     _ownedComponents.push_back(std::move(aComponent));
+}
+
+template <class taComponent>
+std::unique_ptr<taComponent> GameContext::detachComponent(hg::NeverNull<DetachStatus*> aDetachStatus) {
+    auto* ptr = getComponentPtr<taComponent>();
+    if (ptr == nullptr) {
+        *aDetachStatus = DetachStatus::NOT_FOUND;
+        return nullptr;
+    }
+
+    const auto iter = std::find_if(_ownedComponents.begin(),
+                                   _ownedComponents.end(),
+                                   [ptr](std::unique_ptr<ContextComponent>& aCurr) {
+                                       return aCurr.get() == ptr;
+                                   });
+    if (iter == _ownedComponents.end()) {
+        _components.detachComponent(*ptr);
+        *aDetachStatus = DetachStatus::NOT_OWNED_BY_CONTEXT;
+        return nullptr;
+    }
+
+    std::unique_ptr<ContextComponent> temp = std::move(*iter);
+    std::unique_ptr<taComponent>      result =
+        std::unique_ptr<taComponent>{static_cast<taComponent*>(temp.release())};
+    _components.detachComponent(*result);
+    _ownedComponents.erase(iter);
+    *aDetachStatus = DetachStatus::OK;
+    return result;
 }
 
 template <class taComponent>

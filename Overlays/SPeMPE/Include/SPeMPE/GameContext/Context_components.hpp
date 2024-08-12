@@ -34,6 +34,14 @@ public:
     }                                                                                             \
     friend class ::jbatnozic::spempe::detail::ComponentTable
 
+//! Gives information as to what happened when you attempt to detach a
+//! context component from a game context.
+enum class DetachStatus {
+    OK,
+    NOT_OWNED_BY_CONTEXT,
+    NOT_FOUND
+};
+
 namespace detail {
 
 class ComponentTable {

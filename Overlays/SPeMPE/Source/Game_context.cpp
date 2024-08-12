@@ -32,12 +32,13 @@ GameContext::~GameContext() {
 
     while (!_ownedComponents.empty()) {
         ContextComponent& component = *_ownedComponents.back();
-        detachComponent(component);
+        _components.detachComponent(component);
+        _ownedComponents.pop_back();
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////
-// CONFIGURATION                                                         //
+// MARK: CONFIGURATION                                                   //
 ///////////////////////////////////////////////////////////////////////////
 
 void GameContext::setToMode(Mode aMode) {
@@ -62,7 +63,7 @@ const GameContext::RuntimeConfig& GameContext::getRuntimeConfig() const {
 }
 
 ///////////////////////////////////////////////////////////////////////////
-// GAME STATE MANAGEMENT                                                 //
+// MARK: GAME STATE MANAGEMENT                                           //
 ///////////////////////////////////////////////////////////////////////////
 
 GameContext::GameState& GameContext::getGameState() {
@@ -74,7 +75,7 @@ const GameContext::GameState& GameContext::getGameState() const {
 }
 
 ///////////////////////////////////////////////////////////////////////////
-// GAME OBJECT MANAGEMENT                                                //
+// MARK: GAME OBJECT MANAGEMENT                                          //
 ///////////////////////////////////////////////////////////////////////////
 
 hg::QAO_Runtime& GameContext::getQAORuntime() {
@@ -82,26 +83,15 @@ hg::QAO_Runtime& GameContext::getQAORuntime() {
 }
 
 ///////////////////////////////////////////////////////////////////////////
-// COMPONENT MANAGEMENT                                                  //
+// MARK: COMPONENT MANAGEMENT                                            //
 ///////////////////////////////////////////////////////////////////////////
-
-void GameContext::detachComponent(ContextComponent& aComponent) {
-    _components.detachComponent(aComponent);
-
-    _ownedComponents.erase(std::remove_if(_ownedComponents.begin(),
-                                          _ownedComponents.end(),
-                                          [&aComponent](std::unique_ptr<ContextComponent>& aCurr) {
-                                              return aCurr.get() == &aComponent;
-                                          }),
-                           _ownedComponents.end());
-}
 
 std::string GameContext::getComponentTableString(char aSeparator) const {
     return _components.toString(aSeparator);
 }
 
 ///////////////////////////////////////////////////////////////////////////
-// EXECUTION                                                             //
+// MARK: EXECUTION                                                       //
 ///////////////////////////////////////////////////////////////////////////
 
 int GameContext::runFor(int aIterations) {
@@ -129,7 +119,7 @@ std::uint64_t GameContext::getCurrentIterationOrdinal() const {
 }
 
 ///////////////////////////////////////////////////////////////////////////
-// CHILD CONTEXT SUPPORT                                                 //
+// MARK: CHILD CONTEXT SUPPORT                                           //
 ///////////////////////////////////////////////////////////////////////////
 
 void GameContext::attachChildContext(std::unique_ptr<GameContext> aChildContext) {
@@ -196,7 +186,7 @@ int GameContext::stopAndJoinChildContext() {
 }
 
 ///////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS                                                       //
+// MARK: PRIVATE METHODS                                                 //
 ///////////////////////////////////////////////////////////////////////////
 
 namespace {
