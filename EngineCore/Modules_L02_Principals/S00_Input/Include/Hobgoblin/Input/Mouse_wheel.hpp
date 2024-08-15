@@ -1,13 +1,11 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-// clang-format off
-
 #ifndef UHOBGOBLIN_INPUT_MOUSE_WHEEL_HPP
 #define UHOBGOBLIN_INPUT_MOUSE_WHEEL_HPP
 
-#include <Hobgoblin/Input/Universal_input_enumeration.hpp>
 #include <Hobgoblin/HGExcept.hpp>
+#include <Hobgoblin/Input/Universal_input_enumeration.hpp>
 
 #include <optional>
 
@@ -22,9 +20,10 @@ public:
     MouseWheel() = default;
 
     constexpr MouseWheel(UniversalInputEnum aValue)
-        : _value{aValue}
-    {
-        HG_VALIDATE_ARGUMENT(IsMouseWheel(aValue), "{} is not a valid MouseWheel value.", (int)aValue);
+        : _value{aValue} {
+        HG_VALIDATE_ARGUMENT(IsMouseWheel(aValue) || aValue == MW_UNKNOWN,
+                             "{} is not a valid MouseWheel value.",
+                             (int)aValue);
     }
 
     constexpr UniversalInputEnum val() const {
@@ -46,5 +45,3 @@ HOBGOBLIN_NAMESPACE_END
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
 #endif // !UHOBGOBLIN_INPUT_MOUSE_WHEEL_HPP
-
-// clang-format on
