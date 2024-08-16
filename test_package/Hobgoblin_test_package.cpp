@@ -4,6 +4,7 @@
 // clang-format off
 
 #include <Hobgoblin/ChipmunkPhysics.hpp>
+#include <Hobgoblin/Alvin.hpp>
 #include <Hobgoblin/ColDetect.hpp>
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Config.hpp>
