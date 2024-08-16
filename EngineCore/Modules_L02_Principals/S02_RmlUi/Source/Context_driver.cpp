@@ -64,7 +64,11 @@ bool ContextDriver::processEvent(const win::Event& aEvent) {
 
     bool eventConsumed = false;
 
-    aEvent.visit(
+    aEvent.strictVisit(
+        [](const win::Event::Unknown&) {},
+        [](const win::Event::Closed&) {},
+        [](const win::Event::GainedFocus&) {},
+        [](const win::Event::LostFocus&) {},
         [&](const win::Event::KeyPressed& aEventData) {
             eventConsumed =
                 !_context->ProcessKeyDown(HobgoblinBackend::translateKey(aEventData.virtualKey),
@@ -85,6 +89,8 @@ bool ContextDriver::processEvent(const win::Event& aEvent) {
                 !_context->ProcessMouseButtonUp(HobgoblinBackend::translateButton(aEventData.button),
                                                 modifiers);
         },
+        [](const win::Event::MouseEntered&) {},
+        [](const win::Event::MouseLeft&) {},
         [&](const win::Event::MouseMoved& aEventData) {
             eventConsumed = !_context->ProcessMouseMove(aEventData.x, aEventData.y, modifiers);
         },
@@ -104,6 +110,7 @@ bool ContextDriver::processEvent(const win::Event& aEvent) {
                 break;
             }
         },
+        [](const win::Event::Resized&) {},
         [&](const win::Event::TextEntered& aEventData) {
             // note: 0..31 are control characters
             if (aEventData.unicode > 31) {

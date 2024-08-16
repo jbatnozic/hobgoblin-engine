@@ -71,8 +71,7 @@ Event ToHg(const sf::Event& aEvent) {
         }
 
         case sf::Event::MouseWheelMoved:
-            // Deprecated
-            break;
+            return {Event::Unknown{}}; // MouseWheelMoved is deprecated
 
         case sf::Event::MouseWheelScrolled:
         {
