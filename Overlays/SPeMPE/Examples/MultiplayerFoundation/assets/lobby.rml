@@ -5,10 +5,10 @@
         <style>
             body
             {
-            width: 800dp;
-            height: 600dp;
+                width: 800dp;
+                height: 600dp;
 
-            margin: auto;
+                margin: auto;
             }
         </style>
     </head>

@@ -132,6 +132,7 @@ scrollbarvertical slidertrack
     border-width: 2dp;
     border-color: #000000;
 }
+
 /* Darken the decorator on active. */
 scrollbarvertical slidertrack:active
 {
@@ -157,6 +158,7 @@ scrollbarvertical sliderbar
     border-width: 2dp;
     border-color: #000000;
 }
+
 /* Animate the bar's decorator on hover. */
 scrollbarvertical sliderbar:hover
 {
@@ -166,6 +168,7 @@ scrollbarvertical sliderbar:hover
     border-width: 2dp;
     border-color: #000000;
 }
+
 /* Animate the bar's decorator on active. */
 scrollbarvertical sliderbar:active
 {
@@ -175,6 +178,7 @@ scrollbarvertical sliderbar:active
     border-width: 2dp;
     border-color: #000000;
 }
+
 /* Fix the size of the 'page up' slider arrow and decorate it appropriately. */
 scrollbarvertical sliderarrowdec
 {
@@ -187,6 +191,7 @@ scrollbarvertical sliderarrowdec
     border-width: 2dp;
     border-color: #000000;
 }
+
 /* Animate the arrows on hover. */
 scrollbarvertical sliderarrowdec:hover
 {
@@ -196,6 +201,7 @@ scrollbarvertical sliderarrowdec:hover
     border-width: 2dp;
     border-color: #000000;
 }
+
 /* Animate the arrows on active. */
 scrollbarvertical sliderarrowdec:active
 {
@@ -205,6 +211,7 @@ scrollbarvertical sliderarrowdec:active
     border-width: 2dp;
     border-color: #000000;
 }
+
 /* Fix the size of the 'page down' slider arrow and decorate it appropriately. */
 scrollbarvertical sliderarrowinc
 {
@@ -217,6 +224,7 @@ scrollbarvertical sliderarrowinc
     border-width: 2dp;
     border-color: #000000;
 }
+
 /* Animate the arrows on hover. */
 scrollbarvertical sliderarrowinc:hover
 {
@@ -226,6 +234,7 @@ scrollbarvertical sliderarrowinc:hover
     border-width: 2dp;
     border-color: #000000;
 }
+
 /* Animate the arrows on active. */
 scrollbarvertical sliderarrowinc:active
 {
