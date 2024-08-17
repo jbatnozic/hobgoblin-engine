@@ -5,6 +5,7 @@
 
 #include "Engine.hpp"
 
+#include "Environment_manager.hpp"
 #include "Lobby_frontend_manager.hpp"
 #include "Main_gameplay_manager.hpp"
 #include "Player_controls.hpp"
@@ -132,6 +133,12 @@ std::unique_ptr<spe::GameContext> CreateServerContext(const ServerGameParams& aP
         QAO_UPCreate<MainGameplayManager>(context->getQAORuntime().nonOwning(), PRIORITY_GAMEPLAYMGR);
     gpMgr->setToHostMode(aParams.playerCount);
     context->attachAndOwnComponent(std::move(gpMgr));
+
+    // Environment manager
+    auto envMgr =
+        QAO_UPCreate<EnvironmentManager>(context->getQAORuntime().nonOwning(), PRIORITY_GAMEPLAYMGR);
+    envMgr->setToHeadlessHostMode();
+    context->attachAndOwnComponent(std::move(envMgr));
 
     return context;
 }
@@ -279,4 +286,10 @@ void AttachGameplayManagers(spe::GameContext& aContext, const ClientGameParams& 
         QAO_UPCreate<MainGameplayManager>(aContext.getQAORuntime().nonOwning(), PRIORITY_GAMEPLAYMGR);
     gpMgr->setToClientMode();
     aContext.attachAndOwnComponent(std::move(gpMgr));
+
+    // Environment manager
+    auto envMgr =
+        QAO_UPCreate<EnvironmentManager>(aContext.getQAORuntime().nonOwning(), PRIORITY_GAMEPLAYMGR);
+    envMgr->setToClientMode();
+    aContext.attachAndOwnComponent(std::move(envMgr));
 }

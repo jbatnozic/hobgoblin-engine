@@ -2,9 +2,13 @@
 
 #include "Engine.hpp"
 
+#include "Cell_kind.hpp"
+
 #include <Hobgoblin/Alvin.hpp>
 #include <Hobgoblin/ChipmunkPhysics.hpp>
 #include <Hobgoblin/Math.hpp>
+
+#include <optional>
 
 enum EntityCategories {
     CAT_CHARACTER = 0x01,
@@ -36,6 +40,8 @@ public:
 
     static constexpr cpBitmask ENTITY_DEFAULT_CATEGORY = CAT_TERRAIN;
     static constexpr cpBitmask ENTITY_DEFAULT_MASK     = CAT_CHARACTER;
+
+    virtual std::optional<CellKind> getCellKindOfShape(NeverNull<cpShape*> aShape) const = 0;
 };
 
 class LootInterface : public hg::alvin::EntityBase {
