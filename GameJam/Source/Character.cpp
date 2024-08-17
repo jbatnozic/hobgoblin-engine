@@ -5,9 +5,9 @@
 
 #include <Hobgoblin/HGExcept.hpp>
 
-#include <cmath>
 #include "Config.hpp"
 #include <Hobgoblin/Math.hpp>
+#include <cmath>
 
 CharacterObject::CharacterObject(QAO_RuntimeRef aRuntimeRef, spe::RegistryId aRegId, spe::SyncId aSyncId)
     : SyncObjSuper{aRuntimeRef,
@@ -23,8 +23,8 @@ CharacterObject::CharacterObject(QAO_RuntimeRef aRuntimeRef, spe::RegistryId aRe
                    return hg::alvin::Body::createKinematic();
                },
                [this]() {
-                   static constexpr cpFloat WIDTH  = 256.0;
-                   static constexpr cpFloat HEIGHT = 128.0;
+                   static constexpr cpFloat WIDTH  = 64.0;
+                   static constexpr cpFloat HEIGHT = 64.0;
                    return hg::alvin::Shape::createBox(_unibody.body, WIDTH, HEIGHT);
                }} {
     if (isMasterObject()) {
@@ -67,17 +67,23 @@ void CharacterObject::_eventUpdate1(spe::IfMaster) {
         const auto left  = wrapper.getSignalValue<ControlDirectionType>(clientIndex, CTRL_ID_LEFT);
         const auto right = wrapper.getSignalValue<ControlDirectionType>(clientIndex, CTRL_ID_RIGHT);
 
-
-
         const auto up   = wrapper.getSignalValue<ControlDirectionType>(clientIndex, CTRL_ID_UP);
         const auto down = wrapper.getSignalValue<ControlDirectionType>(clientIndex, CTRL_ID_DOWN);
-
 
         float finalX = 0;
         float finalY = 0;
 
         float xInput = 0;
         float yInput = 0;
+
+        bool  touchingTerrain = false;
+        auto& space           = ccomp<MEnvironment>().getSpace();
+        space.runShapeQuery(_unibody.shape,
+                            cpShapeFilterNew(0, CP_ALL_CATEGORIES, CAT_TERRAIN),
+                            [&, this](const hg::alvin::ShapeQueryInfo&) {
+                                touchingTerrain = true;
+                            });
+        HG_LOG_INFO(LOG_ID, "touchingTerrain = {}", touchingTerrain);
 
         if (grounded) {
             vSpeed = 0;
@@ -87,9 +93,7 @@ void CharacterObject::_eventUpdate1(spe::IfMaster) {
             vSpeed -= gravity;
         }
 
-
-        if (xInput != 0 || yInput != 0)
-        {
+        if (xInput != 0 || yInput != 0) {
             auto angle  = hg::math::AngleF::fromVector({xInput, yInput}) * -1.f;
             auto normal = angle.asNormalizedVector();
 
@@ -102,7 +106,6 @@ void CharacterObject::_eventUpdate1(spe::IfMaster) {
                     grounded = false;
                     currentFlingCooldown = fling_timer;
                 }
-
             });
         }
         if (!grounded) {
@@ -111,7 +114,6 @@ void CharacterObject::_eventUpdate1(spe::IfMaster) {
         } else {
             jumpDirection = {0.f, 0.f};
         }
-
 
         if (currentFlingCooldown > 0) {
             currentFlingCooldown--;
@@ -124,10 +126,8 @@ void CharacterObject::_eventUpdate1(spe::IfMaster) {
             grounded = true;
         }
 
-
         finalY -= vSpeed;
 
- 
         self.x += finalX;
         self.y += finalY;
 
@@ -190,7 +190,7 @@ void CharacterObject::_eventDraw1() {
 hg::alvin::CollisionDelegate CharacterObject::_initColDelegate() {
     auto builder = hg::alvin::CollisionDelegateBuilder{};
 
-    builder.addInteraction<LootInterface>(
+    /*builder.addInteraction<LootInterface>(
         hg::alvin::COLLISION_POST_SOLVE,
         [this](LootInterface& aLoot, const hg::alvin::CollisionData& aCollisionData) {
             // DO INTERACTION
@@ -213,6 +213,7 @@ hg::alvin::CollisionDelegate CharacterObject::_initColDelegate() {
             }
             return hg::alvin::Decision::ACCEPT_COLLISION;
         });
+    */
     return builder.finalize();
 }
 
