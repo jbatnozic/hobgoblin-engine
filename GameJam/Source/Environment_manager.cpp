@@ -96,7 +96,7 @@ void EnvironmentManager::setToHeadlessHostMode() {
     _space.emplace();
     InitColliders(*_collisionDispatcher, *_space);
 
-    generateTerrain(128, 128);
+    generateTerrain(100, 100);
 }
 
 void EnvironmentManager::setToClientMode() {
@@ -121,6 +121,7 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
 
     // Terrain body
     _terrainBody.emplace(hg::alvin::Body::createStatic());
+    _space->add(*_terrainBody);
 
     // Shapes
     _shapes.resize(aWidth, aHeight);
@@ -135,6 +136,7 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
                 }
                 _shapes[y][x].emplace(std::move(alvinShape));
                 _collisionDelegate->bind(*this, *_shapes[y][x]);
+                _space->add(*_shapes[y][x]);
             }
         }
     }
@@ -152,6 +154,12 @@ std::optional<CellKind> EnvironmentManager::getCellKindOfShape(NeverNull<cpShape
     }
     const auto pos = iter->second;
     return _cells.at(pos.y, pos.y);
+}
+
+void EnvironmentManager::_eventUpdate1() {
+    if (_space.has_value() && !ctx().getGameState().isPaused) {
+        _space->step(1.0 / 60.0);
+    }
 }
 
 void EnvironmentManager::_eventDraw1() {

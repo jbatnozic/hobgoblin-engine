@@ -51,6 +51,7 @@ private:
     hg::util::RowMajorGrid<std::optional<hg::alvin::Shape>> _shapes;
     std::unordered_map<cpShape*, hg::math::Vector2pz>       _shapeToPosition;
 
+    void _eventUpdate1() override;
     void _eventDraw1() override;
 
     void onNetworkingEvent(const RN_Event& aEvent) override;

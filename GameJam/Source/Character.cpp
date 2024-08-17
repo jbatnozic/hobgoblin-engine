@@ -1,5 +1,6 @@
 #include "Character.hpp"
 
+#include "Environment_manager.hpp"
 #include "Player_controls.hpp"
 
 #include <Hobgoblin/HGExcept.hpp>
@@ -29,6 +30,7 @@ CharacterObject::CharacterObject(QAO_RuntimeRef aRuntimeRef, spe::RegistryId aRe
     if (isMasterObject()) {
         _getCurrentState().initMirror(); // To get autodiff optimization working
         _unibody.bindDelegate(*this);
+        _unibody.addToSpace(ccomp<MEnvironment>().getSpace());
     }
 }
 
@@ -129,7 +131,7 @@ void CharacterObject::_eventUpdate1(spe::IfMaster) {
         self.x += finalX;
         self.y += finalY;
 
-
+        cpBodySetPosition(_unibody, cpv(self.x, self.y));
     }
 }
 
@@ -194,10 +196,11 @@ hg::alvin::CollisionDelegate CharacterObject::_initColDelegate() {
             // DO INTERACTION
         });
     builder.addInteraction<TerrainInterface>(
-        hg::alvin::COLLISION_POST_SOLVE,
+        hg::alvin::COLLISION_PRE_SOLVE,
         [this](TerrainInterface& aTerrain, const hg::alvin::CollisionData& aCollisionData) {
             // DO INTERACTION
-
+            HG_LOG_INFO(LOG_ID, "SADKASD KASMD");
+            return hg::alvin::Decision::ACCEPT_COLLISION;
         });
     return builder.finalize();
 }

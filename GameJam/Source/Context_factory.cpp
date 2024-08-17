@@ -128,17 +128,17 @@ std::unique_ptr<spe::GameContext> CreateServerContext(const ServerGameParams& aP
     resMgr->setToHostMode();
     context->attachAndOwnComponent(std::move(resMgr));
 
-    // Main gameplay manager
-    auto gpMgr =
-        QAO_UPCreate<MainGameplayManager>(context->getQAORuntime().nonOwning(), PRIORITY_GAMEPLAYMGR);
-    gpMgr->setToHostMode(aParams.playerCount);
-    context->attachAndOwnComponent(std::move(gpMgr));
-
     // Environment manager
     auto envMgr =
         QAO_UPCreate<EnvironmentManager>(context->getQAORuntime().nonOwning(), PRIORITY_GAMEPLAYMGR);
     envMgr->setToHeadlessHostMode();
     context->attachAndOwnComponent(std::move(envMgr));
+
+    // Main gameplay manager
+    auto gpMgr =
+        QAO_UPCreate<MainGameplayManager>(context->getQAORuntime().nonOwning(), PRIORITY_GAMEPLAYMGR);
+    gpMgr->setToHostMode(aParams.playerCount);
+    context->attachAndOwnComponent(std::move(gpMgr));
 
     return context;
 }
@@ -281,15 +281,15 @@ void AttachGameplayManagers(spe::GameContext& aContext, const ClientGameParams& 
     authMgr->setToClientMode();
     aContext.attachAndOwnComponent(std::move(authMgr));
 
-    // Gameplay manager
-    auto gpMgr =
-        QAO_UPCreate<MainGameplayManager>(aContext.getQAORuntime().nonOwning(), PRIORITY_GAMEPLAYMGR);
-    gpMgr->setToClientMode();
-    aContext.attachAndOwnComponent(std::move(gpMgr));
-
     // Environment manager
     auto envMgr =
         QAO_UPCreate<EnvironmentManager>(aContext.getQAORuntime().nonOwning(), PRIORITY_GAMEPLAYMGR);
     envMgr->setToClientMode();
     aContext.attachAndOwnComponent(std::move(envMgr));
+
+    // Gameplay manager
+    auto gpMgr =
+        QAO_UPCreate<MainGameplayManager>(aContext.getQAORuntime().nonOwning(), PRIORITY_GAMEPLAYMGR);
+    gpMgr->setToClientMode();
+    aContext.attachAndOwnComponent(std::move(gpMgr));
 }
