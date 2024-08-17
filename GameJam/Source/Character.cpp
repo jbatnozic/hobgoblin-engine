@@ -4,6 +4,10 @@
 
 #include <Hobgoblin/HGExcept.hpp>
 
+#include <cmath>
+#include "Config.hpp"
+#include <Hobgoblin/Math.hpp>
+
 CharacterObject::CharacterObject(QAO_RuntimeRef aRuntimeRef, spe::RegistryId aRegId, spe::SyncId aSyncId)
     : SyncObjSuper{aRuntimeRef,
                    SPEMPE_TYPEID_SELF,
@@ -61,12 +65,38 @@ void CharacterObject::_eventUpdate1(spe::IfMaster) {
         const auto left  = wrapper.getSignalValue<ControlDirectionType>(clientIndex, CTRL_ID_LEFT);
         const auto right = wrapper.getSignalValue<ControlDirectionType>(clientIndex, CTRL_ID_RIGHT);
 
-        self.x += (10.f * ((float)right - (float)left));
+
 
         const auto up   = wrapper.getSignalValue<ControlDirectionType>(clientIndex, CTRL_ID_UP);
         const auto down = wrapper.getSignalValue<ControlDirectionType>(clientIndex, CTRL_ID_DOWN);
 
-        self.y += (10.f * ((float)down - (float)up));
+        float finalX = 0;
+        float finalY = 0;
+
+        float xInput = 0;
+        float yInput = 0;
+
+        if (grounded) {
+            vSpeed = 0;
+            yInput = (float)down - (float)up;
+            xInput = (float)right - (float)left;
+        } else {
+            vSpeed -= gravity;
+        }
+
+
+        if (xInput != 0 || yInput != 0)
+        {
+            auto angle  = hg::math::AngleF::fromVector({xInput, yInput}) * -1.f;
+            auto normal = angle.asNormalizedVector();
+
+            finalX = character_speed * normal.x;
+            finalY = character_speed * normal.y;
+        }
+
+        finalY -= vSpeed;
+        self.x += finalX;
+        self.y += finalY;
 
         wrapper.pollSimpleEvent(clientIndex, CTRL_ID_JUMP, [&]() {
             self.y -= 16.f;
@@ -127,8 +157,14 @@ hg::alvin::CollisionDelegate CharacterObject::_initColDelegate() {
 
     builder.addInteraction<LootInterface>(
         hg::alvin::COLLISION_POST_SOLVE,
-        [this](LootInterface& aHealth, const hg::alvin::CollisionData& aCollisionData) {
+        [this](LootInterface& aLoot, const hg::alvin::CollisionData& aCollisionData) {
             // DO INTERACTION
+        });
+    builder.addInteraction<TerrainInterface>(
+        hg::alvin::COLLISION_POST_SOLVE,
+        [this](TerrainInterface& aTerrain, const hg::alvin::CollisionData& aCollisionData) {
+            // DO INTERACTION
+
         });
     return builder.finalize();
 }

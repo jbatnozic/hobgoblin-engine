@@ -30,7 +30,12 @@ public:
 
     void init(int aOwningPlayerIndex, float aX, float aY);
 
+
 private:
+
+    bool grounded = false;
+    float vSpeed   = 0;
+
     hg::alvin::Unibody _unibody;
 
     hg::alvin::CollisionDelegate _initColDelegate();
