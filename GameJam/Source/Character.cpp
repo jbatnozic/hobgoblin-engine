@@ -76,14 +76,6 @@ void CharacterObject::_eventUpdate1(spe::IfMaster) {
         float xInput = 0;
         float yInput = 0;
 
-        bool  touchingTerrain = false;
-        auto& space           = ccomp<MEnvironment>().getSpace();
-        space.runShapeQuery(_unibody.shape,
-                            cpShapeFilterNew(0, CP_ALL_CATEGORIES, CAT_TERRAIN),
-                            [&, this](const hg::alvin::ShapeQueryInfo&) {
-                                touchingTerrain = true;
-                            });
-        HG_LOG_INFO(LOG_ID, "touchingTerrain = {}", touchingTerrain);
 
         if (grounded) {
             vSpeed = 0;
@@ -121,16 +113,39 @@ void CharacterObject::_eventUpdate1(spe::IfMaster) {
         if (currentGroundTimer > 0) {
             currentGroundTimer--;
         }
+
+
+        finalY -= vSpeed;
+
+
+
+        bool  touchingTerrain = false;
+        auto& space           = ccomp<MEnvironment>().getSpace();
+        space.runShapeQuery(_unibody.shape,
+                            cpShapeFilterNew(0, CP_ALL_CATEGORIES, CAT_TERRAIN),
+                            [&, this](const hg::alvin::ShapeQueryInfo&) {
+                                touchingTerrain = true;
+                            });
+        if (!touchingTerrain) {
+            grounded = false;
+            if (currentGroundTimer <= 0) {
+                
+                currentGroundTimer = fall_timer;
+            }
+            
+        } else {
+            if (currentGroundTimer <= 0 && currentFlingCooldown <= 0) {
+                grounded = true;
+            }
+        }
+
         if (self.y > y_floor) {
             self.y   = y_floor;
             grounded = true;
         }
-
-        finalY -= vSpeed;
-
+        HG_LOG_INFO(LOG_ID, "SADKASD KASMD {}, {}", currentGroundTimer, currentFlingCooldown);
         self.x += finalX;
         self.y += finalY;
-
         cpBodySetPosition(_unibody, cpv(self.x, self.y));
     }
 }
