@@ -31,7 +31,7 @@ public:
 
     void resize(PZInteger width, PZInteger height);
     void setAll(const TData& value);
-
+    void setAllProbability(const TData& value);
     TData* operator[](PZInteger y);
     const TData* operator[](PZInteger y) const;
     

@@ -2,6 +2,7 @@
 
 #include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/RigelNet_macros.hpp>
+#include <Hobgoblin/Utility/Randomization.hpp>
 
 #include "Collisions.hpp"
 
@@ -15,7 +16,7 @@ void SetTerrainImpl(EnvironmentManager& aEnvMgr,
                     const std::string&  aCellData);
 
 namespace {
-constexpr cpFloat CELL_RESOLUTION = 64.0;
+constexpr cpFloat CELL_RESOLUTION = 128.0;
 
 NeverNull<cpShape*> CreateRectanglePolyShape(NeverNull<cpBody*>  aBody,
                                              hg::math::Vector2pz aGridPosition) {
@@ -113,8 +114,15 @@ EnvironmentManager::Mode EnvironmentManager::getMode() const {
 void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHeight) {
     // Cells
     _cells.resize(aWidth, aHeight);
-    _cells.setAll(CellKind::ROCK);
-
+    //_cells.setAll(CellKind::ROCK);
+    for (hg::PZInteger y = 0; y < aHeight; y += 1) {
+        for (hg::PZInteger x = 0; x < aWidth; x += 1) {
+            auto _num = hg::util::GetRandomNumber<std::int32_t>(0,2);
+            if (_num == 0){
+                _cells[y][x] = CellKind::ROCK;
+            }
+        }
+    }
     // Collision delegate
     _collisionDelegate.emplace(hg::alvin::CollisionDelegateBuilder{}
                                    .setDefaultDecision(hg::alvin::Decision::ACCEPT_COLLISION)
@@ -174,8 +182,11 @@ void EnvironmentManager::_eventDraw1() {
     auto& canvas = ccomp<MWindow>().getCanvas();
     for (hg::PZInteger y = 0; y < _cells.getHeight(); y += 1) {
         for (hg::PZInteger x = 0; x < _cells.getWidth(); x += 1) {
-            rect.setPosition(x * (float)CELL_RESOLUTION, y * (float)CELL_RESOLUTION);
-            canvas.draw(rect);
+            if (_cells[y][x] == CellKind::ROCK) {
+                rect.setPosition(x * (float)CELL_RESOLUTION, y * (float)CELL_RESOLUTION);
+                canvas.draw(rect);
+            }
+
         }
     }
 }

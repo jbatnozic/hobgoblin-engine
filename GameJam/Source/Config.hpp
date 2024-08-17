@@ -6,5 +6,6 @@ constexpr float fall_timer      = 40; // in frames
 constexpr float fling_timer     = 60; //in frames
 constexpr float fling_speed  = 20;
 
-constexpr int terrain_size = 25;
-constexpr float y_floor = 1600;
+constexpr int   single_terrain_size = 64;
+constexpr int terrain_size = 50;
+constexpr float y_floor      = 6400;
