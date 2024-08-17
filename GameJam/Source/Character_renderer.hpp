@@ -8,12 +8,17 @@
 class CharacterRenderer {
 public:
     enum class Mode {
+        STILL,
         CRAWL,
         FLING,
         HUNKER
     };
 
     CharacterRenderer(spe::GameContext& aCtx, hg::gr::Color aColor);
+
+    void setColor(hg::gr::Color aColor) {
+        _color = aColor;
+    }
 
     void setSize(hg::PZInteger aSize);
     void setPosition(hg::math::Vector2f aPosition);
@@ -39,5 +44,6 @@ private:
     hg::gr::Multisprite _openHand;
     hg::gr::Multisprite _closedHand;
 
+    void _drawStill(hg::gr::Canvas& aCanvas);
     void _drawClimb(hg::gr::Canvas& aCanvas);
 };

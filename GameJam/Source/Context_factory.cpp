@@ -167,7 +167,7 @@ std::unique_ptr<spe::GameContext> CreateBasicClientContext() {
         spe::PREVENT_BUSY_WAIT_ON,
         spe::VSYNC_OFF
 #else
-        FRAME_RATE,
+        0,
         spe::PREVENT_BUSY_WAIT_OFF,
         spe::VSYNC_OFF
 #endif

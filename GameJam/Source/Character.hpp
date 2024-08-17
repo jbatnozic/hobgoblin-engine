@@ -51,6 +51,7 @@ private:
     void _eventUpdate1(spe::IfMaster) override;
     void _eventPostUpdate(spe::IfMaster) override;
     void _eventDraw1() override;
+    void _eventDraw2() override;
 
     void _syncCreateImpl(spe::SyncControlDelegate& aSyncCtrl) const override;
     void _syncUpdateImpl(spe::SyncControlDelegate& aSyncCtrl) const override;

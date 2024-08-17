@@ -73,7 +73,7 @@ void CharacterRenderer::setPosition(hg::math::Vector2f aPosition) {
 
 void CharacterRenderer::setMode(Mode aMode) {
     if (_mode != aMode) {
-        _mode = aMode;
+        _mode         = aMode;
         _frameCounter = 0.f;
     }
 }
@@ -180,7 +180,7 @@ void CharacterRenderer::draw(hg::gr::Canvas& aCanvas) {
     case Mode::FLING:
     case Mode::HUNKER:
         break;
-        
+
     default:
         HG_UNREACHABLE("Invalid draw mode.");
     }
@@ -189,7 +189,7 @@ void CharacterRenderer::draw(hg::gr::Canvas& aCanvas) {
 void CharacterRenderer::_drawClimb(hg::gr::Canvas& aCanvas) {
     using namespace hg::math;
 
-    const float scale = 0.5;
+    const float scale = 0.75;
 
     _body.setPosition(_position);
     _body.setScale({scale, scale});
@@ -201,18 +201,20 @@ void CharacterRenderer::_drawClimb(hg::gr::Canvas& aCanvas) {
     {
         const auto params = GetArmDrawParams_Climb(animationFrame);
 
-        _biceps.setPosition({_position.x + scale * params.bicepsOffset.x, _position.y + scale * params.bicepsOffset.y});
+        _biceps.setPosition(
+            {_position.x + scale * params.bicepsOffset.x, _position.y + scale * params.bicepsOffset.y});
         _biceps.setRotation(params.bicepsAngle);
         _biceps.setScale({scale * 1.f, scale * 1.f});
 
-        _forearm.setPosition(
-            {_position.x + scale * params.forearmOffset.x, _position.y + scale * params.forearmOffset.y});
+        _forearm.setPosition({_position.x + scale * params.forearmOffset.x,
+                              _position.y + scale * params.forearmOffset.y});
         _forearm.setRotation(params.forearmAngle);
         _forearm.setScale({scale * 1.f, scale * 1.f});
 
         hg::gr::Multisprite* handSprite =
             (animationFrame >= 3 && animationFrame <= 6) ? &_closedHand : &_openHand;
-        handSprite->setPosition({_position.x + scale * params.handOffset.x, _position.y + scale * params.handOffset.y});
+        handSprite->setPosition(
+            {_position.x + scale * params.handOffset.x, _position.y + scale * params.handOffset.y});
         handSprite->setRotation(params.handAngle);
         handSprite->setScale({scale * 1.f, scale * 1.f});
 
@@ -225,19 +227,97 @@ void CharacterRenderer::_drawClimb(hg::gr::Canvas& aCanvas) {
     {
         const auto params = GetArmDrawParams_Climb((animationFrame + 4) % 8);
 
-        _biceps.setPosition({_position.x - scale * params.bicepsOffset.x, _position.y + scale * params.bicepsOffset.y});
+        _biceps.setPosition(
+            {_position.x - scale * params.bicepsOffset.x, _position.y + scale * params.bicepsOffset.y});
         _biceps.setRotation(-params.bicepsAngle);
         _biceps.setScale({scale * -1.f, scale * 1.f});
 
-        _forearm.setPosition(
-            {_position.x - scale * params.forearmOffset.x, _position.y + scale * params.forearmOffset.y});
+        _forearm.setPosition({_position.x - scale * params.forearmOffset.x,
+                              _position.y + scale * params.forearmOffset.y});
         _forearm.setRotation(params.forearmAngle + AngleF::fromDegrees(180.0));
         _forearm.setScale({scale * 1.f, scale * -1.f});
 
         hg::gr::Multisprite* handSprite =
             (((animationFrame + 4) % 8) >= 3 && ((animationFrame + 4) % 8) <= 6) ? &_closedHand
                                                                                  : &_openHand;
-        handSprite->setPosition({_position.x - scale * params.handOffset.x, _position.y + scale * params.handOffset.y});
+        handSprite->setPosition(
+            {_position.x - scale * params.handOffset.x, _position.y + scale * params.handOffset.y});
+        handSprite->setRotation(params.handAngle);
+        handSprite->setScale({scale * -1.f, scale * 1.f});
+
+        aCanvas.draw(_forearm);
+        aCanvas.draw(*handSprite);
+        aCanvas.draw(_biceps);
+    }
+
+    // Legs
+    {
+        auto&              shader = _ctx.getComponent<MResource>().getUnderpantsShader();
+        hg::gr::glsl::Vec4 vec4{_color.r / 255.f, _color.g / 255.f, _color.b / 255.f, 1.f};
+        shader.setUniform("playerColor", vec4);
+
+        _legs.setPosition({_position.x, _position.y + scale * static_cast<float>(LEGS_Y_OFFSET)});
+        _legs.setRotation(AngleF::zero());
+        _legs.setScale({scale, scale});
+        aCanvas.draw(_legs, &shader);
+    }
+}
+
+void CharacterRenderer::_drawStill(hg::gr::Canvas& aCanvas) {
+    using namespace hg::math;
+
+    const float scale = 0.5;
+
+    _body.setPosition(_position);
+    _body.setScale({scale, scale});
+    aCanvas.draw(_body);
+
+    unsigned animationFrame = static_cast<unsigned>(0) % 8;
+
+    // Right arm
+    {
+        const auto params = GetArmDrawParams_Climb(animationFrame);
+
+        _biceps.setPosition(
+            {_position.x + scale * params.bicepsOffset.x, _position.y + scale * params.bicepsOffset.y});
+        _biceps.setRotation(params.bicepsAngle);
+        _biceps.setScale({scale * 1.f, scale * 1.f});
+
+        _forearm.setPosition({_position.x + scale * params.forearmOffset.x,
+                              _position.y + scale * params.forearmOffset.y});
+        _forearm.setRotation(params.forearmAngle);
+        _forearm.setScale({scale * 1.f, scale * 1.f});
+
+        hg::gr::Multisprite* handSprite =
+            (animationFrame >= 3 && animationFrame <= 6) ? &_closedHand : &_openHand;
+        handSprite->setPosition(
+            {_position.x + scale * params.handOffset.x, _position.y + scale * params.handOffset.y});
+        handSprite->setRotation(params.handAngle);
+        handSprite->setScale({scale * 1.f, scale * 1.f});
+
+        aCanvas.draw(_forearm);
+        aCanvas.draw(*handSprite);
+        aCanvas.draw(_biceps);
+    }
+
+    // Left arm
+    {
+        const auto params = GetArmDrawParams_Climb((0 + 4) % 8);
+
+        _biceps.setPosition(
+            {_position.x - scale * params.bicepsOffset.x, _position.y + scale * params.bicepsOffset.y});
+        _biceps.setRotation(-params.bicepsAngle);
+        _biceps.setScale({scale * -1.f, scale * 1.f});
+
+        _forearm.setPosition({_position.x - scale * params.forearmOffset.x,
+                              _position.y + scale * params.forearmOffset.y});
+        _forearm.setRotation(params.forearmAngle + AngleF::fromDegrees(180.0));
+        _forearm.setScale({scale * 1.f, scale * -1.f});
+
+        hg::gr::Multisprite* handSprite =
+            (((0 + 4) % 8) >= 3 && ((0 + 4) % 8) <= 6) ? &_closedHand : &_openHand;
+        handSprite->setPosition(
+            {_position.x - scale * params.handOffset.x, _position.y + scale * params.handOffset.y});
         handSprite->setRotation(params.handAngle);
         handSprite->setScale({scale * -1.f, scale * 1.f});
 

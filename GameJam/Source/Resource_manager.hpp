@@ -2,6 +2,8 @@
 
 #include "Engine.hpp"
 
+#include <Hobgoblin/Graphics.hpp>
+
 #include "Resource_manager_interface.hpp"
 
 class ResourceManager
@@ -18,8 +20,12 @@ public:
 
     const hg::gr::SpriteLoader& getSpriteLoader() const override;
 
+    hg::gr::Shader& getUnderpantsShader() override;
+
 private:
     Mode _mode = Mode::UNINITIALIZED;
 
     hg::gr::SpriteLoader _spriteLoader;
+
+    hg::gr::Shader _underpantsShader;
 };

@@ -9,6 +9,24 @@
 #include <Hobgoblin/Math.hpp>
 #include <cmath>
 
+namespace {
+#define NUM_COLORS 12
+static const hg::gr::Color COLORS[NUM_COLORS] = {
+    hg::gr::COLOR_BLACK,
+    hg::gr::COLOR_RED,
+    hg::gr::COLOR_GREEN,
+    hg::gr::COLOR_YELLOW,
+    hg::gr::COLOR_BLUE,
+    hg::gr::COLOR_ORANGE,
+    hg::gr::COLOR_PURPLE,
+    hg::gr::COLOR_TEAL,
+    hg::gr::COLOR_BROWN,
+    hg::gr::COLOR_FUCHSIA,
+    hg::gr::COLOR_GREY,
+    hg::gr::COLOR_WHITE
+};
+} // namespace
+
 CharacterObject::CharacterObject(QAO_RuntimeRef aRuntimeRef, spe::RegistryId aRegId, spe::SyncId aSyncId)
     : SyncObjSuper{aRuntimeRef,
                    SPEMPE_TYPEID_SELF,
@@ -171,49 +189,38 @@ void CharacterObject::_eventDraw1() {
     if (this->isDeactivated())
         return;
 
-#define NUM_COLORS 12
-    static const hg::gr::Color COLORS[NUM_COLORS] = {
-        hg::gr::COLOR_RED,
-        hg::gr::COLOR_GREEN,
-        hg::gr::COLOR_YELLOW,
-        hg::gr::COLOR_BLUE,
-        hg::gr::COLOR_ORANGE,
-        hg::gr::COLOR_PURPLE,
-        hg::gr::COLOR_TEAL,
-        hg::gr::COLOR_BROWN,
-        hg::gr::COLOR_FUCHSIA,
-        hg::gr::COLOR_GREY,
-        hg::gr::COLOR_WHITE,
-        hg::gr::COLOR_AQUA,
-    };
-
     const auto& self = _getCurrentState();
 
-    // hg::gr::CircleShape circle{32.f};
-    // circle.setFillColor(COLORS[self.owningPlayerIndex % NUM_COLORS]);
-    // circle.setOrigin({32.f, 32.f});
-    // circle.setPosition({self.x, self.y});
-    // ccomp<MWindow>().getCanvas().draw(circle);
+    _renderer->setColor(COLORS[self.owningPlayerIndex % NUM_COLORS]);
     _renderer->setPosition({self.x, self.y});
     _renderer->draw(ccomp<MWindow>().getCanvas());
+
+    auto& lobbyBackend = ccomp<MLobbyBackend>();
+    if (lobbyBackend.getLocalPlayerIndex() == self.owningPlayerIndex) {
+        auto& camera = ccomp<MWindow>().getViewController().getView(0);
+        camera.setCenter(self.x, self.y);
+    }
+}
+
+void CharacterObject::_eventDraw2() {
+    if (this->isDeactivated())
+        return;
+
+    const auto& self = _getCurrentState();
 
     auto& lobbyBackend = ccomp<MLobbyBackend>();
     if (self.owningPlayerIndex > 0) {
         const auto&  name = lobbyBackend.getLockedInPlayerInfo(self.owningPlayerIndex).name;
         hg::gr::Text text{hg::gr::BuiltInFonts::getFont(hg::gr::BuiltInFonts::TITILLIUM_REGULAR),
                           name,
-                          30};
+                          40};
         text.setFillColor(hg::gr::COLOR_WHITE);
         text.setOutlineColor(hg::gr::COLOR_BLACK);
         text.setOutlineThickness(2.f);
         const auto& localBounds = text.getLocalBounds();
         text.setOrigin({localBounds.w / 2.f, localBounds.h / 2.f});
-        text.setPosition({self.x, self.y - 32.f});
+        text.setPosition({self.x, self.y - 120.f});
         ccomp<MWindow>().getCanvas().draw(text);
-    }
-    if (lobbyBackend.getLocalPlayerIndex() == self.owningPlayerIndex) {
-        auto& camera = ccomp<MWindow>().getViewController().getView(0);
-        camera.setCenter(self.x, self.y);
     }
 }
 

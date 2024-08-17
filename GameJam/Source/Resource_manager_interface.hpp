@@ -22,6 +22,8 @@ public:
 
     virtual const hg::gr::SpriteLoader& getSpriteLoader() const = 0;
 
+    virtual hg::gr::Shader& getUnderpantsShader() = 0;
+
 private:
     SPEMPE_CTXCOMP_TAG("ResourceManagerInterface");
 };
