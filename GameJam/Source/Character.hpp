@@ -33,8 +33,12 @@ public:
 
 private:
 
-    bool grounded = false;
+    bool grounded  = true;
+    bool  jump           = false;
+    sf::Vector2f jumpDirection          = {0.f, 0.f};
     float vSpeed   = 0;
+    float currentFlingCooldown = 0;
+    float currentGroundTimer = 0;
 
     hg::alvin::Unibody _unibody;
 

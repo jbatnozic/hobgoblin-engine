@@ -70,6 +70,7 @@ void CharacterObject::_eventUpdate1(spe::IfMaster) {
         const auto up   = wrapper.getSignalValue<ControlDirectionType>(clientIndex, CTRL_ID_UP);
         const auto down = wrapper.getSignalValue<ControlDirectionType>(clientIndex, CTRL_ID_DOWN);
 
+
         float finalX = 0;
         float finalY = 0;
 
@@ -92,15 +93,43 @@ void CharacterObject::_eventUpdate1(spe::IfMaster) {
 
             finalX = character_speed * normal.x;
             finalY = character_speed * normal.y;
+            wrapper.pollSimpleEvent(clientIndex, CTRL_ID_JUMP, [&]() {
+                if (grounded && currentFlingCooldown == 0) {
+                    jumpDirection     = normal;
+                    jump     = true;
+                    grounded = false;
+                    currentFlingCooldown = fling_timer;
+                }
+
+            });
+        }
+        if (!grounded) {
+            finalX += jumpDirection.x * fling_speed;
+            finalY += jumpDirection.y * fling_speed;
+        } else {
+            jumpDirection = {0.f, 0.f};
         }
 
+
+        if (currentFlingCooldown > 0) {
+            currentFlingCooldown--;
+        }
+        if (currentGroundTimer > 0) {
+            currentGroundTimer--;
+        }
+        if (self.y > 500) {
+            self.y = 500;
+            grounded = true;
+        }
+
+
         finalY -= vSpeed;
+
+ 
         self.x += finalX;
         self.y += finalY;
 
-        wrapper.pollSimpleEvent(clientIndex, CTRL_ID_JUMP, [&]() {
-            self.y -= 16.f;
-        });
+
     }
 }
 
