@@ -33,7 +33,7 @@ public:
     void init(int aOwningPlayerIndex, float aX, float aY);
 
 private:
-    bool grounded  = true;
+    bool grounded  = false;
     bool  jump           = false;
     sf::Vector2f jumpDirection          = {0.f, 0.f};
     float vSpeed   = 0;

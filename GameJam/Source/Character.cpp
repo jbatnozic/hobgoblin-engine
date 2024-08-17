@@ -83,14 +83,6 @@ void CharacterObject::_eventUpdate1(spe::IfMaster) {
         float xInput = 0;
         float yInput = 0;
 
-        bool  touchingTerrain = false;
-        auto& space           = ccomp<MEnvironment>().getSpace();
-        space.runShapeQuery(_unibody.shape,
-                            cpShapeFilterNew(0, CP_ALL_CATEGORIES, CAT_TERRAIN),
-                            [&, this](const hg::alvin::ShapeQueryInfo&) {
-                                touchingTerrain = true;
-                            });
-        HG_LOG_INFO(LOG_ID, "touchingTerrain = {}", touchingTerrain);
 
         if (grounded) {
             vSpeed = 0;
@@ -107,10 +99,10 @@ void CharacterObject::_eventUpdate1(spe::IfMaster) {
             finalX = character_speed * normal.x;
             finalY = character_speed * normal.y;
             wrapper.pollSimpleEvent(clientIndex, CTRL_ID_JUMP, [&]() {
-                if (grounded && currentFlingCooldown == 0) {
-                    jumpDirection        = normal;
-                    jump                 = true;
-                    grounded             = false;
+                if (grounded && currentFlingCooldown <= 0) {
+                    jumpDirection     = normal;
+                    jump     = true;
+                    grounded = false;
                     currentFlingCooldown = fling_timer;
                 }
             });
@@ -128,16 +120,40 @@ void CharacterObject::_eventUpdate1(spe::IfMaster) {
         if (currentGroundTimer > 0) {
             currentGroundTimer--;
         }
-        if (self.y > 500) {
-            self.y   = 500;
-            grounded = true;
-        }
+
 
         finalY -= vSpeed;
 
+
+
+        bool  touchingTerrain = false;
+        auto& space           = ccomp<MEnvironment>().getSpace();
+        space.runShapeQuery(_unibody.shape,
+                            cpShapeFilterNew(0, CP_ALL_CATEGORIES, CAT_TERRAIN),
+                            [&, this](const hg::alvin::ShapeQueryInfo&) {
+                                touchingTerrain = true;
+                            });
+        if (!touchingTerrain) {
+            
+            if (currentGroundTimer <= 0 && grounded != false) {
+                
+                currentGroundTimer = fall_timer;
+                
+            }
+            grounded = false;
+        } else {
+            if (currentGroundTimer <= 0 && currentFlingCooldown <= 0) {
+                grounded = true;
+            }
+        }
+
+        if (self.y > y_floor) {
+            self.y   = y_floor;
+            grounded = true;
+        }
+        HG_LOG_INFO(LOG_ID, "SADKASD KASMD {}, {}", currentGroundTimer, currentFlingCooldown);
         self.x += finalX;
         self.y += finalY;
-
         cpBodySetPosition(_unibody, cpv(self.x, self.y));
     }
 }
@@ -198,18 +214,31 @@ void CharacterObject::_eventDraw1() {
 
 hg::alvin::CollisionDelegate CharacterObject::_initColDelegate() {
     auto builder = hg::alvin::CollisionDelegateBuilder{};
-    // builder.addInteraction<LootInterface>(
-    //     hg::alvin::COLLISION_POST_SOLVE,
-    //     [this](LootInterface& aLoot, const hg::alvin::CollisionData& aCollisionData) {
-    //         // DO INTERACTION
-    //     });
-    // builder.addInteraction<TerrainInterface>(
-    //     hg::alvin::COLLISION_PRE_SOLVE,
-    //     [this](TerrainInterface& aTerrain, const hg::alvin::CollisionData& aCollisionData) {
-    //         // DO INTERACTION
-    //         HG_LOG_INFO(LOG_ID, "SADKASD KASMD");
-    //         return hg::alvin::Decision::ACCEPT_COLLISION;
-    //     });
+
+    /*builder.addInteraction<LootInterface>(
+        hg::alvin::COLLISION_POST_SOLVE,
+        [this](LootInterface& aLoot, const hg::alvin::CollisionData& aCollisionData) {
+            // DO INTERACTION
+        });
+    builder.addInteraction<TerrainInterface>(
+        hg::alvin::COLLISION_SEPARATE,
+        [this](TerrainInterface& aTerrain, const hg::alvin::CollisionData& aCollisionData) {
+            // DO INTERACTION
+            HG_LOG_INFO(LOG_ID, "SADKASD KASMD ");
+            grounded = false;
+            currentGroundTimer = fall_timer;
+
+        });
+    builder.addInteraction<TerrainInterface>(
+        hg::alvin::COLLISION_PRE_SOLVE,
+        [this](TerrainInterface& aTerrain, const hg::alvin::CollisionData& aCollisionData) {
+            // DO INTERACTION
+            if (currentGroundTimer <= 0 && currentFlingCooldown <=0) {
+                grounded = true;
+            }
+            return hg::alvin::Decision::ACCEPT_COLLISION;
+        });
+    */
     return builder.finalize();
 }
 
