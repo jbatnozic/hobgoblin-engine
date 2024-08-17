@@ -179,6 +179,10 @@ void CharacterObject::_eventDraw1() {
         text.setPosition({self.x, self.y - 32.f});
         ccomp<MWindow>().getCanvas().draw(text);
     }
+    if (lobbyBackend.getLocalPlayerIndex() == self.owningPlayerIndex) {
+        auto& camera = ccomp<MWindow>().getViewController().getView(0);
+        camera.setCenter(self.x, self.y);
+    }
 }
 
 hg::alvin::CollisionDelegate CharacterObject::_initColDelegate() {
