@@ -26,7 +26,7 @@ int InitializeAndRunClient() {
         "ztNodeIdentity",
         8989,
         0xd3ecf5726d81ccb3,
-        std::chrono::seconds{5}
+        std::chrono::seconds{20}
     );
 
     auto ctx = CreateBasicClientContext();
@@ -41,7 +41,7 @@ int InitializeAndRunServer(int argc, char* argv[]) {
         "ztNodeIdentity",
         8989,
         0xd3ecf5726d81ccb3,
-        std::chrono::seconds{5}
+        std::chrono::seconds{20}
     );
     // clang-format off
     const ServerGameParams params{

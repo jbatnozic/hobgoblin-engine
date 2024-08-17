@@ -66,7 +66,7 @@ std::unique_ptr<spe::GameContext> CreateServerContext(const ServerGameParams& aP
                             PASSPHRASE,
                             clientCount,
                             2048,
-                            RN_NetworkingStack::Default);
+                            RN_NetworkingStack::ZeroTier);
     netMgr->setPacemakerPulsePeriod(120);
     auto& server = netMgr->getServer();
     server.setTimeoutLimit(std::chrono::seconds{5});
@@ -205,7 +205,7 @@ void AttachGameplayManagers(spe::GameContext& aContext, const ClientGameParams& 
     auto netMgr = QAO_UPCreate<spe::DefaultNetworkingManager>(aContext.getQAORuntime().nonOwning(),
                                                               PRIORITY_NETWORKMGR,
                                                               INITIAL_STATE_BUFFERING_LENGTH);
-    netMgr->setToClientMode(RN_Protocol::UDP, PASSPHRASE, 2048, RN_NetworkingStack::Default);
+    netMgr->setToClientMode(RN_Protocol::UDP, PASSPHRASE, 2048, RN_NetworkingStack::ZeroTier);
     auto& client = netMgr->getClient();
     client.setTimeoutLimit(std::chrono::seconds{5});
     client.setRetransmitPredicate(&MyRetransmitPredicate);

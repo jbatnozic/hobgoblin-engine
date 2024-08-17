@@ -1,0 +1,71 @@
+
+[[User_General]]
+
+    ZeroTier_Enabled [one-of: "YES", "NO"] \
+        := "NO"
+
+    ZeroTier_NetworkID [unchecked:] \
+        := "d3ecf5726d81ccb3"
+
+    ZeroTier_ServicePort [integer:][min-value: "0"][max-value: "65535"] \
+        := "9998"
+
+    ZeroTier_IdentityPath [unchecked:] \
+        := "ZT_NODE_IDENTITY"
+
+[[User_Client]]
+
+    Nickname [regex: "[!@#$%&*\(\)\[\]\?\<>'~.-_a-zA-Z0-9]+"][min-length: "2"][max-length: "16"] \
+        := "Player123"
+
+    LocalPort [integer:][min-value: "0"][max-value: "65535"] \
+        := "0"
+
+    ServerIP [regex: "^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}$"] \
+        := "127.0.0.1"
+
+    ServerPort [integer:][min-value: "0"][max-value: "65535"] \
+        := "8888"
+
+    ServerTimeoutLimit [integer:][min-value: "0"] \
+        := "5"
+
+    WindowPixelWidth [integer:][min-value: "400"][max-value: "4000"] \
+        := "1000"
+
+    WindowPixelHeight [integer:][min-value: "400"][max-value: "4000"] \
+        := "800"
+
+    Fullscreen [one-of: "YES", "NO"] \
+        := "NO"
+
+    V-Sync [one-of: "YES", "NO"] \
+        := "NO"
+
+    PreciseTiming [one-of: "YES", "NO"] \
+        := "YES"
+
+    RmlUi_DebuggerEnabled [one-of: "YES", "NO"] \
+        := "NO"
+
+[[User_Host]]
+
+    PlayerCount [integer:][min-value: "1"][max-value: "12"] \
+        := "6"
+
+    LocalPort [integer:][min-value: "0"][max-value: "65535"] \
+        := "8888"
+
+    ClientTimeoutLimit [integer:][min-value: "0"] \
+        := "5"
+
+[[Engine]]
+
+    TickRate [integer:][min-value: "1"] \
+        := "60"
+
+    RigelNet_Passphrase [unchecked:] \
+        := "RN-HOBROBOT-v0.0.1"
+
+    RigelNet_MaxPacketSize [integer:][min-value: "512"][max-value: "64000"] \
+        := "2048"
