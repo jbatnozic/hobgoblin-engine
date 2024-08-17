@@ -15,7 +15,7 @@ namespace {
 constexpr auto FRAME_RATE = 60;
 constexpr auto TICK_RATE  = 60;
 
-constexpr auto INITIAL_STATE_BUFFERING_LENGTH = 2;
+constexpr auto INITIAL_STATE_BUFFERING_LENGTH = 3;
 constexpr auto TELEMETRY_CYCLE_LENGTH         = 300;
 
 constexpr auto PASSPHRASE = "GMTK-2024-HQ";
@@ -24,10 +24,10 @@ bool MyRetransmitPredicate(hg::PZInteger             aCyclesSinceLastTransmit,
                            std::chrono::microseconds aTimeSinceLastSend,
                            std::chrono::microseconds aCurrentLatency) {
     // Default behaviour:
-    return RN_DefaultRetransmitPredicate(aCyclesSinceLastTransmit, aTimeSinceLastSend, aCurrentLatency);
+    // return RN_DefaultRetransmitPredicate(aCyclesSinceLastTransmit, aTimeSinceLastSend, aCurrentLatency);
 
     // Aggressive retransmission:
-    // return 1;
+    return true;
 }
 } // namespace
 
@@ -65,7 +65,7 @@ std::unique_ptr<spe::GameContext> CreateServerContext(const ServerGameParams& aP
     netMgr->setToServerMode(RN_Protocol::UDP,
                             PASSPHRASE,
                             clientCount,
-                            1024,
+                            2048,
                             RN_NetworkingStack::Default);
     netMgr->setPacemakerPulsePeriod(120);
     auto& server = netMgr->getServer();
@@ -127,10 +127,6 @@ std::unique_ptr<spe::GameContext> CreateServerContext(const ServerGameParams& aP
         QAO_UPCreate<MainGameplayManager>(context->getQAORuntime().nonOwning(), PRIORITY_GAMEPLAYMGR);
     gpMgr->setToHostMode(aParams.playerCount);
     context->attachAndOwnComponent(std::move(gpMgr));
-
-    // QAO_PCreate<CharacterObject>(context->getQAORuntime(),
-    //                              context->getComponent<MNetworking>().getRegistryId(),
-    //                              spe::SYNC_ID_NEW);
 
     return context;
 }
@@ -209,7 +205,7 @@ void AttachGameplayManagers(spe::GameContext& aContext, const ClientGameParams& 
     auto netMgr = QAO_UPCreate<spe::DefaultNetworkingManager>(aContext.getQAORuntime().nonOwning(),
                                                               PRIORITY_NETWORKMGR,
                                                               INITIAL_STATE_BUFFERING_LENGTH);
-    netMgr->setToClientMode(RN_Protocol::UDP, PASSPHRASE, 1024, RN_NetworkingStack::Default);
+    netMgr->setToClientMode(RN_Protocol::UDP, PASSPHRASE, 2048, RN_NetworkingStack::Default);
     auto& client = netMgr->getClient();
     client.setTimeoutLimit(std::chrono::seconds{5});
     client.setRetransmitPredicate(&MyRetransmitPredicate);
