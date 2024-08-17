@@ -20,6 +20,8 @@ constexpr auto TELEMETRY_CYCLE_LENGTH         = 300;
 
 constexpr auto PASSPHRASE = "GMTK-2024-HQ";
 
+constexpr auto NETWORKING_STACK = RN_NetworkingStack::Default;
+
 bool MyRetransmitPredicate(hg::PZInteger             aCyclesSinceLastTransmit,
                            std::chrono::microseconds aTimeSinceLastSend,
                            std::chrono::microseconds aCurrentLatency) {
@@ -66,7 +68,7 @@ std::unique_ptr<spe::GameContext> CreateServerContext(const ServerGameParams& aP
                             PASSPHRASE,
                             clientCount,
                             2048,
-                            RN_NetworkingStack::ZeroTier);
+                            NETWORKING_STACK);
     netMgr->setPacemakerPulsePeriod(120);
     auto& server = netMgr->getServer();
     server.setTimeoutLimit(std::chrono::seconds{5});
@@ -205,7 +207,7 @@ void AttachGameplayManagers(spe::GameContext& aContext, const ClientGameParams& 
     auto netMgr = QAO_UPCreate<spe::DefaultNetworkingManager>(aContext.getQAORuntime().nonOwning(),
                                                               PRIORITY_NETWORKMGR,
                                                               INITIAL_STATE_BUFFERING_LENGTH);
-    netMgr->setToClientMode(RN_Protocol::UDP, PASSPHRASE, 2048, RN_NetworkingStack::ZeroTier);
+    netMgr->setToClientMode(RN_Protocol::UDP, PASSPHRASE, 2048, NETWORKING_STACK);
     auto& client = netMgr->getClient();
     client.setTimeoutLimit(std::chrono::seconds{5});
     client.setRetransmitPredicate(&MyRetransmitPredicate);

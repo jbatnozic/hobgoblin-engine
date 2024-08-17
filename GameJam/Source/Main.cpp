@@ -22,27 +22,27 @@ int InitializeAndRunDebug() {
 }
 
 int InitializeAndRunClient() {
-    SimpleZeroTierInit(
-        "ztNodeIdentity",
-        8989,
-        0xd3ecf5726d81ccb3,
-        std::chrono::seconds{20}
-    );
+    // SimpleZeroTierInit(
+    //     "ztNodeIdentity",
+    //     8989,
+    //     0xd3ecf5726d81ccb3,
+    //     std::chrono::seconds{20}
+    // );
 
     auto ctx = CreateBasicClientContext();
     const int status = ctx->runFor(-1);
     HG_LOG_INFO(LOG_ID, "Main context stopped with exit code {}.", status);
-    SimpleZeroTierStop();
+    // SimpleZeroTierStop();
     return status;
 }
 
 int InitializeAndRunServer(int argc, char* argv[]) {
-    SimpleZeroTierInit(
-        "ztNodeIdentity",
-        8989,
-        0xd3ecf5726d81ccb3,
-        std::chrono::seconds{20}
-    );
+    // SimpleZeroTierInit(
+    //     "ztNodeIdentity",
+    //     8989,
+    //     0xd3ecf5726d81ccb3,
+    //     std::chrono::seconds{20}
+    // );
     // clang-format off
     const ServerGameParams params{
         .playerCount = 5,
@@ -51,7 +51,7 @@ int InitializeAndRunServer(int argc, char* argv[]) {
     auto ctx = CreateServerContext(params);
     const int status = ctx->runFor(-1);
     HG_LOG_INFO(LOG_ID, "Main context stopped with exit code {}.", status);
-    SimpleZeroTierStop();
+    // SimpleZeroTierStop();
     return status;
     // clang-format on
 }

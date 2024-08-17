@@ -2,7 +2,7 @@
 [[User_General]]
 
     ZeroTier_Enabled [one-of: "YES", "NO"] \
-        := "NO"
+        := "YES"
 
     ZeroTier_NetworkID [unchecked:] \
         := "d3ecf5726d81ccb3"
