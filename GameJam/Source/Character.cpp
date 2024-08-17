@@ -96,7 +96,7 @@ void CharacterObject::_eventUpdate1(spe::IfMaster) {
             finalX = character_speed * normal.x;
             finalY = character_speed * normal.y;
             wrapper.pollSimpleEvent(clientIndex, CTRL_ID_JUMP, [&]() {
-                if (grounded && currentFlingCooldown == 0) {
+                if (grounded && currentFlingCooldown <= 0) {
                     jumpDirection     = normal;
                     jump     = true;
                     grounded = false;
@@ -119,8 +119,8 @@ void CharacterObject::_eventUpdate1(spe::IfMaster) {
         if (currentGroundTimer > 0) {
             currentGroundTimer--;
         }
-        if (self.y > 500) {
-            self.y = 500;
+        if (self.y > y_floor) {
+            self.y   = y_floor;
             grounded = true;
         }
 
@@ -196,10 +196,21 @@ hg::alvin::CollisionDelegate CharacterObject::_initColDelegate() {
             // DO INTERACTION
         });
     builder.addInteraction<TerrainInterface>(
+        hg::alvin::COLLISION_SEPARATE,
+        [this](TerrainInterface& aTerrain, const hg::alvin::CollisionData& aCollisionData) {
+            // DO INTERACTION
+            HG_LOG_INFO(LOG_ID, "SADKASD KASMD ");
+            grounded = false;
+            currentGroundTimer = fall_timer;
+
+        });
+    builder.addInteraction<TerrainInterface>(
         hg::alvin::COLLISION_PRE_SOLVE,
         [this](TerrainInterface& aTerrain, const hg::alvin::CollisionData& aCollisionData) {
             // DO INTERACTION
-            HG_LOG_INFO(LOG_ID, "SADKASD KASMD");
+            if (currentGroundTimer <= 0 && currentFlingCooldown <=0) {
+                grounded = true;
+            }
             return hg::alvin::Decision::ACCEPT_COLLISION;
         });
     return builder.finalize();

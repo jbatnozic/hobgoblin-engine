@@ -6,6 +6,7 @@
 #include "Collisions.hpp"
 
 #include <array>
+#include "Config.hpp"
 
 void SetTerrainImpl(EnvironmentManager& aEnvMgr,
                     hg::PZInteger       aWidth,
@@ -96,7 +97,7 @@ void EnvironmentManager::setToHeadlessHostMode() {
     _space.emplace();
     InitColliders(*_collisionDispatcher, *_space);
 
-    generateTerrain(100, 100);
+    generateTerrain(terrain_size, terrain_size);
 }
 
 void EnvironmentManager::setToClientMode() {
