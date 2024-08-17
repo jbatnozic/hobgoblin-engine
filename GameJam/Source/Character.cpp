@@ -127,12 +127,13 @@ void CharacterObject::_eventUpdate1(spe::IfMaster) {
                                 touchingTerrain = true;
                             });
         if (!touchingTerrain) {
-            grounded = false;
-            if (currentGroundTimer <= 0) {
+            
+            if (currentGroundTimer <= 0 && grounded != false) {
                 
                 currentGroundTimer = fall_timer;
+                
             }
-            
+            grounded = false;
         } else {
             if (currentGroundTimer <= 0 && currentFlingCooldown <= 0) {
                 grounded = true;
