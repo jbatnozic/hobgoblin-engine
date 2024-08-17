@@ -117,8 +117,8 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
     //_cells.setAll(CellKind::ROCK);
     for (hg::PZInteger y = 0; y < aHeight; y += 1) {
         for (hg::PZInteger x = 0; x < aWidth; x += 1) {
-            auto _num = hg::util::GetRandomNumber<std::int32_t>(0, 2);
-            if (true /*_num == 0*/ ) {
+            auto _num = hg::util::GetRandomNumber<std::int32_t>(0,2);
+            if (_num == 0){
                 _cells[y][x] = CellKind::ROCK;
             }
         }

@@ -31,6 +31,7 @@ public:
     ~CharacterObject() override;
 
     void init(int aOwningPlayerIndex, float aX, float aY);
+    bool getFling() const override;
 
 private:
     bool grounded  = false;

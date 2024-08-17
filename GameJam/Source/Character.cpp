@@ -57,6 +57,9 @@ void CharacterObject::init(int aOwningPlayerIndex, float aX, float aY) {
 void CharacterObject::_eventUpdate1(spe::IfDummy) {
     _renderer->update();
 }
+bool CharacterObject::getFling() const {
+    return jump;
+}
 
 void CharacterObject::_eventUpdate1(spe::IfMaster) {
     if (ctx().getGameState().isPaused)
@@ -144,12 +147,14 @@ void CharacterObject::_eventUpdate1(spe::IfMaster) {
         } else {
             if (currentGroundTimer <= 0 && currentFlingCooldown <= 0) {
                 grounded = true;
+                jump     = false;
             }
         }
 
         if (self.y > y_floor) {
             self.y   = y_floor;
             grounded = true;
+            jump     = false;
         }
         HG_LOG_INFO(LOG_ID, "SADKASD KASMD {}, {}", currentGroundTimer, currentFlingCooldown);
         self.x += finalX;
@@ -215,7 +220,7 @@ void CharacterObject::_eventDraw1() {
 hg::alvin::CollisionDelegate CharacterObject::_initColDelegate() {
     auto builder = hg::alvin::CollisionDelegateBuilder{};
 
-    /*builder.addInteraction<LootInterface>(
+    /* builder.addInteraction<LootInterface>(
         hg::alvin::COLLISION_POST_SOLVE,
         [this](LootInterface& aLoot, const hg::alvin::CollisionData& aCollisionData) {
             // DO INTERACTION
@@ -229,16 +234,31 @@ hg::alvin::CollisionDelegate CharacterObject::_initColDelegate() {
             currentGroundTimer = fall_timer;
 
         });
-    builder.addInteraction<TerrainInterface>(
+        builder.addInteraction<TerrainInterface>(
         hg::alvin::COLLISION_PRE_SOLVE,
         [this](TerrainInterface& aTerrain, const hg::alvin::CollisionData& aCollisionData) {
             // DO INTERACTION
-            if (currentGroundTimer <= 0 && currentFlingCooldown <=0) {
+            if (currentGroundTimer <= 0 && currentFlingCooldown <= 0) {
                 grounded = true;
             }
             return hg::alvin::Decision::ACCEPT_COLLISION;
         });
-    */
+        
+        */
+    builder.addInteraction<CharacterInterface>(
+        hg::alvin::COLLISION_PRE_SOLVE,
+        [this](CharacterInterface& aCharacter, const hg::alvin::CollisionData& aCollisionData) {
+            // DO INTERACTION
+            
+            if (aCharacter.getFling()) {
+                grounded = false;
+                currentGroundTimer = fall_timer;
+            }
+            return hg::alvin::Decision::ACCEPT_COLLISION;
+        });
+
+
+    
     return builder.finalize();
 }
 
