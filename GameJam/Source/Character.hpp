@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Character_renderer.hpp"
 #include "Collisions.hpp"
 #include "Engine.hpp"
 
@@ -8,6 +9,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <optional>
 
 SPEMPE_DEFINE_AUTODIFF_STATE(CharacterObject_VisibleState,
                              SPEMPE_MEMBER(float, x, 0.f),
@@ -30,9 +32,7 @@ public:
 
     void init(int aOwningPlayerIndex, float aX, float aY);
 
-
 private:
-
     bool grounded  = true;
     bool  jump           = false;
     sf::Vector2f jumpDirection          = {0.f, 0.f};
@@ -42,8 +42,11 @@ private:
 
     hg::alvin::Unibody _unibody;
 
+    std::optional<CharacterRenderer> _renderer;
+
     hg::alvin::CollisionDelegate _initColDelegate();
 
+    void _eventUpdate1(spe::IfDummy) override;
     void _eventUpdate1(spe::IfMaster) override;
     void _eventPostUpdate(spe::IfMaster) override;
     void _eventDraw1() override;

@@ -7,15 +7,24 @@
 
 class CharacterRenderer {
 public:
-    CharacterRenderer(spe::GameContext& aCtx);
+    enum class Mode {
+        CRAWL,
+        FLING,
+        HUNKER
+    };
 
-    void init(hg::gr::Color aColor);
+    CharacterRenderer(spe::GameContext& aCtx, hg::gr::Color aColor);
 
     void setSize(hg::PZInteger aSize);
-    void setPosition();
+    void setPosition(hg::math::Vector2f aPosition);
+
+    void update();
+    void draw(hg::gr::Canvas& aCanvas);
 
 private:
     spe::GameContext& _ctx;
+
+    float _frameCounter = 0.f;
 
     hg::math::Vector2f _position; 
     hg::gr::Color      _color;

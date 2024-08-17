@@ -17,9 +17,9 @@ void ResourceManager::setToHostMode() {
 
 void ResourceManager::setToClientMode() {
     HG_VALIDATE_PRECONDITION(_mode == Mode::UNINITIALIZED);
-    _mode = Mode::HOST;
+    _mode = Mode::CLIENT;
 
-    // LoadSprites(_spriteLoader);
+    LoadSprites(_spriteLoader);
 }
 
 ResourceManager::Mode ResourceManager::getMode() const {

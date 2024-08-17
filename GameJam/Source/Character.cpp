@@ -31,6 +31,9 @@ CharacterObject::CharacterObject(QAO_RuntimeRef aRuntimeRef, spe::RegistryId aRe
         _getCurrentState().initMirror(); // To get autodiff optimization working
         _unibody.bindDelegate(*this);
         _unibody.addToSpace(ccomp<MEnvironment>().getSpace());
+    } else {
+        _renderer.emplace(ctx(), hg::gr::COLOR_RED);
+        _renderer->setSize(1);
     }
 }
 
@@ -49,6 +52,10 @@ void CharacterObject::init(int aOwningPlayerIndex, float aX, float aY) {
     self.owningPlayerIndex = aOwningPlayerIndex;
 
     cpBodySetPosition(_unibody, cpv(aX, aY));
+}
+
+void CharacterObject::_eventUpdate1(spe::IfDummy) {
+    _renderer->update();
 }
 
 void CharacterObject::_eventUpdate1(spe::IfMaster) {
@@ -161,11 +168,13 @@ void CharacterObject::_eventDraw1() {
 
     const auto& self = _getCurrentState();
 
-    hg::gr::CircleShape circle{32.f};
-    circle.setFillColor(COLORS[self.owningPlayerIndex % NUM_COLORS]);
-    circle.setOrigin({32.f, 32.f});
-    circle.setPosition({self.x, self.y});
-    ccomp<MWindow>().getCanvas().draw(circle);
+    // hg::gr::CircleShape circle{32.f};
+    // circle.setFillColor(COLORS[self.owningPlayerIndex % NUM_COLORS]);
+    // circle.setOrigin({32.f, 32.f});
+    // circle.setPosition({self.x, self.y});
+    // ccomp<MWindow>().getCanvas().draw(circle);
+    _renderer->setPosition({self.x, self.y});
+    _renderer->draw(ccomp<MWindow>().getCanvas());
 
     auto& lobbyBackend = ccomp<MLobbyBackend>();
     if (self.owningPlayerIndex > 0) {

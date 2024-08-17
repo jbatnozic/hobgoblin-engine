@@ -25,6 +25,11 @@ namespace gr {
 // MULTISPRITE                                                           //
 ///////////////////////////////////////////////////////////////////////////
 
+Multisprite::Multisprite()
+    : _texture{nullptr}
+{
+}
+
 Multisprite::Multisprite(const Texture* aTexture)
     : _texture{aTexture}
 {

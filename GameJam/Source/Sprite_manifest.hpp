@@ -43,28 +43,28 @@ inline void LoadSprites(hg::gr::SpriteLoader& aSpriteLoader) {
     aSpriteLoader
         .startTexture(2048, 2048)
         // Hand
-        ->addSprite(SPR_HAND_OPEN, basePath / "hor.png")
-        ->addSprite(SPR_HAND_CLOSED, basePath / "hcr.png")
+        ->addSubsprite(SPR_HAND_OPEN, basePath / "hor.png")
+        ->addSubsprite(SPR_HAND_CLOSED, basePath / "hcr.png")
         // Legs
-        ->addSprite(SPR_LEGS, basePath / "legs.png")
+        ->addSubsprite(SPR_LEGS, basePath / "legs.png")
         // Body
-        ->addSprite(SPR_BODY_SIZE_1, basePath / "b1.png")
-        ->addSprite(SPR_BODY_SIZE_2, basePath / "b2.png")
-        ->addSprite(SPR_BODY_SIZE_3, basePath / "b3.png")
-        ->addSprite(SPR_BODY_SIZE_4, basePath / "b4.png")
-        ->addSprite(SPR_BODY_SIZE_5, basePath / "b5.png")
+        ->addSubsprite(SPR_BODY_SIZE_1, basePath / "b1.png")
+        // ->addSprite(SPR_BODY_SIZE_2, basePath / "b2.png")
+        // ->addSprite(SPR_BODY_SIZE_3, basePath / "b3.png")
+        // ->addSprite(SPR_BODY_SIZE_4, basePath / "b4.png")
+        // ->addSprite(SPR_BODY_SIZE_5, basePath / "b5.png")
         // Biceps
-        ->addSprite(SPR_BICEPS_SIZE_1, basePath / "b1r1.png")
-        ->addSprite(SPR_BICEPS_SIZE_2, basePath / "b2r1.png")
-        ->addSprite(SPR_BICEPS_SIZE_3, basePath / "b3r1.png")
-        ->addSprite(SPR_BICEPS_SIZE_4, basePath / "b4r1.png")
-        ->addSprite(SPR_BICEPS_SIZE_5, basePath / "b5r1.png")
+        ->addSubsprite(SPR_BICEPS_SIZE_1, basePath / "b1r1.png")
+        // ->addSprite(SPR_BICEPS_SIZE_2, basePath / "b2r1.png")
+        // ->addSprite(SPR_BICEPS_SIZE_3, basePath / "b3r1.png")
+        // ->addSprite(SPR_BICEPS_SIZE_4, basePath / "b4r1.png")
+        // ->addSprite(SPR_BICEPS_SIZE_5, basePath / "b5r1.png")
         // Forearm
-        ->addSprite(SPR_FOREARM_SIZE_1, basePath / "b1r2.png")
-        ->addSprite(SPR_FOREARM_SIZE_2, basePath / "b2r2.png")
-        ->addSprite(SPR_FOREARM_SIZE_3, basePath / "b3r2.png")
-        ->addSprite(SPR_FOREARM_SIZE_4, basePath / "b4r2.png")
-        ->addSprite(SPR_FOREARM_SIZE_5, basePath / "b5r2.png")
+        ->addSubsprite(SPR_FOREARM_SIZE_1, basePath / "b1r2.png")
+        // ->addSprite(SPR_FOREARM_SIZE_2, basePath / "b2r2.png")
+        // ->addSprite(SPR_FOREARM_SIZE_3, basePath / "b3r2.png")
+        // ->addSprite(SPR_FOREARM_SIZE_4, basePath / "b4r2.png")
+        // ->addSprite(SPR_FOREARM_SIZE_5, basePath / "b5r2.png")
         // Finalize
         ->finalize(hg::gr::TexturePackingHeuristic::BestAreaFit, &occupancy);
     HG_LOG_INFO(LOG_ID,
