@@ -30,6 +30,9 @@ class CharacterInterface : public hg::alvin::EntityBase {
 
         static constexpr cpBitmask ENTITY_DEFAULT_CATEGORY = CAT_CHARACTER;
         static constexpr cpBitmask ENTITY_DEFAULT_MASK     = CAT_CHARACTER | CAT_TERRAIN | CAT_LOOT;
+
+        virtual bool getFling() const = 0;
+
 };
 
 class TerrainInterface : public hg::alvin::EntityBase {
