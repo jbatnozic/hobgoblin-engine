@@ -24,7 +24,7 @@ EnvironmentManager::Mode EnvironmentManager::getMode() const {
     return _mode;
 }
 
-NeverNull<cpSpace*> EnvironmentManager::getSpace() {
+hg::alvin::Space& EnvironmentManager::getSpace() {
     HG_ASSERT(_mode == Mode::HEADLESS_HOST && _space.has_value());
     return *_space;
 }

@@ -8,6 +8,7 @@
 #include "Lobby_frontend_manager.hpp"
 #include "Main_gameplay_manager.hpp"
 #include "Player_controls.hpp"
+#include "Resource_manager.hpp"
 
 #include "Main_menu_manager.hpp" // TODO(temp.)
 
@@ -64,11 +65,7 @@ std::unique_ptr<spe::GameContext> CreateServerContext(const ServerGameParams& aP
 
     const auto clientCount = aParams.playerCount - 1; // -1 because player 0 is the host itself
                                                       // (even if it doesn't participate in the game)
-    netMgr->setToServerMode(RN_Protocol::UDP,
-                            PASSPHRASE,
-                            clientCount,
-                            2048,
-                            NETWORKING_STACK);
+    netMgr->setToServerMode(RN_Protocol::UDP, PASSPHRASE, clientCount, 2048, NETWORKING_STACK);
     netMgr->setPacemakerPulsePeriod(120);
     auto& server = netMgr->getServer();
     server.setTimeoutLimit(std::chrono::seconds{5});
@@ -123,6 +120,12 @@ std::unique_ptr<spe::GameContext> CreateServerContext(const ServerGameParams& aP
                                                                   PRIORITY_AUTHMGR);
     authMgr->setToHostMode();
     context->attachAndOwnComponent(std::move(authMgr));
+
+    // Resource manager
+    auto resMgr =
+        QAO_UPCreate<ResourceManager>(context->getQAORuntime().nonOwning(), PRIORITY_RESOURCEMGR);
+    resMgr->setToHostMode();
+    context->attachAndOwnComponent(std::move(resMgr));
 
     // Main gameplay manager
     auto gpMgr =
@@ -193,6 +196,12 @@ std::unique_ptr<spe::GameContext> CreateBasicClientContext() {
     Rml::Debugger::SetVisible(true);
 
     context->attachAndOwnComponent(std::move(winMgr));
+
+    // Resource manager
+    auto resMgr =
+        QAO_UPCreate<ResourceManager>(context->getQAORuntime().nonOwning(), PRIORITY_RESOURCEMGR);
+    resMgr->setToClientMode();
+    context->attachAndOwnComponent(std::move(resMgr));
 
     // Main menu manager
     auto mmMgr =

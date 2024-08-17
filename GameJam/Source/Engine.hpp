@@ -21,6 +21,7 @@ using MLobbyBackend = spe::LobbyBackendManagerInterface;
 using MNetworking   = spe::NetworkingManagerInterface;
 using MWindow       = spe::WindowManagerInterface;
 
+#define PRIORITY_RESOURCEMGR   21
 #define PRIORITY_MAINMENUMGR   20
 #define PRIORITY_VARMAPMGR     16
 #define PRIORITY_NETWORKMGR    15

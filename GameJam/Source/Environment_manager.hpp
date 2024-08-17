@@ -22,7 +22,7 @@ public:
     void setToClientMode() override;
     Mode getMode() const override;
 
-    NeverNull<cpSpace*> getSpace() override;
+    hg::alvin::Space& getSpace() override;
 
 private:
     Mode _mode = Mode::UNINITIALIZED;

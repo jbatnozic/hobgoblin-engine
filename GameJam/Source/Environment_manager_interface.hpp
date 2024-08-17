@@ -21,7 +21,7 @@ public:
     virtual void setToClientMode() = 0;
     virtual Mode getMode() const = 0;
 
-    virtual NeverNull<cpSpace*> getSpace() = 0;
+    virtual hg::alvin::Space& getSpace() = 0;
 
 private:
     SPEMPE_CTXCOMP_TAG("EnvironmentManagerInterface");

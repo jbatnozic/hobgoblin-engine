@@ -10,6 +10,7 @@ add_executable(${PROJECT_NAME}
     "Main_gameplay_manager.cpp"
     "Main_menu_manager.cpp"
     "Main.cpp"
+    "Resource_manager.cpp"
     "Simple_zerotier.cpp"
  )
 
