@@ -24,10 +24,10 @@ bool MyRetransmitPredicate(hg::PZInteger             aCyclesSinceLastTransmit,
                            std::chrono::microseconds aTimeSinceLastSend,
                            std::chrono::microseconds aCurrentLatency) {
     // Default behaviour:
-    // return RN_DefaultRetransmitPredicate(aCyclesSinceLastTransmit, aTimeSinceLastSend, aCurrentLatency);
+    return RN_DefaultRetransmitPredicate(aCyclesSinceLastTransmit, aTimeSinceLastSend, aCurrentLatency);
 
     // Aggressive retransmission:
-    return true;
+    // return true;
 }
 } // namespace
 
