@@ -17,12 +17,15 @@ public:
 
     void setSize(hg::PZInteger aSize);
     void setPosition(hg::math::Vector2f aPosition);
+    void setMode(Mode aMode);
 
     void update();
     void draw(hg::gr::Canvas& aCanvas);
 
 private:
     spe::GameContext& _ctx;
+
+    Mode _mode = Mode::CRAWL;
 
     float _frameCounter = 0.f;
 
@@ -35,4 +38,6 @@ private:
     hg::gr::Multisprite _forearm;
     hg::gr::Multisprite _openHand;
     hg::gr::Multisprite _closedHand;
+
+    void _drawClimb(hg::gr::Canvas& aCanvas);
 };
