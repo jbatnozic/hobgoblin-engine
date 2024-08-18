@@ -8,6 +8,7 @@ add_executable(${PROJECT_NAME}
     "Context_factory.cpp"
     "Environment_manager.cpp"
     "Lobby_frontend_manager.cpp"
+    "Loot.cpp"
     "Main_gameplay_manager.cpp"
     "Main_menu_manager.cpp"
     "Main.cpp"

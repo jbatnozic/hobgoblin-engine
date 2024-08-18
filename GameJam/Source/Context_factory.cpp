@@ -5,6 +5,7 @@
 
 #include "Engine.hpp"
 
+#include "Config.hpp"
 #include "Environment_manager.hpp"
 #include "Lobby_frontend_manager.hpp"
 #include "Main_gameplay_manager.hpp"
@@ -131,8 +132,10 @@ std::unique_ptr<spe::GameContext> CreateServerContext(const ServerGameParams& aP
     // Environment manager
     auto envMgr =
         QAO_UPCreate<EnvironmentManager>(context->getQAORuntime().nonOwning(), PRIORITY_GAMEPLAYMGR);
+    auto* envMgrP = envMgr.get();
     envMgr->setToHeadlessHostMode();
     context->attachAndOwnComponent(std::move(envMgr));
+    envMgrP->generateTerrain(terrain_size, terrain_size);
 
     // Main gameplay manager
     auto gpMgr =

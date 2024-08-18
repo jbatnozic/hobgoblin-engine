@@ -7,7 +7,9 @@
 #include "Collisions.hpp"
 
 #include <array>
+
 #include "Config.hpp"
+#include "Loot.hpp"
 #include "Resource_manager_interface.hpp"
 #include "Sprite_manifest.hpp"
 
@@ -90,7 +92,6 @@ EnvironmentManager::EnvironmentManager(QAO_RuntimeRef aRuntimeRef, int aExecutio
         const auto& sprLoader = ccomp<MResource>().getSpriteLoader();
         _spr                  = sprLoader.getMultiBlueprint(SPR_MOUNTAIN).multispr();
     }
-
 }
 
 EnvironmentManager::~EnvironmentManager() {
@@ -105,8 +106,6 @@ void EnvironmentManager::setToHeadlessHostMode() {
     _collisionDispatcher.emplace();
     _space.emplace();
     InitColliders(*_collisionDispatcher, *_space);
-
-    generateTerrain(terrain_size, terrain_size);
 }
 
 void EnvironmentManager::setToClientMode() {
@@ -126,7 +125,7 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
     for (hg::PZInteger y = 0; y < aHeight; y += 1) {
         for (hg::PZInteger x = 0; x < aWidth; x += 1) {
             auto _num = hg::util::GetRandomNumber<std::int32_t>(0, 3);
-            switch (_num) { 
+            switch (_num) {
             case 0:
                 _cells[y][x] = CellKind::ROCK_1;
                 break;
@@ -137,7 +136,6 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
                 _cells[y][x] = CellKind::ROCK_3;
                 break;
             }
-
         }
     }
     // Collision delegate
@@ -164,6 +162,24 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
                 _collisionDelegate->bind(*this, *_shapes[y][x]);
                 _space->add(*_shapes[y][x]);
             }
+        }
+    }
+
+    // Loot
+    for (hg::PZInteger y = 0; y < aHeight; y += 1) {
+        for (hg::PZInteger x = 0; x < aWidth; x += 1) {
+            if (_cells[y][x] == CellKind::EMPTY) {
+                continue;
+            }
+            if (hg::util::GetRandomNumber<std::int32_t>(0, 100) > 10) {
+                continue;
+            }
+            auto* p = QAO_PCreate<LootObject>(ctx().getQAORuntime(),
+                                              ccomp<MNetworking>().getRegistryId(),
+                                              spe::SYNC_ID_NEW);
+            p->init((float)CELL_RESOLUTION * (0.5f + x),
+                    (float)CELL_RESOLUTION * (0.5f + y),
+                    LootKind::PROTEIN);
         }
     }
 }
@@ -213,7 +229,7 @@ void EnvironmentManager::_eventDraw1() {
 
             _spr.setPosition(x * (float)_spr.getLocalBounds().w, y * (float)_spr.getLocalBounds().h);
             canvas.draw(_spr);
-            /* switch (_cells[y][x]) { 
+            /* switch (_cells[y][x]) {
                 case 0_spr.selectSubsprite(2);
                 std::rand() % 5 + 1
                 _body.setScale({scale, scale});
@@ -243,11 +259,11 @@ void EnvironmentManager::onNetworkingEvent(const RN_Event& aEvent) {
             }
 
             Compose_SetTerrain(ccomp<MNetworking>().getNode(),
-                                *aEventData.clientIndex,
-                                static_cast<std::int32_t>(_cells.getWidth()),
-                                static_cast<std::int32_t>(_cells.getHeight()),
-                                static_cast<std::int32_t>(y),
-                                str);
+                               *aEventData.clientIndex,
+                               static_cast<std::int32_t>(_cells.getWidth()),
+                               static_cast<std::int32_t>(_cells.getHeight()),
+                               static_cast<std::int32_t>(y),
+                               str);
         }
     });
 }

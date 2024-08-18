@@ -43,7 +43,9 @@ public:
     ~CharacterObject() override;
 
     void init(int aOwningPlayerIndex, float aX, float aY);
+
     bool getFling() const override;
+    void addProtein() override;
 
 private:
     bool         grounded             = false;
@@ -52,6 +54,8 @@ private:
     float        vSpeed               = 0;
     float        currentFlingCooldown = 0;
     float        currentGroundTimer   = 0;
+
+    float _size = 1.f;
 
     hg::alvin::Unibody _unibody;
 

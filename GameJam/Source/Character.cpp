@@ -56,7 +56,6 @@ CharacterObject::CharacterObject(QAO_RuntimeRef aRuntimeRef, spe::RegistryId aRe
         _unibody.addToSpace(ccomp<MEnvironment>().getSpace());
     } else {
         _renderer.emplace(ctx(), hg::gr::COLOR_RED);
-        _renderer->setSize(std::rand() % 5 + 1);
         _renderer->setMode(CharacterRenderer::Mode::STILL);
     }
 }
@@ -80,6 +79,12 @@ void CharacterObject::init(int aOwningPlayerIndex, float aX, float aY) {
 
 bool CharacterObject::getFling() const {
     return jump;
+}
+
+void CharacterObject::addProtein() {
+    _size += 1.f / 3.f;
+    auto& self = _getCurrentState();
+    self.size = std::min((std::int8_t)std::roundf(_size), (std::int8_t)5);
 }
 
 void CharacterObject::_eventUpdate1(spe::IfMaster) {
@@ -227,6 +232,7 @@ void CharacterObject::_eventUpdate1(spe::IfDummy) {
 
     auto& self = _getCurrentState();
     _renderer->setMode((CharacterRenderer::Mode)self.renderMode);
+    _renderer->setSize(self.size);
     _renderer->update();
 
     auto& lobbyBackend = ccomp<MLobbyBackend>();

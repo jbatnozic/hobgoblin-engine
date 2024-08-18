@@ -17,9 +17,16 @@ CharacterRenderer::CharacterRenderer(spe::GameContext& aCtx, hg::gr::Color aColo
     _legs       = sprLoader.getMultiBlueprint(SPR_LEGS).multispr();
     _openHand   = sprLoader.getMultiBlueprint(SPR_HAND_OPEN).multispr();
     _closedHand = sprLoader.getMultiBlueprint(SPR_HAND_CLOSED).multispr();
+
+    setSize(1);
 }
 
 void CharacterRenderer::setSize(hg::PZInteger aSize) {
+    if (_size == aSize) {
+        return;
+    }
+    _size = aSize;
+
     const auto& sprLoader = _ctx.getComponent<MResource>().getSpriteLoader();
     switch (aSize) {
     case 1:
