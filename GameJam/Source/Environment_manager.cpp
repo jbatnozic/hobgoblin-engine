@@ -18,7 +18,7 @@ void SetTerrainImpl(EnvironmentManager& aEnvMgr,
                     const std::string&  aCellData);
 
 namespace {
-constexpr cpFloat CELL_RESOLUTION = 128.0;
+constexpr cpFloat CELL_RESOLUTION = single_terrain_size;
 
 NeverNull<cpShape*> CreateRectanglePolyShape(NeverNull<cpBody*>  aBody,
                                              hg::math::Vector2pz aGridPosition) {
@@ -125,10 +125,19 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
     //_cells.setAll(CellKind::ROCK);
     for (hg::PZInteger y = 0; y < aHeight; y += 1) {
         for (hg::PZInteger x = 0; x < aWidth; x += 1) {
-            auto _num = hg::util::GetRandomNumber<std::int32_t>(0, 2);
-            if (true /*_num == 0*/ ) {
-                _cells[y][x] = CellKind::ROCK;
+            auto _num = hg::util::GetRandomNumber<std::int32_t>(0, 3);
+            switch (_num) { 
+            case 0:
+                _cells[y][x] = CellKind::ROCK_1;
+                break;
+            case 1:
+                _cells[y][x] = CellKind::ROCK_2;
+                break;
+            case 2:
+                _cells[y][x] = CellKind::ROCK_3;
+                break;
             }
+
         }
     }
     // Collision delegate
@@ -180,24 +189,24 @@ void EnvironmentManager::_eventUpdate1() {
 }
 
 void EnvironmentManager::_eventDraw1() {
-    hg::gr::RectangleShape rect{
-        {(float)CELL_RESOLUTION, (float)CELL_RESOLUTION}
-    };
-    rect.setFillColor(hg::gr::COLOR_DARK_GREY);
-    rect.setOutlineColor(hg::gr::COLOR_BLACK);
-    rect.setOutlineThickness(4.f);
 
     auto& canvas = ccomp<MWindow>().getCanvas();
     for (hg::PZInteger y = 0; y < _cells.getHeight(); y += 1) {
         for (hg::PZInteger x = 0; x < _cells.getWidth(); x += 1) {
-            if (_cells[y][x] == CellKind::ROCK) {
-                /* rect.setPosition(x * (float)CELL_RESOLUTION, y * (float)CELL_RESOLUTION);
-                canvas.draw(rect);*/
-                _spr.selectSubsprite(std::rand() % 3);
-                _spr.setPosition(x * (float)_spr.getLocalBounds().w, y * (float)_spr.getLocalBounds().h);
-                canvas.draw(_spr);
+            switch (_cells[y][x]) {
+            case CellKind::ROCK_1:
+                _spr.selectSubsprite(0);
+                break;
+            case CellKind::ROCK_2:
+                _spr.selectSubsprite(1);
+                break;
+            case CellKind::ROCK_3:
+                _spr.selectSubsprite(2);
+                break;
             }
 
+            _spr.setPosition(x * (float)_spr.getLocalBounds().w, y * (float)_spr.getLocalBounds().h);
+            canvas.draw(_spr);
             /* switch (_cells[y][x]) { 
                 case 0_spr.selectSubsprite(2);
                 std::rand() % 5 + 1
