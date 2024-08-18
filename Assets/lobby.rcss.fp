@@ -2,7 +2,7 @@
 {
 %%fp:spritesheet_begin
 
-	%%fp:src: -f default-spritesheet.tga -w 1024 -h 1024
+	%%fp:src: -f lobby-spritesheet.tga -w 1024 -h 1024
 
 	%%fp:sprite: -n frame    -f ./frame.png
 	%%fp:sprite: -n titlebar -f ./titlebar.png

@@ -160,7 +160,7 @@ private:
             THROW_IF_FALSE(constructor.Bind("testMode", &_mainMenuModel.testMode));
             // THROW_IF_FALSE(constructor.Bind("localName",    &_lobbyModel.localName));
             // THROW_IF_FALSE(constructor.Bind("isAuthorized", &_lobbyModel.isAuthorized));
-            //THROW_IF_FALSE(constructor.BindEventCallback("LockIn",   &Impl::_onEvent,   this));
+            THROW_IF_FALSE(constructor.BindEventCallback("Exit",   &Impl::_onExit,   this));
             // clang-format on
         } catch (const hg::TracedRuntimeError& ex) {
             HG_LOG_ERROR(LOG_ID, "Could not bind data model: {}", ex.getErrorMessage());
@@ -189,6 +189,10 @@ private:
         } else {
             HG_LOG_ERROR(LOG_ID, "RMLUI Document could not be loaded.");
         }
+    }
+
+    void _onExit(Rml::DataModelHandle, Rml::Event&, const Rml::VariantList& aArguments) {
+        CTX().stop();
     }
 
 #undef CCOMP

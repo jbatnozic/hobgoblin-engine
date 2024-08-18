@@ -68,11 +68,13 @@
                 </span>
             </div>
 
+            <!--
             <div data-model="lobby-model" class="window-contents">
                 <span data-event-click="Reset" class="button">
                     RESET LOBBY
                 </span>
             </div>
+            -->
 
         </div>
 

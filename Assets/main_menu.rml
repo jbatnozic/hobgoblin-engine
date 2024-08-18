@@ -43,12 +43,19 @@
                     <br/>
                     <!--p data-if="graphics == 'bad'">Are you sure about this? Bad graphics are just plain <em>bad.</em></p-->
                     <input type="submit" name="button" value="accept">
-                        <span class="button">
-                            [CONNECT]
+                        <span class="button" style="color: blue;">
+                            [CLICK HERE TO CONNECT]
                         </span>
                     </input>
                 </div>
 		    </form>
+
+            <br/>
+            <div style="padding-left: 40dp;">
+                <span data-event-click="Exit" class="button" style="color: red;">
+                    [CLICK HERE TO EXIT THE GAME]
+                </span>
+            </div>
 
         </div>
 

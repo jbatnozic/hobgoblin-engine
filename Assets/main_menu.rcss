@@ -2,7 +2,7 @@
 {
 /* spritesheet began here */
 
-	src: default-spritesheet.tga;
+	src: mainmenu-spritesheet.tga;
 
 	frame: 0px 0px 412px 416px;
 	titlebar: 0px 416px 412px 26px;
@@ -74,6 +74,10 @@ div#window-interior-holder {
     box-sizing: border-box;
     border-width: 2dp;
     border-color: #000000;
+    background-color: white;
+
+    padding-left: 4dp;
+	padding-top: 4dp;
 }
 
 .button {

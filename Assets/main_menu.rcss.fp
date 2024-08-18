@@ -2,9 +2,9 @@
 {
 %%fp:spritesheet_begin
 
-	%%fp:src: -f default-spritesheet.tga -w 1024 -h 1024
+	%%fp:src: -f mainmenu-spritesheet.tga -w 1024 -h 1024
 
-	%%fp:sprite: -n frame    -f ./frame.png
+	%%fp:sprite: -n frame    -f ./frame-hq.png
 	%%fp:sprite: -n titlebar -f ./titlebar.png
 
 %%fp:spritesheet_end
@@ -74,6 +74,10 @@ div#window-interior-holder {
     box-sizing: border-box;
     border-width: 2dp;
     border-color: #000000;
+    background-color: white;
+
+    padding-left: 4dp;
+	padding-top: 4dp;
 }
 
 .button {
