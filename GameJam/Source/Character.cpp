@@ -174,7 +174,7 @@ void CharacterObject::_eventUpdate1(spe::IfMaster) {
             grounded = true;
             jump     = false;
         }
-        HG_LOG_INFO(LOG_ID, "SADKASD KASMD {}, {}", currentGroundTimer, currentFlingCooldown);
+        // HG_LOG_INFO(LOG_ID, "SADKASD KASMD {}, {}", currentGroundTimer, currentFlingCooldown);
         self.x += finalX;
         self.y += finalY;
         cpBodySetPosition(_unibody, cpv(self.x, self.y));
