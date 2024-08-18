@@ -2,12 +2,56 @@
 
 #include "Context_factory.hpp"
 
+#include <Hobgoblin/Format.hpp>
 #include <Hobgoblin/Utility/No_copy_no_move.hpp>
+#include <Hobgoblin/Utility/Randomization.hpp>
 #include <RmlUi/Core.h>
 
+#include <array>
 #include <string>
 
 namespace {
+std::string GetRandomGymName() {
+    // clang-format off
+    static constexpr const char* NAMES[] = {
+        "Bulk SquatThrust",
+        "Thrust Master",
+        "Roid",
+        "Manly McMuscleman",
+        "Brover",
+        "Cousin Arnold",
+        "HUGE!!!",
+        "The Proteinator",
+        "Eggmuncher",
+        "Meat Grinder",
+        "Wheyfinder",
+        "Super(set)man",
+        "Lean Beef",
+        "Meathead",
+        "The Barbarian",
+        "Harry Squatter",
+        "Throbby",
+        "The Gainskeeper",
+        "Nameless Peon",
+        "Chad PILLZ Enjoyer",
+        "Dumbbelldoor",
+        "Benchpresser",
+        "Ben Swolo",
+        "Swoledemort",
+        "Hermione Gainer",
+        "Weightron",
+        "Sir Lift-a-lot",
+        "Lord Benchington"
+    };
+    // clang-format on
+
+    const std::size_t min = 0;
+    const std::size_t max = (sizeof(NAMES) / sizeof(NAMES[0])) - 1;
+    const auto        idx = hg::util::GetRandomNumber(min, max);
+
+    return {NAMES[idx]};
+}
+
 template <class T>
 bool RegisterModel(Rml::DataModelConstructor& aDataModelCtor) {
     return false;
@@ -147,7 +191,7 @@ private:
         }
 
         try {
-            // clang-format off
+// clang-format off
             #define THROW_IF_FALSE(_val_)                                                              \
                 do {                                                                                   \
                     if (!(_val_)) {                                                                    \
@@ -183,7 +227,13 @@ private:
         _document = guiContext.LoadDocument("Assets/main_menu.rml");
 
         if (_document) {
+            auto* nameElement = _document->GetElementById("playerName");
+            if (nameElement) {
+                nameElement->SetAttribute("value", GetRandomGymName());
+            }
+
             _document->Show();
+
             _documentVisible = true;
             HG_LOG_INFO(LOG_ID, "RMLUI Document loaded successfully.");
         } else {
@@ -211,7 +261,7 @@ void MainMenuManager::_eventPreUpdate() {
         AttachGameplayManagers(ctx(), *_clientGameParams);
 
         spe::DetachStatus detachStatus;
-        auto self = ctx().detachComponent<MainMenuManagerInterface>(&detachStatus);
+        auto              self = ctx().detachComponent<MainMenuManagerInterface>(&detachStatus);
         HG_HARD_ASSERT(detachStatus == spe::DetachStatus::OK && self != nullptr);
         self.reset(); // WARNING: `this` will be deleted!
     }

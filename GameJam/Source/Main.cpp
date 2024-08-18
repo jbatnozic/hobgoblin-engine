@@ -2,6 +2,8 @@
 #include <Hobgoblin/Logging.hpp>
 #include <Hobgoblin/HGExcept.hpp>
 
+#include <Hobgoblin/Utility/Randomization.hpp>
+
 #include "Context_factory.hpp"
 #include "Engine.hpp"
 #include "Simple_zerotier.hpp"
@@ -57,9 +59,25 @@ int InitializeAndRunServer(int argc, char* argv[]) {
 }
 
 int main(int argc, char* argv[]) try {
+    // Set up logging
     hg::log::SetMinimalLogSeverity(hg::log::Severity::Info);
+
+    // Seed RNGs
+    hg::util::DoWith32bitRNG([](std::mt19937& aRng) {
+        const auto seed = hg::util::Generate32bitSeed();
+        aRng.seed(seed);
+        HG_LOG_INFO(LOG_ID, "32-bit RNG seeded with: {}", seed);
+    });
+    hg::util::DoWith64bitRNG([](std::mt19937_64& aRng) {
+        const auto seed = hg::util::Generate64bitSeed();
+        aRng.seed(seed);
+        HG_LOG_INFO(LOG_ID, "64-bit RNG seeded with: {}", seed);
+    });
+
+    // Set up RigelNet
     RN_IndexHandlers();
 
+    // Init & run context
     if (argc <= 1) {
         return InitializeAndRunDebug();
     } else {
@@ -74,7 +92,7 @@ int main(int argc, char* argv[]) try {
         }
     }
 } catch (const hg::TracedException& ex) {
-    HG_LOG_FATAL(LOG_ID, "Traced exception caught: {}", ex.getFormattedDescription());
+    HG_LOG_FATAL(LOG_ID, "{}", ex.getFormattedDescription());
     return EXIT_FAILURE;
 } catch (const std::exception& ex) {
     HG_LOG_FATAL(LOG_ID, "Exception caught: {}", ex.what());
