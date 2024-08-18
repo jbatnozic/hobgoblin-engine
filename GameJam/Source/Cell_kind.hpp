@@ -13,4 +13,5 @@ enum class CellKind : std::int8_t {
     ROCK_MT_1,
     ROCK_MT_2,
     ROCK_MT_3,
+    SCALE,
 };
