@@ -146,6 +146,7 @@ void CharacterObject::_eventUpdate1(spe::IfMaster) {
                             [&, this](const hg::alvin::ShapeQueryInfo&) {
                                 touchingTerrain = true;
                             });
+
         if (!touchingTerrain) {
 
             if (currentGroundTimer <= 0 && grounded != false) {
@@ -173,7 +174,9 @@ void CharacterObject::_eventUpdate1(spe::IfMaster) {
 
         cpBodySetPosition(_unibody, cpv(self.x, self.y));
 
-        if (std::abs(finalY) < 0.05) {
+        if (jump) {
+            self.renderMode = (std::int8_t)CharacterRenderer::Mode::FLING;
+        } else if (std::abs(finalY) < 0.05) {
             if (std::abs(finalX) < 0.05) {
                 self.renderMode = (std::int8_t)CharacterRenderer::Mode::STILL;
             } else {

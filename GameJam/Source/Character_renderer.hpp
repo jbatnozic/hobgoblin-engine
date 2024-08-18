@@ -50,4 +50,5 @@ private:
     void _drawStill(hg::gr::Canvas& aCanvas);
     void _drawClimbVertical(hg::gr::Canvas& aCanvas);
     void _drawClimbHorizontal(hg::gr::Canvas& aCanvas, int aDirection);
+    void _drawFling(hg::gr::Canvas& aCanvas);
 };
