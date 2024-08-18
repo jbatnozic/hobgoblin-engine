@@ -140,6 +140,7 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
             slope_left++;
             _num = hg::util::GetRandomNumber<std::int32_t>(0, 10000) * 0.0001;
         }
+        _num = hg::util::GetRandomNumber<std::int32_t>(0, 10000) * 0.0001;
         int slope_right = 0;
         while (slope_chance < _num) {
             slope_right++;
