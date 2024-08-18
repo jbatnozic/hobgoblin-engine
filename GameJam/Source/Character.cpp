@@ -51,7 +51,7 @@ CharacterObject::CharacterObject(QAO_RuntimeRef aRuntimeRef, spe::RegistryId aRe
         _unibody.addToSpace(ccomp<MEnvironment>().getSpace());
     } else {
         _renderer.emplace(ctx(), hg::gr::COLOR_RED);
-        _renderer->setSize(1);
+        _renderer->setSize(std::rand() % 5 + 1);
     }
 }
 
