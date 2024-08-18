@@ -11,12 +11,15 @@
 #include <memory>
 #include <optional>
 
+// clang-format off
 SPEMPE_DEFINE_AUTODIFF_STATE(CharacterObject_VisibleState,
-                             SPEMPE_MEMBER(float, x, 0.f),
-                             SPEMPE_MEMBER(float, y, 0.f),
-                             SPEMPE_MEMBER(std::int32_t,
-                                           owningPlayerIndex,
-                                           spe::PLAYER_INDEX_UNKNOWN)){};
+    SPEMPE_MEMBER(float, x, 0.f),
+    SPEMPE_MEMBER(float, y, 0.f),
+    SPEMPE_MEMBER(std::int32_t, owningPlayerIndex, spe::PLAYER_INDEX_UNKNOWN),
+    SPEMPE_MEMBER(std::int8_t, renderMode, (std::int8_t)CharacterRenderer::Mode::STILL),
+    SPEMPE_MEMBER(std::int8_t, size, 1)) {
+};
+// clang-format on
 
 /**
  * Implementation of a synchronized object with autodiff state optimization enabled.
@@ -34,12 +37,12 @@ public:
     bool getFling() const override;
 
 private:
-    bool grounded  = false;
-    bool  jump           = false;
-    sf::Vector2f jumpDirection          = {0.f, 0.f};
-    float vSpeed   = 0;
-    float currentFlingCooldown = 0;
-    float currentGroundTimer = 0;
+    bool         grounded             = false;
+    bool         jump                 = false;
+    sf::Vector2f jumpDirection        = {0.f, 0.f};
+    float        vSpeed               = 0;
+    float        currentFlingCooldown = 0;
+    float        currentGroundTimer   = 0;
 
     hg::alvin::Unibody _unibody;
 
@@ -47,8 +50,8 @@ private:
 
     hg::alvin::CollisionDelegate _initColDelegate();
 
-    void _eventUpdate1(spe::IfDummy) override;
     void _eventUpdate1(spe::IfMaster) override;
+    void _eventUpdate1(spe::IfDummy) override;
     void _eventPostUpdate(spe::IfMaster) override;
     void _eventDraw1() override;
     void _eventDraw2() override;

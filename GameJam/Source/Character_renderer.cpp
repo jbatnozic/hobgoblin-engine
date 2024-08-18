@@ -87,9 +87,9 @@ constexpr double LEGS_Y_OFFSET = 82.5;
 constexpr double BICEPS_LENGTH  = 7.f * 12.f;
 constexpr double FOREARM_LENGTH = 6.f * 12.f;
 
-// Climb
+// Climb vertical
 // clang-format off
-const std::array<hg::math::Vector2d, 8> CLIMB_HAND_OFFSETS = {{
+const std::array<hg::math::Vector2d, 8> CLIMB_V_HAND_OFFSETS = {{
      {7.0 * 12.0, -6.0 * 12.0},
      {7.0 * 12.0, -7.0 * 12.0},
      {7.0 * 12.0, -8.0 * 12.0},
@@ -98,6 +98,20 @@ const std::array<hg::math::Vector2d, 8> CLIMB_HAND_OFFSETS = {{
      {7.0 * 12.0, -5.0 * 12.0},
      {7.0 * 12.0, -4.0 * 12.0},
      {7.0 * 12.0, -5.0 * 12.0},
+}};
+// clang-format on
+
+// Climb horizontal
+// clang-format off
+const std::array<hg::math::Vector2d, 8> CLIMB_H_HAND_OFFSETS = {{
+     {7.0 * 12.0, -6.0 * 12.0},
+     {8.0 * 12.0, -6.0 * 12.0},
+     {9.0 * 12.0, -6.0 * 12.0},
+     {8.0 * 12.0, -6.0 * 12.0},
+     {7.0 * 12.0, -6.0 * 12.0},
+     {6.0 * 12.0, -6.0 * 12.0},
+     {5.0 * 12.0, -6.0 * 12.0},
+     {6.0 * 12.0, -6.0 * 12.0},
 }};
 // clang-format on
 
@@ -112,22 +126,22 @@ struct ArmDrawParams {
     hg::math::AngleF   handAngle;
 };
 
-ArmDrawParams GetArmDrawParams_Climb(hg::PZInteger aAnimationFrame) {
+ArmDrawParams GetArmDrawParams_ClimbVertical(hg::PZInteger aAnimationFrame) {
     using namespace hg::math;
 
     ArmDrawParams result;
 
     const double C = EuclideanDist(0.0,
                                    0.0,
-                                   CLIMB_HAND_OFFSETS[aAnimationFrame].x,
-                                   CLIMB_HAND_OFFSETS[aAnimationFrame].y);
+                                   CLIMB_V_HAND_OFFSETS[aAnimationFrame].x,
+                                   CLIMB_V_HAND_OFFSETS[aAnimationFrame].y);
 
     const double cosAf = (Sqr(BICEPS_LENGTH) + Sqr(C) - Sqr(FOREARM_LENGTH)) / (2.0 * BICEPS_LENGTH * C);
 
     const auto Af = AngleD::fromRad(std::acos(cosAf));
 
     const auto P = AngleD::fromVector(
-        {CLIMB_HAND_OFFSETS[aAnimationFrame].x, CLIMB_HAND_OFFSETS[aAnimationFrame].y});
+        {CLIMB_V_HAND_OFFSETS[aAnimationFrame].x, CLIMB_V_HAND_OFFSETS[aAnimationFrame].y});
 
     const auto Pp = P - Af;
 
@@ -145,21 +159,74 @@ ArmDrawParams GetArmDrawParams_Climb(hg::PZInteger aAnimationFrame) {
                                                static_cast<float>(elbowOffsetY));
 
     const double forearmCenterX =
-        (CLIMB_HAND_OFFSETS[aAnimationFrame].x + elbowOffsetX) / 2.0; // from shoulder
+        (CLIMB_V_HAND_OFFSETS[aAnimationFrame].x + elbowOffsetX) / 2.0; // from shoulder
     const double forearmCenterY =
-        (CLIMB_HAND_OFFSETS[aAnimationFrame].y + elbowOffsetY) / 2.0; // from shoulder
+        (CLIMB_V_HAND_OFFSETS[aAnimationFrame].y + elbowOffsetY) / 2.0; // from shoulder
 
     result.forearmOffset = {static_cast<float>(SHOULDER_X_OFFSET + forearmCenterX),
                             static_cast<float>(SHOULDER_Y_OFFSET + forearmCenterY)};
     result.forearmAngle =
         PointDirection<float>(static_cast<float>(elbowOffsetX),
                               static_cast<float>(elbowOffsetY),
-                              static_cast<float>(CLIMB_HAND_OFFSETS[aAnimationFrame].x),
-                              static_cast<float>(CLIMB_HAND_OFFSETS[aAnimationFrame].y)) -
+                              static_cast<float>(CLIMB_V_HAND_OFFSETS[aAnimationFrame].x),
+                              static_cast<float>(CLIMB_V_HAND_OFFSETS[aAnimationFrame].y)) -
         AngleF::fromDegrees(90.f);
 
-    result.handOffset = {static_cast<float>(SHOULDER_X_OFFSET + CLIMB_HAND_OFFSETS[aAnimationFrame].x),
-                         static_cast<float>(SHOULDER_Y_OFFSET + CLIMB_HAND_OFFSETS[aAnimationFrame].y)};
+    result.handOffset = {static_cast<float>(SHOULDER_X_OFFSET + CLIMB_V_HAND_OFFSETS[aAnimationFrame].x),
+                         static_cast<float>(SHOULDER_Y_OFFSET + CLIMB_V_HAND_OFFSETS[aAnimationFrame].y)};
+    result.handAngle  = result.forearmAngle;
+
+    return result;
+}
+
+ArmDrawParams GetArmDrawParams_ClimbHorizontal(hg::PZInteger aAnimationFrame) {
+    using namespace hg::math;
+
+    ArmDrawParams result;
+
+    const double C = EuclideanDist(0.0,
+                                   0.0,
+                                   CLIMB_H_HAND_OFFSETS[aAnimationFrame].x,
+                                   CLIMB_H_HAND_OFFSETS[aAnimationFrame].y);
+
+    const double cosAf = (Sqr(BICEPS_LENGTH) + Sqr(C) - Sqr(FOREARM_LENGTH)) / (2.0 * BICEPS_LENGTH * C);
+
+    const auto Af = AngleD::fromRad(std::acos(cosAf));
+
+    const auto P = AngleD::fromVector(
+        {CLIMB_H_HAND_OFFSETS[aAnimationFrame].x, CLIMB_H_HAND_OFFSETS[aAnimationFrame].y});
+
+    const auto Pp = P - Af;
+
+    const double elbowOffsetX = +Pp.cos() * BICEPS_LENGTH;
+    const double elbowOffsetY = -Pp.sin() * BICEPS_LENGTH;
+
+    const double bicepsCenterX = elbowOffsetX / 2; // from shoulder
+    const double bicepsCenterY = elbowOffsetY / 2; // from shoulder
+
+    result.bicepsOffset = {static_cast<float>(SHOULDER_X_OFFSET + bicepsCenterX),
+                           static_cast<float>(SHOULDER_Y_OFFSET + bicepsCenterY)};
+    result.bicepsAngle  = PointDirection<float>(0.f,
+                                               0.f,
+                                               static_cast<float>(elbowOffsetX),
+                                               static_cast<float>(elbowOffsetY));
+
+    const double forearmCenterX =
+        (CLIMB_H_HAND_OFFSETS[aAnimationFrame].x + elbowOffsetX) / 2.0; // from shoulder
+    const double forearmCenterY =
+        (CLIMB_H_HAND_OFFSETS[aAnimationFrame].y + elbowOffsetY) / 2.0; // from shoulder
+
+    result.forearmOffset = {static_cast<float>(SHOULDER_X_OFFSET + forearmCenterX),
+                            static_cast<float>(SHOULDER_Y_OFFSET + forearmCenterY)};
+    result.forearmAngle =
+        PointDirection<float>(static_cast<float>(elbowOffsetX),
+                              static_cast<float>(elbowOffsetY),
+                              static_cast<float>(CLIMB_H_HAND_OFFSETS[aAnimationFrame].x),
+                              static_cast<float>(CLIMB_H_HAND_OFFSETS[aAnimationFrame].y)) -
+        AngleF::fromDegrees(90.f);
+
+    result.handOffset = {static_cast<float>(SHOULDER_X_OFFSET + CLIMB_H_HAND_OFFSETS[aAnimationFrame].x),
+                         static_cast<float>(SHOULDER_Y_OFFSET + CLIMB_H_HAND_OFFSETS[aAnimationFrame].y)};
     result.handAngle  = result.forearmAngle;
 
     return result;
@@ -169,12 +236,34 @@ ArmDrawParams GetArmDrawParams_Climb(hg::PZInteger aAnimationFrame) {
 
 void CharacterRenderer::update() {
     _frameCounter += 0.25f;
+
+    switch (_mode) {
+    case Mode::STILL:
+        _legsAngleCounter += 0.25f * 0.2f;
+        break;
+    
+    case Mode::CRAWL_VERTICAL:
+        _legsAngleCounter += 0.25f * 0.6f;
+        break;
+
+    case Mode::FLING:
+    case Mode::HUNKER:
+        _legsAngleCounter = 0.f;
+        break;
+
+    default:
+        HG_UNREACHABLE("Invalid draw mode.");
+    }
 }
 
 void CharacterRenderer::draw(hg::gr::Canvas& aCanvas) {
     switch (_mode) {
-    case Mode::CRAWL:
-        _drawClimb(aCanvas);
+    case Mode::STILL:
+        _drawStill(aCanvas);
+        break;
+    
+    case Mode::CRAWL_VERTICAL:
+        _drawClimbVertical(aCanvas);
         break;
 
     case Mode::FLING:
@@ -186,10 +275,10 @@ void CharacterRenderer::draw(hg::gr::Canvas& aCanvas) {
     }
 }
 
-void CharacterRenderer::_drawClimb(hg::gr::Canvas& aCanvas) {
+void CharacterRenderer::_drawClimbVertical(hg::gr::Canvas& aCanvas) {
     using namespace hg::math;
 
-    const float scale = 0.75;
+    const float scale = 1.f;
 
     _body.setPosition(_position);
     _body.setScale({scale, scale});
@@ -199,7 +288,7 @@ void CharacterRenderer::_drawClimb(hg::gr::Canvas& aCanvas) {
 
     // Right arm
     {
-        const auto params = GetArmDrawParams_Climb(animationFrame);
+        const auto params = GetArmDrawParams_ClimbVertical(animationFrame);
 
         _biceps.setPosition(
             {_position.x + scale * params.bicepsOffset.x, _position.y + scale * params.bicepsOffset.y});
@@ -225,7 +314,7 @@ void CharacterRenderer::_drawClimb(hg::gr::Canvas& aCanvas) {
 
     // Left arm
     {
-        const auto params = GetArmDrawParams_Climb((animationFrame + 4) % 8);
+        const auto params = GetArmDrawParams_ClimbVertical((animationFrame + 4) % 8);
 
         _biceps.setPosition(
             {_position.x - scale * params.bicepsOffset.x, _position.y + scale * params.bicepsOffset.y});
@@ -252,31 +341,33 @@ void CharacterRenderer::_drawClimb(hg::gr::Canvas& aCanvas) {
 
     // Legs
     {
+        const auto legsAngle = AngleF::fromDegrees(25.f) * std::sinf(_legsAngleCounter);
+
         auto&              shader = _ctx.getComponent<MResource>().getUnderpantsShader();
         hg::gr::glsl::Vec4 vec4{_color.r / 255.f, _color.g / 255.f, _color.b / 255.f, 1.f};
         shader.setUniform("playerColor", vec4);
 
         _legs.setPosition({_position.x, _position.y + scale * static_cast<float>(LEGS_Y_OFFSET)});
-        _legs.setRotation(AngleF::zero());
+        _legs.setRotation(legsAngle);
         _legs.setScale({scale, scale});
         aCanvas.draw(_legs, &shader);
     }
 }
 
-void CharacterRenderer::_drawStill(hg::gr::Canvas& aCanvas) {
+void CharacterRenderer::_drawClimbHorizontal(hg::gr::Canvas& aCanvas) {
     using namespace hg::math;
 
-    const float scale = 0.5;
+    const float scale = 1.f;
 
     _body.setPosition(_position);
     _body.setScale({scale, scale});
     aCanvas.draw(_body);
 
-    unsigned animationFrame = static_cast<unsigned>(0) % 8;
+    unsigned animationFrame = static_cast<unsigned>(_frameCounter) % 8;
 
     // Right arm
     {
-        const auto params = GetArmDrawParams_Climb(animationFrame);
+        const auto params = GetArmDrawParams_ClimbHorizontal(animationFrame);
 
         _biceps.setPosition(
             {_position.x + scale * params.bicepsOffset.x, _position.y + scale * params.bicepsOffset.y});
@@ -302,7 +393,7 @@ void CharacterRenderer::_drawStill(hg::gr::Canvas& aCanvas) {
 
     // Left arm
     {
-        const auto params = GetArmDrawParams_Climb((0 + 4) % 8);
+        const auto params = GetArmDrawParams_ClimbHorizontal((animationFrame + 4) % 8);
 
         _biceps.setPosition(
             {_position.x - scale * params.bicepsOffset.x, _position.y + scale * params.bicepsOffset.y});
@@ -315,7 +406,8 @@ void CharacterRenderer::_drawStill(hg::gr::Canvas& aCanvas) {
         _forearm.setScale({scale * 1.f, scale * -1.f});
 
         hg::gr::Multisprite* handSprite =
-            (((0 + 4) % 8) >= 3 && ((0 + 4) % 8) <= 6) ? &_closedHand : &_openHand;
+            (((animationFrame + 4) % 8) >= 3 && ((animationFrame + 4) % 8) <= 6) ? &_closedHand
+                                                                                 : &_openHand;
         handSprite->setPosition(
             {_position.x - scale * params.handOffset.x, _position.y + scale * params.handOffset.y});
         handSprite->setRotation(params.handAngle);
@@ -328,9 +420,91 @@ void CharacterRenderer::_drawStill(hg::gr::Canvas& aCanvas) {
 
     // Legs
     {
+        const auto legsAngle = AngleF::fromDegrees(25.f) * std::sinf(_legsAngleCounter);
+
+        auto&              shader = _ctx.getComponent<MResource>().getUnderpantsShader();
+        hg::gr::glsl::Vec4 vec4{_color.r / 255.f, _color.g / 255.f, _color.b / 255.f, 1.f};
+        shader.setUniform("playerColor", vec4);
+
         _legs.setPosition({_position.x, _position.y + scale * static_cast<float>(LEGS_Y_OFFSET)});
-        _legs.setRotation(AngleF::zero());
+        _legs.setRotation(legsAngle);
         _legs.setScale({scale, scale});
-        aCanvas.draw(_legs);
+        aCanvas.draw(_legs, &shader);
+    }
+}
+
+void CharacterRenderer::_drawStill(hg::gr::Canvas& aCanvas) {
+    using namespace hg::math;
+
+    const float scale = 1.f;
+
+    _body.setPosition(_position);
+    _body.setScale({scale, scale});
+    aCanvas.draw(_body);
+
+    const unsigned animationFrame = 0;
+
+    // Right arm
+    {
+        const auto params = GetArmDrawParams_ClimbVertical(animationFrame);
+
+        _biceps.setPosition(
+            {_position.x + scale * params.bicepsOffset.x, _position.y + scale * params.bicepsOffset.y});
+        _biceps.setRotation(params.bicepsAngle);
+        _biceps.setScale({scale * 1.f, scale * 1.f});
+
+        _forearm.setPosition({_position.x + scale * params.forearmOffset.x,
+                              _position.y + scale * params.forearmOffset.y});
+        _forearm.setRotation(params.forearmAngle);
+        _forearm.setScale({scale * 1.f, scale * 1.f});
+
+        hg::gr::Multisprite* handSprite = &_closedHand;
+        handSprite->setPosition(
+            {_position.x + scale * params.handOffset.x, _position.y + scale * params.handOffset.y});
+        handSprite->setRotation(params.handAngle);
+        handSprite->setScale({scale * 1.f, scale * 1.f});
+
+        aCanvas.draw(_forearm);
+        aCanvas.draw(*handSprite);
+        aCanvas.draw(_biceps);
+    }
+
+    // Left arm
+    {
+        const auto params = GetArmDrawParams_ClimbVertical(animationFrame);
+
+        _biceps.setPosition(
+            {_position.x - scale * params.bicepsOffset.x, _position.y + scale * params.bicepsOffset.y});
+        _biceps.setRotation(-params.bicepsAngle);
+        _biceps.setScale({scale * -1.f, scale * 1.f});
+
+        _forearm.setPosition({_position.x - scale * params.forearmOffset.x,
+                              _position.y + scale * params.forearmOffset.y});
+        _forearm.setRotation(params.forearmAngle + AngleF::fromDegrees(180.0));
+        _forearm.setScale({scale * 1.f, scale * -1.f});
+
+        hg::gr::Multisprite* handSprite = &_closedHand;
+        handSprite->setPosition(
+            {_position.x - scale * params.handOffset.x, _position.y + scale * params.handOffset.y});
+        handSprite->setRotation(params.handAngle);
+        handSprite->setScale({scale * -1.f, scale * 1.f});
+
+        aCanvas.draw(_forearm);
+        aCanvas.draw(*handSprite);
+        aCanvas.draw(_biceps);
+    }
+
+    // Legs
+    {
+        const auto legsAngle = AngleF::fromDegrees(15.f) * std::sinf(_legsAngleCounter);
+
+        auto&              shader = _ctx.getComponent<MResource>().getUnderpantsShader();
+        hg::gr::glsl::Vec4 vec4{_color.r / 255.f, _color.g / 255.f, _color.b / 255.f, 1.f};
+        shader.setUniform("playerColor", vec4);
+
+        _legs.setPosition({_position.x, _position.y + scale * static_cast<float>(LEGS_Y_OFFSET)});
+        _legs.setRotation(legsAngle);
+        _legs.setScale({scale, scale});
+        aCanvas.draw(_legs, &shader);
     }
 }

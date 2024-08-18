@@ -11,20 +11,18 @@
 
 namespace {
 #define NUM_COLORS 12
-static const hg::gr::Color COLORS[NUM_COLORS] = {
-    hg::gr::COLOR_BLACK,
-    hg::gr::COLOR_RED,
-    hg::gr::COLOR_GREEN,
-    hg::gr::COLOR_YELLOW,
-    hg::gr::COLOR_BLUE,
-    hg::gr::COLOR_ORANGE,
-    hg::gr::COLOR_PURPLE,
-    hg::gr::COLOR_TEAL,
-    hg::gr::COLOR_BROWN,
-    hg::gr::COLOR_FUCHSIA,
-    hg::gr::COLOR_GREY,
-    hg::gr::COLOR_WHITE
-};
+static const hg::gr::Color COLORS[NUM_COLORS] = {hg::gr::COLOR_BLACK,
+                                                 hg::gr::COLOR_RED,
+                                                 hg::gr::COLOR_GREEN,
+                                                 hg::gr::COLOR_YELLOW,
+                                                 hg::gr::COLOR_BLUE,
+                                                 hg::gr::COLOR_ORANGE,
+                                                 hg::gr::COLOR_PURPLE,
+                                                 hg::gr::COLOR_TEAL,
+                                                 hg::gr::COLOR_BROWN,
+                                                 hg::gr::COLOR_FUCHSIA,
+                                                 hg::gr::COLOR_GREY,
+                                                 hg::gr::COLOR_WHITE};
 } // namespace
 
 CharacterObject::CharacterObject(QAO_RuntimeRef aRuntimeRef, spe::RegistryId aRegId, spe::SyncId aSyncId)
@@ -52,6 +50,7 @@ CharacterObject::CharacterObject(QAO_RuntimeRef aRuntimeRef, spe::RegistryId aRe
     } else {
         _renderer.emplace(ctx(), hg::gr::COLOR_RED);
         _renderer->setSize(std::rand() % 5 + 1);
+        _renderer->setMode(CharacterRenderer::Mode::STILL);
     }
 }
 
@@ -72,9 +71,6 @@ void CharacterObject::init(int aOwningPlayerIndex, float aX, float aY) {
     cpBodySetPosition(_unibody, cpv(aX, aY));
 }
 
-void CharacterObject::_eventUpdate1(spe::IfDummy) {
-    _renderer->update();
-}
 bool CharacterObject::getFling() const {
     return jump;
 }
@@ -104,7 +100,6 @@ void CharacterObject::_eventUpdate1(spe::IfMaster) {
         float xInput = 0;
         float yInput = 0;
 
-
         if (grounded) {
             vSpeed = 0;
             yInput = (float)down - (float)up;
@@ -121,9 +116,9 @@ void CharacterObject::_eventUpdate1(spe::IfMaster) {
             finalY = character_speed * normal.y;
             wrapper.pollSimpleEvent(clientIndex, CTRL_ID_JUMP, [&]() {
                 if (grounded && currentFlingCooldown <= 0) {
-                    jumpDirection     = normal;
-                    jump     = true;
-                    grounded = false;
+                    jumpDirection        = normal;
+                    jump                 = true;
+                    grounded             = false;
                     currentFlingCooldown = fling_timer;
                 }
             });
@@ -142,10 +137,7 @@ void CharacterObject::_eventUpdate1(spe::IfMaster) {
             currentGroundTimer--;
         }
 
-
         finalY -= vSpeed;
-
-
 
         bool  touchingTerrain = false;
         auto& space           = ccomp<MEnvironment>().getSpace();
@@ -155,11 +147,10 @@ void CharacterObject::_eventUpdate1(spe::IfMaster) {
                                 touchingTerrain = true;
                             });
         if (!touchingTerrain) {
-            
+
             if (currentGroundTimer <= 0 && grounded != false) {
-                
+
                 currentGroundTimer = fall_timer;
-                
             }
             grounded = false;
         } else {
@@ -174,11 +165,30 @@ void CharacterObject::_eventUpdate1(spe::IfMaster) {
             grounded = true;
             jump     = false;
         }
+
         // HG_LOG_INFO(LOG_ID, "SADKASD KASMD {}, {}", currentGroundTimer, currentFlingCooldown);
+
         self.x += finalX;
         self.y += finalY;
+
         cpBodySetPosition(_unibody, cpv(self.x, self.y));
+
+        if (std::abs(finalY) < 0.05) {
+            self.renderMode = (std::int8_t)CharacterRenderer::Mode::STILL;
+        } else {
+            self.renderMode = (std::int8_t)CharacterRenderer::Mode::CRAWL_VERTICAL;
+        }
     }
+}
+
+void CharacterObject::_eventUpdate1(spe::IfDummy) {
+    if (this->isDeactivated() || ctx().getGameState().isPaused) {
+        return;
+    }
+
+    auto& self = _getCurrentState();
+    _renderer->setMode((CharacterRenderer::Mode)self.renderMode);
+    _renderer->update();
 }
 
 void CharacterObject::_eventPostUpdate(spe::IfMaster) {
@@ -186,8 +196,9 @@ void CharacterObject::_eventPostUpdate(spe::IfMaster) {
 }
 
 void CharacterObject::_eventDraw1() {
-    if (this->isDeactivated())
+    if (this->isDeactivated()) {
         return;
+    }
 
     const auto& self = _getCurrentState();
 
@@ -250,22 +261,20 @@ hg::alvin::CollisionDelegate CharacterObject::_initColDelegate() {
             }
             return hg::alvin::Decision::ACCEPT_COLLISION;
         });
-        
+
         */
     builder.addInteraction<CharacterInterface>(
         hg::alvin::COLLISION_PRE_SOLVE,
         [this](CharacterInterface& aCharacter, const hg::alvin::CollisionData& aCollisionData) {
             // DO INTERACTION
-            
+
             if (aCharacter.getFling()) {
-                grounded = false;
+                grounded           = false;
                 currentGroundTimer = fall_timer;
             }
             return hg::alvin::Decision::ACCEPT_COLLISION;
         });
 
-
-    
     return builder.finalize();
 }
 

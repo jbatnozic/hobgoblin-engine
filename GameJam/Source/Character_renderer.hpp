@@ -2,14 +2,15 @@
 
 #include "Engine.hpp"
 
-#include <Hobgoblin/Math/Vector.hpp>
 #include <Hobgoblin/Graphics.hpp>
+#include <Hobgoblin/Math/Vector.hpp>
 
 class CharacterRenderer {
 public:
-    enum class Mode {
+    enum class Mode : std::int8_t {
         STILL,
-        CRAWL,
+        CRAWL_VERTICAL,
+        CRAWL_HORIZONTAL,
         FLING,
         HUNKER
     };
@@ -30,11 +31,12 @@ public:
 private:
     spe::GameContext& _ctx;
 
-    Mode _mode = Mode::CRAWL;
+    Mode _mode = Mode::CRAWL_VERTICAL;
 
-    float _frameCounter = 0.f;
+    float _frameCounter     = 0.f;
+    float _legsAngleCounter = 0.f;
 
-    hg::math::Vector2f _position; 
+    hg::math::Vector2f _position;
     hg::gr::Color      _color;
 
     hg::gr::Multisprite _body;
@@ -45,5 +47,6 @@ private:
     hg::gr::Multisprite _closedHand;
 
     void _drawStill(hg::gr::Canvas& aCanvas);
-    void _drawClimb(hg::gr::Canvas& aCanvas);
+    void _drawClimbVertical(hg::gr::Canvas& aCanvas);
+    void _drawClimbHorizontal(hg::gr::Canvas& aCanvas);
 };
