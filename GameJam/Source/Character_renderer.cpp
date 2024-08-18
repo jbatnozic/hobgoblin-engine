@@ -375,7 +375,7 @@ void CharacterRenderer::draw(hg::gr::Canvas& aCanvas) {
 void CharacterRenderer::_drawClimbVertical(hg::gr::Canvas& aCanvas) {
     using namespace hg::math;
 
-    const float scale = 1.f;
+    const float scale = _scale;
 
     _body.setPosition(_position);
     _body.setScale({scale, scale});
@@ -454,7 +454,7 @@ void CharacterRenderer::_drawClimbVertical(hg::gr::Canvas& aCanvas) {
 void CharacterRenderer::_drawClimbHorizontal(hg::gr::Canvas& aCanvas, int aDirection) {
     using namespace hg::math;
 
-    const float scale = 1.f;
+    const float scale = _scale;
 
     _body.setPosition(_position);
     _body.setScale({scale, scale});
@@ -533,7 +533,7 @@ void CharacterRenderer::_drawClimbHorizontal(hg::gr::Canvas& aCanvas, int aDirec
 void CharacterRenderer::_drawStill(hg::gr::Canvas& aCanvas) {
     using namespace hg::math;
 
-    const float scale = 1.f;
+    const float scale = _scale;
 
     _body.setPosition(_position);
     _body.setScale({scale, scale});
@@ -609,7 +609,7 @@ void CharacterRenderer::_drawStill(hg::gr::Canvas& aCanvas) {
 void CharacterRenderer::_drawFling(hg::gr::Canvas& aCanvas) {
     using namespace hg::math;
 
-    const float scale = 1.f;
+    const float scale = _scale;
 
     _body.setPosition(_position);
     _body.setScale({scale, scale});

@@ -17,6 +17,8 @@ static constexpr cpFloat HEIGHT = 200.0;
 static constexpr cpFloat RAY_X_OFFSET = +150.0;
 static constexpr cpFloat RAY_Y_OFFSET = -130.0;
 
+static constexpr float CAMERA_OFFSET = 512.f;
+
 #define NUM_COLORS 12
 static const hg::gr::Color COLORS[NUM_COLORS] = {hg::gr::COLOR_BLACK,
                                                  hg::gr::COLOR_RED,
@@ -186,11 +188,11 @@ void CharacterObject::_eventUpdate1(spe::IfMaster) {
 
         if (jump) {
             self.renderMode = (std::int8_t)CharacterRenderer::Mode::FLING;
-        } else if (std::abs(finalY) < 0.05) {
-            if (std::abs(finalX) < 0.05) {
+        } else if (std::abs(finalY) < 0.05f) {
+            if (std::abs(finalX) < 0.05f) {
                 self.renderMode = (std::int8_t)CharacterRenderer::Mode::STILL;
             } else {
-                if (finalX > 0) {
+                if (finalX > 0.f) {
                     self.renderMode = (std::int8_t)CharacterRenderer::Mode::CRAWL_HORIZONTAL_PLUS;
                 } else {
                     self.renderMode = (std::int8_t)CharacterRenderer::Mode::CRAWL_HORIZONTAL_MINUS;
@@ -198,6 +200,22 @@ void CharacterObject::_eventUpdate1(spe::IfMaster) {
             }
         } else {
             self.renderMode = (std::int8_t)CharacterRenderer::Mode::CRAWL_VERTICAL;
+        }
+
+        self.direction = DIRECTION_NONE;
+        if (std::abs(finalX) >= 0.05f) {
+            if (finalX > 0.0f) {
+                self.direction |= DIRECTION_RIGHT;
+            } else {
+                self.direction |= DIRECTION_LEFT;
+            }
+        }
+        if (std::abs(finalY) >= 0.05f) {
+            if (finalY > 0.0f) {
+                self.direction |= DIRECTION_DOWN;
+            } else {
+                self.direction |= DIRECTION_UP;
+            }
         }
     }
 }
@@ -210,6 +228,11 @@ void CharacterObject::_eventUpdate1(spe::IfDummy) {
     auto& self = _getCurrentState();
     _renderer->setMode((CharacterRenderer::Mode)self.renderMode);
     _renderer->update();
+
+    auto& lobbyBackend = ccomp<MLobbyBackend>();
+    if (lobbyBackend.getLocalPlayerIndex() == self.owningPlayerIndex) {
+        _adjustView();
+    }
 }
 
 void CharacterObject::_eventPostUpdate(spe::IfMaster) {
@@ -254,12 +277,6 @@ void CharacterObject::_eventDraw1() {
         rect.setPosition(self.x - (float)RAY_X_OFFSET, self.y + (float)RAY_Y_OFFSET);
         canvas.draw(rect);
     }
-
-    auto& lobbyBackend = ccomp<MLobbyBackend>();
-    if (lobbyBackend.getLocalPlayerIndex() == self.owningPlayerIndex) {
-        auto& camera = winMgr.getViewController().getView(0);
-        camera.setCenter(self.x, self.y);
-    }
 }
 
 void CharacterObject::_eventDraw2() {
@@ -286,32 +303,6 @@ void CharacterObject::_eventDraw2() {
 
 hg::alvin::CollisionDelegate CharacterObject::_initColDelegate() {
     auto builder = hg::alvin::CollisionDelegateBuilder{};
-
-    /* builder.addInteraction<LootInterface>(
-        hg::alvin::COLLISION_POST_SOLVE,
-        [this](LootInterface& aLoot, const hg::alvin::CollisionData& aCollisionData) {
-            // DO INTERACTION
-        });
-    builder.addInteraction<TerrainInterface>(
-        hg::alvin::COLLISION_SEPARATE,
-        [this](TerrainInterface& aTerrain, const hg::alvin::CollisionData& aCollisionData) {
-            // DO INTERACTION
-            HG_LOG_INFO(LOG_ID, "SADKASD KASMD ");
-            grounded = false;
-            currentGroundTimer = fall_timer;
-
-        });
-        builder.addInteraction<TerrainInterface>(
-        hg::alvin::COLLISION_PRE_SOLVE,
-        [this](TerrainInterface& aTerrain, const hg::alvin::CollisionData& aCollisionData) {
-            // DO INTERACTION
-            if (currentGroundTimer <= 0 && currentFlingCooldown <= 0) {
-                grounded = true;
-            }
-            return hg::alvin::Decision::ACCEPT_COLLISION;
-        });
-
-        */
     builder.addInteraction<CharacterInterface>(
         hg::alvin::COLLISION_PRE_SOLVE,
         [this](CharacterInterface& aCharacter, const hg::alvin::CollisionData& aCollisionData) {
@@ -325,6 +316,41 @@ hg::alvin::CollisionDelegate CharacterObject::_initColDelegate() {
         });
 
     return builder.finalize();
+}
+
+namespace {
+hg::math::AngleF PointDirection2(hg::math::Vector2f aFrom, hg::math::Vector2f aTo) {
+    return hg::math::PointDirection(aFrom.x, aFrom.y, aTo.x, aTo.y);
+}
+} // namespace
+
+void CharacterObject::_adjustView() {
+    auto& self = _getCurrentState();
+    auto& view = ccomp<MWindow>().getView(0);
+
+    auto targetPos = sf::Vector2f{self.x, self.y};
+    if (self.direction & DIRECTION_RIGHT) {
+        targetPos.x += CAMERA_OFFSET;
+    }
+    if (self.direction & DIRECTION_LEFT) {
+        targetPos.x -= CAMERA_OFFSET;
+    }
+    if (self.direction & DIRECTION_DOWN) {
+        targetPos.y += CAMERA_OFFSET;
+    }
+    if (self.direction & DIRECTION_UP) {
+        targetPos.y -= CAMERA_OFFSET;
+    }
+
+    const auto viewCenter = view.getCenter();
+    const auto dist =
+        hg::math::EuclideanDist<float>(viewCenter.x, viewCenter.y, targetPos.x, targetPos.y);
+    const auto theta = PointDirection2(view.getCenter(), targetPos).asRadians();
+    if (dist >= 2.f) {
+        view.move(+std::cosf(theta) * dist * 0.045f, -std::sinf(theta) * dist * 0.045f);
+    } else {
+        view.setCenter(targetPos);
+    }
 }
 
 SPEMPE_GENERATE_DEFAULT_SYNC_HANDLERS(CharacterObject, (CREATE, UPDATE, DESTROY));

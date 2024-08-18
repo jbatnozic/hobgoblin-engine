@@ -43,6 +43,7 @@ void MainGameplayManager::setToClientMode() {
     views.getView(0).setSize({1920.f, 1080.f});
     views.getView(0).setViewport({0.f, 0.f, 1.f, 1.f});
     views.getView(0).setCenter({0.f, 0.f});
+    views.getView(0).zoom(2.0);
 }
 
 MainGameplayManager::Mode MainGameplayManager::getMode() const {
