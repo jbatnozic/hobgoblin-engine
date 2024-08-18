@@ -60,6 +60,12 @@ std::unique_ptr<spe::GameContext> CreateServerContext(const ServerGameParams& aP
     winMgr->setToHeadlessMode(timingConfig);
     context->attachAndOwnComponent(std::move(winMgr));
 
+    // Loop timing reporter
+    QAO_PCreate<spe::EventLoopTimingReporter>(
+        context->getQAORuntime(),
+        0,
+        spe::EventLoopTimingReporter::Config{TELEMETRY_CYCLE_LENGTH});
+
     // Networking manager
     auto netMgr = QAO_UPCreate<spe::DefaultNetworkingManager>(context->getQAORuntime().nonOwning(),
                                                               PRIORITY_NETWORKMGR,
@@ -206,6 +212,12 @@ std::unique_ptr<spe::GameContext> CreateBasicClientContext() {
     Rml::Debugger::SetVisible(true);
 
     context->attachAndOwnComponent(std::move(winMgr));
+
+    // Loop timing reporter
+    QAO_PCreate<spe::EventLoopTimingReporter>(
+        context->getQAORuntime(),
+        0,
+        spe::EventLoopTimingReporter::Config{TELEMETRY_CYCLE_LENGTH});
 
     // Resource manager
     auto resMgr =

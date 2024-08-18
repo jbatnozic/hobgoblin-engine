@@ -43,9 +43,9 @@ private:
     hobgoblin::PZInteger _counter;
 
     std::uint64_t _ordinalAtStartOfCycle;
-    std::chrono::microseconds _totalUpdateTime;
-    std::chrono::microseconds _totalDrawTime;
-    std::chrono::microseconds _totalDisplayTime;
+    std::chrono::nanoseconds _totalUpdateTime;
+    std::chrono::nanoseconds _totalDrawTime;
+    std::chrono::nanoseconds _totalDisplayTime;
     hobgoblin::PZInteger _catchUpIterationCount;
 
     void _eventPreUpdate() override;

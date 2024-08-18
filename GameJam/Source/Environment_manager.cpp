@@ -205,10 +205,26 @@ void EnvironmentManager::_eventUpdate1() {
 }
 
 void EnvironmentManager::_eventDraw1() {
+    auto& winMgr = ccomp<MWindow>();
+    auto& view   = winMgr.getView(0);
+    auto& canvas = winMgr.getCanvas();
+    canvas.clear(hg::gr::COLOR_SKY_BLUE);
 
-    auto& canvas = ccomp<MWindow>().getCanvas();
-    for (hg::PZInteger y = 0; y < _cells.getHeight(); y += 1) {
-        for (hg::PZInteger x = 0; x < _cells.getWidth(); x += 1) {
+    const hg::PZInteger startX = std::max(
+        static_cast<int>((view.getCenter().x - view.getSize().x / 2.f) / (float)CELL_RESOLUTION - 1.f),
+        0);
+    const hg::PZInteger startY = std::max(
+        static_cast<int>((view.getCenter().y - view.getSize().y / 2.f) / (float)CELL_RESOLUTION - 1.f),
+        0);
+    const hg::PZInteger endX = std::min(
+        static_cast<int>((view.getCenter().x + view.getSize().x / 2.f) / (float)CELL_RESOLUTION + 1.f),
+        _cells.getWidth());
+    const hg::PZInteger endY = std::min(
+        static_cast<int>((view.getCenter().y + view.getSize().y / 2.f) / (float)CELL_RESOLUTION + 1.f),
+        _cells.getHeight());
+
+    for (hg::PZInteger y = startY; y < endY; y += 1) {
+        for (hg::PZInteger x = startX; x < endX; x += 1) {
             if (_cells[y][x] == CellKind::EMPTY) {
                 continue;
             }

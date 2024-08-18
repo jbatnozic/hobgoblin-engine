@@ -4,7 +4,7 @@
 
 	%%fp:src: -f lobby-spritesheet.tga -w 1024 -h 1024
 
-	%%fp:sprite: -n frame    -f ./frame.png
+	%%fp:sprite: -n frame    -f ./frame-l.png
 	%%fp:sprite: -n titlebar -f ./titlebar.png
 
 %%fp:spritesheet_end

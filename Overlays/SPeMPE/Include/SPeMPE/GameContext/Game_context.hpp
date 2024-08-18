@@ -150,7 +150,7 @@ public:
     void stop();
 
     struct PerformanceInfo {
-        using microseconds = std::chrono::microseconds;
+        using nanoseconds  = std::chrono::nanoseconds;
         using steady_clock = std::chrono::steady_clock;
 
         //! Time point showing the time when the most recent QAO Update step was
@@ -161,7 +161,7 @@ public:
         steady_clock::time_point updateStart;
 
         //! Duration of the last finished Update step.
-        microseconds updateTime{0};
+        nanoseconds updateTime{0};
 
         //! Time point showing the time when the most recent QAO Draw step was
         //! started (undefined if no Draw step was started yet).
@@ -171,7 +171,7 @@ public:
         steady_clock::time_point drawStart;
 
         //! Duration of the last finished Draw step.
-        microseconds drawTime{0};
+        nanoseconds drawTime{0};
 
         //! Time point showing the time when the most recent QAO Display step was
         //! started (undefined if no Display step was started yet).
@@ -181,10 +181,10 @@ public:
         steady_clock::time_point displayStart;
 
         //! Duration of the last finished Display step.
-        microseconds displayTime{0};
+        nanoseconds displayTime{0};
 
         //! Duration of the last fully finished iteration.
-        microseconds iterationTime{0};
+        nanoseconds iterationTime{0};
 
         //! Number of consecutive Update steps in an iteration.
         //! During the first Update step in an iteration, this variable

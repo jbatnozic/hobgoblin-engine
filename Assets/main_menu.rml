@@ -23,7 +23,7 @@
         <!-- WINDOW INTERIOR -->
         <div id="window-interior-holder" data-model="mainmenu-model">
 
-            <div data-if="testMode == true" class="window-contents">
+            <div data-if="testMode == true" style="padding-left: 40dp; padding-top: 40dp;">
                 <p style="color: red;">!!!!! TESTING MODE !!!!!</p>
             </div>
 
@@ -31,8 +31,8 @@
             <form onsubmit="submit_form" data-event-change="">
                 <div class="window-contents">
                     <p>
-                        <p>Name:</p><br/>
-                        <input class="text-box" id="playerName" type="text" name="playerName" value="Player123" /><br/>
+                        <p>What is my name? Is it maybe...</p><br/>
+                        <input class="text-box" id="playerName" type="text" name="playerName" value="Bulk-Squat-Thrust" /><br/>
                         <br/><p>Server IP Address:</p><br/>
                         <input class="text-box" id="serverIp"   type="text" name="serverIp"   value="localhost" /><br/>
                         <br/><p>Server Port:</p><br/>

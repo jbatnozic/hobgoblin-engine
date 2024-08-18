@@ -76,6 +76,8 @@ div#window-interior-holder {
     border-color: #000000;
     background-color: white;
 
+    width: 320dp;
+
     padding-left: 4dp;
 	padding-top: 4dp;
 }

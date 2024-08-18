@@ -191,9 +191,7 @@ void CharacterObject::_eventUpdate1(spe::IfMaster) {
 
         cpBodySetPosition(_unibody, cpv(self.x, self.y));
 
-        if (jump) {
-            self.renderMode = (std::int8_t)CharacterRenderer::Mode::FLING;
-        } else if (std::abs(finalY) < 0.05f) {
+        if (std::abs(finalY) < 0.05f) {
             if (std::abs(finalX) < 0.05f) {
                 self.renderMode = (std::int8_t)CharacterRenderer::Mode::STILL;
             } else {
@@ -204,7 +202,11 @@ void CharacterObject::_eventUpdate1(spe::IfMaster) {
                 }
             }
         } else {
-            self.renderMode = (std::int8_t)CharacterRenderer::Mode::CRAWL_VERTICAL;
+            if (finalY < 0 && jump) {
+                self.renderMode = (std::int8_t)CharacterRenderer::Mode::FLING;
+            } else {
+                self.renderMode = (std::int8_t)CharacterRenderer::Mode::CRAWL_VERTICAL;
+            }
         }
 
         self.direction = DIRECTION_NONE;
@@ -259,6 +261,7 @@ void CharacterObject::_eventDraw1() {
     _renderer->setPosition({self.x, self.y});
     _renderer->draw(canvas);
 
+#if 0
     // Body bbox
     {
         hg::gr::RectangleShape rect{
@@ -283,6 +286,7 @@ void CharacterObject::_eventDraw1() {
         rect.setPosition(self.x - (float)RAY_X_OFFSET, self.y + (float)RAY_Y_OFFSET);
         canvas.draw(rect);
     }
+#endif
 }
 
 void CharacterObject::_eventDraw2() {
@@ -296,13 +300,14 @@ void CharacterObject::_eventDraw2() {
         const auto&  name = lobbyBackend.getLockedInPlayerInfo(self.owningPlayerIndex).name;
         hg::gr::Text text{hg::gr::BuiltInFonts::getFont(hg::gr::BuiltInFonts::TITILLIUM_REGULAR),
                           name,
-                          40};
+                          30};
+        text.setScale({2.f, 2.f});
         text.setFillColor(hg::gr::COLOR_WHITE);
         text.setOutlineColor(hg::gr::COLOR_BLACK);
-        text.setOutlineThickness(2.f);
+        text.setOutlineThickness(4.f);
         const auto& localBounds = text.getLocalBounds();
         text.setOrigin({localBounds.w / 2.f, localBounds.h / 2.f});
-        text.setPosition({self.x, self.y - 120.f});
+        text.setPosition({self.x, self.y - 180.f});
         ccomp<MWindow>().getCanvas().draw(text);
     }
 }
