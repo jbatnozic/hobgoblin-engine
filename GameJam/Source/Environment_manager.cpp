@@ -7,7 +7,8 @@
 #include "Collisions.hpp"
 
 #include <array>
-
+#include <deque>
+#include <sstream>
 #include "Config.hpp"
 #include "Loot.hpp"
 #include "Resource_manager_interface.hpp"
@@ -120,12 +121,78 @@ EnvironmentManager::Mode EnvironmentManager::getMode() const {
 
 void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHeight) {
     // Cells
-    _cells.resize(aWidth, aHeight);
+    std::deque<std::deque<CellKind>> _temp_cells;
+    std::ostringstream oss;
+    _temp_cells.push_back({});
+    _temp_cells.push_back({});
+    for (int j = 0; j < 4; j++) {
+        _temp_cells[0].push_back(CellKind::EMPTY);
+       
+        _temp_cells[1].push_back(CellKind::ROCK_3);
+        
+    }
+    
+    _temp_cells[0].push_back(CellKind::SCALE);
+    for (int i = 1; i < mountain_height; i++) {
+        auto _num = hg::util::GetRandomNumber<std::int32_t>(0, 10000) *0.0001;
+        int  slope_left = 0;
+        while (slope_chance < _num) {
+            slope_left++;
+            _num = hg::util::GetRandomNumber<std::int32_t>(0, 10000) * 0.0001;
+        }
+        int slope_right = 0;
+        while (slope_chance < _num) {
+            slope_right++;
+            _num = hg::util::GetRandomNumber<std::int32_t>(0, 10000) * 0.0001;
+        }
+
+        _temp_cells.push_back({});
+        for (auto& item : _temp_cells[_temp_cells.size() - 2]) {
+            _temp_cells[_temp_cells.size() - 1].push_back(item);
+        }
+        for (int j = 0; j < _temp_cells.size(); j++) {
+            for (int l = 0; l < slope_left; l++) {
+                if (_temp_cells.size() - 1>=0 && j == _temp_cells.size() - 1) {
+                    _temp_cells[j].push_front(CellKind::ROCK_1);
+                } else if (_temp_cells.size() - 2 >= 0 && j == _temp_cells.size() - 2) {
+                    if (l == slope_left - 1) {
+                        _temp_cells[j].push_front(CellKind::ROCK_MT_1);
+                    } else {
+                        _temp_cells[j].push_front(CellKind::EMPTY);
+                    }
+                    
+                } else {
+                    _temp_cells[j].push_front(CellKind::EMPTY);
+                }
+                
+            }
+            for (int r = 0; r < slope_right; r++) {
+                if (_temp_cells.size() - 1 >= 0 && j == _temp_cells.size() - 1) {
+                    _temp_cells[j].push_back(CellKind::ROCK_1);
+                } else if (_temp_cells.size() - 2 >= 0 && j == _temp_cells.size() - 2) {
+                    if (r == slope_right - 1) {
+                        _temp_cells[j].push_back(CellKind::ROCK_T_1);
+                    } else {
+                        _temp_cells[j].push_back(CellKind::EMPTY);
+                    }
+
+                } else {
+                    _temp_cells[j].push_back(CellKind::EMPTY);
+                }
+            }
+        }
+
+    }
+    _cells.resize(_temp_cells[0].size(), _temp_cells.size());
     //_cells.setAll(CellKind::ROCK);
-    for (hg::PZInteger y = 0; y < aHeight; y += 1) {
-        for (hg::PZInteger x = 0; x < aWidth; x += 1) {
-            auto _num = hg::util::GetRandomNumber<std::int32_t>(0, 3);
-            switch (_num) {
+    for (hg::PZInteger y = 0; y < _temp_cells.size(); y += 1) {
+        std::ostringstream oss;
+        for (hg::PZInteger x = 0; x < _temp_cells[y].size(); x += 1) {
+            _cells[y][x] = _temp_cells[y][x];
+            oss << (int)_temp_cells[y][x];
+            
+            /* auto _num = hg::util::GetRandomNumber<std::int32_t>(0, 3);
+            switch (_num) { 
             case 0:
                 _cells[y][x] = CellKind::ROCK_1;
                 break;
@@ -135,8 +202,13 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
             case 2:
                 _cells[y][x] = CellKind::ROCK_3;
                 break;
-            }
+            default:
+                _cells[y][x] = CellKind::ROCK_1;
+                break;
+            }*/
+
         }
+        HG_LOG_FATAL(LOG_ID, "{}", oss.str());
     }
     // Collision delegate
     _collisionDelegate.emplace(hg::alvin::CollisionDelegateBuilder{}
@@ -148,9 +220,9 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
     _space->add(*_terrainBody);
 
     // Shapes
-    _shapes.resize(aWidth, aHeight);
-    for (hg::PZInteger y = 0; y < aHeight; y += 1) {
-        for (hg::PZInteger x = 0; x < aWidth; x += 1) {
+    _shapes.resize(_temp_cells[0].size(), _temp_cells.size());
+    for (hg::PZInteger y = 0; y < _temp_cells.size(); y += 1) {
+        for (hg::PZInteger x = 0; x < _temp_cells[y].size(); x += 1) {
             if (_cells[y][x] != CellKind::EMPTY) {
                 auto alvinShape = hg::alvin::Shape{CreateRectanglePolyShape(*_terrainBody, {x, y})};
                 {
