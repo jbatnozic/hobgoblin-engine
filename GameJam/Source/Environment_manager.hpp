@@ -39,6 +39,8 @@ public:
 
     std::optional<CellKind> getCellKindOfShape(NeverNull<cpShape*> aShape) const override;
 
+     hg::gr::Multisprite _spr;
+
 private:
     Mode _mode = Mode::UNINITIALIZED;
 

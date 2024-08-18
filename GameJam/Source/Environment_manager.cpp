@@ -8,6 +8,8 @@
 
 #include <array>
 #include "Config.hpp"
+#include "Resource_manager_interface.hpp"
+#include "Sprite_manifest.hpp"
 
 void SetTerrainImpl(EnvironmentManager& aEnvMgr,
                     hg::PZInteger       aWidth,
@@ -83,6 +85,12 @@ void SetTerrainImpl(EnvironmentManager& aEnvMgr,
 EnvironmentManager::EnvironmentManager(QAO_RuntimeRef aRuntimeRef, int aExecutionPriority)
     : NonstateObject{aRuntimeRef, SPEMPE_TYPEID_SELF, aExecutionPriority, "EnvironmentManager"} {
     ccomp<MNetworking>().addEventListener(this);
+
+    if (ccomp<MResource>().getMode() == ResourceManagerInterface::Mode::CLIENT) {
+        const auto& sprLoader = ccomp<MResource>().getSpriteLoader();
+        _spr                  = sprLoader.getMultiBlueprint(SPR_MOUNTAIN).multispr();
+    }
+
 }
 
 EnvironmentManager::~EnvironmentManager() {
@@ -183,9 +191,18 @@ void EnvironmentManager::_eventDraw1() {
     for (hg::PZInteger y = 0; y < _cells.getHeight(); y += 1) {
         for (hg::PZInteger x = 0; x < _cells.getWidth(); x += 1) {
             if (_cells[y][x] == CellKind::ROCK) {
-                rect.setPosition(x * (float)CELL_RESOLUTION, y * (float)CELL_RESOLUTION);
-                canvas.draw(rect);
+                /* rect.setPosition(x * (float)CELL_RESOLUTION, y * (float)CELL_RESOLUTION);
+                canvas.draw(rect);*/
+                _spr.selectSubsprite(std::rand() % 3);
+                _spr.setPosition(x * (float)_spr.getLocalBounds().w, y * (float)_spr.getLocalBounds().h);
+                canvas.draw(_spr);
             }
+
+            /* switch (_cells[y][x]) { 
+                case 0_spr.selectSubsprite(2);
+                std::rand() % 5 + 1
+                _body.setScale({scale, scale});
+            }*/
 
         }
     }

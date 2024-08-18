@@ -30,12 +30,14 @@ enum SpriteIds {
     SPR_FOREARM_SIZE_3,
     SPR_FOREARM_SIZE_4,
     SPR_FOREARM_SIZE_5,
+    //MOUNTAIN
+    SPR_MOUNTAIN
 };
 
 inline void LoadSprites(hg::gr::SpriteLoader& aSpriteLoader) {
     const std::filesystem::path basePath = "Assets/Sprites";
     float occupancy = 0.f;
-
+    const std::filesystem::path mountainPath = "Assets/Sprites/Mountain";
     ///////////////////////////////////////////////////////////////////////////
     // PLAYER CHARACTER                                                      //
     ///////////////////////////////////////////////////////////////////////////
@@ -65,6 +67,11 @@ inline void LoadSprites(hg::gr::SpriteLoader& aSpriteLoader) {
         ->addSubsprite(SPR_FOREARM_SIZE_3, basePath / "b3r2.png")
         ->addSubsprite(SPR_FOREARM_SIZE_4, basePath / "b4r2.png")
         ->addSubsprite(SPR_FOREARM_SIZE_5, basePath / "b5r2.png")
+        // Mountain sprites
+        //
+        ->addSubsprite(SPR_MOUNTAIN, mountainPath / "m1.png")
+        ->addSubsprite(SPR_MOUNTAIN, mountainPath / "m2.png")
+        ->addSubsprite(SPR_MOUNTAIN, mountainPath / "m3.png")
         // Finalize
         ->finalize(hg::gr::TexturePackingHeuristic::BestAreaFit, &occupancy);
     HG_LOG_INFO(LOG_ID,
