@@ -239,11 +239,23 @@ void CharacterRenderer::update() {
 
     switch (_mode) {
     case Mode::STILL:
-        _legsAngleCounter += 0.25f * 0.2f;
+        _legsAngleCounter += (hg::math::PI_F / 25.f) * 0.2f;
         break;
     
     case Mode::CRAWL_VERTICAL:
-        _legsAngleCounter += 0.25f * 0.6f;
+        _legsAngleCounter += (hg::math::PI_F / 25.f) * 0.6f;
+        break;
+
+    case Mode::CRAWL_HORIZONTAL_PLUS:
+        if (std::abs(std::sinf(_legsAngleCounter) - (-1.f)) > 0.1f) {
+            _legsAngleCounter += (hg::math::PI_F / 25.f) * 2.f;
+        }
+        break;
+
+    case Mode::CRAWL_HORIZONTAL_MINUS:
+        if (std::abs(std::sinf(_legsAngleCounter) - (+1.f)) > 0.1f) {
+            _legsAngleCounter += (hg::math::PI_F / 25.f) * 2.f;
+        }
         break;
 
     case Mode::FLING:
@@ -264,6 +276,14 @@ void CharacterRenderer::draw(hg::gr::Canvas& aCanvas) {
     
     case Mode::CRAWL_VERTICAL:
         _drawClimbVertical(aCanvas);
+        break;
+
+    case Mode::CRAWL_HORIZONTAL_PLUS:
+        _drawClimbHorizontal(aCanvas, +1);
+        break;
+
+    case Mode::CRAWL_HORIZONTAL_MINUS:
+        _drawClimbHorizontal(aCanvas, -1);
         break;
 
     case Mode::FLING:
@@ -323,7 +343,7 @@ void CharacterRenderer::_drawClimbVertical(hg::gr::Canvas& aCanvas) {
 
         _forearm.setPosition({_position.x - scale * params.forearmOffset.x,
                               _position.y + scale * params.forearmOffset.y});
-        _forearm.setRotation(params.forearmAngle + AngleF::fromDegrees(180.0));
+        _forearm.setRotation(-params.forearmAngle + AngleF::fromDegrees(180.0));
         _forearm.setScale({scale * 1.f, scale * -1.f});
 
         hg::gr::Multisprite* handSprite =
@@ -331,7 +351,7 @@ void CharacterRenderer::_drawClimbVertical(hg::gr::Canvas& aCanvas) {
                                                                                  : &_openHand;
         handSprite->setPosition(
             {_position.x - scale * params.handOffset.x, _position.y + scale * params.handOffset.y});
-        handSprite->setRotation(params.handAngle);
+        handSprite->setRotation(-params.handAngle);
         handSprite->setScale({scale * -1.f, scale * 1.f});
 
         aCanvas.draw(_forearm);
@@ -341,7 +361,7 @@ void CharacterRenderer::_drawClimbVertical(hg::gr::Canvas& aCanvas) {
 
     // Legs
     {
-        const auto legsAngle = AngleF::fromDegrees(25.f) * std::sinf(_legsAngleCounter);
+        const auto legsAngle = AngleF::fromDegrees(15.f) * std::sinf(_legsAngleCounter);
 
         auto&              shader = _ctx.getComponent<MResource>().getUnderpantsShader();
         hg::gr::glsl::Vec4 vec4{_color.r / 255.f, _color.g / 255.f, _color.b / 255.f, 1.f};
@@ -354,7 +374,7 @@ void CharacterRenderer::_drawClimbVertical(hg::gr::Canvas& aCanvas) {
     }
 }
 
-void CharacterRenderer::_drawClimbHorizontal(hg::gr::Canvas& aCanvas) {
+void CharacterRenderer::_drawClimbHorizontal(hg::gr::Canvas& aCanvas, int aDirection) {
     using namespace hg::math;
 
     const float scale = 1.f;
@@ -393,7 +413,7 @@ void CharacterRenderer::_drawClimbHorizontal(hg::gr::Canvas& aCanvas) {
 
     // Left arm
     {
-        const auto params = GetArmDrawParams_ClimbHorizontal((animationFrame + 4) % 8);
+        const auto params = GetArmDrawParams_ClimbHorizontal((animationFrame + 0) % 8);
 
         _biceps.setPosition(
             {_position.x - scale * params.bicepsOffset.x, _position.y + scale * params.bicepsOffset.y});
@@ -402,15 +422,15 @@ void CharacterRenderer::_drawClimbHorizontal(hg::gr::Canvas& aCanvas) {
 
         _forearm.setPosition({_position.x - scale * params.forearmOffset.x,
                               _position.y + scale * params.forearmOffset.y});
-        _forearm.setRotation(params.forearmAngle + AngleF::fromDegrees(180.0));
+        _forearm.setRotation(-params.forearmAngle + AngleF::fromDegrees(180.0));
         _forearm.setScale({scale * 1.f, scale * -1.f});
 
         hg::gr::Multisprite* handSprite =
-            (((animationFrame + 4) % 8) >= 3 && ((animationFrame + 4) % 8) <= 6) ? &_closedHand
+            (((animationFrame + 0) % 8) >= 3 && ((animationFrame + 0) % 8) <= 6) ? &_closedHand
                                                                                  : &_openHand;
         handSprite->setPosition(
             {_position.x - scale * params.handOffset.x, _position.y + scale * params.handOffset.y});
-        handSprite->setRotation(params.handAngle);
+        handSprite->setRotation(-params.handAngle);
         handSprite->setScale({scale * -1.f, scale * 1.f});
 
         aCanvas.draw(_forearm);
@@ -420,7 +440,8 @@ void CharacterRenderer::_drawClimbHorizontal(hg::gr::Canvas& aCanvas) {
 
     // Legs
     {
-        const auto legsAngle = AngleF::fromDegrees(25.f) * std::sinf(_legsAngleCounter);
+        const auto legsAngle = AngleF::fromDegrees(15.f) * std::sinf(_legsAngleCounter);
+        //const auto legsAngle = AngleF::fromDegrees((aDirection > 0) ? -15.f : +15.f);
 
         auto&              shader = _ctx.getComponent<MResource>().getUnderpantsShader();
         hg::gr::glsl::Vec4 vec4{_color.r / 255.f, _color.g / 255.f, _color.b / 255.f, 1.f};

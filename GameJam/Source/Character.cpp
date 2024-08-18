@@ -174,7 +174,15 @@ void CharacterObject::_eventUpdate1(spe::IfMaster) {
         cpBodySetPosition(_unibody, cpv(self.x, self.y));
 
         if (std::abs(finalY) < 0.05) {
-            self.renderMode = (std::int8_t)CharacterRenderer::Mode::STILL;
+            if (std::abs(finalX) < 0.05) {
+                self.renderMode = (std::int8_t)CharacterRenderer::Mode::STILL;
+            } else {
+                if (finalX > 0) {
+                    self.renderMode = (std::int8_t)CharacterRenderer::Mode::CRAWL_HORIZONTAL_PLUS;
+                } else {
+                    self.renderMode = (std::int8_t)CharacterRenderer::Mode::CRAWL_HORIZONTAL_MINUS;
+                }
+            }
         } else {
             self.renderMode = (std::int8_t)CharacterRenderer::Mode::CRAWL_VERTICAL;
         }

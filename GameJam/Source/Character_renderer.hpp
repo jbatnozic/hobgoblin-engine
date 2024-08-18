@@ -10,7 +10,8 @@ public:
     enum class Mode : std::int8_t {
         STILL,
         CRAWL_VERTICAL,
-        CRAWL_HORIZONTAL,
+        CRAWL_HORIZONTAL_PLUS,
+        CRAWL_HORIZONTAL_MINUS,
         FLING,
         HUNKER
     };
@@ -48,5 +49,5 @@ private:
 
     void _drawStill(hg::gr::Canvas& aCanvas);
     void _drawClimbVertical(hg::gr::Canvas& aCanvas);
-    void _drawClimbHorizontal(hg::gr::Canvas& aCanvas);
+    void _drawClimbHorizontal(hg::gr::Canvas& aCanvas, int aDirection);
 };
