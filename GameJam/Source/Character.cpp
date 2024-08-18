@@ -10,6 +10,12 @@
 #include <cmath>
 
 namespace {
+static constexpr cpFloat WIDTH  = 100.0;
+static constexpr cpFloat HEIGHT = 200.0;
+
+static constexpr cpFloat RAY_X_OFFSET = +170.0;
+static constexpr cpFloat RAY_Y_OFFSET = -130.0;
+
 #define NUM_COLORS 12
 static const hg::gr::Color COLORS[NUM_COLORS] = {hg::gr::COLOR_BLACK,
                                                  hg::gr::COLOR_RED,
@@ -39,8 +45,6 @@ CharacterObject::CharacterObject(QAO_RuntimeRef aRuntimeRef, spe::RegistryId aRe
                    return hg::alvin::Body::createKinematic();
                },
                [this]() {
-                   static constexpr cpFloat WIDTH  = 64.0;
-                   static constexpr cpFloat HEIGHT = 64.0;
                    return hg::alvin::Shape::createBox(_unibody.body, WIDTH, HEIGHT);
                }} {
     if (isMasterObject()) {
@@ -141,16 +145,21 @@ void CharacterObject::_eventUpdate1(spe::IfMaster) {
 
         bool  touchingTerrain = false;
         auto& space           = ccomp<MEnvironment>().getSpace();
-        space.runShapeQuery(_unibody.shape,
-                            cpShapeFilterNew(0, CP_ALL_CATEGORIES, CAT_TERRAIN),
-                            [&, this](const hg::alvin::ShapeQueryInfo&) {
-                                touchingTerrain = true;
-                            });
+        // space.runShapeQuery(_unibody.shape,
+        //                     cpShapeFilterNew(0, CP_ALL_CATEGORIES, CAT_TERRAIN),
+        //                     [&, this](const hg::alvin::ShapeQueryInfo&) {
+        //                         touchingTerrain = true;
+        //                     });
+        space.runRaycastQuery(cpv(self.x - RAY_X_OFFSET, self.y + RAY_Y_OFFSET),
+                              cpv(self.x + RAY_X_OFFSET, self.y + RAY_Y_OFFSET),
+                              10.0,
+                              cpShapeFilterNew(0, CP_ALL_CATEGORIES, CAT_TERRAIN),
+                              [&, this](const hg::alvin::RaycastQueryInfo&) {
+                                  touchingTerrain = true;
+                              });
 
         if (!touchingTerrain) {
-
             if (currentGroundTimer <= 0 && grounded != false) {
-
                 currentGroundTimer = fall_timer;
             }
             grounded = false;
@@ -211,15 +220,43 @@ void CharacterObject::_eventDraw1() {
         return;
     }
 
+    auto& winMgr = ccomp<MWindow>();
+    auto& canvas = winMgr.getCanvas();
+
     const auto& self = _getCurrentState();
 
     _renderer->setColor(COLORS[self.owningPlayerIndex % NUM_COLORS]);
     _renderer->setPosition({self.x, self.y});
-    _renderer->draw(ccomp<MWindow>().getCanvas());
+    _renderer->draw(canvas);
+
+    // Body bbox
+    {
+        hg::gr::RectangleShape rect{
+            {(float)WIDTH, (float)HEIGHT}
+        };
+        rect.setOrigin({(float)WIDTH / 2.f, (float)HEIGHT / 2.f});
+        rect.setFillColor(hg::gr::COLOR_TRANSPARENT);
+        rect.setOutlineColor(hg::gr::COLOR_YELLOW);
+        rect.setOutlineThickness(2.f);
+        rect.setPosition(self.x, self.y);
+        canvas.draw(rect);
+    }
+
+    // Hand bbox
+    {
+        hg::gr::RectangleShape rect{
+            {(float)RAY_X_OFFSET * 2.f, 1.f}
+        };
+        rect.setFillColor(hg::gr::COLOR_TRANSPARENT);
+        rect.setOutlineColor(hg::gr::COLOR_YELLOW);
+        rect.setOutlineThickness(2.f);
+        rect.setPosition(self.x - (float)RAY_X_OFFSET, self.y + (float)RAY_Y_OFFSET);
+        canvas.draw(rect);
+    }
 
     auto& lobbyBackend = ccomp<MLobbyBackend>();
     if (lobbyBackend.getLocalPlayerIndex() == self.owningPlayerIndex) {
-        auto& camera = ccomp<MWindow>().getViewController().getView(0);
+        auto& camera = winMgr.getViewController().getView(0);
         camera.setCenter(self.x, self.y);
     }
 }
