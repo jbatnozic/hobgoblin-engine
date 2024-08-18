@@ -193,6 +193,10 @@ void EnvironmentManager::_eventDraw1() {
     auto& canvas = ccomp<MWindow>().getCanvas();
     for (hg::PZInteger y = 0; y < _cells.getHeight(); y += 1) {
         for (hg::PZInteger x = 0; x < _cells.getWidth(); x += 1) {
+            if (_cells[y][x] == CellKind::EMPTY) {
+                continue;
+            }
+
             switch (_cells[y][x]) {
             case CellKind::ROCK_1:
                 _spr.selectSubsprite(0);
@@ -203,6 +207,8 @@ void EnvironmentManager::_eventDraw1() {
             case CellKind::ROCK_3:
                 _spr.selectSubsprite(2);
                 break;
+            default:
+                (void)0;
             }
 
             _spr.setPosition(x * (float)_spr.getLocalBounds().w, y * (float)_spr.getLocalBounds().h);
@@ -212,7 +218,6 @@ void EnvironmentManager::_eventDraw1() {
                 std::rand() % 5 + 1
                 _body.setScale({scale, scale});
             }*/
-
         }
     }
 }

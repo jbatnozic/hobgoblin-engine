@@ -13,7 +13,8 @@ namespace {
 static constexpr cpFloat WIDTH  = 100.0;
 static constexpr cpFloat HEIGHT = 200.0;
 
-static constexpr cpFloat RAY_X_OFFSET = +170.0;
+// For grabbing hitbox
+static constexpr cpFloat RAY_X_OFFSET = +150.0;
 static constexpr cpFloat RAY_Y_OFFSET = -130.0;
 
 #define NUM_COLORS 12

@@ -34,6 +34,8 @@ private:
 
     Mode _mode = Mode::CRAWL_VERTICAL;
 
+    float _scale = 1.0;
+
     float _frameCounter     = 0.f;
     float _legsAngleCounter = 0.f;
 

@@ -24,6 +24,7 @@ void CharacterRenderer::setSize(hg::PZInteger aSize) {
     switch (aSize) {
     case 1:
         {
+            _scale   = 1.0f;
             _body    = sprLoader.getMultiBlueprint(SPR_BODY_SIZE_1).multispr();
             _biceps  = sprLoader.getMultiBlueprint(SPR_BICEPS_SIZE_1).multispr();
             _forearm = sprLoader.getMultiBlueprint(SPR_FOREARM_SIZE_1).multispr();
@@ -32,6 +33,7 @@ void CharacterRenderer::setSize(hg::PZInteger aSize) {
 
     case 2:
         {
+            _scale   = 1.1f;
             _body    = sprLoader.getMultiBlueprint(SPR_BODY_SIZE_2).multispr();
             _biceps  = sprLoader.getMultiBlueprint(SPR_BICEPS_SIZE_2).multispr();
             _forearm = sprLoader.getMultiBlueprint(SPR_FOREARM_SIZE_2).multispr();
@@ -40,6 +42,7 @@ void CharacterRenderer::setSize(hg::PZInteger aSize) {
 
     case 3:
         {
+            _scale   = 1.2f;
             _body    = sprLoader.getMultiBlueprint(SPR_BODY_SIZE_3).multispr();
             _biceps  = sprLoader.getMultiBlueprint(SPR_BICEPS_SIZE_3).multispr();
             _forearm = sprLoader.getMultiBlueprint(SPR_FOREARM_SIZE_3).multispr();
@@ -48,6 +51,7 @@ void CharacterRenderer::setSize(hg::PZInteger aSize) {
 
     case 4:
         {
+            _scale   = 1.3f;
             _body    = sprLoader.getMultiBlueprint(SPR_BODY_SIZE_4).multispr();
             _biceps  = sprLoader.getMultiBlueprint(SPR_BICEPS_SIZE_4).multispr();
             _forearm = sprLoader.getMultiBlueprint(SPR_FOREARM_SIZE_4).multispr();
@@ -56,6 +60,7 @@ void CharacterRenderer::setSize(hg::PZInteger aSize) {
 
     case 5:
         {
+            _scale   = 1.5f;
             _body    = sprLoader.getMultiBlueprint(SPR_BODY_SIZE_5).multispr();
             _biceps  = sprLoader.getMultiBlueprint(SPR_BICEPS_SIZE_5).multispr();
             _forearm = sprLoader.getMultiBlueprint(SPR_FOREARM_SIZE_5).multispr();
