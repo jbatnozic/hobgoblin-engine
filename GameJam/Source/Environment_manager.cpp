@@ -125,11 +125,10 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
     _temp_cells.push_back({});
     _temp_cells.push_back({});
     for (int j = 0; j < 4; j++) {
-        _temp_cells[0].push_back(CellKind::EMPTY);
-        _temp_cells[1].push_back(CellKind::ROCK_3);
+        _temp_cells[0].push_back(CellKind::SCALE);
+        _temp_cells[1].push_back(CellKind::ROCK_1);
     }
 
-    _temp_cells[0].push_back(CellKind::SCALE);
     for (int i = 1; i < mountain_height; i++) {
         auto _num       = hg::util::GetRandomNumber<std::int32_t>(0, 10000) * 0.0001;
         int  slope_left = 0;
@@ -137,12 +136,14 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
             slope_left++;
             _num = hg::util::GetRandomNumber<std::int32_t>(0, 10000) * 0.0001;
         }
+        left_offset += slope_left; 
         _num            = hg::util::GetRandomNumber<std::int32_t>(0, 10000) * 0.0001;
         int slope_right = 0;
         while (slope_chance < _num) {
             slope_right++;
             _num = hg::util::GetRandomNumber<std::int32_t>(0, 10000) * 0.0001;
         }
+        right_offset += slope_right;
 
         _temp_cells.push_back({});
         for (auto& item : _temp_cells[_temp_cells.size() - 2]) {
