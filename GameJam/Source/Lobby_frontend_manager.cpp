@@ -69,6 +69,7 @@ bool RegisterModel<LobbyModel>(Rml::DataModelConstructor& aDataModelCtor) {
 #define COMMAND_MOVE_UP 2
 #define COMMAND_MOVE_DN 3
 #define COMMAND_KICK    4
+#define COMMAND_START   5
 
 void ActivateCommand(LobbyFrontendManager& aMgr, int aCommand, void* aArgs) {
     auto& lobbyBackendMgr = aMgr.ccomp<MLobbyBackend>();
@@ -125,6 +126,17 @@ void ActivateCommand(LobbyFrontendManager& aMgr, int aCommand, void* aArgs) {
             if (clientIndex >= 0) {
                 auto& netMgr = aMgr.ccomp<MNetworking>();
                 netMgr.getServer().kickClient(clientIndex, true, "Kicked");
+            }
+        }
+        break;
+
+    case COMMAND_START:
+        {
+            if (aMgr.getMode() == LobbyFrontendManager::Mode::HEADLESS_HOST) {
+                // TODO(start game)
+                aMgr._notifyAllToStart();
+            } else {
+                aMgr.setVisible(false);
             }
         }
         break;
@@ -221,10 +233,31 @@ RN_DEFINE_RPC(LobbyFrontendManager_Kick, RN_ARGS(std::string&, aAuthToken, hg::P
         throw RN_IllegalMessage();
     });
 }
+
+RN_DEFINE_RPC(LobbyFrontendManager_Start, RN_ARGS(std::string&, aAuthToken)) {
+    RN_NODE_IN_HANDLER().callIfServer([&](RN_ServerInterface& aServer) {
+        const spe::RPCReceiverContext rc{aServer};
+        auto& authMgr = rc.gameContext.getComponent<spe::AuthorizationManagerInterface>();
+        if (aAuthToken != *authMgr.getLocalAuthToken()) {
+            throw RN_IllegalMessage();
+        }
+        ActivateCommand(dynamic_cast<LobbyFrontendManager&>(
+                            rc.gameContext.getComponent<LobbyFrontendManagerInterface>()),
+                        COMMAND_START,
+                        nullptr);
+    });
+    RN_NODE_IN_HANDLER().callIfClient([](RN_ClientInterface& aClient) {
+        const spe::RPCReceiverContext rc{aClient};
+        ActivateCommand(dynamic_cast<LobbyFrontendManager&>(
+                            rc.gameContext.getComponent<LobbyFrontendManagerInterface>()),
+                        COMMAND_START,
+                        nullptr);
+    });
+}
 } // namespace
 
 ///////////////////////////////////////////////////////////////////////////
-// IMPL                                                                  //
+// MARK: IMPL                                                            //
 ///////////////////////////////////////////////////////////////////////////
 
 class LobbyFrontendManager::Impl
@@ -317,6 +350,17 @@ public:
         }
     }
 
+    void setVisible(bool aVisible) {
+        HG_HARD_ASSERT(_mode == Mode::CLIENT);
+
+        _documentVisible = aVisible;
+        if (_documentVisible) {
+            _document->Show();
+        } else {
+            _document->Hide();
+        }
+    }
+
     void eventDrawGUI() {
         if (_mode != Mode::CLIENT) {
             return;
@@ -349,6 +393,15 @@ public:
             CCOMP<spe::AuthorizationManagerInterface>().getLocalAuthToken().has_value();
 
         _dataModelHandle.DirtyAllVariables();
+    }
+
+    void notifyAllToStart() {
+        const auto authToken = CCOMP<spe::AuthorizationManagerInterface>().getLocalAuthToken();
+        if (authToken.has_value()) {
+            Compose_LobbyFrontendManager_Start(CCOMP<MNetworking>().getNode(),
+                                               RN_COMPOSE_FOR_ALL,
+                                               *authToken);
+        }
     }
 
 private:
@@ -405,14 +458,22 @@ private:
         }
     }
 
+    void _onStartClicked(Rml::DataModelHandle, Rml::Event&, const Rml::VariantList& aArguments) {
+        if (auto authToken = CCOMP<spe::AuthorizationManagerInterface>().getLocalAuthToken()) {
+            Compose_LobbyFrontendManager_Start(CCOMP<MNetworking>().getNode(),
+                                               RN_COMPOSE_FOR_ALL,
+                                               *authToken);
+        }
+    }
+
     std::optional<Rml::DataModelHandle> _setUpDataBinding(Rml::Context& aContext) {
         Rml::DataModelConstructor constructor = aContext.CreateDataModel("lobby-model");
         if (!constructor) {
             return {};
         }
 
+        // clang-format off
         try {
-            // clang-format off
             #define THROW_IF_FALSE(_val_)                                                              \
                 do {                                                                                   \
                     if (!(_val_)) {                                                                    \
@@ -434,11 +495,12 @@ private:
             THROW_IF_FALSE(constructor.BindEventCallback("MoveUp",   &Impl::_onMoveUpClicked,   this));
             THROW_IF_FALSE(constructor.BindEventCallback("MoveDown", &Impl::_onMoveDownClicked, this));
             THROW_IF_FALSE(constructor.BindEventCallback("Kick",     &Impl::_onKickClicked,     this));
-            // clang-format on
+            THROW_IF_FALSE(constructor.BindEventCallback("Start",    &Impl::_onStartClicked,    this));     
         } catch (const hg::TracedRuntimeError& ex) {
             HG_LOG_ERROR(LOG_ID, "Could not bind data model: {}", ex.getErrorMessage());
             return {};
         }
+        // clang-format on
 
         return constructor.GetModelHandle();
     }
@@ -448,7 +510,7 @@ private:
 };
 
 ///////////////////////////////////////////////////////////////////////////
-// LOBBY FRONTEND MANAGER                                                //
+// MARK: LOBBY FRONTEND MANAGER                                          //
 ///////////////////////////////////////////////////////////////////////////
 
 LobbyFrontendManager::LobbyFrontendManager(QAO_RuntimeRef aRuntimeRef, int aExecutionPriority)
@@ -469,6 +531,10 @@ LobbyFrontendManager::Mode LobbyFrontendManager::getMode() const {
     return _impl->getMode();
 }
 
+void LobbyFrontendManager::setVisible(bool aVisible) {
+    _impl->setVisible(aVisible);
+}
+
 void LobbyFrontendManager::_eventBeginUpdate() {
     _impl->eventBeginUpdate();
 }
@@ -479,4 +545,8 @@ void LobbyFrontendManager::_eventUpdate1() {
 
 void LobbyFrontendManager::_eventDrawGUI() {
     _impl->eventDrawGUI();
+}
+
+void LobbyFrontendManager::_notifyAllToStart() {
+    _impl->notifyAllToStart();
 }

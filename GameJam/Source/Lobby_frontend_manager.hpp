@@ -16,6 +16,8 @@ public:
     void setToClientMode(const std::string& aName, const std::string& aUniqueId) override;
     Mode getMode() const override;
 
+    void setVisible(bool aVisible) override;
+
 private:
     class Impl;
     friend Impl;
@@ -25,5 +27,6 @@ private:
     void _eventUpdate1() override;
     void _eventDrawGUI() override;
 
+    void _notifyAllToStart();
     friend void ActivateCommand(LobbyFrontendManager& aMgr, int aCommand, void* aArgs);
 };

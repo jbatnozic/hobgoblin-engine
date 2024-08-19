@@ -34,8 +34,9 @@ private:
 
     Mode _mode = Mode::CRAWL_VERTICAL;
 
-    hg::PZInteger _size = 0;
-    float         _scale = 1.0;
+    hg::PZInteger _size         = 0;
+    float         _scale        = 1.0;
+    float         _desiredScale = 1.0;
 
     float _frameCounter     = 0.f;
     float _legsAngleCounter = 0.f;

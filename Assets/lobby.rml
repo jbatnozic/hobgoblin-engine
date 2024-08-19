@@ -63,18 +63,13 @@
             <!-- OPTIONS (BELOW) -->
 
             <div data-model="lobby-model" class="window-contents">
-                <span data-event-click="LockIn" class="button">
-                    LOCK IN LOBBY
+                <span data-event-click="LockIn" class="button" style="color: blue;">
+                    [LOCK IN]
+                </span>
+                <span data-event-click="Start" class="button" style="color: green;">
+                    [START]
                 </span>
             </div>
-
-            <!--
-            <div data-model="lobby-model" class="window-contents">
-                <span data-event-click="Reset" class="button">
-                    RESET LOBBY
-                </span>
-            </div>
-            -->
 
         </div>
 
