@@ -125,11 +125,10 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
     _temp_cells.push_back({});
     _temp_cells.push_back({});
     for (int j = 0; j < 4; j++) {
-        _temp_cells[0].push_back(CellKind::EMPTY);
-        _temp_cells[1].push_back(CellKind::ROCK_3);
+        _temp_cells[0].push_back(CellKind::SCALE);
+        _temp_cells[1].push_back(CellKind::ROCK_1);
     }
 
-    _temp_cells[0].push_back(CellKind::SCALE);
     for (int i = 1; i < mountain_height; i++) {
         auto _num       = hg::util::GetRandomNumber<std::int32_t>(0, 10000) * 0.0001;
         int  slope_left = 0;
@@ -137,12 +136,14 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
             slope_left++;
             _num = hg::util::GetRandomNumber<std::int32_t>(0, 10000) * 0.0001;
         }
+        left_offset += slope_left; 
         _num            = hg::util::GetRandomNumber<std::int32_t>(0, 10000) * 0.0001;
         int slope_right = 0;
         while (slope_chance < _num) {
             slope_right++;
             _num = hg::util::GetRandomNumber<std::int32_t>(0, 10000) * 0.0001;
         }
+        right_offset += slope_right;
 
         _temp_cells.push_back({});
         for (auto& item : _temp_cells[_temp_cells.size() - 2]) {
@@ -307,7 +308,7 @@ void EnvironmentManager::_eventDraw1() {
             if (_cells[y][x] == CellKind::EMPTY) {
                 continue;
             }
-
+            int  offset      = 1;
             bool skipDrawing = false;
             switch (_cells[y][x]) {
             case CellKind::ROCK_1:
@@ -319,6 +320,27 @@ void EnvironmentManager::_eventDraw1() {
             case CellKind::ROCK_3:
                 _spr.selectSubsprite(2);
                 break;
+            case CellKind::ROCK_T_1:
+                _spr.selectSubsprite(3);
+                break;
+            case CellKind::ROCK_T_2:
+                _spr.selectSubsprite(4);
+                break;
+            case CellKind::ROCK_T_3:
+                _spr.selectSubsprite(5);
+                break;
+            case CellKind::ROCK_MT_1:
+                _spr.selectSubsprite(3);
+                offset = -1;
+                break;
+            case CellKind::ROCK_MT_2:
+                _spr.selectSubsprite(4);
+                offset = -1;
+                break;
+            case CellKind::ROCK_MT_3:
+                _spr.selectSubsprite(5);
+                offset = -1;
+                break;
             default:
                 _spr.selectSubsprite(1);
                 // skipDrawing = true;
@@ -327,9 +349,10 @@ void EnvironmentManager::_eventDraw1() {
 
             if (!skipDrawing) {
                 const auto& bounds = _spr.getLocalBounds();
-                _spr.setOrigin(bounds.w / 2.f, bounds.h / 2.f);
+                _spr.setOrigin(bounds.w / 2.f , bounds.h / 2.f);
                 _spr.setPosition((float)CELL_RESOLUTION * (x + 0.5f),
                                  (float)CELL_RESOLUTION * (y + 0.5f));
+                _spr.setScale(offset, 1);
                 canvas.draw(_spr);
             }
         }

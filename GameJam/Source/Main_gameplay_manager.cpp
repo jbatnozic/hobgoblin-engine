@@ -5,6 +5,7 @@
 
 #include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Logging.hpp>
+#include "Config.hpp"
 
 RN_DEFINE_RPC(SetGlobalStateBufferingLength, RN_ARGS(unsigned, aNewLength)) {
     RN_NODE_IN_HANDLER().callIfClient([=](RN_ClientInterface& aClient) {
@@ -58,7 +59,9 @@ void MainGameplayManager::_startGame(hg::PZInteger aPlayerCount) {
         auto* obj = QAO_PCreate<CharacterObject>(ctx().getQAORuntime(),
                                                  ccomp<MNetworking>().getRegistryId(),
                                                  spe::SYNC_ID_NEW);
-        obj->init(i, i * 300.0, 300.0);
+        obj->init(i,
+                  left_offset * single_terrain_size + i * 300.0,
+                  terrain_size * single_terrain_size+ 300.0);
     }
 }
 
