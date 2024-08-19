@@ -121,6 +121,7 @@ EnvironmentManager::Mode EnvironmentManager::getMode() const {
 
 void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHeight) {
     // Cells
+
     std::deque<std::deque<CellKind>> _temp_cells;
     _temp_cells.push_back({});
     _temp_cells.push_back({});
@@ -128,34 +129,98 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
         _temp_cells[0].push_back(CellKind::SCALE);
         _temp_cells[1].push_back(CellKind::ROCK_1);
     }
+    auto rand = []() {
+        return hg::util::GetRandomNumber<std::int32_t>(0, 10000) * 0.0001;
+    };
 
     for (int i = 1; i < mountain_height; i++) {
-        auto _num       = hg::util::GetRandomNumber<std::int32_t>(0, 10000) * 0.0001;
+        auto chance1 = [i](bool inc=false) {
+            float ch = ((terrain_1_chance +(inc ? terrain_1_repeat : 0)))*
+                       (((float)(i * i) / (mountain_height * mountain_height)));
+
+            return ch;
+        };
+        auto chance2 = [i](bool inc= false) {
+            float ch = ((terrain_2_chance + (inc ? terrain_2_repeat : 0))) *
+                       (1.f - ((float)(i * i) / (mountain_height * mountain_height)))
+                       ;
+
+            return ch;
+        };
+        auto _num       = rand();
         int  slope_left = 0;
         while (slope_chance < _num) {
             slope_left++;
-            _num = hg::util::GetRandomNumber<std::int32_t>(0, 10000) * 0.0001;
+            _num = rand();
         }
-        left_offset += slope_left;
-        _num            = hg::util::GetRandomNumber<std::int32_t>(0, 10000) * 0.0001;
+        left_offset += slope_left; 
+        _num            = rand();
         int slope_right = 0;
         while (slope_chance < _num) {
             slope_right++;
-            _num = hg::util::GetRandomNumber<std::int32_t>(0, 10000) * 0.0001;
+            _num = rand();
         }
         right_offset += slope_right;
 
         _temp_cells.push_back({});
-        for (auto& item : _temp_cells[_temp_cells.size() - 2]) {
-            _temp_cells[_temp_cells.size() - 1].push_back(item);
+         for (int j = 0; j < _temp_cells[_temp_cells.size() - 2].size(); j++) {
+            CellKind rock       = CellKind::ROCK_1;
+            bool     inc        = false;
+            if (j > 0 && _temp_cells[_temp_cells.size() - 2][j] == CellKind::ROCK_2) {
+                inc = true;
+            }
+
+            if (chance1(inc) > rand()) {
+                rock       = CellKind::ROCK_2;
+            }
+            inc = false;
+
+            if (j > 0 && _temp_cells[_temp_cells.size() - 2][j] == CellKind::ROCK_3) {
+                inc = true;
+            }
+            if (chance2(inc) > rand()) {
+                rock       = CellKind::ROCK_3;
+            }
+            inc = false;
+            _temp_cells[_temp_cells.size() - 1].push_back(rock);
         }
-        for (int j = 0; j < _temp_cells.size(); j++) {
+      
+
+         for (int j = 0; j < _temp_cells.size(); j++) 
+         {
             for (int l = 0; l < slope_left; l++) {
+                CellKind rock = CellKind::ROCK_1;
+                CellKind rock_slope = CellKind::ROCK_MT_1;
+                bool inc = false;
+                if (j > 0 && (_temp_cells[j - 1][1] == CellKind::ROCK_2)) {
+                    inc = true;
+                    if (chance1(inc) > rand()) {
+                        rock       = CellKind::ROCK_2;
+                        rock_slope = CellKind::ROCK_MT_2;
+                    }
+                    HG_LOG_FATAL(LOG_ID, "sosilica 57---------------------");
+                    inc = false;
+
+                }
+                
+                if (j > 0 && (_temp_cells[j - 1][1] == CellKind::ROCK_3)) {
+                    inc = true;
+                    if (chance2(inc) > rand()) {
+                        rock       = CellKind::ROCK_3;
+                        rock_slope = CellKind::ROCK_MT_3;
+                        // HG_LOG_FATAL(LOG_ID, "SADA  2");
+                    }
+                    HG_LOG_FATAL(LOG_ID, "sosilica 5-5---------------------");
+                    inc = false;
+                }
+
+
+
                 if (_temp_cells.size() - 1 >= 0 && j == _temp_cells.size() - 1) {
-                    _temp_cells[j].push_front(CellKind::ROCK_1);
+                    _temp_cells[j].push_front(rock);
                 } else if (_temp_cells.size() - 2 >= 0 && j == _temp_cells.size() - 2) {
-                    if (l == slope_left - 1) {
-                        _temp_cells[j].push_front(CellKind::ROCK_MT_1);
+                    if (l == 0) {
+                        _temp_cells[j].push_front(rock_slope);
                     } else {
                         _temp_cells[j].push_front(CellKind::EMPTY);
                     }
@@ -165,13 +230,41 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
                 }
             }
             for (int r = 0; r < slope_right; r++) {
+                CellKind rock       = CellKind::ROCK_1;
+                CellKind rock_slope = CellKind::ROCK_T_1;
                 if (_temp_cells.size() - 1 >= 0 && j == _temp_cells.size() - 1) {
                     _temp_cells[j].push_back(CellKind::ROCK_1);
                 } else if (_temp_cells.size() - 2 >= 0 && j == _temp_cells.size() - 2) {
-                    if (r == slope_right - 1) {
-                        _temp_cells[j].push_back(CellKind::ROCK_T_1);
+
+
+                    bool     inc        = false;
+                    if (j > 0 && _temp_cells[j - 1][_temp_cells[j - 1].size()-2] == CellKind::ROCK_2) {
+                        inc = true;
+
+                        if (chance1(inc) > rand()) {
+                            rock       = CellKind::ROCK_2;
+                            rock_slope = CellKind::ROCK_T_2;
+                        }
+                        HG_LOG_FATAL(LOG_ID, "sosilica 5----------------------");
+                        inc = false;
+                    }
+
+                    if (j > 0 && _temp_cells[j - 1][_temp_cells[j - 1].size()-2] == CellKind::ROCK_3) {
+                        inc = true;
+                        if (chance2(inc) > rand()) {
+                            rock       = CellKind::ROCK_3;
+                            rock_slope = CellKind::ROCK_T_3;
+                            // HG_LOG_FATAL(LOG_ID, "SADA  2");
+                        }
+                        HG_LOG_FATAL(LOG_ID, "sosilica 2----------------------");
+                        inc = false;
+                    }
+
+
+                    if (r == 0) {
+                        _temp_cells[j].push_back(rock_slope);
                     } else {
-                        _temp_cells[j].push_back(CellKind::EMPTY);
+                        _temp_cells[j].push_back(rock);
                     }
 
                 } else {
@@ -179,7 +272,11 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
                 }
             }
         }
-    }
+    
+
+}
+
+
 
     aWidth  = static_cast<hg::PZInteger>(_temp_cells[0].size());
     aHeight = static_cast<hg::PZInteger>(_temp_cells.size());
@@ -195,21 +292,6 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
             }
             // oss << (int)_temp_cells[y][x];
 
-            /* auto _num = hg::util::GetRandomNumber<std::int32_t>(0, 3);
-            switch (_num) {
-            case 0:
-                _cells[y][x] = CellKind::ROCK_1;
-                break;
-            case 1:
-                _cells[y][x] = CellKind::ROCK_2;
-                break;
-            case 2:
-                _cells[y][x] = CellKind::ROCK_3;
-                break;
-            default:
-                _cells[y][x] = CellKind::ROCK_1;
-                break;
-            }*/
         }
         // HG_LOG_FATAL(LOG_ID, "{}", oss.str());
     }

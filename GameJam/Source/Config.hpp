@@ -12,8 +12,11 @@ constexpr float y_floor             = single_terrain_size * terrain_size;
 
 constexpr float hole_chance      = 0.2f;
 constexpr float terrain_1_chance = 0.3f;
-constexpr float terrain_2_chance = 0.1f;
+constexpr float terrain_1_repeat = 0.5f;
+constexpr float terrain_2_chance = 0.5f;
+constexpr float terrain_2_repeat = 0.3f;
 constexpr int   mountain_height  = terrain_size;
 constexpr float slope_chance     = 0.5f;
-inline int             left_offset      = 0; // max left mountain offset 
-inline int             right_offset     = 0; // mar right mountain offset
+
+inline int left_offset  = 0; // max left mountain offset
+inline int right_offset = 0; // mar right mountain offset
