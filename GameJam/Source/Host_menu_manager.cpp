@@ -29,7 +29,8 @@ struct HostMenuModel {
      * 2 = failure
      * 3 = active
      */
-    int zeroTierStatus = 0;
+    int         zeroTierStatus = 0;
+    Rml::String localIpAddress = "n/a";
 };
 
 template <>
@@ -38,6 +39,7 @@ bool RegisterModel<HostMenuModel>(Rml::DataModelConstructor& aDataModelCtor) {
     if (handle) {
         handle.RegisterMember<bool>("testMode", &HostMenuModel::testMode);
         handle.RegisterMember<int>("zeroTierStatus", &HostMenuModel::zeroTierStatus);
+        handle.RegisterMember<Rml::String>("localIpAddress", &HostMenuModel::localIpAddress);
     }
     return static_cast<bool>(handle);
 }
@@ -148,6 +150,7 @@ public:
             case SimpleZeroTier_Status::ACTIVE:
                 if (_hostMenuModel.zeroTierStatus != 3) {
                     _hostMenuModel.zeroTierStatus = 3;
+                    _hostMenuModel.localIpAddress = SimpleZeroTier_GetLocalIpAddress().toString();
                     _dataModelHandle.DirtyAllVariables();
                 }
                 break;
@@ -222,6 +225,7 @@ private:
             THROW_IF_FALSE(RegisterModel<HostMenuModel>(constructor));
             THROW_IF_FALSE(constructor.Bind("testMode", &_hostMenuModel.testMode));
             THROW_IF_FALSE(constructor.Bind("zeroTierStatus", &_hostMenuModel.zeroTierStatus));
+            THROW_IF_FALSE(constructor.Bind("localIpAddress", &_hostMenuModel.localIpAddress));
             THROW_IF_FALSE(constructor.BindEventCallback("Back", &Impl::_onBack,   this));         
         } catch (const hg::TracedRuntimeError& ex) {
             HG_LOG_ERROR(LOG_ID, "Could not bind data model: {}", ex.getErrorMessage());

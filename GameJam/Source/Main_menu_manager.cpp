@@ -186,7 +186,9 @@ private:
     }
 
     void _initZeroTier() {
-         SimpleZeroTier_Init("ztNodeIdentity", 8989, 0xd3ecf5726d81ccb3, std::chrono::seconds{20});
+        if (SimpleZeroTier_Status() == SimpleZeroTier_Status::STOPPED) {
+            SimpleZeroTier_Init("ztNodeIdentity", 8989, 0xd3ecf5726d81ccb3, std::chrono::seconds{20});
+        }
     }
 
 #undef CCOMP
@@ -211,6 +213,11 @@ void MainMenuManager::_eventPreUpdate() {
         ctx().attachChildContext(CreateServerContext(*_serverGameParams));
         ctx().startChildContext(-1);
         AttachGameplayManagers(ctx(), *_clientGameParams);
+        if (_clientGameParams->skipConnect) {
+            auto& server = ctx().getChildContext()->getComponent<MNetworking>().getServer();
+            auto& client = ccomp<MNetworking>().getClient();
+            client.connectLocal(server);
+        }
 
         spe::DetachStatus detachStatus;
 

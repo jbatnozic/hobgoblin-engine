@@ -36,7 +36,11 @@
             </div>
 
             <div data-if="zeroTierStatus == 3" class="window-contents">
-                <span>Virtual LAN has been created successfully :D</span>
+                <span>
+                    Virtual LAN has been created successfully. <br />
+                    Your IP address is "{{localIpAddress}}". <br />
+                    Please send it to your friends before clicking "START".
+                </span>
             </div>
 
             <!-- FORM -->

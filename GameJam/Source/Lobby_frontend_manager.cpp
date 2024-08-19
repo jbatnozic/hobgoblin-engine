@@ -52,6 +52,7 @@ struct LobbyModel {
     std::vector<DualPlayerInfoModel> players;
     Rml::String                      localName;
     bool                             isAuthorized = false;
+    // Rml::String                      localIpAddress = "n/a";
 };
 
 template <>
