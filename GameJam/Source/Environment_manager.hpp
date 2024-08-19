@@ -39,7 +39,7 @@ public:
 
     std::optional<CellKind> getCellKindOfShape(NeverNull<cpShape*> aShape) const override;
 
-     hg::gr::Multisprite _spr;
+    hg::math::Vector2pz getGridSize() const override;
 
 private:
     Mode _mode = Mode::UNINITIALIZED;
@@ -52,6 +52,8 @@ private:
     hg::util::RowMajorGrid<CellKind>                        _cells;
     hg::util::RowMajorGrid<std::optional<hg::alvin::Shape>> _shapes;
     std::unordered_map<cpShape*, hg::math::Vector2pz>       _shapeToPosition;
+
+    hg::gr::Multisprite _spr;
 
     void _eventUpdate1() override;
     void _eventDraw1() override;

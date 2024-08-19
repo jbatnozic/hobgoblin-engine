@@ -180,12 +180,18 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
         }
     }
 
-    _cells.resize(_temp_cells[0].size(), _temp_cells.size());
+    aWidth  = static_cast<hg::PZInteger>(_temp_cells[0].size());
+    aHeight = static_cast<hg::PZInteger>(_temp_cells.size());
+    _cells.resize(aWidth, aHeight);
 
-    for (hg::PZInteger y = 0; y < _temp_cells.size(); y += 1) {
+    for (hg::PZInteger y = 0; y < aHeight; y += 1) {
         //std::ostringstream oss;
         for (hg::PZInteger x = 0; x < _temp_cells[y].size(); x += 1) {
-            _cells[y][x] = _temp_cells[y][x];
+            if (y == aHeight - 1 || y == aHeight - 2) {
+                _cells[y][x] = CellKind::ROCK_1;
+            } else {
+                _cells[y][x] = _temp_cells[y][x];
+            }
             //oss << (int)_temp_cells[y][x];
 
             /* auto _num = hg::util::GetRandomNumber<std::int32_t>(0, 3);
@@ -267,6 +273,10 @@ std::optional<CellKind> EnvironmentManager::getCellKindOfShape(NeverNull<cpShape
     return _cells.at(pos.y, pos.y);
 }
 
+hg::math::Vector2pz EnvironmentManager::getGridSize() const {
+    return {_cells.getWidth(), _cells.getHeight()};
+}
+
 void EnvironmentManager::_eventUpdate1() {
     if (_space.has_value() && !ctx().getGameState().isPaused) {
         _space->step(1.0 / 60.0);
@@ -323,6 +333,21 @@ void EnvironmentManager::_eventDraw1() {
                 canvas.draw(_spr);
             }
         }
+    }
+
+    {
+        hg::gr::RectangleShape rect{{2.f, view.getSize().y}};
+        rect.setFillColor(hg::gr::COLOR_RED);
+        rect.setPosition({
+            0.f,
+            view.getCenter().y - view.getSize().y / 2.f
+        });
+        canvas.draw(rect);
+        rect.setPosition({
+            getGridSize().x * (float)CELL_RESOLUTION,
+            view.getCenter().y - view.getSize().y / 2.f
+        });
+        canvas.draw(rect);
     }
 }
 

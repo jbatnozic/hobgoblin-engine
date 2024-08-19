@@ -84,7 +84,7 @@ bool CharacterObject::getFling() const {
 void CharacterObject::addProtein() {
     _size += 1.f / 3.f;
     auto& self = _getCurrentState();
-    self.size = std::min((std::int8_t)std::roundf(_size), (std::int8_t)5);
+    self.size  = std::min((std::int8_t)std::roundf(_size), (std::int8_t)5);
 }
 
 void CharacterObject::_eventUpdate1(spe::IfMaster) {
@@ -189,8 +189,35 @@ void CharacterObject::_eventUpdate1(spe::IfMaster) {
         self.x += finalX;
         self.y += finalY;
 
+        {
+            const auto worldGridSize = ccomp<MEnvironment>().getGridSize();
+            const auto worldPadding  = 32.f;
+            const auto worldMaxX =
+                static_cast<float>(worldGridSize.x * single_terrain_size) - worldPadding;
+            const auto worldMaxY =
+                static_cast<float>(worldGridSize.y * single_terrain_size) - worldPadding;
+
+            if (self.x < worldPadding) {
+                self.x = worldPadding;
+                finalX = std::max(finalX, 0.f);
+            }
+            if (self.x > worldMaxX) {
+                self.x = worldMaxX;
+                finalX = std::min(finalX, 0.f);
+            }
+            if (self.y < worldPadding) {
+                self.y = worldPadding;
+                finalY = std::max(finalY, 0.f);
+            }
+            if (self.y > worldMaxY) {
+                self.y = worldMaxY;
+                finalY = std::min(finalY, 0.f);
+            }
+        }
+
         cpBodySetPosition(_unibody, cpv(self.x, self.y));
 
+        // Determine rendering mode
         if (std::abs(finalY) < 0.05f) {
             if (std::abs(finalX) < 0.05f) {
                 self.renderMode = (std::int8_t)CharacterRenderer::Mode::STILL;
@@ -209,6 +236,7 @@ void CharacterObject::_eventUpdate1(spe::IfMaster) {
             }
         }
 
+        // Determine direction
         self.direction = DIRECTION_NONE;
         if (std::abs(finalX) >= 0.05f) {
             if (finalX > 0.0f) {
@@ -357,11 +385,16 @@ void CharacterObject::_adjustView() {
     const auto dist =
         hg::math::EuclideanDist<float>(viewCenter.x, viewCenter.y, targetPos.x, targetPos.y);
     const auto theta = PointDirection2(view.getCenter(), targetPos).asRadians();
-    if (dist >= 2.f) {
-        view.move(+std::cosf(theta) * dist * 0.045f, -std::sinf(theta) * dist * 0.045f);
-    } else {
+
+    if (dist >= 1000.0 || dist < 2.f) {
         view.setCenter(targetPos);
+    } else if (dist >= 2.f) {
+        view.move(+std::cosf(theta) * dist * 0.045f, -std::sinf(theta) * dist * 0.045f);
     }
+
+    // Round
+    const auto center = view.getCenter();
+    view.setCenter(std::roundf(center.x), std::roundf(center.y));
 }
 
 SPEMPE_GENERATE_DEFAULT_SYNC_HANDLERS(CharacterObject, (CREATE, UPDATE, DESTROY));

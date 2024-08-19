@@ -4,6 +4,7 @@
 
 #include <Hobgoblin/ChipmunkPhysics.hpp>
 #include <Hobgoblin/Alvin.hpp>
+#include <Hobgoblin/Math/Vector.hpp>
 
 #include <string>
 
@@ -22,6 +23,8 @@ public:
     virtual Mode getMode() const = 0;
 
     virtual hg::alvin::Space& getSpace() = 0;
+
+    virtual hg::math::Vector2pz getGridSize() const = 0;
 
 private:
     SPEMPE_CTXCOMP_TAG("EnvironmentManagerInterface");
