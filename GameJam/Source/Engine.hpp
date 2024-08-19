@@ -20,6 +20,7 @@ using MInput        = spe::InputSyncManagerInterface;
 using MLobbyBackend = spe::LobbyBackendManagerInterface;
 using MNetworking   = spe::NetworkingManagerInterface;
 using MWindow       = spe::WindowManagerInterface;
+using MVarmap       = spe::SyncedVarmapManagerInterface;
 
 #define PRIORITY_RESOURCEMGR    21
 #define PRIORITY_MAINMENUMGR    20

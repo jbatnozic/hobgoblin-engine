@@ -62,7 +62,7 @@
 
             <!-- OPTIONS (BELOW) -->
 
-            <div data-model="lobby-model" class="window-contents">
+            <div data-if="isAuthorized" data-model="lobby-model" class="window-contents">
                 <span data-event-click="LockIn" class="button" style="color: blue;">
                     [LOCK IN]
                 </span>

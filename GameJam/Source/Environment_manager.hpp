@@ -41,6 +41,8 @@ public:
 
     hg::math::Vector2pz getGridSize() const override;
 
+    void generateLoot() override;
+
 private:
     Mode _mode = Mode::UNINITIALIZED;
 

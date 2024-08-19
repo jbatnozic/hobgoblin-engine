@@ -16,12 +16,19 @@ public:
     void setToClientMode() override;
     Mode getMode() const override;
 
+    void characterReachedTheScales(CharacterObject& aCharacter) override;
+
 private:
     Mode _mode = Mode::UNINITIALIZED;
 
-    hg::PZInteger stateBufferingLength = 0;
+    // hg::PZInteger stateBufferingLength = 0;
+    hg::PZInteger _playerCount;
+
+    CharacterObject* contender1 = nullptr;
+    CharacterObject* contender2 = nullptr;
 
     void _startGame(hg::PZInteger aPlayerCount);
+    void _restartGame();
 
     void _eventUpdate1() override;
     void _eventPostUpdate() override;

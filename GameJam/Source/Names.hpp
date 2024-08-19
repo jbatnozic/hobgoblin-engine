@@ -24,7 +24,7 @@ inline std::string GetRandomGymName() {
         "Lean Beef",
         "Meathead",
         "The Barbarian",
-        "Harry Squatter",
+        "Harry Spotter",
         "Throbby",
         "The Gainskeeper",
         "Nameless Peon",
@@ -33,10 +33,14 @@ inline std::string GetRandomGymName() {
         "Benchpresser",
         "Ben Swolo",
         "Swoledemort",
-        "Hermione Gainer",
         "Weightron",
         "Sir Lift-a-lot",
-        "Lord Benchington"
+        "Lord Benchington",
+        "Dagooor",
+        "Buffy",
+        "Serious Back",
+        "Severus Shape",
+        "Gaindalf"
     };
     // clang-format on
 

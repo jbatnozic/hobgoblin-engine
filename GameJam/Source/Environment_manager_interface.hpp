@@ -26,6 +26,8 @@ public:
 
     virtual hg::math::Vector2pz getGridSize() const = 0;
 
+    virtual void generateLoot() = 0;
+
 private:
     SPEMPE_CTXCOMP_TAG("EnvironmentManagerInterface");
 };

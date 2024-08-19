@@ -2,6 +2,7 @@
 
 #include "Environment_manager.hpp"
 #include "Player_controls.hpp"
+#include "Main_gameplay_manager_interface.hpp"
 
 #include <Hobgoblin/HGExcept.hpp>
 
@@ -345,11 +346,24 @@ hg::alvin::CollisionDelegate CharacterObject::_initColDelegate() {
     builder.addInteraction<CharacterInterface>(
         hg::alvin::COLLISION_PRE_SOLVE,
         [this](CharacterInterface& aCharacter, const hg::alvin::CollisionData& aCollisionData) {
-            // DO INTERACTION
-
             if (aCharacter.getFling()) {
                 grounded           = false;
                 currentGroundTimer = fall_timer;
+            }
+            return hg::alvin::Decision::ACCEPT_COLLISION;
+        });
+    builder.addInteraction<TerrainInterface>(
+        hg::alvin::COLLISION_CONTACT,
+        [this](TerrainInterface& aTerrain, const hg::alvin::CollisionData& aCollisionData) {
+            CP_ARBITER_GET_SHAPES(aCollisionData.arbiter, shape1, shape2);
+            NeverNull<cpShape*> otherShape = shape1;
+            if (otherShape == _unibody.shape) {
+                otherShape = shape2;
+            }
+            const auto cellKind = aTerrain.getCellKindOfShape(otherShape);
+            if (cellKind && *cellKind == CellKind::SCALE) {
+                HG_LOG_INFO(LOG_ID, "Character reached the scales.");
+                ccomp<MainGameplayManagerInterface>().characterReachedTheScales(*this);
             }
             return hg::alvin::Decision::ACCEPT_COLLISION;
         });
