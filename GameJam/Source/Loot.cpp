@@ -1,6 +1,10 @@
 #include "Loot.hpp"
 
 #include "Environment_manager_interface.hpp"
+#include "Resource_manager_interface.hpp"
+#include "Sprite_manifest.hpp"
+
+#include <cmath>
 
 namespace {
 static constexpr cpFloat WIDTH  = 100.0;
@@ -42,6 +46,10 @@ void LootObject::init(float aX, float aY, LootKind aKind) {
     cpBodySetPosition(_unibody, cpv(aX, aY));
 }
 
+void LootObject::_eventUpdate1(spe::IfDummy) {
+    _wiggleAngle += 0.1;
+}
+
 void LootObject::_eventPostUpdate(spe::IfMaster) {
     _getCurrentState().commit();
 }
@@ -60,16 +68,25 @@ void LootObject::_eventDraw1() {
         return; // TODO(temp.)
     }
 
-    // Body bbox
-    {
-        hg::gr::RectangleShape rect{
-            {(float)WIDTH, (float)HEIGHT}
-        };
-        rect.setOrigin({(float)WIDTH / 2.f, (float)HEIGHT / 2.f});
-        rect.setFillColor(hg::gr::COLOR_GREEN);
-        rect.setPosition(self.x, self.y);
-        canvas.draw(rect);
+    if (_spr.getSubspriteCount() == 0) {
+        _spr = ccomp<MResource>().getSpriteLoader().getMultiBlueprint(SPR_POWER).multispr();
     }
+
+    _spr.setPosition(self.x, self.y);
+    _spr.setScale(0.5f, 0.5f);
+    _spr.setRotation(hg::math::AngleF::fromDegrees(15.f) * std::sinf(_wiggleAngle));
+    canvas.draw(_spr);
+
+    // Body bbox
+    // {
+    //     hg::gr::RectangleShape rect{
+    //         {(float)WIDTH, (float)HEIGHT}
+    //     };
+    //     rect.setOrigin({(float)WIDTH / 2.f, (float)HEIGHT / 2.f});
+    //     rect.setFillColor(hg::gr::COLOR_GREEN);
+    //     rect.setPosition(self.x, self.y);
+    //     canvas.draw(rect);
+    // }
 }
 
 void LootObject::_eventDraw2() {

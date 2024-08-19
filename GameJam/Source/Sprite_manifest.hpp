@@ -31,16 +31,17 @@ enum SpriteIds {
     SPR_FOREARM_SIZE_4,
     SPR_FOREARM_SIZE_5,
     // Mountain
-    SPR_MOUNTAIN
+    SPR_MOUNTAIN,
+    // Miscellaneous
+    SPR_POWER,
+    SPR_BACKGROUND
 };
 
 inline void LoadSprites(hg::gr::SpriteLoader& aSpriteLoader) {
     const std::filesystem::path basePath = "Assets/Sprites";
-    float occupancy = 0.f;
     const std::filesystem::path mountainPath = "Assets/Sprites/Mountain";
-    ///////////////////////////////////////////////////////////////////////////
-    // PLAYER CHARACTER                                                      //
-    ///////////////////////////////////////////////////////////////////////////
+
+    float occupancy = 0.f;
 
     aSpriteLoader
         .startTexture(2048, 2048)
@@ -74,15 +75,23 @@ inline void LoadSprites(hg::gr::SpriteLoader& aSpriteLoader) {
         ->addSubsprite(SPR_MOUNTAIN, mountainPath / "mt1.png")
         ->addSubsprite(SPR_MOUNTAIN, mountainPath / "mt2.png")
         ->addSubsprite(SPR_MOUNTAIN, mountainPath / "mt3.png")
+        // Miscellaneous
+        ->addSubsprite(SPR_POWER, basePath / "power.png")
         // Finalize
         ->finalize(hg::gr::TexturePackingHeuristic::BestAreaFit, &occupancy);
+
     HG_LOG_INFO(LOG_ID,
-                "Player character sprites loaded successfully (testure occupancy {}%).",
+            "Game sprites loaded successfully (testure occupancy {}%).",
+            occupancy * 100.f);
+
+    aSpriteLoader
+        .startTexture(4096, 4094)
+        // Miscellaneous
+        ->addSubsprite(SPR_BACKGROUND, basePath / "background.png")
+        // Finalize
+        ->finalize(hg::gr::TexturePackingHeuristic::BestAreaFit, &occupancy);
+
+    HG_LOG_INFO(LOG_ID,
+                "Background sprites loaded successfully (testure occupancy {}%).",
                 occupancy * 100.f);
-
-    ///////////////////////////////////////////////////////////////////////////
-    // TERRAIN                                                               //
-    ///////////////////////////////////////////////////////////////////////////
-
-    // TODO
 }

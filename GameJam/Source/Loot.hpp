@@ -35,10 +35,12 @@ private:
 
     hg::gr::Multisprite _spr;
 
+    float _wiggleAngle = 0.f;
+
     hg::alvin::CollisionDelegate _initColDelegate();
 
     // void _eventUpdate1(spe::IfMaster) override;
-    // void _eventUpdate1(spe::IfDummy) override;
+    void _eventUpdate1(spe::IfDummy) override;
     void _eventPostUpdate(spe::IfMaster) override;
     void _eventDraw1() override;
     void _eventDraw2() override;

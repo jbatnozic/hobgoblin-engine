@@ -406,6 +406,27 @@ void CharacterObject::_adjustView() {
         view.move(+std::cosf(theta) * dist * 0.045f, -std::sinf(theta) * dist * 0.045f);
     }
 
+    {
+        auto& envMgr = ccomp<MEnvironment>();
+        const float minX = view.getSize().x / 2.f;
+        const float minY = view.getSize().y / 2.f;
+        const float maxX = envMgr.getGridSize().x * single_terrain_size - minX;
+        const float maxY = envMgr.getGridSize().y * single_terrain_size - minY;
+
+        auto pos = view.getCenter();
+        if (pos.x < minX) {
+            pos.x = minX;
+        } else if (pos.x >= maxX) {
+            pos.x = maxX - 1.f;
+        }
+        if (pos.y < minY) {
+            pos.y = minY;
+        } else if (pos.y >= maxY) {
+            pos.y = maxY - 1.f;
+        }
+        view.setCenter(pos);
+    }
+
     // Round
     const auto center = view.getCenter();
     view.setCenter(std::roundf(center.x), std::roundf(center.y));

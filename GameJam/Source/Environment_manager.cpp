@@ -136,7 +136,7 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
             slope_left++;
             _num = hg::util::GetRandomNumber<std::int32_t>(0, 10000) * 0.0001;
         }
-        left_offset += slope_left; 
+        left_offset += slope_left;
         _num            = hg::util::GetRandomNumber<std::int32_t>(0, 10000) * 0.0001;
         int slope_right = 0;
         while (slope_chance < _num) {
@@ -186,14 +186,14 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
     _cells.resize(aWidth, aHeight);
 
     for (hg::PZInteger y = 0; y < aHeight; y += 1) {
-        //std::ostringstream oss;
+        // std::ostringstream oss;
         for (hg::PZInteger x = 0; x < _temp_cells[y].size(); x += 1) {
             if (y == aHeight - 1 || y == aHeight - 2) {
                 _cells[y][x] = CellKind::ROCK_1;
             } else {
                 _cells[y][x] = _temp_cells[y][x];
             }
-            //oss << (int)_temp_cells[y][x];
+            // oss << (int)_temp_cells[y][x];
 
             /* auto _num = hg::util::GetRandomNumber<std::int32_t>(0, 3);
             switch (_num) {
@@ -211,7 +211,7 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
                 break;
             }*/
         }
-        //HG_LOG_FATAL(LOG_ID, "{}", oss.str());
+        // HG_LOG_FATAL(LOG_ID, "{}", oss.str());
     }
 
     // Collision delegate
@@ -266,7 +266,7 @@ hg::math::Vector2pz EnvironmentManager::getGridSize() const {
 void EnvironmentManager::generateLoot() {
     for (hg::PZInteger y = 0; y < _cells.getHeight(); y += 1) {
         for (hg::PZInteger x = 0; x < _cells.getWidth(); x += 1) {
-            if (_cells[y][x] == CellKind::EMPTY) {
+            if (_cells[y][x] == CellKind::EMPTY && _cells[y][x] != CellKind::SCALE) {
                 continue;
             }
             if (hg::util::GetRandomNumber<std::int32_t>(0, 100) > 10) {
@@ -292,7 +292,20 @@ void EnvironmentManager::_eventDraw1() {
     auto& winMgr = ccomp<MWindow>();
     auto& view   = winMgr.getView(0);
     auto& canvas = winMgr.getCanvas();
-    canvas.clear(hg::gr::COLOR_SKY_BLUE);
+    canvas.clear(hg::gr::COLOR_BLACK);
+
+    {
+        auto spr = ccomp<MResource>().getSpriteLoader().getMultiBlueprint(SPR_BACKGROUND).multispr();
+        spr.selectSubsprite(0);
+        const auto bounds    = spr.getLocalBounds();
+        const auto worldSize = getGridSize();
+        if (worldSize.x > 0) {
+        spr.setScale({worldSize.x * (float)CELL_RESOLUTION / bounds.w,
+                      worldSize.y * (float)CELL_RESOLUTION / bounds.h});
+        spr.setOrigin(0.f, 0.f);
+        spr.setPosition(0.f, 0.f);
+        canvas.draw(spr);}
+    }
 
     const hg::PZInteger startX = std::max(
         static_cast<int>((view.getCenter().x - view.getSize().x / 2.f) / (float)CELL_RESOLUTION - 1.f),
@@ -353,7 +366,7 @@ void EnvironmentManager::_eventDraw1() {
 
             if (!skipDrawing) {
                 const auto& bounds = _spr.getLocalBounds();
-                _spr.setOrigin(bounds.w / 2.f , bounds.h / 2.f);
+                _spr.setOrigin(bounds.w / 2.f, bounds.h / 2.f);
                 _spr.setPosition((float)CELL_RESOLUTION * (x + 0.5f),
                                  (float)CELL_RESOLUTION * (y + 0.5f));
                 _spr.setScale(offset, 1);
@@ -362,20 +375,17 @@ void EnvironmentManager::_eventDraw1() {
         }
     }
 
-    {
-        hg::gr::RectangleShape rect{{2.f, view.getSize().y}};
-        rect.setFillColor(hg::gr::COLOR_RED);
-        rect.setPosition({
-            0.f,
-            view.getCenter().y - view.getSize().y / 2.f
-        });
-        canvas.draw(rect);
-        rect.setPosition({
-            getGridSize().x * (float)CELL_RESOLUTION,
-            view.getCenter().y - view.getSize().y / 2.f
-        });
-        canvas.draw(rect);
-    }
+    // {
+    //     hg::gr::RectangleShape rect{
+    //         {2.f, view.getSize().y}
+    //     };
+    //     rect.setFillColor(hg::gr::COLOR_RED);
+    //     rect.setPosition({0.f, view.getCenter().y - view.getSize().y / 2.f});
+    //     canvas.draw(rect);
+    //     rect.setPosition(
+    //         {getGridSize().x * (float)CELL_RESOLUTION, view.getCenter().y - view.getSize().y / 2.f});
+    //     canvas.draw(rect);
+    // }
 }
 
 void EnvironmentManager::onNetworkingEvent(const RN_Event& aEvent) {

@@ -112,7 +112,7 @@ void MainGameplayManager::_startGame(hg::PZInteger aPlayerCount) {
                                                  spe::SYNC_ID_NEW);
         obj->init(i,
                   left_offset * single_terrain_size + i * 300.0,
-                  terrain_size * single_terrain_size+ 300.0);
+                  terrain_size * single_terrain_size - 300.0);
     }
 }
 
