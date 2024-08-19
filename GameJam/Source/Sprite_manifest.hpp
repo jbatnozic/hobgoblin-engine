@@ -71,6 +71,9 @@ inline void LoadSprites(hg::gr::SpriteLoader& aSpriteLoader) {
         ->addSubsprite(SPR_MOUNTAIN, mountainPath / "m1.png")
         ->addSubsprite(SPR_MOUNTAIN, mountainPath / "m2.png")
         ->addSubsprite(SPR_MOUNTAIN, mountainPath / "m3.png")
+        ->addSubsprite(SPR_MOUNTAIN, mountainPath / "mt1.png")
+        ->addSubsprite(SPR_MOUNTAIN, mountainPath / "mt2.png")
+        ->addSubsprite(SPR_MOUNTAIN, mountainPath / "mt3.png")
         // Finalize
         ->finalize(hg::gr::TexturePackingHeuristic::BestAreaFit, &occupancy);
     HG_LOG_INFO(LOG_ID,
