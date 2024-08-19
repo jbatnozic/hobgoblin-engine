@@ -2,6 +2,8 @@
 
 #include "Engine.hpp"
 
+#include "Character.hpp"
+
 //! TODO(add description)
 class MainGameplayManagerInterface : public spe::ContextComponent {
 public:
@@ -17,6 +19,8 @@ public:
     virtual void setToHostMode(hg::PZInteger aPlayerCount) = 0;
     virtual void setToClientMode() = 0;
     virtual Mode getMode() const = 0;
+
+    virtual void characterReachedTheScales(CharacterObject& aCharacter) = 0;
 
 private:
     SPEMPE_CTXCOMP_TAG("MainGameplayManagerInterface");

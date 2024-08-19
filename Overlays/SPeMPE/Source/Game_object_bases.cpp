@@ -56,7 +56,7 @@ void SynchronizedObjectBase::__spempeimpl_destroySelfIn(int aStepCount) {
         return;
     }
 
-    if (aStepCount < _deathCounter) {
+    if (aStepCount < _deathCounter || _deathCounter < 0) {
         _deathCounter = aStepCount;
     }
 }

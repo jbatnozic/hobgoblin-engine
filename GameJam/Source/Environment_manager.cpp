@@ -242,8 +242,30 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
     }
 
     // Loot
-    for (hg::PZInteger y = 0; y < aHeight; y += 1) {
-        for (hg::PZInteger x = 0; x < aWidth; x += 1) {
+    generateLoot();
+}
+
+hg::alvin::Space& EnvironmentManager::getSpace() {
+    HG_ASSERT(_mode == Mode::HEADLESS_HOST && _space.has_value());
+    return *_space;
+}
+
+std::optional<CellKind> EnvironmentManager::getCellKindOfShape(NeverNull<cpShape*> aShape) const {
+    const auto iter = _shapeToPosition.find(aShape);
+    if (iter == _shapeToPosition.end()) {
+        return {};
+    }
+    const auto pos = iter->second;
+    return _cells.at(pos.y, pos.x);
+}
+
+hg::math::Vector2pz EnvironmentManager::getGridSize() const {
+    return {_cells.getWidth(), _cells.getHeight()};
+}
+
+void EnvironmentManager::generateLoot() {
+    for (hg::PZInteger y = 0; y < _cells.getHeight(); y += 1) {
+        for (hg::PZInteger x = 0; x < _cells.getWidth(); x += 1) {
             if (_cells[y][x] == CellKind::EMPTY) {
                 continue;
             }
@@ -258,24 +280,6 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
                     LootKind::PROTEIN);
         }
     }
-}
-
-hg::alvin::Space& EnvironmentManager::getSpace() {
-    HG_ASSERT(_mode == Mode::HEADLESS_HOST && _space.has_value());
-    return *_space;
-}
-
-std::optional<CellKind> EnvironmentManager::getCellKindOfShape(NeverNull<cpShape*> aShape) const {
-    const auto iter = _shapeToPosition.find(aShape);
-    if (iter == _shapeToPosition.end()) {
-        return {};
-    }
-    const auto pos = iter->second;
-    return _cells.at(pos.y, pos.y);
-}
-
-hg::math::Vector2pz EnvironmentManager::getGridSize() const {
-    return {_cells.getWidth(), _cells.getHeight()};
 }
 
 void EnvironmentManager::_eventUpdate1() {

@@ -47,6 +47,14 @@ public:
     bool getFling() const override;
     void addProtein() override;
 
+    int getOwningPlayerIndex() const {
+        return _getCurrentState().owningPlayerIndex;
+    }
+
+    float getMass() const {
+        return _size;
+    }
+
 private:
     bool         grounded             = false;
     bool         jump                 = false;
