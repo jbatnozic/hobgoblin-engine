@@ -37,14 +37,28 @@
             <br/>
             <div style="padding-left: 40dp;">
                 <span data-event-click="Host" class="button" style="color: blue;">
-                    [HOST GAME]
+                    [HOST LAN GAME]
+                </span>
+            </div>
+
+            <br/>
+            <div style="padding-left: 40dp;">
+                <span data-event-click="HostWithZeroTier" class="button" style="color: blue;">
+                    [HOST GLOBAL GAME]
                 </span>
             </div>
 
             <br/>
             <div style="padding-left: 40dp;">
                 <span data-event-click="Join" class="button" style="color: blue;">
-                    [JOIN GAME]
+                    [JOIN LAN GAME]
+                </span>
+            </div>
+
+            <br/>
+            <div style="padding-left: 40dp;">
+                <span data-event-click="JoinWithZeroTier" class="button" style="color: blue;">
+                    [JOIN GLOBAL GAME]
                 </span>
             </div>
 

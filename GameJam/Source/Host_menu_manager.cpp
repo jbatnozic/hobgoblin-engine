@@ -4,6 +4,7 @@
 #include "Join_menu_manager_interface.hpp"
 #include "Main_menu_manager_interface.hpp"
 #include "Names.hpp"
+#include "Simple_zerotier.hpp"
 
 #include <Hobgoblin/Format.hpp>
 #include <Hobgoblin/Utility/No_copy_no_move.hpp>
@@ -21,6 +22,14 @@ bool RegisterModel(Rml::DataModelConstructor& aDataModelCtor) {
 
 struct HostMenuModel {
     bool testMode = false;
+
+    /**
+     * 0 = disabled
+     * 1 = initializing
+     * 2 = failure
+     * 3 = active
+     */
+    int zeroTierStatus = 0;
 };
 
 template <>
@@ -28,6 +37,7 @@ bool RegisterModel<HostMenuModel>(Rml::DataModelConstructor& aDataModelCtor) {
     auto handle = aDataModelCtor.RegisterStruct<HostMenuModel>();
     if (handle) {
         handle.RegisterMember<bool>("testMode", &HostMenuModel::testMode);
+        handle.RegisterMember<int>("zeroTierStatus", &HostMenuModel::zeroTierStatus);
     }
     return static_cast<bool>(handle);
 }
@@ -76,15 +86,18 @@ public:
 
         // clang-format off
         ServerGameParams serverParams{
-            .playerCount = std::stoi(aPlayerCount) + 1,
-            .portNumber  = static_cast<std::uint16_t>(std::stoi(aServerPort))
+            .playerCount     = std::stoi(aPlayerCount) + 1,
+            .portNumber      = static_cast<std::uint16_t>(std::stoi(aServerPort)),
+            .zeroTierEnabled = _super._zeroTierEnabled
         };
 
         ClientGameParams clientParams{
             .playerName      = aPlayerName,
             .hostIpAddress   = "127.0.0.1",
             .hostPortNumber  = static_cast<std::uint16_t>(std::stoi(aServerPort)),
-            .localPortNumber = 0
+            .localPortNumber = 0,
+            .zeroTierEnabled = _super._zeroTierEnabled,
+            .skipConnect     = true
         };
         // clang-format on
 
@@ -108,6 +121,46 @@ public:
         //     _hostMenuModel.testMode = testMode;
         //     _dataModelHandle.DirtyAllVariables();
         // }
+
+        if (_super._zeroTierEnabled) {
+            switch (SimpleZeroTier_GetStatus()) {
+            case SimpleZeroTier_Status::STOPPED:
+                if (_hostMenuModel.zeroTierStatus != 2) {
+                    _hostMenuModel.zeroTierStatus = 2;
+                    _dataModelHandle.DirtyAllVariables();
+                }
+                break;
+
+            case SimpleZeroTier_Status::INITIALIZING:
+                if (_hostMenuModel.zeroTierStatus != 1) {
+                    _hostMenuModel.zeroTierStatus = 1;
+                    _dataModelHandle.DirtyAllVariables();
+                }
+                break;
+
+            case SimpleZeroTier_Status::FAILURE:
+                if (_hostMenuModel.zeroTierStatus != 2) {
+                    _hostMenuModel.zeroTierStatus = 2;
+                    _dataModelHandle.DirtyAllVariables();
+                }
+                break;
+
+            case SimpleZeroTier_Status::ACTIVE:
+                if (_hostMenuModel.zeroTierStatus != 3) {
+                    _hostMenuModel.zeroTierStatus = 3;
+                    _dataModelHandle.DirtyAllVariables();
+                }
+                break;
+
+            default:
+                HG_UNREACHABLE();
+            }
+        } else {
+            if (_hostMenuModel.zeroTierStatus != 0) {
+                _hostMenuModel.zeroTierStatus = 0;
+                _dataModelHandle.DirtyAllVariables();
+            }
+        }
     }
 
 private:
@@ -168,6 +221,7 @@ private:
 
             THROW_IF_FALSE(RegisterModel<HostMenuModel>(constructor));
             THROW_IF_FALSE(constructor.Bind("testMode", &_hostMenuModel.testMode));
+            THROW_IF_FALSE(constructor.Bind("zeroTierStatus", &_hostMenuModel.zeroTierStatus));
             THROW_IF_FALSE(constructor.BindEventCallback("Back", &Impl::_onBack,   this));         
         } catch (const hg::TracedRuntimeError& ex) {
             HG_LOG_ERROR(LOG_ID, "Could not bind data model: {}", ex.getErrorMessage());
@@ -205,6 +259,11 @@ void HostMenuManager::_eventPreUpdate() {
         ctx().attachChildContext(CreateServerContext(*_serverGameParams));
         ctx().startChildContext(-1);
         AttachGameplayManagers(ctx(), *_clientGameParams);
+        if (_clientGameParams->zeroTierEnabled) {
+            auto& server = ctx().getChildContext()->getComponent<MNetworking>().getServer();
+            auto& client = ccomp<MNetworking>().getClient();
+            client.connectLocal(server);
+        }
 
         spe::DetachStatus detachStatus;
 

@@ -14,11 +14,22 @@ public:
     using TracedRuntimeError::TracedRuntimeError;
 };
 
-std::optional<jbatnozic::ztcpp::IpAddress> SimpleZeroTierInit(
+void SimpleZeroTier_Init(
     const std::string&        aNodeIdentityPath,
     std::uint16_t             aServicePort,
     std::uint64_t             aNetworkId,
     std::chrono::milliseconds aMaxTimeToWait
 );
 
-void SimpleZeroTierStop();
+enum class SimpleZeroTier_Status {
+    STOPPED,
+    INITIALIZING,
+    FAILURE,
+    ACTIVE
+};
+
+SimpleZeroTier_Status SimpleZeroTier_GetStatus();
+
+jbatnozic::ztcpp::IpAddress SimpleZeroTier_GetLocalIpAddress();
+
+void SimpleZeroTier_Stop();

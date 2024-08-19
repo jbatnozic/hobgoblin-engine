@@ -4,6 +4,7 @@
 #include "Host_menu_manager_interface.hpp"
 #include "Main_menu_manager_interface.hpp"
 #include "Names.hpp"
+#include "Simple_zerotier.hpp"
 
 #include <Hobgoblin/Format.hpp>
 #include <Hobgoblin/Utility/No_copy_no_move.hpp>
@@ -22,6 +23,14 @@ bool RegisterModel(Rml::DataModelConstructor& aDataModelCtor) {
 
 struct JoinMenuModel {
     bool testMode = false;
+
+    /**
+     * 0 = disabled
+     * 1 = initializing
+     * 2 = failure
+     * 3 = active
+     */
+    int zeroTierStatus = 0;
 };
 
 template <>
@@ -29,6 +38,7 @@ bool RegisterModel<JoinMenuModel>(Rml::DataModelConstructor& aDataModelCtor) {
     auto handle = aDataModelCtor.RegisterStruct<JoinMenuModel>();
     if (handle) {
         handle.RegisterMember<bool>("testMode", &JoinMenuModel::testMode);
+        handle.RegisterMember<int>("zeroTierStatus", &JoinMenuModel::zeroTierStatus);
     }
     return static_cast<bool>(handle);
 }
@@ -83,7 +93,9 @@ public:
                                 .hostIpAddress   = aServerIp,
                                 .hostPortNumber  = static_cast<std::uint16_t>(std::stoi(aServerPort)),
                                 .localPortNumber = static_cast<std::uint16_t>(
-                                    (aLocalPort == "auto") ? 0 : std::stoi(aLocalPort))};
+                                    (aLocalPort == "auto") ? 0 : std::stoi(aLocalPort)),
+                                .zeroTierEnabled = _super._zeroTierEnabled,
+                                .skipConnect     = false};
 
         _super._clientGameParams = std::make_unique<ClientGameParams>(std::move(params));
         _super._timeToDie        = true;
@@ -100,10 +112,50 @@ public:
 
     void eventDrawGUI() {
         // const bool testMode = CTX().hasChildContext();
-        // if (_joinMenuModel.testMode != testMode) {
-        //     _joinMenuModel.testMode = testMode;
+        // if (_hostMenuModel.testMode != testMode) {
+        //     _hostMenuModel.testMode = testMode;
         //     _dataModelHandle.DirtyAllVariables();
         // }
+
+        if (_super._zeroTierEnabled) {
+            switch (SimpleZeroTier_GetStatus()) {
+            case SimpleZeroTier_Status::STOPPED:
+                if (_joinMenuModel.zeroTierStatus != 2) {
+                    _joinMenuModel.zeroTierStatus = 2;
+                    _dataModelHandle.DirtyAllVariables();
+                }
+                break;
+
+            case SimpleZeroTier_Status::INITIALIZING:
+                if (_joinMenuModel.zeroTierStatus != 1) {
+                    _joinMenuModel.zeroTierStatus = 1;
+                    _dataModelHandle.DirtyAllVariables();
+                }
+                break;
+
+            case SimpleZeroTier_Status::FAILURE:
+                if (_joinMenuModel.zeroTierStatus != 2) {
+                    _joinMenuModel.zeroTierStatus = 2;
+                    _dataModelHandle.DirtyAllVariables();
+                }
+                break;
+
+            case SimpleZeroTier_Status::ACTIVE:
+                if (_joinMenuModel.zeroTierStatus != 3) {
+                    _joinMenuModel.zeroTierStatus = 3;
+                    _dataModelHandle.DirtyAllVariables();
+                }
+                break;
+
+            default:
+                HG_UNREACHABLE();
+            }
+        } else {
+            if (_joinMenuModel.zeroTierStatus != 0) {
+                _joinMenuModel.zeroTierStatus = 0;
+                _dataModelHandle.DirtyAllVariables();
+            }
+        }
     }
 
 private:
@@ -165,6 +217,7 @@ private:
 
             THROW_IF_FALSE(RegisterModel<JoinMenuModel>(constructor)); 
             THROW_IF_FALSE(constructor.Bind("testMode", &_joinMenuModel.testMode));
+            THROW_IF_FALSE(constructor.Bind("zeroTierStatus", &_joinMenuModel.zeroTierStatus));
             THROW_IF_FALSE(constructor.BindEventCallback("Back",   &Impl::_onBack,   this));   
         } catch (const hg::TracedRuntimeError& ex) {
             HG_LOG_ERROR(LOG_ID, "Could not bind data model: {}", ex.getErrorMessage());

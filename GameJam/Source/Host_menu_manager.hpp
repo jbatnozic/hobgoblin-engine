@@ -16,11 +16,16 @@ public:
 
     void setVisible(bool aVisible) override;
 
+    void setZeroTierEnabled(bool aEnabled) override {
+        _zeroTierEnabled = aEnabled;
+    }
+
 private:
     class Impl;
     friend class Impl;
     std::unique_ptr<Impl> _impl;
 
+    bool                              _zeroTierEnabled = false;
     std::unique_ptr<ClientGameParams> _clientGameParams;
     std::unique_ptr<ServerGameParams> _serverGameParams;
     bool                              _timeToDie = false;

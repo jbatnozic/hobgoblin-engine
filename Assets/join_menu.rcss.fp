@@ -65,9 +65,9 @@ div#window-interior-holder {
 
 .window-contents {
     padding-left: 40dp;
-	padding-right: 40dp;
+	/* padding-right: 40dp; */
 	padding-top: 40dp;
-	padding-bottom: 40dp;
+	/* padding-bottom: 40dp; */
 }
 
 .text-box {

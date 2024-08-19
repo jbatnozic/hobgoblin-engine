@@ -4,6 +4,7 @@
 #include "Host_menu_manager_interface.hpp"
 #include "Join_menu_manager_interface.hpp"
 #include "Names.hpp"
+#include "Simple_zerotier.hpp"
 
 #include <Hobgoblin/Format.hpp>
 #include <Hobgoblin/Utility/No_copy_no_move.hpp>
@@ -116,10 +117,12 @@ private:
 
             THROW_IF_FALSE(RegisterModel<MainMenuModel>(constructor));
             THROW_IF_FALSE(constructor.Bind("testMode", &_mainMenuModel.testMode));
-            THROW_IF_FALSE(constructor.BindEventCallback("Solo",   &Impl::_onSolo,   this));
-            THROW_IF_FALSE(constructor.BindEventCallback("Host",   &Impl::_onHost,   this));
-            THROW_IF_FALSE(constructor.BindEventCallback("Join",   &Impl::_onJoin,   this));
-            THROW_IF_FALSE(constructor.BindEventCallback("Exit",   &Impl::_onExit,   this));
+            THROW_IF_FALSE(constructor.BindEventCallback("Solo",             &Impl::_onSolo,             this));
+            THROW_IF_FALSE(constructor.BindEventCallback("Host",             &Impl::_onHost,             this));
+            THROW_IF_FALSE(constructor.BindEventCallback("HostWithZeroTier", &Impl::_onHostWithZeroTier, this));
+            THROW_IF_FALSE(constructor.BindEventCallback("Join",             &Impl::_onJoin,             this));
+            THROW_IF_FALSE(constructor.BindEventCallback("JoinWithZeroTier", &Impl::_onJoinWithZeroTier, this));
+            THROW_IF_FALSE(constructor.BindEventCallback("Exit",             &Impl::_onExit,             this));
         } catch (const hg::TracedRuntimeError& ex) {
             HG_LOG_ERROR(LOG_ID, "Could not bind data model: {}", ex.getErrorMessage());
             return {};
@@ -132,15 +135,18 @@ private:
     void _onSolo(Rml::DataModelHandle, Rml::Event&, const Rml::VariantList& aArguments) {
         // clang-format off
         ServerGameParams serverParams{
-            .playerCount = 2,
-            .portNumber  = 8889
+            .playerCount     = 2,
+            .portNumber      = 8889,
+            .zeroTierEnabled = false
         };
 
         ClientGameParams clientParams{
             .playerName      = GetRandomGymName(),
             .hostIpAddress   = "127.0.0.1",
             .hostPortNumber  = 8889,
-            .localPortNumber = 0
+            .localPortNumber = 0,
+            .zeroTierEnabled = false,
+            .skipConnect     = true
         };
         // clang-format on
 
@@ -151,16 +157,36 @@ private:
 
     void _onHost(Rml::DataModelHandle, Rml::Event&, const Rml::VariantList& aArguments) {
         CCOMP<HostMenuManagerInterface>().setVisible(true);
+        CCOMP<HostMenuManagerInterface>().setZeroTierEnabled(false);
+        this->setVisible(false);
+    }
+
+    void _onHostWithZeroTier(Rml::DataModelHandle, Rml::Event&, const Rml::VariantList& aArguments) {
+        _initZeroTier();
+        CCOMP<HostMenuManagerInterface>().setVisible(true);
+        CCOMP<HostMenuManagerInterface>().setZeroTierEnabled(true);
         this->setVisible(false);
     }
 
     void _onJoin(Rml::DataModelHandle, Rml::Event&, const Rml::VariantList& aArguments) {
         CCOMP<JoinMenuManagerInterface>().setVisible(true);
+        CCOMP<JoinMenuManagerInterface>().setZeroTierEnabled(false);
+        this->setVisible(false);
+    }
+
+    void _onJoinWithZeroTier(Rml::DataModelHandle, Rml::Event&, const Rml::VariantList& aArguments) {
+        _initZeroTier();
+        CCOMP<JoinMenuManagerInterface>().setVisible(true);
+        CCOMP<JoinMenuManagerInterface>().setZeroTierEnabled(true);
         this->setVisible(false);
     }
 
     void _onExit(Rml::DataModelHandle, Rml::Event&, const Rml::VariantList& aArguments) {
         CTX().stop();
+    }
+
+    void _initZeroTier() {
+         SimpleZeroTier_Init("ztNodeIdentity", 8989, 0xd3ecf5726d81ccb3, std::chrono::seconds{20});
     }
 
 #undef CCOMP
@@ -185,7 +211,7 @@ void MainMenuManager::_eventPreUpdate() {
         ctx().attachChildContext(CreateServerContext(*_serverGameParams));
         ctx().startChildContext(-1);
         AttachGameplayManagers(ctx(), *_clientGameParams);
-        
+
         spe::DetachStatus detachStatus;
 
         // Detach & destroy host menu manager

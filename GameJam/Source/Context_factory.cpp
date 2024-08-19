@@ -25,8 +25,6 @@ constexpr auto TELEMETRY_CYCLE_LENGTH         = 300;
 
 constexpr auto PASSPHRASE = "GMTK-2024-HQ";
 
-constexpr auto NETWORKING_STACK = RN_NetworkingStack::Default;
-
 bool MyRetransmitPredicate(hg::PZInteger             aCyclesSinceLastTransmit,
                            std::chrono::microseconds aTimeSinceLastSend,
                            std::chrono::microseconds aCurrentLatency) {
@@ -77,7 +75,12 @@ std::unique_ptr<spe::GameContext> CreateServerContext(const ServerGameParams& aP
 
     const auto clientCount = aParams.playerCount - 1; // -1 because player 0 is the host itself
                                                       // (even if it doesn't participate in the game)
-    netMgr->setToServerMode(RN_Protocol::UDP, PASSPHRASE, clientCount, 2048, NETWORKING_STACK);
+    netMgr->setToServerMode(RN_Protocol::UDP,
+                            PASSPHRASE,
+                            clientCount,
+                            2048,
+                            aParams.zeroTierEnabled ? RN_NetworkingStack::ZeroTier
+                                                    : RN_NetworkingStack::Default);
     netMgr->setPacemakerPulsePeriod(120);
     auto& server = netMgr->getServer();
     server.setTimeoutLimit(std::chrono::seconds{5});
@@ -260,11 +263,18 @@ void AttachGameplayManagers(spe::GameContext& aContext, const ClientGameParams& 
     auto netMgr = QAO_UPCreate<spe::DefaultNetworkingManager>(aContext.getQAORuntime().nonOwning(),
                                                               PRIORITY_NETWORKMGR,
                                                               INITIAL_STATE_BUFFERING_LENGTH);
-    netMgr->setToClientMode(RN_Protocol::UDP, PASSPHRASE, 2048, NETWORKING_STACK);
+    netMgr->setToClientMode(RN_Protocol::UDP,
+                            PASSPHRASE,
+                            2048,
+                            aParams.zeroTierEnabled ? RN_NetworkingStack::ZeroTier
+                                                    : RN_NetworkingStack::Default);
     auto& client = netMgr->getClient();
     client.setTimeoutLimit(std::chrono::seconds{5});
     client.setRetransmitPredicate(&MyRetransmitPredicate);
-    client.connect(aParams.localPortNumber, aParams.hostIpAddress, aParams.hostPortNumber);
+
+    if (!aParams.skipConnect) {
+        client.connect(aParams.localPortNumber, aParams.hostIpAddress, aParams.hostPortNumber);
+    }
 
     HG_LOG_INFO(LOG_ID,
                 "Client started on port {} (connecting to {}:{}).",

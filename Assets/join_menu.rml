@@ -27,8 +27,21 @@
                 <p style="color: red;">!!!!! TESTING MODE !!!!!</p>
             </div>
 
+            <div data-if="zeroTierStatus == 1" class="window-contents">
+                <span>Please wait for Virtual LAN to come online...</span>
+            </div>
+
+            <div data-if="zeroTierStatus == 2" class="window-contents">
+                <span>Virtual LAN could not be created :(</span>
+            </div>
+
+            <div data-if="zeroTierStatus == 3" class="window-contents">
+                <span>Virtual LAN has been created successfully :D</span>
+            </div>
+
             <!-- FORM -->
-            <form id="join-form" onsubmit="submit_form" data-event-change="">
+            <form data-if="zeroTierStatus == 0 || zeroTierStatus == 3"
+                  id="join-form" onsubmit="submit_form" data-event-change="">
                 <div class="window-contents">
                     <p>
                         <p>What is my name? Is it maybe...</p><br/>
