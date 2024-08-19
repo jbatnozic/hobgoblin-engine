@@ -12,7 +12,9 @@
 #include "Player_controls.hpp"
 #include "Resource_manager.hpp"
 
-#include "Main_menu_manager.hpp" // TODO(temp.)
+#include "Host_menu_manager.hpp"
+#include "Join_menu_manager.hpp"
+#include "Main_menu_manager.hpp"
 
 namespace {
 constexpr auto FRAME_RATE = 60;
@@ -36,7 +38,9 @@ bool MyRetransmitPredicate(hg::PZInteger             aCyclesSinceLastTransmit,
 }
 } // namespace
 
-// MARK: Server
+///////////////////////////////////////////////////////////////////////////
+// MARK: SERVER                                                          //
+///////////////////////////////////////////////////////////////////////////
 
 std::unique_ptr<spe::GameContext> CreateServerContext(const ServerGameParams& aParams) {
     auto context =
@@ -152,7 +156,9 @@ std::unique_ptr<spe::GameContext> CreateServerContext(const ServerGameParams& aP
     return context;
 }
 
-// MARK: Client
+///////////////////////////////////////////////////////////////////////////
+// MARK: CLIENT - BASIC                                                  //
+///////////////////////////////////////////////////////////////////////////
 
 #define WINDOW_WIDTH  1200
 #define WINDOW_HEIGHT 800
@@ -226,12 +232,28 @@ std::unique_ptr<spe::GameContext> CreateBasicClientContext() {
     context->attachAndOwnComponent(std::move(resMgr));
 
     // Main menu manager
-    auto mmMgr =
+    auto mainMenuMgr =
         QAO_UPCreate<MainMenuManager>(context->getQAORuntime().nonOwning(), PRIORITY_MAINMENUMGR);
-    context->attachAndOwnComponent(std::move(mmMgr));
+    context->attachAndOwnComponent(std::move(mainMenuMgr));
+
+    // Host menu manager
+    auto hostMenuMgr =
+        QAO_UPCreate<HostMenuManager>(context->getQAORuntime().nonOwning(), PRIORITY_HOSTMENUMGR);
+    hostMenuMgr->setVisible(false);
+    context->attachAndOwnComponent(std::move(hostMenuMgr));
+
+    // Join menu manager
+    auto joinMenuMgr =
+        QAO_UPCreate<JoinMenuManager>(context->getQAORuntime().nonOwning(), PRIORITY_JOINMENUMGR);
+    joinMenuMgr->setVisible(false);
+    context->attachAndOwnComponent(std::move(joinMenuMgr));
 
     return context;
 }
+
+///////////////////////////////////////////////////////////////////////////
+// MARK: CLIENT - EXTRA                                                  //
+///////////////////////////////////////////////////////////////////////////
 
 void AttachGameplayManagers(spe::GameContext& aContext, const ClientGameParams& aParams) {
     // Networking manager

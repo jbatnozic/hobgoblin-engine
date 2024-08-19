@@ -8,22 +8,7 @@
 #include "Engine.hpp"
 #include "Simple_zerotier.hpp"
 
-int InitializeAndRunDebug() {
-    auto ctx = CreateBasicClientContext();
-
-    const ServerGameParams serverParams{
-        .playerCount = 2,
-        .portNumber  = 8888
-    };
-    ctx->attachChildContext(CreateServerContext(serverParams));
-    ctx->startChildContext(-1);
-
-    const int status = ctx->runFor(-1);
-    HG_LOG_INFO(LOG_ID, "Main context stopped with exit code {}.", status);
-    return status;
-}
-
-int InitializeAndRunClient() {
+int InitializeAndRunPlayer() {
     // SimpleZeroTierInit(
     //     "ztNodeIdentity",
     //     8989,
@@ -45,9 +30,10 @@ int InitializeAndRunServer(int argc, char* argv[]) {
     //     0xd3ecf5726d81ccb3,
     //     std::chrono::seconds{20}
     // );
+
     // clang-format off
     const ServerGameParams params{
-        .playerCount = 5,
+        .playerCount = 6,
         .portNumber  = 8888
     };
     auto ctx = CreateServerContext(params);
@@ -79,12 +65,10 @@ int main(int argc, char* argv[]) try {
 
     // Init & run context
     if (argc <= 1) {
-        return InitializeAndRunDebug();
+        return InitializeAndRunPlayer();
     } else {
         const std::string mode = argv[1];
-        if (mode == "client") {
-            return InitializeAndRunClient();
-        } else if (mode == "server") {
+        if (mode == "server") {
             return InitializeAndRunServer(argc, argv);
         } else {
            HG_LOG_ERROR(LOG_ID, "Unknown mode provided ({}), exiting.", mode);

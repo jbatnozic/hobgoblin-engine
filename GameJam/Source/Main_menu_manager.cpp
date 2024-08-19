@@ -1,6 +1,9 @@
 #include "Main_menu_manager.hpp"
 
 #include "Context_factory.hpp"
+#include "Host_menu_manager_interface.hpp"
+#include "Join_menu_manager_interface.hpp"
+#include "Names.hpp"
 
 #include <Hobgoblin/Format.hpp>
 #include <Hobgoblin/Utility/No_copy_no_move.hpp>
@@ -11,49 +14,9 @@
 #include <string>
 
 namespace {
-std::string GetRandomGymName() {
-    // clang-format off
-    static constexpr const char* NAMES[] = {
-        "Bulk SquatThrust",
-        "Thrust Master",
-        "Roid",
-        "Manly McMuscleman",
-        "Brover",
-        "Cousin Arnold",
-        "HUGE!!!",
-        "The Proteinator",
-        "Eggmuncher",
-        "Meat Grinder",
-        "Wheyfinder",
-        "Super(set)man",
-        "Lean Beef",
-        "Meathead",
-        "The Barbarian",
-        "Harry Squatter",
-        "Throbby",
-        "The Gainskeeper",
-        "Nameless Peon",
-        "Chad PILLZ Enjoyer",
-        "Dumbbelldoor",
-        "Benchpresser",
-        "Ben Swolo",
-        "Swoledemort",
-        "Hermione Gainer",
-        "Weightron",
-        "Sir Lift-a-lot",
-        "Lord Benchington"
-    };
-    // clang-format on
-
-    const std::size_t min = 0;
-    const std::size_t max = (sizeof(NAMES) / sizeof(NAMES[0])) - 1;
-    const auto        idx = hg::util::GetRandomNumber(min, max);
-
-    return {NAMES[idx]};
-}
-
 template <class T>
 bool RegisterModel(Rml::DataModelConstructor& aDataModelCtor) {
+    HG_UNREACHABLE();
     return false;
 }
 
@@ -69,150 +32,52 @@ bool RegisterModel<MainMenuModel>(Rml::DataModelConstructor& aDataModelCtor) {
     }
     return static_cast<bool>(handle);
 }
-
-class FormSubmitEventListener {
-public:
-    virtual void onFormSubmitted(const Rml::String& aPlayerName,
-                                 const Rml::String& aServerIp,
-                                 const Rml::String& aServerPort,
-                                 const Rml::String& aLocalPort) = 0;
-};
-
-class RmlUiEventListener : public Rml::EventListener {
-public:
-    RmlUiEventListener(const Rml::String&       aValue,
-                       Rml::Element*            aElement,
-                       FormSubmitEventListener& aFormSubmitEventListener)
-        : _value{aValue}
-        , _element{aElement}
-        , _formSubmitEventListener{aFormSubmitEventListener} {}
-
-    void ProcessEvent(Rml::Event& aEvent) override {
-        if (_value == "submit_form") {
-            const auto playerName = aEvent.GetParameter<Rml::String>("playerName", "");
-            const auto serverIp   = aEvent.GetParameter<Rml::String>("serverIp", "");
-            const auto serverPort = aEvent.GetParameter<Rml::String>("serverPort", "");
-            const auto localPort  = aEvent.GetParameter<Rml::String>("localPort", "");
-            _formSubmitEventListener.onFormSubmitted(playerName, serverIp, serverPort, localPort);
-        }
-    }
-
-    void OnDetach(Rml::Element* element) override {
-        delete this;
-    }
-
-private:
-    Rml::String              _value;
-    Rml::Element*            _element;
-    FormSubmitEventListener& _formSubmitEventListener;
-};
-
-class EventListenerInstancer : public Rml::EventListenerInstancer {
-public:
-    EventListenerInstancer(FormSubmitEventListener& aFormSubmitEventListener)
-        : _formSubmitEventListener{aFormSubmitEventListener} {}
-
-    Rml::EventListener* InstanceEventListener(const Rml::String& value, Rml::Element* element) override {
-        return new RmlUiEventListener(value, element, _formSubmitEventListener);
-    }
-
-private:
-    FormSubmitEventListener& _formSubmitEventListener;
-};
 } // namespace
 
 class MainMenuManager::Impl
     : hg::util::NonCopyable
-    , hg::util::NonMoveable
-    , FormSubmitEventListener {
+    , hg::util::NonMoveable {
 public:
 #define CTX   _super.ctx
 #define CCOMP _super.ccomp
 
     Impl(MainMenuManager& aSuper)
-        : _super{aSuper}
-        , _eventListenerInstancer{*this} {
+        : _super{aSuper} {
         _init();
     }
 
     ~Impl() {
-        Rml::Factory::RegisterEventListenerInstancer(nullptr);
         if (_document) {
             CCOMP<MWindow>().getGUIContext().UnloadDocument(_document);
             _document = nullptr;
         }
     }
 
-    void onFormSubmitted(const Rml::String& aPlayerName,
-                         const Rml::String& aServerIp,
-                         const Rml::String& aServerPort,
-                         const Rml::String& aLocalPort) override {
-        HG_LOG_INFO(
-            LOG_ID,
-            "Connect form submitted: playerName: {}, serverIp: {}, serverPort: {}, localPort: {}",
-            aPlayerName,
-            aServerIp,
-            aServerPort,
-            aLocalPort);
-
-        ClientGameParams params{.playerName      = aPlayerName,
-                                .hostIpAddress   = aServerIp,
-                                .hostPortNumber  = static_cast<std::uint16_t>(std::stoi(aServerPort)),
-                                .localPortNumber = static_cast<std::uint16_t>(
-                                    (aLocalPort == "auto") ? 0 : std::stoi(aLocalPort))};
-
-        _super._clientGameParams = std::make_unique<ClientGameParams>(std::move(params));
-        _super._timeToDie        = true;
+    void setVisible(bool aVisible) {
+        _documentVisible = aVisible;
+        if (_documentVisible) {
+            _document->Show();
+        } else {
+            _document->Hide();
+        }
     }
 
     void eventDrawGUI() {
-        const bool testMode = CTX().hasChildContext();
-        if (_mainMenuModel.testMode != testMode) {
-            _mainMenuModel.testMode = testMode;
-            _dataModelHandle.DirtyAllVariables();
-        }
+        // const bool testMode = CTX().hasChildContext();
+        // if (_mainMenuModel.testMode != testMode) {
+        //     _mainMenuModel.testMode = testMode;
+        //     _dataModelHandle.DirtyAllVariables();
+        // }
     }
 
 private:
     MainMenuManager& _super;
-
-    EventListenerInstancer _eventListenerInstancer;
 
     Rml::ElementDocument* _document = nullptr;
     MainMenuModel         _mainMenuModel;
     Rml::DataModelHandle  _dataModelHandle;
 
     bool _documentVisible = false;
-
-    std::optional<Rml::DataModelHandle> _setUpDataBinding(Rml::Context& aContext) {
-        Rml::DataModelConstructor constructor = aContext.CreateDataModel("mainmenu-model");
-        if (!constructor) {
-            return {};
-        }
-
-        try {
-// clang-format off
-            #define THROW_IF_FALSE(_val_)                                                              \
-                do {                                                                                   \
-                    if (!(_val_)) {                                                                    \
-                        HG_THROW_TRACED(hg::TracedRuntimeError, 0, "Expression failed: '{}'", #_val_); \
-                    }                                                                                  \
-                } while (0)
-
-            THROW_IF_FALSE(RegisterModel<MainMenuModel>(constructor));
-        
-            THROW_IF_FALSE(constructor.Bind("testMode", &_mainMenuModel.testMode));
-            // THROW_IF_FALSE(constructor.Bind("localName",    &_lobbyModel.localName));
-            // THROW_IF_FALSE(constructor.Bind("isAuthorized", &_lobbyModel.isAuthorized));
-            THROW_IF_FALSE(constructor.BindEventCallback("Exit",   &Impl::_onExit,   this));
-            // clang-format on
-        } catch (const hg::TracedRuntimeError& ex) {
-            HG_LOG_ERROR(LOG_ID, "Could not bind data model: {}", ex.getErrorMessage());
-            return {};
-        }
-
-        return constructor.GetModelHandle();
-    }
 
     void _init() {
         SPEMPE_VALIDATE_GAME_CONTEXT_FLAGS(CTX(), headless == false);
@@ -223,22 +88,75 @@ private:
         _dataModelHandle = *handle;
 
         hg::rml::PreprocessRcssFile("Assets/main_menu.rcss.fp");
-        Rml::Factory::RegisterEventListenerInstancer(&_eventListenerInstancer);
         _document = guiContext.LoadDocument("Assets/main_menu.rml");
 
         if (_document) {
-            auto* nameElement = _document->GetElementById("playerName");
-            if (nameElement) {
-                nameElement->SetAttribute("value", GetRandomGymName());
-            }
-
             _document->Show();
-
             _documentVisible = true;
             HG_LOG_INFO(LOG_ID, "RMLUI Document loaded successfully.");
         } else {
             HG_LOG_ERROR(LOG_ID, "RMLUI Document could not be loaded.");
         }
+    }
+
+    std::optional<Rml::DataModelHandle> _setUpDataBinding(Rml::Context& aContext) {
+        Rml::DataModelConstructor constructor = aContext.CreateDataModel("mainmenu-model");
+        if (!constructor) {
+            return {};
+        }
+
+        // clang-format off
+        try {
+            #define THROW_IF_FALSE(_val_)                                                              \
+                do {                                                                                   \
+                    if (!(_val_)) {                                                                    \
+                        HG_THROW_TRACED(hg::TracedRuntimeError, 0, "Expression failed: '{}'", #_val_); \
+                    }                                                                                  \
+                } while (0)
+
+            THROW_IF_FALSE(RegisterModel<MainMenuModel>(constructor));
+            THROW_IF_FALSE(constructor.Bind("testMode", &_mainMenuModel.testMode));
+            THROW_IF_FALSE(constructor.BindEventCallback("Solo",   &Impl::_onSolo,   this));
+            THROW_IF_FALSE(constructor.BindEventCallback("Host",   &Impl::_onHost,   this));
+            THROW_IF_FALSE(constructor.BindEventCallback("Join",   &Impl::_onJoin,   this));
+            THROW_IF_FALSE(constructor.BindEventCallback("Exit",   &Impl::_onExit,   this));
+        } catch (const hg::TracedRuntimeError& ex) {
+            HG_LOG_ERROR(LOG_ID, "Could not bind data model: {}", ex.getErrorMessage());
+            return {};
+        }
+        // clang-format on
+
+        return constructor.GetModelHandle();
+    }
+
+    void _onSolo(Rml::DataModelHandle, Rml::Event&, const Rml::VariantList& aArguments) {
+        // clang-format off
+        ServerGameParams serverParams{
+            .playerCount = 2,
+            .portNumber  = 8889
+        };
+
+        ClientGameParams clientParams{
+            .playerName      = GetRandomGymName(),
+            .hostIpAddress   = "127.0.0.1",
+            .hostPortNumber  = 8889,
+            .localPortNumber = 0
+        };
+        // clang-format on
+
+        _super._serverGameParams = std::make_unique<ServerGameParams>(std::move(serverParams));
+        _super._clientGameParams = std::make_unique<ClientGameParams>(std::move(clientParams));
+        _super._timeToDie        = true;
+    }
+
+    void _onHost(Rml::DataModelHandle, Rml::Event&, const Rml::VariantList& aArguments) {
+        CCOMP<HostMenuManagerInterface>().setVisible(true);
+        this->setVisible(false);
+    }
+
+    void _onJoin(Rml::DataModelHandle, Rml::Event&, const Rml::VariantList& aArguments) {
+        CCOMP<JoinMenuManagerInterface>().setVisible(true);
+        this->setVisible(false);
     }
 
     void _onExit(Rml::DataModelHandle, Rml::Event&, const Rml::VariantList& aArguments) {
@@ -250,20 +168,44 @@ private:
 };
 
 MainMenuManager::MainMenuManager(QAO_RuntimeRef aRuntimeRef, int aExecutionPriority)
-    : spe::NonstateObject{aRuntimeRef, SPEMPE_TYPEID_SELF, aExecutionPriority, "MainMenuManager"}
+    : spe::NonstateObject{aRuntimeRef, SPEMPE_TYPEID_SELF, aExecutionPriority, "JoinMenuManager"}
     , _impl{std::make_unique<Impl>(*this)} {}
 
 MainMenuManager::~MainMenuManager() = default;
 
-void MainMenuManager::_eventPreUpdate() {
-    if (_timeToDie && _clientGameParams) {
-        _impl.reset();
-        AttachGameplayManagers(ctx(), *_clientGameParams);
+void MainMenuManager::setVisible(bool aVisible) {
+    _impl->setVisible(aVisible);
+}
 
+void MainMenuManager::_eventPreUpdate() {
+    if (_timeToDie && _serverGameParams && _clientGameParams) {
+        _impl.reset();
+
+        // Start game
+        ctx().attachChildContext(CreateServerContext(*_serverGameParams));
+        ctx().startChildContext(-1);
+        AttachGameplayManagers(ctx(), *_clientGameParams);
+        
         spe::DetachStatus detachStatus;
-        auto              self = ctx().detachComponent<MainMenuManagerInterface>(&detachStatus);
-        HG_HARD_ASSERT(detachStatus == spe::DetachStatus::OK && self != nullptr);
-        self.reset(); // WARNING: `this` will be deleted!
+
+        // Detach & destroy host menu manager
+        {
+            auto hostMenuMgr = ctx().detachComponent<HostMenuManagerInterface>(&detachStatus);
+            HG_HARD_ASSERT(detachStatus == spe::DetachStatus::OK && hostMenuMgr != nullptr);
+            hostMenuMgr.reset();
+        }
+        // Detach & destroy join menu manager
+        {
+            auto joinMenuMgr = ctx().detachComponent<JoinMenuManagerInterface>(&detachStatus);
+            HG_HARD_ASSERT(detachStatus == spe::DetachStatus::OK && joinMenuMgr != nullptr);
+            joinMenuMgr.reset();
+        }
+        // Detach & destroy main menu manager (self)
+        {
+            auto self = ctx().detachComponent<MainMenuManagerInterface>(&detachStatus);
+            HG_HARD_ASSERT(detachStatus == spe::DetachStatus::OK && self != nullptr);
+            self.reset(); // WARNING: `this` will be deleted!
+        }
     }
 }
 
