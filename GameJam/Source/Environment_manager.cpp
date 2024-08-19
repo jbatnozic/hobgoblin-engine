@@ -298,7 +298,7 @@ void EnvironmentManager::_eventDraw1() {
             if (_cells[y][x] == CellKind::EMPTY) {
                 continue;
             }
-
+            int  offset      = 1;
             bool skipDrawing = false;
             switch (_cells[y][x]) {
             case CellKind::ROCK_1:
@@ -310,6 +310,27 @@ void EnvironmentManager::_eventDraw1() {
             case CellKind::ROCK_3:
                 _spr.selectSubsprite(2);
                 break;
+            case CellKind::ROCK_T_1:
+                _spr.selectSubsprite(3);
+                break;
+            case CellKind::ROCK_T_2:
+                _spr.selectSubsprite(4);
+                break;
+            case CellKind::ROCK_T_3:
+                _spr.selectSubsprite(5);
+                break;
+            case CellKind::ROCK_MT_1:
+                _spr.selectSubsprite(3);
+                offset = -1;
+                break;
+            case CellKind::ROCK_MT_2:
+                _spr.selectSubsprite(4);
+                offset = -1;
+                break;
+            case CellKind::ROCK_MT_3:
+                _spr.selectSubsprite(5);
+                offset = -1;
+                break;
             default:
                 _spr.selectSubsprite(1);
                 // skipDrawing = true;
@@ -318,9 +339,10 @@ void EnvironmentManager::_eventDraw1() {
 
             if (!skipDrawing) {
                 const auto& bounds = _spr.getLocalBounds();
-                _spr.setOrigin(bounds.w / 2.f, bounds.h / 2.f);
+                _spr.setOrigin(bounds.w / 2.f , bounds.h / 2.f);
                 _spr.setPosition((float)CELL_RESOLUTION * (x + 0.5f),
                                  (float)CELL_RESOLUTION * (y + 0.5f));
+                _spr.setScale(offset, 1);
                 canvas.draw(_spr);
             }
         }
