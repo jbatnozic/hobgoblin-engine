@@ -122,6 +122,10 @@ public:
                     std::uint64_t             aNetworkId,
                     std::chrono::milliseconds aMaxTimeToWait) {
         std::unique_lock<std::mutex> lock{_mutex};
+        if (_status == SimpleZeroTier_Status::INITIALIZING) {
+            return;
+        }
+        
         HG_VALIDATE_PRECONDITION(_status == SimpleZeroTier_Status::STOPPED);
 
         _worker = std::thread{[=, this]() {

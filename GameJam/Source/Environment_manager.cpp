@@ -92,9 +92,9 @@ EnvironmentManager::EnvironmentManager(QAO_RuntimeRef aRuntimeRef, int aExecutio
     if (ccomp<MResource>().getMode() == ResourceManagerInterface::Mode::CLIENT) {
         const auto& sprLoader = ccomp<MResource>().getSpriteLoader();
 
-        _spr     = sprLoader.getMultiBlueprint(SPR_MOUNTAIN).multispr();
-        _edgeSpr = sprLoader.getMultiBlueprint(SPR_ROCK_EDGE).multispr();
-        _sprScale                  = sprLoader.getMultiBlueprint(SPR_SCALE).multispr();
+        _spr       = sprLoader.getMultiBlueprint(SPR_MOUNTAIN).multispr();
+        _edgeSpr   = sprLoader.getMultiBlueprint(SPR_ROCK_EDGE).multispr();
+        _sprScales = sprLoader.getMultiBlueprint(SPR_SCALE).multispr();
     }
 }
 
@@ -247,7 +247,7 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
                     }
                     inc = false;
                 }
-                
+
                 if (_temp_cells.size() - 1 >= 0 && j == _temp_cells.size() - 1) {
                     _temp_cells[j].push_back(rock);
                 } else if (_temp_cells.size() - 2 >= 0 && j == _temp_cells.size() - 2) {
@@ -260,7 +260,7 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
                             rock       = CellKind::ROCK_2;
                             rock_slope = CellKind::ROCK_T_2;
                         }
-                        HG_LOG_FATAL(LOG_ID, "sosilica 5----------------------");
+                        // HG_LOG_FATAL(LOG_ID, "sosilica 5----------------------");
                         inc = false;
                     }
 
@@ -271,7 +271,7 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
                             rock_slope = CellKind::ROCK_T_3;
                             // HG_LOG_FATAL(LOG_ID, "SADA  2");
                         }
-                        HG_LOG_FATAL(LOG_ID, "sosilica 2----------------------");
+                        // HG_LOG_FATAL(LOG_ID, "sosilica 2----------------------");
                         inc = false;
                     }
 
@@ -290,6 +290,15 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
 
     aWidth  = static_cast<hg::PZInteger>(_temp_cells[0].size());
     aHeight = static_cast<hg::PZInteger>(_temp_cells.size());
+
+    for (int i = 0; i < 5; i += 1) {
+        _temp_cells.push_front({});
+        for (int j = 0; j < aWidth; j += 1) {
+            _temp_cells[0].push_back(CellKind::EMPTY);
+        }
+        aHeight += 1;
+    }
+
     _cells.resize(aWidth, aHeight);
 
     for (hg::PZInteger y = 0; y < aHeight; y += 1) {
@@ -298,7 +307,19 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
             if (y == aHeight - 1 || y == aHeight - 2) {
                 _cells[y][x] = CellKind::ROCK_1;
             } else {
-                _cells[y][x] = _temp_cells[y][x];
+                const auto tempCell = _temp_cells[y][x];
+                if (tempCell == CellKind::SCALE) {
+                    _cells[y][x] = CellKind::SCALE;
+                    if (_scalesGridPosition.x == 0 && _scalesGridPosition.y == 0) {
+                        _scalesGridPosition = {x, y};
+                    }
+                } else {
+                    if (rand() > hole_chance) {
+                        _cells[y][x] = _temp_cells[y][x];
+                    } else {
+                        _cells[y][x] = CellKind::EMPTY;
+                    }
+                }
             }
             // oss << (int)_temp_cells[y][x];
         }
@@ -390,28 +411,36 @@ void EnvironmentManager::_eventDraw1() {
         spr.selectSubsprite(0);
         const auto bounds    = spr.getLocalBounds();
         const auto worldSize = getGridSize();
-        if (worldSize.x > 0) {
-            spr.setScale({worldSize.x * (float)CELL_RESOLUTION / bounds.w,
-                          worldSize.y * (float)CELL_RESOLUTION / bounds.h});
-            spr.setOrigin(0.f, 0.f);
-            spr.setPosition(0.f, 0.f);
-            canvas.draw(spr);
-        }
+        spr.setScale({worldSize.x * (float)CELL_RESOLUTION / bounds.w,
+                      worldSize.y * (float)CELL_RESOLUTION / bounds.h});
+        spr.setOrigin(0.f, 0.f);
+        spr.setPosition(0.f, 0.f);
+        canvas.draw(spr);
+
+        hg::gr::RectangleShape rect{
+            {4000.f, 4000.f}
+        };
+        rect.setFillColor(hg::gr::Color{255, 255, 255, 25});
+        rect.setScale({worldSize.x * (float)CELL_RESOLUTION / bounds.w,
+                      worldSize.y * (float)CELL_RESOLUTION / bounds.h});
+        rect.setPosition(0.f, 0.f);
+        canvas.draw(rect);
     }
 
     const hg::PZInteger startX = std::max(
-        static_cast<int>((view.getCenter().x - view.getSize().x / 2.f) / (float)CELL_RESOLUTION - 1.f),
+        static_cast<int>((view.getCenter().x - view.getSize().x / 2.f) / (float)CELL_RESOLUTION - 3.f),
         0);
     const hg::PZInteger startY = std::max(
-        static_cast<int>((view.getCenter().y - view.getSize().y / 2.f) / (float)CELL_RESOLUTION - 1.f),
+        static_cast<int>((view.getCenter().y - view.getSize().y / 2.f) / (float)CELL_RESOLUTION - 3.f),
         0);
     const hg::PZInteger endX = std::min(
-        static_cast<int>((view.getCenter().x + view.getSize().x / 2.f) / (float)CELL_RESOLUTION + 1.f),
+        static_cast<int>((view.getCenter().x + view.getSize().x / 2.f) / (float)CELL_RESOLUTION + 3.f),
         _cells.getWidth());
     const hg::PZInteger endY = std::min(
-        static_cast<int>((view.getCenter().y + view.getSize().y / 2.f) / (float)CELL_RESOLUTION + 1.f),
+        static_cast<int>((view.getCenter().y + view.getSize().y / 2.f) / (float)CELL_RESOLUTION + 3.f),
         _cells.getHeight());
-    bool renderScale = true;
+
+    bool renderScales = true;
     for (hg::PZInteger y = startY; y < endY; y += 1) {
         for (hg::PZInteger x = startX; x < endX; x += 1) {
             if (_cells[y][x] == CellKind::EMPTY) {
@@ -449,14 +478,17 @@ void EnvironmentManager::_eventDraw1() {
                 _spr.selectSubsprite(8);
                 break;
             case CellKind::SCALE:
-                if (renderScale) {
-                    renderScale = false;
-                    const auto& bounds = _sprScale.getLocalBounds();
-                    _sprScale.setOrigin(bounds.w / 2.f, bounds.h / 2.f);
-                    _sprScale.setPosition((float)CELL_RESOLUTION * (x + 0.5f),
-                                     (float)CELL_RESOLUTION * (y + 0.5f));
-                    
+                if (renderScales) {
+                    renderScales       = false;
+                    const auto& bounds = _sprScales.getLocalBounds();
+                    _sprScales.setPosition((float)CELL_RESOLUTION * (x + 0.0f),
+                                           (float)CELL_RESOLUTION * (y + 1.0f));
+                    canvas.draw(_sprScales);
+                    if (_scalesGridPosition.x == 0 && _scalesGridPosition.y == 0) {
+                        _scalesGridPosition = {x, y};
+                    }
                 }
+                skipDrawing = true;
                 break;
             default:
                 _spr.selectSubsprite(1);
@@ -470,8 +502,6 @@ void EnvironmentManager::_eventDraw1() {
                 _spr.setPosition((float)CELL_RESOLUTION * (x + 0.5f),
                                  (float)CELL_RESOLUTION * (y + 0.5f));
                 canvas.draw(_spr);
-                canvas.draw(_sprScale);
-
             }
         }
     }

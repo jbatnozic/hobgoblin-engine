@@ -40,6 +40,9 @@ public:
     std::optional<CellKind> getCellKindOfShape(NeverNull<cpShape*> aShape) const override;
 
     hg::math::Vector2pz getGridSize() const override;
+    hg::math::Vector2pz getScalesGridPosition() const override {
+        return _scalesGridPosition;
+    }
 
     void generateLoot() override;
 
@@ -57,7 +60,10 @@ private:
 
     hg::gr::Multisprite _spr;
     hg::gr::Multisprite _edgeSpr;
-    hg::gr::Multisprite _sprScale;
+    hg::gr::Multisprite _sprScales;
+
+    hg::math::Vector2pz _scalesGridPosition = {0, 0};
+
     void _eventUpdate1() override;
     void _eventDraw1() override;
 

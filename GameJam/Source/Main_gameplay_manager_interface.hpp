@@ -22,6 +22,9 @@ public:
 
     virtual void characterReachedTheScales(CharacterObject& aCharacter) = 0;
 
+    virtual CharacterObject* getContender1() const = 0;
+    virtual CharacterObject* getContender2() const = 0;
+
 private:
     SPEMPE_CTXCOMP_TAG("MainGameplayManagerInterface");
 };

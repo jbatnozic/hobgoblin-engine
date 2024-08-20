@@ -51,10 +51,19 @@ void MainGameplayManager::setToClientMode() {
     _mode = Mode::CLIENT;
 
     auto& views = ccomp<MWindow>().getViewController();
+    views.setViewCount(2);
+
     views.getView(0).setSize({1920.f, 1080.f});
     views.getView(0).setViewport({0.f, 0.f, 1.f, 1.f});
     views.getView(0).setCenter({0.f, 0.f});
     views.getView(0).zoom(2.0);
+    views.getView(0).setEnabled(true);
+
+    views.getView(1).setSize({1920.f, 1080.f});
+    views.getView(1).setViewport({0.f, 0.f, 1.f, 1.f});
+    views.getView(1).setCenter({0.f, 0.f});
+    views.getView(1).zoom(3.0);
+    views.getView(1).setEnabled(false);
 }
 
 MainGameplayManager::Mode MainGameplayManager::getMode() const {
@@ -112,7 +121,7 @@ void MainGameplayManager::_startGame(hg::PZInteger aPlayerCount) {
                                                  spe::SYNC_ID_NEW);
         obj->init(i,
                   left_offset * single_terrain_size + i * 300.0,
-                  terrain_size * single_terrain_size - 300.0);
+                  (terrain_size + 5) * single_terrain_size - 300.0);
     }
 }
 

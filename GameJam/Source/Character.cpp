@@ -1,12 +1,13 @@
 #include "Character.hpp"
 
 #include "Environment_manager.hpp"
-#include "Player_controls.hpp"
 #include "Main_gameplay_manager_interface.hpp"
+#include "Player_controls.hpp"
 
 #include <Hobgoblin/HGExcept.hpp>
 
 #include "Config.hpp"
+#include "Varmap_ids.hpp"
 #include <Hobgoblin/Math.hpp>
 #include <cmath>
 
@@ -216,6 +217,21 @@ void CharacterObject::_eventUpdate1(spe::IfMaster) {
             }
         }
 
+        auto& gpMgr = ccomp<MainGameplayManagerInterface>();
+        if (gpMgr.getContender1() == this) {
+            const auto scalesPos = ccomp<MEnvironment>().getScalesGridPosition();
+            self.x               = scalesPos.x * single_terrain_size + 250.f;
+            self.y               = scalesPos.y * single_terrain_size + 70.f;
+            finalX               = 0;
+            finalY               = 0;
+        } else if (gpMgr.getContender2() == this) {
+            const auto scalesPos = ccomp<MEnvironment>().getScalesGridPosition();
+            self.x               = (scalesPos.x + 4.f) * single_terrain_size - 350.f;
+            self.y               = scalesPos.y * single_terrain_size + 70.f;
+            finalX               = 0;
+            finalY               = 0;
+        }
+
         cpBodySetPosition(_unibody, cpv(self.x, self.y));
 
         // Determine rendering mode
@@ -379,7 +395,19 @@ hg::math::AngleF PointDirection2(hg::math::Vector2f aFrom, hg::math::Vector2f aT
 
 void CharacterObject::_adjustView() {
     auto& self = _getCurrentState();
-    auto& view = ccomp<MWindow>().getView(0);
+    auto& view = [this]() -> hg::gr::View& {
+        auto gameOver = ccomp<MVarmap>().getInt64(VARMAP_ID_GAME_OVER);
+        if (gameOver.has_value() && *gameOver == 1) {
+            auto& winMgr = ccomp<MWindow>();
+            winMgr.getView(0).setEnabled(false);
+            return winMgr.getView(1);
+        } else {
+            auto& winMgr = ccomp<MWindow>();
+            winMgr.getView(1).setEnabled(false);
+            return winMgr.getView(0);
+        }
+    }();
+    view.setEnabled(true);
 
     auto targetPos = sf::Vector2f{self.x, self.y};
     if (self.direction & DIRECTION_RIGHT) {
@@ -395,6 +423,15 @@ void CharacterObject::_adjustView() {
         targetPos.y -= CAMERA_OFFSET;
     }
 
+    {
+        auto gameOver = ccomp<MVarmap>().getInt64(VARMAP_ID_GAME_OVER);
+        if (gameOver.has_value() && *gameOver == 1) {
+            const auto scalesPos = ccomp<MEnvironment>().getScalesGridPosition();
+            targetPos            = {static_cast<float>((scalesPos.x + 2.f) * single_terrain_size),
+                                    static_cast<float>(scalesPos.y * single_terrain_size)};
+        }
+    }
+
     const auto viewCenter = view.getCenter();
     const auto dist =
         hg::math::EuclideanDist<float>(viewCenter.x, viewCenter.y, targetPos.x, targetPos.y);
@@ -407,11 +444,11 @@ void CharacterObject::_adjustView() {
     }
 
     {
-        auto& envMgr = ccomp<MEnvironment>();
-        const float minX = view.getSize().x / 2.f;
-        const float minY = view.getSize().y / 2.f;
-        const float maxX = envMgr.getGridSize().x * single_terrain_size - minX;
-        const float maxY = envMgr.getGridSize().y * single_terrain_size - minY;
+        auto&       envMgr = ccomp<MEnvironment>();
+        const float minX   = view.getSize().x / 2.f;
+        const float minY   = view.getSize().y / 2.f;
+        const float maxX   = envMgr.getGridSize().x * single_terrain_size - minX;
+        const float maxY   = envMgr.getGridSize().y * single_terrain_size - minY;
 
         auto pos = view.getCenter();
         if (pos.x < minX) {

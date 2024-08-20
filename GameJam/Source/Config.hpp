@@ -8,9 +8,9 @@ constexpr float fling_speed     = 30;
 
 constexpr int   single_terrain_size = 512;
 constexpr int   terrain_size        = 30;
-constexpr float y_floor             = single_terrain_size * terrain_size;
+constexpr float y_floor             = single_terrain_size * (terrain_size + 5.f);
 
-constexpr float hole_chance      = 0.2f;
+constexpr float hole_chance      = 0.15f;
 constexpr float terrain_1_chance = 0.3f;
 constexpr float terrain_1_repeat = 0.5f;
 constexpr float terrain_2_chance = 0.5f;
