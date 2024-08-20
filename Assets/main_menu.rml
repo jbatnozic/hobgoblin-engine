@@ -6,7 +6,7 @@
             body
             {
                 width: 800dp;
-                height: 600dp;
+                height: 700dp;
 
                 margin: auto;
             }
@@ -28,7 +28,7 @@
             </div>
 
             <br/>
-            <div style="padding-left: 40dp;">
+            <div style="padding-left: 40dp; padding-top: 340dp;">
                 <span data-event-click="Solo" class="button" style="color: blue;">
                     [PLAY SOLO]
                 </span>

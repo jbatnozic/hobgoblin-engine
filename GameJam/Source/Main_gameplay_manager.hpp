@@ -37,6 +37,7 @@ private:
 
     void _startGame(hg::PZInteger aPlayerCount);
     void _restartGame();
+    void _backToMainMenu();
 
     void _eventUpdate1() override;
     void _eventPostUpdate() override;

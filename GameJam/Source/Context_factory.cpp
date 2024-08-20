@@ -164,7 +164,7 @@ std::unique_ptr<spe::GameContext> CreateServerContext(const ServerGameParams& aP
 ///////////////////////////////////////////////////////////////////////////
 
 #define WINDOW_WIDTH  1200
-#define WINDOW_HEIGHT 800
+#define WINDOW_HEIGHT 900
 
 // Main Render Texture (MRT) size determines the resolution
 // at which the game will be rendered internally.

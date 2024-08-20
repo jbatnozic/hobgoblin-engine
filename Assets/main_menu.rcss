@@ -2,7 +2,7 @@
 {
 /* spritesheet began here */
 
-	src: joinmenu-spritesheet.tga;
+	src: mainmenu-spritesheet.tga;
 
 	frame: 0px 0px 412px 416px;
 	titlebar: 0px 416px 412px 26px;

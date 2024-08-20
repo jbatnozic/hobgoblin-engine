@@ -6,6 +6,10 @@
 #include "Config.hpp"
 #include "Player_controls.hpp"
 #include "Varmap_ids.hpp"
+#include "Lobby_frontend_manager_interface.hpp"
+#include "Main_menu_manager.hpp"
+#include "Join_menu_manager.hpp"
+#include "Host_menu_manager.hpp"
 
 #include <Hobgoblin/Format.hpp>
 #include <Hobgoblin/HGExcept.hpp>
@@ -149,6 +153,91 @@ void MainGameplayManager::_restartGame() {
     _startGame(_playerCount);
 }
 
+void MainGameplayManager::_backToMainMenu() {
+    auto& runtime = *getRuntime();
+    runtime.destroyAllOwnedObjects();
+
+    spe::DetachStatus detachStatus;
+
+    // Detach & destroy environment manager
+    {
+        auto mgr = ctx().detachComponent<MEnvironment>(&detachStatus);
+        HG_HARD_ASSERT(detachStatus == spe::DetachStatus::OK && mgr != nullptr);
+        mgr.reset();
+    }
+    // Detach & destroy auth manager
+    {
+        auto mgr = ctx().detachComponent<spe::AuthorizationManagerInterface>(&detachStatus);
+        HG_HARD_ASSERT(detachStatus == spe::DetachStatus::OK && mgr != nullptr);
+        mgr.reset();
+    }
+    // Detach & destroy lobby frontend manager
+    {
+        auto mgr = ctx().detachComponent<LobbyFrontendManagerInterface>(&detachStatus);
+        HG_HARD_ASSERT(detachStatus == spe::DetachStatus::OK && mgr != nullptr);
+        mgr.reset();
+    }
+    // Detach & destroy lobby backend manager
+    {
+        auto mgr = ctx().detachComponent<MLobbyBackend>(&detachStatus);
+        HG_HARD_ASSERT(detachStatus == spe::DetachStatus::OK && mgr != nullptr);
+        mgr.reset();
+    }
+    // Detach & destroy varmap manager
+    {
+        auto mgr = ctx().detachComponent<MVarmap>(&detachStatus);
+        HG_HARD_ASSERT(detachStatus == spe::DetachStatus::OK && mgr != nullptr);
+        mgr.reset();
+    }
+    // Detach & destroy input sync manager
+    {
+        auto mgr = ctx().detachComponent<spe::InputSyncManagerInterface>(&detachStatus);
+        HG_HARD_ASSERT(detachStatus == spe::DetachStatus::OK && mgr != nullptr);
+        mgr.reset();
+    }
+    // Detach & destroy networking manager
+    {
+        auto mgr = ctx().detachComponent<MNetworking>(&detachStatus);
+        HG_HARD_ASSERT(detachStatus == spe::DetachStatus::OK && mgr != nullptr);
+        mgr.reset();
+    }
+
+    // Kill child (if any)
+    if (ctx().hasChildContext() && ctx().isChildContextJoinable()) {
+        ctx().getChildContext()->stopAndJoinChildContext();
+        auto childCtx = ctx().detachChildContext();
+        ctx().stop();
+        std::this_thread::sleep_for(std::chrono::milliseconds{20});
+        childCtx.reset();
+    }
+
+    auto* context = &ctx();
+
+    // Main menu manager
+    auto mainMenuMgr =
+        QAO_UPCreate<MainMenuManager>(context->getQAORuntime().nonOwning(), PRIORITY_MAINMENUMGR);
+    context->attachAndOwnComponent(std::move(mainMenuMgr));
+
+    // Host menu manager
+    auto hostMenuMgr =
+        QAO_UPCreate<HostMenuManager>(context->getQAORuntime().nonOwning(), PRIORITY_HOSTMENUMGR);
+    hostMenuMgr->setVisible(false);
+    context->attachAndOwnComponent(std::move(hostMenuMgr));
+
+    // Join menu manager
+    auto joinMenuMgr =
+        QAO_UPCreate<JoinMenuManager>(context->getQAORuntime().nonOwning(), PRIORITY_JOINMENUMGR);
+    joinMenuMgr->setVisible(false);
+    context->attachAndOwnComponent(std::move(joinMenuMgr));
+
+    // Detach & destroy main gameplay manager (self)
+    {
+        auto self = ctx().detachComponent<MainGameplayManagerInterface>(&detachStatus);
+        HG_HARD_ASSERT(detachStatus == spe::DetachStatus::OK && self != nullptr);
+        self.reset(); // WARNING: `this` will be deleted!
+    }
+}
+
 void MainGameplayManager::_eventUpdate1() {
     if (ctx().isPrivileged()) {
         auto& varmap       = ccomp<MVarmap>();
@@ -219,11 +308,11 @@ void MainGameplayManager::_eventUpdate1() {
     }
 
     if (!ctx().isPrivileged()) {
+        const auto input = ccomp<MWindow>().getInput();
         auto& client = ccomp<MNetworking>().getClient();
         // If connected, upload input
-        if (client.getServerConnector().getStatus() == RN_ConnectorStatus::Connected) {
-            const auto input = ccomp<MWindow>().getInput();
 
+        if (client.getServerConnector().getStatus() == RN_ConnectorStatus::Connected) {
             const bool left  = input.checkPressed(hg::in::PK_A);
             const bool right = input.checkPressed(hg::in::PK_D);
             const bool up    = input.checkPressed(hg::in::PK_W);
@@ -241,6 +330,10 @@ void MainGameplayManager::_eventUpdate1() {
             wrapper.triggerEvent(CTRL_ID_JUMP, jump);
             wrapper.triggerEvent(CTRL_ID_START, start);
         }
+
+        // if (input.checkPressed(hg::in::PK_ESCAPE, spe::WindowFrameInputView::Mode::Edge)) {
+        //     _backToMainMenu(); // WARNING: this will delete `this`!
+        // }
     }
 }
 

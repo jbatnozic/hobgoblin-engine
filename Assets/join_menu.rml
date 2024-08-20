@@ -6,7 +6,7 @@
             body
             {
                 width: 800dp;
-                height: 600dp;
+                height: 700dp;
 
                 margin: auto;
             }

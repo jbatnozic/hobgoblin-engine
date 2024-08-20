@@ -2,9 +2,9 @@
 {
 %%fp:spritesheet_begin
 
-	%%fp:src: -f joinmenu-spritesheet.tga -w 1024 -h 1024
+	%%fp:src: -f mainmenu-spritesheet.tga -w 1024 -h 1024
 
-	%%fp:sprite: -n frame    -f ./frame-hq.png
+	%%fp:sprite: -n frame    -f ./frame-mm.png
 	%%fp:sprite: -n titlebar -f ./titlebar.png
 
 %%fp:spritesheet_end
