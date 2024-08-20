@@ -195,7 +195,7 @@ std::unique_ptr<spe::GameContext> CreateBasicClientContext() {
     winMgr->setToNormalMode(
         spe::WindowManagerInterface::WindowConfig{
             hg::win::VideoMode{WINDOW_WIDTH, WINDOW_HEIGHT},
-            "HUGE QUEST: THE GAME",
+            "BIG QUEST: THE GAME",
             hg::win::WindowStyle::Default
         },
         spe::WindowManagerInterface::MainRenderTextureConfig{{MRT_WIDTH, MRT_HEIGHT}},
