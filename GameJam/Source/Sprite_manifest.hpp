@@ -32,6 +32,7 @@ enum SpriteIds {
     SPR_FOREARM_SIZE_5,
     // Mountain
     SPR_MOUNTAIN,
+    SPR_ROCK_EDGE,
     // Miscellaneous
     SPR_POWER,
     SPR_BACKGROUND
@@ -75,6 +76,10 @@ inline void LoadSprites(hg::gr::SpriteLoader& aSpriteLoader) {
         ->addSubsprite(SPR_MOUNTAIN, mountainPath / "mt1.png")
         ->addSubsprite(SPR_MOUNTAIN, mountainPath / "mt2.png")
         ->addSubsprite(SPR_MOUNTAIN, mountainPath / "mt3.png")
+        ->addSubsprite(SPR_ROCK_EDGE, mountainPath / "h-right.png")
+        ->addSubsprite(SPR_ROCK_EDGE, mountainPath / "h-up.png")
+        ->addSubsprite(SPR_ROCK_EDGE, mountainPath / "h-left.png")
+        ->addSubsprite(SPR_ROCK_EDGE, mountainPath / "h-down.png")
         // Miscellaneous
         ->addSubsprite(SPR_POWER, basePath / "power.png")
         // Finalize

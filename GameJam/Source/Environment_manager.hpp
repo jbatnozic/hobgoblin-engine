@@ -56,9 +56,12 @@ private:
     std::unordered_map<cpShape*, hg::math::Vector2pz>       _shapeToPosition;
 
     hg::gr::Multisprite _spr;
+    hg::gr::Multisprite _edgeSpr;
 
     void _eventUpdate1() override;
     void _eventDraw1() override;
+
+    void _drawEmptyCell(hg::PZInteger aX, hg::PZInteger aY);
 
     void onNetworkingEvent(const RN_Event& aEvent) override;
 

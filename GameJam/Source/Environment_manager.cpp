@@ -91,7 +91,9 @@ EnvironmentManager::EnvironmentManager(QAO_RuntimeRef aRuntimeRef, int aExecutio
 
     if (ccomp<MResource>().getMode() == ResourceManagerInterface::Mode::CLIENT) {
         const auto& sprLoader = ccomp<MResource>().getSpriteLoader();
-        _spr                  = sprLoader.getMultiBlueprint(SPR_MOUNTAIN).multispr();
+
+        _spr     = sprLoader.getMultiBlueprint(SPR_MOUNTAIN).multispr();
+        _edgeSpr = sprLoader.getMultiBlueprint(SPR_ROCK_EDGE).multispr();
     }
 }
 
@@ -134,16 +136,15 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
     };
 
     for (int i = 1; i < mountain_height; i++) {
-        auto chance1 = [i](bool inc=false) {
-            float ch = ((terrain_1_chance +(inc ? terrain_1_repeat : 0)))*
+        auto chance1 = [i](bool inc = false) {
+            float ch = ((terrain_1_chance + (inc ? terrain_1_repeat : 0))) *
                        (((float)(i * i) / (mountain_height * mountain_height)));
 
             return ch;
         };
-        auto chance2 = [i](bool inc= false) {
+        auto chance2 = [i](bool inc = false) {
             float ch = ((terrain_2_chance + (inc ? terrain_2_repeat : 0))) *
-                       (1.f - ((float)(i * i) / (mountain_height * mountain_height)))
-                       ;
+                       (1.f - ((float)(i * i) / (mountain_height * mountain_height)));
 
             return ch;
         };
@@ -153,7 +154,7 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
             slope_left++;
             _num = rand();
         }
-        left_offset += slope_left; 
+        left_offset += slope_left;
         _num            = rand();
         int slope_right = 0;
         while (slope_chance < _num) {
@@ -163,15 +164,15 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
         right_offset += slope_right;
 
         _temp_cells.push_back({});
-         for (int j = 0; j < _temp_cells[_temp_cells.size() - 2].size(); j++) {
-            CellKind rock       = CellKind::ROCK_1;
-            bool     inc        = false;
+        for (int j = 0; j < _temp_cells[_temp_cells.size() - 2].size(); j++) {
+            CellKind rock = CellKind::ROCK_1;
+            bool     inc  = false;
             if (j > 0 && _temp_cells[_temp_cells.size() - 2][j] == CellKind::ROCK_2) {
                 inc = true;
             }
 
             if (chance1(inc) > rand()) {
-                rock       = CellKind::ROCK_2;
+                rock = CellKind::ROCK_2;
             }
             inc = false;
 
@@ -179,19 +180,17 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
                 inc = true;
             }
             if (chance2(inc) > rand()) {
-                rock       = CellKind::ROCK_3;
+                rock = CellKind::ROCK_3;
             }
             inc = false;
             _temp_cells[_temp_cells.size() - 1].push_back(rock);
         }
-      
 
-         for (int j = 0; j < _temp_cells.size(); j++) 
-         {
+        for (int j = 0; j < _temp_cells.size(); j++) {
             for (int l = 0; l < slope_left; l++) {
-                CellKind rock = CellKind::ROCK_1;
+                CellKind rock       = CellKind::ROCK_1;
                 CellKind rock_slope = CellKind::ROCK_MT_1;
-                bool inc = false;
+                bool     inc        = false;
                 if (j > 0 && (_temp_cells[j - 1][1] == CellKind::ROCK_2)) {
                     inc = true;
                     if (chance1(inc) > rand()) {
@@ -200,9 +199,8 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
                     }
                     HG_LOG_FATAL(LOG_ID, "sosilica 57---------------------");
                     inc = false;
-
                 }
-                
+
                 if (j > 0 && (_temp_cells[j - 1][1] == CellKind::ROCK_3)) {
                     inc = true;
                     if (chance2(inc) > rand()) {
@@ -213,8 +211,6 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
                     HG_LOG_FATAL(LOG_ID, "sosilica 5-5---------------------");
                     inc = false;
                 }
-
-
 
                 if (_temp_cells.size() - 1 >= 0 && j == _temp_cells.size() - 1) {
                     _temp_cells[j].push_front(rock);
@@ -236,9 +232,8 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
                     _temp_cells[j].push_back(CellKind::ROCK_1);
                 } else if (_temp_cells.size() - 2 >= 0 && j == _temp_cells.size() - 2) {
 
-
-                    bool     inc        = false;
-                    if (j > 0 && _temp_cells[j - 1][_temp_cells[j - 1].size()-2] == CellKind::ROCK_2) {
+                    bool inc = false;
+                    if (j > 0 && _temp_cells[j - 1][_temp_cells[j - 1].size() - 2] == CellKind::ROCK_2) {
                         inc = true;
 
                         if (chance1(inc) > rand()) {
@@ -249,7 +244,7 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
                         inc = false;
                     }
 
-                    if (j > 0 && _temp_cells[j - 1][_temp_cells[j - 1].size()-2] == CellKind::ROCK_3) {
+                    if (j > 0 && _temp_cells[j - 1][_temp_cells[j - 1].size() - 2] == CellKind::ROCK_3) {
                         inc = true;
                         if (chance2(inc) > rand()) {
                             rock       = CellKind::ROCK_3;
@@ -259,7 +254,6 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
                         HG_LOG_FATAL(LOG_ID, "sosilica 2----------------------");
                         inc = false;
                     }
-
 
                     if (r == 0) {
                         _temp_cells[j].push_back(rock_slope);
@@ -272,11 +266,7 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
                 }
             }
         }
-    
-
-}
-
-
+    }
 
     aWidth  = static_cast<hg::PZInteger>(_temp_cells[0].size());
     aHeight = static_cast<hg::PZInteger>(_temp_cells.size());
@@ -291,7 +281,6 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
                 _cells[y][x] = _temp_cells[y][x];
             }
             // oss << (int)_temp_cells[y][x];
-
         }
         // HG_LOG_FATAL(LOG_ID, "{}", oss.str());
     }
@@ -382,11 +371,12 @@ void EnvironmentManager::_eventDraw1() {
         const auto bounds    = spr.getLocalBounds();
         const auto worldSize = getGridSize();
         if (worldSize.x > 0) {
-        spr.setScale({worldSize.x * (float)CELL_RESOLUTION / bounds.w,
-                      worldSize.y * (float)CELL_RESOLUTION / bounds.h});
-        spr.setOrigin(0.f, 0.f);
-        spr.setPosition(0.f, 0.f);
-        canvas.draw(spr);}
+            spr.setScale({worldSize.x * (float)CELL_RESOLUTION / bounds.w,
+                          worldSize.y * (float)CELL_RESOLUTION / bounds.h});
+            spr.setOrigin(0.f, 0.f);
+            spr.setPosition(0.f, 0.f);
+            canvas.draw(spr);
+        }
     }
 
     const hg::PZInteger startX = std::max(
@@ -405,6 +395,7 @@ void EnvironmentManager::_eventDraw1() {
     for (hg::PZInteger y = startY; y < endY; y += 1) {
         for (hg::PZInteger x = startX; x < endX; x += 1) {
             if (_cells[y][x] == CellKind::EMPTY) {
+                _drawEmptyCell(x, y);
                 continue;
             }
             int  offset      = 1;
@@ -468,6 +459,42 @@ void EnvironmentManager::_eventDraw1() {
     //         {getGridSize().x * (float)CELL_RESOLUTION, view.getCenter().y - view.getSize().y / 2.f});
     //     canvas.draw(rect);
     // }
+}
+
+void EnvironmentManager::_drawEmptyCell(hg::PZInteger aX, hg::PZInteger aY) {
+    auto& canvas = ccomp<MWindow>().getCanvas();
+
+    const auto& bounds = _edgeSpr.getLocalBounds();
+    _edgeSpr.setOrigin(bounds.w / 2.f, bounds.h / 2.f);
+    _edgeSpr.setPosition((float)CELL_RESOLUTION * (aX + 0.5f), (float)CELL_RESOLUTION * (aY + 0.5f));
+
+    auto isSolidBlock = [](CellKind aCellKind) -> bool {
+        switch (aCellKind) {
+        case CellKind::ROCK_1:
+        case CellKind::ROCK_2:
+        case CellKind::ROCK_3:
+            return true;
+        default:
+            return false;
+        }
+    };
+
+    if (aX < _cells.getWidth() - 1 && isSolidBlock(_cells[aY][aX + 1])) {
+        _edgeSpr.selectSubsprite(0);
+        canvas.draw(_edgeSpr);
+    }
+    if (aY > 0 && isSolidBlock(_cells[aY - 1][aX])) {
+        _edgeSpr.selectSubsprite(1);
+        canvas.draw(_edgeSpr);
+    }
+    if (aX > 0 && isSolidBlock(_cells[aY][aX - 1])) {
+        _edgeSpr.selectSubsprite(2);
+        canvas.draw(_edgeSpr);
+    }
+    if (aY < _cells.getHeight() - 1 && isSolidBlock(_cells[aY + 1][aX])) {
+        _edgeSpr.selectSubsprite(3);
+        canvas.draw(_edgeSpr);
+    }
 }
 
 void EnvironmentManager::onNetworkingEvent(const RN_Event& aEvent) {
