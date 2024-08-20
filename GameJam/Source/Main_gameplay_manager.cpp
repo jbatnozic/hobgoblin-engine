@@ -14,7 +14,7 @@
 #include <cmath>
 
 namespace {
-constexpr int WIN_TIMER_MAX = 1 * 60;
+constexpr int WIN_TIMER_MAX = 10 * 60;
 }
 
 RN_DEFINE_RPC(SetGlobalStateBufferingLength, RN_ARGS(unsigned, aNewLength)) {
