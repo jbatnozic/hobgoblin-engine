@@ -57,7 +57,7 @@ private:
 
     hg::gr::Multisprite _spr;
     hg::gr::Multisprite _edgeSpr;
-
+    hg::gr::Multisprite _sprScale;
     void _eventUpdate1() override;
     void _eventDraw1() override;
 

@@ -35,7 +35,8 @@ enum SpriteIds {
     SPR_ROCK_EDGE,
     // Miscellaneous
     SPR_POWER,
-    SPR_BACKGROUND
+    SPR_BACKGROUND,
+    SPR_SCALE
 };
 
 inline void LoadSprites(hg::gr::SpriteLoader& aSpriteLoader) {
@@ -73,9 +74,12 @@ inline void LoadSprites(hg::gr::SpriteLoader& aSpriteLoader) {
         ->addSubsprite(SPR_MOUNTAIN, mountainPath / "m1.png")
         ->addSubsprite(SPR_MOUNTAIN, mountainPath / "m2.png")
         ->addSubsprite(SPR_MOUNTAIN, mountainPath / "m3.png")
-        ->addSubsprite(SPR_MOUNTAIN, mountainPath / "mt1.png")
-        ->addSubsprite(SPR_MOUNTAIN, mountainPath / "mt2.png")
-        ->addSubsprite(SPR_MOUNTAIN, mountainPath / "mt3.png")
+        ->addSubsprite(SPR_MOUNTAIN, mountainPath / "mtr1.png")
+        ->addSubsprite(SPR_MOUNTAIN, mountainPath / "mtr2.png")
+        ->addSubsprite(SPR_MOUNTAIN, mountainPath / "mtr3.png")
+        ->addSubsprite(SPR_MOUNTAIN, mountainPath / "mtl1.png")
+        ->addSubsprite(SPR_MOUNTAIN, mountainPath / "mtl2.png")
+        ->addSubsprite(SPR_MOUNTAIN, mountainPath / "mtl3.png")
         ->addSubsprite(SPR_ROCK_EDGE, mountainPath / "h-right.png")
         ->addSubsprite(SPR_ROCK_EDGE, mountainPath / "h-up.png")
         ->addSubsprite(SPR_ROCK_EDGE, mountainPath / "h-left.png")
@@ -83,6 +87,10 @@ inline void LoadSprites(hg::gr::SpriteLoader& aSpriteLoader) {
         // Miscellaneous
         ->addSubsprite(SPR_POWER, basePath / "power.png")
         // Finalize
+        ->finalize(hg::gr::TexturePackingHeuristic::BestAreaFit, &occupancy);
+
+        aSpriteLoader.startTexture(2048, 2048)
+        ->addSubsprite(SPR_SCALE, mountainPath / "Scales.png")
         ->finalize(hg::gr::TexturePackingHeuristic::BestAreaFit, &occupancy);
 
     HG_LOG_INFO(LOG_ID,

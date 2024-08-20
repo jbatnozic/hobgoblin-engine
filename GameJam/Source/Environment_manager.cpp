@@ -94,6 +94,7 @@ EnvironmentManager::EnvironmentManager(QAO_RuntimeRef aRuntimeRef, int aExecutio
 
         _spr     = sprLoader.getMultiBlueprint(SPR_MOUNTAIN).multispr();
         _edgeSpr = sprLoader.getMultiBlueprint(SPR_ROCK_EDGE).multispr();
+        _sprScale                  = sprLoader.getMultiBlueprint(SPR_SCALE).multispr();
     }
 }
 
@@ -197,7 +198,6 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
                         rock       = CellKind::ROCK_2;
                         rock_slope = CellKind::ROCK_MT_2;
                     }
-                    HG_LOG_FATAL(LOG_ID, "sosilica 57---------------------");
                     inc = false;
                 }
 
@@ -208,7 +208,6 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
                         rock_slope = CellKind::ROCK_MT_3;
                         // HG_LOG_FATAL(LOG_ID, "SADA  2");
                     }
-                    HG_LOG_FATAL(LOG_ID, "sosilica 5-5---------------------");
                     inc = false;
                 }
 
@@ -228,8 +227,29 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
             for (int r = 0; r < slope_right; r++) {
                 CellKind rock       = CellKind::ROCK_1;
                 CellKind rock_slope = CellKind::ROCK_T_1;
+                bool     inc        = false;
+                if (j > 0 && _temp_cells[j - 1][_temp_cells[j - 1].size() - 2] == CellKind::ROCK_2) {
+                    inc = true;
+
+                    if (chance1(inc) > rand()) {
+                        rock       = CellKind::ROCK_2;
+                        rock_slope = CellKind::ROCK_T_2;
+                    }
+                    inc = false;
+                }
+
+                if (j > 0 && _temp_cells[j - 1][_temp_cells[j - 1].size() - 2] == CellKind::ROCK_3) {
+                    inc = true;
+                    if (chance2(inc) > rand()) {
+                        rock       = CellKind::ROCK_3;
+                        rock_slope = CellKind::ROCK_T_3;
+                        // HG_LOG_FATAL(LOG_ID, "SADA  2");
+                    }
+                    inc = false;
+                }
+                
                 if (_temp_cells.size() - 1 >= 0 && j == _temp_cells.size() - 1) {
-                    _temp_cells[j].push_back(CellKind::ROCK_1);
+                    _temp_cells[j].push_back(rock);
                 } else if (_temp_cells.size() - 2 >= 0 && j == _temp_cells.size() - 2) {
 
                     bool inc = false;
@@ -258,7 +278,7 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
                     if (r == 0) {
                         _temp_cells[j].push_back(rock_slope);
                     } else {
-                        _temp_cells[j].push_back(rock);
+                        _temp_cells[j].push_back(CellKind::EMPTY);
                     }
 
                 } else {
@@ -391,14 +411,14 @@ void EnvironmentManager::_eventDraw1() {
     const hg::PZInteger endY = std::min(
         static_cast<int>((view.getCenter().y + view.getSize().y / 2.f) / (float)CELL_RESOLUTION + 1.f),
         _cells.getHeight());
-
+    bool renderScale = true;
     for (hg::PZInteger y = startY; y < endY; y += 1) {
         for (hg::PZInteger x = startX; x < endX; x += 1) {
             if (_cells[y][x] == CellKind::EMPTY) {
                 _drawEmptyCell(x, y);
                 continue;
             }
-            int  offset      = 1;
+
             bool skipDrawing = false;
             switch (_cells[y][x]) {
             case CellKind::ROCK_1:
@@ -420,16 +440,23 @@ void EnvironmentManager::_eventDraw1() {
                 _spr.selectSubsprite(5);
                 break;
             case CellKind::ROCK_MT_1:
-                _spr.selectSubsprite(3);
-                offset = -1;
+                _spr.selectSubsprite(6);
                 break;
             case CellKind::ROCK_MT_2:
-                _spr.selectSubsprite(4);
-                offset = -1;
+                _spr.selectSubsprite(7);
                 break;
             case CellKind::ROCK_MT_3:
-                _spr.selectSubsprite(5);
-                offset = -1;
+                _spr.selectSubsprite(8);
+                break;
+            case CellKind::SCALE:
+                if (renderScale) {
+                    renderScale = false;
+                    const auto& bounds = _sprScale.getLocalBounds();
+                    _sprScale.setOrigin(bounds.w / 2.f, bounds.h / 2.f);
+                    _sprScale.setPosition((float)CELL_RESOLUTION * (x + 0.5f),
+                                     (float)CELL_RESOLUTION * (y + 0.5f));
+                    
+                }
                 break;
             default:
                 _spr.selectSubsprite(1);
@@ -442,8 +469,9 @@ void EnvironmentManager::_eventDraw1() {
                 _spr.setOrigin(bounds.w / 2.f, bounds.h / 2.f);
                 _spr.setPosition((float)CELL_RESOLUTION * (x + 0.5f),
                                  (float)CELL_RESOLUTION * (y + 0.5f));
-                _spr.setScale(offset, 1);
                 canvas.draw(_spr);
+                canvas.draw(_sprScale);
+
             }
         }
     }
