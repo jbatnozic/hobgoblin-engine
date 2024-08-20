@@ -217,8 +217,10 @@ std::unique_ptr<spe::GameContext> CreateBasicClientContext() {
         Rml::LoadFontFace("assets/fonts/" + face.filename, face.fallback_face);
     }
 
+#ifndef NDEBUG
     Rml::Debugger::Initialise(&(winMgr->getGUIContext()));
     Rml::Debugger::SetVisible(true);
+#endif
 
     context->attachAndOwnComponent(std::move(winMgr));
 
