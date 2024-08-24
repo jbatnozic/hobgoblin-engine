@@ -59,15 +59,17 @@ public:
     }
 
     ~Impl() {
+        auto& guiContext = CCOMP<MWindow>().getGUIContext();
         if (_document) {
             auto* form = _document->GetElementById("host-form");
             if (form) {
                 form->RemoveEventListener("submit", this);
             }
 
-            CCOMP<MWindow>().getGUIContext().UnloadDocument(_document);
+            guiContext.UnloadDocument(_document);
             _document = nullptr;
         }
+        guiContext.RemoveDataModel("hostmenu-model");
     }
 
     void ProcessEvent(Rml::Event& aEvent) override {

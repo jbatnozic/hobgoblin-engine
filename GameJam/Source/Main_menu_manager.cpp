@@ -48,10 +48,12 @@ public:
     }
 
     ~Impl() {
+        auto& guiContext = CCOMP<MWindow>().getGUIContext();
         if (_document) {
-            CCOMP<MWindow>().getGUIContext().UnloadDocument(_document);
+            guiContext.UnloadDocument(_document);
             _document = nullptr;
         }
+        guiContext.RemoveDataModel("mainmenu-model");
     }
 
     void setVisible(bool aVisible) {

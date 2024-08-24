@@ -272,9 +272,13 @@ public:
         : _super{aLobbyFrontendManager} {}
 
     ~Impl() {
-        if (_document) {
-            CCOMP<MWindow>().getGUIContext().UnloadDocument(_document);
-            _document = nullptr;
+        if (_mode == Mode::CLIENT) {
+            auto& guiContext = CCOMP<MWindow>().getGUIContext();
+            if (_document) {
+                guiContext.UnloadDocument(_document);
+                _document = nullptr;
+            }
+            guiContext.RemoveDataModel("lobby-model");
         }
     }
 

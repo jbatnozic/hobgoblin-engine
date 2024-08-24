@@ -1,15 +1,15 @@
 #include "Main_gameplay_manager.hpp"
 
 #include "Character.hpp"
-#include "Environment_manager_interface.hpp"
-#include "Loot.hpp"
 #include "Config.hpp"
+#include "Environment_manager_interface.hpp"
+#include "Host_menu_manager.hpp"
+#include "Join_menu_manager.hpp"
+#include "Lobby_frontend_manager_interface.hpp"
+#include "Loot.hpp"
+#include "Main_menu_manager.hpp"
 #include "Player_controls.hpp"
 #include "Varmap_ids.hpp"
-#include "Lobby_frontend_manager_interface.hpp"
-#include "Main_menu_manager.hpp"
-#include "Join_menu_manager.hpp"
-#include "Host_menu_manager.hpp"
 
 #include <Hobgoblin/Format.hpp>
 #include <Hobgoblin/HGExcept.hpp>
@@ -153,89 +153,53 @@ void MainGameplayManager::_restartGame() {
     _startGame(_playerCount);
 }
 
-void MainGameplayManager::_backToMainMenu() {
-    auto& runtime = *getRuntime();
-    runtime.destroyAllOwnedObjects();
-
+namespace {
+template <class taComponent>
+void DetachAndDestroyComponent(spe::GameContext& aCtx) {
     spe::DetachStatus detachStatus;
+    auto              mgr = aCtx.detachComponent<taComponent>(&detachStatus);
+    HG_HARD_ASSERT(detachStatus == spe::DetachStatus::OK && mgr != nullptr);
+    mgr.reset();
+}
+} // namespace
 
-    // Detach & destroy environment manager
-    {
-        auto mgr = ctx().detachComponent<MEnvironment>(&detachStatus);
-        HG_HARD_ASSERT(detachStatus == spe::DetachStatus::OK && mgr != nullptr);
-        mgr.reset();
-    }
-    // Detach & destroy auth manager
-    {
-        auto mgr = ctx().detachComponent<spe::AuthorizationManagerInterface>(&detachStatus);
-        HG_HARD_ASSERT(detachStatus == spe::DetachStatus::OK && mgr != nullptr);
-        mgr.reset();
-    }
-    // Detach & destroy lobby frontend manager
-    {
-        auto mgr = ctx().detachComponent<LobbyFrontendManagerInterface>(&detachStatus);
-        HG_HARD_ASSERT(detachStatus == spe::DetachStatus::OK && mgr != nullptr);
-        mgr.reset();
-    }
-    // Detach & destroy lobby backend manager
-    {
-        auto mgr = ctx().detachComponent<MLobbyBackend>(&detachStatus);
-        HG_HARD_ASSERT(detachStatus == spe::DetachStatus::OK && mgr != nullptr);
-        mgr.reset();
-    }
-    // Detach & destroy varmap manager
-    {
-        auto mgr = ctx().detachComponent<MVarmap>(&detachStatus);
-        HG_HARD_ASSERT(detachStatus == spe::DetachStatus::OK && mgr != nullptr);
-        mgr.reset();
-    }
-    // Detach & destroy input sync manager
-    {
-        auto mgr = ctx().detachComponent<spe::InputSyncManagerInterface>(&detachStatus);
-        HG_HARD_ASSERT(detachStatus == spe::DetachStatus::OK && mgr != nullptr);
-        mgr.reset();
-    }
-    // Detach & destroy networking manager
-    {
-        auto mgr = ctx().detachComponent<MNetworking>(&detachStatus);
-        HG_HARD_ASSERT(detachStatus == spe::DetachStatus::OK && mgr != nullptr);
-        mgr.reset();
-    }
-
+void MainGameplayManager::_backToMainMenu() {
     // Kill child (if any)
     if (ctx().hasChildContext() && ctx().isChildContextJoinable()) {
-        ctx().getChildContext()->stopAndJoinChildContext();
+        const auto childStatus = ctx().stopAndJoinChildContext();
+        HG_LOG_INFO(LOG_ID, "Child context stopped with exit code {}.", childStatus);
         auto childCtx = ctx().detachChildContext();
-        ctx().stop();
-        std::this_thread::sleep_for(std::chrono::milliseconds{20});
         childCtx.reset();
     }
 
-    auto* context = &ctx();
+    auto& context = ctx();
+    auto& runtime = context.getQAORuntime();
+    runtime.destroyAllOwnedObjects();
+
+    DetachAndDestroyComponent<MEnvironment>(context);
+    DetachAndDestroyComponent<spe::AuthorizationManagerInterface>(context);
+    DetachAndDestroyComponent<LobbyFrontendManagerInterface>(context);
+    DetachAndDestroyComponent<MLobbyBackend>(context);
+    DetachAndDestroyComponent<MVarmap>(context);
+    DetachAndDestroyComponent<spe::InputSyncManagerInterface>(context);
+    DetachAndDestroyComponent<MainGameplayManagerInterface>(context); // WARNING: `this` will be deleted!
+    DetachAndDestroyComponent<MNetworking>(context);
+
+    context.getComponent<MWindow>().resetGUIContext();
 
     // Main menu manager
-    auto mainMenuMgr =
-        QAO_UPCreate<MainMenuManager>(context->getQAORuntime().nonOwning(), PRIORITY_MAINMENUMGR);
-    context->attachAndOwnComponent(std::move(mainMenuMgr));
+    auto mainMenuMgr = QAO_UPCreate<MainMenuManager>(runtime.nonOwning(), PRIORITY_MAINMENUMGR);
+    context.attachAndOwnComponent(std::move(mainMenuMgr));
 
     // Host menu manager
-    auto hostMenuMgr =
-        QAO_UPCreate<HostMenuManager>(context->getQAORuntime().nonOwning(), PRIORITY_HOSTMENUMGR);
+    auto hostMenuMgr = QAO_UPCreate<HostMenuManager>(runtime.nonOwning(), PRIORITY_HOSTMENUMGR);
     hostMenuMgr->setVisible(false);
-    context->attachAndOwnComponent(std::move(hostMenuMgr));
+    context.attachAndOwnComponent(std::move(hostMenuMgr));
 
     // Join menu manager
-    auto joinMenuMgr =
-        QAO_UPCreate<JoinMenuManager>(context->getQAORuntime().nonOwning(), PRIORITY_JOINMENUMGR);
+    auto joinMenuMgr = QAO_UPCreate<JoinMenuManager>(runtime.nonOwning(), PRIORITY_JOINMENUMGR);
     joinMenuMgr->setVisible(false);
-    context->attachAndOwnComponent(std::move(joinMenuMgr));
-
-    // Detach & destroy main gameplay manager (self)
-    {
-        auto self = ctx().detachComponent<MainGameplayManagerInterface>(&detachStatus);
-        HG_HARD_ASSERT(detachStatus == spe::DetachStatus::OK && self != nullptr);
-        self.reset(); // WARNING: `this` will be deleted!
-    }
+    context.attachAndOwnComponent(std::move(joinMenuMgr));
 }
 
 void MainGameplayManager::_eventUpdate1() {
@@ -264,7 +228,7 @@ void MainGameplayManager::_eventUpdate1() {
 
         // Restart game if anyone pressed Enter
         if (gameOver == 1) {
-            auto& netMgr = ccomp<MNetworking>();
+            auto&                        netMgr = ccomp<MNetworking>();
             spe::InputSyncManagerWrapper wrapper{ccomp<MInput>()};
 
             bool startPressed = false;
@@ -308,8 +272,8 @@ void MainGameplayManager::_eventUpdate1() {
     }
 
     if (!ctx().isPrivileged()) {
-        const auto input = ccomp<MWindow>().getInput();
-        auto& client = ccomp<MNetworking>().getClient();
+        const auto input  = ccomp<MWindow>().getInput();
+        auto&      client = ccomp<MNetworking>().getClient();
         // If connected, upload input
 
         if (client.getServerConnector().getStatus() == RN_ConnectorStatus::Connected) {
@@ -331,9 +295,9 @@ void MainGameplayManager::_eventUpdate1() {
             wrapper.triggerEvent(CTRL_ID_START, start);
         }
 
-        // if (input.checkPressed(hg::in::PK_ESCAPE, spe::WindowFrameInputView::Mode::Edge)) {
-        //     _backToMainMenu(); // WARNING: this will delete `this`!
-        // }
+        if (input.checkPressed(hg::in::PK_ESCAPE, spe::WindowFrameInputView::Mode::Edge)) {
+            _backToMainMenu(); // WARNING: this will delete `this`!
+        }
     }
 }
 
@@ -358,9 +322,8 @@ void MainGameplayManager::_eventDrawGUI() {
 
     bool doDraw = true;
     if (gameOver.has_value() && *gameOver == 1) {
-        text.setString(fmt::format(
-                      FMT_STRING("{} wins! Press ENTER to play again."),
-                      (winnerName.has_value() ? *winnerName : "A player")));
+        text.setString(fmt::format(FMT_STRING("{} wins! Press ENTER to play again."),
+                                   (winnerName.has_value() ? *winnerName : "A player")));
     } else if (winTimer.has_value() && *winTimer > 0) {
         text.setString(fmt::format(
             FMT_STRING("{} has reached the top! Hurry up!\n               {} seconds remaining!"),
