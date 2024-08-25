@@ -55,10 +55,12 @@ void SynchronizedObjectBase::__spempeimpl_destroySelfIn(int aStepCount) {
         _deathCounter = 0;
         return;
     }
-
-    if (aStepCount < _deathCounter) {
-        _deathCounter = aStepCount;
+    
+    if (_deathCounter >= 0 && _deathCounter < aStepCount) {
+        return;
     }
+
+    _deathCounter = aStepCount;
 }
 
 void SynchronizedObjectBase::doSyncCreate() const {

@@ -3,7 +3,6 @@
 
 // clang-format off
 
-
 #include <Hobgoblin/Graphics/Canvas.hpp>
 #include <Hobgoblin/Graphics/Multisprite.hpp>
 #include <Hobgoblin/Graphics/Vertex.hpp>
@@ -24,6 +23,11 @@ namespace gr {
 ///////////////////////////////////////////////////////////////////////////
 // MULTISPRITE                                                           //
 ///////////////////////////////////////////////////////////////////////////
+
+Multisprite::Multisprite()
+    : _texture{nullptr}
+{
+}
 
 Multisprite::Multisprite(const Texture* aTexture)
     : _texture{aTexture}

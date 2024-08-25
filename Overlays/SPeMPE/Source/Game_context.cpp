@@ -247,6 +247,7 @@ using TimingDuration = std::chrono::duration<double, std::micro>;
 using std::chrono::duration_cast;
 using std::chrono::microseconds;
 using std::chrono::milliseconds;
+using std::chrono::nanoseconds;
 
 template <class taDuration>
 double MsCount(taDuration aDuration) {
@@ -326,7 +327,7 @@ void GameContext::_runImpl(hg::NeverNull<GameContext*> aContext,
                 if ((*aReturnValue) != 0) {
                     return;
                 }
-                aContext->_performanceInfo.updateTime = updateStopwatch.getElapsedTime();
+                aContext->_performanceInfo.updateTime = updateStopwatch.getElapsedTime<nanoseconds>();
             }
 
             accumulator -= deltaTime;
@@ -350,7 +351,7 @@ void GameContext::_runImpl(hg::NeverNull<GameContext*> aContext,
                 if ((*aReturnValue) != 0) {
                     return;
                 }
-                aContext->_performanceInfo.drawTime = drawStopwatch.getElapsedTime();
+                aContext->_performanceInfo.drawTime = drawStopwatch.getElapsedTime<nanoseconds>();
             }
         }
 
@@ -376,7 +377,7 @@ void GameContext::_runImpl(hg::NeverNull<GameContext*> aContext,
             if ((*aReturnValue) != 0) {
                 return;
             }
-            aContext->_performanceInfo.displayTime = displayStopwatch.getElapsedTime();
+            aContext->_performanceInfo.displayTime = displayStopwatch.getElapsedTime<nanoseconds>();
         }
 
         // 'Refill' accumulator
