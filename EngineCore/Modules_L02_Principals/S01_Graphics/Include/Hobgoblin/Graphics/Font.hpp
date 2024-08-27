@@ -31,6 +31,7 @@
 #ifndef UHOBGOBLIN_GRAPHICS_FONT_HPP
 #define UHOBGOBLIN_GRAPHICS_FONT_HPP
 
+#include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Graphics/Glyph.hpp>
 #include <Hobgoblin/Graphics/Texture.hpp>
 
@@ -274,7 +275,7 @@ private:
     void* _getSFMLImpl();
     const void* _getSFMLImpl() const;
 
-#if defined(UHOBGOBLIN_DEBUG) && defined(_MSC_VER)
+#if HG_BUILD_TYPE == HG_DEBUG && defined(_MSC_VER)
     static constexpr std::size_t STORAGE_SIZE = 144;
 #elif defined(__linux__)
     static constexpr std::size_t STORAGE_SIZE = 152;

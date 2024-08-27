@@ -3,6 +3,7 @@
 
 #include <SPeMPE/GameContext/Game_context.hpp>
 
+#include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Logging.hpp>
 #include <Hobgoblin/Utility/Time_utils.hpp>
@@ -191,11 +192,11 @@ int GameContext::stopAndJoinChildContext() {
 
 namespace {
 
-#ifndef UHOBGOBLIN_DEBUG
+#if HG_BUILD_TYPE == HG_DEBUG
 // If we're in Debug mode, we don't want to catch and handle
 // exceptions, but rather let the IDE break the program.
 #define CATCH_EXCEPTIONS_TOP_LEVEL
-#endif // !UHOBGOBLIN_DEBUG
+#endif
 
 int DoSingleQaoIteration(hg::QAO_Runtime& runtime, std::int32_t eventFlags) {
     runtime.startStep();

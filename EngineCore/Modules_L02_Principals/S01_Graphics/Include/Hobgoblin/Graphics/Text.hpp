@@ -398,7 +398,7 @@ private:
     const void* _getSFMLImpl() const;
 
 #ifdef _MSC_VER
-    #ifdef UHOBGOBLIN_DEBUG
+    #if HG_BUILD_TYPE == HG_DEBUG
         static constexpr std::size_t STORAGE_SIZE = 392;
     #else
         static constexpr std::size_t STORAGE_SIZE = 368;
