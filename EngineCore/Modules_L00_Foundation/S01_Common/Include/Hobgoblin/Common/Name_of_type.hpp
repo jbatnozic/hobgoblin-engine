@@ -11,6 +11,7 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 
 namespace detail {
+//! \note Implementation based on https://github.com/nessan/utilities (utilities/type.h).
 template <typename T>
 constexpr auto NameOfTypeImpl() {
     // clang-format off
