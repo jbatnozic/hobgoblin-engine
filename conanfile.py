@@ -205,7 +205,6 @@ class HobgoblinConan(ConanFile):
             # Principals
             "Hobgoblin.RmlUi",
             "Hobgoblin.Graphics",
-            "Hobgoblin.ColDetect",
             "Hobgoblin.Alvin",
             "Hobgoblin.Window",
             "Hobgoblin.RigelNet",

@@ -5,7 +5,6 @@
 
 #include <Hobgoblin/ChipmunkPhysics.hpp>
 #include <Hobgoblin/Alvin.hpp>
-#include <Hobgoblin/ColDetect.hpp>
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Config.hpp>
 #include <Hobgoblin/Format.hpp>
@@ -27,10 +26,6 @@ using namespace jbatnozic::hobgoblin;
 namespace spe = jbatnozic::spempe;
 
 int main() {
-    // ColDetect
-    {
-        cd::QuadTreeCollisionDomain domain{128.0, 128.0, 5, 5, 0};
-    }
     // Common
     {
         PZInteger pz = 1337;
