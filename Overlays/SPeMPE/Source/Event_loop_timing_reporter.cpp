@@ -19,9 +19,9 @@ constexpr auto LOG_ID = "SPeMPE";
 
 template <class taDuration>
 double MsCount(taDuration aDuration) {
-  static constexpr double NANOSECONDS_PER_MILLISECOND = 1000'000.0;
-  namespace chr = std::chrono;
-  return chr::duration_cast<chr::nanoseconds>(aDuration).count() / NANOSECONDS_PER_MILLISECOND;
+    static constexpr double NANOSECONDS_PER_MILLISECOND = 1000'000.0;
+    namespace chr = std::chrono;
+    return chr::duration_cast<chr::nanoseconds>(aDuration).count() / NANOSECONDS_PER_MILLISECOND;
 }
 } // namespace
 

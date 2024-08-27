@@ -1,6 +1,7 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
+#include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Graphics/Draw_batcher.hpp>
 #include <Hobgoblin/HGExcept.hpp>
 
@@ -78,7 +79,7 @@ bool IsBatchable(PrimitiveType aPrimitiveType) {
 
     static constexpr Mapping mapping{};
 
-#ifdef UHOBGOBLIN_DEBUG
+#if HG_BUILD_TYPE == HG_DEBUG
     return mapping.table.at((unsigned)aPrimitiveType);
 #else
     return mapping.table[(unsigned)aPrimitiveType];

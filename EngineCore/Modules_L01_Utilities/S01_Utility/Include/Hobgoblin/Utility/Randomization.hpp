@@ -67,7 +67,7 @@ auto DoWith64bitRNG(const taCallable& aCallable) {
 
 //! Returns a pseudorandom integral or floating-point number of type taNumber
 //! in a thread-safe manner using DoWith32bitRNG or DoWith64bitRNG.
-//! \note aMin and aMax included
+//! \note aMin and aMax included.
 template <class taNumber>
 taNumber GetRandomNumber(taNumber aMin, taNumber aMax) {
     taNumber result;

@@ -12,8 +12,6 @@ Basic types and definitions needed by all other modules:
 ## General modules
 - **ChipmunkPhysics:** [A C-based physics engine](https://chipmunk-physics.net/) not written by me but only embedded
 within Hobgoblin, with some type-safety extensions included.
-- **ColDetect:** Facilities for efficient broad-phase and narrow-phase 2D collision detection. (NOTE: Narrow-phase not
-yet implemented)
 - **Config:** TODO
 - **Graphics:** Various utilities for rendering stuff on-screen, loading sprites, packing them onto textures etc.
 - **Math:** Math stuff - geometry, trigonometry, vectors, quadratic equations etc.

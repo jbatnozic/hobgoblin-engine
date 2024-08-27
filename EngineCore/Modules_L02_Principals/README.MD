@@ -8,7 +8,6 @@
 - **RigelNet:** Very fast and easy-to-use peer-to-peer networking library.
 - **Window:** Windowing library.
 - **Alvin:** OOP extensions for `ChipmunkPhysics`, to make its use more user-friendly in C++.
-- **ColDetect:** \[DEPRECATED\] Collision detection library.
 - **Graphics:** Graphics library with an API very similar to [SFML](https://www.sfml-dev.org)'s Graphics module.
 - **RmlUi:** Utilities for interoperability between Hobgoblin and [RmlUi](https://github.com/mikke89/RmlUi), an amazing
 GUI library.

@@ -190,8 +190,11 @@ class HobgoblinConan(ConanFile):
             copy(self, "*{}*.a".format(overlay),     src=join(self.build_folder, "lib"), dst=join(self.package_folder, "lib"), keep_path=False)
 
     def package_info(self):
-        self.cpp_info.libdirs = ['lib']
-        self.cpp_info.bindirs = ['bin']
+        if self.settings.build_type == "Debug":
+            self.cpp_info.defines.append("UHOBGOBLIN_DEBUG")
+
+        self.cpp_info.libdirs = ["lib"]
+        self.cpp_info.bindirs = ["bin"]
 
         # Specifying libraries in reverse order (most dependent ones
         # first, most basic ones last) prevents link errors on Linux.
@@ -202,7 +205,6 @@ class HobgoblinConan(ConanFile):
             # Principals
             "Hobgoblin.RmlUi",
             "Hobgoblin.Graphics",
-            "Hobgoblin.ColDetect",
             "Hobgoblin.Alvin",
             "Hobgoblin.Window",
             "Hobgoblin.RigelNet",

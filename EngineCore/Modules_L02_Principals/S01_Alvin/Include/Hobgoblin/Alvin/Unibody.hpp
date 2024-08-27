@@ -13,6 +13,8 @@
 #include <Hobgoblin/Alvin/Shape.hpp>
 #include <Hobgoblin/Alvin/Space.hpp>
 
+#include <cassert>
+#include <new>
 #include <optional>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
@@ -24,16 +26,45 @@ namespace alvin {
 //! shape, paired together with a collision delegate, this struct provides a convenient way
 //! to bundle all three as a single object.
 struct Unibody {
-    //! The body, its singular shape and their collision delegate.
-    //! They have to be kept in this order because the destruction order must be
-    //! shape -> body -> delegate.
-    //! \warning they are public elements to enable more ergonomic use. Unfortunately, this also
-    //!          means that it's possible to reassign them, but you really shouldn't do that!
-    CollisionDelegate delegate; //!< Collision delegate for the unibody's body and shape.
-    Body              body;     //!< Unibody's body.
-    Shape             shape;    //!< Unibody's shape.
+    //! Storage for the collision delegate of the Unibody.
+    //!
+    //! \warning the field is public to enable more ergonomic use (you can access it simply with
+    //!          `unibody.delegate`). DO NOT reassign the field! Also, DO NOT access it if the
+    //!          Unibody is not initialized (see `isInitialized()`).
+    union {
+        CollisionDelegate delegate; //!< Collision delegate for the unibody's body and shape.
 
-    //! Constructor.
+        void* __alvinimpl_delegatePlaceholder;
+    };
+
+    //! Storage for the body of the Unibody.
+    //!
+    //! \warning the field is public to enable more ergonomic use (you can access it simply with
+    //!          `unibody.body`). DO NOT reassign the field! Also, DO NOT access it if the
+    //!          Unibody is not initialized (see `isInitialized()`). Exception: you can access it
+    //!          during initialization (either constructor or `init()` method) from the shape
+    //!          factory, because the body is guaranteed to already exist before the shape is created.
+    union {
+        Body body;
+
+        void* __alvinimpl_bodyPlaceholder;
+    };
+
+    //! Storage for the shape of the Unibody.
+    //!
+    //! \warning the field is public to enable more ergonomic use (you can access it simply with
+    //!          `unibody.shape`). DO NOT reassign the field! Also, DO NOT access it if the
+    //!          Unibody is not initialized (see `isInitialized()`).
+    union {
+        Shape shape;
+
+        void* __alvinimpl_shapePlaceholder;
+    };
+
+    //! Default constructor. Creates the Unibody in an uninitialized state.
+    Unibody();
+
+    //! Constructor. Fully initializes the Unibody.
     //!
     //! \param aCollisionDelegateFactory Functor accepting no arguments that will return an instance
     //!                                  of `alvin::CollisionDelegate` to store in the unibody.
@@ -48,20 +79,46 @@ struct Unibody {
     template <class taCollisionDelegateFactory, class taBodyFactory, class taShapeFactory>
     Unibody(taCollisionDelegateFactory&& aCollisionDelegateFactory,
             taBodyFactory&&              aBodyFactory,
-            taShapeFactory&&             aShapeFactory)
-        : delegate{aCollisionDelegateFactory()}
-        , body{aBodyFactory()}
-        , shape{aShapeFactory()} {}
+            taShapeFactory&&             aShapeFactory) {
+        init(std::forward<taCollisionDelegateFactory>(aCollisionDelegateFactory),
+             std::forward<taBodyFactory>(aBodyFactory),
+             std::forward<taShapeFactory>(aShapeFactory));
+    }
 
-    ~Unibody() = default;
+    //! If the Unibody was default-constructed, use this method to fully initialize it.
+    //! The parameters are the same as for the non-default constructor.
+    template <class taCollisionDelegateFactory, class taBodyFactory, class taShapeFactory>
+    void init(taCollisionDelegateFactory&& aCollisionDelegateFactory,
+              taBodyFactory&&              aBodyFactory,
+              taShapeFactory&&             aShapeFactory);
+
+    //! Destructor.
+    ~Unibody();
 
     //! Prevent copying.
     Unibody(const Unibody&)            = delete;
     Unibody& operator=(const Unibody&) = delete;
 
     //! Allow cheap moving.
-    Unibody(Unibody&&)            = default;
-    Unibody& operator=(Unibody&&) = default;
+    //!
+    //! \note leaves `aOther` in uninitialized state.
+    //!
+    //! \throws TracedLogicError if `aOther` is already bound to one or more shapes.
+    //! \see bindDelegate
+    Unibody(Unibody&& aOther);
+
+    //! Allow cheap moving.
+    //!
+    //! \note leaves `aOther` in uninitialized state.
+    //!
+    //! \throws TracedLogicError if `aOther` is already bound to one or more shapes.
+    //! \see bindDelegate
+    Unibody& operator=(Unibody&& aOther);
+
+    //! Checks whether the Unibody is initialized (true) or not (false).
+    bool isInitialized() const noexcept {
+        return _isInitialized;
+    }
 
     //! Binds the collision delegate to the shape owned by the same unibody,
     //! and to the provided entity.
@@ -73,58 +130,104 @@ struct Unibody {
                       std::optional<cpGroup>   aGroup        = std::nullopt,
                       std::optional<cpBitmask> aCategory     = std::nullopt,
                       std::optional<cpBitmask> aCollidesWith = std::nullopt) {
-        delegate.bind(aEntity, shape, aGroup, aCategory, aCollidesWith);
+        assert(_isInitialized);
+        SELF.delegate.bind(aEntity, shape, aGroup, aCategory, aCollidesWith);
     }
 
     //! Adds the body and shape to the space at an undefined position.
     //! \note there is no need to remove them manually later, it will happen
     //!       automatically in the destructor.
-    void addToSpace(NeverNull<cpSpace*> aSpace) {
-        cpSpaceAddBody(aSpace, body);
-        cpSpaceAddShape(aSpace, shape);
-    }
+    void addToSpace(NeverNull<cpSpace*> aSpace);
 
     //! Adds the body and shape to the space at the initial position provided by `aInitialPosition`.
     //! \note there is no need to remove them manually later, it will happen
     //!       automatically in the destructor.
-    void addToSpace(NeverNull<cpSpace*> aSpace, const math::Vector2<double>& aInitialPosition) {
-        cpSpaceAddBody(aSpace, body);
-        cpBodySetPosition(body, cpv(aInitialPosition.x, aInitialPosition.y));
-        cpSpaceAddShape(aSpace, shape);
-    }
+    void addToSpace(NeverNull<cpSpace*> aSpace, const math::Vector2<double>& aInitialPosition);
 
-    //! Automatic conversion to `cpBody*` for
-    //! compatibility with regular Chipmunk functions.
-    //! \note the returned pointer will never be NULL
-    //!       unless the object was moved from.
-    operator cpBody*() {
-        return body;
-    }
+    //! Automatic conversion to `cpBody*` for compatibility with regular Chipmunk functions.
+    //!
+    //! \note if the Unibody is initialized (see `isInitialized()`), this method never returns NULL.
+    //!       Otherwise, the behaviour is undefined. Exception: during initialization (either
+    //!       constructor or `init()` method) you can use this conversion from the shape factory,
+    //!       because the body is guaranteed to already exist before the shape is created.
+    operator cpBody*();
 
-    //! Automatic conversion to `const cpBody*` for
-    //! compatibility with regular Chipmunk functions.
-    //! \note the returned pointer will never be NULL
-    //!       unless the object was moved from.
-    operator const cpBody*() const {
-        return body;
-    }
+    //! Automatic conversion to `const cpBody*` for compatibility with regular Chipmunk functions.
+    //!
+    //! \note if the Unibody is initialized (see `isInitialized()`), this method never returns NULL.
+    //!       Otherwise, the behaviour is undefined. Exception: during initialization (either
+    //!       constructor or `init()` method) you can use this conversion from the shape factory,
+    //!       because the body is guaranteed to already exist before the shape is created.
+    operator const cpBody*() const;
 
-    //! Automatic conversion to `cpShape*` for
-    //! compatibility with regular Chipmunk functions.
-    //! \note the returned pointer will never be NULL
-    //!       unless the object was moved from.
-    operator cpShape*() {
-        return shape;
-    }
+    //! Automatic conversion to `cpShape*` for compatibility with regular Chipmunk functions.
+    //!
+    //! \note if the Unibody is initialized (see `isInitialized()`), this method never returns NULL.
+    //!       Otherwise, the behaviour is undefined.
+    operator cpShape*();
 
-    //! Automatic conversion to `const cpShape*` for
-    //! compatibility with regular Chipmunk functions.
-    //! \note the returned pointer will never be NULL
-    //!       unless the object was moved from.
-    operator const cpShape*() const {
-        return shape;
-    }
+    //! Automatic conversion to `const cpShape*` for compatibility with regular Chipmunk functions.
+    //!
+    //! \note if the Unibody is initialized (see `isInitialized()`), this method never returns NULL.
+    //!       Otherwise, the behaviour is undefined.
+    operator const cpShape*() const;
+
+private:
+    bool _isInitialized = false;
 };
+
+///////////////////////////////////////////////////////////////////////////
+// IMPLEMENTATIONS                                                       //
+///////////////////////////////////////////////////////////////////////////
+
+template <class taCollisionDelegateFactory, class taBodyFactory, class taShapeFactory>
+void Unibody::init(taCollisionDelegateFactory&& aCollisionDelegateFactory,
+                   taBodyFactory&&              aBodyFactory,
+                   taShapeFactory&&             aShapeFactory) {
+    assert(!_isInitialized);
+
+    // Delegate
+    try {
+        new (&SELF.delegate) CollisionDelegate(aCollisionDelegateFactory());
+    } catch (...) {
+        throw;
+    }
+
+    // Body
+    try {
+        new (&SELF.body) Body(aBodyFactory());
+    } catch (...) {
+        SELF.delegate.~CollisionDelegate();
+        throw;
+    }
+
+    // Shape
+    try {
+        new (&SELF.shape) Shape(aShapeFactory());
+    } catch (...) {
+        SELF.body.~Body();
+        SELF.delegate.~CollisionDelegate();
+        throw;
+    }
+
+    _isInitialized = true;
+}
+
+inline Unibody::operator cpBody*() {
+    return SELF.body;
+}
+
+inline Unibody::operator const cpBody*() const {
+    return SELF.body;
+}
+
+inline Unibody::operator cpShape*() {
+    return SELF.shape;
+}
+
+inline Unibody::operator const cpShape*() const {
+    return SELF.shape;
+}
 
 } // namespace alvin
 HOBGOBLIN_NAMESPACE_END

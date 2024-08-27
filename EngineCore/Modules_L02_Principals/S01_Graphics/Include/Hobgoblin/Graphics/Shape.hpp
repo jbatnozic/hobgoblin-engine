@@ -31,6 +31,7 @@
 #ifndef UHOBGOBLIN_GRAPHICS_SHAPE_HPP
 #define UHOBGOBLIN_GRAPHICS_SHAPE_HPP
 
+#include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Graphics/Color.hpp>
 #include <Hobgoblin/Graphics/Drawable.hpp>
 #include <Hobgoblin/Graphics/Transformable.hpp>
@@ -284,7 +285,7 @@ private:
     void* _getSFMLImpl();
     const void* _getSFMLImpl() const;
 
-#if defined(UHOBGOBLIN_DEBUG) && defined(_MSC_VER)
+#if HG_BUILD_TYPE == HG_DEBUG && defined(_MSC_VER)
     static constexpr std::size_t STORAGE_SIZE = 360;
 #else
     static constexpr std::size_t STORAGE_SIZE = 344;

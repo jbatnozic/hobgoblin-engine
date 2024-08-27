@@ -235,7 +235,7 @@ private:
     void* _getSFMLImpl();
     const void* _getSFMLImpl() const;
 
-#if defined(UHOBGOBLIN_DEBUG) && defined(_MSC_VER)
+#if HG_BUILD_TYPE == HG_DEBUG && defined(_MSC_VER)
     static constexpr std::size_t STORAGE_SIZE = 40;
 #else
     static constexpr std::size_t STORAGE_SIZE = 32;

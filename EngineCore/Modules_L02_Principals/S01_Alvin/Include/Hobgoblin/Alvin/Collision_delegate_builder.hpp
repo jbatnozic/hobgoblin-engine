@@ -130,7 +130,7 @@ private:
 // IMPLEMENTATIONS                                                       //
 ///////////////////////////////////////////////////////////////////////////
 
-#ifdef UHOBGOBLIN_DEBUG
+#if HG_BUILD_TYPE == HG_DEBUG
 #define down_cast dynamic_cast
 #else
 #define down_cast static_cast

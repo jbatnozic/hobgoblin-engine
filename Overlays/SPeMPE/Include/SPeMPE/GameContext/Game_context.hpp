@@ -91,7 +91,7 @@ public:
 
     struct GameState {
         bool isPaused = false;
-        // TODO: in cleanup phase?
+        // TODO: isStopping
     };
 
     GameState&       getGameState();
