@@ -9,9 +9,9 @@ HOBGOBLIN_NAMESPACE_BEGIN
 namespace alvin {
 
 Unibody::Unibody() {
-    __alvinimpl_delegatePlaceholder = nullptr;
-    __alvinimpl_bodyPlaceholder     = nullptr;
-    __alvinimpl_shapePlaceholder    = nullptr;
+    SELF.__alvinimpl_delegatePlaceholder = nullptr;
+    SELF.__alvinimpl_bodyPlaceholder     = nullptr;
+    SELF.__alvinimpl_shapePlaceholder    = nullptr;
 }
 
 Unibody::~Unibody() {
@@ -37,9 +37,9 @@ Unibody::Unibody(Unibody&& aOther) {
             });
         aOther.~Unibody();
     } else {
-        __alvinimpl_delegatePlaceholder = nullptr;
-        __alvinimpl_bodyPlaceholder     = nullptr;
-        __alvinimpl_shapePlaceholder    = nullptr;
+        SELF.__alvinimpl_delegatePlaceholder = nullptr;
+        SELF.__alvinimpl_bodyPlaceholder     = nullptr;
+        SELF.__alvinimpl_shapePlaceholder    = nullptr;
     }
 }
 
@@ -63,9 +63,9 @@ Unibody& Unibody::operator=(Unibody&& aOther) {
             });
         aOther.~Unibody();
     } else {
-        __alvinimpl_delegatePlaceholder = nullptr;
-        __alvinimpl_bodyPlaceholder     = nullptr;
-        __alvinimpl_shapePlaceholder    = nullptr;
+        SELF.__alvinimpl_delegatePlaceholder = nullptr;
+        SELF.__alvinimpl_bodyPlaceholder     = nullptr;
+        SELF.__alvinimpl_shapePlaceholder    = nullptr;
     }
 
     return SELF;
