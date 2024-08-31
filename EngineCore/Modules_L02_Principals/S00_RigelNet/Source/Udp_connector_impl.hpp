@@ -17,6 +17,8 @@
 #include <Hobgoblin/Utility/Time_utils.hpp>
 
 #include "Socket_adapter.hpp"
+#include "Udp_send_buffer.hpp"
+#include "Udp_receive_buffer.hpp"
 
 #include <chrono>
 #include <cstdint>
@@ -31,28 +33,6 @@ HOBGOBLIN_NAMESPACE_BEGIN
 namespace rn {
 
 class RN_ServerInterface;
-
-struct TaggedPacket {
-    enum Tag {
-        DefaultTag = 0,
-    // SEND:
-        ReadyForSending      = DefaultTag,
-        NotAcknowledged      = 1,
-        AcknowledgedWeakly   = 2,
-        AcknowledgedStrongly = 3,
-    // RECV:
-        WaitingForData      = DefaultTag,
-        WaitingForMore      = 4,
-        WaitingForMore_Tail = 5,
-        ReadyForUnpacking   = 6,
-        Unpacked            = 7,
-    };
-
-    util::Packet packet;
-    util::Stopwatch stopwatch;
-    PZInteger cyclesSinceLastTransmit = 0;
-    Tag tag = DefaultTag;
-};
 
 class RN_UdpConnectorImpl : public RN_ConnectorInterface, NO_COPY, NO_MOVE {
 public:
@@ -106,10 +86,8 @@ private:
     RN_ConnectorStatus _status;
     std::optional<PZInteger> _clientIndex;
 
-    std::deque<TaggedPacket> _sendBuffer;
-    std::deque<TaggedPacket> _recvBuffer;
-    std::uint32_t _sendBufferHeadIndex = 0;
-    std::uint32_t _recvBufferHeadIndex = 0;
+    UdpCommunicationBuffer _sendBuffer;
+    UdpReceiveBuffer       _recvBuffer;
 
     std::vector<std::uint32_t> _ackOrdinals;
 
@@ -154,13 +132,6 @@ private:
 
     //! Sets the connector into the Connected state and resets the timeout timer.
     void _startSession();
-
-    //! Appends a fresh data packet to the send buffer and fills in its 
-    //! header (packet type, ordinal, acks).
-    void _prepareNextOutgoingDataPacket(std::uint32_t packetType);
-
-    //!
-    void _tryToAssembleFragmentedPacketAtHead();
 
     //! Saves a received Data packet (without its headers and acks) into the
     //! receive buffer, unless it was received previously (Acks are prepared in 
