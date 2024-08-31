@@ -1,8 +1,8 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-#ifndef UHOBGOBLIN_RN_UDP_COMMUNICATION_BUFFER_HPP
-#define UHOBGOBLIN_RN_UDP_COMMUNICATION_BUFFER_HPP
+#ifndef UHOBGOBLIN_RN_UDP_SEND_BUFFER_HPP
+#define UHOBGOBLIN_RN_UDP_SEND_BUFFER_HPP
 
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Utility/Packet.hpp>
@@ -24,16 +24,27 @@ class UdpReceiveBuffer;
 
 using PacketOrdinal = std::uint32_t;
 
-class UdpCommunicationBuffer {
+class UdpSendBuffer {
 public:
-    UdpCommunicationBuffer(PZInteger                     aMaxPacketSize,
-                           const RN_RetransmitPredicate& aRetransmitPredicate);
+    UdpSendBuffer(PZInteger aMaxPacketSize, const RN_RetransmitPredicate& aRetransmitPredicate);
 
+    //! Resets the buffer to its initial state.
     void reset();
 
+    //! Appends the given data into one or more outgoing packets
+    //! (preserving the order of information).
     void appendDataForSending(const void* aData, PZInteger aDataByteCount);
 
-    void ackReceived(PacketOrdinal aPacketOrdinal, bool aIsStrong);
+    struct AckReceivedResult {
+        //! Time it took from the moment the packet was sent until it was strongly acknowledged.
+        std::chrono::microseconds timeToAck;
+        bool isSignificant;
+    };
+
+    // Returns true if the received ack was significant (strong and never received before).
+    AckReceivedResult ackReceived(PacketOrdinal aPacketOrdinal, bool aIsStrong);
+
+    void prepareAck(PacketOrdinal aPacketOrdinal);
 
     struct SendResult {
         PZInteger                uploadedByteCount;
@@ -54,18 +65,16 @@ private:
 
     struct TaggedPacket {
         enum Tag {
-            DEFAULT_TAG = 0,
-            // SEND:
-            READY_FOR_SENDING     = DEFAULT_TAG,
-            NOT_ACKNOWLEDGED      = 1,
-            ACKNOWLEDGED_WEAKLY   = 2,
-            ACKNOWLEDGED_STRONGLY = 3
+            READY_FOR_SENDING,
+            NOT_ACKNOWLEDGED,
+            ACKNOWLEDGED_WEAKLY,
+            ACKNOWLEDGED_STRONGLY,
         };
 
         util::Packet    packet;
         util::Stopwatch stopwatch; //!< Measures time since last upload (or upload attempt).
         PZInteger       cyclesSinceLastTransmit = 0;
-        Tag             tag                     = DEFAULT_TAG;
+        Tag             tag                     = READY_FOR_SENDING;
     };
 
     std::deque<TaggedPacket> _packets;
@@ -81,8 +90,8 @@ private:
 };
 
 template <class taSendFunction>
-UdpCommunicationBuffer::SendResult UdpCommunicationBuffer::send(NeverNull<PZInteger*> aPacketLimiter,
-                                                                const taSendFunction& aSendFunction) {
+UdpSendBuffer::SendResult UdpSendBuffer::send(NeverNull<PZInteger*> aPacketLimiter,
+                                              const taSendFunction& aSendFunction) {
     PZInteger uploadedByteCount = 0;
 
     for (auto& taggedPacket : _packets) {
@@ -98,7 +107,7 @@ UdpCommunicationBuffer::SendResult UdpCommunicationBuffer::send(NeverNull<PZInte
         if ((taggedPacket.tag == TaggedPacket::READY_FOR_SENDING) ||
             _retransmitPredicate(taggedPacket.cyclesSinceLastTransmit,
                                  taggedPacket.stopwatch.getElapsedTime(),
-                                 /*_remoteInfo.meanLatency*/ std::chrono::milliseconds{0})) {
+                                 /*TODO _remoteInfo.meanLatency*/ std::chrono::milliseconds{0})) {
 
             *aPacketLimiter -= 1;
 
@@ -136,4 +145,4 @@ HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
 
-#endif // !UHOBGOBLIN_RN_UDP_COMMUNICATION_BUFFER_HPP
+#endif // !UHOBGOBLIN_RN_UDP_SEND_BUFFER_HPP

@@ -573,7 +573,22 @@ void RN_UdpConnectorImpl::_prepareAck(std::uint32_t ordinal) {
 }
 
 void RN_UdpConnectorImpl::_receivedAck(std::uint32_t ordinal, bool strong) {
-    _sendBuffer.ackReceived(ordinal, strong);
+    const auto result = _sendBuffer.ackReceived(ordinal, strong);
+
+    if (result.isSignificant) {
+        _remoteInfo.timeoutStopwatch.restart();
+
+        _newMeanLatency += result.timeToAck;
+        
+        if (_newLatencySampleSize == 0) {
+            _newOptimisticLatency  = result.timeToAck;
+            _newPessimisticLatency = result.timeToAck;
+        } else {
+            _newOptimisticLatency  = std::min(_newOptimisticLatency, result.timeToAck);
+            _newPessimisticLatency = std::max(_newPessimisticLatency, result.timeToAck);
+        }
+        _newLatencySampleSize += 1;
+    }
 }
 
 void RN_UdpConnectorImpl::_startSession() {

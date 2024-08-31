@@ -23,6 +23,9 @@ using PacketOrdinal = std::uint32_t;
 
 class UdpReceiveBuffer {
 public:
+    UdpReceiveBuffer() = default;
+
+    //! Resets the buffer to its initial state.
     void reset();
 
     // returns acks contained within

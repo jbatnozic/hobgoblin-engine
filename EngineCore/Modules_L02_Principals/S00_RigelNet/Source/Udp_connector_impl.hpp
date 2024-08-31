@@ -1,8 +1,6 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-// clang-format off
-
 #ifndef UHOBGOBLIN_RN_UDP_CONNECTOR_IMPL_HPP
 #define UHOBGOBLIN_RN_UDP_CONNECTOR_IMPL_HPP
 
@@ -17,8 +15,8 @@
 #include <Hobgoblin/Utility/Time_utils.hpp>
 
 #include "Socket_adapter.hpp"
-#include "Udp_send_buffer.hpp"
 #include "Udp_receive_buffer.hpp"
+#include "Udp_send_buffer.hpp"
 
 #include <chrono>
 #include <cstdint>
@@ -34,14 +32,17 @@ namespace rn {
 
 class RN_ServerInterface;
 
-class RN_UdpConnectorImpl : public RN_ConnectorInterface, NO_COPY, NO_MOVE {
+class RN_UdpConnectorImpl
+    : public RN_ConnectorInterface
+    , NO_COPY
+    , NO_MOVE {
 public:
-    RN_UdpConnectorImpl(RN_SocketAdapter& socket,
-                        const std::chrono::microseconds& timeoutLimit, 
-                        const std::string& passphrase, 
-                        const RN_RetransmitPredicate& retransmitPredicate,
-                        rn_detail::EventFactory eventFactory,
-                        PZInteger aMaxPacketSize);
+    RN_UdpConnectorImpl(RN_SocketAdapter&                socket,
+                        const std::chrono::microseconds& timeoutLimit,
+                        const std::string&               passphrase,
+                        const RN_RetransmitPredicate&    retransmitPredicate,
+                        rn_detail::EventFactory          eventFactory,
+                        PZInteger                        aMaxPacketSize);
 
     bool tryAccept(sf::IpAddress addr, std::uint16_t port, util::Packet& packet);
     bool tryAcceptLocal(RN_UdpConnectorImpl& localPeer, const std::string& passphrase);
@@ -55,39 +56,41 @@ public:
     void receivingFinished();
     void handleDataMessages(RN_NodeInterface& node, util::Packet*& pointerToCurrentPacket);
     auto sendAcks() -> RN_Telemetry;
-    
-    void setClientIndex(std::optional<PZInteger> clientIndex);
+
+    void                     setClientIndex(std::optional<PZInteger> clientIndex);
     std::optional<PZInteger> getClientIndex() const;
 
     const RN_RemoteInfo& getRemoteInfo() const noexcept override;
-    RN_ConnectorStatus getStatus() const noexcept override;
-    void disconnect(bool aNotfiyRemote = true, const std::string& aMessage = "") override;
-    bool isConnectedLocally() const noexcept override;
+    RN_ConnectorStatus   getStatus() const noexcept override;
+    void      disconnect(bool aNotfiyRemote = true, const std::string& aMessage = "") override;
+    bool      isConnectedLocally() const noexcept override;
     PZInteger getSendBufferSize() const override;
     PZInteger getRecvBufferSize() const override;
 
-    void appendToNextOutgoingPacket(const void *data, PZInteger sizeInBytes);
+    void appendToNextOutgoingPacket(const void* data, PZInteger sizeInBytes);
 
 private:
-    RN_SocketAdapter& _socket;
-
+    // _socket, _timeoutLimit, _passphrase and _retransmitPredicate are references
+    // to objects that live in the Server or Client object.
+    RN_SocketAdapter&                _socket;
     const std::chrono::microseconds& _timeoutLimit;
-    const std::string& _passphrase;
-    const RN_RetransmitPredicate& _retransmitPredicate;
-    rn_detail::EventFactory _eventFactory;
+    const std::string&               _passphrase;
+    const RN_RetransmitPredicate&    _retransmitPredicate;
+
+    rn_detail::EventFactory          _eventFactory;
 
     PZInteger _maxPacketSize;
 
-    RN_RemoteInfo _remoteInfo;
+    RN_RemoteInfo                     _remoteInfo;
     decltype(_remoteInfo.meanLatency) _newMeanLatency;
     decltype(_remoteInfo.meanLatency) _newOptimisticLatency;
     decltype(_remoteInfo.meanLatency) _newPessimisticLatency;
-    PZInteger _newLatencySampleSize = 0;
-    RN_ConnectorStatus _status;
-    std::optional<PZInteger> _clientIndex;
+    PZInteger                         _newLatencySampleSize = 0;
+    RN_ConnectorStatus                _status;
+    std::optional<PZInteger>          _clientIndex;
 
-    UdpCommunicationBuffer _sendBuffer;
-    UdpReceiveBuffer       _recvBuffer;
+    UdpSendBuffer    _sendBuffer;
+    UdpReceiveBuffer _recvBuffer;
 
     std::vector<std::uint32_t> _ackOrdinals;
 
@@ -134,30 +137,18 @@ private:
     void _startSession();
 
     //! Saves a received Data packet (without its headers and acks) into the
-    //! receive buffer, unless it was received previously (Acks are prepared in 
+    //! receive buffer, unless it was received previously (Acks are prepared in
     //! either case).
-    void _saveDataPacket(util::Packet& packet,
-                         std::uint32_t packetType);
-    
-    //! Process a "Hello" packet.
+    void _saveDataPacket(util::Packet& packet, std::uint32_t packetType);
+
+    // ===== PACKET PROCESSING ===== //
+
     void _processHelloPacket(util::Packet& packet);
-
-    //! Process a "Connect" packet.
     void _processConnectPacket(util::Packet& packet);
-
-    //! Process a "Disconnect" packet.
     void _processDisconnectPacket(util::Packet& packet);
-
-    //! Process a "Data" packet.
     void _processDataPacket(util::Packet& packet);
-
-    //! Process a "DataMore" packet.
     void _processDataMorePacket(util::Packet& packet);
-
-    //! Process a "DataTail" packet.
     void _processDataTailPacket(util::Packet& packet);
-
-    //! Process an "Acks" packet.
     void _processAcksPacket(util::Packet& packet);
 };
 
@@ -167,5 +158,3 @@ HOBGOBLIN_NAMESPACE_END
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
 
 #endif // !UHOBGOBLIN_RN_UDP_CONNECTOR_IMPL_HPP
-
-// clang-format on

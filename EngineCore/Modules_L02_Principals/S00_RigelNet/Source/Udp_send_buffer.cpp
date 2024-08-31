@@ -45,14 +45,14 @@ std::int32_t hton32(std::int32_t host) {
 }
 } // namespace
 
-UdpCommunicationBuffer::UdpCommunicationBuffer(PZInteger                     aMaxPacketSize,
-                                               const RN_RetransmitPredicate& aRetransmitPredicate)
+UdpSendBuffer::UdpSendBuffer(PZInteger                     aMaxPacketSize,
+                             const RN_RetransmitPredicate& aRetransmitPredicate)
     : _maxPacketSize{aMaxPacketSize}
     , _retransmitPredicate{aRetransmitPredicate} {
     _prepareNextOutgoingDataPacket(UDP_PACKET_KIND_DATA);
 }
 
-void UdpCommunicationBuffer::reset() {
+void UdpSendBuffer::reset() {
     _packets.clear();
     _headOrdinal = 1;
     _acknowledges.clear();
@@ -60,7 +60,7 @@ void UdpCommunicationBuffer::reset() {
     _prepareNextOutgoingDataPacket(UDP_PACKET_KIND_DATA);
 }
 
-void UdpCommunicationBuffer::appendDataForSending(const void* aData, PZInteger aDataByteCount) {
+void UdpSendBuffer::appendDataForSending(const void* aData, PZInteger aDataByteCount) {
     HG_HARD_ASSERT(aData != nullptr);
     HG_HARD_ASSERT(aDataByteCount > 0);
 
@@ -100,7 +100,7 @@ void UdpCommunicationBuffer::appendDataForSending(const void* aData, PZInteger a
     while (true) {
         auto& tail = _getTailPacket();
 
-        // assert(pztos(_maxPacketSize) >= sendBufTail.packet.getDataSize());
+        HG_HARD_ASSERT(pztos(_maxPacketSize) >= tail.packet.getDataSize());
 
         const PZInteger remainingCapacity = _maxPacketSize - tail.packet.getDataSize();
         const PZInteger bytesToPackNow    = std::min(remainingCapacity, aDataByteCount - bytesPacked);
@@ -126,39 +126,17 @@ void UdpCommunicationBuffer::appendDataForSending(const void* aData, PZInteger a
     _prepareNextOutgoingDataPacket(UDP_PACKET_KIND_DATA);
 }
 
-#if 0
-void RN_UdpConnectorImpl::_receivedAck(std::uint32_t ordinal, bool strong) {
-    ...
-    } else {
-        const auto timeToAck = _sendBuffer[ind].stopwatch.getElapsedTime<std::chrono::microseconds>();
-        _newMeanLatency += timeToAck;
-        if (_newLatencySampleSize == 0) {
-            _newOptimisticLatency  = decltype(_newOptimisticLatency){0};
-            _newPessimisticLatency = decltype(_newPessimisticLatency){0};
-        } else {
-            _newOptimisticLatency  = std::min(_newOptimisticLatency, timeToAck);
-            _newPessimisticLatency = std::max(_newPessimisticLatency, timeToAck);
-        }
-        _newLatencySampleSize += 1;
-        _remoteInfo.timeoutStopwatch.restart();
-
-        _sendBuffer[ind].tag = TaggedPacket::AcknowledgedStrongly;
-        _sendBuffer[ind].packet.clear();
-
-        ...
-    }
-}
-#endif
-
-void UdpCommunicationBuffer::ackReceived(PacketOrdinal aPacketOrdinal, bool aIsStrong) {
+UdpSendBuffer::AckReceivedResult UdpSendBuffer::ackReceived(PacketOrdinal aPacketOrdinal,
+                                                            bool          aIsStrong) {
     if (aPacketOrdinal < _headOrdinal) {
-        return; // Already acknowledged before
+        return {{}, false}; // Already acknowledged before
     }
 
     const std::uint32_t indexInBuffer = (aPacketOrdinal - _headOrdinal);
     if (indexInBuffer >= _packets.size()) {
         // TODO -- Error
         HG_THROW_TRACED(TracedRuntimeError, 0, "Received ACK for packet that's not yet sent!");
+        // TODO(allow the connector to handle gracefully)
     }
 
     auto& target = _packets[indexInBuffer];
@@ -177,11 +155,12 @@ void UdpCommunicationBuffer::ackReceived(PacketOrdinal aPacketOrdinal, bool aIsS
         default:
             HG_UNREACHABLE("Unexpected value for target.tag at this point ({}).", (int)target.tag);
         }
+
         target.packet.clear();
-        return;
+        return {{}, false};
     }
 
-    // TODO(timing stuff)
+    const auto timeToAck = target.stopwatch.getElapsedTime<std::chrono::microseconds>();
 
     target.tag = TaggedPacket::ACKNOWLEDGED_STRONGLY;
     target.packet.clear();
@@ -195,12 +174,14 @@ void UdpCommunicationBuffer::ackReceived(PacketOrdinal aPacketOrdinal, bool aIsS
             _prepareNextOutgoingDataPacket(UDP_PACKET_KIND_DATA);
         }
     }
+
+    return {timeToAck, true};
 }
 
-std::vector<util::Packet> UdpCommunicationBuffer::exportPackets() {
+std::vector<util::Packet> UdpSendBuffer::exportPackets() {
     std::vector<util::Packet> result;
     result.reserve(_packets.size());
-    
+
     while (_packets.size() > 1) {
         auto& packet = _packets.front();
         result.emplace_back(std::move(packet.packet));
@@ -224,12 +205,12 @@ std::vector<util::Packet> UdpCommunicationBuffer::exportPackets() {
 // MARK: PRIVATE METHODS                                                 //
 ///////////////////////////////////////////////////////////////////////////
 
-UdpCommunicationBuffer::TaggedPacket& UdpCommunicationBuffer::_getTailPacket() {
+UdpSendBuffer::TaggedPacket& UdpSendBuffer::_getTailPacket() {
     HG_HARD_ASSERT(!_packets.empty());
     return _packets.back();
 }
 
-void UdpCommunicationBuffer::_prepareNextOutgoingDataPacket(std::uint32_t aPacketType) {
+void UdpSendBuffer::_prepareNextOutgoingDataPacket(std::uint32_t aPacketType) {
     _packets.emplace_back();
     _packets.back().tag = TaggedPacket::Tag::READY_FOR_SENDING;
 
@@ -262,7 +243,7 @@ void UdpCommunicationBuffer::_prepareNextOutgoingDataPacket(std::uint32_t aPacke
     }
 }
 
-void UdpCommunicationBuffer::_changePacketKind(TaggedPacket& aTaggedPacket, std::uint32_t aNewKind) {
+void UdpSendBuffer::_changePacketKind(TaggedPacket& aTaggedPacket, std::uint32_t aNewKind) {
     const auto newKindInNetworkOrder =
         static_cast<std::uint32_t>(hton32(static_cast<std::int32_t>(aNewKind)));
 
