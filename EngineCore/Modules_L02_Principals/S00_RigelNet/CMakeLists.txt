@@ -49,3 +49,7 @@ PUBLIC
 )
 
 add_library("Hobgoblin_L02_S00_RigelNet" ALIAS ${COMPONENT_NAME})
+
+# ===== TESTS =====
+
+add_subdirectory("Test")

@@ -5,9 +5,11 @@
 #define UHOBGOBLIN_RN_UDP_SEND_BUFFER_HPP
 
 #include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/RigelNet/Retransmit_predicate.hpp>
 #include <Hobgoblin/Utility/Packet.hpp>
 #include <Hobgoblin/Utility/Time_utils.hpp>
 
+#include "Invalid_data_error.hpp"
 #include "Socket_adapter.hpp"
 #include "Udp_connector_packet_kinds.hpp"
 
@@ -26,36 +28,78 @@ using PacketOrdinal = std::uint32_t;
 
 class UdpSendBuffer {
 public:
+    //! Constructs the send buffer.
+    //! \param aMaxPacketSize maximal packet size (in bytes). Packets larger than this will be
+    //!                       fragmented.
+    //! \param aRetransmitPredicate reference to a retransmit predicate to use. The original
+    //!                             predicate object must outlive the send buffer!
     UdpSendBuffer(PZInteger aMaxPacketSize, const RN_RetransmitPredicate& aRetransmitPredicate);
+
+    //! Returns the length of the buffer (number of packets in it).
+    //! \note if length is growing uncontrollably, it means that the packets are not being
+    //!       acknowledged (maybe the remote lost connection?), or are being pushed faster
+    //!       than they can be sent, or similar.
+    PZInteger getLength() const;
 
     //! Resets the buffer to its initial state.
     void reset();
 
-    //! Appends the given data into one or more outgoing packets
-    //! (preserving the order of information).
-    void appendDataForSending(const void* aData, PZInteger aDataByteCount);
+    //! Appends the given data into one or more outgoing packets (preserving the order of information).
+    //!
+    //! \param aData pointer to the data.
+    //! \param aDataByteCount number of bytes pointed to by aData, must be greater than 0.
+    void appendDataForSending(NeverNull<const void*> aData, PZInteger aDataByteCount);
+
+    //! Adds an ACK (strong) to be included in one of the next outgoing packets.
+    //! \param aPacketOrdinal ordinal of the packet to acknowledge.
+    void appendAckForSending(PacketOrdinal aPacketOrdinal);
 
     struct AckReceivedResult {
         //! Time it took from the moment the packet was sent until it was strongly acknowledged.
         std::chrono::microseconds timeToAck;
-        bool isSignificant;
+        bool                      isSignificant;
     };
 
-    // Returns true if the received ack was significant (strong and never received before).
+    //! Informs the buffer about an acknowledged packet. Since the packet is confirmed received
+    //! by the remote, the buffer can drop it to preserve memory and doesn't have to try to
+    //! resend it.
+    //!
+    //! \returns `true` if the received ack was significant (strong and never received before),
+    //!          and `false` otherwise.
+    //!
+    //! \throws InvalidDataError if `aPacketOrdinal` points to a packet that hasn't been sent yet.
     AckReceivedResult ackReceived(PacketOrdinal aPacketOrdinal, bool aIsStrong);
 
-    void prepareAck(PacketOrdinal aPacketOrdinal);
-
     struct SendResult {
-        PZInteger                uploadedByteCount;
-        RN_SocketAdapter::Status socketStatus;
+        PZInteger                uploadedByteCount; //!< Number of uploaded bytes.
+        RN_SocketAdapter::Status socketStatus;      //!< Last status of the socket.
     };
 
-    //! aSendFunction = RN_SocketAdapter::Status(util::Packet&)
+    //! Send packet until no more outgoing packets remain, until the packet limit is reached,
+    //! or until an error occurs.
+    //!
+    //! \param aPacketLimiter pointer to a variable of type PZInteger. Each time an attempt is
+    //!                       made to send a packet, this variable is decremented by 1. If it
+    //!                       reaches 0, `send()` returns.
+    //! \param aCurrentMeanLatency current mean latency (round-trip) to the remote; needed for
+    //!                            retransmit decisions.
+    //! \param aSendFunction callable object of type `RN_SocketAdapter::Status(util::Packet&)`
+    //!                      which will be used to send packets. It should return the status of
+    //!                      the socket after sending. As soon as it returns anything other than
+    //!                      'OK', sending stops and `send()` returns, regardless of the number
+    //!                      of remaining packets or the value of the packet limiter.
+    //!
+    //! \return object of type `SendResult` that holds information about how many bytes were sent
+    //!         and about the last status returned by `aSendFunction` (and remember that sending
+    //!         stops after the first value that's not 'OK').
     template <class taSendFunction>
-    SendResult send(NeverNull<PZInteger*> aPacketLimiter, const taSendFunction& aSendFunction);
+    SendResult send(NeverNull<PZInteger*>     aPacketLimiter,
+                    std::chrono::microseconds aCurrentMeanLatency,
+                    const taSendFunction&     aSendFunction);
 
-    // for local connections
+    //! Moves all the prepared packet out of the buffer, in the order in which they need to be sent.
+    //! \note this method exists solely to support local connections; DO NOT use it in true online
+    //!       scenarios!
     std::vector<util::Packet> exportPackets();
 
 private:
@@ -90,8 +134,9 @@ private:
 };
 
 template <class taSendFunction>
-UdpSendBuffer::SendResult UdpSendBuffer::send(NeverNull<PZInteger*> aPacketLimiter,
-                                              const taSendFunction& aSendFunction) {
+UdpSendBuffer::SendResult UdpSendBuffer::send(NeverNull<PZInteger*>     aPacketLimiter,
+                                              std::chrono::microseconds aCurrentMeanLatency,
+                                              const taSendFunction&     aSendFunction) {
     PZInteger uploadedByteCount = 0;
 
     for (auto& taggedPacket : _packets) {
@@ -107,7 +152,7 @@ UdpSendBuffer::SendResult UdpSendBuffer::send(NeverNull<PZInteger*> aPacketLimit
         if ((taggedPacket.tag == TaggedPacket::READY_FOR_SENDING) ||
             _retransmitPredicate(taggedPacket.cyclesSinceLastTransmit,
                                  taggedPacket.stopwatch.getElapsedTime(),
-                                 /*TODO _remoteInfo.meanLatency*/ std::chrono::milliseconds{0})) {
+                                 aCurrentMeanLatency)) {
 
             *aPacketLimiter -= 1;
 

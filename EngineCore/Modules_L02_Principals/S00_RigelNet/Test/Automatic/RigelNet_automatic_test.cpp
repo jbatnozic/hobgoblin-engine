@@ -201,47 +201,6 @@ TEST_F(RigelNetTest, LocalConnectToUnstartedServerFails) {
     EXPECT_THROW(_client->connectLocal(*_server), hg::TracedException);
 }
 
-RN_DEFINE_RPC_P(SendBinaryBuffer, PREF_, RN_ARGS(RN_RawDataView, bytes)) {
-    RN_NODE_IN_HANDLER().callIfServer([](RN_ServerInterface& /*server*/) {
-        std::abort();
-    });
-
-    RN_NODE_IN_HANDLER().callIfClient([&](RN_ClientInterface& client) {
-        auto& vec = *client.getUserDataOrThrow<std::vector<std::int32_t>>();
-        vec.resize((bytes.getDataSize() + 3) / 4);
-        std::memcpy(vec.data(), bytes.getData(), bytes.getDataSize());
-    });
-}
-
-TEST_F(RigelNetTest, FragmentedPacketReceived) {
-    std::vector<std::int32_t> serverVector;
-    for (int i = 0; i < 64; i += 1) { // 64 ints is 256 bytes, our test nodes can send only 200 at a time
-        serverVector.push_back(i);
-    }
-
-    std::vector<std::int32_t> clientVector;
-    _client->setUserData(&clientVector);
-
-    _server->start(0);
-    _client->connectLocal(*_server);
-
-    ASSERT_EQ(_client->getServerConnector().getStatus(), RN_ConnectorStatus::Connected);
-    ASSERT_EQ(_server->getClientConnector(0).getStatus(), RN_ConnectorStatus::Connected);
-
-    PREF_Compose_SendBinaryBuffer(
-        *_server,
-        RN_COMPOSE_FOR_ALL,
-        RN_RawDataView(serverVector.data(), serverVector.size() * sizeof(std::int32_t)));
-
-    _server->update(RN_UpdateMode::Send);
-    _client->update(RN_UpdateMode::Receive);
-
-    ASSERT_EQ(serverVector.size(), clientVector.size());
-    for (std::size_t i = 0; i < serverVector.size(); i += 1) {
-        ASSERT_EQ(serverVector[i], clientVector[i]);
-    }
-}
-
 RN_DEFINE_HANDLER(PiecemealHandler, RN_ARGS()) {
     RN_NODE_IN_HANDLER().callIfServer([](RN_ServerInterface& /*server*/) {
         std::abort();
@@ -272,3 +231,66 @@ TEST_F(RigelNetTest, PiecemealHandlerWorks) {
 
     ASSERT_EQ(flag, true);
 }
+
+// MARK: Fragmented Packets Test
+
+using FragmentedPacketTestParam = int;
+
+class RigelNetFragmentedPacketsTest
+    : public RigelNetTest
+    , public ::testing::WithParamInterface<FragmentedPacketTestParam> {};
+
+RN_DEFINE_RPC_P(SendBinaryBuffer, RNTest_, RN_ARGS(RN_RawDataView, bytes)) {
+    RN_NODE_IN_HANDLER().callIfServer([](RN_ServerInterface& /*server*/) {
+        throw RN_IllegalMessage{};
+    });
+
+    RN_NODE_IN_HANDLER().callIfClient([&](RN_ClientInterface& client) {
+        auto& vec = *client.getUserDataOrThrow<std::vector<std::uint16_t>>();
+        if (bytes.getDataSize() % sizeof(vec[0]) != 0) {
+            throw RN_IllegalMessage{};
+        }
+        vec.resize(bytes.getDataSize() / sizeof(vec[0]));
+        std::memcpy(vec.data(), bytes.getData(), bytes.getDataSize());
+    });
+}
+
+TEST_P(RigelNetFragmentedPacketsTest, FragmentedPacketReceived_2) {
+    const int sizeModifier = GetParam();
+
+    const int packetSizeToSend = MAX_PACKET_SIZE + sizeModifier;
+    SCOPED_TRACE("packetSizeToSend = " + std::to_string(packetSizeToSend));
+
+    std::vector<std::uint16_t> serverVector;
+    for (int i = 0; i < packetSizeToSend / 2; i += 1) {
+        serverVector.push_back(i);
+    }
+
+    std::vector<std::uint16_t> clientVector;
+    _client->setUserData(&clientVector);
+
+    _server->start(0);
+    _client->connectLocal(*_server);
+
+    ASSERT_EQ(_client->getServerConnector().getStatus(), RN_ConnectorStatus::Connected);
+    ASSERT_EQ(_server->getClientConnector(0).getStatus(), RN_ConnectorStatus::Connected);
+
+    RNTest_Compose_SendBinaryBuffer(
+        *_server,
+        RN_COMPOSE_FOR_ALL,
+        RN_RawDataView(serverVector.data(), serverVector.size() * sizeof(std::uint16_t)));
+
+    _server->update(RN_UpdateMode::Send);
+    _client->update(RN_UpdateMode::Receive);
+
+    ASSERT_EQ(serverVector.size(), clientVector.size());
+    for (std::size_t i = 0; i < serverVector.size(); i += 1) {
+        ASSERT_EQ(serverVector[i], clientVector[i]);
+    }
+}
+
+INSTANTIATE_TEST_SUITE_P(RigelNetFragmentedPacketsTest,
+                         RigelNetFragmentedPacketsTest,
+                         ::testing::Range(/* start (included) */ -100,
+                                          /* end (not included)*/ 101,
+                                          /* step */ 1));

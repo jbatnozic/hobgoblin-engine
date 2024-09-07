@@ -7,6 +7,7 @@
 #include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Logging.hpp>
 
+#include <algorithm>
 #include <string>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
@@ -17,12 +18,19 @@ namespace rn {
 namespace {
 constexpr auto LOG_ID = "Hobgoblin.RigelNet";
 
+constexpr PZInteger MIN_STRONG_ACKNOWLEDGES_PER_PACKET = 0;
 constexpr PZInteger MAX_STRONG_ACKNOWLEDGES_PER_PACKET = 16;
 // clang-format off
 constexpr PZInteger MAX_PACKET_HEADER_BYTE_COUNT = 
       sizeof(std::uint32_t) * 1                                  // Packet type
     + sizeof(PacketOrdinal) * 1                                  // Packet ordinal
     + sizeof(PacketOrdinal) * MAX_STRONG_ACKNOWLEDGES_PER_PACKET // Strong acknowledges
+    + sizeof(PacketOrdinal) * 1                                  // Acknowledges terminator
+    ;
+constexpr PZInteger MIN_PACKET_HEADER_BYTE_COUNT = 
+      sizeof(std::uint32_t) * 1                                  // Packet type
+    + sizeof(PacketOrdinal) * 1                                  // Packet ordinal
+    + sizeof(PacketOrdinal) * MIN_STRONG_ACKNOWLEDGES_PER_PACKET // Strong acknowledges
     + sizeof(PacketOrdinal) * 1                                  // Acknowledges terminator
     ;
 // clang-format on
@@ -60,9 +68,18 @@ void UdpSendBuffer::reset() {
     _prepareNextOutgoingDataPacket(UDP_PACKET_KIND_DATA);
 }
 
-void UdpSendBuffer::appendDataForSending(const void* aData, PZInteger aDataByteCount) {
-    HG_HARD_ASSERT(aData != nullptr);
+PZInteger UdpSendBuffer::getLength() const {
+    return stopz(_packets.size());
+}
+
+void UdpSendBuffer::appendDataForSending(NeverNull<const void*> aData, PZInteger aDataByteCount) {
     HG_HARD_ASSERT(aDataByteCount > 0);
+
+    const auto headerSizeOfNextPacket = [this]() -> PZInteger {
+        return MIN_PACKET_HEADER_BYTE_COUNT +
+               std::min(stopz(_acknowledges.size()), MAX_STRONG_ACKNOWLEDGES_PER_PACKET) *
+                   sizeof(PacketOrdinal);
+    };
 
     // We want to send independent DATA packets whenever possible,
     // and fragmented only when necessary.
@@ -73,10 +90,20 @@ void UdpSendBuffer::appendDataForSending(const void* aData, PZInteger aDataByteC
         _prepareNextOutgoingDataPacket(UDP_PACKET_KIND_DATA);
         auto& tail = _getTailPacket();
         tail.packet.appendBytes(aData, aDataByteCount);
+        HG_ASSERT(tail.packet.getDataSize() <= _maxPacketSize);
+        return;
+    } else if (aDataByteCount + headerSizeOfNextPacket() <= _maxPacketSize) {
+        _prepareNextOutgoingDataPacket(UDP_PACKET_KIND_DATA);
+        auto& tail = _getTailPacket();
+        tail.packet.appendBytes(aData, aDataByteCount);
+        HG_ASSERT(tail.packet.getDataSize() <= _maxPacketSize);
         return;
     }
 
     // At this point, we have to send a fragmented packet
+
+    const auto packetCountBefore    = _packets.size();
+    bool       reusedExistingPacket = false;
 
     // Prepare the current latest outgoing packet (finalize it if it's full enough, and
     // set its type to DATA_MORE otherwise):
@@ -84,7 +111,7 @@ void UdpSendBuffer::appendDataForSending(const void* aData, PZInteger aDataByteC
         auto& tail = _getTailPacket();
 
         // This is kind of an arbitrarily chosen limit, but if the latest outgoing packet is at
-        // least 50% full, we'll send it independently so avoid dependencies between packets.
+        // least 50% full, we'll send it independently to avoid dependencies between packets.
         if (tail.packet.getDataSize() > _maxPacketSize / 2) {
             _prepareNextOutgoingDataPacket(UDP_PACKET_KIND_DATA_MORE);
         } else {
@@ -92,6 +119,7 @@ void UdpSendBuffer::appendDataForSending(const void* aData, PZInteger aDataByteC
             // appending the data to DATA_MORE, so that the recepient knows not to do anything
             // with it until the remaining fragments are also received and assembled.
             _changePacketKind(tail, UDP_PACKET_KIND_DATA_MORE);
+            reusedExistingPacket = true;
         }
     }
 
@@ -105,7 +133,7 @@ void UdpSendBuffer::appendDataForSending(const void* aData, PZInteger aDataByteC
         const PZInteger remainingCapacity = _maxPacketSize - tail.packet.getDataSize();
         const PZInteger bytesToPackNow    = std::min(remainingCapacity, aDataByteCount - bytesPacked);
 
-        tail.packet.appendBytes(static_cast<const char*>(aData) + bytesPacked, bytesToPackNow);
+        tail.packet.appendBytes(static_cast<const char*>(aData.get()) + bytesPacked, bytesToPackNow);
         bytesPacked += bytesToPackNow;
 
         if (bytesPacked < aDataByteCount) {
@@ -121,9 +149,23 @@ void UdpSendBuffer::appendDataForSending(const void* aData, PZInteger aDataByteC
         _changePacketKind(tail, UDP_PACKET_KIND_DATA_TAIL);
     }
 
+    // This is just for verification: if we managed to 'piggyback' off a previously existing
+    // DATA packet, we expect that at least 1 new packet was added. Otherwise, we expect that
+    // at least 2 new packets were added (at least 1 FRAGMENT and 1 TAIL).
+    const auto packetCountAfter = _packets.size();
+    if (reusedExistingPacket) {
+        HG_HARD_ASSERT(packetCountBefore + 1 <= packetCountAfter);
+    } else {
+        HG_HARD_ASSERT(packetCountBefore + 2 <= packetCountAfter);
+    }
+
     // We don't want chaining of multiple fragmented packets, so finalize the tail and
     // start the next regular packet:
     _prepareNextOutgoingDataPacket(UDP_PACKET_KIND_DATA);
+}
+
+void UdpSendBuffer::appendAckForSending(PacketOrdinal aPacketOrdinal) {
+    _acknowledges.push_back(aPacketOrdinal);
 }
 
 UdpSendBuffer::AckReceivedResult UdpSendBuffer::ackReceived(PacketOrdinal aPacketOrdinal,
@@ -134,9 +176,10 @@ UdpSendBuffer::AckReceivedResult UdpSendBuffer::ackReceived(PacketOrdinal aPacke
 
     const std::uint32_t indexInBuffer = (aPacketOrdinal - _headOrdinal);
     if (indexInBuffer >= _packets.size()) {
-        // TODO -- Error
-        HG_THROW_TRACED(TracedRuntimeError, 0, "Received ACK for packet that's not yet sent!");
-        // TODO(allow the connector to handle gracefully)
+        HG_THROW_TRACED(InvalidDataError,
+                        0,
+                        "Received ACK for packet that's not yet sent ({}).",
+                        aPacketOrdinal);
     }
 
     auto& target = _packets[indexInBuffer];
@@ -253,7 +296,7 @@ void UdpSendBuffer::_changePacketKind(TaggedPacket& aTaggedPacket, std::uint32_t
     // The first 4 bytes of a packet determine its kind
     auto* kindPtr = packet.getMutableData();
 
-    std::memcpy(packet.getMutableData(), &newKindInNetworkOrder, sizeof(newKindInNetworkOrder));
+    std::memcpy(kindPtr, &newKindInNetworkOrder, sizeof(newKindInNetworkOrder));
 }
 
 } // namespace rn
