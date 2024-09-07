@@ -15,6 +15,7 @@ set(COMPONENT_SOURCES
     "Source/Factories.cpp"
     "Source/Handlermgmt.cpp"
     "Source/Node_interface.cpp"
+    "Source/Retransmit_predicate.cpp"
     "Source/Socket_adapter.cpp"
     "Source/Udp_client_impl.cpp"
     "Source/Udp_connector_impl.cpp"
