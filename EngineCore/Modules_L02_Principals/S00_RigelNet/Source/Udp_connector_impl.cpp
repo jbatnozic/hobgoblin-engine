@@ -319,10 +319,12 @@ RN_Telemetry RN_UdpConnectorImpl::sendWeakAcks() {
     assert(_status == RN_ConnectorStatus::Connected);
 
     RN_Telemetry telemetry;
-    telemetry.uploadByteCount += UDP_HEADER_BYTE_COUNT;
     telemetry.uploadByteCount += _sendBuffer.sendWeakAcks([this](util::Packet& aPacket) {
         _socket.send(aPacket, _remoteInfo.ipAddress, _remoteInfo.port);
     });
+    if (telemetry.uploadByteCount > 0) {
+        telemetry.uploadByteCount += UDP_HEADER_BYTE_COUNT;
+    }
     // TODO: should sendWeakAcks care about a packet limiter?
 
     return telemetry;
