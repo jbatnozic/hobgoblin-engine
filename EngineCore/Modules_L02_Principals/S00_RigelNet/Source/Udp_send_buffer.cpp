@@ -63,7 +63,8 @@ UdpSendBuffer::UdpSendBuffer(PZInteger                     aMaxPacketSize,
 void UdpSendBuffer::reset() {
     _packets.clear();
     _headOrdinal = 1;
-    _acknowledges.clear();
+    _weakAcks.clear();
+    _strongAcks.clear();
 
     _prepareNextOutgoingDataPacket(UDP_PACKET_KIND_DATA);
 }
@@ -77,7 +78,7 @@ void UdpSendBuffer::appendDataForSending(NeverNull<const void*> aData, PZInteger
 
     const auto headerSizeOfNextPacket = [this]() -> PZInteger {
         return MIN_PACKET_HEADER_BYTE_COUNT +
-               std::min(stopz(_acknowledges.size()), MAX_STRONG_ACKNOWLEDGES_PER_PACKET) *
+               std::min(stopz(_strongAcks.size()), MAX_STRONG_ACKNOWLEDGES_PER_PACKET) *
                    sizeof(PacketOrdinal);
     };
 
@@ -165,7 +166,8 @@ void UdpSendBuffer::appendDataForSending(NeverNull<const void*> aData, PZInteger
 }
 
 void UdpSendBuffer::appendAckForSending(PacketOrdinal aPacketOrdinal) {
-    _acknowledges.push_back(aPacketOrdinal);
+    _weakAcks.push_back(aPacketOrdinal);
+    _strongAcks.push_back(aPacketOrdinal);
 }
 
 UdpSendBuffer::AckReceivedResult UdpSendBuffer::ackReceived(PacketOrdinal aPacketOrdinal,
@@ -266,23 +268,22 @@ void UdpSendBuffer::_prepareNextOutgoingDataPacket(std::uint32_t aPacketType) {
     packet << static_cast<PacketOrdinal>(_packets.size() + pztos(_headOrdinal) - 1u);
 
     // Strong Acknowledges (zero-terminated):
-    if (_acknowledges.size() <= pztos(MAX_STRONG_ACKNOWLEDGES_PER_PACKET)) {
-        for (PacketOrdinal ack : _acknowledges) {
+    if (_strongAcks.size() <= pztos(MAX_STRONG_ACKNOWLEDGES_PER_PACKET)) {
+        for (PacketOrdinal ack : _strongAcks) {
             packet << ack;
         }
         packet << (PacketOrdinal)0;
-        _acknowledges.clear();
+        _strongAcks.clear();
     } else {
-        const auto originalSize = stopz(_acknowledges.size());
-        HG_LOG_WARN(LOG_ID, "Excessive amount of pending acknowledges ({})!", originalSize);
+        const auto originalSize = stopz(_strongAcks.size());
+        HG_LOG_WARN(LOG_ID, "Excessive amount of pending strong acks ({})!", originalSize);
 
         for (PZInteger i = 0; i < MAX_STRONG_ACKNOWLEDGES_PER_PACKET; i += 1) {
-            packet << _acknowledges[pztos(i)];
+            packet << _strongAcks[pztos(i)];
         }
         packet << (PacketOrdinal)0;
-        _acknowledges.erase(_acknowledges.begin(),
-                            _acknowledges.begin() + MAX_STRONG_ACKNOWLEDGES_PER_PACKET);
-        HG_ASSERT(stopz(_acknowledges.size()) == originalSize - MAX_STRONG_ACKNOWLEDGES_PER_PACKET);
+        _strongAcks.erase(_strongAcks.begin(), _strongAcks.begin() + MAX_STRONG_ACKNOWLEDGES_PER_PACKET);
+        HG_ASSERT(stopz(_strongAcks.size()) == originalSize - MAX_STRONG_ACKNOWLEDGES_PER_PACKET);
     }
 }
 

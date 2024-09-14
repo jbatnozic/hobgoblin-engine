@@ -120,8 +120,6 @@ private:
     UdpSendBuffer    _sendBuffer;
     UdpReceiveBuffer _recvBuffer;
 
-    std::vector<std::uint32_t> _ackOrdinals;
-
     class LocalConnectionSharedState;
     std::shared_ptr<LocalConnectionSharedState> _localSharedState = nullptr;
 

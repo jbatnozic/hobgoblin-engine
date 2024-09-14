@@ -5,6 +5,7 @@
 #define UHOBGOBLIN_RN_UDP_SEND_BUFFER_HPP
 
 #include <Hobgoblin/Common.hpp>
+#include <Hobgoblin/Logging.hpp>
 #include <Hobgoblin/RigelNet/Retransmit_predicate.hpp>
 #include <Hobgoblin/Utility/Packet.hpp>
 #include <Hobgoblin/Utility/Time_utils.hpp>
@@ -50,9 +51,18 @@ public:
     //! \param aDataByteCount number of bytes pointed to by aData, must be greater than 0.
     void appendDataForSending(NeverNull<const void*> aData, PZInteger aDataByteCount);
 
-    //! Adds an ACK (strong) to be included in one of the next outgoing packets.
+    //! Adds an ACK to be sent to the remote.
+    //! \note weak acks are sent in dedicated ACKS packets, and strong acks are send in outgoing DATA
+    //!       packets. This method will append the provided ack to one of each.
     //! \param aPacketOrdinal ordinal of the packet to acknowledge.
     void appendAckForSending(PacketOrdinal aPacketOrdinal);
+
+    //! Send weak acks prepared thus far using `appendAckForSending()` in a dedicated ACKS packet.
+    //! Usually this will send all of the prepared acks, unless there's so many of them that not
+    //! all can fit in a single packet (due to max packet size). In this case, the rest will be sent
+    //! the next time this function is called.
+    template <class taSendFunction>
+    PZInteger sendWeakAcks(const taSendFunction& aSendFunction);
 
     struct AckReceivedResult {
         //! Time it took from the moment the packet was sent until it was strongly acknowledged.
@@ -93,9 +103,9 @@ public:
     //!         and about the last status returned by `aSendFunction` (and remember that sending
     //!         stops after the first value that's not 'OK').
     template <class taSendFunction>
-    SendResult send(NeverNull<PZInteger*>     aPacketLimiter,
-                    std::chrono::microseconds aCurrentMeanLatency,
-                    const taSendFunction&     aSendFunction);
+    SendResult sendData(NeverNull<PZInteger*>     aPacketLimiter,
+                        std::chrono::microseconds aCurrentMeanLatency,
+                        const taSendFunction&     aSendFunction);
 
     //! Moves all the prepared packet out of the buffer, in the order in which they need to be sent.
     //! \note this method exists solely to support local connections; DO NOT use it in true online
@@ -124,7 +134,8 @@ private:
     std::deque<TaggedPacket> _packets;
     PacketOrdinal            _headOrdinal = 1;
 
-    std::vector<PacketOrdinal> _acknowledges;
+    std::vector<PacketOrdinal> _weakAcks;
+    std::vector<PacketOrdinal> _strongAcks;
 
     static constexpr PZInteger UDP_HEADER_BYTE_COUNT = 8;
 
@@ -134,9 +145,9 @@ private:
 };
 
 template <class taSendFunction>
-UdpSendBuffer::SendResult UdpSendBuffer::send(NeverNull<PZInteger*>     aPacketLimiter,
-                                              std::chrono::microseconds aCurrentMeanLatency,
-                                              const taSendFunction&     aSendFunction) {
+UdpSendBuffer::SendResult UdpSendBuffer::sendData(NeverNull<PZInteger*>     aPacketLimiter,
+                                                  std::chrono::microseconds aCurrentMeanLatency,
+                                                  const taSendFunction&     aSendFunction) {
     PZInteger uploadedByteCount = 0;
 
     for (auto& taggedPacket : _packets) {
@@ -183,6 +194,42 @@ UdpSendBuffer::SendResult UdpSendBuffer::send(NeverNull<PZInteger*>     aPacketL
     _prepareNextOutgoingDataPacket(UDP_PACKET_KIND_DATA);
 
     return {uploadedByteCount, RN_SocketAdapter::Status::OK};
+}
+
+template <class taSendFunction>
+PZInteger UdpSendBuffer::sendWeakAcks(const taSendFunction& aSendFunction) {
+    static constexpr auto LOG_ID = "Hobgoblin.RigelNet";
+
+    if (_weakAcks.empty()) {
+        return 0;
+    }
+
+    util::Packet packet;
+    packet << UDP_PACKET_KIND_ACKS;
+
+    const std::size_t limit =
+        static_cast<std::size_t>(_maxPacketSize - packet.getDataSize()) / sizeof(PacketOrdinal);
+
+    if (_weakAcks.size() <= limit) {
+        for (PacketOrdinal ack : _weakAcks) {
+            packet << ack;
+        }
+        _weakAcks.clear();
+    } else {
+        const auto originalSize = stopz(_weakAcks.size());
+        HG_LOG_WARN(LOG_ID, "Excessive amount of pending weak acks ({})!", originalSize);
+
+        for (std::size_t i = 0; i < limit; i += 1) {
+            packet << _weakAcks[pztos(i)];
+        }
+
+        _weakAcks.erase(_weakAcks.begin(), _weakAcks.begin() + limit);
+        HG_ASSERT(stopz(_weakAcks.size()) == originalSize - limit);
+    }
+
+    const PZInteger dataSize = packet.getDataSize();
+    aSendFunction(packet);
+    return dataSize;
 }
 
 } // namespace rn

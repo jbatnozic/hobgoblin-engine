@@ -169,7 +169,7 @@ bool RN_UdpConnectorImpl::tryAccept(sf::IpAddress addr, std::uint16_t port, util
                     addr.toString(),
                     port,
                     packetKind,
-                    receivedPassphrase);
+                    (packetKind == UDP_PACKET_KIND_HELLO) ? receivedPassphrase : "n/a");
         return false;
     }
 
@@ -318,24 +318,13 @@ void RN_UdpConnectorImpl::receivingFinished() {
 RN_Telemetry RN_UdpConnectorImpl::sendWeakAcks() {
     assert(_status == RN_ConnectorStatus::Connected);
 
-    if (_ackOrdinals.empty()) {
-        return {};
-    }
-
-    util::Packet packet;
-    packet << UDP_PACKET_KIND_ACKS;
-    for (std::uint32_t ackOrdinal : _ackOrdinals) {
-        packet << ackOrdinal;
-    }
-
-    // Safe to ignore recoverable errors here - Disconnected doesn't happen with UDP and
-    // NotReady is irrelevant because Acks keep getting resent until acknowledged back anyway
-    _socket.send(packet, _remoteInfo.ipAddress, _remoteInfo.port);
-
-    _ackOrdinals.clear(); // TODO(temp)
-
     RN_Telemetry telemetry;
-    telemetry.uploadByteCount = stopz(packet.getDataSize() + UDP_HEADER_BYTE_COUNT);
+    telemetry.uploadByteCount += UDP_HEADER_BYTE_COUNT;
+    telemetry.uploadByteCount += _sendBuffer.sendWeakAcks([this](util::Packet& aPacket) {
+        _socket.send(aPacket, _remoteInfo.ipAddress, _remoteInfo.port);
+    });
+    // TODO: should sendWeakAcks care about a packet limiter?
+
     return telemetry;
 }
 
@@ -530,7 +519,6 @@ bool RN_UdpConnectorImpl::_isConnectedLocally() const noexcept {
 void RN_UdpConnectorImpl::_resetBuffers() {
     _sendBuffer.reset();
     _recvBuffer.reset();
-    _ackOrdinals.clear();
 }
 
 void RN_UdpConnectorImpl::_resetAll() {
@@ -558,14 +546,15 @@ bool RN_UdpConnectorImpl::_isConnectionTimedOut() const {
 
 PZInteger RN_UdpConnectorImpl::_uploadAllData() {
     // TODO: propagate socket status upwards
+    // TODO: better handling of packet limiter
 
     PZInteger  packetLimiter = 10;
     const auto result =
-        _sendBuffer.send(&packetLimiter,
-                         _remoteInfo.meanLatency,
-                         [this](util::Packet& aPacket) -> RN_SocketAdapter::Status {
-                             return _socket.send(aPacket, _remoteInfo.ipAddress, _remoteInfo.port);
-                         });
+        _sendBuffer.sendData(&packetLimiter,
+                             _remoteInfo.meanLatency,
+                             [this](util::Packet& aPacket) -> RN_SocketAdapter::Status {
+                                 return _socket.send(aPacket, _remoteInfo.ipAddress, _remoteInfo.port);
+                             });
 
     switch (result.socketStatus) {
     case RN_SocketAdapter::Status::OK:
@@ -600,7 +589,6 @@ void RN_UdpConnectorImpl::_prepareAck(std::uint32_t ordinal) {
         // No acks needed in local connections.
         return;
     }
-    _ackOrdinals.push_back(ordinal);
     _sendBuffer.appendAckForSending(ordinal);
 }
 
@@ -784,7 +772,7 @@ void RN_UdpConnectorImpl::_processAcksPacket(util::Packet& packet) {
 
     case RN_ConnectorStatus::Connected:
         while (!packet.endOfPacket()) {
-            const std::uint32_t ackOrd = packet.extract<std::uint32_t>();
+            const auto ackOrd = packet.extract<PacketOrdinal>();
             _receivedAck(ackOrd, false);
         }
         break;
