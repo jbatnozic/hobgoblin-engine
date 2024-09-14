@@ -481,6 +481,14 @@ RN_ConnectorStatus RN_UdpConnectorImpl::getStatus() const noexcept {
     return _status;
 }
 
+bool RN_UdpConnectorImpl::isConnected() const noexcept {
+    return _status == RN_ConnectorStatus::Connected;
+}
+
+bool RN_UdpConnectorImpl::isDisconnected() const noexcept {
+    return _status == RN_ConnectorStatus::Disconnected;
+}
+
 void RN_UdpConnectorImpl::disconnect(bool aNotfiyRemote, const std::string& aMessage) {
     HG_VALIDATE_PRECONDITION(_status != RN_ConnectorStatus::Disconnected);
 

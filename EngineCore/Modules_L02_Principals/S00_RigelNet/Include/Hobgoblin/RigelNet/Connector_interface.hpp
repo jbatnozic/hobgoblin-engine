@@ -26,6 +26,12 @@ public:
     //! Current status of the connector.
     virtual RN_ConnectorStatus getStatus() const noexcept = 0;
 
+    //! Equivalent to `getStatus() == RN_ConnectorStatus::Connected`.
+    virtual bool isConnected() const noexcept = 0;
+
+    //! Equivalent to `getStatus() == RN_ConnectorStatus::Disconnected`.
+    virtual bool isDisconnected() const noexcept = 0;
+
     //! TODO(add desc)
     virtual void disconnect(bool aNotifyRemote = true, const std::string& aMessage = "") = 0;
 

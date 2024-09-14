@@ -90,6 +90,8 @@ public:
 
     const RN_RemoteInfo& getRemoteInfo() const noexcept override;
     RN_ConnectorStatus   getStatus() const noexcept override;
+    bool                 isConnected() const noexcept override;
+    bool                 isDisconnected() const noexcept override;
     void      disconnect(bool aNotfiyRemote = true, const std::string& aMessage = "") override;
     bool      isConnectedLocally() const noexcept override;
     PZInteger getSendBufferSize() const override;
