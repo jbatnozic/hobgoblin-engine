@@ -194,7 +194,7 @@ RN_Telemetry RN_UdpClientImpl::_updateReceive() {
         telemetry += _connector.sendAcks();
     }
     if (_connector.getStatus() != RN_ConnectorStatus::Disconnected) {
-        _connector.handleDataMessages(SELF, /* reference to pointer -> */ _currentPacket);
+        _connector.handleDataMessages(SELF, &_currentPacket);
     }
     if (_connector.getStatus() != RN_ConnectorStatus::Disconnected) {
         _connector.checkForTimeout();

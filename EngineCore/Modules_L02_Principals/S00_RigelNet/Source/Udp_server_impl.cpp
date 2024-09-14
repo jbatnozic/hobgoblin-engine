@@ -268,7 +268,7 @@ RN_Telemetry RN_UdpServerImpl::_updateReceive() {
         }
         if (client->getStatus() != RN_ConnectorStatus::Disconnected) {
             _senderIndex = i;
-            client->handleDataMessages(SELF, /* reference to pointer -> */ _currentPacket);
+            client->handleDataMessages(SELF, &_currentPacket);
         }
         if (client->getStatus() != RN_ConnectorStatus::Disconnected) {
             client->checkForTimeout();

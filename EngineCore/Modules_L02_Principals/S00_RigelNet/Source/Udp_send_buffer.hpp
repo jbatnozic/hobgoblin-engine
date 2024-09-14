@@ -10,6 +10,7 @@
 #include <Hobgoblin/Utility/Time_utils.hpp>
 
 #include "Invalid_data_error.hpp"
+#include "Packet_ordinal.hpp"
 #include "Socket_adapter.hpp"
 #include "Udp_connector_packet_kinds.hpp"
 
@@ -24,8 +25,7 @@ namespace rn {
 
 class UdpReceiveBuffer;
 
-using PacketOrdinal = std::uint32_t;
-
+//! Class that handles outgoing packets for a connector.
 class UdpSendBuffer {
 public:
     //! Constructs the send buffer.
