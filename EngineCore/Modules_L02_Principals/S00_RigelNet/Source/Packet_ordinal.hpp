@@ -11,6 +11,9 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace rn {
 
+// Assuming a connector consistently sends 1000 packets per seconds (which is already
+// unreasonable), the connection could last over a 1000 hours (~41 days) before erroring
+// out due to uint32 overflow.
 using PacketOrdinal = std::uint32_t;
 
 } // namespace rn
