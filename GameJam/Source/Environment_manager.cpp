@@ -300,6 +300,7 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
     }
 
     _cells.resize(aWidth, aHeight);
+    HG_LOG_INFO(LOG_ID, "World grid size set to {}x{}.", _cells.getWidth(), _cells.getHeight());
 
     for (hg::PZInteger y = 0; y < aHeight; y += 1) {
         // std::ostringstream oss;
@@ -340,21 +341,21 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
     for (hg::PZInteger y = 0; y < _temp_cells.size(); y += 1) {
         for (hg::PZInteger x = 0; x < _temp_cells[y].size(); x += 1) {
             if (_cells[y][x] != CellKind::EMPTY) {
-                auto alvinShape = hg::alvin::Shape{CreateRectanglePolyShape(*_terrainBody, {x, y})};
-                {
-                    auto pair = _shapeToPosition.insert(
-                        std::make_pair(static_cast<cpShape*>(alvinShape), hg::math::Vector2pz{x, y}));
-                    HG_HARD_ASSERT(pair.second && "Insertion must happen!");
-                }
-                _shapes[y][x].emplace(std::move(alvinShape));
-                _collisionDelegate->bind(*this, *_shapes[y][x]);
-                _space->add(*_shapes[y][x]);
+                // auto alvinShape = hg::alvin::Shape{CreateRectanglePolyShape(*_terrainBody, {x, y})};
+                // {
+                //     auto pair = _shapeToPosition.insert(
+                //         std::make_pair(static_cast<cpShape*>(alvinShape), hg::math::Vector2pz{x, y}));
+                //     HG_HARD_ASSERT(pair.second && "Insertion must happen!");
+                // }
+                // _shapes[y][x].emplace(std::move(alvinShape));
+                // _collisionDelegate->bind(*this, *_shapes[y][x]);
+                // _space->add(*_shapes[y][x]);
             }
         }
     }
 
     // Loot
-    generateLoot();
+    // generateLoot();
 }
 
 hg::alvin::Space& EnvironmentManager::getSpace() {
@@ -422,7 +423,7 @@ void EnvironmentManager::_eventDraw1() {
         };
         rect.setFillColor(hg::gr::Color{255, 255, 255, 25});
         rect.setScale({worldSize.x * (float)CELL_RESOLUTION / bounds.w,
-                      worldSize.y * (float)CELL_RESOLUTION / bounds.h});
+                       worldSize.y * (float)CELL_RESOLUTION / bounds.h});
         rect.setPosition(0.f, 0.f);
         canvas.draw(rect);
     }
