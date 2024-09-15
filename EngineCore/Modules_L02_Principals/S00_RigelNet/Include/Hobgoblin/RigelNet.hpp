@@ -13,6 +13,7 @@
 #include <Hobgoblin/RigelNet/Node_interface.hpp>
 #include <Hobgoblin/RigelNet/Raw_data_view.hpp>
 #include <Hobgoblin/RigelNet/Remote_info.hpp>
+#include <Hobgoblin/RigelNet/Retransmit_predicate.hpp>
 #include <Hobgoblin/RigelNet/Server_interface.hpp>
 #include <Hobgoblin/RigelNet/Telemetry.hpp>
 

@@ -2,11 +2,14 @@
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
 #include "Udp_receive_buffer.hpp"
+#include "Invalid_data_error.hpp"
 #include "Udp_connector_packet_kinds.hpp"
 
 #include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Logging.hpp>
+#include <Hobgoblin/RigelNet/Handlermgmt.hpp>
 
+#include <signal.h>
 #include <string>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
@@ -18,14 +21,18 @@ namespace {
 constexpr auto LOG_ID = "Hobgoblin.RigelNet";
 } // namespace
 
+PZInteger UdpReceiveBuffer::getLength() const {
+    return stopz(_packets.size());
+}
+
 void UdpReceiveBuffer::reset() {
     _packets.clear();
     _headOrdinal = 1;
 }
 
-std::vector<PacketOrdinal> UdpReceiveBuffer::dataPacketReceived(util::Packet  aPacket,
-                                                                PacketOrdinal aPacketOrdinal,
-                                                                std::uint32_t aPacketKind) {
+std::vector<PacketOrdinal> UdpReceiveBuffer::storeDataPacket(util::Packet  aPacket,
+                                                             PacketOrdinal aPacketOrdinal,
+                                                             std::uint32_t aPacketKind) {
     if (aPacketOrdinal < _headOrdinal) {
         // Old data - ignore
         return {};
@@ -36,11 +43,11 @@ std::vector<PacketOrdinal> UdpReceiveBuffer::dataPacketReceived(util::Packet  aP
         _packets.resize(indexInBuffer + 1u);
     } else if (_packets[indexInBuffer].tag != TaggedPacket::WAITING_FOR_DATA) {
         // Already received - ignore
-        return{};
+        return {};
     }
 
     std::vector<PacketOrdinal> acks;
-    while (true) {
+    while (!aPacket.endOfPacket()) {
         const std::uint32_t ackOrdinal = aPacket.extract<PacketOrdinal>();
         if (ackOrdinal == 0u) {
             break;
@@ -57,23 +64,49 @@ std::vector<PacketOrdinal> UdpReceiveBuffer::dataPacketReceived(util::Packet  aP
     } else if (aPacketKind == UDP_PACKET_KIND_DATA_TAIL) {
         _packets[indexInBuffer].tag = TaggedPacket::FRAGMENT_TAIL;
     } else {
-        HG_THROW_TRACED(TracedRuntimeError, 0, "Invalid packet kind {}.", aPacketKind);
+        HG_THROW_TRACED(InvalidDataError, 0, "Invalid packet kind {}.", aPacketKind);
     }
 
     return acks;
 }
 
 bool UdpReceiveBuffer::takeNextReadyPacket(NeverNull<util::Packet*> aPacket) {
-    while (!_packets.empty() && _packets[0].tag == TaggedPacket::UNPACKED) {
-        _packets.pop_front();
-        _headOrdinal += 1;
+    while (!_packets.empty()) {
+        switch (const auto tag = _packets[0].tag) {
+        case TaggedPacket::WAITING_FOR_DATA:
+            return false;
+
+        case TaggedPacket::FRAGMENT:
+            goto BREAK_WHILE;
+
+        case TaggedPacket::FRAGMENT_TAIL:
+            HG_THROW_TRACED(InvalidDataError, 0, "Unecpexted FRAGMENT_TAIL at head of receive buffer.");
+
+        case TaggedPacket::READY_FOR_UNPACKING:
+            goto BREAK_WHILE;
+
+        case TaggedPacket::UNPACKED:
+            _packets.pop_front();
+            _headOrdinal += 1;
+            break;
+
+        default:
+            HG_UNREACHABLE("Invalid value for TaggedPacket::Tag ({}).", (int)tag);
+        }
     }
+BREAK_WHILE:
 
     _tryToAssembleFragmentedPacketAtHead();
 
     if (_packets.empty() || _packets[0].tag != TaggedPacket::READY_FOR_UNPACKING) {
         return false;
     }
+
+    HG_LOG_INFO(LOG_ID,
+                "Packet {} taken for handling ({} bytes total, {} remaining).",
+                _headOrdinal,
+                _packets[0].packet.getDataSize(),
+                _packets[0].packet.getRemainingDataSize());
 
     *aPacket = std::move(_packets[0].packet);
     _packets.pop_front();
@@ -104,9 +137,7 @@ void UdpReceiveBuffer::_tryToAssembleFragmentedPacketAtHead() {
             goto BREAK_FOR;
 
         default:
-            // This isn't supposed to happen
-            // throw RN_IllegalMessage{"Impossible to assemble fragmented packet."}; // TODO
-            (void)0;
+            HG_THROW_TRACED(InvalidDataError, 0, "Impossible to assemble fragmented packet.");
         }
     }
 BREAK_FOR:
@@ -119,8 +150,10 @@ BREAK_FOR:
     for (std::size_t i = 1;; i += 1) {
         TaggedPacket& curr = _packets[i];
 
-        const auto currDataSize = curr.packet.getRemainingDataSize();
-        _packets[0].packet.appendBytes(curr.packet.extractBytes(currDataSize), currDataSize);
+        // Note: some leading bytes have been read previously (packet kind and acks),
+        //       the rest are untouched.
+        const auto remainingBytes = curr.packet.getRemainingDataSize();
+        _packets[0].packet.appendBytes(curr.packet.extractBytes(remainingBytes), remainingBytes);
 
         curr.packet.clear();
 

@@ -12,7 +12,7 @@ HOBGOBLIN_NAMESPACE_BEGIN
 namespace rn {
 
 // clang-format off
-constexpr std::uint32_t UDP_PACKET_KIND_HELLO      = 0x3BF0E110; //!< Client notifies server of its exiostence and of the wish to connect.
+constexpr std::uint32_t UDP_PACKET_KIND_HELLO      = 0x3BF0E110; //!< Client notifies server of its existence and of the wish to connect.
 constexpr std::uint32_t UDP_PACKET_KIND_CONNECT    = 0x83C96CA4; //!< Server notifies client that the connection is accepted.
 constexpr std::uint32_t UDP_PACKET_KIND_DISCONNECT = 0xD0F235AB; //!< Node notifies peer of the disconnect.
 constexpr std::uint32_t UDP_PACKET_KIND_DATA       = 0xA765B8F6; //!< Regular data packet.

@@ -11,6 +11,12 @@
 #include <cassert>
 #include <cstring>
 
+#if HG_BUILD_TYPE == HG_DEBUG
+#include <Hobgoblin/Logging.hpp>
+#include <sstream>
+static constexpr auto LOG_ID = "Hobgoblin.RigelNet";
+#endif
+
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_BEGIN
@@ -91,6 +97,15 @@ void RN_GlobalHandlerMapper::index() {
     for (auto name : _handlerNames) {
         _handlerPointers.push_back(_rawMappings[name]);
     }
+
+#if HG_BUILD_TYPE == HG_DEBUG
+    std::ostringstream oss;
+    oss << "RigelNet handler table:\n";
+    for (std::size_t i = 0; i < _handlerNames.size(); i += 1) {
+        oss << "    " << i << ": " << _handlerNames[i] << '\n';
+    }
+    HG_LOG_DEBUG(LOG_ID, "{}", oss.str());
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////

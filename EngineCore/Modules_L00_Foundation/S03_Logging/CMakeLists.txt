@@ -20,6 +20,7 @@ target_link_libraries(${COMPONENT_NAME}
 PUBLIC
     # Foundation
     "Hobgoblin_L00_S00_PDef"
+    "Hobgoblin_L00_S01_Common"
     "Hobgoblin_L00_S01_Format"
     "Hobgoblin_L00_S01_Preprocessor"
 )

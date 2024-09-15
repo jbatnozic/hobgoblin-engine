@@ -37,37 +37,65 @@ class RN_UdpConnectorImpl
     , NO_COPY
     , NO_MOVE {
 public:
-    RN_UdpConnectorImpl(RN_SocketAdapter&                socket,
-                        const std::chrono::microseconds& timeoutLimit,
-                        const std::string&               passphrase,
-                        const RN_RetransmitPredicate&    retransmitPredicate,
-                        rn_detail::EventFactory          eventFactory,
+    RN_UdpConnectorImpl(RN_SocketAdapter&                aSocket,
+                        const std::chrono::microseconds& aTimeoutLimit,
+                        const std::string&               aPassphrase,
+                        const RN_RetransmitPredicate&    aRetransmitPredicate,
+                        rn_detail::EventFactory          aEventFactory,
                         PZInteger                        aMaxPacketSize);
+
+    // Accepting a connection from a client
 
     bool tryAccept(sf::IpAddress addr, std::uint16_t port, util::Packet& packet);
     bool tryAcceptLocal(RN_UdpConnectorImpl& localPeer, const std::string& passphrase);
+
+    // Connecting to a server
+
     void connect(sf::IpAddress addr, std::uint16_t port);
     void connectLocal(RN_ServerInterface& server);
 
-    void checkForTimeout();
-    auto send() -> RN_Telemetry;
+    // Receiving
+
+    // NOTE: Happy flow of the receive step (called by the Server object
+    //       or Client object) is as follows:
+    //       - prepToReceive()
+    //       - receivedPacket() - 0 or more times
+    //       - receivingFinished()
+    //       - sendWeakAcks()
+    //       - handleDataMessages()
+    //       - checkForTimeout()
+
     void prepToReceive();
     void receivedPacket(util::Packet& packet);
     void receivingFinished();
-    void handleDataMessages(RN_NodeInterface& node, util::Packet*& pointerToCurrentPacket);
-    auto sendAcks() -> RN_Telemetry;
+    auto sendWeakAcks() -> RN_Telemetry;
+    void handleDataMessages(RN_NodeInterface& aNode, NeverNull<util::Packet**> aCurrentPacketPtr);
+    void checkForTimeout();
+
+    // Sending
+
+    void appendDataForSending(NeverNull<const void*> aData, PZInteger aDataByteCount);
+    auto sendData() -> RN_Telemetry;
+
+    // Client index
+
+    // NOTE: On the server side, the client index of the connector is set by the server object
+    //       itself (based on the index of the index of the connector in the array). On the client
+    //       side, it is received as a part of a CONNECT packet.
 
     void                     setClientIndex(std::optional<PZInteger> clientIndex);
     std::optional<PZInteger> getClientIndex() const;
 
+    // Inherited from RN_ConnectorInterface
+
     const RN_RemoteInfo& getRemoteInfo() const noexcept override;
     RN_ConnectorStatus   getStatus() const noexcept override;
+    bool                 isConnected() const noexcept override;
+    bool                 isDisconnected() const noexcept override;
     void      disconnect(bool aNotfiyRemote = true, const std::string& aMessage = "") override;
     bool      isConnectedLocally() const noexcept override;
     PZInteger getSendBufferSize() const override;
     PZInteger getRecvBufferSize() const override;
-
-    void appendToNextOutgoingPacket(const void* data, PZInteger sizeInBytes);
 
 private:
     // _socket, _timeoutLimit, _passphrase and _retransmitPredicate are references
@@ -77,7 +105,7 @@ private:
     const std::string&               _passphrase;
     const RN_RetransmitPredicate&    _retransmitPredicate;
 
-    rn_detail::EventFactory          _eventFactory;
+    rn_detail::EventFactory _eventFactory;
 
     PZInteger _maxPacketSize;
 
@@ -92,12 +120,8 @@ private:
     UdpSendBuffer    _sendBuffer;
     UdpReceiveBuffer _recvBuffer;
 
-    std::vector<std::uint32_t> _ackOrdinals;
-
     class LocalConnectionSharedState;
     std::shared_ptr<LocalConnectionSharedState> _localSharedState = nullptr;
-
-    bool _skipNextDataPacketProcessing = false;
 
     ///////////////////////////////////////////////////////////////////////////
     // PRIVATE METHODS                                                       //

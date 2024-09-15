@@ -8,6 +8,7 @@
 
 #include <Hobgoblin/RigelNet/Connector_interface.hpp>
 #include <Hobgoblin/RigelNet/Node_interface.hpp>
+#include <Hobgoblin/RigelNet/Retransmit_predicate.hpp>
 
 #include <chrono>
 #include <cstdint>
