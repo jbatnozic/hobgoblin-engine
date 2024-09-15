@@ -117,7 +117,8 @@ void HandleDataMessages(util::Packet&             receivedPacket,
         if (handlerFunc == nullptr) {
             throw RN_IllegalMessage{"Requested handler does not exist."};
         }
-        HG_LOG_HPDEB(LOG_ID, "Going to execute handler with ID {}.", handlerId);
+        // It spams too much; uncomment if you need to debug.
+        // HG_LOG_HPDEB(LOG_ID, "Going to execute handler with ID {}.", handlerId);
         (*handlerFunc)(node);
     }
 

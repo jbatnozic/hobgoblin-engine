@@ -102,11 +102,12 @@ BREAK_WHILE:
         return false;
     }
 
-    HG_LOG_INFO(LOG_ID,
-                "Packet {} taken for handling ({} bytes total, {} remaining).",
-                _headOrdinal,
-                _packets[0].packet.getDataSize(),
-                _packets[0].packet.getRemainingDataSize());
+    // It spams too much; uncomment if you need to debug.
+    // HG_LOG_INFO(LOG_ID,
+    //             "Packet {} taken for handling ({} bytes total, {} remaining).",
+    //             _headOrdinal,
+    //             _packets[0].packet.getDataSize(),
+    //             _packets[0].packet.getRemainingDataSize());
 
     *aPacket = std::move(_packets[0].packet);
     _packets.pop_front();
