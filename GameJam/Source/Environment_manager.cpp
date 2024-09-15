@@ -341,21 +341,21 @@ void EnvironmentManager::generateTerrain(hg::PZInteger aWidth, hg::PZInteger aHe
     for (hg::PZInteger y = 0; y < _temp_cells.size(); y += 1) {
         for (hg::PZInteger x = 0; x < _temp_cells[y].size(); x += 1) {
             if (_cells[y][x] != CellKind::EMPTY) {
-                // auto alvinShape = hg::alvin::Shape{CreateRectanglePolyShape(*_terrainBody, {x, y})};
-                // {
-                //     auto pair = _shapeToPosition.insert(
-                //         std::make_pair(static_cast<cpShape*>(alvinShape), hg::math::Vector2pz{x, y}));
-                //     HG_HARD_ASSERT(pair.second && "Insertion must happen!");
-                // }
-                // _shapes[y][x].emplace(std::move(alvinShape));
-                // _collisionDelegate->bind(*this, *_shapes[y][x]);
-                // _space->add(*_shapes[y][x]);
+                auto alvinShape = hg::alvin::Shape{CreateRectanglePolyShape(*_terrainBody, {x, y})};
+                {
+                    auto pair = _shapeToPosition.insert(
+                        std::make_pair(static_cast<cpShape*>(alvinShape), hg::math::Vector2pz{x, y}));
+                    HG_HARD_ASSERT(pair.second && "Insertion must happen!");
+                }
+                _shapes[y][x].emplace(std::move(alvinShape));
+                _collisionDelegate->bind(*this, *_shapes[y][x]);
+                _space->add(*_shapes[y][x]);
             }
         }
     }
 
     // Loot
-    // generateLoot();
+    generateLoot();
 }
 
 hg::alvin::Space& EnvironmentManager::getSpace() {
