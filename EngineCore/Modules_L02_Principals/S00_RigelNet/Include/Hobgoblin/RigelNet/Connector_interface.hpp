@@ -15,16 +15,22 @@ HOBGOBLIN_NAMESPACE_BEGIN
 namespace rn {
 
 enum class RN_ConnectorStatus {
-    Disconnected, //! No connection established. Connector idle.
-    Accepting,    //! (Server-side) Currently trying to establish a connection with a client.
-    Connecting,   //! (Client-side) Currently trying to establish a connection with the server.
-    Connected     //! Connection established and active.
+    Disconnected, //!< No connection established. Connector idle.
+    Accepting,    //!< (Server-side) Currently trying to establish a connection with a client.
+    Connecting,   //!< (Client-side) Currently trying to establish a connection with the server.
+    Connected     //!< Connection established and active.
 };
 
 class RN_ConnectorInterface {
 public:
     //! Current status of the connector.
     virtual RN_ConnectorStatus getStatus() const noexcept = 0;
+
+    //! Equivalent to `getStatus() == RN_ConnectorStatus::Connected`.
+    virtual bool isConnected() const noexcept = 0;
+
+    //! Equivalent to `getStatus() == RN_ConnectorStatus::Disconnected`.
+    virtual bool isDisconnected() const noexcept = 0;
 
     //! TODO(add desc)
     virtual void disconnect(bool aNotifyRemote = true, const std::string& aMessage = "") = 0;

@@ -214,7 +214,11 @@ DefaultLobbyBackendManager::DefaultLobbyBackendManager(hg::QAO_RuntimeRef aRunti
 {    
 }
 
-DefaultLobbyBackendManager::~DefaultLobbyBackendManager() = default;
+DefaultLobbyBackendManager::~DefaultLobbyBackendManager() {
+    if (_mode == Mode::Host) {
+        ccomp<NetworkingManagerInterface>().removeEventListener(this);
+    }
+}
 
 void DefaultLobbyBackendManager::setToHostMode(hobgoblin::PZInteger aLobbySize) {
     SPEMPE_VALIDATE_GAME_CONTEXT_FLAGS(ctx(), privileged==true, networking==true);
@@ -242,6 +246,8 @@ void DefaultLobbyBackendManager::setToHostMode(hobgoblin::PZInteger aLobbySize) 
 
     _updateVarmapForLockedInEntry(0);
     _updateVarmapForDesiredEntry(0);
+
+    ccomp<NetworkingManagerInterface>().addEventListener(this);
 }
 
 void DefaultLobbyBackendManager::setToClientMode(hobgoblin::PZInteger aLobbySize) {
@@ -256,7 +262,7 @@ DefaultLobbyBackendManager::Mode DefaultLobbyBackendManager::getMode() const {
 }
 
 ///////////////////////////////////////////////////////////////////////////
-// HOST-MODE METHODS                                                     //
+// MARK: HOST-MODE METHODS                                               //
 ///////////////////////////////////////////////////////////////////////////
 
 int DefaultLobbyBackendManager::clientIdxToPlayerIdx(int aClientIdx) const {
@@ -374,7 +380,7 @@ bool DefaultLobbyBackendManager::resetPendingChanges() {
 }
 
 ///////////////////////////////////////////////////////////////////////////
-// CLIENT-MODE METHODS                                                   //
+// MARK: CLIENT-MODE METHODS                                             //
 ///////////////////////////////////////////////////////////////////////////
 
 void DefaultLobbyBackendManager::uploadLocalInfo() const {
@@ -397,7 +403,7 @@ void DefaultLobbyBackendManager::uploadLocalInfo() const {
 }
 
 ///////////////////////////////////////////////////////////////////////////
-// MODE-INDEPENDENT METHODS                                              //
+// MARK: MODE-INDEPENDENT METHODS                                        //
 ///////////////////////////////////////////////////////////////////////////
 
 void DefaultLobbyBackendManager::setLocalName(const std::string& aName) {
@@ -554,8 +560,15 @@ std::string DefaultLobbyBackendManager::getEntireStateString() const {
 }
 
 ///////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS                                                       //
+// MARK: PRIVATE METHODS                                                 //
 ///////////////////////////////////////////////////////////////////////////
+
+void DefaultLobbyBackendManager::onNetworkingEvent(const hobgoblin::RN_Event& aEvent) {
+    HG_ASSERT(_mode == Mode::Host);
+    aEvent.visit([this](const hobgoblin::RN_Event::Connected&) {
+        _scanForNewPlayers();
+    });
+}
 
 void DefaultLobbyBackendManager::_eventBeginUpdate() {
     switch (_mode) {
@@ -579,30 +592,8 @@ void DefaultLobbyBackendManager::_eventPostUpdate() {
 }
 
 void DefaultLobbyBackendManager::_eventBeginUpdate_Host() {
-    auto& netMgr = ccomp<NetworkingManagerInterface>();
-    auto& server = netMgr.getServer();
-
     _removeDesiredEntriesForDisconnectedPlayers();
-
-    // Check if all connected clients are represented in _desired. If not, add them.
-    for (hg::PZInteger i = 0; i < server.getSize(); i += 1) {
-        const auto& client = server.getClientConnector(i);
-
-        if (IsConnected(client) && !_hasEntryForClient(client, i)) {
-            const auto pos = _findOptimalPositionForClient(client);
-
-            _desired[hg::pztos(pos)].name        = "";
-            _desired[hg::pztos(pos)].uniqueId    = "";
-            _desired[hg::pztos(pos)].ipAddress   = client.getRemoteInfo().ipAddress.toString();
-            _desired[hg::pztos(pos)].port        = client.getRemoteInfo().port;
-            _desired[hg::pztos(pos)].clientIndex = i;
-
-            _updateVarmapForDesiredEntry(pos);
-
-            _enqueueLobbyChanged();
-            HG_LOG_INFO(LOG_ID, "Inserted new player into slot {}", pos);
-        }
-    }
+    _scanForNewPlayers();
 }
 
 void DefaultLobbyBackendManager::_eventBeginUpdate_Client() {
@@ -667,6 +658,31 @@ void DefaultLobbyBackendManager::_eventBeginUpdate_Client() {
 hg::PZInteger DefaultLobbyBackendManager::_getSize() const {
     assert(_lockedIn.size() == _desired.size());
     return hg::stopz(_lockedIn.size());
+}
+
+void DefaultLobbyBackendManager::_scanForNewPlayers() {
+    auto& netMgr = ccomp<NetworkingManagerInterface>();
+    auto& server = netMgr.getServer();
+
+    // Check if all connected clients are represented in _desired. If not, add them.
+    for (hg::PZInteger i = 0; i < server.getSize(); i += 1) {
+        const auto& client = server.getClientConnector(i);
+
+        if (IsConnected(client) && !_hasEntryForClient(client, i)) {
+            const auto pos = _findOptimalPositionForClient(client);
+
+            _desired[hg::pztos(pos)].name        = "";
+            _desired[hg::pztos(pos)].uniqueId    = "";
+            _desired[hg::pztos(pos)].ipAddress   = client.getRemoteInfo().ipAddress.toString();
+            _desired[hg::pztos(pos)].port        = client.getRemoteInfo().port;
+            _desired[hg::pztos(pos)].clientIndex = i;
+
+            _updateVarmapForDesiredEntry(pos);
+
+            _enqueueLobbyChanged();
+            HG_LOG_INFO(LOG_ID, "Inserted new player into slot {}", pos);
+        }
+    }
 }
 
 bool DefaultLobbyBackendManager::_hasEntryForClient(const RN_ConnectorInterface& aClient, int aClientIndex) const {
