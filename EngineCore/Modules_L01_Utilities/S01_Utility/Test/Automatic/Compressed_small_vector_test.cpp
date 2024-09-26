@@ -124,7 +124,7 @@ public:
     template <class T>
     void OneElementIsPushedBackAsRValueRef(const T& aValue) {
         CompressedSmallVector<T> vec;
-        T val = aValue;
+        T                        val = aValue;
         vec.push_back(std::move(val));
 
         EXPECT_EQ(vec.size(), 1);
