@@ -176,7 +176,7 @@ public:
             if (aOther._isInPlace()) {
                 if (aOther._getSizeBit()) {
                     _storage[STORAGE_SIZE - 1] = IN_PLACE_BIT | SIZE_BIT;
-                    new (getAddressOfFirstElement()) T{std::move(aOther.getAddressOfFirstElement())};
+                    new (getAddressOfFirstElement()) T{std::move(*aOther.getAddressOfFirstElement())};
                     aOther.getAddressOfFirstElement()->~T();
                     aOther._storage[STORAGE_SIZE - 1] = IN_PLACE_BIT;
                 } else {
@@ -458,7 +458,7 @@ public:
             if (aOther._isInPlace()) {
                 if (aOther._getSizeBit()) {
                     _storage[STORAGE_SIZE - 1] = IN_PLACE_BIT | SIZE_BIT;
-                    new (getAddressOfFirstElement()) T{std::move(aOther.getAddressOfFirstElement())};
+                    new (getAddressOfFirstElement()) T{std::move(*aOther.getAddressOfFirstElement())};
                     aOther.getAddressOfFirstElement()->~T();
                     aOther._storage[STORAGE_SIZE - 1] = IN_PLACE_BIT;
                 } else {
@@ -736,7 +736,7 @@ public:
             if (aOther._isInPlace()) {
                 if (aOther._getSizeBit()) {
                     _status = IN_PLACE_BIT | SIZE_BIT;
-                    new (getAddressOfFirstElement()) T{std::move(aOther.getAddressOfFirstElement())};
+                    new (getAddressOfFirstElement()) T{std::move(*aOther.getAddressOfFirstElement())};
                     aOther.getAddressOfFirstElement()->~T();
                     aOther._status = IN_PLACE_BIT;
                 } else {
