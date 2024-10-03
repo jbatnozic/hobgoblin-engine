@@ -6,9 +6,10 @@
 
 #include <array>
 #include <cstdint>
+#include <cstdlib>
 #include <cstring>
 #include <string>
-#include <vector> // TODO: remove
+#include <vector>
 
 #include <gtest/gtest.h>
 
@@ -16,17 +17,36 @@ namespace jbatnozic {
 namespace hobgoblin {
 namespace util {
 
+template <class T>
+class DummyAllocator {
+public:
+    T* allocate(std::size_t aElementCount) {
+        return static_cast<T*>(std::malloc(sizeof(T) * aElementCount));
+    }
+
+    void deallocate(const T* aElements, std::size_t /*aElementCount*/) {
+        std::free(aElements);
+    }
+
+private:
+    void* _p1 = nullptr;
+    void* _p2 = nullptr;
+};
+
 // clang-format off
-static_assert(std::is_same_v<detail::CompressedSmallVectorStorageSelector<int>::type,
-              detail::CompressedSmallVectorStorage_1<int>>);
+static_assert(std::is_same_v<detail::CompressedSmallVectorStorageSelector<int,
+                                                                          std::allocator<int>>::type,
+              detail::CompressedSmallVectorStorage_1<int, std::allocator<int>>>);
 static_assert(sizeof(CompressedSmallVector<int>) == sizeof(void*));
 
-static_assert(std::is_same_v<detail::CompressedSmallVectorStorageSelector<double>::type,
-              detail::CompressedSmallVectorStorage_2<double>>);
+static_assert(std::is_same_v<detail::CompressedSmallVectorStorageSelector<double,
+                                                                          std::allocator<double>>::type,
+              detail::CompressedSmallVectorStorage_2<double, std::allocator<double>>>);
 static_assert(sizeof(CompressedSmallVector<double>) == sizeof(void*) * 2);
 
-static_assert(std::is_same_v<detail::CompressedSmallVectorStorageSelector<std::string>::type,
-              detail::CompressedSmallVectorStorage_3<std::string>>);
+static_assert(std::is_same_v<detail::CompressedSmallVectorStorageSelector<std::string,
+                                                                          std::allocator<std::string>>::type,
+              detail::CompressedSmallVectorStorage_3<std::string, std::allocator<std::string>>>);
 static_assert(sizeof(CompressedSmallVector<std::string>) <= sizeof(std::string) + sizeof(void*));
 // clang-format on
 

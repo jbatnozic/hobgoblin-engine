@@ -12,6 +12,7 @@
 #include <new>
 #include <type_traits>
 #include <utility>
+#include <vector>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
@@ -35,7 +36,7 @@ inline std::uint32_t CalcSizeWithOffset(std::uint32_t aSize, std::int32_t aOffse
 #ifdef __ORDER_BIG_ENDIAN__
 #define HG_BIG_ENDIAN __ORDER_BIG_ENDIAN__
 #else
-#define HG_ENDIANESS 4321
+#define HG_BIG_ENDIAN 4321
 #endif
 
 #ifdef __BYTE_ORDER__
@@ -90,15 +91,54 @@ T BigEndianToHost64(T aValue) {
 #endif
 }
 
-// MARK: Storage 1
+// MARK: ?
+
+template <class T, bool taIsEmpty = std::is_empty<T>::value>
+class StorePointerIfNotEmpty {};
 
 template <class T>
+class StorePointerIfNotEmpty<T, true> { // Empty
+public:
+    StorePointerIfNotEmpty() = default;
+    StorePointerIfNotEmpty(T* /*aPointer*/) {}
+
+    T* getPointer() const {
+        return &_dummyObject;
+    }
+
+private:
+    static T _dummyObject;
+};
+
+template <class T>
+T StorePointerIfNotEmpty<T, true>::_dummyObject = {};
+
+template <class T>
+class StorePointerIfNotEmpty<T, false> { // Non-empty
+public:
+    StorePointerIfNotEmpty()
+        : ptr{nullptr} {}
+    StorePointerIfNotEmpty(T* aPointer)
+        : ptr{aPointer} {};
+
+    T* getPointer() const {
+        return ptr;
+    }
+
+private:
+    T* ptr;
+};
+
+// MARK: Storage 1
+
+template <class T, class taAllocator>
 class CompressedSmallVectorStorage_1 {
 public:
     static_assert(sizeof(T) < sizeof(void*), "");
 
-    CompressedSmallVectorStorage_1() {
-        _storage[STORAGE_SIZE - 1] = IN_PLACE_BIT;
+    CompressedSmallVectorStorage_1(const taAllocator* aAllocator = nullptr)
+        : _data{aAllocator} {
+        _data.storageBuffer[BUFFER_SIZE - 1] = IN_PLACE_BIT;
     }
 
     ~CompressedSmallVectorStorage_1() {
@@ -115,10 +155,10 @@ public:
     CompressedSmallVectorStorage_1(const CompressedSmallVectorStorage_1& aOther) {
         if (aOther._isInPlace()) {
             if (aOther._getSizeBit()) {
-                _storage[STORAGE_SIZE - 1] = IN_PLACE_BIT | SIZE_BIT;
+                _data.storageBuffer[BUFFER_SIZE - 1] = IN_PLACE_BIT | SIZE_BIT;
                 new (getAddressOfFirstElement()) T{*aOther.getAddressOfFirstElement()};
             } else {
-                _storage[STORAGE_SIZE - 1] = IN_PLACE_BIT;
+                _data.storageBuffer[BUFFER_SIZE - 1] = IN_PLACE_BIT;
             }
         } else {
             auto* buffer =
@@ -137,10 +177,10 @@ public:
             this->~CompressedSmallVectorStorage_1();
             if (aOther._isInPlace()) {
                 if (aOther._getSizeBit()) {
-                    _storage[STORAGE_SIZE - 1] = IN_PLACE_BIT | SIZE_BIT;
+                    _data.storageBuffer[BUFFER_SIZE - 1] = IN_PLACE_BIT | SIZE_BIT;
                     new (getAddressOfFirstElement()) T{*aOther.getAddressOfFirstElement()};
                 } else {
-                    _storage[STORAGE_SIZE - 1] = IN_PLACE_BIT;
+                    _data.storageBuffer[BUFFER_SIZE - 1] = IN_PLACE_BIT;
                 }
             } else {
                 auto* buffer = _allocateBuffer(aOther.getCapacity() + N_OBJECTS_FOR_SIZE_DATA);
@@ -157,16 +197,16 @@ public:
     CompressedSmallVectorStorage_1(CompressedSmallVectorStorage_1&& aOther) {
         if (aOther._isInPlace()) {
             if (aOther._getSizeBit()) {
-                _storage[STORAGE_SIZE - 1] = IN_PLACE_BIT | SIZE_BIT;
+                _data.storageBuffer[BUFFER_SIZE - 1] = IN_PLACE_BIT | SIZE_BIT;
                 new (getAddressOfFirstElement()) T{std::move(*aOther.getAddressOfFirstElement())};
                 aOther.getAddressOfFirstElement()->~T();
-                aOther._storage[STORAGE_SIZE - 1] = IN_PLACE_BIT;
+                aOther._data.storageBuffer[BUFFER_SIZE - 1] = IN_PLACE_BIT;
             } else {
-                _storage[STORAGE_SIZE - 1] = IN_PLACE_BIT;
+                _data.storageBuffer[BUFFER_SIZE - 1] = IN_PLACE_BIT;
             }
         } else {
             _storeHeapPointer(aOther._loadHeapPointer());
-            aOther._storage[STORAGE_SIZE - 1] = IN_PLACE_BIT;
+            aOther._data.storageBuffer[BUFFER_SIZE - 1] = IN_PLACE_BIT;
         }
     }
 
@@ -175,16 +215,16 @@ public:
             this->~CompressedSmallVectorStorage_1();
             if (aOther._isInPlace()) {
                 if (aOther._getSizeBit()) {
-                    _storage[STORAGE_SIZE - 1] = IN_PLACE_BIT | SIZE_BIT;
+                    _data.storageBuffer[BUFFER_SIZE - 1] = IN_PLACE_BIT | SIZE_BIT;
                     new (getAddressOfFirstElement()) T{std::move(*aOther.getAddressOfFirstElement())};
                     aOther.getAddressOfFirstElement()->~T();
-                    aOther._storage[STORAGE_SIZE - 1] = IN_PLACE_BIT;
+                    aOther._data.storageBuffer[BUFFER_SIZE - 1] = IN_PLACE_BIT;
                 } else {
-                    _storage[STORAGE_SIZE - 1] = IN_PLACE_BIT;
+                    _data.storageBuffer[BUFFER_SIZE - 1] = IN_PLACE_BIT;
                 }
             } else {
                 _storeHeapPointer(aOther._loadHeapPointer());
-                aOther._storage[STORAGE_SIZE - 1] = IN_PLACE_BIT;
+                aOther._data.storageBuffer[BUFFER_SIZE - 1] = IN_PLACE_BIT;
             }
         }
         return *this;
@@ -222,8 +262,8 @@ public:
                                  : (size >= static_cast<std::uint32_t>(-aOffset))));
         const std::uint32_t newSize = CalcSizeWithOffset(size, aOffset);
         if (_isInPlace()) {
-            _storage[STORAGE_SIZE - 1] =
-                (_storage[STORAGE_SIZE - 1] & ~SIZE_BIT) | ((newSize > 0) ? SIZE_BIT : 0);
+            _data.storageBuffer[BUFFER_SIZE - 1] =
+                (_data.storageBuffer[BUFFER_SIZE - 1] & ~SIZE_BIT) | ((newSize > 0) ? SIZE_BIT : 0);
         } else {
             _storeSizeOnHeap(_loadHeapPointer(), newSize);
         }
@@ -231,7 +271,7 @@ public:
 
     T* getAddressOfFirstElement() {
         if (_isInPlace()) {
-            return reinterpret_cast<T*>(&_storage);
+            return reinterpret_cast<T*>(&_data.storageBuffer);
         }
         return (static_cast<T*>(_loadHeapPointer()) + N_OBJECTS_FOR_SIZE_DATA);
     }
@@ -260,30 +300,45 @@ private:
 
     // STORAGE SCHEME:
     // - In place:
-    //   - bytes 0..6 of _storage provide storage for T.
-    //   - byte 7 of _storage stores IN_PLACE_BIT and SIZE_BIT.
+    //   - bytes 0..6 of _data.storageBuffer provide storage for T.
+    //   - byte 7 of _data.storageBuffer stores IN_PLACE_BIT and SIZE_BIT.
     //
     // - On heap:
-    //   - bytes 0..7 of _storage store pointer to the buffer (which is on the heap)
+    //   - bytes 0..7 of _data.storageBuffer store pointer to the buffer (which is on the heap)
     //     with the two least significant bits of the pointer being used to store
     //     IN_PLACE_BIT and SIZE_BIT (the memory we get back from malloc and company is
     //     generally aligned to at least 4 bytes, so these two are always 0). The
     //     pointer is stored in BIG ENDIAN format, thus it is always possible to check
-    //     the status of the container by inspecting _storage[7]. The first 8 bytes of
+    //     the status of the container by inspecting _data.storageBuffer[7]. The first 8 bytes of
     //     the heap buffer store size and capacity (in that order) of the container.
-    static constexpr std::size_t STORAGE_SIZE = sizeof(void*);
-    alignas(void*) char _storage[STORAGE_SIZE];
+    static constexpr std::size_t BUFFER_SIZE = sizeof(void*);
+
+    class DataHolder : public StorePointerIfNotEmpty<const taAllocator> {
+    public:
+        DataHolder()
+            : StorePointerIfNotEmpty<const taAllocator>{} {}
+        DataHolder(taAllocator* aAllocator)
+            : StorePointerIfNotEmpty<const taAllocator>{aAllocator} {}
+
+        alignas(void*) char storageBuffer[BUFFER_SIZE];
+
+        taAllocator& getAllocator() {
+            const auto* p = this->getPointer();
+            HG_ASSERT(p != nullptr);
+            return *p;
+        }
+    } _data;
 
     bool _isInPlace() const {
-        return _storage[STORAGE_SIZE - 1] & IN_PLACE_BIT;
+        return _data.storageBuffer[BUFFER_SIZE - 1] & IN_PLACE_BIT;
     }
 
     bool _getSizeBit() const {
-        return _storage[STORAGE_SIZE - 1] & SIZE_BIT;
+        return _data.storageBuffer[BUFFER_SIZE - 1] & SIZE_BIT;
     }
 
     void* _loadHeapPointer() {
-        const auto intptr = *reinterpret_cast<std::uintptr_t*>(&_storage);
+        const auto intptr = *reinterpret_cast<std::uintptr_t*>(&_data.storageBuffer);
         return reinterpret_cast<void*>(BigEndianToHost64(intptr) & ~0x03);
     }
 
@@ -293,7 +348,7 @@ private:
 
     void _storeHeapPointer(void* aPointer) {
         const auto intptr = HostToBigEndian64(reinterpret_cast<std::uintptr_t>(aPointer) & ~0x03);
-        std::memcpy(&_storage, &intptr, 8);
+        std::memcpy(&_data.storageBuffer, &intptr, 8);
     }
 
     static void _storeSizeOnHeap(void* aBufferBeginning, std::uint32_t aSize) {
@@ -375,13 +430,14 @@ private:
 
 // MARK: Storage 2
 
-template <class T>
+template <class T, class taAllocator>
 class CompressedSmallVectorStorage_2 {
 public:
     static_assert(sizeof(T) >= sizeof(void*) && sizeof(T) < sizeof(void*) * 2, "");
 
-    CompressedSmallVectorStorage_2() {
-        _storage[STORAGE_SIZE - 1] = IN_PLACE_BIT;
+    CompressedSmallVectorStorage_2(const taAllocator* aAllocator = nullptr)
+        : _data{aAllocator} {
+        _data.storageBuffer[BUFFER_SIZE - 1] = IN_PLACE_BIT;
     }
 
     ~CompressedSmallVectorStorage_2() {
@@ -398,17 +454,17 @@ public:
     CompressedSmallVectorStorage_2(const CompressedSmallVectorStorage_2& aOther) {
         if (aOther._isInPlace()) {
             if (aOther._getSizeBit()) {
-                _storage[STORAGE_SIZE - 1] = IN_PLACE_BIT | SIZE_BIT;
+                _data.storageBuffer[BUFFER_SIZE - 1] = IN_PLACE_BIT | SIZE_BIT;
                 new (getAddressOfFirstElement()) T{*aOther.getAddressOfFirstElement()};
             } else {
-                _storage[STORAGE_SIZE - 1] = IN_PLACE_BIT;
+                _data.storageBuffer[BUFFER_SIZE - 1] = IN_PLACE_BIT;
             }
         } else {
             auto* buffer = _allocateBuffer(aOther.getCapacity());
             for (std::uint32_t i = 0; i < aOther.getSize(); i += 1) {
                 new (buffer + i) T{aOther.getAddressOfFirstElement()[i]};
             }
-            std::memcpy(_storage, aOther._storage, 2 * sizeof(std::uint32_t));
+            std::memcpy(_data.storageBuffer, aOther._data.storageBuffer, 2 * sizeof(std::uint32_t));
             _storeHeapPointer(buffer);
         }
     }
@@ -418,17 +474,17 @@ public:
             this->~CompressedSmallVectorStorage_2();
             if (aOther._isInPlace()) {
                 if (aOther._getSizeBit()) {
-                    _storage[STORAGE_SIZE - 1] = IN_PLACE_BIT | SIZE_BIT;
+                    _data.storageBuffer[BUFFER_SIZE - 1] = IN_PLACE_BIT | SIZE_BIT;
                     new (getAddressOfFirstElement()) T{*aOther.getAddressOfFirstElement()};
                 } else {
-                    _storage[STORAGE_SIZE - 1] = IN_PLACE_BIT;
+                    _data.storageBuffer[BUFFER_SIZE - 1] = IN_PLACE_BIT;
                 }
             } else {
                 auto* buffer = _allocateBuffer(aOther.getCapacity());
                 for (std::uint32_t i = 0; i < aOther.getSize(); i += 1) {
                     new (buffer + i) T{aOther.getAddressOfFirstElement()[i]};
                 }
-                std::memcpy(_storage, aOther._storage, 2 * sizeof(std::uint32_t));
+                std::memcpy(_data.storageBuffer, aOther._data.storageBuffer, 2 * sizeof(std::uint32_t));
                 _storeHeapPointer(buffer);
             }
         }
@@ -438,17 +494,17 @@ public:
     CompressedSmallVectorStorage_2(CompressedSmallVectorStorage_2&& aOther) {
         if (aOther._isInPlace()) {
             if (aOther._getSizeBit()) {
-                _storage[STORAGE_SIZE - 1] = IN_PLACE_BIT | SIZE_BIT;
+                _data.storageBuffer[BUFFER_SIZE - 1] = IN_PLACE_BIT | SIZE_BIT;
                 new (getAddressOfFirstElement()) T{std::move(*aOther.getAddressOfFirstElement())};
                 aOther.getAddressOfFirstElement()->~T();
-                aOther._storage[STORAGE_SIZE - 1] = IN_PLACE_BIT;
+                aOther._data.storageBuffer[BUFFER_SIZE - 1] = IN_PLACE_BIT;
             } else {
-                _storage[STORAGE_SIZE - 1] = IN_PLACE_BIT;
+                _data.storageBuffer[BUFFER_SIZE - 1] = IN_PLACE_BIT;
             }
         } else {
-            std::memcpy(_storage, aOther._storage, 2 * sizeof(std::uint32_t));
+            std::memcpy(_data.storageBuffer, aOther._data.storageBuffer, 2 * sizeof(std::uint32_t));
             _storeHeapPointer(aOther._loadHeapPointer());
-            aOther._storage[STORAGE_SIZE - 1] = IN_PLACE_BIT;
+            aOther._data.storageBuffer[BUFFER_SIZE - 1] = IN_PLACE_BIT;
         }
     }
 
@@ -457,17 +513,17 @@ public:
             this->~CompressedSmallVectorStorage_2();
             if (aOther._isInPlace()) {
                 if (aOther._getSizeBit()) {
-                    _storage[STORAGE_SIZE - 1] = IN_PLACE_BIT | SIZE_BIT;
+                    _data.storageBuffer[BUFFER_SIZE - 1] = IN_PLACE_BIT | SIZE_BIT;
                     new (getAddressOfFirstElement()) T{std::move(*aOther.getAddressOfFirstElement())};
                     aOther.getAddressOfFirstElement()->~T();
-                    aOther._storage[STORAGE_SIZE - 1] = IN_PLACE_BIT;
+                    aOther._data.storageBuffer[BUFFER_SIZE - 1] = IN_PLACE_BIT;
                 } else {
-                    _storage[STORAGE_SIZE - 1] = IN_PLACE_BIT;
+                    _data.storageBuffer[BUFFER_SIZE - 1] = IN_PLACE_BIT;
                 }
             } else {
-                std::memcpy(_storage, aOther._storage, 2 * sizeof(std::uint32_t));
+                std::memcpy(_data.storageBuffer, aOther._data.storageBuffer, 2 * sizeof(std::uint32_t));
                 _storeHeapPointer(aOther._loadHeapPointer());
-                aOther._storage[STORAGE_SIZE - 1] = IN_PLACE_BIT;
+                aOther._data.storageBuffer[BUFFER_SIZE - 1] = IN_PLACE_BIT;
             }
         }
         return *this;
@@ -503,8 +559,8 @@ public:
                                  : (size >= static_cast<std::uint32_t>(-aOffset))));
         const std::uint32_t newSize = CalcSizeWithOffset(size, aOffset);
         if (_isInPlace()) {
-            _storage[STORAGE_SIZE - 1] =
-                (_storage[STORAGE_SIZE - 1] & ~SIZE_BIT) | ((newSize > 0) ? SIZE_BIT : 0);
+            _data.storageBuffer[BUFFER_SIZE - 1] =
+                (_data.storageBuffer[BUFFER_SIZE - 1] & ~SIZE_BIT) | ((newSize > 0) ? SIZE_BIT : 0);
         } else {
             _storeSizeInStorage(newSize);
         }
@@ -512,7 +568,7 @@ public:
 
     T* getAddressOfFirstElement() {
         if (_isInPlace()) {
-            return reinterpret_cast<T*>(&_storage);
+            return reinterpret_cast<T*>(&_data.storageBuffer);
         }
         return static_cast<T*>(_loadHeapPointer());
     }
@@ -536,32 +592,47 @@ private:
 
     // STORAGE SCHEME:
     // - In place:
-    //   - bytes 0..4 of _storage provide storage for T.
-    //   - byte 15 of _storage stores IN_PLACE_BIT and SIZE_BIT.
+    //   - bytes 0..4 of _data.storageBuffer provide storage for T.
+    //   - byte 15 of _data.storageBuffer stores IN_PLACE_BIT and SIZE_BIT.
     //
     // - On heap:
-    //   - bytes 0..3 of _storage store the size of the container.
-    //   - bytes 4..7 of _storage store the capacity of the container.
-    //   - bytes 8..15 of _storage store pointer to the buffer (which is on the heap)
+    //   - bytes 0..3 of _data.storageBuffer store the size of the container.
+    //   - bytes 4..7 of _data.storageBuffer store the capacity of the container.
+    //   - bytes 8..15 of _data.storageBuffer store pointer to the buffer (which is on the heap)
     //     with the two least significant bits of the pointer being used to store
     //     IN_PLACE_BIT and SIZE_BIT (the memory we get back from malloc and company is
     //     generally aligned to at least 4 bytes, so these two are always 0). The
     //     pointer is stored in BIG ENDIAN format, thus it is always possible to check
-    //     the status of the container by inspecting _storage[15].
-    static constexpr std::size_t STORAGE_SIZE = sizeof(void*) * 2;
-    alignas(void*) char _storage[STORAGE_SIZE];
+    //     the status of the container by inspecting _data.storageBuffer[15].
+    static constexpr std::size_t BUFFER_SIZE = sizeof(void*) * 2;
+
+    class DataHolder : StorePointerIfNotEmpty<const taAllocator> {
+    public:
+        DataHolder()
+            : StorePointerIfNotEmpty<const taAllocator>{} {}
+        DataHolder(taAllocator* aAllocator)
+            : StorePointerIfNotEmpty<const taAllocator>{aAllocator} {}
+
+        alignas(void*) char storageBuffer[BUFFER_SIZE];
+
+        const taAllocator& getAllocator() {
+            const auto* p = this->getPointer();
+            HG_ASSERT(p != nullptr);
+            return *p;
+        }
+    } _data;
 
     bool _isInPlace() const {
-        return _storage[STORAGE_SIZE - 1] & IN_PLACE_BIT;
+        return _data.storageBuffer[BUFFER_SIZE - 1] & IN_PLACE_BIT;
     }
 
     bool _getSizeBit() const {
-        return _storage[STORAGE_SIZE - 1] & SIZE_BIT;
+        return _data.storageBuffer[BUFFER_SIZE - 1] & SIZE_BIT;
     }
 
     void* _loadHeapPointer() {
         std::uintptr_t intptr;
-        std::memcpy(&intptr, &_storage[8], sizeof(intptr));
+        std::memcpy(&intptr, &_data.storageBuffer[8], sizeof(intptr));
         return reinterpret_cast<void*>(BigEndianToHost64(intptr) & ~0x03);
     }
 
@@ -571,26 +642,26 @@ private:
 
     void _storeHeapPointer(void* aPointer) {
         const auto intptr = HostToBigEndian64(reinterpret_cast<std::uintptr_t>(aPointer) & ~0x03);
-        std::memcpy(&_storage[8], &intptr, 8);
+        std::memcpy(&_data.storageBuffer[8], &intptr, 8);
     }
 
     void _storeSizeInStorage(std::uint32_t aSize) {
-        std::memcpy(&_storage[0], &aSize, sizeof(aSize));
+        std::memcpy(&_data.storageBuffer[0], &aSize, sizeof(aSize));
     }
 
     void _storeCapacityInStorage(std::uint32_t aCapacity) {
-        std::memcpy(&_storage[4], &aCapacity, sizeof(aCapacity));
+        std::memcpy(&_data.storageBuffer[4], &aCapacity, sizeof(aCapacity));
     }
 
     std::uint32_t _loadSizeFromStorage() const {
         std::uint32_t size;
-        std::memcpy(&size, &_storage[0], sizeof(size));
+        std::memcpy(&size, &_data.storageBuffer[0], sizeof(size));
         return size;
     }
 
     std::uint32_t _loadCapacityFromStorage() const {
         std::uint32_t capacity;
-        std::memcpy(&capacity, &_storage[4], sizeof(capacity));
+        std::memcpy(&capacity, &_data.storageBuffer[4], sizeof(capacity));
         return capacity;
     }
 
@@ -649,12 +720,13 @@ private:
 
 // MARK: Storage 3
 
-template <class T>
+template <class T, class taAllocator>
 class CompressedSmallVectorStorage_3 {
 public:
     static_assert(sizeof(T) >= sizeof(void*) * 2, "");
 
-    CompressedSmallVectorStorage_3() = default;
+    CompressedSmallVectorStorage_3(const taAllocator* aAllocator = nullptr)
+        : _data{aAllocator} {}
 
     ~CompressedSmallVectorStorage_3() {
         const auto size = getSize();
@@ -791,7 +863,7 @@ public:
 
     T* getAddressOfFirstElement() {
         if (_isInPlace()) {
-            return reinterpret_cast<T*>(&_objectStorage);
+            return reinterpret_cast<T*>(&_data.objectStorage);
         }
         return static_cast<T*>(_loadHeapPointer());
     }
@@ -828,10 +900,24 @@ private:
     //   - _heapInfo of the union stores the address, size and capacity of
     //     the heap buffer which contains instances of T.
     //   - _status stores IN_PLACE_BIT and SIZE_BIT.
-    union {
-        alignas(T) char _objectStorage[sizeof(T)];
-        HeapInfo _heapInfo;
-    };
+    class DataHolder : StorePointerIfNotEmpty<const taAllocator> {
+    public:
+        DataHolder()
+            : StorePointerIfNotEmpty<const taAllocator>{} {}
+        DataHolder(const taAllocator* aAllocator)
+            : StorePointerIfNotEmpty<const taAllocator>{aAllocator} {}
+
+        union {
+            alignas(T) char objectStorage[sizeof(T)];
+            HeapInfo heapInfo;
+        };
+
+        const taAllocator& getAllocator() {
+            const auto* p = this->getPointer();
+            HG_ASSERT(p != nullptr);
+            return *p;
+        }
+    } _data;
     char _status = IN_PLACE_BIT;
 
     bool _isInPlace() const {
@@ -843,31 +929,31 @@ private:
     }
 
     void* _loadHeapPointer() {
-        return _heapInfo.ptr;
+        return _data.heapInfo.ptr;
     }
 
     const void* _loadHeapPointer() const {
-        return _heapInfo.ptr;
+        return _data.heapInfo.ptr;
     }
 
     void _storeHeapPointer(void* aPointer) {
-        _heapInfo.ptr = aPointer;
+        _data.heapInfo.ptr = aPointer;
     }
 
     void _storeSizeInStorage(std::uint32_t aSize) {
-        _heapInfo.size = aSize;
+        _data.heapInfo.size = aSize;
     }
 
     void _storeCapacityInStorage(std::uint32_t aCapacity) {
-        _heapInfo.capacity = aCapacity;
+        _data.heapInfo.capacity = aCapacity;
     }
 
     std::uint32_t _loadSizeFromStorage() const {
-        return _heapInfo.size;
+        return _data.heapInfo.size;
     }
 
     std::uint32_t _loadCapacityFromStorage() const {
-        return _heapInfo.capacity;
+        return _data.heapInfo.capacity;
     }
 
     T* _allocateBuffer(std::uint32_t aTCount) {
@@ -939,25 +1025,25 @@ constexpr TypeSizeClass GetSizeClass() {
                : ((sizeof(T) < sizeof(void*) * 2) ? TypeSizeClass::MEDIUM : TypeSizeClass::LARGE);
 }
 
-template <class T, TypeSizeClass taSize = GetSizeClass<T>()>
+template <class T, class taAllocator, TypeSizeClass taSize = GetSizeClass<T>()>
 class CompressedSmallVectorStorageSelector {};
 
-template <typename T>
-class CompressedSmallVectorStorageSelector<T, TypeSizeClass::SMALL> {
+template <typename T, class taAllocator>
+class CompressedSmallVectorStorageSelector<T, taAllocator, TypeSizeClass::SMALL> {
 public:
-    using type = CompressedSmallVectorStorage_1<T>;
+    using type = CompressedSmallVectorStorage_1<T, taAllocator>;
 };
 
-template <typename T>
-class CompressedSmallVectorStorageSelector<T, TypeSizeClass::MEDIUM> {
+template <typename T, class taAllocator>
+class CompressedSmallVectorStorageSelector<T, taAllocator, TypeSizeClass::MEDIUM> {
 public:
-    using type = CompressedSmallVectorStorage_2<T>;
+    using type = CompressedSmallVectorStorage_2<T, taAllocator>;
 };
 
-template <typename T>
-class CompressedSmallVectorStorageSelector<T, TypeSizeClass::LARGE> {
+template <typename T, class taAllocator>
+class CompressedSmallVectorStorageSelector<T, taAllocator, TypeSizeClass::LARGE> {
 public:
-    using type = CompressedSmallVectorStorage_3<T>;
+    using type = CompressedSmallVectorStorage_3<T, taAllocator>;
 };
 
 } // namespace detail
@@ -1002,14 +1088,24 @@ public:
 //! In any case, the provided API is a subset of the API provided by `std::vector`.
 //! However, the maximum size and capacity of `CompressedSmallVector` are 4,294,967,295 elements,
 //! because size and capacity are stored as 32-bit integers.
-template <class T, class taGrowthStrategy = growth_strategy::IncreaseByFiftyPercent>
+template <class T,
+          class taGrowthStrategy = growth_strategy::IncreaseByFiftyPercent,
+          class taAllocator      = std::allocator<T>>
 class CompressedSmallVector {
 public:
     using value_type             = T;
+    using allocator_type         = taAllocator;
     using iterator               = value_type*;
     using const_iterator         = const value_type*;
     using reverse_iterator       = typename std::reverse_iterator<iterator>;
     using const_reverse_iterator = typename std::reverse_iterator<const_iterator>;
+    using size_type              = std::size_t;
+
+    CompressedSmallVector()
+        : _storage{nullptr} {}
+
+    CompressedSmallVector(const taAllocator& aAllocator)
+        : _storage{&aAllocator} {}
 
     std::size_t size() const {
         return _storage.getSize();
@@ -1207,7 +1303,7 @@ public:
     }
 
 private:
-    using Storage = detail::CompressedSmallVectorStorageSelector<T>::type;
+    using Storage = typename detail::CompressedSmallVectorStorageSelector<T, taAllocator>::type;
     Storage _storage;
 
     static std::uint32_t _growCapacity(std::uint32_t aCurrentCapacity) {
