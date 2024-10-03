@@ -12,7 +12,6 @@
 #include <new>
 #include <type_traits>
 #include <utility>
-#include <vector>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
@@ -94,16 +93,19 @@ T BigEndianToHost64(T aValue) {
 // MARK: ?
 
 template <class T, bool taIsEmpty = std::is_empty<T>::value>
-class StorePointerIfNotEmpty {};
+class StoreIfNotEmpty {};
 
 template <class T>
-class StorePointerIfNotEmpty<T, true> { // Empty
+class StoreIfNotEmpty<T, true> { // Empty
 public:
-    StorePointerIfNotEmpty() = default;
-    StorePointerIfNotEmpty(T* /*aPointer*/) {}
+    StoreIfNotEmpty(const T& /*aObject*/ = T{}) {}
 
-    T* getPointer() const {
-        return &_dummyObject;
+    T& getObject() {
+        return _dummyObject;
+    }
+
+    const T& getObject() const {
+        return _dummyObject;
     }
 
 private:
@@ -111,22 +113,24 @@ private:
 };
 
 template <class T>
-T StorePointerIfNotEmpty<T, true>::_dummyObject = {};
+T StoreIfNotEmpty<T, true>::_dummyObject = {};
 
 template <class T>
-class StorePointerIfNotEmpty<T, false> { // Non-empty
+class StoreIfNotEmpty<T, false> { // Non-empty
 public:
-    StorePointerIfNotEmpty()
-        : ptr{nullptr} {}
-    StorePointerIfNotEmpty(T* aPointer)
-        : ptr{aPointer} {};
+    StoreIfNotEmpty(const T& aObject = T{})
+        : _object{aObject} {}
 
-    T* getPointer() const {
-        return ptr;
+    T& getObject() {
+        return _object;
+    }
+
+    const T& getObject() const {
+        return _object;
     }
 
 private:
-    T* ptr;
+    T _object;
 };
 
 // MARK: Storage 1
@@ -136,7 +140,7 @@ class CompressedSmallVectorStorage_1 {
 public:
     static_assert(sizeof(T) < sizeof(void*), "");
 
-    CompressedSmallVectorStorage_1(const taAllocator* aAllocator = nullptr)
+    CompressedSmallVectorStorage_1(const taAllocator& aAllocator = taAllocator{})
         : _data{aAllocator} {
         _data.storageBuffer[BUFFER_SIZE - 1] = IN_PLACE_BIT;
     }
@@ -147,12 +151,14 @@ public:
             _destroyAllElements(getAddressOfFirstElement(), size);
         }
         if (!_isInPlace()) {
-            auto* p = _loadHeapPointer();
-            _freeBuffer((T*)p);
+            auto*      p        = _loadHeapPointer();
+            const auto capacity = getCapacity();
+            _freeBuffer((T*)p, capacity + N_OBJECTS_FOR_SIZE_DATA);
         }
     }
 
-    CompressedSmallVectorStorage_1(const CompressedSmallVectorStorage_1& aOther) {
+    CompressedSmallVectorStorage_1(const CompressedSmallVectorStorage_1& aOther)
+        : _data{aOther._data.getAllocator()} {
         if (aOther._isInPlace()) {
             if (aOther._getSizeBit()) {
                 _data.storageBuffer[BUFFER_SIZE - 1] = IN_PLACE_BIT | SIZE_BIT;
@@ -190,11 +196,13 @@ public:
                 }
                 _storeHeapPointer(buffer);
             }
+            // TODO: what about allocator? Also, missing test
         }
         return *this;
     }
 
-    CompressedSmallVectorStorage_1(CompressedSmallVectorStorage_1&& aOther) {
+    CompressedSmallVectorStorage_1(CompressedSmallVectorStorage_1&& aOther)
+        : _data{aOther._data.getAllocator()} {
         if (aOther._isInPlace()) {
             if (aOther._getSizeBit()) {
                 _data.storageBuffer[BUFFER_SIZE - 1] = IN_PLACE_BIT | SIZE_BIT;
@@ -226,6 +234,7 @@ public:
                 _storeHeapPointer(aOther._loadHeapPointer());
                 aOther._data.storageBuffer[BUFFER_SIZE - 1] = IN_PLACE_BIT;
             }
+            // TODO: what about allocator? Also, missing test
         }
         return *this;
     }
@@ -313,19 +322,19 @@ private:
     //     the heap buffer store size and capacity (in that order) of the container.
     static constexpr std::size_t BUFFER_SIZE = sizeof(void*);
 
-    class DataHolder : public StorePointerIfNotEmpty<const taAllocator> {
+    class DataHolder : StoreIfNotEmpty<taAllocator> {
     public:
-        DataHolder()
-            : StorePointerIfNotEmpty<const taAllocator>{} {}
-        DataHolder(taAllocator* aAllocator)
-            : StorePointerIfNotEmpty<const taAllocator>{aAllocator} {}
+        DataHolder(const taAllocator& aAllocator)
+            : StoreIfNotEmpty<taAllocator>{aAllocator} {}
 
         alignas(void*) char storageBuffer[BUFFER_SIZE];
 
         taAllocator& getAllocator() {
-            const auto* p = this->getPointer();
-            HG_ASSERT(p != nullptr);
-            return *p;
+            return this->getObject();
+        }
+
+        const taAllocator& getAllocator() const {
+            return this->getObject();
         }
     } _data;
 
@@ -376,15 +385,13 @@ private:
     }
 
     T* _allocateBuffer(std::uint32_t aTCount) {
-        const auto align = alignof(T);
-        const auto size  = sizeof(T);
-        auto*      p     = (T*)std::malloc(aTCount * size); // TODO(use allocator)
-        HG_HARD_ASSERT(p != nullptr);
+        auto* p = _data.getAllocator().allocate(aTCount);
+        HG_HARD_ASSERT(p != nullptr && ((reinterpret_cast<std::uintptr_t>(p) & 0x3ULL) == 0));
         return p;
     }
 
-    void _freeBuffer(T* aBuffer) {
-        free(aBuffer); // TODO(use allocator)
+    void _freeBuffer(T* aBuffer, std::uint32_t aBufferSize) {
+        _data.getAllocator().deallocate(aBuffer, aBufferSize);
     }
 
     void _increaseCapacity(std::uint32_t aNewCapacity) {
@@ -405,12 +412,13 @@ private:
         } else {
             auto*      elements = getAddressOfFirstElement();
             const auto size     = getSize();
+            const auto capacity = getCapacity();
             for (std::uint32_t i = 0; i < size; i += 1) {
                 new (buffer + N_OBJECTS_FOR_SIZE_DATA + i) T{std::move(elements[i])};
             }
             _destroyAllElements(elements, size);
             _storeSizeOnHeap(buffer, size);
-            _freeBuffer((T*)_loadHeapPointer());
+            _freeBuffer((T*)_loadHeapPointer(), capacity + N_OBJECTS_FOR_SIZE_DATA);
         }
 
         _storeCapacityOnHeap(buffer, aNewCapacity);
@@ -435,7 +443,7 @@ class CompressedSmallVectorStorage_2 {
 public:
     static_assert(sizeof(T) >= sizeof(void*) && sizeof(T) < sizeof(void*) * 2, "");
 
-    CompressedSmallVectorStorage_2(const taAllocator* aAllocator = nullptr)
+    CompressedSmallVectorStorage_2(const taAllocator& aAllocator = taAllocator{})
         : _data{aAllocator} {
         _data.storageBuffer[BUFFER_SIZE - 1] = IN_PLACE_BIT;
     }
@@ -446,12 +454,14 @@ public:
             _destroyAllElements(getAddressOfFirstElement(), size);
         }
         if (!_isInPlace()) {
-            auto* p = _loadHeapPointer();
-            _freeBuffer((T*)p);
+            auto*      p        = _loadHeapPointer();
+            const auto capacity = getCapacity();
+            _freeBuffer((T*)p, capacity);
         }
     }
 
-    CompressedSmallVectorStorage_2(const CompressedSmallVectorStorage_2& aOther) {
+    CompressedSmallVectorStorage_2(const CompressedSmallVectorStorage_2& aOther)
+        : _data{aOther._data.getAllocator()} {
         if (aOther._isInPlace()) {
             if (aOther._getSizeBit()) {
                 _data.storageBuffer[BUFFER_SIZE - 1] = IN_PLACE_BIT | SIZE_BIT;
@@ -491,7 +501,8 @@ public:
         return *this;
     }
 
-    CompressedSmallVectorStorage_2(CompressedSmallVectorStorage_2&& aOther) {
+    CompressedSmallVectorStorage_2(CompressedSmallVectorStorage_2&& aOther)
+        : _data{aOther._data.getAllocator()} {
         if (aOther._isInPlace()) {
             if (aOther._getSizeBit()) {
                 _data.storageBuffer[BUFFER_SIZE - 1] = IN_PLACE_BIT | SIZE_BIT;
@@ -606,19 +617,19 @@ private:
     //     the status of the container by inspecting _data.storageBuffer[15].
     static constexpr std::size_t BUFFER_SIZE = sizeof(void*) * 2;
 
-    class DataHolder : StorePointerIfNotEmpty<const taAllocator> {
+    class DataHolder : StoreIfNotEmpty<taAllocator> {
     public:
-        DataHolder()
-            : StorePointerIfNotEmpty<const taAllocator>{} {}
-        DataHolder(taAllocator* aAllocator)
-            : StorePointerIfNotEmpty<const taAllocator>{aAllocator} {}
+        DataHolder(const taAllocator& aAllocator)
+            : StoreIfNotEmpty<taAllocator>{aAllocator} {}
 
         alignas(void*) char storageBuffer[BUFFER_SIZE];
 
-        const taAllocator& getAllocator() {
-            const auto* p = this->getPointer();
-            HG_ASSERT(p != nullptr);
-            return *p;
+        taAllocator& getAllocator() {
+            return this->getObject();
+        }
+
+        const taAllocator& getAllocator() const {
+            return this->getObject();
         }
     } _data;
 
@@ -666,15 +677,13 @@ private:
     }
 
     T* _allocateBuffer(std::uint32_t aTCount) {
-        const auto align = alignof(T);
-        const auto size  = sizeof(T);
-        auto*      p     = (T*)std::malloc(aTCount * size); // TODO(use allocator)
-        HG_HARD_ASSERT(p != nullptr);
+        auto* p = _data.getAllocator().allocate(aTCount);
+        HG_HARD_ASSERT(p != nullptr && ((reinterpret_cast<std::uintptr_t>(p) & 0x3ULL) == 0));
         return p;
     }
 
-    void _freeBuffer(T* aBuffer) {
-        free(aBuffer); // TODO(use allocator)
+    void _freeBuffer(T* aBuffer, std::uint32_t aBufferSize) {
+        _data.getAllocator().deallocate(aBuffer, aBufferSize);
     }
 
     void _increaseCapacity(std::uint32_t aNewCapacity) {
@@ -695,12 +704,13 @@ private:
         } else {
             auto*      elements = getAddressOfFirstElement();
             const auto size     = getSize();
+            const auto capacity = getCapacity();
             for (std::uint32_t i = 0; i < size; i += 1) {
                 new (buffer + i) T{std::move(elements[i])};
             }
             _destroyAllElements(elements, size);
             _storeSizeInStorage(size);
-            _freeBuffer((T*)_loadHeapPointer());
+            _freeBuffer((T*)_loadHeapPointer(), capacity);
         }
 
         _storeCapacityInStorage(aNewCapacity);
@@ -725,7 +735,7 @@ class CompressedSmallVectorStorage_3 {
 public:
     static_assert(sizeof(T) >= sizeof(void*) * 2, "");
 
-    CompressedSmallVectorStorage_3(const taAllocator* aAllocator = nullptr)
+    CompressedSmallVectorStorage_3(const taAllocator& aAllocator = taAllocator{})
         : _data{aAllocator} {}
 
     ~CompressedSmallVectorStorage_3() {
@@ -734,12 +744,14 @@ public:
             _destroyAllElements(getAddressOfFirstElement(), size);
         }
         if (!_isInPlace()) {
-            auto* p = _loadHeapPointer();
-            _freeBuffer((T*)p);
+            auto*      p        = _loadHeapPointer();
+            const auto capacity = getCapacity();
+            _freeBuffer((T*)p, capacity);
         }
     }
 
-    CompressedSmallVectorStorage_3(const CompressedSmallVectorStorage_3& aOther) {
+    CompressedSmallVectorStorage_3(const CompressedSmallVectorStorage_3& aOther)
+        : _data{aOther._data.getAllocator()} {
         if (aOther._isInPlace()) {
             if (aOther._getSizeBit()) {
                 _status = IN_PLACE_BIT | SIZE_BIT;
@@ -783,7 +795,8 @@ public:
         return *this;
     }
 
-    CompressedSmallVectorStorage_3(CompressedSmallVectorStorage_3&& aOther) {
+    CompressedSmallVectorStorage_3(CompressedSmallVectorStorage_3&& aOther)
+        : _data{aOther._data.getAllocator()} {
         if (aOther._isInPlace()) {
             if (aOther._getSizeBit()) {
                 _status = IN_PLACE_BIT | SIZE_BIT;
@@ -900,22 +913,22 @@ private:
     //   - _heapInfo of the union stores the address, size and capacity of
     //     the heap buffer which contains instances of T.
     //   - _status stores IN_PLACE_BIT and SIZE_BIT.
-    class DataHolder : StorePointerIfNotEmpty<const taAllocator> {
+    class DataHolder : StoreIfNotEmpty<taAllocator> {
     public:
-        DataHolder()
-            : StorePointerIfNotEmpty<const taAllocator>{} {}
-        DataHolder(const taAllocator* aAllocator)
-            : StorePointerIfNotEmpty<const taAllocator>{aAllocator} {}
+        DataHolder(const taAllocator& aAllocator)
+            : StoreIfNotEmpty<taAllocator>{aAllocator} {}
 
         union {
             alignas(T) char objectStorage[sizeof(T)];
             HeapInfo heapInfo;
         };
 
-        const taAllocator& getAllocator() {
-            const auto* p = this->getPointer();
-            HG_ASSERT(p != nullptr);
-            return *p;
+        taAllocator& getAllocator() {
+            return this->getObject();
+        }
+
+        const taAllocator& getAllocator() const {
+            return this->getObject();
         }
     } _data;
     char _status = IN_PLACE_BIT;
@@ -957,15 +970,13 @@ private:
     }
 
     T* _allocateBuffer(std::uint32_t aTCount) {
-        const auto align = alignof(T);
-        const auto size  = sizeof(T);
-        auto*      p     = (T*)std::malloc(aTCount * size); // TODO(use allocator)
-        HG_HARD_ASSERT(p != nullptr);
+        auto* p = _data.getAllocator().allocate(aTCount);
+        HG_HARD_ASSERT(p != nullptr && ((reinterpret_cast<std::uintptr_t>(p) & 0x3ULL) == 0));
         return p;
     }
 
-    void _freeBuffer(T* aBuffer) {
-        free(aBuffer); // TODO(use allocator)
+    void _freeBuffer(T* aBuffer, std::uint32_t aBufferSize) {
+        _data.getAllocator().deallocate(aBuffer, aBufferSize);
     }
 
     void _increaseCapacity(std::uint32_t aNewCapacity) {
@@ -987,12 +998,13 @@ private:
         } else {
             auto*      elements = getAddressOfFirstElement();
             const auto size     = getSize();
+            const auto capacity = getCapacity();
             for (std::uint32_t i = 0; i < size; i += 1) {
                 new (buffer + i) T{std::move(elements[i])};
             }
             _destroyAllElements(elements, size);
             _storeSizeInStorage(size);
-            _freeBuffer((T*)_loadHeapPointer());
+            _freeBuffer((T*)_loadHeapPointer(), capacity);
         }
 
         _storeCapacityInStorage(aNewCapacity);
@@ -1067,6 +1079,8 @@ public:
         return static_cast<std::uint32_t>(aCurrentSize * 1.5);
     }
 };
+
+using Default = IncreaseByFiftyPercent;
 } // namespace growth_strategy
 
 // MARK: Vector
@@ -1101,11 +1115,8 @@ public:
     using const_reverse_iterator = typename std::reverse_iterator<const_iterator>;
     using size_type              = std::size_t;
 
-    CompressedSmallVector()
-        : _storage{nullptr} {}
-
-    CompressedSmallVector(const taAllocator& aAllocator)
-        : _storage{&aAllocator} {}
+    CompressedSmallVector(const taAllocator& aAllocator = taAllocator{})
+        : _storage{aAllocator} {}
 
     std::size_t size() const {
         return _storage.getSize();

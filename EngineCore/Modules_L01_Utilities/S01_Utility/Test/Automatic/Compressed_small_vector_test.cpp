@@ -9,7 +9,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <string>
-#include <vector>
+#include <unordered_map>
 
 #include <gtest/gtest.h>
 
@@ -20,6 +20,8 @@ namespace util {
 template <class T>
 class DummyAllocator {
 public:
+    using value_type = T;
+
     T* allocate(std::size_t aElementCount) {
         return static_cast<T*>(std::malloc(sizeof(T) * aElementCount));
     }
@@ -33,22 +35,104 @@ private:
     void* _p2 = nullptr;
 };
 
-// clang-format off
-static_assert(std::is_same_v<detail::CompressedSmallVectorStorageSelector<int,
-                                                                          std::allocator<int>>::type,
-              detail::CompressedSmallVectorStorage_1<int, std::allocator<int>>>);
-static_assert(sizeof(CompressedSmallVector<int>) == sizeof(void*));
+static_assert(not std::is_empty_v<DummyAllocator<int>>, "DummyAllocator must not be empty.");
 
-static_assert(std::is_same_v<detail::CompressedSmallVectorStorageSelector<double,
-                                                                          std::allocator<double>>::type,
-              detail::CompressedSmallVectorStorage_2<double, std::allocator<double>>>);
-static_assert(sizeof(CompressedSmallVector<double>) == sizeof(void*) * 2);
+static_assert(
+    std::is_same_v<detail::CompressedSmallVectorStorageSelector<int, std::allocator<int>>::type,
+                   detail::CompressedSmallVectorStorage_1<int, std::allocator<int>>>,
+    "Unexpected type");
+static_assert(sizeof(CompressedSmallVector<int, growth_strategy::Default, std::allocator<int>>) ==
+                  sizeof(void*),
+              "Unexpected size");
 
-static_assert(std::is_same_v<detail::CompressedSmallVectorStorageSelector<std::string,
-                                                                          std::allocator<std::string>>::type,
-              detail::CompressedSmallVectorStorage_3<std::string, std::allocator<std::string>>>);
-static_assert(sizeof(CompressedSmallVector<std::string>) <= sizeof(std::string) + sizeof(void*));
-// clang-format on
+static_assert(
+    std::is_same_v<detail::CompressedSmallVectorStorageSelector<double, std::allocator<double>>::type,
+                   detail::CompressedSmallVectorStorage_2<double, std::allocator<double>>>,
+    "Unexpected type");
+static_assert(sizeof(CompressedSmallVector<double, growth_strategy::Default, std::allocator<double>>) ==
+                  sizeof(void*) * 2,
+              "Unexpected size");
+
+static_assert(
+    std::is_same_v<
+        detail::CompressedSmallVectorStorageSelector<std::string, std::allocator<std::string>>::type,
+        detail::CompressedSmallVectorStorage_3<std::string, std::allocator<std::string>>>,
+    "Unexpected type");
+static_assert(
+    sizeof(CompressedSmallVector<std::string, growth_strategy::Default, std::allocator<std::string>>) <=
+        sizeof(std::string) + sizeof(void*),
+    "Unexpected size");
+
+static_assert(
+    std::is_same_v<detail::CompressedSmallVectorStorageSelector<int, DummyAllocator<int>>::type,
+                   detail::CompressedSmallVectorStorage_1<int, DummyAllocator<int>>>,
+    "Unexpected type");
+static_assert(sizeof(CompressedSmallVector<int, growth_strategy::Default, DummyAllocator<int>>) ==
+                  sizeof(void*) + sizeof(DummyAllocator<int>),
+              "Unexpected size");
+
+static_assert(
+    std::is_same_v<detail::CompressedSmallVectorStorageSelector<double, DummyAllocator<double>>::type,
+                   detail::CompressedSmallVectorStorage_2<double, DummyAllocator<double>>>,
+    "Unexpected type");
+static_assert(sizeof(CompressedSmallVector<double, growth_strategy::Default, DummyAllocator<double>>) ==
+                  sizeof(void*) * 2 + sizeof(DummyAllocator<double>),
+              "Unexpected size");
+
+static_assert(
+    std::is_same_v<
+        detail::CompressedSmallVectorStorageSelector<std::string, DummyAllocator<std::string>>::type,
+        detail::CompressedSmallVectorStorage_3<std::string, DummyAllocator<std::string>>>,
+    "Unexpected type");
+static_assert(
+    sizeof(CompressedSmallVector<std::string, growth_strategy::Default, DummyAllocator<std::string>>) <=
+        sizeof(std::string) + sizeof(void*) + sizeof(DummyAllocator<std::string>),
+    "Unexpected size");
+
+template <class T>
+class TrackingAllocatorPool {
+public:
+    T* allocate(std::size_t aElementCount) {
+        auto* p = static_cast<T*>(std::malloc(sizeof(T) * aElementCount));
+        const bool didInsert = _map.insert(std::make_pair(p, aElementCount)).second;
+        HG_HARD_ASSERT(didInsert);
+        return p;
+    }
+
+    void deallocate(const T* aElements, std::size_t aElementCount) {
+        const auto iter = _map.find(aElements);
+        HG_HARD_ASSERT(iter != _map.end());
+        HG_HARD_ASSERT(iter->second == aElementCount);
+        _map.erase(iter);
+        std::free((void*)aElements);
+    }
+
+    bool hasNoUnfreedMemory() const {
+        return _map.empty();
+    }
+
+private:
+    std::unordered_map<const T*, std::size_t> _map;
+};
+
+template <class T>
+class TrackingAllocator {
+public:
+    using value_type = T;
+
+    TrackingAllocator(TrackingAllocatorPool<T>& aPool) : _pool{&aPool} {}
+
+    T* allocate(std::size_t aElementCount) {
+        return _pool->allocate(aElementCount);
+    }
+
+    void deallocate(const T* aElements, std::size_t aElementCount) {
+        _pool->deallocate(aElements, aElementCount);
+    }
+
+private:
+    TrackingAllocatorPool<T>* _pool;
+};
 
 namespace {
 template <int taSize>
@@ -402,6 +486,58 @@ public:
     }
 
     template <class T>
+    void VectorIsMutatedManyTimesThenDestroyed_InstancesOfElementTypeCounted_TrackingAllocator() {
+        ASSERT_EQ(T::getInstanceCount(), 0);
+
+        TrackingAllocatorPool<T> allocPool;
+
+        using CSVector = CompressedSmallVector<T, growth_strategy::Default, TrackingAllocator<T>>;
+
+        {
+            CSVector vec1{TrackingAllocator<T>{allocPool}};
+            EXPECT_EQ(T::getInstanceCount(), 0);
+            vec1.push_back({});
+            EXPECT_EQ(T::getInstanceCount(), 1);
+            vec1.pop_back();
+            EXPECT_EQ(T::getInstanceCount(), 0);
+            vec1.push_back({});
+            EXPECT_EQ(T::getInstanceCount(), 1);
+            vec1.push_back({});
+            EXPECT_EQ(T::getInstanceCount(), 2);
+            vec1.push_back({});
+            EXPECT_EQ(T::getInstanceCount(), 3);
+            vec1.pop_back();
+            EXPECT_EQ(T::getInstanceCount(), 2);
+
+            CSVector vec2 = vec1;
+            EXPECT_EQ(T::getInstanceCount(), 4);
+            vec2.erase(vec2.begin());
+            EXPECT_EQ(T::getInstanceCount(), 3);
+
+            vec1.clear();
+            EXPECT_EQ(T::getInstanceCount(), 1);
+
+            vec2.push_back({});
+            vec2.push_back({});
+            EXPECT_EQ(T::getInstanceCount(), 3);
+
+            vec2.clear();
+            EXPECT_EQ(T::getInstanceCount(), 0);
+
+            vec2.push_back({});
+            vec2.push_back({});
+            vec2.push_back({});
+            EXPECT_EQ(T::getInstanceCount(), 3);
+
+            CSVector vec3 = std::move(vec2);
+            EXPECT_EQ(T::getInstanceCount(), 3);
+        }
+
+        ASSERT_EQ(T::getInstanceCount(), 0);
+        ASSERT_EQ(allocPool.hasNoUnfreedMemory(), true);
+    }
+
+    template <class T>
     void ElementIsErasedFromVectorWithOneElement(const T& aValue) {
         CompressedSmallVector<T> vec;
         vec.push_back(aValue);
@@ -653,6 +789,20 @@ INSTANTIATE_COMPRESSEDSMALLVECTOR_TEST(
     NO_ARGS)
 INSTANTIATE_COMPRESSEDSMALLVECTOR_TEST(
     VectorIsMutatedManyTimesThenDestroyed_InstancesOfElementTypeCounted,
+    InstanceCountedClass20,
+    NO_ARGS)
+
+
+INSTANTIATE_COMPRESSEDSMALLVECTOR_TEST(
+    VectorIsMutatedManyTimesThenDestroyed_InstancesOfElementTypeCounted_TrackingAllocator,
+    InstanceCountedClass4,
+    NO_ARGS)
+INSTANTIATE_COMPRESSEDSMALLVECTOR_TEST(
+    VectorIsMutatedManyTimesThenDestroyed_InstancesOfElementTypeCounted_TrackingAllocator,
+    InstanceCountedClass12,
+    NO_ARGS)
+INSTANTIATE_COMPRESSEDSMALLVECTOR_TEST(
+    VectorIsMutatedManyTimesThenDestroyed_InstancesOfElementTypeCounted_TrackingAllocator,
     InstanceCountedClass20,
     NO_ARGS)
 
