@@ -24,49 +24,6 @@ inline std::uint32_t CalcSizeWithOffset(std::uint32_t aSize, std::int32_t aOffse
                          : (aSize - static_cast<std::uint32_t>(-aOffset));
 }
 
-// MARK: ?
-
-template <class T, bool taIsEmpty = std::is_empty<T>::value>
-class StoreIfNotEmpty {};
-
-template <class T>
-class StoreIfNotEmpty<T, true> { // Empty
-public:
-    StoreIfNotEmpty(const T& /*aObject*/ = T{}) {}
-
-    T& getObject() {
-        return _dummyObject;
-    }
-
-    const T& getObject() const {
-        return _dummyObject;
-    }
-
-private:
-    static T _dummyObject;
-};
-
-template <class T>
-T StoreIfNotEmpty<T, true>::_dummyObject = {};
-
-template <class T>
-class StoreIfNotEmpty<T, false> { // Non-empty
-public:
-    StoreIfNotEmpty(const T& aObject = T{})
-        : _object{aObject} {}
-
-    T& getObject() {
-        return _object;
-    }
-
-    const T& getObject() const {
-        return _object;
-    }
-
-private:
-    T _object;
-};
-
 // MARK: Storage 1
 
 template <class T, class taAllocator>
@@ -91,7 +48,8 @@ public:
         }
     }
 
-    CompressedSmallVectorStorage_1(const CompressedSmallVectorStorage_1& aOther)
+    CompressedSmallVectorStorage_1(const CompressedSmallVectorStorage_1& aOther) noexcept(
+        std::is_nothrow_copy_constructible_v<T>)
         : _data{aOther._data.getAllocator()} {
         if (aOther._isInPlace()) {
             if (aOther._getSizeBit()) {
@@ -135,7 +93,8 @@ public:
         return *this;
     }
 
-    CompressedSmallVectorStorage_1(CompressedSmallVectorStorage_1&& aOther)
+    CompressedSmallVectorStorage_1(CompressedSmallVectorStorage_1&& aOther) noexcept(
+        std::is_nothrow_move_constructible_v<T>)
         : _data{aOther._data.getAllocator()} {
         if (aOther._isInPlace()) {
             if (aOther._getSizeBit()) {
@@ -256,19 +215,21 @@ private:
     //     the heap buffer store size and capacity (in that order) of the container.
     static constexpr std::size_t BUFFER_SIZE = sizeof(void*);
 
-    class DataHolder : StoreIfNotEmpty<taAllocator> {
+    // Note: Inheriting from taAllocator instead of having it as a member allows it to take up
+    //       no space (0 bytes) when it's an empty class, which it most often is.
+    class DataHolder : taAllocator {
     public:
         DataHolder(const taAllocator& aAllocator)
-            : StoreIfNotEmpty<taAllocator>{aAllocator} {}
+            : taAllocator{aAllocator} {}
 
-        alignas(void*) char storageBuffer[BUFFER_SIZE];
+        alignas(void*) char storageBuffer[BUFFER_SIZE] = {};
 
         taAllocator& getAllocator() {
-            return this->getObject();
+            return SELF;
         }
 
         const taAllocator& getAllocator() const {
-            return this->getObject();
+            return SELF;
         }
     } _data;
 
@@ -415,7 +376,8 @@ public:
         }
     }
 
-    CompressedSmallVectorStorage_2(const CompressedSmallVectorStorage_2& aOther)
+    CompressedSmallVectorStorage_2(const CompressedSmallVectorStorage_2& aOther) noexcept(
+        std::is_nothrow_copy_constructible_v<T>)
         : _data{aOther._data.getAllocator()} {
         if (aOther._isInPlace()) {
             if (aOther._getSizeBit()) {
@@ -456,7 +418,8 @@ public:
         return *this;
     }
 
-    CompressedSmallVectorStorage_2(CompressedSmallVectorStorage_2&& aOther)
+    CompressedSmallVectorStorage_2(CompressedSmallVectorStorage_2&& aOther) noexcept(
+        std::is_nothrow_move_constructible_v<T>)
         : _data{aOther._data.getAllocator()} {
         if (aOther._isInPlace()) {
             if (aOther._getSizeBit()) {
@@ -572,19 +535,21 @@ private:
     //     the status of the container by inspecting _data.storageBuffer[15].
     static constexpr std::size_t BUFFER_SIZE = sizeof(void*) * 2;
 
-    class DataHolder : StoreIfNotEmpty<taAllocator> {
+    // Note: Inheriting from taAllocator instead of having it as a member allows it to take up
+    //       no space (0 bytes) when it's an empty class, which it most often is.
+    class DataHolder : taAllocator {
     public:
         DataHolder(const taAllocator& aAllocator)
-            : StoreIfNotEmpty<taAllocator>{aAllocator} {}
+            : taAllocator{aAllocator} {}
 
-        alignas(void*) char storageBuffer[BUFFER_SIZE];
+        alignas(void*) char storageBuffer[BUFFER_SIZE] = {};
 
         taAllocator& getAllocator() {
-            return this->getObject();
+            return SELF;
         }
 
         const taAllocator& getAllocator() const {
-            return this->getObject();
+            return SELF;
         }
     } _data;
 
@@ -725,7 +690,8 @@ public:
         }
     }
 
-    CompressedSmallVectorStorage_3(const CompressedSmallVectorStorage_3& aOther)
+    CompressedSmallVectorStorage_3(const CompressedSmallVectorStorage_3& aOther) noexcept(
+        std::is_nothrow_copy_constructible_v<T>)
         : _data{aOther._data.getAllocator()} {
         if (aOther._isInPlace()) {
             if (aOther._getSizeBit()) {
@@ -770,7 +736,8 @@ public:
         return *this;
     }
 
-    CompressedSmallVectorStorage_3(CompressedSmallVectorStorage_3&& aOther)
+    CompressedSmallVectorStorage_3(CompressedSmallVectorStorage_3&& aOther) noexcept(
+        std::is_nothrow_move_constructible_v<T>)
         : _data{aOther._data.getAllocator()} {
         if (aOther._isInPlace()) {
             if (aOther._getSizeBit()) {
@@ -888,10 +855,14 @@ private:
     //   - _heapInfo of the union stores the address, size and capacity of
     //     the heap buffer which contains instances of T.
     //   - _status stores IN_PLACE_BIT and SIZE_BIT.
-    class DataHolder : StoreIfNotEmpty<taAllocator> {
+
+    // Note: Inheriting from taAllocator instead of having it as a member allows it to take up
+    //       no space (0 bytes) when it's an empty class, which it most often is.
+    class DataHolder : taAllocator {
     public:
         DataHolder(const taAllocator& aAllocator)
-            : StoreIfNotEmpty<taAllocator>{aAllocator} {}
+            : taAllocator{aAllocator}
+            , objectStorage{} {}
 
         union {
             alignas(T) char objectStorage[sizeof(T)];
@@ -899,11 +870,11 @@ private:
         };
 
         taAllocator& getAllocator() {
-            return this->getObject();
+            return SELF;
         }
 
         const taAllocator& getAllocator() const {
-            return this->getObject();
+            return SELF;
         }
     } _data;
     char _status = IN_PLACE_BIT;
