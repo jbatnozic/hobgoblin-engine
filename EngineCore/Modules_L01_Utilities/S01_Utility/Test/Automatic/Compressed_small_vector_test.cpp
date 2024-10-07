@@ -93,7 +93,7 @@ template <class T>
 class TrackingAllocatorPool {
 public:
     T* allocate(std::size_t aElementCount) {
-        auto* p = static_cast<T*>(std::malloc(sizeof(T) * aElementCount));
+        auto*      p         = static_cast<T*>(std::malloc(sizeof(T) * aElementCount));
         const bool didInsert = _map.insert(std::make_pair(p, aElementCount)).second;
         HG_HARD_ASSERT(didInsert);
         return p;
@@ -120,7 +120,8 @@ class TrackingAllocator {
 public:
     using value_type = T;
 
-    TrackingAllocator(TrackingAllocatorPool<T>& aPool) : _pool{&aPool} {}
+    TrackingAllocator(TrackingAllocatorPool<T>& aPool)
+        : _pool{&aPool} {}
 
     T* allocate(std::size_t aElementCount) {
         return _pool->allocate(aElementCount);
@@ -183,19 +184,6 @@ public:
     taFieldType field2;
 };
 } // namespace
-
-TEST(CompressedSmallVectorTest, Endianess) {
-    {
-        const auto host     = detail::BigEndianToHost64(0x12345678ABCD1234ULL);
-        const auto expected = 0x3412CDAB78563412ULL;
-        EXPECT_EQ(host, expected);
-    }
-    {
-        const auto bigEndian = detail::HostToBigEndian64(0x3412CDAB78563412ULL);
-        const auto expected  = 0x12345678ABCD1234ULL;
-        EXPECT_EQ(bigEndian, expected);
-    }
-}
 
 class CompressedSmallVectorTest {
 public:

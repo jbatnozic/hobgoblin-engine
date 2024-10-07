@@ -24,72 +24,6 @@ inline std::uint32_t CalcSizeWithOffset(std::uint32_t aSize, std::int32_t aOffse
                          : (aSize - static_cast<std::uint32_t>(-aOffset));
 }
 
-// MARK: Endianess
-
-#ifdef __ORDER_LITTLE_ENDIAN__
-#define HG_LITTLE_ENDIAN __ORDER_LITTLE_ENDIAN__
-#else
-#define HG_LITTLE_ENDIAN 1234
-#endif
-
-#ifdef __ORDER_BIG_ENDIAN__
-#define HG_BIG_ENDIAN __ORDER_BIG_ENDIAN__
-#else
-#define HG_BIG_ENDIAN 4321
-#endif
-
-#ifdef __BYTE_ORDER__
-#define HG_ENDIANESS __BYTE_ORDER__
-#else
-#define HG_ENDIANESS HG_LITTLE_ENDIAN
-#endif
-
-template <class T>
-T Flip64(T aValue) {
-    static_assert(sizeof(T) == 8, "Flip64 only works with 8-byte values.");
-    static_assert(std::is_integral_v<T>, "Flip64 only works with integral types.");
-
-    char bytes[8];
-    std::memcpy(&bytes, &aValue, 8);
-
-    // clang-format off
-    const auto rv = ((static_cast<T>(bytes[7]) <<  0) & 0x00000000000000FF)
-                  | ((static_cast<T>(bytes[6]) <<  8) & 0x000000000000FF00)
-                  | ((static_cast<T>(bytes[5]) << 16) & 0x0000000000FF0000)
-                  | ((static_cast<T>(bytes[4]) << 24) & 0x00000000FF000000)
-                  | ((static_cast<T>(bytes[3]) << 32) & 0x000000FF00000000)
-                  | ((static_cast<T>(bytes[2]) << 40) & 0x0000FF0000000000)
-                  | ((static_cast<T>(bytes[1]) << 48) & 0x00FF000000000000)
-                  | ((static_cast<T>(bytes[0]) << 56) & 0xFF00000000000000);
-    // clang-format on
-
-    return rv;
-}
-
-template <class T>
-T HostToBigEndian64(T aValue) {
-    static_assert(sizeof(T) == 8, "HostToBigEndian64 only works with 8-byte values.");
-    static_assert(std::is_integral_v<T>, "HostToBigEndian64 only works with integral types.");
-
-#if HG_ENDIANESS == HG_LITTLE_ENDIAN
-    return Flip64(aValue);
-#else
-    return aValue;
-#endif
-}
-
-template <class T>
-T BigEndianToHost64(T aValue) {
-    static_assert(sizeof(T) == 8, "BigEndianToHost64 only works with 8-byte values.");
-    static_assert(std::is_integral_v<T>, "BigEndianToHost64 only works with integral types.");
-
-#if HG_ENDIANESS == HG_LITTLE_ENDIAN
-    return Flip64(aValue);
-#else
-    return aValue;
-#endif
-}
-
 // MARK: ?
 
 template <class T, bool taIsEmpty = std::is_empty<T>::value>
@@ -347,8 +281,19 @@ private:
     }
 
     void* _loadHeapPointer() {
-        const auto intptr = *reinterpret_cast<std::uintptr_t*>(&_data.storageBuffer);
-        return reinterpret_cast<void*>(BigEndianToHost64(intptr) & ~0x03);
+        // clang-format off
+        const auto ptrAsInt =
+            ((static_cast<std::uintptr_t>(_data.storageBuffer[7]) <<  0) & 0x00000000000000FF) |
+            ((static_cast<std::uintptr_t>(_data.storageBuffer[6]) <<  8) & 0x000000000000FF00) |
+            ((static_cast<std::uintptr_t>(_data.storageBuffer[5]) << 16) & 0x0000000000FF0000) |
+            ((static_cast<std::uintptr_t>(_data.storageBuffer[4]) << 24) & 0x00000000FF000000) |
+            ((static_cast<std::uintptr_t>(_data.storageBuffer[3]) << 32) & 0x000000FF00000000) |
+            ((static_cast<std::uintptr_t>(_data.storageBuffer[2]) << 40) & 0x0000FF0000000000) |
+            ((static_cast<std::uintptr_t>(_data.storageBuffer[1]) << 48) & 0x00FF000000000000) |
+            ((static_cast<std::uintptr_t>(_data.storageBuffer[0]) << 56) & 0xFF00000000000000) ;
+        // clang-format on
+
+        return reinterpret_cast<void*>(ptrAsInt & ~0x03);
     }
 
     const void* _loadHeapPointer() const {
@@ -356,8 +301,18 @@ private:
     }
 
     void _storeHeapPointer(void* aPointer) {
-        const auto intptr = HostToBigEndian64(reinterpret_cast<std::uintptr_t>(aPointer) & ~0x03);
-        std::memcpy(&_data.storageBuffer, &intptr, 8);
+        const auto ptrAsInt = reinterpret_cast<std::uintptr_t>(aPointer);
+
+        // clang-format off
+        _data.storageBuffer[7] = static_cast<char>((ptrAsInt >>  0) & 0xFF);
+        _data.storageBuffer[6] = static_cast<char>((ptrAsInt >>  8) & 0xFF);
+        _data.storageBuffer[5] = static_cast<char>((ptrAsInt >> 16) & 0xFF);
+        _data.storageBuffer[4] = static_cast<char>((ptrAsInt >> 24) & 0xFF);
+        _data.storageBuffer[3] = static_cast<char>((ptrAsInt >> 32) & 0xFF);
+        _data.storageBuffer[2] = static_cast<char>((ptrAsInt >> 40) & 0xFF);
+        _data.storageBuffer[1] = static_cast<char>((ptrAsInt >> 48) & 0xFF);
+        _data.storageBuffer[0] = static_cast<char>((ptrAsInt >> 56) & 0xFF);
+        // clang-format on
     }
 
     static void _storeSizeOnHeap(void* aBufferBeginning, std::uint32_t aSize) {
@@ -642,9 +597,19 @@ private:
     }
 
     void* _loadHeapPointer() {
-        std::uintptr_t intptr;
-        std::memcpy(&intptr, &_data.storageBuffer[8], sizeof(intptr));
-        return reinterpret_cast<void*>(BigEndianToHost64(intptr) & ~0x03);
+        // clang-format off
+        const auto ptrAsInt =
+            ((static_cast<std::uintptr_t>(_data.storageBuffer[15]) <<  0) & 0x00000000000000FF) |
+            ((static_cast<std::uintptr_t>(_data.storageBuffer[14]) <<  8) & 0x000000000000FF00) |
+            ((static_cast<std::uintptr_t>(_data.storageBuffer[13]) << 16) & 0x0000000000FF0000) |
+            ((static_cast<std::uintptr_t>(_data.storageBuffer[12]) << 24) & 0x00000000FF000000) |
+            ((static_cast<std::uintptr_t>(_data.storageBuffer[11]) << 32) & 0x000000FF00000000) |
+            ((static_cast<std::uintptr_t>(_data.storageBuffer[10]) << 40) & 0x0000FF0000000000) |
+            ((static_cast<std::uintptr_t>(_data.storageBuffer[ 9]) << 48) & 0x00FF000000000000) |
+            ((static_cast<std::uintptr_t>(_data.storageBuffer[ 8]) << 56) & 0xFF00000000000000) ;
+        // clang-format on
+
+        return reinterpret_cast<void*>(ptrAsInt & ~0x03);
     }
 
     const void* _loadHeapPointer() const {
@@ -652,8 +617,18 @@ private:
     }
 
     void _storeHeapPointer(void* aPointer) {
-        const auto intptr = HostToBigEndian64(reinterpret_cast<std::uintptr_t>(aPointer) & ~0x03);
-        std::memcpy(&_data.storageBuffer[8], &intptr, 8);
+        const auto ptrAsInt = reinterpret_cast<std::uintptr_t>(aPointer);
+
+        // clang-format off
+        _data.storageBuffer[15] = static_cast<char>((ptrAsInt >>  0) & 0xFF);
+        _data.storageBuffer[14] = static_cast<char>((ptrAsInt >>  8) & 0xFF);
+        _data.storageBuffer[13] = static_cast<char>((ptrAsInt >> 16) & 0xFF);
+        _data.storageBuffer[12] = static_cast<char>((ptrAsInt >> 24) & 0xFF);
+        _data.storageBuffer[11] = static_cast<char>((ptrAsInt >> 32) & 0xFF);
+        _data.storageBuffer[10] = static_cast<char>((ptrAsInt >> 40) & 0xFF);
+        _data.storageBuffer[ 9] = static_cast<char>((ptrAsInt >> 48) & 0xFF);
+        _data.storageBuffer[ 8] = static_cast<char>((ptrAsInt >> 56) & 0xFF);
+        // clang-format on
     }
 
     void _storeSizeInStorage(std::uint32_t aSize) {
