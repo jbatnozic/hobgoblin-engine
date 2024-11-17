@@ -85,10 +85,17 @@ inline std::uint32_t CalcSizeWithOffset(std::uint32_t aSize, std::int32_t aOffse
                          : (aSize - static_cast<std::uint32_t>(-aOffset));
 }
 
+#ifdef _MSC_VER
+// https://stackoverflow.com/a/55530422
+#define EMPTY_BASES __declspec(empty_bases)
+#else
+#define EMPTY_BASES
+#endif
+
 // MARK: Small Storage
 
 template <class T, std::uint32_t taInPlaceCapacity, class taAllocator>
-class CompressedSmallVectorStorage_Small
+class EMPTY_BASES CompressedSmallVectorStorage_Small
     : private CompressedSmallVectorStorageBase
     , private taAllocator {
 public:
@@ -357,7 +364,7 @@ private:
 // MARK: Large Storage
 
 template <class T, std::uint32_t taInPlaceCapacity, class taAllocator>
-class CompressedSmallVectorStorage_Large
+class EMPTY_BASES CompressedSmallVectorStorage_Large
     : private CompressedSmallVectorStorageBase
     , private taAllocator {
 public:
@@ -561,8 +568,9 @@ private:
             _freeHeapBuffer(_loadHeapPointer<T>(), capacity);
         }
 
-        _storeCapacityInBuffer(heapBuffer, aNewCapacity);
+        _storeCapacityInBuffer(_data.data(), aNewCapacity);
         _storeHeapPointer(heapBuffer);
+        CTRL &= static_cast<std::uint8_t>(~0x01);
     }
 
     void _decreaseCapacity(std::uint32_t aNewCapacity) {
@@ -612,6 +620,8 @@ private:
 #undef CTRL
 };
 
+#undef EMPTY_BASES
+
 // MARK: Storage Selector
 
 enum class StorageClassId {
@@ -660,10 +670,7 @@ public:
 class IncreaseByFiftyPercent {
 public:
     std::uint32_t operator()(std::uint32_t aCurrentSize) const {
-        if ((aCurrentSize & 0x01) > 0) {
-            aCurrentSize += 1; // make it even
-        }
-        return static_cast<std::uint32_t>(aCurrentSize * 1.5);
+        return static_cast<std::uint32_t>(1 + aCurrentSize * 1.5);
     }
 };
 
