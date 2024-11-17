@@ -198,7 +198,7 @@ public:
         if (_isInPlace()) {
             _data.back() = static_cast<std::uint8_t>(newSize << 1) | IN_PLACE_BIT;
         } else {
-            _storeSizeOnHeap(_loadHeapPointer(), newSize);
+            _storeSizeInBuffer(_loadHeapPointer(), newSize);
         }
     }
 
@@ -241,7 +241,7 @@ private:
     alignas(T) std::array<std::uint8_t, BUFFER_SIZE> _data = {};
 
     bool _isInPlace() const {
-        return _data & IN_PLACE_BIT;
+        return CTRL & IN_PLACE_BIT;
     }
 
     template <class U = void>
@@ -317,7 +317,7 @@ private:
 
     void _copyAllElementsFrom(const CompressedSmallVectorStorage_Small& aSource) {
         const auto sourceSize = aSource.getSize();
-        SetCapacity(sourceSize);
+        setCapacity(sourceSize);
 
         const T* sourceElements = aSource.getAddressOfFirstElement();
         T*       elements        = getAddressOfFirstElement();
@@ -412,7 +412,7 @@ public:
         clear();
 
         if (!_isInPlace()) {
-            auto* ptr = _loadHeapPointer();
+            auto* ptr = _loadHeapPointer<T>();
             if (ptr != nullptr) {
                 _freeHeapBuffer(ptr, getCapacity());
             }
@@ -467,11 +467,16 @@ public:
     }
 
     void clear() {
-        const auto size = getSize();
-        if (size > 0) {
-            _destroyAllElements(getAddressOfFirstElement(), size);
-            const auto sizeAdjustment = -static_cast<std::int32_t>(size);
-            adjustSizeCounter(sizeAdjustment);
+        T*         elements = getAddressOfFirstElement();
+        const auto size     = getSize();
+        for (std::uint32_t i = 0; i < size; i += 1) {
+            elements[i].~T();
+        }
+
+        if (_isInPlace()) {
+            CTRL = IN_PLACE_BIT;
+        } else {
+            _storeSizeInBuffer(_data.data(), 0);
         }
     }
 
@@ -569,7 +574,7 @@ private:
 
     void _copyAllElementsFrom(const CompressedSmallVectorStorage_Large& aSource) {
         const auto sourceSize = aSource.getSize();
-        SetCapacity(sourceSize);
+        setCapacity(sourceSize);
 
         const T* sourceElements = aSource.getAddressOfFirstElement();
         T*       elements       = getAddressOfFirstElement();
