@@ -6,6 +6,7 @@ project("Hobgoblin.Utility.AutomaticTest")
 find_package(GTest CONFIG REQUIRED)
 
 add_executable(${PROJECT_NAME}
+    "Compressed_small_vector_test.cpp"
     "Packet_test.cpp"
 )
 
