@@ -47,8 +47,8 @@ namespace detail {
 
 static_assert(
     std::is_same_v<
-    CompressedSmallVectorStorageSelector<std::int16_t, 0, std::allocator<std::int16_t>>::type,
-    CompressedSmallVectorStorage_Small<std::int16_t, 0, std::allocator<std::int16_t>>>,
+        CompressedSmallVectorStorageSelector<std::int16_t, 0, std::allocator<std::int16_t>>::type,
+        CompressedSmallVectorStorage_Small<std::int16_t, 0, std::allocator<std::int16_t>>>,
     "Unexpected type");
 
 static_assert(
@@ -79,8 +79,8 @@ static_assert(
 
 static_assert(
     std::is_same_v<
-    CompressedSmallVectorStorageSelector<std::int16_t, 0, DummyAllocator<std::int16_t>>::type,
-    CompressedSmallVectorStorage_Small<std::int16_t, 0, DummyAllocator<std::int16_t>>>,
+        CompressedSmallVectorStorageSelector<std::int16_t, 0, DummyAllocator<std::int16_t>>::type,
+        CompressedSmallVectorStorage_Small<std::int16_t, 0, DummyAllocator<std::int16_t>>>,
     "Unexpected type");
 
 static_assert(
@@ -248,6 +248,28 @@ public:
         EXPECT_GE(vec.capacity(), 1);
         EXPECT_TRUE(vec.empty());
         EXPECT_EQ(vec.begin(), vec.end());
+    }
+
+    template <class T>
+    void VectorIsResizeConstructed() const {
+        CompressedSmallVector<T> vec{5ULL};
+        ASSERT_EQ(vec.size(), 5);
+        ASSERT_GE(vec.capacity(), 5);
+        EXPECT_FALSE(vec.empty());
+        EXPECT_NE(vec.begin(), vec.end());
+    }
+
+    template <class T>
+    void VectorIsResizeAndFillConstructed(const T& aValue) const {
+        CompressedSmallVector<T> vec{5ULL, aValue};
+        ASSERT_EQ(vec.size(), 5);
+        ASSERT_GE(vec.capacity(), 5);
+        EXPECT_FALSE(vec.empty());
+        EXPECT_NE(vec.begin(), vec.end());
+
+        for (std::size_t i = 0; i < 5; i += 1) {
+            EXPECT_EQ(vec.at(i), aValue);
+        }
     }
 
     template <class T>
