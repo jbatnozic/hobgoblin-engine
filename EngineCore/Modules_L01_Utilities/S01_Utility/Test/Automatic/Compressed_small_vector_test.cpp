@@ -914,6 +914,32 @@ INSTANTIATE_COMPRESSEDSMALLVECTOR_TEST(
     NO_ARGS)
 
 INSTANTIATE_COMPRESSEDSMALLVECTOR_TEST(
+    VectorIsResizeConstructed,
+    short,
+    NO_ARGS)
+INSTANTIATE_COMPRESSEDSMALLVECTOR_TEST(
+    VectorIsResizeConstructed,
+    double,
+    NO_ARGS)
+INSTANTIATE_COMPRESSEDSMALLVECTOR_TEST(
+    VectorIsResizeConstructed,
+    String,
+    NO_ARGS)
+
+INSTANTIATE_COMPRESSEDSMALLVECTOR_TEST(
+    VectorIsResizeAndFillConstructed,
+    short,
+    2)
+INSTANTIATE_COMPRESSEDSMALLVECTOR_TEST(
+    VectorIsResizeAndFillConstructed,
+    double,
+    5.0)
+INSTANTIATE_COMPRESSEDSMALLVECTOR_TEST(
+    VectorIsResizeAndFillConstructed,
+    String,
+    LONG_STRING_1)
+
+INSTANTIATE_COMPRESSEDSMALLVECTOR_TEST(
     VectorIsResizedAndSizeChecked,
     short,
     NO_ARGS)
