@@ -698,6 +698,46 @@ public:
         ASSERT_EQ(allocPool.HasNoUnfreedMemory(), true);
     }
 
+    template <class T, std::uint32_t taInPlaceCapacity>
+    void ShrinkToFitCalled_InstancesOfElementTypeCounted_TrackingAllocator() const {
+        ASSERT_EQ(T::getInstanceCount(), 0);
+
+        TrackingAllocatorPool<T> allocPool;
+
+        using CSVector =
+            CompressedSmallVector<T, taInPlaceCapacity, growth_strategy::Default, TrackingAllocator<T>>;
+
+        {
+            CSVector vec1{TrackingAllocator<T>{allocPool}};
+            vec1.push_back({});
+            vec1.clear();
+            EXPECT_EQ(vec1.size(), 0);
+            EXPECT_GE(vec1.capacity(), 0);
+            vec1.shrink_to_fit();
+            EXPECT_EQ(vec1.capacity(), std::max<int>(0, taInPlaceCapacity));
+
+            vec1.push_back({});
+            vec1.push_back({});
+            vec1.clear();
+            EXPECT_EQ(vec1.size(), 0);
+            EXPECT_GE(vec1.capacity(), 0);
+            vec1.shrink_to_fit();
+            EXPECT_EQ(vec1.capacity(), std::max<int>(0, taInPlaceCapacity));
+
+            vec1.push_back({});
+            vec1.push_back({});
+            vec1.push_back({});
+            vec1.clear();
+            EXPECT_EQ(vec1.size(), 0);
+            EXPECT_GE(vec1.capacity(), 0);
+            vec1.shrink_to_fit();
+            EXPECT_EQ(vec1.capacity(), std::max<int>(0, taInPlaceCapacity));
+        }
+
+        ASSERT_EQ(T::getInstanceCount(), 0);
+        ASSERT_EQ(allocPool.HasNoUnfreedMemory(), true);
+    }
+
     template <class T>
     void CopyAssignmentOperatorUsedInMultipleCases_TrackingAllocator(const T& aValue1,
                                                                      const T& aValue2) const {
@@ -1295,6 +1335,64 @@ INSTANTIATE_COMPRESSEDSMALLVECTOR_TEST_CAP(
     NO_ARGS)
 
 
+INSTANTIATE_COMPRESSEDSMALLVECTOR_TEST_CAP(
+    ShrinkToFitCalled_InstancesOfElementTypeCounted_TrackingAllocator,
+    InstanceCountedClass2,
+    0,
+    NO_ARGS)
+INSTANTIATE_COMPRESSEDSMALLVECTOR_TEST_CAP(
+    ShrinkToFitCalled_InstancesOfElementTypeCounted_TrackingAllocator,
+    InstanceCountedClass12,
+    0,
+    NO_ARGS)
+INSTANTIATE_COMPRESSEDSMALLVECTOR_TEST_CAP(
+    ShrinkToFitCalled_InstancesOfElementTypeCounted_TrackingAllocator,
+    InstanceCountedClass20,
+    0,
+    NO_ARGS)
+
+
+INSTANTIATE_COMPRESSEDSMALLVECTOR_TEST_CAP(
+    ShrinkToFitCalled_InstancesOfElementTypeCounted_TrackingAllocator,
+    InstanceCountedClass2,
+    1,
+    NO_ARGS)
+INSTANTIATE_COMPRESSEDSMALLVECTOR_TEST_CAP(
+    ShrinkToFitCalled_InstancesOfElementTypeCounted_TrackingAllocator,
+    InstanceCountedClass12,
+    1,
+    NO_ARGS)
+INSTANTIATE_COMPRESSEDSMALLVECTOR_TEST_CAP(
+    ShrinkToFitCalled_InstancesOfElementTypeCounted_TrackingAllocator,
+    InstanceCountedClass20,
+    1,
+    NO_ARGS)
+
+
+INSTANTIATE_COMPRESSEDSMALLVECTOR_TEST_CAP(
+    ShrinkToFitCalled_InstancesOfElementTypeCounted_TrackingAllocator,
+    InstanceCountedClass2,
+    2,
+    NO_ARGS)
+INSTANTIATE_COMPRESSEDSMALLVECTOR_TEST_CAP(
+    ShrinkToFitCalled_InstancesOfElementTypeCounted_TrackingAllocator,
+    InstanceCountedClass12,
+    2,
+    NO_ARGS)
+
+
+INSTANTIATE_COMPRESSEDSMALLVECTOR_TEST_CAP(
+    ShrinkToFitCalled_InstancesOfElementTypeCounted_TrackingAllocator,
+    InstanceCountedClass2,
+    4,
+    NO_ARGS)
+INSTANTIATE_COMPRESSEDSMALLVECTOR_TEST_CAP(
+    ShrinkToFitCalled_InstancesOfElementTypeCounted_TrackingAllocator,
+    InstanceCountedClass12,
+    4,
+    NO_ARGS)
+
+
 INSTANTIATE_COMPRESSEDSMALLVECTOR_TEST(
     CopyAssignmentOperatorUsedInMultipleCases_TrackingAllocator,
     short,
@@ -1371,6 +1469,11 @@ TEST(CompressedSmallVectorTest, VectorWithZeroInPlaceCapacityAllocatesAndDealloc
     EXPECT_EQ(vec.size(), 0);
     EXPECT_EQ(vec.capacity(), 2);
     EXPECT_NE(static_cast<void*>(&vec), static_cast<void*>(vec.data()));
+
+    // Check that shrink_to_fit deletes the heap buffer
+    vec.shrink_to_fit();
+    EXPECT_EQ(vec.size(), 0);
+    EXPECT_EQ(vec.capacity(), 0);
 }
 
 TEST(CompressedSmallVectorTest, VectorWithMultipleInPlaceCapacityAllocatesAndDeallocatesWhenExpected) {
@@ -1404,6 +1507,12 @@ TEST(CompressedSmallVectorTest, VectorWithMultipleInPlaceCapacityAllocatesAndDea
     EXPECT_EQ(vec.size(), 0);
     EXPECT_EQ(vec.capacity(), 4);
     EXPECT_NE(static_cast<void*>(&vec), static_cast<void*>(vec.data()));
+
+    // Check that shrink_to_fit deletes the heap buffer
+    vec.shrink_to_fit();
+    EXPECT_EQ(vec.size(), 0);
+    EXPECT_EQ(vec.capacity(), 3);
+    EXPECT_EQ(static_cast<void*>(&vec), static_cast<void*>(vec.data()));
 }
 
 } // namespace util

@@ -197,7 +197,7 @@ public:
         const auto capacity = getCapacity();
         if (aNewCapacity > capacity) {
             _increaseCapacity(aNewCapacity);
-        } else {
+        } else if (aNewCapacity < capacity) {
             _decreaseCapacity(aNewCapacity);
         }
     }
@@ -323,10 +323,47 @@ private:
     }
 
     void _decreaseCapacity(std::uint32_t aNewCapacity) {
+        HG_ASSERT(aNewCapacity < getCapacity());
+        HG_ASSERT(aNewCapacity >= getSize());
+
         if (_isInPlace()) {
             return; // Cannot reduce further
         }
-        HG_NOT_IMPLEMENTED();
+
+        if (aNewCapacity <= taInPlaceCapacity) {
+            const auto  originalCapacity = getCapacity();
+            const auto  size             = getSize();
+            auto* const heapBuffer       = _loadHeapPointer<T>();
+
+            CTRL = static_cast<std::uint8_t>(size << 1) | 0x01;
+
+            auto* const elements = getAddressOfFirstElement();
+            for (std::uint32_t i = 0; i < size; i += 1) {
+                new (static_cast<void*>(elements + i))
+                    T{std::move(heapBuffer[i + N_OBJECTS_FOR_SIZE_DATA])};
+                heapBuffer[i + N_OBJECTS_FOR_SIZE_DATA].~T();
+            }
+
+            _freeHeapBuffer(heapBuffer, originalCapacity + N_OBJECTS_FOR_SIZE_DATA);
+        } else {
+            const auto  originalCapacity = getCapacity();
+            const auto  size             = getSize();
+            auto* const heapBuffer       = _loadHeapPointer<T>();
+
+            auto* const newHeapBuffer = _allocateHeapBuffer(aNewCapacity);
+
+            _storeSizeInBuffer(newHeapBuffer, size);
+            _storeCapacityInBuffer(newHeapBuffer, aNewCapacity + N_OBJECTS_FOR_SIZE_DATA);
+
+            for (std::uint32_t i = 0; i < size; i += 1) {
+                new (static_cast<void*>(newHeapBuffer + i + N_OBJECTS_FOR_SIZE_DATA))
+                    T{std::move(heapBuffer[i + N_OBJECTS_FOR_SIZE_DATA])};
+                heapBuffer[i + N_OBJECTS_FOR_SIZE_DATA].~T();
+            }
+
+            _storeHeapPointer(newHeapBuffer);
+            _freeHeapBuffer(heapBuffer, originalCapacity + N_OBJECTS_FOR_SIZE_DATA);
+        }
     }
 
     T* _allocateHeapBuffer(std::uint32_t aTCount) {
@@ -456,7 +493,7 @@ public:
         const auto capacity = getCapacity();
         if (aNewCapacity > capacity) {
             _increaseCapacity(aNewCapacity);
-        } else {
+        } else if (aNewCapacity < capacity) {
             _decreaseCapacity(aNewCapacity);
         }
     }
@@ -599,10 +636,42 @@ private:
     }
 
     void _decreaseCapacity(std::uint32_t aNewCapacity) {
+        HG_ASSERT(aNewCapacity < getCapacity());
+        HG_ASSERT(aNewCapacity >= getSize());
+
         if (_isInPlace()) {
             return; // Cannot reduce further
         }
-        HG_NOT_IMPLEMENTED();
+
+        if (aNewCapacity <= taInPlaceCapacity) {
+            const auto  originalCapacity = getCapacity();
+            const auto  size             = getSize();
+            auto* const heapBuffer       = _loadHeapPointer<T>();
+
+            CTRL = static_cast<std::uint8_t>(size << 1) | 0x01;
+
+            auto* const elements = getAddressOfFirstElement();
+            for (std::uint32_t i = 0; i < size; i += 1) {
+                new (static_cast<void*>(elements + i)) T{std::move(heapBuffer[i])};
+                heapBuffer[i].~T();
+            }
+
+            _freeHeapBuffer(heapBuffer, originalCapacity);
+        } else {
+            const auto  originalCapacity = getCapacity();
+            const auto  size             = getSize();
+            auto* const heapBuffer       = _loadHeapPointer<T>();
+
+            auto* const newHeapBuffer = _allocateHeapBuffer(aNewCapacity);
+
+            for (std::uint32_t i = 0; i < size; i += 1) {
+                new (static_cast<void*>(newHeapBuffer + i)) T{std::move(heapBuffer[i])};
+                heapBuffer[i].~T();
+            }
+
+            _storeHeapPointer(newHeapBuffer);
+            _freeHeapBuffer(heapBuffer, originalCapacity);
+        }
     }
 
     void _copyAllElementsFrom(const CompressedSmallVectorStorage_Large& aSource) {
@@ -888,6 +957,10 @@ public:
             elements[i] = std::move(elements[i + 1]);
         }
         pop_back();
+    }
+
+    void shrink_to_fit() {
+        _storage.setCapacity(_storage.getSize());
     }
 
     T& operator[](size_type aIndex) {
