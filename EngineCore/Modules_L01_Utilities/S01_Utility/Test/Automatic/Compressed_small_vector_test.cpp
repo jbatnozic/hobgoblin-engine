@@ -39,8 +39,6 @@ private:
 
 static_assert(not std::is_empty<DummyAllocator<int>>::value, "DummyAllocator must not be empty.");
 
-#define SIZEOF_POINTER (UINTPTR_MAX / 255 % 255)
-
 namespace detail {
 
 // Check storage selection of vector of int16_t (stateless allocator)

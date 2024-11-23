@@ -61,4 +61,6 @@
 // For out-of-class (OOC) method definitions
 #define T_ENABLE_IF_OOC(...) typename ::std::enable_if<__VA_ARGS__, bool>::type
 
+// #define SIZEOF_POINTER (UINTPTR_MAX / 255 % 255)
+
 // clang-format on
