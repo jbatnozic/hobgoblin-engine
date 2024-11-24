@@ -33,7 +33,6 @@ public:
     }
 
     void update(hg::math::Vector2pz aPosition) {
-#if 1
         _chunkspool.pause();
         _playerPosition = aPosition;
 
@@ -104,12 +103,16 @@ public:
                     const auto x = _playerPosition.x + xOff;
                     const auto y = _playerPosition.y + yOff;
                     if (x >= 0 && x < CHUNK_COUNT_X && y >= 0 && y < CHUNK_COUNT_Y) {
-                        if (_chunkGrid[y][x] == nullptr &&
-                            _requests.count({(std::uint16_t)x, (std::uint16_t)y}) == 0) {
-                            ChunkSpoolerInterface::LoadRequest lr;
-                            lr.chunkId  = {(std::uint16_t)x, (std::uint16_t)y};
-                            lr.priority = (std::abs(xOff) + std::abs(yOff));
-                            loadRequests.push_back(lr);
+                        if (_chunkGrid[y][x] == nullptr) {
+                            const auto reqIter = _requests.find({(std::uint16_t)x, (std::uint16_t)y});
+                            if (reqIter == _requests.end()) {
+                                ChunkSpoolerInterface::LoadRequest lr;
+                                lr.chunkId  = {(std::uint16_t)x, (std::uint16_t)y};
+                                lr.priority = (std::abs(xOff) + std::abs(yOff));
+                                loadRequests.push_back(lr);
+                            } else {
+                                reqIter->second->trySwapPriority((std::abs(xOff) + std::abs(yOff)));
+                            }
                         }
                     }
                 }
@@ -122,7 +125,6 @@ public:
         }
 
         _chunkspool.unpause();
-#endif
     }
 
     void draw(hg::gr::Canvas& aCanvas) {

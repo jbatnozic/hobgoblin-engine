@@ -86,7 +86,8 @@ private:
     RequestIter         _findRequestWithBestPriority(const std::unique_lock<Mutex>&);
     RequestControlBlock _eraseRequest(RequestIter aRequestIter, const std::unique_lock<Mutex>&);
 
-    void _cancelLoadRequest(ChunkId aChunkId);
+    void                         _cancelLoadRequest(ChunkId aChunkId);
+    std::optional<hg::PZInteger> _swapLoadRequestPriority(ChunkId aChunkId, hg::PZInteger aNewPriority);
 
     void _adjustUnloadPriority(const RequestVariant& aRequestVariant, const std::unique_lock<Mutex>&);
 };

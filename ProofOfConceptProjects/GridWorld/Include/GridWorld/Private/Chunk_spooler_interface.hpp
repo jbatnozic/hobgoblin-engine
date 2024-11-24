@@ -34,8 +34,12 @@ public:
         //! \note Destroying the instance does NOT cancel the request automatically.
         virtual ~RequestHandleInterface() = default;
 
-        //! TODO(add description)
-        // virtual void trySwapPriority(hg::PZInteger aNewPriority) = 0;
+        //! Try to swap the priority of the request referred to by the handle with a new priortiy
+        //! value. This can fail if the request is already being processed or has been cancelled or
+        //! fully finished, in which cases the priority doesn't have a meaning anymore.
+        //! 
+        //! \returns previous priority if successful, or `std::nullopt` otherwise.
+        virtual std::optional<hg::PZInteger> trySwapPriority(hg::PZInteger aNewPriority) = 0;
 
         //! Cancels the request. This call is idempotent.
         virtual void cancel() = 0;

@@ -45,6 +45,16 @@ public:
 
     ~RequestHandleImpl() override = default;
 
+    std::optional<hg::PZInteger> trySwapPriority(hg::PZInteger aNewPriority) override {
+        {
+            std::unique_lock<std::mutex> lock{_mutex};
+            if (_isCancelled || _isFinished) {
+                return {};
+            }
+        }
+        return _spooler._swapLoadRequestPriority(_chunkId, aNewPriority);
+    }
+
     void cancel() override {
         {
             std::unique_lock<std::mutex> lock{_mutex};
@@ -402,6 +412,23 @@ void DefaultChunkSpooler::_cancelLoadRequest(ChunkId aChunkId) {
     if (iter != _requests.end()) {
         _eraseRequest(iter, lock);
     }
+}
+
+std::optional<hg::PZInteger> DefaultChunkSpooler::_swapLoadRequestPriority(ChunkId       aChunkId,
+                                                                           hg::PZInteger aNewPriority) {
+    std::unique_lock<Mutex> lock{_mutex};
+
+    const auto iter = _requests.find(aChunkId);
+    if (iter != _requests.end()) {
+        auto& request = iter->second.request;
+        HG_ASSERT(HOLDS_LOAD_REQUEST(request));
+
+        auto& loadRequest = std::get<LoadRequest>(request);
+        std::swap(loadRequest.priority, aNewPriority);
+        return {aNewPriority};
+    }
+
+    return {};
 }
 
 void DefaultChunkSpooler::_adjustUnloadPriority(const RequestVariant& aRequestVariant,
