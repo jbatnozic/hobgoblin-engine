@@ -129,6 +129,16 @@ void DefaultWindowManager::setMainRenderTextureDrawPosition(DrawPosition aDrawPo
 // VIEWS                                                                 //
 ///////////////////////////////////////////////////////////////////////////
 
+hg::gr::ViewController& DefaultWindowManager::getViewController() {
+    HG_HARD_ASSERT(!_headless && "Method not available in Headless mode.");
+    return *_mainRenderTexture;
+}
+
+const hg::gr::ViewController& DefaultWindowManager::getViewController() const {
+    HG_HARD_ASSERT(!_headless && "Method not available in Headless mode.");
+    return *_mainRenderTexture;
+}
+
 void DefaultWindowManager::setViewCount(hg::PZInteger aViewCount) {
     HG_HARD_ASSERT(!_headless && "Method not available in Headless mode.");
     _mainRenderTexture->setViewCount(aViewCount);

@@ -41,7 +41,7 @@ public:
 
     void connectLocal(RN_ServerInterface& server) override;
 
-    void disconnect(bool notifyRemote) override;
+    void disconnect(bool aNotifyRemote = true, const std::string& aMessage = "") override;
 
     void setTimeoutLimit(std::chrono::microseconds limit) override;
 

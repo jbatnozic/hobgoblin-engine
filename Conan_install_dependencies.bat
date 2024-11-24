@@ -31,3 +31,5 @@ REM To install RelWithDebInfo profile edit Conan_install_dependencies.bat.
 ::    %BUILD_ARGS% ^
 ::	  %EXTRA_ARGS% ^
 ::    -s build_type=RelWithDebInfo
+
+PAUSE

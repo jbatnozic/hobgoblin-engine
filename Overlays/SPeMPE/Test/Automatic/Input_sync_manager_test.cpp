@@ -25,10 +25,15 @@ public:
         _netMgr2->getClient().disconnect(false);
         _netMgr1->getServer().stop();
 
-        _ctx1->detachComponent(*_netMgr1);
-        _ctx1->detachComponent(*_insMgr1);
-        _ctx2->detachComponent(*_netMgr2);
-        _ctx2->detachComponent(*_insMgr2);
+        DetachStatus detachStatus;
+        _ctx1->detachComponent<NetworkingManagerInterface>(&detachStatus);
+        ASSERT_EQ(detachStatus, DetachStatus::NOT_OWNED_BY_CONTEXT);
+        _ctx1->detachComponent<InputSyncManagerInterface>(&detachStatus);
+        ASSERT_EQ(detachStatus, DetachStatus::NOT_OWNED_BY_CONTEXT);
+        _ctx2->detachComponent<NetworkingManagerInterface>(&detachStatus);
+        ASSERT_EQ(detachStatus, DetachStatus::NOT_OWNED_BY_CONTEXT);
+        _ctx2->detachComponent<InputSyncManagerInterface>(&detachStatus);
+        ASSERT_EQ(detachStatus, DetachStatus::NOT_OWNED_BY_CONTEXT);
 
         _netMgr1.reset();
         _insMgr1.reset();

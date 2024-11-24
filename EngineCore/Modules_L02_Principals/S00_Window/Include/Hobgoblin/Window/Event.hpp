@@ -176,13 +176,13 @@ struct Event {
     {
     }
 
-    std::optional<EventVariant> eventVariant;
+    EventVariant eventVariant;
 
     template <class ...taCallables>
     void visit(taCallables&&... aCallables) {
         std::visit(
             util::MakeVisitor([](const auto&) {}, std::forward<taCallables>(aCallables)...),
-            eventVariant.value()
+            eventVariant
         );
     }
 
@@ -190,7 +190,7 @@ struct Event {
     void visit(taCallables&&... aCallables) const {
         std::visit(
             util::MakeVisitor([](const auto&) {}, std::forward<taCallables>(aCallables)...),
-            eventVariant.value()
+            eventVariant
         );
     }
 
@@ -198,14 +198,14 @@ struct Event {
     //! matching callable is provided for each event type.
     template <class ...taCallables>
     void strictVisit(taCallables&&... aCallables) {
-        std::visit(util::MakeVisitor(std::forward<taCallables>(aCallables)...), eventVariant.value());
+        std::visit(util::MakeVisitor(std::forward<taCallables>(aCallables)...), eventVariant);
     }
 
     //! Unlike visit, a call to strictVisit will not compile unless a
     //! matching callable is provided for each event type.
     template <class ...taCallables>
     void strictVisit(taCallables&&... aCallables) const {
-        std::visit(util::MakeVisitor(std::forward<taCallables>(aCallables)...), eventVariant.value());
+        std::visit(util::MakeVisitor(std::forward<taCallables>(aCallables)...), eventVariant);
     }
 };
 

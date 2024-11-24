@@ -1,13 +1,11 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-// clang-format off
-
 #ifndef UHOBGOBLIN_INPUT_PHYSICAL_KEYBOARD_KEY_HPP
 #define UHOBGOBLIN_INPUT_PHYSICAL_KEYBOARD_KEY_HPP
 
-#include <Hobgoblin/Input/Universal_input_enumeration.hpp>
 #include <Hobgoblin/HGExcept.hpp>
+#include <Hobgoblin/Input/Universal_input_enumeration.hpp>
 
 #include <optional>
 
@@ -22,9 +20,10 @@ public:
     PhysicalKeyboardKey() = default;
 
     constexpr PhysicalKeyboardKey(UniversalInputEnum aValue)
-        : _value{aValue}
-    {
-        HG_VALIDATE_ARGUMENT(IsPhysicalKeyboardKey(aValue), "{} is not a valid PhysicalKeyboardKey value.", (int)aValue);
+        : _value{aValue} {
+        HG_VALIDATE_ARGUMENT(IsPhysicalKeyboardKey(aValue) || aValue == PK_UNKNOWN,
+                             "{} is not a valid PhysicalKeyboardKey value.",
+                             (int)aValue);
     }
 
     constexpr UniversalInputEnum val() const {
@@ -50,5 +49,3 @@ HOBGOBLIN_NAMESPACE_END
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
 #endif // !UHOBGOBLIN_INPUT_PHYSICAL_KEYBOARD_KEY_HPP
-
-// clang-format on

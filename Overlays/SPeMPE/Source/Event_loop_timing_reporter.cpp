@@ -19,8 +19,9 @@ constexpr auto LOG_ID = "SPeMPE";
 
 template <class taDuration>
 double MsCount(taDuration aDuration) {
-  namespace chr = std::chrono;
-  return chr::duration_cast<chr::microseconds>(aDuration).count() / 1000.0;
+    static constexpr double NANOSECONDS_PER_MILLISECOND = 1000'000.0;
+    namespace chr = std::chrono;
+    return chr::duration_cast<chr::nanoseconds>(aDuration).count() / NANOSECONDS_PER_MILLISECOND;
 }
 } // namespace
 
@@ -64,9 +65,9 @@ void EventLoopTimingReporter::_eventPreUpdate() {
         LOG_ID,
         "Performance report for the last {} iteration(s):\n"
         "    TIME SINCE LAST REPORT: {}ms ({}ms expected; {:3.2f}% accurracy)\n"
-        "         AVG.  UPDATE TIME: {:3.4f}ms\n"
-        "         AVG.    DRAW TIME: {:3.4f}ms\n"
-        "         AVG. DISPLAY TIME: {:3.4f}ms\n"
+        "         AVG.  UPDATE TIME: {:3.6f}ms\n"
+        "         AVG.    DRAW TIME: {:3.6f}ms\n"
+        "         AVG. DISPLAY TIME: {:3.6f}ms\n"
         "       CATCH-UP ITERATIONS: {}",
         _cycleLength,
         MsCount(elapsedTime), MsCount(expectedDuration), percentAccurracy,

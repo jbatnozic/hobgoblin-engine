@@ -27,6 +27,7 @@ namespace spempe {
 class DefaultLobbyBackendManager
     : public LobbyBackendManagerInterface
     , public NonstateObject
+    , private NetworkingEventListener
 {
 public:
     DefaultLobbyBackendManager(hg::QAO_RuntimeRef aRuntimeRef, int aExecutionPriority);
@@ -118,6 +119,8 @@ private:
 
     std::deque<LobbyBackendEvent> _eventQueue;
 
+    void onNetworkingEvent(const hobgoblin::RN_Event& aEvent) override;
+
     void _eventBeginUpdate() override;
     void _eventPostUpdate() override;
 
@@ -125,6 +128,7 @@ private:
     void _eventBeginUpdate_Client();
 
     hg::PZInteger _getSize() const;
+    void _scanForNewPlayers();
     bool _hasEntryForClient(const hobgoblin::RN_ConnectorInterface& aClient, int aClientIndex) const;
     hg::PZInteger _findOptimalPositionForClient(const hobgoblin::RN_ConnectorInterface& aClient) const;
     void _removeDesiredEntriesForDisconnectedPlayers();

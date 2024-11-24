@@ -104,18 +104,23 @@ protected:
             return;
         }
 
+        DetachStatus detachStatus;
+
         if (_lobbyMgr[pos]) {
-            _ctx[pos]->detachComponent(*_lobbyMgr[pos]);
+            _ctx[pos]->detachComponent<LobbyBackendManagerInterface>(&detachStatus);
+            ASSERT_EQ(detachStatus, DetachStatus::NOT_OWNED_BY_CONTEXT);
             _lobbyMgr[pos].reset();
         }
 
         if (_svmMgr[pos]) {
-            _ctx[pos]->detachComponent(*_svmMgr[pos]);
+            _ctx[pos]->detachComponent<SyncedVarmapManagerInterface>(&detachStatus);
+            ASSERT_EQ(detachStatus, DetachStatus::NOT_OWNED_BY_CONTEXT);
             _svmMgr[pos].reset();
         }
 
         if (_netMgr[pos]) {
-            _ctx[pos]->detachComponent(*_netMgr[pos]);
+            _ctx[pos]->detachComponent<NetworkingManagerInterface>(&detachStatus);
+            ASSERT_EQ(detachStatus, DetachStatus::NOT_OWNED_BY_CONTEXT);
             _netMgr[pos].reset();
         }
 

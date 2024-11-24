@@ -3,6 +3,7 @@
 
 #include <SPeMPE/GameContext/Game_context.hpp>
 
+#include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Logging.hpp>
 #include <Hobgoblin/Utility/Time_utils.hpp>
@@ -32,12 +33,13 @@ GameContext::~GameContext() {
 
     while (!_ownedComponents.empty()) {
         ContextComponent& component = *_ownedComponents.back();
-        detachComponent(component);
+        _components.detachComponent(component);
+        _ownedComponents.pop_back();
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////
-// CONFIGURATION                                                         //
+// MARK: CONFIGURATION                                                   //
 ///////////////////////////////////////////////////////////////////////////
 
 void GameContext::setToMode(Mode aMode) {
@@ -62,7 +64,7 @@ const GameContext::RuntimeConfig& GameContext::getRuntimeConfig() const {
 }
 
 ///////////////////////////////////////////////////////////////////////////
-// GAME STATE MANAGEMENT                                                 //
+// MARK: GAME STATE MANAGEMENT                                           //
 ///////////////////////////////////////////////////////////////////////////
 
 GameContext::GameState& GameContext::getGameState() {
@@ -74,7 +76,7 @@ const GameContext::GameState& GameContext::getGameState() const {
 }
 
 ///////////////////////////////////////////////////////////////////////////
-// GAME OBJECT MANAGEMENT                                                //
+// MARK: GAME OBJECT MANAGEMENT                                          //
 ///////////////////////////////////////////////////////////////////////////
 
 hg::QAO_Runtime& GameContext::getQAORuntime() {
@@ -82,26 +84,15 @@ hg::QAO_Runtime& GameContext::getQAORuntime() {
 }
 
 ///////////////////////////////////////////////////////////////////////////
-// COMPONENT MANAGEMENT                                                  //
+// MARK: COMPONENT MANAGEMENT                                            //
 ///////////////////////////////////////////////////////////////////////////
-
-void GameContext::detachComponent(ContextComponent& aComponent) {
-    _components.detachComponent(aComponent);
-
-    _ownedComponents.erase(std::remove_if(_ownedComponents.begin(),
-                                          _ownedComponents.end(),
-                                          [&aComponent](std::unique_ptr<ContextComponent>& aCurr) {
-                                              return aCurr.get() == &aComponent;
-                                          }),
-                           _ownedComponents.end());
-}
 
 std::string GameContext::getComponentTableString(char aSeparator) const {
     return _components.toString(aSeparator);
 }
 
 ///////////////////////////////////////////////////////////////////////////
-// EXECUTION                                                             //
+// MARK: EXECUTION                                                       //
 ///////////////////////////////////////////////////////////////////////////
 
 int GameContext::runFor(int aIterations) {
@@ -129,7 +120,7 @@ std::uint64_t GameContext::getCurrentIterationOrdinal() const {
 }
 
 ///////////////////////////////////////////////////////////////////////////
-// CHILD CONTEXT SUPPORT                                                 //
+// MARK: CHILD CONTEXT SUPPORT                                           //
 ///////////////////////////////////////////////////////////////////////////
 
 void GameContext::attachChildContext(std::unique_ptr<GameContext> aChildContext) {
@@ -196,16 +187,16 @@ int GameContext::stopAndJoinChildContext() {
 }
 
 ///////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS                                                       //
+// MARK: PRIVATE METHODS                                                 //
 ///////////////////////////////////////////////////////////////////////////
 
 namespace {
 
-#ifndef UHOBGOBLIN_DEBUG
+#if HG_BUILD_TYPE == HG_DEBUG
 // If we're in Debug mode, we don't want to catch and handle
 // exceptions, but rather let the IDE break the program.
 #define CATCH_EXCEPTIONS_TOP_LEVEL
-#endif // !UHOBGOBLIN_DEBUG
+#endif
 
 int DoSingleQaoIteration(hg::QAO_Runtime& runtime, std::int32_t eventFlags) {
     runtime.startStep();
@@ -257,6 +248,7 @@ using TimingDuration = std::chrono::duration<double, std::micro>;
 using std::chrono::duration_cast;
 using std::chrono::microseconds;
 using std::chrono::milliseconds;
+using std::chrono::nanoseconds;
 
 template <class taDuration>
 double MsCount(taDuration aDuration) {
@@ -336,7 +328,7 @@ void GameContext::_runImpl(hg::NeverNull<GameContext*> aContext,
                 if ((*aReturnValue) != 0) {
                     return;
                 }
-                aContext->_performanceInfo.updateTime = updateStopwatch.getElapsedTime();
+                aContext->_performanceInfo.updateTime = updateStopwatch.getElapsedTime<nanoseconds>();
             }
 
             accumulator -= deltaTime;
@@ -360,7 +352,7 @@ void GameContext::_runImpl(hg::NeverNull<GameContext*> aContext,
                 if ((*aReturnValue) != 0) {
                     return;
                 }
-                aContext->_performanceInfo.drawTime = drawStopwatch.getElapsedTime();
+                aContext->_performanceInfo.drawTime = drawStopwatch.getElapsedTime<nanoseconds>();
             }
         }
 
@@ -386,7 +378,7 @@ void GameContext::_runImpl(hg::NeverNull<GameContext*> aContext,
             if ((*aReturnValue) != 0) {
                 return;
             }
-            aContext->_performanceInfo.displayTime = displayStopwatch.getElapsedTime();
+            aContext->_performanceInfo.displayTime = displayStopwatch.getElapsedTime<nanoseconds>();
         }
 
         // 'Refill' accumulator

@@ -98,10 +98,10 @@ public:
     explicit EventFactory(const std::vector<RN_EventListener*>& aEventListeners);
     explicit EventFactory(const std::vector<RN_EventListener*>& aEventListeners, PZInteger clientIndex);
 
-    void createBadPassphrase(std::string incorrectPassphrase) const;
+    void createBadPassphrase(const std::string& incorrectPassphrase) const;
     void createConnectAttemptFailed(RN_Event::ConnectAttemptFailed::Reason reason) const;
     void createConnected() const;
-    void createDisconnected(RN_Event::Disconnected::Reason reason, std::string message) const;
+    void createDisconnected(RN_Event::Disconnected::Reason reason, const std::string& message) const;
 
 private:
     const std::vector<RN_EventListener*>& _eventListeners;

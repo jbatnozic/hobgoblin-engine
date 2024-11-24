@@ -8,7 +8,7 @@
 
 #include <RmlUi/Core/RenderInterface.h>
 
-#include <Hobgoblin/Graphics.hpp>
+#include <Hobgoblin/Graphics/Canvas.hpp>
 #include <Hobgoblin/RmlUi/Context_driver.hpp>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
@@ -20,11 +20,11 @@ class RmlUiHobgoblinRenderer : public Rml::RenderInterface {
 public:
     RmlUiHobgoblinRenderer() = default;
 
-    //! Sets the render target
-    void setRenderTarget(gr::RenderTarget* aRenderTarget);
+    //! Sets the canvas
+    void setCanvas(gr::Canvas* aCanvas);
 
-    //! Returns the currently render target
-    gr::RenderTarget* getRenderTarget() const;
+    //! Returns the currently set render target
+    gr::Canvas* getCanvas() const;
 
     ///////////////////////////////////////////////////////////////////////////
     // INHERITED FROM RML::RENDERINTERFACE                                   //
@@ -65,7 +65,7 @@ public:
 private:
     void _initViewport();
 
-    gr::RenderTarget* _renderTarget = nullptr;
+    gr::Canvas* _canvas = nullptr;
 };
 
 } // namespace detail

@@ -41,8 +41,10 @@ public:
     //! \throws TracedLogicError if `aOther` is already bound to one or more shapes.
     CollisionDelegate(CollisionDelegate&& aOther);
 
-    //! Prevent move assignment.
-    CollisionDelegate& operator=(CollisionDelegate&&) = delete;
+    //! Allow cheap moving.
+    //!
+    //! \throws TracedLogicError if `aOther` is already bound to one or more shapes.
+    CollisionDelegate& operator=(CollisionDelegate&&);
 
     //! Binds to a single shape.
     //!
@@ -178,7 +180,6 @@ inline CollisionDelegate::CollisionDelegate(CollisionDelegate&& aOther)
     _collisionFunctions = std::move(aOther._collisionFunctions);
 }
 
-#ifdef COLLISION_DELEGATE_ENABLE_MOVE_ASSIGNMENT
 inline CollisionDelegate& CollisionDelegate::operator=(CollisionDelegate&& aOther) {
     if (aOther._isBound) {
         HG_THROW_TRACED(TracedLogicError, 0, "Attempting to move a bound CollisionDelegate.");
@@ -192,7 +193,6 @@ inline CollisionDelegate& CollisionDelegate::operator=(CollisionDelegate&& aOthe
     }
     return SELF;
 }
-#endif
 
 } // namespace alvin
 HOBGOBLIN_NAMESPACE_END

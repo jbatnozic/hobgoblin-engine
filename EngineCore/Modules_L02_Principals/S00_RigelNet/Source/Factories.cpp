@@ -27,7 +27,7 @@ public:
 
     void start(std::uint16_t localPort) override {}
 
-    void stop() override {}
+    void stop(bool aNotifyClients = true) override {}
 
     void resize(PZInteger newSize) override {}
 
@@ -52,9 +52,14 @@ public:
         return *reinterpret_cast<RN_ConnectorInterface*>(0x12345678);
     }
 
-    void swapClients(PZInteger index1, PZInteger index2) override {}
+    RN_ConnectorInterface& getClientConnector(PZInteger clientIndex) override {
+        HG_UNREACHABLE("Dummy Server doesn't have any client connectors");
+        return *reinterpret_cast<RN_ConnectorInterface*>(0x12345678);
+    }
 
-    void kickClient(PZInteger index) override {}
+    void kickClient(PZInteger          aClientIndex,
+                    bool               aNotifyRemote,
+                    const std::string& aMessage) override {}
 
     ///////////////////////////////////////////////////////////////////////////
     // STATE INSPECTION                                                      //

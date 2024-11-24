@@ -35,7 +35,7 @@ public:
         virtual ~RequestHandleInterface() = default;
 
         //! TODO(add description)
-        virtual void trySwapPriority(hg::PZInteger aNewPriority) = 0;
+        // virtual void trySwapPriority(hg::PZInteger aNewPriority) = 0;
 
         //! Cancels the request. This call is idempotent.
         virtual void cancel() = 0;

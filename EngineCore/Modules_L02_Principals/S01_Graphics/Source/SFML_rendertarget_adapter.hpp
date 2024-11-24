@@ -7,8 +7,9 @@
 #define UHOBGOBLIN_GRAPHICS_SFML_RENDERTARGET_ADAPTER_HPP
 
 #include <Hobgoblin/Common.hpp>
-#include <Hobgoblin/Graphics/Render_target.hpp>
+#include <Hobgoblin/Graphics/Canvas.hpp>
 #include <Hobgoblin/Graphics/View.hpp>
+#include <Hobgoblin/Graphics/View_controller.hpp>
 
 #include <SFML/Graphics/RenderTarget.hpp>
 
@@ -22,35 +23,58 @@ namespace gr {
 
 //! Adapts a sf::RenderTarget to the hg::gr::RenderTarget interface.
 //! NO multiview support!
-class SfmlRenderTargetAdapter final : public RenderTarget {
+class SfmlRenderTargetAdapter : public Canvas, public ViewController {
 public:
     SfmlRenderTargetAdapter(sf::RenderTarget& aRenderTarget);
 
     ///////////////////////////////////////////////////////////////////////////
-    // RENDERTARGET                                                          //
+    // CANVAS - BASIC                                                        //
     ///////////////////////////////////////////////////////////////////////////
 
-    void draw(const Drawable& aDrawable,
-              const RenderStates& aStates = RenderStates::DEFAULT) override;
+    math::Vector2pz getSize() const override final;
 
-    void draw(const Vertex* aVertices,
-              PZInteger aVertexCount,
-              PrimitiveType aPrimitiveType,
+    bool isSrgb() const override final;
+
+    RenderingBackendRef getRenderingBackend() override final;
+
+    ///////////////////////////////////////////////////////////////////////////
+    // CANVAS - DRAWING                                                      //
+    ///////////////////////////////////////////////////////////////////////////
+
+    void clear(const Color& aColor = COLOR_BLACK) override;
+
+    void draw(const Drawable& aDrawable, const RenderStates& aStates = RenderStates::DEFAULT) override;
+
+    void draw(const Vertex*       aVertices,
+              PZInteger           aVertexCount,
+              PrimitiveType       aPrimitiveType,
               const RenderStates& aStates = RenderStates::DEFAULT) override;
 
     void draw(const VertexBuffer& aVertexBuffer,
               const RenderStates& aStates = RenderStates::DEFAULT) override;
 
     void draw(const VertexBuffer& aVertexBuffer,
-              PZInteger aFirstVertex,
-              PZInteger aVertexCount,
+              PZInteger           aFirstVertex,
+              PZInteger           aVertexCount,
               const RenderStates& aStates = RenderStates::DEFAULT) override;
-
-    void getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) override;
 
     void flush() override;
 
-    void clear(const Color& aColor = COLOR_BLACK) override;
+    ///////////////////////////////////////////////////////////////////////////
+    // CANVAS - OPEN GL                                                      //
+    ///////////////////////////////////////////////////////////////////////////
+
+    [[nodiscard]] bool setActive(bool aActive = true) override final;
+
+    void pushGLStates() override final;
+
+    void popGLStates() override final;
+
+    void resetGLStates() override final;
+
+    ///////////////////////////////////////////////////////////////////////////
+    // VIEW CONTROLLER                                                       //
+    ///////////////////////////////////////////////////////////////////////////
 
     void setViewCount(PZInteger aViewCount) override;
 
@@ -64,42 +88,34 @@ public:
 
     View& getView(PZInteger aViewIdx = 0) override;
 
-    View getDefaultView() const override;
+    View getDefaultView() const override final;
 
     math::Rectangle<PZInteger> getViewport(const View& aView) const override;
 
-    math::Rectangle<PZInteger> getViewport(PZInteger aViewIdx) const override;
-
-    math::Vector2f mapPixelToCoords(const math::Vector2i& aPoint, PZInteger aViewIdx = 0) const override;
+    math::Rectangle<PZInteger> getViewport(PZInteger aViewIdx = 0) const override;
 
     math::Vector2f mapPixelToCoords(const math::Vector2i& aPoint, const View& aView) const override;
+
+    math::Vector2f mapPixelToCoords(const math::Vector2i& aPoint, PZInteger aViewIdx = 0) const override;
 
     math::Vector2i mapCoordsToPixel(const math::Vector2f& point, const View& view) const override;
 
     math::Vector2i mapCoordsToPixel(const math::Vector2f& point, PZInteger aViewIdx = 0) const override;
-
-    math::Vector2pz getSize() const override;
-
-    bool setActive(bool aActive = true) override;
-
-    void pushGLStates() override;
-
-    void popGLStates() override;
-
-    void resetGLStates() override;
-
-    bool isSrgb() const override;
 
     ///////////////////////////////////////////////////////////////////////////
     // OTHER                                                                 //
     ///////////////////////////////////////////////////////////////////////////
 
     sf::RenderTarget& getSFMLRenderTarget() {
-        return _renderTarget;
+        return *_renderTarget;
+    }
+
+    void setSFMLRenderTarget(sf::RenderTarget& aRenderTarget) {
+        _renderTarget = &aRenderTarget;
     }
 
 private:
-    sf::RenderTarget& _renderTarget;
+    NeverNull<sf::RenderTarget*> _renderTarget;
 };
 
 } // namespace gr

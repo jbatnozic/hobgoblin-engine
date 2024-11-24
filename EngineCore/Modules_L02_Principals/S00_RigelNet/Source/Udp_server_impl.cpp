@@ -62,11 +62,10 @@ void RN_UdpServerImpl::start(std::uint16_t localPort) {
     _running = true;
 }
 
-void RN_UdpServerImpl::stop() {
-    // TODO disconnect all connectors
+void RN_UdpServerImpl::stop(bool aNotifyClients) {
     for (auto& client : _clients) {
         if (client->getStatus() != RN_ConnectorStatus::Disconnected) {
-            client->disconnect(false); // TODO make configurable
+            client->disconnect(aNotifyClients, "Server shutting down.");
         }
     }
 
@@ -137,15 +136,17 @@ void RN_UdpServerImpl::removeEventListener(NeverNull<RN_EventListener*> aEventLi
 ///////////////////////////////////////////////////////////////////////////
 
 const RN_ConnectorInterface& RN_UdpServerImpl::getClientConnector(PZInteger clientIndex) const {
-    return *(_clients[clientIndex]);
+    return *(_clients.at(clientIndex));
 }
 
-void RN_UdpServerImpl::swapClients(PZInteger index1, PZInteger index2) {
-    assert(false && "Not implemented (and not going to be)"); // TODO
+RN_ConnectorInterface& RN_UdpServerImpl::getClientConnector(PZInteger clientIndex) {
+    return *(_clients.at(clientIndex));
 }
 
-void RN_UdpServerImpl::kickClient(PZInteger index) {
-    assert(false && "Not implemented"); // TODO
+void RN_UdpServerImpl::kickClient(PZInteger          aClientIndex,
+                                  bool               aNotifyRemote,
+                                  const std::string& aMessage) {
+    getClientConnector(aClientIndex).disconnect(aNotifyRemote, aMessage);
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -263,11 +264,11 @@ RN_Telemetry RN_UdpServerImpl::_updateReceive() {
         
         if (client->getStatus() == RN_ConnectorStatus::Connected) {
             client->receivingFinished();
-            telemetry += client->sendAcks();
+            telemetry += client->sendWeakAcks();
         }
         if (client->getStatus() != RN_ConnectorStatus::Disconnected) {
             _senderIndex = i;
-            client->handleDataMessages(SELF, /* reference to pointer -> */ _currentPacket);
+            client->handleDataMessages(SELF, &_currentPacket);
         }
         if (client->getStatus() != RN_ConnectorStatus::Disconnected) {
             client->checkForTimeout();
@@ -284,7 +285,7 @@ RN_Telemetry RN_UdpServerImpl::_updateSend() {
         if (client->getStatus() == RN_ConnectorStatus::Disconnected) {
             continue;
         }
-        telemetry += client->send();
+        telemetry += client->sendData();
     }
     return telemetry;
 }
@@ -315,10 +316,10 @@ void RN_UdpServerImpl::_handlePacketFromUnknownSender(sf::IpAddress senderIp,
     // TODO Send disconnect message (no room left)
 }
 
-void RN_UdpServerImpl::_compose(RN_ComposeForAllType receiver, const void* data, std::size_t sizeInBytes) {
+void RN_UdpServerImpl::_compose(RN_ComposeForAllType, const void* data, std::size_t sizeInBytes) {
     for (auto& client : _clients) {
         if (client->getStatus() == RN_ConnectorStatus::Connected) {
-            client->appendToNextOutgoingPacket(data, sizeInBytes);
+            client->appendDataForSending(data, sizeInBytes);
         }
     }
 }
@@ -327,7 +328,7 @@ void RN_UdpServerImpl::_compose(PZInteger receiver, const void* data, std::size_
     if (_clients[receiver]->getStatus() != RN_ConnectorStatus::Connected) {
         HG_THROW_TRACED(TracedLogicError, 0, "Cannot compose messages to clients that are not connected.");
     }
-    _clients[receiver]->appendToNextOutgoingPacket(data, sizeInBytes);
+    _clients[receiver]->appendDataForSending(data, sizeInBytes);
 }
 
 util::Packet* RN_UdpServerImpl::_getCurrentPacket() {

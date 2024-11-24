@@ -8,6 +8,7 @@
 
 #include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/QAO/id.hpp>
+#include <Hobgoblin/QAO/base.hpp>
 #include <Hobgoblin/QAO/runtime.hpp>
 
 #include <utility>

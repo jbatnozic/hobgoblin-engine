@@ -125,7 +125,7 @@ public:
 #endif
     }
 
-    void draw(hg::gr::RenderTarget& aTarget) {
+    void draw(hg::gr::Canvas& aCanvas) {
         const float resolution = 16.f;
 
         hg::gr::RectangleShape emptyRect{
@@ -144,17 +144,17 @@ public:
             for (hg::PZInteger x = 0; x < _chunkGrid.getWidth(); x += 1) {
                 if (_chunkGrid[y][x] == nullptr) {
                     emptyRect.setPosition({x * resolution, y * resolution});
-                    aTarget.draw(emptyRect);
+                    aCanvas.draw(emptyRect);
                 } else {
                     filledRect.setPosition({x * resolution, y * resolution});
-                    aTarget.draw(filledRect);
+                    aCanvas.draw(filledRect);
                 }
                 if (x == _playerPosition.x && y == _playerPosition.y) {
                     hg::gr::CircleShape circle{resolution / 4.f};
                     circle.setFillColor(hg::gr::COLOR_RED);
                     circle.setOrigin({resolution / 4.f, resolution / 4.f});
                     circle.setPosition({(x + 0.5f) * resolution, (y + 0.5f) * resolution});
-                    aTarget.draw(circle);
+                    aCanvas.draw(circle);
                 }
             }
         }

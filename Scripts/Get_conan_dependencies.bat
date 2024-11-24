@@ -6,6 +6,9 @@ SET LIBZT_VERSION=3.0.2
 SET ZTCPP_COMMITHASH=bb4c8d25ba8dbcea783f5e742066ce943344f762
 SET ZTCPP_VERSION=3.0.2
 
+SET RMLUI_COMMITHASH=33dc5517c883edf9bf54f9339bf223333e8f79c4
+SET RMLUI_VERSION=5.1
+
 ECHO "Looking for git..."
 where git
 IF %ERRORLEVEL% EQU 0 GOTO foundgit
@@ -45,9 +48,22 @@ EXIT /b 1
 :exportedztcpp
 CD ..
 
+ECHO "Getting RmlUi..."
+git clone https://github.com/jbatnozic/rmlui-conan
+CD rmlui-conan
+git checkout %RMLUI_COMMITHASH%
+conan export . --version %RMLUI_VERSION% --user jbatnozic --channel stable
+IF %ERRORLEVEL% EQU 0 GOTO exportedrmlui
+CD ..
+EXIT /b 1
+:exportedrmlui
+CD ..
+
 ECHO "All required Conan recipes exported!"
 
 REM Clean up
 CD ..
 DEL /f /s /q Build.Temp 1>NUL
 RMDIR /s /q Build.Temp
+
+PAUSE

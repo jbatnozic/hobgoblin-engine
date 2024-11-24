@@ -1,13 +1,13 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-// clang-format off
-
 #ifndef UHOBGOBLIN_RN_CONNECTOR_INTERFACE_HPP
 #define UHOBGOBLIN_RN_CONNECTOR_INTERFACE_HPP
 
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/RigelNet/Remote_info.hpp>
+
+#include <string>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
@@ -15,16 +15,25 @@ HOBGOBLIN_NAMESPACE_BEGIN
 namespace rn {
 
 enum class RN_ConnectorStatus {
-    Disconnected, //! No connection established. Connector idle.
-    Accepting,    //! (Server-side) Currently trying to establish a connection with a client.
-    Connecting,   //! (Client-side) Currently trying to establish a connection with the server.
-    Connected     //! Connection established and active.
+    Disconnected, //!< No connection established. Connector idle.
+    Accepting,    //!< (Server-side) Currently trying to establish a connection with a client.
+    Connecting,   //!< (Client-side) Currently trying to establish a connection with the server.
+    Connected     //!< Connection established and active.
 };
 
 class RN_ConnectorInterface {
 public:
     //! Current status of the connector.
     virtual RN_ConnectorStatus getStatus() const noexcept = 0;
+
+    //! Equivalent to `getStatus() == RN_ConnectorStatus::Connected`.
+    virtual bool isConnected() const noexcept = 0;
+
+    //! Equivalent to `getStatus() == RN_ConnectorStatus::Disconnected`.
+    virtual bool isDisconnected() const noexcept = 0;
+
+    //! TODO(add desc)
+    virtual void disconnect(bool aNotifyRemote = true, const std::string& aMessage = "") = 0;
 
     //! Returns true is the connector is connected to another within the same process.
     virtual bool isConnectedLocally() const noexcept = 0;
@@ -48,5 +57,3 @@ HOBGOBLIN_NAMESPACE_END
 #include <Hobgoblin/Private/Short_namespace.hpp>
 
 #endif // !UHOBGOBLIN_RN_CONNECTOR_INTERFACE_HPP
-
-// clang-format on

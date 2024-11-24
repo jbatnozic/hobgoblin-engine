@@ -16,15 +16,14 @@
 #include <Hobgoblin/Graphics/Transformable_data.hpp>
 #include <Hobgoblin/Graphics/Vertex.hpp>
 #include <Hobgoblin/Math/Rectangle.hpp>
-
-#include <variant>
-#include <vector>
+#include <Hobgoblin/Utility/Compressed_small_vector.hpp>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace gr {
 
+// old size: 336
 class Multisprite : public Drawable, public Transformable {
 public:
     //! Default-constructs the multisprite.
@@ -193,14 +192,10 @@ private:
         math::Rectangle<float> getLocalBounds() const;
     };
 
-    std::variant<Subsprite, std::vector<Subsprite>> _subsprites;
+    util::CompressedSmallVector<Subsprite, 1> _subsprites;
 
-    PZInteger _subspriteCount = 0;
     float _subspriteSelector = 0.f;
     Color _color = COLOR_WHITE;
-
-    Subsprite* _firstSubspritePtr();
-    const Subsprite* _firstSubspritePtr() const;
 };
 
 template <class taRectsBeginIterator, class taRectsEndIterator>

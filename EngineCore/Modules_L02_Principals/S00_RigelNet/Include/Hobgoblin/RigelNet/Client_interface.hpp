@@ -8,6 +8,7 @@
 
 #include <Hobgoblin/RigelNet/Connector_interface.hpp>
 #include <Hobgoblin/RigelNet/Node_interface.hpp>
+#include <Hobgoblin/RigelNet/Retransmit_predicate.hpp>
 
 #include <chrono>
 #include <cstdint>
@@ -39,7 +40,7 @@ public:
     //! process as this client.
     virtual void connectLocal(RN_ServerInterface& server) = 0;
 
-    virtual void disconnect(bool notifyRemote) = 0;
+    virtual void disconnect(bool aNotifyRemote = true, const std::string& aMessage = "") = 0;
 
     //! Set a time limit after which the connection will be dropped (closed)
     //! if the remote host stops respoding. A value of 0, or negative, will be

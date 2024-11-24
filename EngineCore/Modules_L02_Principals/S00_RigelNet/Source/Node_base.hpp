@@ -15,9 +15,7 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace rn {
 
-namespace {
-constexpr auto LOG_ID = "Hobgoblin.RigelNet";
-}
+#define LOG_ID "Hobgoblin.RigelNet"
 
 class RN_NodeBase {
 protected:
@@ -54,6 +52,8 @@ protected:
         }
     }
 };
+
+#undef LOG_ID
 
 } // namespace rn
 HOBGOBLIN_NAMESPACE_END

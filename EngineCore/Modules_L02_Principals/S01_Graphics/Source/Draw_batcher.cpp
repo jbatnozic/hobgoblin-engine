@@ -1,6 +1,7 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
+#include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/Graphics/Draw_batcher.hpp>
 #include <Hobgoblin/HGExcept.hpp>
 
@@ -78,7 +79,7 @@ bool IsBatchable(PrimitiveType aPrimitiveType) {
 
     static constexpr Mapping mapping{};
 
-#ifdef UHOBGOBLIN_DEBUG
+#if HG_BUILD_TYPE == HG_DEBUG
     return mapping.table.at((unsigned)aPrimitiveType);
 #else
     return mapping.table[(unsigned)aPrimitiveType];
@@ -88,6 +89,26 @@ bool IsBatchable(PrimitiveType aPrimitiveType) {
 
 DrawBatcher::DrawBatcher(Canvas& aCanvas)
     : _canvas{aCanvas} {}
+
+math::Vector2pz DrawBatcher::getSize() const {
+    return _canvas.getSize();
+}
+
+RenderingBackendRef DrawBatcher::getRenderingBackend() {
+    return _canvas.getRenderingBackend();
+}
+
+bool DrawBatcher::isSrgb() const {
+    return _canvas.isSrgb();
+}
+
+///////////////////////////////////////////////////////////////////////////
+// CANVAS - DRAWING                                                      //
+///////////////////////////////////////////////////////////////////////////
+
+void DrawBatcher::clear(const Color& aColor) {
+    _canvas.clear(aColor);
+}
 
 void DrawBatcher::draw(const Drawable& aDrawable, const RenderStates& aStates) {
     const auto batchingType = aDrawable.getBatchingType();
@@ -171,9 +192,29 @@ void DrawBatcher::flush() {
     _canvas.flush();
 }
 
-void DrawBatcher::getCanvasDetails(CanvasType& aType, void*& aRenderingBackend) {
-    _canvas.getCanvasDetails(aType, aRenderingBackend);
+///////////////////////////////////////////////////////////////////////////
+// CANVAS - OPEN GL                                                      //
+///////////////////////////////////////////////////////////////////////////
+
+[[nodiscard]] bool DrawBatcher::setActive(bool aActive) {
+    return _canvas.setActive(aActive);
 }
+
+void DrawBatcher::pushGLStates() {
+    _canvas.pushGLStates();
+}
+
+void DrawBatcher::popGLStates() {
+    _canvas.popGLStates();
+}
+
+void DrawBatcher::resetGLStates() {
+    _canvas.resetGLStates();
+}
+
+///////////////////////////////////////////////////////////////////////////
+// PRIVATE METHODS                                                       //
+///////////////////////////////////////////////////////////////////////////
 
 void DrawBatcher::_flush() {
     switch (_status) {

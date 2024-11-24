@@ -17,7 +17,6 @@
 #include <Hobgoblin/Graphics/Glyph.hpp>
 #include <Hobgoblin/Graphics/Primitive_type.hpp>
 #include <Hobgoblin/Graphics/Render_states.hpp>
-#include <Hobgoblin/Graphics/Render_target.hpp>
 #include <Hobgoblin/Graphics/Shader.hpp>
 #include <Hobgoblin/Graphics/Sprite.hpp>
 #include <Hobgoblin/Graphics/Texture.hpp>

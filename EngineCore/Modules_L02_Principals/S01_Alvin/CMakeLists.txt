@@ -7,6 +7,7 @@ add_library(${PROJECT_NAME} STATIC
     "Source/Alvin_dummy.cpp"
     "Source/Main_collision_dispatcher.cpp"
     "Source/Space.cpp"
+    "Source/Unibody.cpp"
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC "Include/")

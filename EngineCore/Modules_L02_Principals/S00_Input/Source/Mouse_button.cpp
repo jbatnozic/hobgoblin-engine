@@ -1,8 +1,6 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-// clang-format off
-
 #include <Hobgoblin/Input/Mouse_button.hpp>
 
 #include <SFML/Window/Mouse.hpp>
@@ -15,6 +13,9 @@ HOBGOBLIN_NAMESPACE_BEGIN
 namespace in {
 
 bool CheckPressedMB(MouseButton aKey) {
+    if (aKey.val() == MB_UNKNOWN) {
+        return false;
+    }
     return sf::Mouse::isButtonPressed(ToSfMouseButton(aKey));
 }
 
@@ -32,5 +33,3 @@ std::optional<MouseButton> DetectPressedMB() {
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
-
-// clang-format on

@@ -6,7 +6,8 @@ project("Hobgoblin.Common.AutomaticTest")
 find_package(GTest CONFIG REQUIRED)
 
 add_executable(${PROJECT_NAME} 
-  "Nullability_test.cpp"
+    "Name_of_type_test.cpp"
+    "Nullability_test.cpp"
 )
 
 target_link_libraries(${PROJECT_NAME}

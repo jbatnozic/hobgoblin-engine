@@ -3,14 +3,12 @@
 
 // clang-format off
 
-
 #include <Hobgoblin/Graphics/Canvas.hpp>
 #include <Hobgoblin/Graphics/Multisprite.hpp>
 #include <Hobgoblin/Graphics/Vertex.hpp>
 #include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Math/Vector.hpp>
 
-#include <cassert>
 #include <cmath>
 #include <cstring>
 
@@ -24,6 +22,11 @@ namespace gr {
 ///////////////////////////////////////////////////////////////////////////
 // MULTISPRITE                                                           //
 ///////////////////////////////////////////////////////////////////////////
+
+Multisprite::Multisprite()
+    : _texture{nullptr}
+{
+}
 
 Multisprite::Multisprite(const Texture* aTexture)
     : _texture{aTexture}
@@ -53,47 +56,20 @@ const Texture* Multisprite::getTexture() const {
 ///////////////////////////////////////////////////////////////////////////
 
 void Multisprite::addSubsprite(TextureRect aTextureRect) {
-    if (_subspriteCount == 0) {
-        _subsprites.emplace<Subsprite>(aTextureRect);
-    }
-    else if (_subspriteCount == 1) {
-        const auto subsprite0 = *_firstSubspritePtr();
-        _subsprites = std::vector<Subsprite>{};
-        std::get<std::vector<Subsprite>>(_subsprites).push_back(subsprite0);
-        std::get<std::vector<Subsprite>>(_subsprites).emplace_back(aTextureRect);
-    }
-    else {
-        std::get<std::vector<Subsprite>>(_subsprites).emplace_back(aTextureRect);
-    }
-
-    _subspriteCount += 1;
+    _subsprites.emplace_back(aTextureRect);
 }
 
 void Multisprite::removeSubsprite(PZInteger aSubspriteIndex) {
-    HG_VALIDATE_ARGUMENT(aSubspriteIndex >= 0 && aSubspriteIndex < _subspriteCount,
+    const auto subspriteCount = getSubspriteCount();
+
+    HG_VALIDATE_ARGUMENT(aSubspriteIndex >= 0 && aSubspriteIndex < subspriteCount,
                          "Subsprite index ({}) out of bounds.", aSubspriteIndex);
 
-    if (_subspriteCount > 2) {
-        auto& vec = std::get<std::vector<Subsprite>>(_subsprites);
-        vec.erase(vec.begin() + aSubspriteIndex);
-        _subspriteCount -= 1;
-    }
-    else if (_subspriteCount == 2) {
-        auto& vec = std::get<std::vector<Subsprite>>(_subsprites);
-        vec.erase(vec.begin() + aSubspriteIndex);
-
-        const Subsprite temp = vec.front();
-        _subsprites = temp;
-
-        _subspriteCount = 1;
-    }
-    else /* count = 1 */ {
-        _subspriteCount = 0; // There's not really anything to delete so we just mark it as empty
-    }
+    _subsprites.erase(_subsprites.begin() + aSubspriteIndex);
 }
 
 PZInteger Multisprite::getSubspriteCount() const {
-    return _subspriteCount;
+    return stopz(_subsprites.size());
 }
 
 float Multisprite::getSubspriteSelector() const {
@@ -101,13 +77,15 @@ float Multisprite::getSubspriteSelector() const {
 }
 
 PZInteger Multisprite::getCurrentSubspriteIndex() const {
-    HG_VALIDATE_PRECONDITION(_subspriteCount > 0);
+    const auto subspriteCount = getSubspriteCount();
+
+    HG_VALIDATE_PRECONDITION(subspriteCount > 0);
 
     float temp = _subspriteSelector;
     while (temp < 0.f) {
-        temp += static_cast<float>(_subspriteCount);
+        temp += static_cast<float>(subspriteCount);
     }
-    return ToPz(std::trunc(temp)) % _subspriteCount;
+    return ToPz(std::trunc(temp)) % subspriteCount;
 }
 
 void Multisprite::selectSubsprite(int aSubspriteIndex) {
@@ -127,10 +105,12 @@ void Multisprite::advanceSubsprite(float aSubspriteCount) {
 }
 
 Sprite Multisprite::extractSubsprite(PZInteger aSubspriteIndex) const {
-    HG_VALIDATE_ARGUMENT(aSubspriteIndex >= 0 && aSubspriteIndex < _subspriteCount,
+    const auto subspriteCount = getSubspriteCount();
+
+    HG_VALIDATE_ARGUMENT(aSubspriteIndex >= 0 && aSubspriteIndex < subspriteCount,
                          "Subsprite index ({}) out of bounds.", aSubspriteIndex);
 
-    const auto& subsprite = *(_firstSubspritePtr() + aSubspriteIndex);
+    const auto& subsprite =  _subsprites[pztos(aSubspriteIndex)];
 
     return Sprite{_texture, subsprite.textureRect};
 }
@@ -152,46 +132,51 @@ Color Multisprite::getColor() const {
 ///////////////////////////////////////////////////////////////////////////
 
 math::Rectangle<float> Multisprite::getLocalBounds(PZInteger aSubspriteIndex) const {
-    HG_VALIDATE_ARGUMENT(aSubspriteIndex >= 0 && aSubspriteIndex < _subspriteCount,
+    const auto subspriteCount = getSubspriteCount();
+
+    HG_VALIDATE_ARGUMENT(aSubspriteIndex >= 0 && aSubspriteIndex < subspriteCount,
                          "Subsprite index ({}) out of bounds.", aSubspriteIndex);
 
-    return _firstSubspritePtr()[aSubspriteIndex].getLocalBounds();
+    return _subsprites[pztos(aSubspriteIndex)].getLocalBounds();
 }
 
 math::Rectangle<float> Multisprite::getLocalBounds() const {
     math::Rectangle<float> rect; // default-initializes to all zeros
 
-    if (_subspriteCount > 0) {
-        rect = _firstSubspritePtr()[getCurrentSubspriteIndex()].getLocalBounds();
+    if (!_subsprites.empty()) {
+        rect = _subsprites[pztos(getCurrentSubspriteIndex())].getLocalBounds();
     }
 
     return rect;
 }
 
 math::Rectangle<float> Multisprite::getGlobalBounds(PZInteger aSubspriteIndex) const {
-    HG_VALIDATE_ARGUMENT(aSubspriteIndex >= 0 && aSubspriteIndex < _subspriteCount,
+    const auto subspriteCount = getSubspriteCount();
+
+    HG_VALIDATE_ARGUMENT(aSubspriteIndex >= 0 && aSubspriteIndex < subspriteCount,
                          "Subsprite index ({}) out of bounds.", aSubspriteIndex);
 
     return getTransform().transformRect(
-        _firstSubspritePtr()[aSubspriteIndex].getLocalBounds()
+        _subsprites[pztos(aSubspriteIndex)].getLocalBounds()
     );
 }
 
 math::Rectangle<float> Multisprite::getGlobalBounds() const {
     math::Rectangle<float> rect; // default-initializes to all zeros
 
-    if (_subspriteCount > 0) {
-        rect = _firstSubspritePtr()[getCurrentSubspriteIndex()].getLocalBounds();
+    if (!_subsprites.empty()) {
+        rect = _subsprites[pztos(getCurrentSubspriteIndex())].getLocalBounds();
     }
 
     return getTransform().transformRect(rect);
 }
 
 bool Multisprite::isNormalized() const {
-    const auto* subspsrites = _firstSubspritePtr();
+    const auto subspriteCount = getSubspriteCount();
+    const auto* subsprites = _subsprites.data();
 
-    for (PZInteger i = 1; i < getSubspriteCount(); i += 1) {
-        if (subspsrites[i].getLocalBounds() != subspsrites[i - 1].getLocalBounds()) {
+    for (PZInteger i = 1; i < subspriteCount; i += 1) {
+        if (subsprites[i].getLocalBounds() != subsprites[i - 1].getLocalBounds()) {
             return false;
         }
     }
@@ -321,8 +306,8 @@ math::Rectangle<float> Multisprite::Subsprite::getLocalBounds() const {
     return {
         0.f,
         0.f,
-        static_cast<float>(std::abs(textureRect.w)),
-        static_cast<float>(std::abs(textureRect.h))
+        static_cast<float>(textureRect.w),
+        static_cast<float>(textureRect.h)
     };
 }
 
@@ -331,11 +316,13 @@ math::Rectangle<float> Multisprite::Subsprite::getLocalBounds() const {
 ///////////////////////////////////////////////////////////////////////////
 
 void Multisprite::_drawOnto(Canvas& aCanvas, const RenderStates& aStates) const {
-    if (_subspriteCount == 0 || _texture == nullptr) {
+    const auto subspriteCount = getSubspriteCount();
+
+    if (subspriteCount == 0 || _texture == nullptr) {
         return;
     }
 
-    const auto& subspr = *(_firstSubspritePtr() + getCurrentSubspriteIndex());
+    const auto& subspr =  _subsprites[pztos(getCurrentSubspriteIndex())];
 
     // Prepare vertices
     static constexpr PZInteger VERTEXT_COUNT = 6;
@@ -354,24 +341,6 @@ void Multisprite::_drawOnto(Canvas& aCanvas, const RenderStates& aStates) const 
     statesCopy.texture = _texture;
 
     aCanvas.draw(vertices, VERTEXT_COUNT, PrimitiveType::TRIANGLES, statesCopy);
-}
-
-Multisprite::Subsprite* Multisprite::_firstSubspritePtr() {
-    if (_subspriteCount <= 1) {
-        return std::addressof(std::get<Subsprite>(_subsprites));
-    }
-    else {
-        return std::get<std::vector<Subsprite>>(_subsprites).data();
-    }
-}
-
-const Multisprite::Subsprite* Multisprite::_firstSubspritePtr() const {
-    if (_subspriteCount <= 1) {
-        return std::addressof(std::get<Subsprite>(_subsprites));
-    }
-    else {
-        return std::get<std::vector<Subsprite>>(_subsprites).data();
-    }
 }
 
 } // namespace gr

@@ -7,6 +7,8 @@ find_package(GTest CONFIG REQUIRED)
 
 add_executable(${PROJECT_NAME}
     "Alvin_automatic_test.cpp"
+    "Alvin_queries_test.cpp"
+    "Alvin_unibody_test.cpp"
 )
 
 target_link_libraries(${PROJECT_NAME}

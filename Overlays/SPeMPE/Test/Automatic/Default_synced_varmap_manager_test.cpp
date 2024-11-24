@@ -72,10 +72,15 @@ public:
         _netMgr2->getClient().disconnect(false);
         _netMgr1->getServer().stop();
 
-        _ctx1->detachComponent(*_netMgr1);
-        _ctx1->detachComponent(*_svmMgr1);
-        _ctx2->detachComponent(*_netMgr2);
-        _ctx2->detachComponent(*_svmMgr2);
+        DetachStatus detachStatus;
+        _ctx1->detachComponent<NetworkingManagerInterface>(&detachStatus);
+        ASSERT_EQ(detachStatus, DetachStatus::NOT_OWNED_BY_CONTEXT);
+        _ctx1->detachComponent<SyncedVarmapManagerInterface>(&detachStatus);
+        ASSERT_EQ(detachStatus, DetachStatus::NOT_OWNED_BY_CONTEXT);
+        _ctx2->detachComponent<NetworkingManagerInterface>(&detachStatus);
+        ASSERT_EQ(detachStatus, DetachStatus::NOT_OWNED_BY_CONTEXT);
+        _ctx2->detachComponent<SyncedVarmapManagerInterface>(&detachStatus);
+        ASSERT_EQ(detachStatus, DetachStatus::NOT_OWNED_BY_CONTEXT);
 
         _svmMgr1.reset();
         _netMgr1.reset();

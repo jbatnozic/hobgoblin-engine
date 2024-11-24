@@ -57,7 +57,9 @@ TEST_F(SPeMPE_Test, ContextComponentTest) {
         _gameCtx->attachComponent(dummy);
         ASSERT_EQ(_gameCtx->getComponent<DummyInterface>().getData(), 0x12345678);
 
-        _gameCtx->detachComponent(dummy);
+        DetachStatus detachStatus;
+        _gameCtx->detachComponent<DummyInterface>(&detachStatus);
+        ASSERT_EQ(detachStatus, DetachStatus::NOT_OWNED_BY_CONTEXT);
         ASSERT_THROW(_gameCtx->getComponent<DummyInterface>(), hg::TracedLogicError);
     }
     {
@@ -69,7 +71,11 @@ TEST_F(SPeMPE_Test, ContextComponentTest) {
         _gameCtx->attachAndOwnComponent(std::move(dummy));
         ASSERT_EQ(_gameCtx->getComponent<DummyInterface>().getData(), 0x12345678);
 
-        _gameCtx->detachComponent(_gameCtx->getComponent<DummyInterface>());
+        DetachStatus detachStatus;
+        auto dummy2 = _gameCtx->detachComponent<DummyInterface>(&detachStatus);
+        EXPECT_EQ(detachStatus, DetachStatus::OK);
+        ASSERT_NE(dummy2, nullptr);
+        EXPECT_EQ(static_cast<DummyComponent*>(dummy2.get())->data, 0x12345678);
         ASSERT_THROW(_gameCtx->getComponent<DummyInterface>(), hg::TracedLogicError);
     }
 }

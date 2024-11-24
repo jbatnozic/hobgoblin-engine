@@ -61,6 +61,10 @@ public:
     // VIEWS                                                                 //
     ///////////////////////////////////////////////////////////////////////////
 
+    hg::gr::ViewController& getViewController() override;
+
+    const hg::gr::ViewController& getViewController() const override;
+
     void setViewCount(hg::PZInteger aViewCount) override;
 
     hg::PZInteger getViewCount() const override;

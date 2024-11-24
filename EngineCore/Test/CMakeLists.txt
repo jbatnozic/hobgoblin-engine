@@ -12,7 +12,6 @@ set(COMPONENT_NAME "Hobgoblin.Test")
 set(COMPONENT_SOURCES
   "Source/gtest_main.cpp"
 
-  # "Source/ColDetect_test.cpp" TODO
   "Source/Format_test.cpp"
   "Source/Hg_config_test.cpp"
   "Source/Math_test.cpp"
@@ -20,7 +19,6 @@ set(COMPONENT_SOURCES
   "Source/Preprocessor_test.cpp"
   # "Source/QAO_serialization_test.cpp"
   "Source/QAO_test.cpp"
-  "Source/RigelNet_test.cpp"
   "Source/Util_test.cpp"
 )
 

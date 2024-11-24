@@ -207,5 +207,3 @@ TEST(NeverNullAvoidNullInteropTest, Test1) {
 }
 
 HOBGOBLIN_NAMESPACE_END
-
-#include <Hobgoblin/Private/Pmacro_undef.hpp>

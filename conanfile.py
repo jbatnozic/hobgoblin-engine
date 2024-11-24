@@ -2,7 +2,7 @@
 # See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
 from conan import ConanFile
-from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain
+from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
 from conan.tools.files import copy
 from os.path import join, sep
 
@@ -56,6 +56,7 @@ class HobgoblinConan(ConanFile):
         "S00_QAO",
         "S00_RigelNet",
         "S00_Window",
+        "S01_Alvin",
         "S01_ColDetect",
         "S01_Graphics",
         "S02_RmlUi",
@@ -75,7 +76,8 @@ class HobgoblinConan(ConanFile):
         "CMakeSettings.json",
         "CODEANALYSIS.ruleset",
         "EngineCore/*",
-        "Overlays/*"
+        "Overlays/*",
+        "Tools/*",
     ]
 
 
@@ -85,10 +87,10 @@ class HobgoblinConan(ConanFile):
 
     def requirements(self):
         # Public
-        self.requires("fmt/10.0.0",   transitive_headers=True)
-        self.requires("sfml/2.6.0"  , transitive_headers=True)
-        self.requires("rmlui/4.4",    transitive_headers=True)
-        self.requires("icu/74.1",     transitive_headers=True)
+        self.requires("fmt/10.0.0",                 transitive_headers=True)
+        self.requires("sfml/2.6.0",                 transitive_headers=True)
+        self.requires("rmlui/5.1@jbatnozic/stable", transitive_headers=True)
+        self.requires("icu/74.1",                   transitive_headers=True)
 
         # Private
         self.requires("glew/2.2.0")
@@ -116,6 +118,12 @@ class HobgoblinConan(ConanFile):
         self.options["sfml"].window   = True
 
         self.options["ztcpp"].shared  = True
+
+    def layout(self):
+        # cmake_layout(self)
+        # Use most basic layout for now
+        self.folders.source = "."
+        self.folders.build  = ""
 
     def generate(self):
         # Import dynamic libraries
@@ -183,8 +191,11 @@ class HobgoblinConan(ConanFile):
             copy(self, "*{}*.a".format(overlay),     src=join(self.build_folder, "lib"), dst=join(self.package_folder, "lib"), keep_path=False)
 
     def package_info(self):
-        self.cpp_info.libdirs = ['lib']
-        self.cpp_info.bindirs = ['bin']
+        if self.settings.build_type == "Debug":
+            self.cpp_info.defines.append("UHOBGOBLIN_DEBUG")
+
+        self.cpp_info.libdirs = ["lib"]
+        self.cpp_info.bindirs = ["bin"]
 
         # Specifying libraries in reverse order (most dependent ones
         # first, most basic ones last) prevents link errors on Linux.
@@ -195,7 +206,7 @@ class HobgoblinConan(ConanFile):
             # Principals
             "Hobgoblin.RmlUi",
             "Hobgoblin.Graphics",
-            "Hobgoblin.ColDetect",
+            "Hobgoblin.Alvin",
             "Hobgoblin.Window",
             "Hobgoblin.RigelNet",
             "Hobgoblin.QAO",

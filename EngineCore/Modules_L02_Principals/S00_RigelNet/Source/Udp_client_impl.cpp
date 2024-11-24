@@ -57,9 +57,9 @@ void RN_UdpClientImpl::connectLocal(RN_ServerInterface& server) {
     _connector.connectLocal(server);
 }
 
-void RN_UdpClientImpl::disconnect(bool notifyRemote) {
+void RN_UdpClientImpl::disconnect(bool aNotifyRemote, const std::string& aMessage) {
     if (_connector.getStatus() != RN_ConnectorStatus::Disconnected) {
-        _connector.disconnect(notifyRemote);
+        _connector.disconnect(aNotifyRemote, aMessage);
     }
     _running = false;
 
@@ -191,10 +191,10 @@ RN_Telemetry RN_UdpClientImpl::_updateReceive() {
 
     if (_connector.getStatus() == RN_ConnectorStatus::Connected) {
         _connector.receivingFinished();
-        telemetry += _connector.sendAcks();
+        telemetry += _connector.sendWeakAcks();
     }
     if (_connector.getStatus() != RN_ConnectorStatus::Disconnected) {
-        _connector.handleDataMessages(SELF, /* reference to pointer -> */ _currentPacket);
+        _connector.handleDataMessages(SELF, &_currentPacket);
     }
     if (_connector.getStatus() != RN_ConnectorStatus::Disconnected) {
         _connector.checkForTimeout();
@@ -204,7 +204,7 @@ RN_Telemetry RN_UdpClientImpl::_updateReceive() {
 }
 
 RN_Telemetry RN_UdpClientImpl::_updateSend() {
-    return _connector.send();
+    return _connector.sendData();
 }
 
 void RN_UdpClientImpl::_compose(int receiver, const void* data, std::size_t sizeInBytes) {
@@ -213,7 +213,7 @@ void RN_UdpClientImpl::_compose(int receiver, const void* data, std::size_t size
                         0,
                         "Cannot compose messages to clients that are not connected.");
     }
-    _connector.appendToNextOutgoingPacket(data, sizeInBytes);
+    _connector.appendDataForSending(data, sizeInBytes);
 }
 
 void RN_UdpClientImpl::_compose(RN_ComposeForAllType receiver,
@@ -222,7 +222,7 @@ void RN_UdpClientImpl::_compose(RN_ComposeForAllType receiver,
     if (_connector.getStatus() != RN_ConnectorStatus::Connected) {
         return;
     }
-    _connector.appendToNextOutgoingPacket(data, sizeInBytes);
+    _connector.appendDataForSending(data, sizeInBytes);
 }
 
 util::Packet* RN_UdpClientImpl::_getCurrentPacket() {
@@ -240,4 +240,4 @@ util::AnyPtr RN_UdpClientImpl::_getUserData() const {
 } // namespace rn
 HOBGOBLIN_NAMESPACE_END
 
-#include <Hobgoblin/Private/Pmacro_undef.hpp>W
+#include <Hobgoblin/Private/Pmacro_undef.hpp>
