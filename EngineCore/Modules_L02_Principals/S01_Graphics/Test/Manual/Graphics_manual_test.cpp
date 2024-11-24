@@ -27,8 +27,8 @@ const auto SAMPLE_SPRITE_FILE_PATH = std::string{HG_TEST_ASSET_DIR} + "/Screensh
 // HELPERS                                                               //
 ///////////////////////////////////////////////////////////////////////////
 
-gr::RenderWindow CreateSimpleRenderWindowForTesting(const math::Vector2pz& aSize) {
-    auto window = gr::RenderWindow{hg::win::VideoMode{aSize.x, aSize.y}, "Window"};
+gr::RenderWindow CreateSimpleRenderWindowForTesting(const math::Vector2pz& aSize, const std::string& aTitle) {
+    auto window = gr::RenderWindow{hg::win::VideoMode{aSize.x, aSize.y}, aTitle};
     window.setFramerateLimit(30);
     return window;
 }
@@ -62,7 +62,7 @@ void TestLoadingTextureFromNonexistentFile() {
 
 void TestDrawingShapesAndSprites() {
     gr::RenderWindow window{};
-    window.create(hg::win::VideoMode{400, 400}, "Window");
+    window.create(hg::win::VideoMode{400, 400}, __func__);
     window.setFramerateLimit(60);
 
     {
@@ -110,7 +110,7 @@ void TestDrawingShapesAndSprites() {
 
 void TestDrawingMultisprites() {
     gr::RenderWindow window{};
-    window.create(hg::win::VideoMode{400, 400}, "Window");
+    window.create(hg::win::VideoMode{400, 400}, __func__);
     window.setFramerateLimit(30);
 
     window.setView(gr::View{{100.f, 100.f}, {200, 200}});
@@ -152,7 +152,7 @@ void TestDrawingMultisprites() {
 }
 
 void TestRenderTextures() {
-    auto window = CreateSimpleRenderWindowForTesting({512, 512});
+    auto window = CreateSimpleRenderWindowForTesting({512, 512}, __func__);
 
     gr::RenderTexture rt;
     rt.create({1024, 1024});
@@ -202,7 +202,7 @@ void TestRenderTextures() {
 
 void TestDrawingVertexArrays() {
     gr::RenderWindow window{};
-    window.create(hg::win::VideoMode{400, 400}, "Window");
+    window.create(hg::win::VideoMode{400, 400}, __func__);
     window.setFramerateLimit(60);
 
     window.setView(gr::View{{100.f, 100.f}, {200, 200}});
@@ -239,7 +239,7 @@ void TestSpriteLoader() {
         ->finalize(gr::TexturePackingHeuristic::BestAreaFit);
 
     gr::RenderWindow window{};
-    window.create(hg::win::VideoMode{800, 800}, "Window");
+    window.create(hg::win::VideoMode{800, 800}, __func__);
     window.setFramerateLimit(60);
 
     window.setView(gr::View{{512.f, 512.f}, {1024, 1024}});
@@ -269,7 +269,7 @@ void TestBatching() {
         ->addSprite("screenie", SAMPLE_SPRITE_FILE_PATH)
         ->finalize(gr::TexturePackingHeuristic::BestAreaFit);
     
-    auto window = CreateSimpleRenderWindowForTesting({800, 800});
+    auto window = CreateSimpleRenderWindowForTesting({800, 800}, __func__);
     gr::DrawBatcher batcher{window};
 
     auto screenie = loader.getMultiBlueprint("screenie").multispr();
@@ -300,7 +300,7 @@ void TestDefaultShader() {
         ->addSprite("screenie", SAMPLE_SPRITE_FILE_PATH)
         ->finalize(gr::TexturePackingHeuristic::BestAreaFit);
 
-    auto window = CreateSimpleRenderWindowForTesting({800, 800});
+    auto window = CreateSimpleRenderWindowForTesting({800, 800}, __func__);
 
     auto screenie = loader.getMultiBlueprint("screenie").multispr();
 
@@ -352,7 +352,7 @@ void TestInvertShaderFromFile() {
         ->addSprite("screenie", SAMPLE_SPRITE_FILE_PATH)
         ->finalize(gr::TexturePackingHeuristic::BestAreaFit);
 
-    auto window = CreateSimpleRenderWindowForTesting({800, 800});
+    auto window = CreateSimpleRenderWindowForTesting({800, 800}, __func__);
 
     auto screenie = loader.getMultiBlueprint("screenie").multispr();
 
@@ -377,7 +377,7 @@ void TestInvertShaderFromFile() {
 }
 
 void TestDrawingText() {
-    auto window = CreateSimpleRenderWindowForTesting({800, 800});
+    auto window = CreateSimpleRenderWindowForTesting({800, 800}, __func__);
 
     const auto& font = hg::gr::BuiltInFonts::getFont(hg::gr::BuiltInFonts::EB_GARAMOND_12_REGULAR);
 

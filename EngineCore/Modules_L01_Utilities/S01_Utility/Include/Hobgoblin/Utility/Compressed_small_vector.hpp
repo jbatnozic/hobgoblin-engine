@@ -7,8 +7,9 @@
 #include <Hobgoblin/HGExcept.hpp>
 
 #include <algorithm>
+#include <array>
 #include <cstdint>
-#include <iostream>
+#include <cstring>
 #include <new>
 #include <type_traits>
 #include <utility>
