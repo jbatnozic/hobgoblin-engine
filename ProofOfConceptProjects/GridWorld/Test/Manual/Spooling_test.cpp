@@ -29,7 +29,7 @@ public:
               hg::PZInteger          aWorldHeight,
               ChunkSpoolerInterface& aChunkSpooler)
         : _chunkspool{aChunkSpooler} {
-        _chunkGrid.resize(aWorldWidth, aWorldHeight);
+        _chunkGrid.reset(aWorldWidth, aWorldHeight);
     }
 
     void update(hg::math::Vector2pz aPosition) {

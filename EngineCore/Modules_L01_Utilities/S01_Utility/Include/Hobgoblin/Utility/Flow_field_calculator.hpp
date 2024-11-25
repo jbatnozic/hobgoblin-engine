@@ -201,7 +201,7 @@ void FlowFieldCalculator<taCostProvider>::reset(math::Vector2pz       aFieldDime
 
     _flowField.emplace(_fieldDimensions.x, _fieldDimensions.y, CompactAngle{});
 
-    _integrationField.resize(_fieldDimensions.x, _fieldDimensions.y);
+    _integrationField.reset(_fieldDimensions.x, _fieldDimensions.y);
     _integrationField.setAll(INTEGRATION_FIELD_MAX_COST);
 
     _queue.clear();
