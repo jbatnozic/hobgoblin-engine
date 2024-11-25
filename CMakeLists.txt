@@ -11,6 +11,17 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
+if(MSVC)
+    # Disable a warning (C4996) that's emitted by MSVC many times for using fmt
+    # MSVC spams the build output with many warnings (C4996) because fmt uses some functions
+    # which are deprecated in C++20. Silence it with the following define until a version of
+    # fmt not using these functions is integrated.
+    add_compile_definitions("_SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING")
+
+    # It is also possible (but not recommended) to silence this warning from all sources.
+    # add_compile_options("/wd4996")
+endif()
+
 # ===== IMPORT CUSTOM FUNCTIONS =====
 
 include("CMake/hg_copy_test_assets.cmake")
