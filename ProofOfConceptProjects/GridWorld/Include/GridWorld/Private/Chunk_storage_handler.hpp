@@ -3,8 +3,8 @@
 #include <Hobgoblin/Common.hpp>
 
 #include <GridWorld/Model/Chunk.hpp>
-#include <GridWorld/World/Chunk_id.hpp>
 #include <GridWorld/Private/Chunk_spooler_interface.hpp>
+#include <GridWorld/World/Chunk_id.hpp>
 
 #include <Hobgoblin/Utility/Grids.hpp>
 
@@ -60,13 +60,13 @@ public:
         const auto chunkY = aY / _chunkHeight;
 
         auto& chunk = _chunks[chunkY][chunkX];
-        if (HG_LIKELY_CONDITION(chunk != nullptr)) {
+        if (HG_LIKELY_CONDITION(!chunk.isEmpty())) {
             HG_LIKELY_BRANCH;
-            return chunk->getCellAtUnchecked(aX % _chunkWidth, aY % _chunkHeight);
+            return chunk.getCellAtUnchecked(aX % _chunkWidth, aY % _chunkHeight);
         } else {
             HG_UNLIKELY_BRANCH;
             _loadChunk(chunkX, chunkY);
-            return chunk->getCellAtUnchecked(aX % _chunkWidth, aY % _chunkHeight);
+            return chunk.getCellAtUnchecked(aX % _chunkWidth, aY % _chunkHeight);
         }
     }
 
@@ -87,9 +87,9 @@ public:
         const auto chunkY = aY / _chunkHeight;
 
         auto& chunk = _chunks[chunkY][chunkX];
-        if (HG_LIKELY_CONDITION(chunk != nullptr)) {
+        if (HG_LIKELY_CONDITION(!chunk.isEmpty())) {
             HG_LIKELY_BRANCH;
-            return &(chunk->getCellAtUnchecked(aX % _chunkWidth, aY % _chunkHeight));
+            return &(chunk.getCellAtUnchecked(aX % _chunkWidth, aY % _chunkHeight));
         } else {
             HG_UNLIKELY_BRANCH;
             return nullptr;
@@ -108,7 +108,7 @@ public:
 private:
     ChunkSpoolerInterface& _chunkSpooler;
 
-    mutable hg::util::RowMajorGrid<std::unique_ptr<Chunk>> _chunks; // TODO: make Chunk nullable and ditch the pointer
+    mutable hg::util::RowMajorGrid<Chunk> _chunks;
     // clang-format off
     mutable std::unordered_map<ChunkId, 
                                std::shared_ptr<ChunkSpoolerInterface::RequestHandleInterface>>

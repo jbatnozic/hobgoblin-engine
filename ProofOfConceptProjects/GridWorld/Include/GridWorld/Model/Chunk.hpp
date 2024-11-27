@@ -21,6 +21,14 @@ public:
     Chunk(hg::PZInteger aWidth, hg::PZInteger aHeight, const CellModel& aInitialValue = {})
         : _cells{aWidth, aHeight, CellModelExt{aInitialValue}} {}
 
+    bool isEmpty() const {
+        return _cells.getWidth() == 0;
+    }
+
+    void makeEmpty() {
+        _cells.reset();
+    }
+
     hg::PZInteger getCellCountX() const {
         return _cells.getWidth();
     }
