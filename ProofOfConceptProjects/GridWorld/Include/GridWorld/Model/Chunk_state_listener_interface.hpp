@@ -1,7 +1,7 @@
 #pragma once
 
 #include <GridWorld/Model/Chunk_extension.hpp>
-#include <GridWorld/World/Chunk_id.hpp>
+#include <GridWorld/Model/Chunk_id.hpp>
 
 namespace gridworld {
 

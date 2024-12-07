@@ -4,8 +4,7 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "Lighting_test.hpp"
-#include "Spooling_test.hpp"
+#include "Test_list.hpp"
 
 namespace hg = jbatnozic::hobgoblin;
 
@@ -13,7 +12,8 @@ int main() try {
     hg::log::SetMinimalLogSeverity(hg::log::Severity::Debug);
 
     // RunLightingTest();
-    RunSpoolingTest();
+    // RunSpoolingTest();
+    RunStorageHandlerTest();
 
 } catch (const hg::TracedException& ex) {
     std::cout << "Traced exception caught: " << ex.getFullFormattedDescription() << '\n';

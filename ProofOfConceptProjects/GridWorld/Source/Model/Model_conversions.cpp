@@ -79,7 +79,7 @@ CellModel JsonToCell(const json::Value& aJson) {
         }
 
         CellModel::Floor floor;
-        floor.spriteId = GetIntMember<decltype(floor.spriteId)>(aJson["floor"], "spriteId");
+        floor.spriteId = GetIntMember<decltype(floor.spriteId)::WrappedType>(aJson["floor"], "spriteId");
 
         cell.setFloor(floor);
     }
@@ -90,9 +90,9 @@ CellModel JsonToCell(const json::Value& aJson) {
         }
 
         CellModel::Wall wall;
-        wall.spriteId = GetIntMember<decltype(wall.spriteId)>(aJson["wall"], "spriteId");
+        wall.spriteId = GetIntMember<decltype(wall.spriteId)::WrappedType>(aJson["wall"], "spriteId");
         wall.spriteId_lowered =
-            GetIntMember<decltype(wall.spriteId_lowered)>(aJson["wall"], "spriteId_lowered");
+            GetIntMember<decltype(wall.spriteId_lowered)::WrappedType>(aJson["wall"], "spriteId_lowered");
         wall.shape = (decltype(wall.shape))GetIntMember<int>(aJson["wall"], "shape"); // TODO
 
         cell.setWall(wall);
@@ -154,7 +154,7 @@ Chunk JsonToChunk(const json::Document& aJsonDocument) {
     auto* valuePtr = array.Begin();
     for (hg::PZInteger y = 0; y < chunkHeight; y += 1) {
         for (hg::PZInteger x = 0; x < chunkWidth; x += 1) {
-            chunk.getCellAtUnchecked(x, y) = CellModelExt{JsonToCell(*valuePtr)};
+            chunk.getCellAtUnchecked(x, y) = CellModel{JsonToCell(*valuePtr)};
             valuePtr++;
         }
     }

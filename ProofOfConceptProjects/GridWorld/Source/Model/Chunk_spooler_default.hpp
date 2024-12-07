@@ -32,8 +32,6 @@ public:
     std::vector<std::shared_ptr<RequestHandleInterface>> loadChunks(
         const std::vector<LoadRequest>& aLoadRequests) override;
 
-    std::optional<Chunk> loadImmediately(ChunkId aChunkId) override;
-
     hg::PZInteger unloadChunk(ChunkId aChunkId, Chunk&& aChunk) override;
 
     void unloadRuntimeCache() override;
@@ -88,6 +86,7 @@ private:
 
     void                         _cancelLoadRequest(ChunkId aChunkId);
     std::optional<hg::PZInteger> _swapLoadRequestPriority(ChunkId aChunkId, hg::PZInteger aNewPriority);
+    std::optional<hg::PZInteger> _boostLoadRequestPriority(ChunkId aChunkId, hg::PZInteger aNewPriority);
 
     void _adjustUnloadPriority(const RequestVariant& aRequestVariant, const std::unique_lock<Mutex>&);
 };

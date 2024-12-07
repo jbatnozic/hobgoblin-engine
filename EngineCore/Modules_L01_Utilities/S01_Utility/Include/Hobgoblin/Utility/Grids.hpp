@@ -57,7 +57,7 @@ private:
     PZInteger                _height = 0;
 
     static std::unique_ptr<TData[]> _makeDataPtr(PZInteger width, PZInteger height) {
-        if (height == 0 || height == 0) {
+        if (width == 0 || height == 0) {
             return nullptr;
         }
         return std::make_unique<TData[]>(ToSz(width * height));

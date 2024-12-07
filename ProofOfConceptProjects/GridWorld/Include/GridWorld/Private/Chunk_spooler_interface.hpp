@@ -1,7 +1,7 @@
 #pragma once
 
 #include <GridWorld/Model/Chunk.hpp>
-#include <GridWorld/World/Chunk_id.hpp>
+#include <GridWorld/Model/Chunk_id.hpp>
 
 #include <optional>
 #include <vector>
@@ -41,6 +41,11 @@ public:
         //! \returns previous priority if successful, or `std::nullopt` otherwise.
         virtual std::optional<hg::PZInteger> trySwapPriority(hg::PZInteger aNewPriority) = 0;
 
+        //! Same as `trySwapPriority()`, but will only swap priorities if the new one is better.
+        //! 
+        //! \returns previous priority if successful, or `std::nullopt` otherwise.
+        virtual std::optional<hg::PZInteger> tryBoostPriority(hg::PZInteger aNewPriority) = 0;
+
         //! Cancels the request. This call is idempotent.
         virtual void cancel() = 0;
 
@@ -71,12 +76,6 @@ public:
     //!                              already ongoing.
     virtual std::vector<std::shared_ptr<RequestHandleInterface>> loadChunks(
         const std::vector<LoadRequest>& aLoadRequests) = 0;
-
-    //! Loads a chunk immediately.
-    //!
-    //! The spooler must be paused when this is called.
-    //! \throws hg::PreconditionNotMetError if the spooler is not paused when this method is called.
-    virtual std::optional<Chunk> loadImmediately(ChunkId aChunkId) = 0;
 
     //! TODO(description)
     //!

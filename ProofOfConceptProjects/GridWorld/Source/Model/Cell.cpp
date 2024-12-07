@@ -2,6 +2,8 @@
 
 #include <GridWorld/Model/Cell.hpp>
 
+#include <Hobgoblin/HGExcept.hpp>
+
 namespace gridworld {
 namespace detail {
 
@@ -231,7 +233,7 @@ std::array<decltype(&AlwaysNone), 16> SELECTION_TABLE = {
 } // namespace predicate
 
 CellModelExt::ExtensionData::ExtensionData()
-    : _drawModePredicate{&predicate::AlwaysNone} {}
+    : _pointerStorage{&predicate::AlwaysNone} {}
 
 void CellModelExt::ExtensionData::setVisible(bool aIsVisible) {
     _visible = aIsVisible;
@@ -249,10 +251,28 @@ bool CellModelExt::ExtensionData::isLowered() const {
     return _lowered;
 }
 
+void CellModelExt::ExtensionData::setChunkExtensionPointer(
+    ChunkExtensionInterface* aChunkExtensionPointer)
+//
+{
+    _pointerStorage.chunkExtension = aChunkExtensionPointer;
+    _holdingExtension              = true;
+}
+
+bool CellModelExt::ExtensionData::hasChunkExtensionPointer() const {
+    return _holdingExtension;
+}
+
+ChunkExtensionInterface* CellModelExt::ExtensionData::getChunkExtensionPointer() const {
+    return _pointerStorage.chunkExtension;
+}
+
 void CellModelExt::ExtensionData::refresh(const CellModelExt* aNorthNeighbour,
                                           const CellModelExt* aWestNeighbour,
                                           const CellModelExt* aEastNeighbour,
                                           const CellModelExt* aSouthNeighbour) {
+    HG_ASSERT(!_holdingExtension);
+
     // clang-format off
     const bool blockedFromNorth = !aNorthNeighbour || aNorthNeighbour->isWallInitialized(); // TODO(temporary)
     const bool blockedFromWest  = !aWestNeighbour  || aWestNeighbour->isWallInitialized();  // TODO(temporary)
@@ -262,14 +282,16 @@ void CellModelExt::ExtensionData::refresh(const CellModelExt* aNorthNeighbour,
     const auto selector = (blockedFromEast ? 0x01 : 0) | (blockedFromNorth ? 0x02 : 0) |
                           (blockedFromWest ? 0x04 : 0) | (blockedFromSouth ? 0x08 : 0);
 
-    _drawModePredicate = predicate::SELECTION_TABLE[static_cast<std::size_t>(selector)];
+    _pointerStorage.drawModePredicate = predicate::SELECTION_TABLE[static_cast<std::size_t>(selector)];
     // clang-format on
 }
 
 DrawMode CellModelExt::ExtensionData::determineDrawMode(float              aCellResolution,
                                                         hg::math::Vector2f aCellPosition,
                                                         hg::math::Vector2f aPointOfView) const {
-    return _drawModePredicate(aCellResolution, aCellPosition, aPointOfView);
+    HG_ASSERT(!_holdingExtension);
+
+    return _pointerStorage.drawModePredicate(aCellResolution, aCellPosition, aPointOfView);
 }
 
 } // namespace detail

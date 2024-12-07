@@ -3,13 +3,20 @@
 #include <Hobgoblin/Common.hpp>
 
 #include <GridWorld/Model/Chunk.hpp>
+#include <GridWorld/Model/Chunk_id.hpp>
 #include <GridWorld/Private/Chunk_spooler_interface.hpp>
-#include <GridWorld/World/Chunk_id.hpp>
+#include <GridWorld/World/Active_area.hpp>
+#include <GridWorld/World/World_config.hpp>
 
 #include <Hobgoblin/Utility/Grids.hpp>
-
+#include <Hobgoblin/Utility/Value_sorted_map.hpp>
+#include <atomic>
+#include <chrono>
 #include <memory>
+#include <optional>
+#include <set>
 #include <unordered_map>
+#include <utility>
 
 namespace gridworld {
 
@@ -39,8 +46,27 @@ private:
 
 public:
     ChunkStorageHandler(ChunkSpoolerInterface& aChunkSpooler,
-                        hg::PZInteger          aChunkWidth,
-                        hg::PZInteger          aChunkHeight);
+                        const WorldConfig& aConfig);
+
+    ///////////////////////////////////////////////////////////////////////////
+    // ACTIVE AREAS                                                          //
+    ///////////////////////////////////////////////////////////////////////////
+
+    ActiveArea createNewActiveArea();
+
+    ///////////////////////////////////////////////////////////////////////////
+    // CYCLE                                                                 //
+    ///////////////////////////////////////////////////////////////////////////
+
+    //! Collects all chunks that were loaded since the last call to `update()`
+    //! and makes them available.
+    void update();
+
+    void prune();
+
+    ///////////////////////////////////////////////////////////////////////////
+    // CHUNK GETTERS                                                         //
+    ///////////////////////////////////////////////////////////////////////////
 
     //! Returns the number of chunks along the X axis.
     hg::PZInteger getChunkCountX() const {
@@ -52,6 +78,55 @@ public:
         return _chunks.getHeight();
     }
 
+    //! Returns a mutable reference to the chunk with the given ID WITHOUT CHECKING BOUNDS.
+    //! The chunk will be loaded if it isn't already, and will remain loaded until the next
+    //! call to `prune()`.
+    Chunk& getChunkAtIdUnchecked(ChunkId aChunkId, LOAD_IF_MISSING_Tag) {
+        auto& chunk =
+            _chunks[static_cast<hg::PZInteger>(aChunkId.x)][static_cast<hg::PZInteger>(aChunkId.y)];
+        if (HG_LIKELY_CONDITION(!chunk.isEmpty())) {
+            HG_LIKELY_BRANCH;
+            return chunk;
+        } else {
+            HG_UNLIKELY_BRANCH;
+            _loadChunk(static_cast<hg::PZInteger>(aChunkId.x), static_cast<hg::PZInteger>(aChunkId.y));
+            return chunk;
+        }
+    }
+
+    //! Returns a const reference to the chunk with the given ID WITHOUT CHECKING BOUNDS.
+    //! The chunk will be loaded if it isn't already, and will remain loaded until the next
+    //! call to `prune()`.
+    const Chunk& getChunkAtIdUnchecked(ChunkId aChunkId, LOAD_IF_MISSING_Tag) const {
+        return const_cast<Self*>(this)->getChunkAtIdUnchecked(aChunkId, LOAD_IF_MISSING);
+    }
+
+    //! Returns a mutable pointer to the chunk with the given ID WITHOUT CHECKING BOUNDS.
+    //! If the chunk is already loaded, it will remain loaded until the next call
+    //! to `prune()`. Otherwise, `nullptr` will be returned.
+    Chunk* getChunkAtIdUnchecked(ChunkId aChunkId) {
+        auto& chunk =
+            _chunks[static_cast<hg::PZInteger>(aChunkId.x)][static_cast<hg::PZInteger>(aChunkId.y)];
+        if (HG_LIKELY_CONDITION(!chunk.isEmpty())) {
+            HG_LIKELY_BRANCH;
+            return &chunk;
+        } else {
+            HG_UNLIKELY_BRANCH;
+            return nullptr;
+        }
+    }
+
+    //! Returns a const pointer to the chunk with the given ID WITHOUT CHECKING BOUNDS.
+    //! If the chunk is already loaded, it will remain loaded until the next call
+    //! to `prune()`. Otherwise, `nullptr` will be returned.
+    const Chunk* getChunkAtIdUnchecked(ChunkId aChunkId) const {
+        return const_cast<Self*>(this)->getChunkAtIdUnchecked(aChunkId);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    // CELL GETTERS                                                          //
+    ///////////////////////////////////////////////////////////////////////////
+
     //! Returns a mutable reference to the cell at (aX, aY) WITHOUT CHECKING BOUNDS.
     //! The containing chunk will be loaded if it isn't already, and will remain loaded until
     //! the next call to `prune()`.
@@ -62,11 +137,11 @@ public:
         auto& chunk = _chunks[chunkY][chunkX];
         if (HG_LIKELY_CONDITION(!chunk.isEmpty())) {
             HG_LIKELY_BRANCH;
-            return chunk.getCellAtUnchecked(aX % _chunkWidth, aY % _chunkHeight);
+            return chunk._getCellExtAtUnchecked(aX % _chunkWidth, aY % _chunkHeight);
         } else {
             HG_UNLIKELY_BRANCH;
             _loadChunk(chunkX, chunkY);
-            return chunk.getCellAtUnchecked(aX % _chunkWidth, aY % _chunkHeight);
+            return chunk._getCellExtAtUnchecked(aX % _chunkWidth, aY % _chunkHeight);
         }
     }
 
@@ -89,7 +164,7 @@ public:
         auto& chunk = _chunks[chunkY][chunkX];
         if (HG_LIKELY_CONDITION(!chunk.isEmpty())) {
             HG_LIKELY_BRANCH;
-            return &(chunk.getCellAtUnchecked(aX % _chunkWidth, aY % _chunkHeight));
+            return &(chunk._getCellExtAtUnchecked(aX % _chunkWidth, aY % _chunkHeight));
         } else {
             HG_UNLIKELY_BRANCH;
             return nullptr;
@@ -103,37 +178,53 @@ public:
         return const_cast<Self*>(this)->getCellAtUnchecked(aX, aY);
     }
 
-    void prune();
-
 private:
-    ChunkSpoolerInterface& _chunkSpooler;
+    friend class ActiveArea;
+    
+    // ===== Chunk Grid
 
     mutable hg::util::RowMajorGrid<Chunk> _chunks;
-    // clang-format off
-    mutable std::unordered_map<ChunkId, 
-                               std::shared_ptr<ChunkSpoolerInterface::RequestHandleInterface>>
-        _chunkRequestHandles;
-    // clang-format on
+
+    // ===== Active Chunks
 
     struct ChunkControlBlock {
-        // PZInteger usageCount
-        // std::shared_ptr<ChunkSpoolerInterface::RequestHandleInterface> request handle
+        std::shared_ptr<ChunkSpoolerInterface::RequestHandleInterface> requestHandle = nullptr;
+        hg::PZInteger                                                  usageCount    = 0;
     };
-    // TODO: active areas
+    
+    mutable std::unordered_map<ChunkId, ChunkControlBlock> _chunkControlBlocks;
+
+    // ===== Free Chunks
+
+    using Timestamp = std::chrono::steady_clock::time_point;
+
+    //! This collection maps ChunkId -> Timestamp of the chunk becoming free.
+    //! It is by default sorted in ascending order, meaning that the lowest (least recent)
+    //! timestamps will be in the front, thus the chunks in the front are the best ones to evict.
+    mutable hg::util::ValueSortedMap<ChunkId, Timestamp> _freeChunks;
+
+    // ===== Members
+
+    ChunkSpoolerInterface& _chunkSpooler;
 
     hg::PZInteger _chunkWidth;
     hg::PZInteger _chunkHeight;
 
-    /*
-        TODO:
-            pause spooler
-            load chunk
-            unpause
+    hg::PZInteger _freeChunkLimit;
 
-        ALSO:
-            create (based on defaults) if missing
-    */
+    // ===== Methods
+
     void _loadChunk(hg::PZInteger aChunkX, hg::PZInteger aChunkY);
+
+    void _onChunkLoaded(
+        ChunkId                                                aChunkId,
+        Chunk&&                                                aChunk,
+        std::optional<decltype(_chunkControlBlocks)::iterator> aControlBlockIterator);
+
+    void _createDefaultChunk(ChunkId aChunkId);
+
+    void _updateChunkUsage(const std::vector<detail::ChunkUsageChange>& aChunkUsageChanges);
+
 };
 
 } // namespace detail

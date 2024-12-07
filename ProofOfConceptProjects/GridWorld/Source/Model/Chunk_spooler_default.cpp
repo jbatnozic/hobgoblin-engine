@@ -55,6 +55,16 @@ public:
         return _spooler._swapLoadRequestPriority(_chunkId, aNewPriority);
     }
 
+    std::optional<hg::PZInteger> tryBoostPriority(hg::PZInteger aNewPriority) override {
+        {
+            std::unique_lock<std::mutex> lock{_mutex};
+            if (_isCancelled || _isFinished) {
+                return {};
+            }
+        }
+        return _spooler._boostLoadRequestPriority(_chunkId, aNewPriority);
+    }
+
     void cancel() override {
         {
             std::unique_lock<std::mutex> lock{_mutex};
@@ -172,34 +182,6 @@ std::vector<std::shared_ptr<DefaultChunkSpooler::RequestHandleInterface>> Defaul
     _cv_workerSync.notify_one();
 
     return handles;
-}
-
-std::optional<Chunk> DefaultChunkSpooler::loadImmediately(ChunkId aChunkId) {
-#if 0
-    std::unique_lock<Mutex> lock{_mutex};
-
-    HG_VALIDATE_PRECONDITION(_paused && "Spooler must be paused when this method is called");
-
-    // Erase from _loadRequests if it's present there
-    std::erase_if(_loadRequests, [aChunkId](const LoadRequest& aLoadRequest) {
-        return aLoadRequest.chunkId == aChunkId;
-    });
-
-    // Easy out: Try to get from _unloadRequests
-    {
-        const auto iter = _unloadRequests.find(aChunkId);
-
-        if (iter != _unloadRequests.end()) {
-            std::optional<Chunk> result = std::move(iter->second);
-            _unloadRequests.erase(iter);
-            return result;
-        }
-    }
-
-    // Most likely: load from disk
-    return LoadChunk(aChunkId, *_diskIoHandler);
-#endif
-    return {};
 }
 
 hg::PZInteger DefaultChunkSpooler::unloadChunk(ChunkId aChunkId, Chunk&& aChunk) {
@@ -424,6 +406,26 @@ std::optional<hg::PZInteger> DefaultChunkSpooler::_swapLoadRequestPriority(Chunk
         HG_ASSERT(HOLDS_LOAD_REQUEST(request));
 
         auto& loadRequest = std::get<LoadRequest>(request);
+        std::swap(loadRequest.priority, aNewPriority);
+        return {aNewPriority};
+    }
+
+    return {};
+}
+
+std::optional<hg::PZInteger> DefaultChunkSpooler::_boostLoadRequestPriority(ChunkId       aChunkId,
+                                                                            hg::PZInteger aNewPriority) {
+    std::unique_lock<Mutex> lock{_mutex};
+
+    const auto iter = _requests.find(aChunkId);
+    if (iter != _requests.end()) {
+        auto& request = iter->second.request;
+        HG_ASSERT(HOLDS_LOAD_REQUEST(request));
+
+        auto& loadRequest = std::get<LoadRequest>(request);
+        if (loadRequest.priority <= aNewPriority) {
+            return{};
+        }
         std::swap(loadRequest.priority, aNewPriority);
         return {aNewPriority};
     }

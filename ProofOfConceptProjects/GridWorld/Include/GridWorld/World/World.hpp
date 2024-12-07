@@ -5,12 +5,16 @@
 #include <Hobgoblin/Graphics/Sprite_loader.hpp>
 #include <Hobgoblin/Math.hpp>
 #include <Hobgoblin/Utility/Grids.hpp>
+#include <Hobgoblin/Utility/Semaphore.hpp>
 
 #include <GridWorld/Model/Cell.hpp>
+#include <GridWorld/Model/Chunk.hpp>
+#include <GridWorld/Model/Chunk_id.hpp>
 #include <GridWorld/Model/Lights.hpp>
 #include <GridWorld/Model/Sprites.hpp>
 
 #include <GridWorld/World/Active_area.hpp>
+#include <GridWorld/World/World_config.hpp>
 
 #include <GridWorld/Model/Chunk_state_listener_interface.hpp>
 #include <GridWorld/Private/Chunk_storage_handler.hpp>
@@ -25,40 +29,66 @@ namespace hg = jbatnozic::hobgoblin;
 
 class IsometricRenderer;
 
-struct WorldConfiguration {
-    hg::PZInteger chunkCountX; //!< Maximum number of chunks along the X axis
-    hg::PZInteger chunkCountY; //!< Maximum number of chunks along the Y axix
-
-    hg::PZInteger chunkResolution; //!< Number of cells per chunk along the X and Y axes
-
-    float cellResolution; //!< Width and height of a single cell in the world
-
-    // TODO: max openness -- must not be greater than chunkResolution
-
-    // TODO: std::function to create empty extension
-};
+namespace detail {
+class ChunkDiskIoHandlerInterface;
+class ChunkSpoolerInterface;
+} // namespace detail
 
 // TODO
-//    Idea: turn off tile refreshing (refresh all when turning on)
+//    Idea: turn off cell refreshing (refresh all when turning on)
 class World : private ChunkStateListenerInterface {
 public:
-    World(const WorldConfiguration& aConfiguration);
+    World(const WorldConfig& aConfig);
+
+    World(const WorldConfig&                                  aConfig,
+          hg::NeverNull<detail::ChunkDiskIoHandlerInterface*> aChunkDiskIoHandler);
+
+#ifdef FUTURE
+    World(const WorldConfig& aConfig, hg::NeverNull<detail::ChunkSpoolerInterface*> aChunkSpooler);
+#endif
 
     ~World() override = default;
 
     // TODO: Cell height (z)
 
-    float getCellResolution() const;
+    ///////////////////////////////////////////////////////////////////////////
+    // CONVERSIONS                                                           //
+    ///////////////////////////////////////////////////////////////////////////
 
-    hg::PZInteger getCellCountX() const;
+    // Use the following methods to convert from a position in the world to the corresponding
+    // cell. For example, if the cell resolution (as defined by the world config) is 32.0f,
+    // positions >= 0.0f and < 32.0f belong to cell 0, positions >= 32.0f and < 64.0f belong
+    // to cell 1, and so on (the same principle applies to both X and Y axis).
 
-    hg::PZInteger getCellCountY() const;
+    hg::math::Vector2pz posToCell(float aX, float aY) const;
+
+    hg::math::Vector2pz posToCell(hg::math::Vector2f aPos) const;
+
+    hg::math::Vector2pz posToCellUnchecked(float aX, float aY) const;
+
+    hg::math::Vector2pz posToCellUnchecked(hg::math::Vector2f aPos) const;
+
+    // Use the following methods to convert from the coordinates of a single cell to the
+    // corresponding chunk. For example, if the chunk width (as defined by the world config) is
+    // 8, then cells with coordinates [0, y]-[7, y] belong to chunk [0, Y]; cells with
+    // coordinates [8, y]-[15, y] belong to chunk [1, Y]; and so on. If the chunk height
+    // is also 8, then cells with coordinates [x, 0]-[x, 7] belong to chunk [X, 0]; and so on.
+
+    ChunkId cellToChunkId(hg::PZInteger aX, hg::PZInteger aY) const;
+
+    ChunkId cellToChunkId(hg::math::Vector2pz aCell) const;
+
+    ChunkId cellToChunkIdUnchecked(hg::PZInteger aX, hg::PZInteger aY) const;
+
+    ChunkId cellToChunkIdUnchecked(hg::math::Vector2pz aCell) const;
 
     ///////////////////////////////////////////////////////////////////////////
     // LOCKING                                                               //
     ///////////////////////////////////////////////////////////////////////////
 
-    struct EditPermission {
+    class EditPermission {
+    public:
+        ~EditPermission();
 
     private:
         EditPermission() = default;
@@ -71,27 +101,33 @@ public:
     // CELL GETTERS                                                          //
     ///////////////////////////////////////////////////////////////////////////
 
+    float getCellResolution() const;
+
+    hg::PZInteger getCellCountX() const;
+
+    hg::PZInteger getCellCountY() const;
+
     // Without locking (no on-demand loading)
 
     const CellModel* getCellAt(hg::PZInteger aX, hg::PZInteger aY) const;
 
-    const CellModel* getCellAt(hg::math::Vector2pz aPos) const;
+    const CellModel* getCellAt(hg::math::Vector2pz aCell) const;
 
     const CellModel* getCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) const;
 
-    const CellModel* getCellAtUnchecked(hg::math::Vector2pz aPos) const;
+    const CellModel* getCellAtUnchecked(hg::math::Vector2pz aCell) const;
 
     // With locking (on-demand loading enabled)
 
     const CellModel& getCellAt(const EditPermission& aPerm, hg::PZInteger aX, hg::PZInteger aY) const;
 
-    const CellModel& getCellAt(const EditPermission& aPerm, hg::math::Vector2pz aPos) const;
+    const CellModel& getCellAt(const EditPermission& aPerm, hg::math::Vector2pz aCell) const;
 
     const CellModel& getCellAtUnchecked(const EditPermission& aPerm,
                                         hg::PZInteger         aX,
                                         hg::PZInteger         aY) const;
 
-    const CellModel& getCellAtUnchecked(const EditPermission& aPerm, hg::math::Vector2pz aPos) const;
+    const CellModel& getCellAtUnchecked(const EditPermission& aPerm, hg::math::Vector2pz aCell) const;
 
     ///////////////////////////////////////////////////////////////////////////
     // CELL UPDATERS                                                         //
@@ -105,13 +141,13 @@ public:
                            hg::PZInteger                          aY,
                            const std::optional<CellModel::Floor>& aFloorOpt);
 
-        void updateFloorAt(hg::math::Vector2pz aPos, const std::optional<CellModel::Floor>& aFloorOpt);
+        void updateFloorAt(hg::math::Vector2pz aCell, const std::optional<CellModel::Floor>& aFloorOpt);
 
         void updateFloorAtUnchecked(hg::PZInteger                          aX,
                                     hg::PZInteger                          aY,
                                     const std::optional<CellModel::Floor>& aFloorOpt);
 
-        void updateFloorAtUnchecked(hg::math::Vector2pz                    aPos,
+        void updateFloorAtUnchecked(hg::math::Vector2pz                    aCell,
                                     const std::optional<CellModel::Floor>& aFloorOpt);
 
         // Wall
@@ -120,13 +156,13 @@ public:
                           hg::PZInteger                         aY,
                           const std::optional<CellModel::Wall>& aWallOpt);
 
-        void updateWallAt(hg::math::Vector2pz aPos, const std::optional<CellModel::Wall>& aWallOpt);
+        void updateWallAt(hg::math::Vector2pz aCell, const std::optional<CellModel::Wall>& aWallOpt);
 
         void updateWallAtUnchecked(hg::PZInteger                         aX,
                                    hg::PZInteger                         aY,
                                    const std::optional<CellModel::Wall>& aWallOpt);
 
-        void updateWallAtUnchecked(hg::math::Vector2pz                   aPos,
+        void updateWallAtUnchecked(hg::math::Vector2pz                   aCell,
                                    const std::optional<CellModel::Wall>& aWallOpt);
 
     private:
@@ -144,13 +180,44 @@ public:
     }
 
     ///////////////////////////////////////////////////////////////////////////
-    // CHUNK EXTENSIONS                                                      //
+    // CHUNKS                                                                //
     ///////////////////////////////////////////////////////////////////////////
 
-    // getExtensionAtCell() (mutable/const)
-    // getExtensionAtCellUnchecked() (mutable/const)
-    // getExtensionAtChunk() (mutable/const)
-    // getExtensionsAtChunkUnchecked() (mutable/const)
+    hg::PZInteger getChunkCountX() const;
+
+    hg::PZInteger getChunkCountY() const;
+
+    // Without locking (no on-demand loading)
+
+    const Chunk* getChunkAt(hg::PZInteger aX, hg::PZInteger aY) const;
+
+    const Chunk* getChunkAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) const;
+
+    const Chunk* getChunkAt(hg::math::Vector2pz aCell) const;
+
+    const Chunk* getChunkAtUnchecked(hg::math::Vector2pz aCell) const;
+
+    const Chunk* getChunkAtId(ChunkId aChunkId) const;
+
+    const Chunk* getChunkAtIdUnchecked(ChunkId aChunkId) const;
+
+    // With locking (on-demand loading enabled)
+
+    const Chunk& getChunkAt(const EditPermission& aPerm, hg::PZInteger aX, hg::PZInteger aY) const;
+
+    const Chunk& getChunkAtUnchecked(const EditPermission& aPerm,
+                                     hg::PZInteger         aX,
+                                     hg::PZInteger         aY) const;
+
+    const Chunk& getChunkAt(const EditPermission& aPerm, hg::math::Vector2pz aCell) const;
+
+    const Chunk& getChunkAtUnchecked(const EditPermission& aPerm, hg::math::Vector2pz aCell) const;
+
+    const Chunk& getChunkAtId(const EditPermission& aPerm, ChunkId aChunkId) const;
+
+    const Chunk& getChunkAtIdUnchecked(const EditPermission& aPerm, ChunkId aChunkId) const;
+
+    // TODO: iterate over all loaded chunks
 
     ///////////////////////////////////////////////////////////////////////////
     // LIGHTS                                                                //
@@ -179,23 +246,29 @@ private:
 
     // ===== Config =====
 
-    struct WorldConfigurationExt : WorldConfiguration {
+    struct WorldConfigExt : WorldConfig {
         hg::PZInteger cellCountX;
         hg::PZInteger cellCountY;
 
-        WorldConfigurationExt(const WorldConfiguration& aConfiguration)
-            : WorldConfiguration{aConfiguration}
-            , cellCountX{chunkCountX * chunkResolution}
-            , cellCountY{chunkCountY * chunkResolution} {}
+        WorldConfigExt(const WorldConfig& aConfig)
+            : WorldConfig{aConfig}
+            , cellCountX{chunkCountX * cellsPerChunkX}
+            , cellCountY{chunkCountY * cellsPerChunkY} {}
     };
 
-    WorldConfigurationExt _configuration;
+    WorldConfigExt _config;
 
-    // ===== Cells =====
+    // ===== Chunks & Cells =====
 
-    // TODO: chunk spooler
+    std::unique_ptr<detail::ChunkDiskIoHandlerInterface> _chunkDiskIoHandler;
+
+    std::unique_ptr<detail::ChunkSpoolerInterface> _chunkSpooler;
 
     detail::ChunkStorageHandler _chunkStorage;
+
+    // ===== Edit Permissions =====
+
+    // hg::util::Semaphore _editPermSemaphore{1};
 
     // ===== Lights =====
 
@@ -222,26 +295,26 @@ private:
                         hg::PZInteger                          aY,
                         const std::optional<CellModel::Floor>& aFloorOpt);
 
-    void _updateFloorAt(hg::math::Vector2pz aPos, const std::optional<CellModel::Floor>& aFloorOpt);
+    void _updateFloorAt(hg::math::Vector2pz aCell, const std::optional<CellModel::Floor>& aFloorOpt);
 
     void _updateFloorAtUnchecked(hg::PZInteger                          aX,
                                  hg::PZInteger                          aY,
                                  const std::optional<CellModel::Floor>& aFloorOpt);
 
-    void _updateFloorAtUnchecked(hg::math::Vector2pz                    aPos,
+    void _updateFloorAtUnchecked(hg::math::Vector2pz                    aCell,
                                  const std::optional<CellModel::Floor>& aFloorOpt);
 
     void _updateWallAt(hg::PZInteger                         aX,
                        hg::PZInteger                         aY,
                        const std::optional<CellModel::Wall>& aWallOpt);
 
-    void _updateWallAt(hg::math::Vector2pz aPos, const std::optional<CellModel::Wall>& aWallOpt);
+    void _updateWallAt(hg::math::Vector2pz aCell, const std::optional<CellModel::Wall>& aWallOpt);
 
     void _updateWallAtUnchecked(hg::PZInteger                         aX,
                                 hg::PZInteger                         aY,
                                 const std::optional<CellModel::Wall>& aWallOpt);
 
-    void _updateWallAtUnchecked(hg::math::Vector2pz                   aPos,
+    void _updateWallAtUnchecked(hg::math::Vector2pz                   aCell,
                                 const std::optional<CellModel::Wall>& aWallOpt);
 };
 
@@ -257,9 +330,9 @@ inline void World::Editor::updateFloorAt(hg::PZInteger                          
     _world._updateFloorAt(aX, aY, aFloorOpt);
 }
 
-inline void World::Editor::updateFloorAt(hg::math::Vector2pz                    aPos,
+inline void World::Editor::updateFloorAt(hg::math::Vector2pz                    aCell,
                                          const std::optional<CellModel::Floor>& aFloorOpt) {
-    _world._updateFloorAt(aPos, aFloorOpt);
+    _world._updateFloorAt(aCell, aFloorOpt);
 }
 
 inline void World::Editor::updateFloorAtUnchecked(hg::PZInteger                          aX,
@@ -268,9 +341,9 @@ inline void World::Editor::updateFloorAtUnchecked(hg::PZInteger                 
     _world._updateFloorAtUnchecked(aX, aY, aFloorOpt);
 }
 
-inline void World::Editor::updateFloorAtUnchecked(hg::math::Vector2pz                    aPos,
+inline void World::Editor::updateFloorAtUnchecked(hg::math::Vector2pz                    aCell,
                                                   const std::optional<CellModel::Floor>& aFloorOpt) {
-    _world._updateFloorAtUnchecked(aPos, aFloorOpt);
+    _world._updateFloorAtUnchecked(aCell, aFloorOpt);
 }
 
 // Wall
@@ -281,9 +354,9 @@ inline void World::Editor::updateWallAt(hg::PZInteger                         aX
     _world._updateWallAt(aX, aY, aWallOpt);
 }
 
-inline void World::Editor::updateWallAt(hg::math::Vector2pz                   aPos,
+inline void World::Editor::updateWallAt(hg::math::Vector2pz                   aCell,
                                         const std::optional<CellModel::Wall>& aWallOpt) {
-    _world._updateWallAt(aPos, aWallOpt);
+    _world._updateWallAt(aCell, aWallOpt);
 }
 
 inline void World::Editor::updateWallAtUnchecked(hg::PZInteger                         aX,
@@ -292,9 +365,9 @@ inline void World::Editor::updateWallAtUnchecked(hg::PZInteger                  
     _world._updateWallAtUnchecked(aX, aY, aWallOpt);
 }
 
-void World::Editor::updateWallAtUnchecked(hg::math::Vector2pz                   aPos,
-                                          const std::optional<CellModel::Wall>& aWallOpt) {
-    _world._updateWallAtUnchecked(aPos, aWallOpt);
+inline void World::Editor::updateWallAtUnchecked(hg::math::Vector2pz                   aCell,
+                                                 const std::optional<CellModel::Wall>& aWallOpt) {
+    _world._updateWallAtUnchecked(aCell, aWallOpt);
 }
 
 } // namespace gridworld
