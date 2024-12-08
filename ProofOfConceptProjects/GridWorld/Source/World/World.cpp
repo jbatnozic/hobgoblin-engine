@@ -3,6 +3,7 @@
 
 #include <Hobgoblin/HGExcept.hpp>
 
+#include <algorithm>
 #include <cmath>
 
 #include "../Detail_access.hpp"
@@ -28,24 +29,90 @@ World::World(const WorldConfig& aConfig, hg::NeverNull<detail::ChunkSpoolerInter
     , _chunkStorage{*aChunkSpooler, aConfig} {}
 #endif
 
-// void World::toggleGeneratorMode(bool aGeneratorModeActive) {
-//     if (_generatorMode == aGeneratorModeActive) {
-//         return;
-//     }
-//
-//     if (aGeneratorModeActive) {
-//         _generatorMode = true;
-//         return;
-//     }
-//
-//     _generatorMode = false;
-//
-//     for (hg::PZInteger y = 0; y < getCellCountY(); y += 1) {
-//         for (hg::PZInteger x = 0; x < getCellCountX(); x += 1) {
-//             _refreshCellAtUnchecked(x, y);
-//         }
-//     }
-// }
+///////////////////////////////////////////////////////////////////////////
+// TEMPLATES                                                             //
+///////////////////////////////////////////////////////////////////////////
+
+template <bool taAllowedToLoadAdjacent>
+hg::PZInteger World::_calcOpennessAt(hg::PZInteger aX, hg::PZInteger aY) {
+#define SKIP_IF_OUT_OF_BOUNDS(_var_, _min_, _max_) \
+    if ((_var_) < (_min_))                         \
+        continue;                                  \
+    if ((_var_) >= (_max_))                        \
+        break
+
+    // Ring 0 check if openness can be 1, ring 1 check if openness can be 2, etc.
+    for (hg::PZInteger ring = 0; ring < _config.maxCellOpenness; ring += 1) {
+        for (int y = aY - ring; y < aY + ring + 1; y += 1) {
+            SKIP_IF_OUT_OF_BOUNDS(y, 0, _config.cellCountY);
+
+            if (y == aY - ring || y == aY + ring) {
+                // Check whole row
+                for (int x = aX - ring; x < aX + ring + 1; x += 1) {
+                    SKIP_IF_OUT_OF_BOUNDS(x, 0, _config.cellCountX);
+
+                    if constexpr (taAllowedToLoadAdjacent) {
+                        auto& cell = _chunkStorage.getCellAtUnchecked(x, y, detail::LOAD_IF_MISSING);
+                        if (cell.isWallInitialized()) { // TODO: check `isSolid()` instead
+                            return ring;
+                        }
+                    } else {
+                        auto* cell = _chunkStorage.getCellAtUnchecked(x, y);
+                        if (!cell || cell->isWallInitialized()) { // TODO: check `isSolid()` instead
+                            return ring;
+                        }
+                    }
+                }
+            } else {
+                // Check only extremes
+                {
+                    const int x = aX - ring;
+                    if (x >= 0 && x < _config.cellCountX) {
+                        if constexpr (taAllowedToLoadAdjacent) {
+                            auto& cell = _chunkStorage.getCellAtUnchecked(x, y, detail::LOAD_IF_MISSING);
+                            if (cell.isWallInitialized()) { // TODO: check `isSolid()` instead
+                                return ring;
+                            }
+                        } else {
+                            auto* cell = _chunkStorage.getCellAtUnchecked(x, y);
+                            if (!cell || cell->isWallInitialized()) { // TODO: check `isSolid()` instead
+                                return ring;
+                            }
+                        }
+                    }
+                }
+                {
+                    const int x = aX + ring;
+                    if (x >= 0 && x < _config.cellCountX) {
+                        if constexpr (taAllowedToLoadAdjacent) {
+                            auto& cell = _chunkStorage.getCellAtUnchecked(x, y, detail::LOAD_IF_MISSING);
+                            if (cell.isWallInitialized()) { // TODO: check `isSolid()` instead
+                                return ring;
+                            }
+                        } else {
+                            auto* cell = _chunkStorage.getCellAtUnchecked(x, y);
+                            if (!cell || cell->isWallInitialized()) { // TODO: check `isSolid()` instead
+                                return ring;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return _config.maxCellOpenness;
+}
+
+// asdfasa
+
+void World::update() {
+    _chunkStorage.update();
+}
+
+void World::prune() {
+    _chunkStorage.prune();
+}
 
 ///////////////////////////////////////////////////////////////////////////
 // CONVERSIONS                                                           //
@@ -247,6 +314,14 @@ const Chunk& World::getChunkAtIdUnchecked(const EditPermission& /*aPerm*/, Chunk
 // TODO
 
 ///////////////////////////////////////////////////////////////////////////
+// ACTIVE AREAS                                                          //
+///////////////////////////////////////////////////////////////////////////
+
+ActiveArea World::createActiveArea() {
+    return _chunkStorage.createNewActiveArea();
+}
+
+///////////////////////////////////////////////////////////////////////////
 // LIGHTS                                                                //
 ///////////////////////////////////////////////////////////////////////////
 
@@ -281,10 +356,10 @@ void World::destroyLight(int aLightHandle) {
 
 #if 0
 inline
-void World::Editor::updateWallAtUnchecked(hg::PZInteger                         aX,
+void World::Editor::setWallAtUnchecked(hg::PZInteger                         aX,
                                           hg::PZInteger                         aY,
                                           const std::optional<CellModel::Wall>& aWallOpt) {
-    _world._updateWallAtUnchecked(aX, aY, aWallOpt);
+    _world._setWallAtUnchecked(aX, aY, aWallOpt);
     //    _grid[aY][aX].wall = aWallOpt;
     //
     //    if (_generatorMode) {
@@ -323,9 +398,37 @@ void World::onChunkUnloaded(ChunkId aChunkId, ChunkExtensionInterface*) {
     // TODO: inform user listeners
 }
 
-// ===== Updating cells =====
+// ===== Editing cells =====
+
+void World::_startEdit() {
+    _editMinX = -1;
+    _editMinY = -1;
+    _editMaxX = -1;
+    _editMaxY = -1;
+}
+
+void World::_endEdit() {
+    if (_editMinX == -1 || _editMinY == -1 || _editMaxX == -1 || _editMaxY == -1) {
+        return;
+    }
+
+    const auto startX = std::max<hg::PZInteger>(0, _editMinX - _config.maxCellOpenness);
+    const auto startY = std::max<hg::PZInteger>(0, _editMinY - _config.maxCellOpenness);
+    const auto endX =
+        std::min<hg::PZInteger>(_config.cellCountX - 1, _editMaxX + _config.maxCellOpenness - 1);
+    const auto endY =
+        std::min<hg::PZInteger>(_config.cellCountY - 1, _editMaxY + _config.maxCellOpenness - 1);
+
+    for (hg::PZInteger y = startY; y <= endY; y += 1) {
+        for (hg::PZInteger x = startX; x <= endX; x += 1) {
+            _refreshCellAtUnchecked(x, y);
+        }
+    }
+}
 
 void World::_refreshCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) {
+    const auto openness = _calcOpennessAt<false>(aX, aY);
+
     // auto& cell = _grid[aY][aX];
 
     // GetMutableExtensionData(cell).refresh(
@@ -335,55 +438,85 @@ void World::_refreshCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) {
     //     (aY >= getCellCountY() - 1) ? nullptr : std::addressof(_grid[aY + 1][aX]));
 }
 
-void World::_updateFloorAt(hg::PZInteger                          aX,
-                           hg::PZInteger                          aY,
-                           const std::optional<CellModel::Floor>& aFloorOpt) {
+void World::_setFloorAt(hg::PZInteger                          aX,
+                        hg::PZInteger                          aY,
+                        const std::optional<CellModel::Floor>& aFloorOpt) {
     HG_VALIDATE_ARGUMENT(aX < getCellCountX());
     HG_VALIDATE_ARGUMENT(aY < getCellCountY());
 
-    _updateFloorAtUnchecked(aX, aY, aFloorOpt);
+    _setFloorAtUnchecked(aX, aY, aFloorOpt);
 }
 
-void World::_updateFloorAt(hg::math::Vector2pz aCell, const std::optional<CellModel::Floor>& aFloorOpt) {
-    _updateFloorAt(aCell.x, aCell.y, aFloorOpt);
+void World::_setFloorAt(hg::math::Vector2pz aCell, const std::optional<CellModel::Floor>& aFloorOpt) {
+    _setFloorAt(aCell.x, aCell.y, aFloorOpt);
 }
 
-void World::_updateFloorAtUnchecked(hg::PZInteger                          aX,
-                                    hg::PZInteger                          aY,
-                                    const std::optional<CellModel::Floor>& aFloorOpt) {
-    // TODO: ACTUAL IMPL
+void World::_setFloorAtUnchecked(hg::PZInteger                          aX,
+                                 hg::PZInteger                          aY,
+                                 const std::optional<CellModel::Floor>& aFloorOpt) {
+    auto& cell = _chunkStorage.getCellAtUnchecked(aX, aY, detail::LOAD_IF_MISSING);
+    if (aFloorOpt) {
+        cell.setFloor(*aFloorOpt);
+    } else {
+        cell.resetFloor();
+    }
 }
 
-void World::_updateFloorAtUnchecked(hg::math::Vector2pz                    aCell,
-                                    const std::optional<CellModel::Floor>& aFloorOpt) {
-    _updateFloorAtUnchecked(aCell.x, aCell.y, aFloorOpt);
+void World::_setFloorAtUnchecked(hg::math::Vector2pz                    aCell,
+                                 const std::optional<CellModel::Floor>& aFloorOpt) {
+    _setFloorAtUnchecked(aCell.x, aCell.y, aFloorOpt);
 }
 
-void World::_updateWallAt(hg::PZInteger                         aX,
-                          hg::PZInteger                         aY,
-                          const std::optional<CellModel::Wall>& aWallOpt) {
+void World::_setWallAt(hg::PZInteger                         aX,
+                       hg::PZInteger                         aY,
+                       const std::optional<CellModel::Wall>& aWallOpt) {
     HG_VALIDATE_ARGUMENT(aX < getCellCountX());
     HG_VALIDATE_ARGUMENT(aY < getCellCountY());
 
-    _updateWallAtUnchecked(aX, aY, aWallOpt);
+    _setWallAtUnchecked(aX, aY, aWallOpt);
 }
 
-void World::_updateWallAt(hg::math::Vector2pz aCell, const std::optional<CellModel::Wall>& aWallOpt) {
-    _updateWallAt(aCell.x, aCell.y, aWallOpt);
+void World::_setWallAt(hg::math::Vector2pz aCell, const std::optional<CellModel::Wall>& aWallOpt) {
+    _setWallAt(aCell.x, aCell.y, aWallOpt);
 }
 
-void World::_updateWallAtUnchecked(hg::PZInteger                         aX,
-                                   hg::PZInteger                         aY,
-                                   const std::optional<CellModel::Wall>& aWallOpt) {
-    // TODO: ACTUAL IMPL
-    // TODO: update min/max x/y fields
-    // TODO: load chunk if not already loaded (+ prune if needed)
-    // TODO: store new wall
+void World::_setWallAtUnchecked(hg::PZInteger                         aX,
+                                hg::PZInteger                         aY,
+                                const std::optional<CellModel::Wall>& aWallOpt) {
+    auto& cell = _chunkStorage.getCellAtUnchecked(aX, aY, detail::LOAD_IF_MISSING);
+
+    if ((cell.isWallInitialized() == aWallOpt.has_value()) &&
+        (!cell.isWallInitialized() || (cell.getWall().shape == aWallOpt->shape))) {
+        // In this case, there is no refresh needed because the walls are of the same shape,
+        // or are both non-existent
+        goto SWAP_WALL;
+    }
+
+    if (_editMinX == -1 || _editMaxX == -1) {
+        _editMinX = _editMaxX = aX;
+    } else {
+        _editMinX = std::min(_editMinX, aX);
+        _editMaxX = std::max(_editMaxX, aX);
+    }
+
+    if (_editMinY == -1 || _editMaxY == -1) {
+        _editMinY = _editMaxY = aY;
+    } else {
+        _editMinY = std::min(_editMinY, aY);
+        _editMaxY = std::min(_editMaxY, aY);
+    }
+
+SWAP_WALL:
+    if (aWallOpt) {
+        cell.setWall(*aWallOpt);
+    } else {
+        cell.resetWall();
+    }
 }
 
-void World::_updateWallAtUnchecked(hg::math::Vector2pz                   aCell,
-                                   const std::optional<CellModel::Wall>& aWallOpt) {
-    _updateWallAtUnchecked(aCell.x, aCell.y, aWallOpt);
+void World::_setWallAtUnchecked(hg::math::Vector2pz                   aCell,
+                                const std::optional<CellModel::Wall>& aWallOpt) {
+    _setWallAtUnchecked(aCell.x, aCell.y, aWallOpt);
 }
 
 } // namespace gridworld

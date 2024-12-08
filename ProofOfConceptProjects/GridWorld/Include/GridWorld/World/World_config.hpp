@@ -30,6 +30,7 @@ struct WorldConfig {
     float cellResolution;
 
     //! TODO(description)
+    //! \warning MUST BE AT LEAST 1
     hg::PZInteger maxCellOpenness;
 
     //! TODO(description)
@@ -38,5 +39,7 @@ struct WorldConfig {
     using ChunkExtensionFactory = std::function<std::unique_ptr<ChunkExtensionInterface>()>;
     ChunkExtensionFactory chunkExtensionFactory;
 };
+
+// TODO: config validation
 
 } // namespace gridworld

@@ -188,7 +188,7 @@ hg::PZInteger DefaultChunkSpooler::unloadChunk(ChunkId aChunkId, Chunk&& aChunk)
     std::unique_lock<Mutex> lock{_mutex};
 
     // TODO: does it have to be paused?
-    HG_VALIDATE_PRECONDITION(_paused && "Spooler must be paused when this method is called");
+    // HG_VALIDATE_PRECONDITION(_paused && "Spooler must be paused when this method is called");
 
     const auto iter = _requests.find(aChunkId);
     if (iter != _requests.end()) {

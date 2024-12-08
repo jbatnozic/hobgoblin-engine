@@ -37,7 +37,7 @@ void DrawIsometricSquareAt(hg::gr::Canvas&    aCanvas,
     using hg::gr::VertexArray;
 
     VertexArray va;
-    va.primitiveType = hg::gr::PrimitiveType::LineStrip;
+    va.primitiveType = hg::gr::PrimitiveType::LINE_STRIP;
 
     for (int i = 0; i < 5; i += 1) {
         auto iso = gridworld::IsometricCoordinatesToScreen(
@@ -53,7 +53,7 @@ void DrawIsometricSquareAt(hg::gr::Canvas&    aCanvas,
 #define SPR_WALL_SHORT 2
 #define SPR_LIGHT      9
 
-int main() try {
+void RunLightingTest() {
     hg::log::SetMinimalLogSeverity(hg::log::Severity::Info);
 
     hg::gr::SpriteLoader loader;
@@ -63,6 +63,14 @@ int main() try {
         ->addSprite(SPR_WALL_SHORT, (HG_TEST_ASSET_DIR "/isometric-wall-short.png"))
         ->addSprite(SPR_LIGHT, (HG_TEST_ASSET_DIR "/light.png"))
         ->finalize(hg::gr::TexturePackingHeuristic::BestAreaFit);
+
+    gridworld::WorldConfig config{.chunkCountX                = 8,
+                                  .chunkCountY                = 8,
+                                  .cellsPerChunkX             = 8,
+                                  .cellsPerChunkY             = 8,
+                                  .cellResolution             = 32.f,
+                                  .maxCellOpenness            = 4,
+                                  .maxLoadedNonessentialCells = 1};
 
     gridworld::World world{40, 40, 32.f};
     // Generate world:
@@ -102,12 +110,12 @@ int main() try {
     }
 
     gridworld::LightingRenderer2D    lightRenderer{world,
-                                                loader,
-                                                1024,
-                                                gridworld::LightingRenderer2D::FOR_DIMETRIC};
+        loader,
+        1024,
+        gridworld::LightingRenderer2D::FOR_DIMETRIC};
     gridworld::LineOfSightRenderer2D losRenderer{world,
-                                                 1024,
-                                                 gridworld::LineOfSightRenderer2D::FOR_DIMETRIC};
+        1024,
+        gridworld::LineOfSightRenderer2D::FOR_DIMETRIC};
     gridworld::DimetricRenderer      renderer{world, loader, lightRenderer, losRenderer};
 
     hg::util::Stopwatch swatch;
@@ -121,16 +129,16 @@ int main() try {
         while (window.pollEvent(ev)) {
             ev.visit(
                 [&](hg::win::Event::Closed&) {
-                    window.close();
-                },
+                window.close();
+            },
                 [&](hg::win::Event::MouseButtonPressed& aButton) {
-                    if (aButton.button == hg::in::MB_LEFT) {
-                        mouseLClick = true;
-                    }
-                    if (aButton.button == hg::in::MB_RIGHT) {
-                        mouseRClick = true;
-                    }
-                });
+                if (aButton.button == hg::in::MB_LEFT) {
+                    mouseLClick = true;
+                }
+                if (aButton.button == hg::in::MB_RIGHT) {
+                    mouseRClick = true;
+                }
+            });
         } // end event processing
 
         {
@@ -157,8 +165,8 @@ int main() try {
                     world.updateCellAtUnchecked(
                         {xx, yy},
                         gridworld::CellModel::Wall{SPR_WALL,
-                                                   SPR_WALL_SHORT,
-                                                   gridworld::Shape::FULL_SQUARE});
+                        SPR_WALL_SHORT,
+                        gridworld::Shape::FULL_SQUARE});
                 } else if (mouseRClick) {
                     world.updateCellAtUnchecked({xx, yy}, std::optional<gridworld::CellModel::Wall>{});
                 }
@@ -169,7 +177,7 @@ int main() try {
         renderer.start(window.getView(0), /* POV */ isoCoords);
         renderer.render(window,
                         hg::in::CheckPressedPK(hg::in::PK_SPACE) ? gridworld::RENDOPT_LOWER_MORE
-                                                                 : gridworld::RENDOPT_NONE);
+                        : gridworld::RENDOPT_NONE);
         const auto t2 = std::chrono::steady_clock::now();
         // std::cout << "Time to render: " << std::chrono::duration_cast<std::chrono::microseconds>(t2 -
         // t1).count() / 1000.0 << "ms "
@@ -203,11 +211,7 @@ int main() try {
     }
 
     world.destroyLight(light);
-
-    return 0;
-} catch (const std::exception& ex) {
-    std::cout << "Exception caught: " << ex.what() << '\n';
 }
-#endif
-
+#else
 void RunLightingTest() {}
+#endif

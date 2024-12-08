@@ -13,7 +13,8 @@ int main() try {
 
     // RunLightingTest();
     // RunSpoolingTest();
-    RunStorageHandlerTest();
+    // RunStorageHandlerTest();
+    RunOpennessTest();
 
 } catch (const hg::TracedException& ex) {
     std::cout << "Traced exception caught: " << ex.getFullFormattedDescription() << '\n';

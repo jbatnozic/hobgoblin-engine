@@ -3,6 +3,7 @@ project("GridWorld.ManualTest")
 add_executable(${PROJECT_NAME}
     "GridWorld_manual_test.cpp"
     "Lighting_test.cpp"
+    "Openness_test.cpp"
     "Spooling_test.cpp"
     "Storage_handler_test.cpp"
 )

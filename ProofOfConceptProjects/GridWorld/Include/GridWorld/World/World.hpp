@@ -51,6 +51,9 @@ public:
 
     // TODO: Cell height (z)
 
+    void update();
+    void prune();
+
     ///////////////////////////////////////////////////////////////////////////
     // CONVERSIONS                                                           //
     ///////////////////////////////////////////////////////////////////////////
@@ -137,46 +140,47 @@ public:
     public:
         // Floor
 
-        void updateFloorAt(hg::PZInteger                          aX,
-                           hg::PZInteger                          aY,
-                           const std::optional<CellModel::Floor>& aFloorOpt);
+        void setFloorAt(hg::PZInteger                          aX,
+                        hg::PZInteger                          aY,
+                        const std::optional<CellModel::Floor>& aFloorOpt);
 
-        void updateFloorAt(hg::math::Vector2pz aCell, const std::optional<CellModel::Floor>& aFloorOpt);
+        void setFloorAt(hg::math::Vector2pz aCell, const std::optional<CellModel::Floor>& aFloorOpt);
 
-        void updateFloorAtUnchecked(hg::PZInteger                          aX,
-                                    hg::PZInteger                          aY,
-                                    const std::optional<CellModel::Floor>& aFloorOpt);
+        void setFloorAtUnchecked(hg::PZInteger                          aX,
+                                 hg::PZInteger                          aY,
+                                 const std::optional<CellModel::Floor>& aFloorOpt);
 
-        void updateFloorAtUnchecked(hg::math::Vector2pz                    aCell,
-                                    const std::optional<CellModel::Floor>& aFloorOpt);
+        void setFloorAtUnchecked(hg::math::Vector2pz                    aCell,
+                                 const std::optional<CellModel::Floor>& aFloorOpt);
 
         // Wall
 
-        void updateWallAt(hg::PZInteger                         aX,
-                          hg::PZInteger                         aY,
-                          const std::optional<CellModel::Wall>& aWallOpt);
+        void setWallAt(hg::PZInteger                         aX,
+                       hg::PZInteger                         aY,
+                       const std::optional<CellModel::Wall>& aWallOpt);
 
-        void updateWallAt(hg::math::Vector2pz aCell, const std::optional<CellModel::Wall>& aWallOpt);
+        void setWallAt(hg::math::Vector2pz aCell, const std::optional<CellModel::Wall>& aWallOpt);
 
-        void updateWallAtUnchecked(hg::PZInteger                         aX,
-                                   hg::PZInteger                         aY,
-                                   const std::optional<CellModel::Wall>& aWallOpt);
+        void setWallAtUnchecked(hg::PZInteger                         aX,
+                                hg::PZInteger                         aY,
+                                const std::optional<CellModel::Wall>& aWallOpt);
 
-        void updateWallAtUnchecked(hg::math::Vector2pz                   aCell,
-                                   const std::optional<CellModel::Wall>& aWallOpt);
+        void setWallAtUnchecked(hg::math::Vector2pz                   aCell,
+                                const std::optional<CellModel::Wall>& aWallOpt);
 
     private:
         friend class World;
-        Editor(World& aWorld);
+        Editor(World& aWorld) : _world{aWorld} {}
         World& _world;
     };
 
+    // TODO: how to solve cache overflow in very large edits?
     template <class taCallable>
     void edit(const EditPermission&, taCallable&& aCallable) {
-        // TODO: start edit
+        _startEdit();
         Editor editor{*this};
         aCallable(editor);
-        // TODO: end edit
+        _endEdit();
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -218,6 +222,12 @@ public:
     const Chunk& getChunkAtIdUnchecked(const EditPermission& aPerm, ChunkId aChunkId) const;
 
     // TODO: iterate over all loaded chunks
+
+    ///////////////////////////////////////////////////////////////////////////
+    // ACTIVE AREAS                                                          //
+    ///////////////////////////////////////////////////////////////////////////
+
+    ActiveArea createActiveArea();
 
     ///////////////////////////////////////////////////////////////////////////
     // LIGHTS                                                                //
@@ -287,35 +297,45 @@ private:
     void _incrementUsageOfChunks(const std::vector<ChunkId>& aChunks);
     void _decrementUsageOfChunks(const std::vector<ChunkId>& aChunks);
 
-    // ===== Updating cells =====
+    // ===== Editing cells =====
+
+    int _editMinX = -1;
+    int _editMinY = -1;
+    int _editMaxX = -1;
+    int _editMaxY = -1;
+
+    void _startEdit();
+    void _endEdit();
+
+    // TODO: since we determine openness at chunk load, this will lead into endless chunk load loop
+    // TODO: it's possible to optimize in case of PLACING A NEW WALL
+    template <bool taAllowedToLoadAdjacent>
+    hg::PZInteger _calcOpennessAt(hg::PZInteger aX, hg::PZInteger aY);
 
     void _refreshCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY);
 
-    void _updateFloorAt(hg::PZInteger                          aX,
-                        hg::PZInteger                          aY,
-                        const std::optional<CellModel::Floor>& aFloorOpt);
+    void _setFloorAt(hg::PZInteger                          aX,
+                     hg::PZInteger                          aY,
+                     const std::optional<CellModel::Floor>& aFloorOpt);
 
-    void _updateFloorAt(hg::math::Vector2pz aCell, const std::optional<CellModel::Floor>& aFloorOpt);
+    void _setFloorAt(hg::math::Vector2pz aCell, const std::optional<CellModel::Floor>& aFloorOpt);
 
-    void _updateFloorAtUnchecked(hg::PZInteger                          aX,
-                                 hg::PZInteger                          aY,
-                                 const std::optional<CellModel::Floor>& aFloorOpt);
+    void _setFloorAtUnchecked(hg::PZInteger                          aX,
+                              hg::PZInteger                          aY,
+                              const std::optional<CellModel::Floor>& aFloorOpt);
 
-    void _updateFloorAtUnchecked(hg::math::Vector2pz                    aCell,
-                                 const std::optional<CellModel::Floor>& aFloorOpt);
+    void _setFloorAtUnchecked(hg::math::Vector2pz                    aCell,
+                              const std::optional<CellModel::Floor>& aFloorOpt);
 
-    void _updateWallAt(hg::PZInteger                         aX,
-                       hg::PZInteger                         aY,
-                       const std::optional<CellModel::Wall>& aWallOpt);
+    void _setWallAt(hg::PZInteger aX, hg::PZInteger aY, const std::optional<CellModel::Wall>& aWallOpt);
 
-    void _updateWallAt(hg::math::Vector2pz aCell, const std::optional<CellModel::Wall>& aWallOpt);
+    void _setWallAt(hg::math::Vector2pz aCell, const std::optional<CellModel::Wall>& aWallOpt);
 
-    void _updateWallAtUnchecked(hg::PZInteger                         aX,
-                                hg::PZInteger                         aY,
-                                const std::optional<CellModel::Wall>& aWallOpt);
+    void _setWallAtUnchecked(hg::PZInteger                         aX,
+                             hg::PZInteger                         aY,
+                             const std::optional<CellModel::Wall>& aWallOpt);
 
-    void _updateWallAtUnchecked(hg::math::Vector2pz                   aCell,
-                                const std::optional<CellModel::Wall>& aWallOpt);
+    void _setWallAtUnchecked(hg::math::Vector2pz aCell, const std::optional<CellModel::Wall>& aWallOpt);
 };
 
 ///////////////////////////////////////////////////////////////////////////
@@ -324,50 +344,50 @@ private:
 
 // Floor
 
-inline void World::Editor::updateFloorAt(hg::PZInteger                          aX,
-                                         hg::PZInteger                          aY,
-                                         const std::optional<CellModel::Floor>& aFloorOpt) {
-    _world._updateFloorAt(aX, aY, aFloorOpt);
+inline void World::Editor::setFloorAt(hg::PZInteger                          aX,
+                                      hg::PZInteger                          aY,
+                                      const std::optional<CellModel::Floor>& aFloorOpt) {
+    _world._setFloorAt(aX, aY, aFloorOpt);
 }
 
-inline void World::Editor::updateFloorAt(hg::math::Vector2pz                    aCell,
-                                         const std::optional<CellModel::Floor>& aFloorOpt) {
-    _world._updateFloorAt(aCell, aFloorOpt);
+inline void World::Editor::setFloorAt(hg::math::Vector2pz                    aCell,
+                                      const std::optional<CellModel::Floor>& aFloorOpt) {
+    _world._setFloorAt(aCell, aFloorOpt);
 }
 
-inline void World::Editor::updateFloorAtUnchecked(hg::PZInteger                          aX,
-                                                  hg::PZInteger                          aY,
-                                                  const std::optional<CellModel::Floor>& aFloorOpt) {
-    _world._updateFloorAtUnchecked(aX, aY, aFloorOpt);
+inline void World::Editor::setFloorAtUnchecked(hg::PZInteger                          aX,
+                                               hg::PZInteger                          aY,
+                                               const std::optional<CellModel::Floor>& aFloorOpt) {
+    _world._setFloorAtUnchecked(aX, aY, aFloorOpt);
 }
 
-inline void World::Editor::updateFloorAtUnchecked(hg::math::Vector2pz                    aCell,
-                                                  const std::optional<CellModel::Floor>& aFloorOpt) {
-    _world._updateFloorAtUnchecked(aCell, aFloorOpt);
+inline void World::Editor::setFloorAtUnchecked(hg::math::Vector2pz                    aCell,
+                                               const std::optional<CellModel::Floor>& aFloorOpt) {
+    _world._setFloorAtUnchecked(aCell, aFloorOpt);
 }
 
 // Wall
 
-inline void World::Editor::updateWallAt(hg::PZInteger                         aX,
-                                        hg::PZInteger                         aY,
-                                        const std::optional<CellModel::Wall>& aWallOpt) {
-    _world._updateWallAt(aX, aY, aWallOpt);
+inline void World::Editor::setWallAt(hg::PZInteger                         aX,
+                                     hg::PZInteger                         aY,
+                                     const std::optional<CellModel::Wall>& aWallOpt) {
+    _world._setWallAt(aX, aY, aWallOpt);
 }
 
-inline void World::Editor::updateWallAt(hg::math::Vector2pz                   aCell,
-                                        const std::optional<CellModel::Wall>& aWallOpt) {
-    _world._updateWallAt(aCell, aWallOpt);
+inline void World::Editor::setWallAt(hg::math::Vector2pz                   aCell,
+                                     const std::optional<CellModel::Wall>& aWallOpt) {
+    _world._setWallAt(aCell, aWallOpt);
 }
 
-inline void World::Editor::updateWallAtUnchecked(hg::PZInteger                         aX,
-                                                 hg::PZInteger                         aY,
-                                                 const std::optional<CellModel::Wall>& aWallOpt) {
-    _world._updateWallAtUnchecked(aX, aY, aWallOpt);
+inline void World::Editor::setWallAtUnchecked(hg::PZInteger                         aX,
+                                              hg::PZInteger                         aY,
+                                              const std::optional<CellModel::Wall>& aWallOpt) {
+    _world._setWallAtUnchecked(aX, aY, aWallOpt);
 }
 
-inline void World::Editor::updateWallAtUnchecked(hg::math::Vector2pz                   aCell,
-                                                 const std::optional<CellModel::Wall>& aWallOpt) {
-    _world._updateWallAtUnchecked(aCell, aWallOpt);
+inline void World::Editor::setWallAtUnchecked(hg::math::Vector2pz                   aCell,
+                                              const std::optional<CellModel::Wall>& aWallOpt) {
+    _world._setWallAtUnchecked(aCell, aWallOpt);
 }
 
 } // namespace gridworld

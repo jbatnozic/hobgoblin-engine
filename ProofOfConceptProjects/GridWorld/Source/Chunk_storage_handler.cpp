@@ -47,6 +47,7 @@ void ChunkStorageHandler::update() {
             } else {
                 _createDefaultChunk(iter->first);
             }
+            // cb.requestHandle = nullptr; TODO
         }
     }
 }
@@ -55,7 +56,11 @@ void ChunkStorageHandler::prune() {
     while (_freeChunks.size() > hg::pztos(_freeChunkLimit)) {
         const auto iter = _freeChunks.begin();
         const auto id   = iter->first;
-        _chunks[static_cast<hg::PZInteger>(id.y)][static_cast<hg::PZInteger>(id.x)].makeEmpty();
+        
+        auto& chunk = _chunks[static_cast<hg::PZInteger>(id.y)][static_cast<hg::PZInteger>(id.x)];
+        _chunkSpooler.unloadChunk(id, std::move(chunk));
+        chunk.makeEmpty();
+
         _freeChunks.erase(iter);
     }
 }

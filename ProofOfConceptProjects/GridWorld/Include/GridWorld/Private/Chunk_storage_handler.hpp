@@ -83,7 +83,7 @@ public:
     //! call to `prune()`.
     Chunk& getChunkAtIdUnchecked(ChunkId aChunkId, LOAD_IF_MISSING_Tag) {
         auto& chunk =
-            _chunks[static_cast<hg::PZInteger>(aChunkId.x)][static_cast<hg::PZInteger>(aChunkId.y)];
+            _chunks[static_cast<hg::PZInteger>(aChunkId.y)][static_cast<hg::PZInteger>(aChunkId.x)];
         if (HG_LIKELY_CONDITION(!chunk.isEmpty())) {
             HG_LIKELY_BRANCH;
             return chunk;
@@ -106,7 +106,7 @@ public:
     //! to `prune()`. Otherwise, `nullptr` will be returned.
     Chunk* getChunkAtIdUnchecked(ChunkId aChunkId) {
         auto& chunk =
-            _chunks[static_cast<hg::PZInteger>(aChunkId.x)][static_cast<hg::PZInteger>(aChunkId.y)];
+            _chunks[static_cast<hg::PZInteger>(aChunkId.y)][static_cast<hg::PZInteger>(aChunkId.x)];
         if (HG_LIKELY_CONDITION(!chunk.isEmpty())) {
             HG_LIKELY_BRANCH;
             return &chunk;

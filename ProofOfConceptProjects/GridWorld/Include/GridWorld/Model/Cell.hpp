@@ -178,6 +178,9 @@ public:
         bool _holdingExtension = false;
         bool _visible          = false;
         bool _lowered          = false;
+
+    public:
+        unsigned char openness = 0; // TODO temp.
     };
 
     static_assert(sizeof(ExtensionData) <= 16);
