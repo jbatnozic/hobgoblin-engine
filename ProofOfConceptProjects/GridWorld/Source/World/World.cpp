@@ -34,77 +34,151 @@ World::World(const WorldConfig& aConfig, hg::NeverNull<detail::ChunkSpoolerInter
 ///////////////////////////////////////////////////////////////////////////
 
 template <bool taAllowedToLoadAdjacent>
-hg::PZInteger World::_calcOpennessAt(hg::PZInteger aX, hg::PZInteger aY) {
-#define SKIP_IF_OUT_OF_BOUNDS(_var_, _min_, _max_) \
-    if ((_var_) < (_min_))                         \
-        continue;                                  \
-    if ((_var_) >= (_max_))                        \
-        break
+World::RingAssessment World::_assessRing(hg::PZInteger aX, hg::PZInteger aY, hg::PZInteger aRing) {
+    RingAssessment result;
 
-    // Ring 0 check if openness can be 1, ring 1 check if openness can be 2, etc.
-    for (hg::PZInteger ring = 0; ring < _config.maxCellOpenness; ring += 1) {
-        for (int y = aY - ring; y < aY + ring + 1; y += 1) {
-            SKIP_IF_OUT_OF_BOUNDS(y, 0, _config.cellCountY);
+    const auto isCellSolid = [this](hg::PZInteger aX, hg::PZInteger aY) -> bool {
+        if (aX < 0 || aX >= _config.cellCountX || aY < 0 || aY >= _config.cellCountY) {
+            return true;
+        }
 
-            if (y == aY - ring || y == aY + ring) {
-                // Check whole row
-                for (int x = aX - ring; x < aX + ring + 1; x += 1) {
-                    SKIP_IF_OUT_OF_BOUNDS(x, 0, _config.cellCountX);
+        if constexpr (taAllowedToLoadAdjacent) {
+            auto& cell = _chunkStorage.getCellAtUnchecked(aX, aY, detail::LOAD_IF_MISSING);
+            return cell.isWallInitialized();
+        } else {
+            auto* cell = _chunkStorage.getCellAtUnchecked(aX, aY);
+            return !cell || cell->isWallInitialized();
+        }
+    };
 
-                    if constexpr (taAllowedToLoadAdjacent) {
-                        auto& cell = _chunkStorage.getCellAtUnchecked(x, y, detail::LOAD_IF_MISSING);
-                        if (cell.isWallInitialized()) { // TODO: check `isSolid()` instead
-                            return ring;
-                        }
-                    } else {
-                        auto* cell = _chunkStorage.getCellAtUnchecked(x, y);
-                        if (!cell || cell->isWallInitialized()) { // TODO: check `isSolid()` instead
-                            return ring;
-                        }
-                    }
+    if (aRing == 0) {
+        const bool solid = isCellSolid(aX, aY);
+        if (solid) {
+            result.occupiedCellCount = 1;
+        }
+        return result;
+    }
+
+    // Check top row
+    {
+        const int y = aY - aRing;
+
+        // Check top-left corner
+        {
+            const auto x = aX - aRing;
+            const bool solid = isCellSolid(x, y);
+            if (solid) {
+                result.occupiedCellCount += 1;
+                result.e.bottom = result.e.right = false;
+            }
+        }
+        // Check top-right corner
+        {
+            const auto x = aX + aRing;
+            const bool solid = isCellSolid(x, y);
+            if (solid) {
+                result.occupiedCellCount += 1;
+                result.e.bottom = result.e.left = false;
+            }
+        }
+        // Check betwixt
+        {
+            for (int x = aX - aRing + 1; x <= aX + aRing - 1; x += 1) {
+                const bool solid = isCellSolid(x, y);
+                if (solid) {
+                    result.occupiedCellCount += 1;
+                    result.e.left = result.e.right = result.e.bottom = false;
                 }
-            } else {
-                // Check only extremes
-                {
-                    const int x = aX - ring;
-                    if (x >= 0 && x < _config.cellCountX) {
-                        if constexpr (taAllowedToLoadAdjacent) {
-                            auto& cell = _chunkStorage.getCellAtUnchecked(x, y, detail::LOAD_IF_MISSING);
-                            if (cell.isWallInitialized()) { // TODO: check `isSolid()` instead
-                                return ring;
-                            }
-                        } else {
-                            auto* cell = _chunkStorage.getCellAtUnchecked(x, y);
-                            if (!cell || cell->isWallInitialized()) { // TODO: check `isSolid()` instead
-                                return ring;
-                            }
-                        }
-                    }
+            }
+        }
+    }
+    // Check bottom row
+    {
+        const int y = aY + aRing;
+
+        // Check bottom-left corner
+        {
+            const auto x = aX - aRing;
+            const bool solid = isCellSolid(x, y);
+            if (solid) {
+                result.occupiedCellCount += 1;
+                result.e.top = result.e.right = false;
+            }
+        }
+        // Check bottom-right corner
+        {
+            const auto x = aX + aRing;
+            const bool solid = isCellSolid(x, y);
+            if (solid) {
+                result.occupiedCellCount += 1;
+                result.e.top = result.e.left = false;
+            }
+        }
+        // Check betwixt
+        {
+            for (int x = aX - aRing + 1; x <= aX + aRing - 1; x += 1) {
+                const bool solid = isCellSolid(x, y);
+                if (solid) {
+                    result.occupiedCellCount += 1;
+                    result.e.left = result.e.right = result.e.top = false;
                 }
-                {
-                    const int x = aX + ring;
-                    if (x >= 0 && x < _config.cellCountX) {
-                        if constexpr (taAllowedToLoadAdjacent) {
-                            auto& cell = _chunkStorage.getCellAtUnchecked(x, y, detail::LOAD_IF_MISSING);
-                            if (cell.isWallInitialized()) { // TODO: check `isSolid()` instead
-                                return ring;
-                            }
-                        } else {
-                            auto* cell = _chunkStorage.getCellAtUnchecked(x, y);
-                            if (!cell || cell->isWallInitialized()) { // TODO: check `isSolid()` instead
-                                return ring;
-                            }
-                        }
-                    }
+            }
+        }
+    }
+    // Check middle rows (only extremes)
+    {
+        for (int y = aY - aRing + 1; y <= aY + aRing - 1; y += 1) {
+            {
+                const auto x = aX - aRing;
+                const bool solid = isCellSolid(x, y);
+                if (solid) {
+                    result.occupiedCellCount += 1;
+                    result.e.top = result.e.bottom = result.e.right = false;
+                }
+            }
+            {
+                const auto x = aX + aRing;
+                const bool solid = isCellSolid(x, y);
+                if (solid) {
+                    result.occupiedCellCount += 1;
+                    result.e.top = result.e.bottom = result.e.left = false;
                 }
             }
         }
     }
 
-    return _config.maxCellOpenness;
+    return result;
 }
 
-// asdfasa
+template <bool taAllowedToLoadAdjacent>
+hg::PZInteger World::_calcOpennessAt(hg::PZInteger aX, hg::PZInteger aY) {
+    // Ring 0 check if openness can be 1, ring 1 check if openness can be 2, etc.
+    for (hg::PZInteger ring = 0; ring < _config.maxCellOpenness; ring += 1) {
+        const auto ras = _assessRing<taAllowedToLoadAdjacent>(aX, aY, ring);
+
+        if (ras.occupiedCellCount == 0) {
+            continue;
+        }
+
+        if (ring == 0) {
+            return 0; // Ring 0 - special case
+        }
+
+        if (ras.occupiedCellCount <= (ring * 2 + 1)) {
+            if (ras.e.top || ras.e.left || ras.e.right || ras.e.bottom) {
+                return ring * 2;
+            }
+        }
+
+        return ring * 2 - 1;
+    }
+
+    return _config.maxCellOpenness * 2 - 1;
+}
+
+///////////////////////////////////////////////////////////////////////////
+// asdasd                                                                //
+///////////////////////////////////////////////////////////////////////////
 
 void World::update() {
     _chunkStorage.update();
@@ -436,6 +510,11 @@ void World::_refreshCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) {
     //     (aX <= 0) ? nullptr : std::addressof(_grid[aY][aX - 1]),
     //     (aX >= getCellCountX() - 1) ? nullptr : std::addressof(_grid[aY][aX + 1]),
     //     (aY >= getCellCountY() - 1) ? nullptr : std::addressof(_grid[aY + 1][aX]));
+
+    auto* cell = _chunkStorage.getCellAtUnchecked(aX, aY);
+    if (cell) {
+        GetMutableExtensionData(*cell).openness = openness;
+    }
 }
 
 void World::_setFloorAt(hg::PZInteger                          aX,

@@ -4,6 +4,7 @@
 
 #include <GridWorld/Model/Chunk.hpp>
 #include <GridWorld/Model/Chunk_id.hpp>
+#include <GridWorld/Model/Chunk_state_listener_interface.hpp>
 #include <GridWorld/Private/Chunk_spooler_interface.hpp>
 #include <GridWorld/World/Active_area.hpp>
 #include <GridWorld/World/World_config.hpp>
@@ -47,6 +48,12 @@ private:
 public:
     ChunkStorageHandler(ChunkSpoolerInterface& aChunkSpooler,
                         const WorldConfig& aConfig);
+
+    ///////////////////////////////////////////////////////////////////////////
+    // LISTENER                                                              //
+    ///////////////////////////////////////////////////////////////////////////
+    
+    void setListener(ChunkStateListenerInterface* aListener);
 
     ///////////////////////////////////////////////////////////////////////////
     // ACTIVE AREAS                                                          //
@@ -181,6 +188,10 @@ public:
 private:
     friend class ActiveArea;
     
+    // ===== Listener
+
+    ChunkStateListenerInterface* _listener = nullptr;
+
     // ===== Chunk Grid
 
     mutable hg::util::RowMajorGrid<Chunk> _chunks;

@@ -23,6 +23,14 @@ ChunkStorageHandler::ChunkStorageHandler(ChunkSpoolerInterface& aChunkSpooler,
     , _freeChunkLimit{aConfig.maxLoadedNonessentialCells} {}
 
 ///////////////////////////////////////////////////////////////////////////
+// LISTENER                                                              //
+///////////////////////////////////////////////////////////////////////////
+
+void ChunkStorageHandler::setListener(ChunkStateListenerInterface* aListener) {
+    _listener = aListener;
+}
+
+///////////////////////////////////////////////////////////////////////////
 // ACTIVE AREAS                                                          //
 ///////////////////////////////////////////////////////////////////////////
 
@@ -41,13 +49,18 @@ void ChunkStorageHandler::update() {
     for (; iter != _chunkControlBlocks.end(); iter = std::next(iter)) {
         auto& cb = iter->second;
         if (cb.requestHandle != nullptr && cb.requestHandle->isFinished()) {
+            const auto id = iter->first;
             auto chunk = cb.requestHandle->takeChunk();
             if (chunk.has_value()) {
-                _onChunkLoaded(iter->first, std::move(*chunk), iter);
+                _onChunkLoaded(id, std::move(*chunk), iter);
             } else {
-                _createDefaultChunk(iter->first);
+                _createDefaultChunk(id);
             }
             // cb.requestHandle = nullptr; TODO
+
+            if (_listener) {
+                _listener->onChunkLoaded(id, nullptr); // TODO: temporary
+            }
         }
     }
 }

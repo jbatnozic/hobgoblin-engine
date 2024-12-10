@@ -307,6 +307,20 @@ private:
     void _startEdit();
     void _endEdit();
 
+    struct RingAssessment {
+        hg::PZInteger occupiedCellCount = 0;
+
+        struct Eligibility {
+            bool top    = true;
+            bool left   = true;
+            bool right  = true;
+            bool bottom = true;
+        } e;
+    };
+
+    template <bool taAllowedToLoadAdjacent>
+    RingAssessment _assessRing(hg::PZInteger aX, hg::PZInteger aY, hg::PZInteger aRing);
+
     // TODO: since we determine openness at chunk load, this will lead into endless chunk load loop
     // TODO: it's possible to optimize in case of PLACING A NEW WALL
     template <bool taAllowedToLoadAdjacent>
