@@ -59,7 +59,7 @@ World::RingAssessment World::_assessRing(hg::PZInteger aX, hg::PZInteger aY, hg:
     if (aRing == 0) {
         const bool solid = isCellSolid(aX, aY);
         if (solid) {
-            result.occupiedCellCount = 1;
+            result.hasOccupiedCells = true;
         }
         return result;
     }
@@ -71,7 +71,7 @@ World::RingAssessment World::_assessRing(hg::PZInteger aX, hg::PZInteger aY, hg:
         for (int x = aX - aRing + 1; x <= aX + aRing - 1; x += 1) {
             const bool solid = isCellSolid(x, y);
             if (solid) {
-                result.occupiedCellCount += 1;
+                result.hasOccupiedCells = true;
                 hasTopSide      = true;
             }
         }
@@ -83,8 +83,13 @@ World::RingAssessment World::_assessRing(hg::PZInteger aX, hg::PZInteger aY, hg:
         for (int x = aX - aRing + 1; x <= aX + aRing - 1; x += 1) {
             const bool solid = isCellSolid(x, y);
             if (solid) {
-                result.occupiedCellCount += 1;
+                result.hasOccupiedCells = true;
                 hasBottomSide = true;
+
+                // Possible early exit
+                if (hasTopSide) {
+                    return result;
+                }
             }
         }
     }
@@ -95,53 +100,55 @@ World::RingAssessment World::_assessRing(hg::PZInteger aX, hg::PZInteger aY, hg:
                 const int  x     = aX - aRing;
                 const bool solid = isCellSolid(x, y);
                 if (solid) {
-                    result.occupiedCellCount += 1;
+                    result.hasOccupiedCells = true;
                     hasLeftSide    = true;
+
+                    // Possible early exit
+                    if (hasRightSide) {
+                        return result;
+                    }
                 }
             }
             {
                 const int  x     = aX + aRing;
                 const bool solid = isCellSolid(x, y);
                 if (solid) {
-                    result.occupiedCellCount += 1;
+                    result.hasOccupiedCells = true;
                     hasRightSide  = true;
+
+                    // Possible early exit
+                    if (hasLeftSide) {
+                        return result;
+                    }
                 }
             }
         }
     }
     // Check corners
     {
+        // TopLeft, TopRight, BottomLeft, BottomRight
         const bool tl = isCellSolid(aX - aRing, aY - aRing);
         const bool tr = isCellSolid(aX + aRing, aY - aRing);
         const bool bl = isCellSolid(aX - aRing, aY + aRing);
         const bool br = isCellSolid(aX + aRing, aY + aRing);
 
-        const int delta = (int)tl + (int)tr + (int)bl + (int)br;
-        result.occupiedCellCount += delta;
+        const hg::PZInteger delta = hg::ToPz(tl) + hg::ToPz(tr) + hg::ToPz(bl) + hg::ToPz(br);
+        result.hasOccupiedCells |= (delta > 0);
 
         if (delta == 4) {
             return result;
         }
 
-        if (!tl && !hasTopSide && !hasLeftSide) {
+        // clang-format off
+        if ((!tl && !hasTopSide    && !hasLeftSide)  ||
+            (!tr && !hasTopSide    && !hasRightSide) ||
+            (!bl && !hasBottomSide && !hasLeftSide)  ||
+            (!br && !hasBottomSide && !hasRightSide))
+        {
             result.extend = true;
             return result;
         }
-
-        if (!tr && !hasTopSide && !hasRightSide) {
-            result.extend = true;
-            return result;
-        }
-
-        if (!bl && !hasBottomSide && !hasLeftSide) {
-            result.extend = true;
-            return result;
-        }
-
-        if (!br && !hasBottomSide && !hasRightSide) {
-            result.extend = true;
-            return result;
-        }
+        // clang-format on
     }
 
     return result;
@@ -155,11 +162,14 @@ hg::PZInteger World::_calcOpennessAt(hg::PZInteger aX, hg::PZInteger aY) {
 
     const auto maxRing = (_config.maxCellOpenness + 1) / 2;
 
-    // Ring 0 check if openness can be 1, ring 1 check if openness can be 2, etc.
+    // Ring 0 = just the cell at (aX, aY)
+    // Ring 1 =  8 cells around Ring 0
+    // Ring 2 = 16 cells around Ring 1
+    // and so on...
     for (hg::PZInteger ring = 0; ring < maxRing; ring += 1) {
         const auto ras = _assessRing<taAllowedToLoadAdjacent>(aX, aY, ring);
 
-        if (ras.occupiedCellCount == 0) {
+        if (!ras.hasOccupiedCells) {
             continue;
         }
 
@@ -167,10 +177,10 @@ hg::PZInteger World::_calcOpennessAt(hg::PZInteger aX, hg::PZInteger aY) {
             return 0; // Ring 0 - special case
         }
 
-        return ring * 2 - 1 + (int)ras.extend;
+        return ((ring * 2) - 1 + hg::ToPz(ras.extend));
     }
 
-    return maxRing * 2 - 1;
+    return ((maxRing * 2) - 1);
 }
 
 ///////////////////////////////////////////////////////////////////////////

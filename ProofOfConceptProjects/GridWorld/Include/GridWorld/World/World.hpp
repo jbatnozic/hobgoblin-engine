@@ -308,8 +308,8 @@ private:
     void _endEdit();
 
     struct RingAssessment {
-        hg::PZInteger occupiedCellCount = 0;
-        bool          extend            = false;
+        bool hasOccupiedCells = false;
+        bool extend           = false;
     };
 
     template <bool taAllowedToLoadAdjacent>
