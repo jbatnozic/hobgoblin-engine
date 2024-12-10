@@ -37,6 +37,11 @@ template <bool taAllowedToLoadAdjacent>
 World::RingAssessment World::_assessRing(hg::PZInteger aX, hg::PZInteger aY, hg::PZInteger aRing) {
     RingAssessment result;
 
+    bool hasTopSide    = false;
+    bool hasLeftSide   = false;
+    bool hasRightSide  = false;
+    bool hasBottomSide = false;
+
     const auto isCellSolid = [this](hg::PZInteger aX, hg::PZInteger aY) -> bool {
         if (aX < 0 || aX >= _config.cellCountX || aY < 0 || aY >= _config.cellCountY) {
             return true;
@@ -59,69 +64,27 @@ World::RingAssessment World::_assessRing(hg::PZInteger aX, hg::PZInteger aY, hg:
         return result;
     }
 
-    // Check top row
+    // Check top row (except corners)
     {
         const int y = aY - aRing;
 
-        // Check top-left corner
-        {
-            const auto x = aX - aRing;
+        for (int x = aX - aRing + 1; x <= aX + aRing - 1; x += 1) {
             const bool solid = isCellSolid(x, y);
             if (solid) {
                 result.occupiedCellCount += 1;
-                result.e.bottom = result.e.right = false;
-            }
-        }
-        // Check top-right corner
-        {
-            const auto x = aX + aRing;
-            const bool solid = isCellSolid(x, y);
-            if (solid) {
-                result.occupiedCellCount += 1;
-                result.e.bottom = result.e.left = false;
-            }
-        }
-        // Check betwixt
-        {
-            for (int x = aX - aRing + 1; x <= aX + aRing - 1; x += 1) {
-                const bool solid = isCellSolid(x, y);
-                if (solid) {
-                    result.occupiedCellCount += 1;
-                    result.e.left = result.e.right = result.e.bottom = false;
-                }
+                hasTopSide      = true;
             }
         }
     }
-    // Check bottom row
+    // Check bottom row (except corners)
     {
         const int y = aY + aRing;
 
-        // Check bottom-left corner
-        {
-            const auto x = aX - aRing;
+        for (int x = aX - aRing + 1; x <= aX + aRing - 1; x += 1) {
             const bool solid = isCellSolid(x, y);
             if (solid) {
                 result.occupiedCellCount += 1;
-                result.e.top = result.e.right = false;
-            }
-        }
-        // Check bottom-right corner
-        {
-            const auto x = aX + aRing;
-            const bool solid = isCellSolid(x, y);
-            if (solid) {
-                result.occupiedCellCount += 1;
-                result.e.top = result.e.left = false;
-            }
-        }
-        // Check betwixt
-        {
-            for (int x = aX - aRing + 1; x <= aX + aRing - 1; x += 1) {
-                const bool solid = isCellSolid(x, y);
-                if (solid) {
-                    result.occupiedCellCount += 1;
-                    result.e.left = result.e.right = result.e.top = false;
-                }
+                hasBottomSide = true;
             }
         }
     }
@@ -129,21 +92,55 @@ World::RingAssessment World::_assessRing(hg::PZInteger aX, hg::PZInteger aY, hg:
     {
         for (int y = aY - aRing + 1; y <= aY + aRing - 1; y += 1) {
             {
-                const auto x = aX - aRing;
+                const int  x     = aX - aRing;
                 const bool solid = isCellSolid(x, y);
                 if (solid) {
                     result.occupiedCellCount += 1;
-                    result.e.top = result.e.bottom = result.e.right = false;
+                    hasLeftSide    = true;
                 }
             }
             {
-                const auto x = aX + aRing;
+                const int  x     = aX + aRing;
                 const bool solid = isCellSolid(x, y);
                 if (solid) {
                     result.occupiedCellCount += 1;
-                    result.e.top = result.e.bottom = result.e.left = false;
+                    hasRightSide  = true;
                 }
             }
+        }
+    }
+    // Check corners
+    {
+        const bool tl = isCellSolid(aX - aRing, aY - aRing);
+        const bool tr = isCellSolid(aX + aRing, aY - aRing);
+        const bool bl = isCellSolid(aX - aRing, aY + aRing);
+        const bool br = isCellSolid(aX + aRing, aY + aRing);
+
+        const int delta = (int)tl + (int)tr + (int)bl + (int)br;
+        result.occupiedCellCount += delta;
+
+        if (delta == 4) {
+            return result;
+        }
+
+        if (!tl && !hasTopSide && !hasLeftSide) {
+            result.extend = true;
+            return result;
+        }
+
+        if (!tr && !hasTopSide && !hasRightSide) {
+            result.extend = true;
+            return result;
+        }
+
+        if (!bl && !hasBottomSide && !hasLeftSide) {
+            result.extend = true;
+            return result;
+        }
+
+        if (!br && !hasBottomSide && !hasRightSide) {
+            result.extend = true;
+            return result;
         }
     }
 
@@ -156,7 +153,7 @@ hg::PZInteger World::_calcOpennessAt(hg::PZInteger aX, hg::PZInteger aY) {
         return 0;
     }
 
-    const auto maxRing = (_config.maxCellOpenness + 1 ) / 2;
+    const auto maxRing = (_config.maxCellOpenness + 1) / 2;
 
     // Ring 0 check if openness can be 1, ring 1 check if openness can be 2, etc.
     for (hg::PZInteger ring = 0; ring < maxRing; ring += 1) {
@@ -170,13 +167,7 @@ hg::PZInteger World::_calcOpennessAt(hg::PZInteger aX, hg::PZInteger aY) {
             return 0; // Ring 0 - special case
         }
 
-        if (ras.occupiedCellCount <= (ring * 2 + 1)) {
-            if (ras.e.top || ras.e.left || ras.e.right || ras.e.bottom) {
-                return ring * 2;
-            }
-        }
-
-        return ring * 2 - 1;
+        return ring * 2 - 1 + (int)ras.extend;
     }
 
     return maxRing * 2 - 1;
@@ -496,10 +487,8 @@ void World::_endEdit() {
 
     const auto startX = std::max<hg::PZInteger>(0, _editMinX - maxOffset);
     const auto startY = std::max<hg::PZInteger>(0, _editMinY - maxOffset);
-    const auto endX =
-        std::min<hg::PZInteger>(_config.cellCountX - 1, _editMaxX + maxOffset);
-    const auto endY =
-        std::min<hg::PZInteger>(_config.cellCountY - 1, _editMaxY + maxOffset);
+    const auto endX   = std::min<hg::PZInteger>(_config.cellCountX - 1, _editMaxX + maxOffset);
+    const auto endY   = std::min<hg::PZInteger>(_config.cellCountY - 1, _editMaxY + maxOffset);
 
     for (hg::PZInteger y = startY; y <= endY; y += 1) {
         for (hg::PZInteger x = startX; x <= endX; x += 1) {

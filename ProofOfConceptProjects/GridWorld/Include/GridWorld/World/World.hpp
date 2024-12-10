@@ -309,13 +309,7 @@ private:
 
     struct RingAssessment {
         hg::PZInteger occupiedCellCount = 0;
-
-        struct Eligibility {
-            bool top    = true;
-            bool left   = true;
-            bool right  = true;
-            bool bottom = true;
-        } e;
+        bool          extend            = false;
     };
 
     template <bool taAllowedToLoadAdjacent>
