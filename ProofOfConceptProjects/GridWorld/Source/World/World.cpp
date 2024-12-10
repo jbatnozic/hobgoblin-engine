@@ -152,8 +152,14 @@ World::RingAssessment World::_assessRing(hg::PZInteger aX, hg::PZInteger aY, hg:
 
 template <bool taAllowedToLoadAdjacent>
 hg::PZInteger World::_calcOpennessAt(hg::PZInteger aX, hg::PZInteger aY) {
+    if (_config.maxCellOpenness == 0) {
+        return 0;
+    }
+
+    const auto maxRing = (_config.maxCellOpenness + 1 ) / 2;
+
     // Ring 0 check if openness can be 1, ring 1 check if openness can be 2, etc.
-    for (hg::PZInteger ring = 0; ring < _config.maxCellOpenness; ring += 1) {
+    for (hg::PZInteger ring = 0; ring < maxRing; ring += 1) {
         const auto ras = _assessRing<taAllowedToLoadAdjacent>(aX, aY, ring);
 
         if (ras.occupiedCellCount == 0) {
@@ -173,7 +179,7 @@ hg::PZInteger World::_calcOpennessAt(hg::PZInteger aX, hg::PZInteger aY) {
         return ring * 2 - 1;
     }
 
-    return _config.maxCellOpenness * 2 - 1;
+    return maxRing * 2 - 1;
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -486,12 +492,14 @@ void World::_endEdit() {
         return;
     }
 
-    const auto startX = std::max<hg::PZInteger>(0, _editMinX - _config.maxCellOpenness);
-    const auto startY = std::max<hg::PZInteger>(0, _editMinY - _config.maxCellOpenness);
+    const auto maxOffset = _config.maxCellOpenness / 2;
+
+    const auto startX = std::max<hg::PZInteger>(0, _editMinX - maxOffset);
+    const auto startY = std::max<hg::PZInteger>(0, _editMinY - maxOffset);
     const auto endX =
-        std::min<hg::PZInteger>(_config.cellCountX - 1, _editMaxX + _config.maxCellOpenness - 1);
+        std::min<hg::PZInteger>(_config.cellCountX - 1, _editMaxX + maxOffset);
     const auto endY =
-        std::min<hg::PZInteger>(_config.cellCountY - 1, _editMaxY + _config.maxCellOpenness - 1);
+        std::min<hg::PZInteger>(_config.cellCountY - 1, _editMaxY + maxOffset);
 
     for (hg::PZInteger y = startY; y <= endY; y += 1) {
         for (hg::PZInteger x = startX; x <= endX; x += 1) {

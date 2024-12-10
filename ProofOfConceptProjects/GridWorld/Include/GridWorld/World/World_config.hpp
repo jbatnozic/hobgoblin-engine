@@ -30,7 +30,7 @@ struct WorldConfig {
     float cellResolution;
 
     //! TODO(description)
-    //! \warning MUST BE AT LEAST 1
+    //! \warning MUST BE 0 OR ODD NUMBER
     hg::PZInteger maxCellOpenness;
 
     //! TODO(description)
