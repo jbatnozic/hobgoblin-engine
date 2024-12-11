@@ -16,18 +16,26 @@ namespace gridworld {
 
 World::World(const WorldConfig&                                  aConfig,
              hg::NeverNull<detail::ChunkDiskIoHandlerInterface*> aChunkDiskIoHandler)
-    : _config{aConfig}
+    : _config{WorldConfig::validate(aConfig)}
     , _chunkDiskIoHandler{nullptr}
     , _chunkSpooler{std::make_unique<detail::DefaultChunkSpooler>(*aChunkDiskIoHandler)}
-    , _chunkStorage{*_chunkSpooler, aConfig} {}
+    , _chunkStorage{*_chunkSpooler, aConfig}
+//
+{
+    _chunkStorage.setBinder(this);
+}
 
 #ifdef FUTURE
 World::World(const WorldConfig& aConfig, hg::NeverNull<detail::ChunkSpoolerInterface*> aChunkSpooler)
-    : _config{aConfig}
+    : _config{WorldConfig::validate(aConfig)}
     , _chunkDiskIoHandler{nullptr}
     , _chunkSpooler{nullptr}
     , _chunkStorage{*aChunkSpooler, aConfig} {}
 #endif
+
+World::~World() {
+    _chunkStorage.setBinder(nullptr);
+}
 
 ///////////////////////////////////////////////////////////////////////////
 // TEMPLATES                                                             //
@@ -470,13 +478,35 @@ void World::Editor::setWallAtUnchecked(hg::PZInteger                         aX,
 // PRIVATE METHODS                                                       //
 ///////////////////////////////////////////////////////////////////////////
 
-void World::onChunkLoaded(ChunkId aChunkId, ChunkExtensionInterface*) {
-    // TODO: update openness and stuff of surrounding chunks
-    // TODO: inform user listeners
+void World::onChunkLoaded(ChunkId aChunkId, const Chunk* aChunk) {
+    const hg::PZInteger top  = aChunkId.y * _config.cellsPerChunkY;
+    const hg::PZInteger left = aChunkId.x * _config.cellsPerChunkX;
+
+    const auto maxOffset = _config.maxCellOpenness / 2;
+
+    const auto startX = std::max<hg::PZInteger>(0, left - maxOffset);
+    const auto startY = std::max<hg::PZInteger>(0, top - maxOffset);
+    const auto endX =
+        std::min<hg::PZInteger>(_config.cellCountX - 1, left + _config.cellsPerChunkX - 1 + maxOffset);
+    const auto endY =
+        std::min<hg::PZInteger>(_config.cellCountY - 1, top + _config.cellsPerChunkY - 1 + maxOffset);
+
+    for (hg::PZInteger y = startY; y <= endY; y += 1) {
+        for (hg::PZInteger x = startX; x <= endX; x += 1) {
+            _refreshCellAtUnchecked(x, y);
+        }
+    }
+
+    if (_binder) {
+        _binder->onChunkLoaded(aChunkId, aChunk);
+    }
 }
 
-void World::onChunkUnloaded(ChunkId aChunkId, ChunkExtensionInterface*) {
-    // TODO: inform user listeners
+void World::onChunkUnloaded(ChunkId aChunkId) {
+    // TODO: refresh surrounding or not?
+    if (_binder) {
+        _binder->onChunkUnloaded(aChunkId);
+    }
 }
 
 // ===== Editing cells =====
@@ -508,10 +538,6 @@ void World::_endEdit() {
 }
 
 void World::_refreshCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) {
-    const auto openness = _calcOpennessAt<false>(aX, aY);
-
-    // auto& cell = _grid[aY][aX];
-
     // GetMutableExtensionData(cell).refresh(
     //     (aY <= 0) ? nullptr : std::addressof(_grid[aY - 1][aX]),
     //     (aX <= 0) ? nullptr : std::addressof(_grid[aY][aX - 1]),
@@ -520,6 +546,7 @@ void World::_refreshCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) {
 
     auto* cell = _chunkStorage.getCellAtUnchecked(aX, aY);
     if (cell) {
+        const auto openness = _calcOpennessAt<false>(aX, aY);
         GetMutableExtensionData(*cell).openness = openness;
     }
 }

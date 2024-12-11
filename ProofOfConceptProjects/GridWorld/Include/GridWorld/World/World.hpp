@@ -14,9 +14,9 @@
 #include <GridWorld/Model/Sprites.hpp>
 
 #include <GridWorld/World/Active_area.hpp>
+#include <GridWorld/World/Binder.hpp>
 #include <GridWorld/World/World_config.hpp>
 
-#include <GridWorld/Model/Chunk_state_listener_interface.hpp>
 #include <GridWorld/Private/Chunk_storage_handler.hpp>
 
 #include <memory>
@@ -34,9 +34,7 @@ class ChunkDiskIoHandlerInterface;
 class ChunkSpoolerInterface;
 } // namespace detail
 
-// TODO
-//    Idea: turn off cell refreshing (refresh all when turning on)
-class World : private ChunkStateListenerInterface {
+class World : private Binder {
 public:
     World(const WorldConfig& aConfig);
 
@@ -47,7 +45,7 @@ public:
     World(const WorldConfig& aConfig, hg::NeverNull<detail::ChunkSpoolerInterface*> aChunkSpooler);
 #endif
 
-    ~World() override = default;
+    ~World() override;
 
     // TODO: Cell height (z)
 
@@ -268,7 +266,7 @@ private:
 
     WorldConfigExt _config;
 
-    // ===== Chunks & Cells =====
+    // ===== Chunk/Cell Storage =====
 
     std::unique_ptr<detail::ChunkDiskIoHandlerInterface> _chunkDiskIoHandler;
 
@@ -287,15 +285,10 @@ private:
 
     // ===== Other =====
 
-    bool _generatorMode = false;
+    Binder* _binder = nullptr;
 
-    void onChunkLoaded(ChunkId aChunkId, ChunkExtensionInterface* aExtension) override;
-    void onChunkUnloaded(ChunkId aChunkId, ChunkExtensionInterface* aExtension) override;
-
-    // ===== Active area management =====
-
-    void _incrementUsageOfChunks(const std::vector<ChunkId>& aChunks);
-    void _decrementUsageOfChunks(const std::vector<ChunkId>& aChunks);
+    void onChunkLoaded(ChunkId aChunkId, const Chunk* aChunk) override;
+    void onChunkUnloaded(ChunkId aChunkId) override;
 
     // ===== Editing cells =====
 

@@ -23,11 +23,11 @@ ChunkStorageHandler::ChunkStorageHandler(ChunkSpoolerInterface& aChunkSpooler,
     , _freeChunkLimit{aConfig.maxLoadedNonessentialCells} {}
 
 ///////////////////////////////////////////////////////////////////////////
-// LISTENER                                                              //
+// BINDER                                                              //
 ///////////////////////////////////////////////////////////////////////////
 
-void ChunkStorageHandler::setListener(ChunkStateListenerInterface* aListener) {
-    _listener = aListener;
+void ChunkStorageHandler::setBinder(Binder* aBinder) {
+    _binder = aBinder;
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -58,8 +58,9 @@ void ChunkStorageHandler::update() {
             }
             // cb.requestHandle = nullptr; TODO
 
-            if (_listener) {
-                _listener->onChunkLoaded(id, nullptr); // TODO: temporary
+            if (_binder) {
+                auto& chunk = _chunks[(hg::PZInteger)id.y][(hg::PZInteger)id.x];
+                _binder->onChunkLoaded(id, &chunk); // TODO: temporary?
             }
         }
     }
@@ -86,8 +87,8 @@ void ChunkStorageHandler::prune() {
  * Note: Expect 10ms latency to read file from a HDD, and 1ms to read a file
  *       from an SSD (rough numbers but the orders of magnitude should be correct).
  */
-void ChunkStorageHandler::_loadChunk(hg::PZInteger aChunkX, hg::PZInteger aChunkY) {
-    const auto id = ChunkId{static_cast<std::uint16_t>(aChunkX), static_cast<std::uint16_t>(aChunkY)};
+void ChunkStorageHandler::_loadChunkImmediately(ChunkId aChunkId) {
+    const auto id = aChunkId;
 
     HG_LOG_WARN(LOG_ID,
                 "Requesting immediate load of chunk {}. "

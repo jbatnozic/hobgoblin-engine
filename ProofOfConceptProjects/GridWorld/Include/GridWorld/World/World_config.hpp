@@ -61,6 +61,7 @@ struct WorldConfig {
     //! the openness algorithm checks whether openness is 0 or 1, then the second step checks
     //! whether it's 2 or 3, and so on, so it's not possible to stop at an even number - unless
     //! that number is zero, in which case there's really no check being performed at all).
+    //! `maxCellOpenness` must also NOT be greater than either `cellsPerChunkX` or `cellsPerChunkY`.
     hg::PZInteger maxCellOpenness = 0;
 
     //! TODO(description)
@@ -71,7 +72,8 @@ struct WorldConfig {
 
     //! Method to check if a configuration object is valid.
     //! \throws hg::InvalidArgumentError if the object is not valid.
-    static void validate(const WorldConfig& aConfig) {
+    //! \returns the same configuration object that was passed in.
+    static WorldConfig& validate(WorldConfig& aConfig) {
         HG_VALIDATE_ARGUMENT(aConfig.chunkCountX >= 1 && aConfig.chunkCountX <= 4096);
 
         HG_VALIDATE_ARGUMENT(aConfig.chunkCountY >= 1 && aConfig.chunkCountY <= 4096);
@@ -84,7 +86,19 @@ struct WorldConfig {
 
         HG_VALIDATE_ARGUMENT(aConfig.maxCellOpenness == 0 || (aConfig.maxCellOpenness % 2 == 1));
 
-        HG_VALIDATE_ARGUMENT(aConfig.chunkExtensionFactory != nullptr);
+        HG_VALIDATE_ARGUMENT(aConfig.maxCellOpenness <= aConfig.cellsPerChunkX &&
+                             aConfig.maxCellOpenness <= aConfig.cellsPerChunkY);
+
+        // HG_VALIDATE_ARGUMENT(aConfig.chunkExtensionFactory != nullptr);
+
+        return aConfig;
+    }
+
+    //! Method to check if a configuration object is valid.
+    //! \throws hg::InvalidArgumentError if the object is not valid.
+    //! \returns the same configuration object that was passed in.
+    static const WorldConfig& validate(const WorldConfig& aConfig) {
+        return validate(const_cast<WorldConfig&>(aConfig));
     }
 };
 

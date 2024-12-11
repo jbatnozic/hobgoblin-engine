@@ -4,9 +4,9 @@
 
 #include <GridWorld/Model/Chunk.hpp>
 #include <GridWorld/Model/Chunk_id.hpp>
-#include <GridWorld/Model/Chunk_state_listener_interface.hpp>
 #include <GridWorld/Private/Chunk_spooler_interface.hpp>
 #include <GridWorld/World/Active_area.hpp>
+#include <GridWorld/World/Binder.hpp>
 #include <GridWorld/World/World_config.hpp>
 
 #include <Hobgoblin/Utility/Grids.hpp>
@@ -22,6 +22,8 @@
 namespace gridworld {
 
 namespace hg = jbatnozic::hobgoblin;
+
+class Binder;
 
 namespace detail {
 
@@ -50,10 +52,10 @@ public:
                         const WorldConfig& aConfig);
 
     ///////////////////////////////////////////////////////////////////////////
-    // LISTENER                                                              //
+    // BINDER                                                                //
     ///////////////////////////////////////////////////////////////////////////
     
-    void setListener(ChunkStateListenerInterface* aListener);
+    void setBinder(Binder* aBinder);
 
     ///////////////////////////////////////////////////////////////////////////
     // ACTIVE AREAS                                                          //
@@ -96,7 +98,7 @@ public:
             return chunk;
         } else {
             HG_UNLIKELY_BRANCH;
-            _loadChunk(static_cast<hg::PZInteger>(aChunkId.x), static_cast<hg::PZInteger>(aChunkId.y));
+            _loadChunkImmediately(aChunkId);
             return chunk;
         }
     }
@@ -147,7 +149,7 @@ public:
             return chunk._getCellExtAtUnchecked(aX % _chunkWidth, aY % _chunkHeight);
         } else {
             HG_UNLIKELY_BRANCH;
-            _loadChunk(chunkX, chunkY);
+            _loadChunkImmediately({chunkX, chunkY});
             return chunk._getCellExtAtUnchecked(aX % _chunkWidth, aY % _chunkHeight);
         }
     }
@@ -188,9 +190,9 @@ public:
 private:
     friend class ActiveArea;
     
-    // ===== Listener
+    // ===== Binder
 
-    ChunkStateListenerInterface* _listener = nullptr;
+    Binder* _binder = nullptr;
 
     // ===== Chunk Grid
 
@@ -225,7 +227,7 @@ private:
 
     // ===== Methods
 
-    void _loadChunk(hg::PZInteger aChunkX, hg::PZInteger aChunkY);
+    void _loadChunkImmediately(ChunkId aChunkId);
 
     void _onChunkLoaded(
         ChunkId                                                aChunkId,
