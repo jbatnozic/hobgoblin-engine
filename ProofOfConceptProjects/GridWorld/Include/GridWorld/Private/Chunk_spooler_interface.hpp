@@ -7,7 +7,6 @@
 #include <vector>
 
 namespace gridworld {
-
 namespace detail {
 
 //! Interface for a class handling loading an unloading of chunks asynchronously.
@@ -91,5 +90,4 @@ public:
 };
 
 } // namespace detail
-
 } // namespace gridworld

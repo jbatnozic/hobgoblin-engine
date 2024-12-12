@@ -7,9 +7,12 @@ find_package(RapidJSON CONFIG REQUIRED)
 add_library(${PROJECT_NAME}
     "Source/Model/Cell.cpp"
     "Source/Model/Chunk.cpp"
-    "Source/Model/Model_conversions.cpp"
-    "Source/Model/Chunk_spooler_default.cpp"
 
+    "Source/Private/Chunk_disk_io_handler_default.cpp"
+    "Source/Private/Chunk_spooler_default.cpp"
+    "Source/Private/Chunk_storage_handler.cpp"
+    "Source/Private/Model_conversions.cpp"
+    
     # "Source/Rendering/Dimetric_renderer.cpp"
     "Source/Rendering/Lighting_renderer_2d.cpp"
     "Source/Rendering/Line_of_sight_renderer_2d.cpp"
@@ -18,8 +21,7 @@ add_library(${PROJECT_NAME}
 
     "Source/World/Active_area.cpp"
     "Source/World/World.cpp"
-
-    "Source/Chunk_storage_handler.cpp"
+ 
     "Source/Coord_conversion.cpp"
     "Source/Detail_access.hpp"
     "Source/Dimetric_transform.cpp"

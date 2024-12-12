@@ -1,7 +1,6 @@
 #pragma once
 
 #include <GridWorld/Model/Cell.hpp>
-#include <GridWorld/Model/Chunk_extension.hpp>
 #include <GridWorld/Private/Cell_grid.hpp>
 
 namespace gridworld {
@@ -11,6 +10,8 @@ namespace hg = jbatnozic::hobgoblin;
 namespace detail {
 class ChunkStorageHandler;
 } // namespace detail
+
+class ChunkExtensionInterface;
 
 //! \note definitions of some methods are intentionally left right here in the header,
 //!       to help the compiler inline and optimize calls to them.

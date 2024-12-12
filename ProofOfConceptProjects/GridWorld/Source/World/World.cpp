@@ -1,5 +1,7 @@
 
 #include <GridWorld/World/World.hpp>
+#include <GridWorld/Private/Chunk_disk_io_handler_interface.hpp>
+#include <GridWorld/Private/Chunk_spooler_default.hpp>
 
 #include <Hobgoblin/HGExcept.hpp>
 
@@ -7,8 +9,6 @@
 #include <cmath>
 
 #include "../Detail_access.hpp"
-#include "../Model/Chunk_disk_io_handler_interface.hpp"
-#include "../Model/Chunk_spooler_default.hpp"
 
 namespace gridworld {
 

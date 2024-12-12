@@ -7,7 +7,7 @@
 #include <Hobgoblin/Window.hpp>
 
 #include "../../Source/Detail_access.hpp"
-#include "../../Source/Model/Chunk_spooler_default.hpp"
+#include <GridWorld/Private/Chunk_spooler_default.hpp>
 #include "Fake_disk_io_handler.hpp"
 #include <GridWorld/World/World.hpp>
 

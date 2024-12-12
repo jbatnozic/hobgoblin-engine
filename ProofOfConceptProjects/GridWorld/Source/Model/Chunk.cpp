@@ -1,5 +1,7 @@
 #include <GridWorld/Model/Chunk.hpp>
 
+#include <GridWorld/Model/Chunk_extension.hpp>
+
 #include <Hobgoblin/HGExcept.hpp>
 
 namespace gridworld {

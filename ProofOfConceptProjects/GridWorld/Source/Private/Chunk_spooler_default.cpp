@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Chunk_spooler_default.hpp"
+#include <GridWorld/Private/Chunk_spooler_default.hpp>
 
 #include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Logging.hpp>

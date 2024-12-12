@@ -3,7 +3,7 @@
 #include <Hobgoblin/Utility/Grids.hpp>
 #include <Hobgoblin/Window.hpp>
 
-#include "../../Source/Model/Chunk_spooler_default.hpp"
+#include <GridWorld/Private/Chunk_spooler_default.hpp>
 #include "Fake_disk_io_handler.hpp"
 
 #include <memory>

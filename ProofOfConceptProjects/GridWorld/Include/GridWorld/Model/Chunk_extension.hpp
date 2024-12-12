@@ -1,18 +1,36 @@
 #pragma once
 
+#include <GridWorld/Model/Chunk_id.hpp>
+
+#include <cstdint>
+#include <typeinfo>
+#include <vector>
+
 namespace gridworld {
+
+class Chunk;
 
 class ChunkExtensionInterface {
 public:
     virtual ~ChunkExtensionInterface() = default;
 
-    // init(ChunkId, const Chunk&)
+    virtual const std::type_info& getTypeInfo() const = 0;
 
-    // get type ID, get int64 ID
+    virtual std::int64_t getUniqueIdentifier() const = 0;
 
-    // methods to serialize/deserialize ; to string/binary_buffer/json
+    // called after filling brand new chunk
+    virtual void init(ChunkId aChunkId, const Chunk& aChunk);
 
-    // method to get preferred way to serialize
+    enum class SerializationMethod {
+        BINARY
+        // More possibly to be added in the future
+    };
+
+    virtual SerializationMethod getPreferredSerializationMethod() const = 0;
+
+    virtual void serializeToBinary(std::vector<std::uint8_t>& aBuffer) const = 0;
+
+    virtual void deserializeFromBinary(const std::vector<std::uint8_t>& aBuffer) = 0;
 };
 
 } // namespace gridworld
