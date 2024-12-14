@@ -8,6 +8,7 @@
 #include <Hobgoblin/Common/Name_of_type.hpp>
 #include <Hobgoblin/Common/Nullability.hpp>
 #include <Hobgoblin/Common/Positive_or_zero_integer.hpp>
+#include <Hobgoblin/Common/Strong_bool.hpp>
 #include <Hobgoblin/Common/Tag_types.hpp>
 
 #endif // !UHOBGOBLIN_COMMON_HPP
