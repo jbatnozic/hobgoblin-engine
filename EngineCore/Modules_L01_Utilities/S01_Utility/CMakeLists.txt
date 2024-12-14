@@ -15,6 +15,8 @@ set(COMPONENT_SOURCES
   "Source/Packet.cpp"
   "Source/Randomization.cpp"
   "Source/Serialization.cpp"
+  "Source/Stream_input.cpp"
+  "Source/Stream_operators.cpp"
   "Source/Time_utils.cpp"
 )
 
