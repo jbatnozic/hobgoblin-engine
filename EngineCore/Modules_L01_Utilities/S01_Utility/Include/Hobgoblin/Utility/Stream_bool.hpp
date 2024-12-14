@@ -9,6 +9,8 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace util {
 
+//! Provides a bool-like type that can be used in if-expressions without being convertible to
+//! integral or pointer types. What the type is concretely is not so important.
 class StreamBool {
 public:
     using BoolType = void (StreamBool::*)();

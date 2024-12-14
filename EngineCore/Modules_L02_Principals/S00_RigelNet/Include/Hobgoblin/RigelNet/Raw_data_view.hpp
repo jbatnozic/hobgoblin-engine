@@ -37,23 +37,23 @@ public:
         return _dataByteCount;
     }
 
-    friend util::PacketExtender& operator<<(util::PacketExtender& packet, const RN_RawDataView& self) {
+    friend util::OutputStream& operator<<(util::OutputStreamExtender& ostream, const RN_RawDataView& self) {
         if (self._data != nullptr && self._dataByteCount > 0) {
-            packet << self._dataByteCount;
-            packet->appendBytes(self._data, self._dataByteCount);
+            ostream << self._dataByteCount;
+            ostream->appendBytes(self._data, self._dataByteCount);
         } else {
-          packet << (std::int32_t)0;
+          ostream << (std::int32_t)0;
         }
-        return packet;
+        return *ostream;
     }
 
-    friend util::PacketExtender& operator>>(util::PacketExtender& packet, RN_RawDataView& self) {
-        packet->noThrow() >> self._dataByteCount;
-        if (*packet) {
-            self._data = packet->extractBytesNoThrow(self._dataByteCount);
+    friend util::InputStream& operator>>(util::InputStreamExtender& istream, RN_RawDataView& self) {
+        istream->noThrow() >> self._dataByteCount;
+        if (*istream) {
+            self._data = istream->extractBytesNoThrow(self._dataByteCount);
         }
 
-        return packet;
+        return *istream;
     }
 
 private:

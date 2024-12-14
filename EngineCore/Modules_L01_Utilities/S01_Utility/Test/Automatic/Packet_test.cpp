@@ -1,8 +1,7 @@
 ﻿// Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-// #include <Hobgoblin/Utility/Packet.hpp>
-#include <Hobgoblin/Utility/Pakket.hpp>
+#include <Hobgoblin/Utility/Packet.hpp>
 
 #include <array>
 #include <cstdint>
@@ -11,8 +10,6 @@
 namespace jbatnozic {
 namespace hobgoblin {
 namespace util {
-
-using Packet = Pakket;
 
 template <class T>
 void TestPacketWithType(T aValue, std::size_t aExpectedSize) {
@@ -136,7 +133,6 @@ TEST(HGUtilPacketTest, TestUnicodeString) {
     TestPacketWithType<UnicodeString>(HG_UNISTR("!@#$%^&*()šđćč"), sizeof(std::uint32_t) + 18);
 }
 
-#if 0 // TODO
 TEST(HGUtilPacketTest, TestInsertingAnotherPacket) {
     Packet basePacket;
     Packet otherPacket;
@@ -163,7 +159,6 @@ TEST(HGUtilPacketTest, TestInsertingAnotherPacket) {
     ASSERT_EQ(val808, 808);
     ASSERT_EQ(val123, 123);
 }
-#endif
 
 TEST(HGUtilPacketTest, TestNoThrowAdapter) {
     Packet        packet;

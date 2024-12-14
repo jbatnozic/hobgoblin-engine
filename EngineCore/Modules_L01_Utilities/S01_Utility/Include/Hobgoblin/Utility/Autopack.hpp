@@ -20,18 +20,18 @@ namespace util {
 namespace detail {
 
 template <class ...taArgs>
-void Autopack(Packet& aPacket, taArgs&&... aArgs) {
-    (aPacket << ... << std::forward<taArgs>(aArgs));
+void Autopack(OutputStream& aOStream, taArgs&&... aArgs) {
+    (aOStream << ... << std::forward<taArgs>(aArgs));
 }
 
 template <class ...taNoArgs,
           T_ENABLE_IF(sizeof...(taNoArgs) == 0)>
-void Autounpack(Packet& aPacket) {}
+void Autounpack(InputStream& aIStream) {}
 
 template <class taArgsHead, class ...taArgsRest>
-void Autounpack(Packet& aPacket, taArgsHead&& aArgsHead, taArgsRest&&... aArgsRest) {
-    if (aPacket.noThrow() >> std::forward<taArgsHead>(aArgsHead)) {
-        Autounpack(aPacket, std::forward<taArgsRest>(aArgsRest)...);
+void Autounpack(InputStream& aIStream, taArgsHead&& aArgsHead, taArgsRest&&... aArgsRest) {
+    if (aIStream.noThrow() >> std::forward<taArgsHead>(aArgsHead)) {
+        Autounpack(aIStream, std::forward<taArgsRest>(aArgsRest)...);
     }
 }
 
@@ -39,19 +39,19 @@ void Autounpack(Packet& aPacket, taArgsHead&& aArgsHead, taArgsRest&&... aArgsRe
 
 // ========================================================================= //
 #define HG_ENABLE_AUTOPACK(_class_name_, ...) \
-    void UHOBGOBLIN_autopack(::jbatnozic::hobgoblin::util::Packet& aPacket) const { \
-        ::jbatnozic::hobgoblin::util::detail::Autopack(aPacket, __VA_ARGS__); \
+    void UHOBGOBLIN_autopack(::jbatnozic::hobgoblin::util::OutputStream& aOStream) const { \
+        ::jbatnozic::hobgoblin::util::detail::Autopack(aOStream, __VA_ARGS__); \
     } \
-    void UHOBGOBLIN_autounpack(::jbatnozic::hobgoblin::util::Packet& aPacket) { \
-        ::jbatnozic::hobgoblin::util::detail::Autounpack(aPacket, __VA_ARGS__); \
+    void UHOBGOBLIN_autounpack(::jbatnozic::hobgoblin::util::InputStream& aIStream) { \
+        ::jbatnozic::hobgoblin::util::detail::Autounpack(aIStream, __VA_ARGS__); \
     } \
-    friend ::jbatnozic::hobgoblin::util::Packet& operator<<(::jbatnozic::hobgoblin::util::PacketExtender& aPacket, \
+    friend ::jbatnozic::hobgoblin::util::OutputStream& operator<<(::jbatnozic::hobgoblin::util::OutputStreamExtender& aOStream, \
                                                             const _class_name_& aSelf) { \
-        aSelf.UHOBGOBLIN_autopack(*aPacket); return *aPacket; \
+        aSelf.UHOBGOBLIN_autopack(*aOStream); return *aOStream; \
     } \
-    friend ::jbatnozic::hobgoblin::util::Packet& operator>>(::jbatnozic::hobgoblin::util::PacketExtender& aPacket, \
+    friend ::jbatnozic::hobgoblin::util::InputStream& operator>>(::jbatnozic::hobgoblin::util::InputStreamExtender& aIStream, \
                                                             _class_name_& aSelf) { \
-        aSelf.UHOBGOBLIN_autounpack(*aPacket); return *aPacket; \
+        aSelf.UHOBGOBLIN_autounpack(*aIStream); return *aIStream; \
     }
 // ========================================================================= //
 

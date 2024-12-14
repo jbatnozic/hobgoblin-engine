@@ -41,7 +41,7 @@ public:
     //!
     //! \see clear
     //! \see getReadPosition
-    virtual OutputStream& appendBytes(const void* aData, PZInteger aByteCount) = 0;
+    virtual OutputStream& appendBytes(NeverNull<const void*> aData, PZInteger aByteCount) = 0;
 
     //! Compile-time checker for whether a type has a compatible `operator<<`
     //! for appending into `hg::util::OutputStreamExtender`.
@@ -63,7 +63,7 @@ public:
     auto operator<<(T&& aData) -> std::enable_if_t<supports_appending_of<T>::value, OutputStream&>;
 
     class NoThrowAdapter {
-    public:        
+    public:
         // clang-format off
         template <class T,
                   T_ENABLE_IF(OutputStream::supports_appending_of<T&>::value)>
@@ -83,8 +83,6 @@ public:
 
         NoThrowAdapter(OutputStream& aOStream)
             : _ostream{aOStream} {}
-
-        void _dummy() {}
 
         OutputStream& _ostream;
     };
@@ -141,7 +139,7 @@ public:
 
 private:
     // Befriend operators
-    //clang-format off
+    // clang-format off
     friend OutputStream& operator<<(OutputStreamExtender& aStreamExtender, bool                 aData);
     friend OutputStream& operator<<(OutputStreamExtender& aStreamExtender, std::int8_t          aData);
     friend OutputStream& operator<<(OutputStreamExtender& aStreamExtender, std::uint8_t         aData);
@@ -155,8 +153,7 @@ private:
     friend OutputStream& operator<<(OutputStreamExtender& aStreamExtender, double               aData);
     friend OutputStream& operator<<(OutputStreamExtender& aStreamExtender, std::string_view     aData);
     friend OutputStream& operator<<(OutputStreamExtender& aStreamExtender, const UnicodeString& aData);
-    // OutputStream& operator<<(OutputStreamExtender& aPacket, const Packet&        aData);
-    //clang-format on
+    // clang-format on
 
     void _dummy() {}
 };

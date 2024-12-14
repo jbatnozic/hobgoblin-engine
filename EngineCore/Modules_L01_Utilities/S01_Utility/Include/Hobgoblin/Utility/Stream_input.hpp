@@ -21,11 +21,13 @@ HOBGOBLIN_NAMESPACE_BEGIN
 namespace util {
 
 /**
+ * Abstract base class for a binary input stream.
+ * 
  * Child classes must override:
- * - `seek`                 | Set the [data] counter to absolute position.
- * - `seekRelative`         | Move the [data] counter relative to its current position.
- * - `read`                 | Copy data out to a preallocated buffer and advance the counter.
- * - `extractBytes`         | Return ptr to the internal buffer, if possible, and advance the counter.
+ * - `seek`                 | Set the read position to absolute value.
+ * - `seekRelative`         | Move the read position relative to its current value.
+ * - `read`                 | Copy data out to a preallocated buffer and advance the read position.
+ * - `extractBytes`         | Return ptr to the internal buffer, if possible, and advance the read pos.
  * - `extractBytesNoThrow`  | Same as above, but nonthrowing in case of failure.
  * - `hasError`             | Check for error state of stream.
  * - `_setError`            | (private) Set error state of stream.
@@ -34,33 +36,48 @@ namespace util {
  * - `getDataSize`          | (if is predetermined) Get total size of data.
  * - `getRemainingDataSize` | (if is predetermined) Get size of remaining data.
  * - `getData`              | (if is predetermined) Access the internal data buffer.
- * - `getReadPosition`      | (if is predetermined) Access the internal counter.
+ * - `getReadPosition`      | (if is predetermined) Access the internal read position.
  */
 class InputStream {
 public:
+    //! Virtual destructor.
     virtual ~InputStream() = default;
 
+    // Error codes
+    static constexpr std::int64_t E_FAILURE = -1;
     static constexpr std::int64_t E_UNKNOWN = -2;
 
     ///////////////////////////////////////////////////////////////////////////
     // MARK: EXTRACTING                                                      //
     ///////////////////////////////////////////////////////////////////////////
 
+    //! Change the current reading position of the stream.
+    //!
+    //! \param aPosition absolute byte offset to jump to (it is relative to the beginning
+    //!                  of the data, not to the current position).
+    //!
+    //! \returns new position, or -1 (E_FAILURE) on failure.
     virtual std::int64_t seek(std::int64_t aPosition) = 0;
 
-    virtual std::int64_t seekRelative(std::int64_t aPosition) = 0;
+    //! Change the current reading position of the stream.
+    //!
+    //! \param aPosition relative byte offset to jump to (it is relative to the current position,
+    //!                  not the beginning of data).
+    //!
+    //! \returns new position, or -1 (E_FAILURE) on failure.
+    virtual std::int64_t seekRelative(std::int64_t aOffset) = 0;
 
     //! \brief Extracts raw data from the stream by copying it to a preallocated buffer.
-    //!        Advances the internal data 'counter' of the stream.
-    //!        Returns the number of read bytes or -1 on failure.
+    //!        Advances the read position of the stream accordingly.
+    //!        Returns the number of read bytes or -1 (E_FAILURE) on failure.
     //!
     //! \param aDestination Pointer to a preallocated buffer where the data should be copied.
     //! \param aByteCount How many bytes to extract.
     //!
     //! \returns The number of bytes read (could be 0 if there was no more data in the stream,
-    //!          or -1 if the stream was already in an error state at the time of calling this
-    //!          function).
-    virtual int read(void* aDestination, PZInteger aByteCount) = 0;
+    //!          or -1 (E_FAILURE) if the stream was already in an error state at the time of
+    //!          calling this function).
+    virtual int read(NeverNull<void*> aDestination, PZInteger aByteCount) = 0;
 
     template <class T>
     T extract();
@@ -68,7 +85,7 @@ public:
     template <class T>
     T extractNoThrow();
 
-    //! \brief Extracts raw data from the packet; throws on failure.
+    //! \brief Extracts raw data from the stream; throws on failure.
     //!
     //! Returns a pointer to a buffer of size N containing the next N bytes to be
     //! extracted from the Packet, where N is equal to `aByteCount`. These bytes
@@ -118,7 +135,8 @@ public:
         static const bool value = decltype(test<taType>(0))::value;
     };
 
-    //! TODO
+    //! Extraction operator; it has the same behaviour as `extract()`.
+    //! \returns reference to self.
     template <class T>
     auto operator>>(T& aData) -> std::enable_if_t<supports_extracting_of<T>::value, InputStream&>;
 
@@ -133,7 +151,7 @@ public:
         }
         // clang-format on
 
-        //! TODO
+        //! Automatic conversion to a bool-like type.
         operator StreamBool::BoolType() const {
             return (_istream) ? &StreamBool::dummy : nullptr;
         }
@@ -143,8 +161,6 @@ public:
 
         NoThrowAdapter(InputStream& aIStream)
             : _istream{aIStream} {}
-
-        void _dummy() {}
 
         InputStream& _istream;
     };
@@ -229,6 +245,15 @@ public:
         return E_UNKNOWN;
     }
 
+    //! \brief Get a pointer to the data contained in the Packet.
+    //!
+    //! \warning the returned pointer may become invalid after
+    //! you append data to the packet, therefore it should never
+    //! be stored.
+    //!
+    //! \returns Pointer to the data, or `nullptr` if the Packet is empty.
+    //!
+    //! \see getDataSize, getMutableData
     virtual const void* getData() const {
         return nullptr;
     }
@@ -250,22 +275,21 @@ private:
     virtual void _setError() = 0;
 
     // Befriend operators
-    //clang-format off
-    friend InputStream& operator>>(InputStreamExtender& aStreamExtender, bool& aData);
-    friend InputStream& operator>>(InputStreamExtender& aStreamExtender, std::int8_t& aData);
-    friend InputStream& operator>>(InputStreamExtender& aStreamExtender, std::uint8_t& aData);
-    friend InputStream& operator>>(InputStreamExtender& aStreamExtender, std::int16_t& aData);
+    // clang-format off
+    friend InputStream& operator>>(InputStreamExtender& aStreamExtender, bool&          aData);
+    friend InputStream& operator>>(InputStreamExtender& aStreamExtender, std::int8_t&   aData);
+    friend InputStream& operator>>(InputStreamExtender& aStreamExtender, std::uint8_t&  aData);
+    friend InputStream& operator>>(InputStreamExtender& aStreamExtender, std::int16_t&  aData);
     friend InputStream& operator>>(InputStreamExtender& aStreamExtender, std::uint16_t& aData);
-    friend InputStream& operator>>(InputStreamExtender& aStreamExtender, std::int32_t& aData);
+    friend InputStream& operator>>(InputStreamExtender& aStreamExtender, std::int32_t&  aData);
     friend InputStream& operator>>(InputStreamExtender& aStreamExtender, std::uint32_t& aData);
-    friend InputStream& operator>>(InputStreamExtender& aStreamExtender, std::int64_t& aData);
+    friend InputStream& operator>>(InputStreamExtender& aStreamExtender, std::int64_t&  aData);
     friend InputStream& operator>>(InputStreamExtender& aStreamExtender, std::uint64_t& aData);
-    friend InputStream& operator>>(InputStreamExtender& aStreamExtender, float& aData);
-    friend InputStream& operator>>(InputStreamExtender& aStreamExtender, double& aData);
-    friend InputStream& operator>>(InputStreamExtender& aStreamExtender, std::string& aData);
+    friend InputStream& operator>>(InputStreamExtender& aStreamExtender, float&         aData);
+    friend InputStream& operator>>(InputStreamExtender& aStreamExtender, double&        aData);
+    friend InputStream& operator>>(InputStreamExtender& aStreamExtender, std::string&   aData);
     friend InputStream& operator>>(InputStreamExtender& aStreamExtender, UnicodeString& aData);
-    // InputStream& operator>>(InputStreamExtender& aStreamExtender, Packet&              aData);
-    //clang-format on
+    // clang-format on
 
     static void _logExtractionError(const char* aErrorMessage);
 };

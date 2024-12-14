@@ -63,14 +63,14 @@ bool QAO_GenericId::isNull() const noexcept {
     return (_serial == QAO_NULL_SERIAL || _index == QAO_NULL_INDEX);
 }
 
-util::Packet& operator<<(util::PacketExtender& packet, const QAO_GenericId& self) {
-    packet << self._serial << self._index;
-    return *packet;
+util::OutputStream& operator<<(util::OutputStreamExtender& ostream, const QAO_GenericId& self) {
+    ostream << self._serial << self._index;
+    return *ostream;
 }
 
-util::Packet& operator>>(util::PacketExtender& packet, QAO_GenericId& self) {
-    packet->noThrow() >> self._serial >> self._index;
-    return *packet;
+util::InputStream& operator>>(util::InputStreamExtender& istream, QAO_GenericId& self) {
+    istream->noThrow() >> self._serial >> self._index;
+    return *istream;
 }
 
 }

@@ -130,8 +130,8 @@ public:
     QAO_OrdererConstReverseIterator crend() const;
 
     // Pack/Unpack state:
-    friend util::Packet& operator<<(util::PacketExtender& packet, const QAO_Runtime& self);
-    friend util::Packet& operator>>(util::PacketExtender& packet, QAO_Runtime& self);
+    friend util::OutputStream& operator<<(util::OutputStreamExtender& ostream, const QAO_Runtime& self);
+    friend util::InputStream& operator>>(util::InputStreamExtender& istream, QAO_Runtime& self);
 
 private:
     qao_detail::QAO_Registry _registry;
