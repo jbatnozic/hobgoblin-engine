@@ -49,8 +49,8 @@ public:
     template<class T>
     QAO_Id<T> cast() const noexcept;
 
-    friend util::Packet& operator<<(util::PacketExtender& packet, const QAO_GenericId& self);
-    friend util::Packet& operator>>(util::PacketExtender& packet, QAO_GenericId& self);
+    friend util::OutputStream& operator<<(util::OutputStreamExtender& ostream, const QAO_GenericId& self);
+    friend util::InputStream& operator>>(util::InputStreamExtender& istream, QAO_GenericId& self);
 
 protected:
     friend class QAO_Runtime;
@@ -74,14 +74,14 @@ public:
     QAO_Id(QAO_Id &&other) = default;
     QAO_Id& operator=(QAO_Id &&other) = default;
 
-    friend util::Packet& operator<<(util::PacketExtender& packet, const QAO_Id& self) {
-        packet->noThrow() << static_cast<const QAO_GenericId&>(self);
-        return *packet;
+    friend util::OutputStream& operator<<(util::OutputStreamExtender& ostream, const QAO_Id& self) {
+        ostream->noThrow() << static_cast<const QAO_GenericId&>(self);
+        return *ostream;
     }
 
-    friend util::Packet& operator>>(util::PacketExtender& packet, QAO_Id& self) {
-        packet->noThrow() >> static_cast<QAO_GenericId&>(self);
-        return *packet;
+    friend util::InputStream& operator>>(util::InputStreamExtender& istream, QAO_Id& self) {
+        istream->noThrow() >> static_cast<QAO_GenericId&>(self);
+        return *istream;
     }
 
 protected:

@@ -61,10 +61,10 @@ bool IsNoChainFlagSet(SyncFlags aFlags);
 bool IsPacemakerPulseFlagSet(SyncFlags aFlags);
 
 //! Packing operator.
-hg::util::Packet& operator<<(hg::util::PacketExtender& aPacket, SyncFlags aFlags);
+hg::util::OutputStream& operator<<(hg::util::OutputStreamExtender& aOStream, SyncFlags aFlags);
 
 //! Unpacking operator.
-hg::util::Packet& operator>>(hg::util::PacketExtender& aPacket, SyncFlags& aFlags);
+hg::util::InputStream& operator>>(hg::util::InputStreamExtender& aIStream, SyncFlags& aFlags);
 
 ///////////////////////////////////////////////////////////////////////////
 // INLINE IMPLEMENTATIONS                                                //

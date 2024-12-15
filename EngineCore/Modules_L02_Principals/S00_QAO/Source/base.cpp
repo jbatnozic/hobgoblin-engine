@@ -81,9 +81,9 @@ bool QAO_Base::message(int tag, util::AnyPtr context) {
     return false;
 }
 
-util::Packet& operator<<(util::PacketExtender& packet, const QAO_Base& self) {
-    *packet << self._instanceName << self._context.id << self._execution_priority;
-    return *packet;
+util::OutputStream& operator<<(util::OutputStreamExtender& ostream, const QAO_Base& self) {
+    *ostream << self._instanceName << self._context.id << self._execution_priority;
+    return *ostream;
 }
 
 void QAO_Base::setExecutionPriority(int new_priority) {

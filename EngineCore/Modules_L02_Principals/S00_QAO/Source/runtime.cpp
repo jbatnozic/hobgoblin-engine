@@ -284,17 +284,17 @@ QAO_OrdererConstReverseIterator QAO_Runtime::crend() const {
 }
 
 // Pack/Unpack state:
-util::Packet& operator<<(util::PacketExtender& packet, const QAO_Runtime& self) {
-    packet << self._step_counter << std::int32_t{self._current_event};
-    return *packet;
+util::OutputStream& operator<<(util::OutputStreamExtender& ostream, const QAO_Runtime& self) {
+    ostream << self._step_counter << std::int32_t{self._current_event};
+    return *ostream;
 }
 
-util::Packet& operator>>(util::PacketExtender& packet, QAO_Runtime& self) {
+util::InputStream& operator>>(util::InputStreamExtender& istream, QAO_Runtime& self) {
     std::int32_t currentEvent;
-    packet->noThrow() >> self._step_counter >> currentEvent;
+    istream->noThrow() >> self._step_counter >> currentEvent;
     self._current_event = static_cast<decltype(self._current_event)>(currentEvent);
 
-    return *packet;
+    return *istream;
 }
 
 }

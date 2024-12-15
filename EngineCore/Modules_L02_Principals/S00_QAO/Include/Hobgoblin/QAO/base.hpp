@@ -45,7 +45,7 @@ public:
 
     virtual bool message(int tag, util::AnyPtr context);
 
-    friend util::Packet& operator<<(util::PacketExtender& packet, const QAO_Base& self);
+    friend util::OutputStream& operator<<(util::OutputStreamExtender& ostream, const QAO_Base& self);
 
 private:
     struct Context {

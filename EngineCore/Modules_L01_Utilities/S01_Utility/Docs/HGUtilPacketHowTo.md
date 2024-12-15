@@ -16,7 +16,7 @@ handled by this class). This assumes, of course, that any user-defined `operator
 ### When extracting
 
 Given a `Packet` p and some type `T` where `p.getRemainingDataSize()` is 0, or less than is required to reconstruct `T`,
-then attempting to extract T from p will throw `PacketExtractionError`. Similarly, calling `extractBytes` when the
+then attempting to extract T from p will throw `PacketExtractionError`. Similarly, calling `readInPlace` when the
 packet contains no data will throw.
 
 ```cpp
@@ -26,12 +26,12 @@ assert(p.getRemainingDataSize() == 0);
 T data;
 p >> data; // throws
 p.extract<T>(); // also throws
-p.extractBytes(<some value greater than 0>); // also throws
+p.readInPlace(<some value greater than 0>); // also throws
 ```
 
 ### NoThrow variants
 
-If you don't want to deal with exceptions, `Packet` provides `extractNoThrow<T>()` and `extractBytesNoThrow()` methods.
+If you don't want to deal with exceptions, `Packet` provides `extractNoThrow<T>()` and `readInPlaceNoThrow()` methods.
 In case of extraction failure, the return value is undefined (for the former) or `nullptr` (for the latter). Because
 the return values don't help in determining the operation's success, `Packet` provides a bool-conversion operator
 which returns `false` if the packet has reached an invalid state - when this happens, throw away extracted values and
