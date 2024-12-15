@@ -44,16 +44,30 @@ public:
     // MARK: I/O OPERATIONS                                                  //
     ///////////////////////////////////////////////////////////////////////////
 
-    //! TODO (description)
+    //! \brief write raw data to the stream.
+    //!        Returns the number of read bytes or an error code (see `StreamBase`) on failure.
+    //!
+    //! \param aDestination Pointer to a buffer from which to copy the data.
+    //! \param aByteCount How many bytes to copy.
+    //! \param aAllowPartal Whether partial (smaller than aByteCount - zero included) writes are allowed.
+    //!
+    //! \returns The number of bytes written (could be 0 if the stream could receive no data at
+    //!          all, or a negative error code (see `StreamBase`) on failure).
     HG_NODISCARD std::int64_t write(NeverNull<const void*> aData,
                                     PZInteger              aByteCount,
                                     bool                   aAllowPartal = false);
 
-    //! TODO (description)
+    //! Appends an object of type `T` to the stream (assuming it has the proper `operator<<`
+    //! defined.
+    //! \throws StreamWriteError on failure. If this exception is thrown, the write error flag
+    //!                          will also be set to an invalid state.
     template <class T>
     void append(T&& aData);
 
-    //! TODO (description)
+    //! Appends an object of type `T` to the stream (assuming it has the proper `operator<<`
+    //! defined. This method throws no exceptions, so you will have to check `hasWriteError()`
+    //! after one or several calls to this method - if it returns `false`, then all appends
+    //! since the last time it returned `true` should be considered invalid.
     template <class T>
     void appendNoThrow(T&& aData);
 

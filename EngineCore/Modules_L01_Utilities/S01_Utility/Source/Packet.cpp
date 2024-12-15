@@ -50,8 +50,7 @@ std::int64_t Packet::_seekRelative(std::int64_t aOffset) {
     const std::size_t min = 0;
     const std::size_t max = _buffer.size() - 1;
 
-    const std::size_t newPos =
-        static_cast<std::size_t>(static_cast<std::int64_t>(_readPos) + aOffset);
+    const std::size_t newPos = static_cast<std::size_t>(static_cast<std::int64_t>(_readPos) + aOffset);
 
     _readPos = math::Clamp(newPos, min, max);
     return static_cast<std::int64_t>(_readPos);
@@ -88,8 +87,7 @@ void* Packet::_readInPlace(PZInteger aByteCount) {
             0,
             "Failed to extract {} raw bytes from hg::util::Packet (actual # of bytes remaining: {}).",
             aByteCount,
-            getRemainingDataSize()
-        );
+            getRemainingDataSize());
     }
     return result;
 }
@@ -122,8 +120,8 @@ std::int64_t Packet::_readInPlaceNoThrow(PZInteger aByteCount, void** aResult) {
 
 OutputStream& operator<<(OutputStreamExtender& aPacketExt, const Packet& aData) {
     aPacketExt << static_cast<std::int32_t>(aData.getDataSize());
-    if (const auto size = aData.getDataSize(); size> 0) {
-        aPacketExt->write(aData.getData(), size);
+    if (const auto size = aData.getDataSize(); size > 0) {
+        (void)aPacketExt->write(aData.getData(), size);
     }
     return *aPacketExt;
 }
@@ -141,9 +139,7 @@ InputStream& operator>>(InputStreamExtender& aPacketExt, Packet& aData) {
         const auto* bytes = aPacketExt->readInPlaceNoThrow(pzlen);
         if (bytes) {
             const auto writeCnt = aData.write(bytes, pzlen);
-            if (writeCnt < pzlen) {
-
-            }
+            if (writeCnt < pzlen) {}
         }
     }
 

@@ -16,7 +16,7 @@ constexpr auto LOG_ID = "Hobgoblin.Utility";
 
 void OutputStream::_logAppendingError(const char* aErrorMessage) {
     HG_LOG_WARN(LOG_ID,
-                "Exception caught while extracting data from hg::util::OutputStream in "
+                "Exception caught while appending data to hg::util::OutputStream in "
                 "no-throw mode: {}",
                 aErrorMessage);
 }

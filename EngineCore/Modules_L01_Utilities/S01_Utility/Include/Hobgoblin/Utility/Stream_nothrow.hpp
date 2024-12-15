@@ -13,6 +13,7 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace util {
 
+//! \see comment for `HG_DISAMBIGUATE_NOTHROW` macro below.
 template <class T>
 class FreeNoThrowAdapter {
 public:
@@ -47,6 +48,12 @@ private:
     T& _stream;
 };
 
+//! If a class inherits from both `OutputStream` and `InputStream`, we must
+//! put this macro somewhere in the public part of its body; otherwise calls
+//! to `.noThrow()` will be ambiguous between the two base classes.
+//! 
+//! Example: 
+//! `struct Packet : OutputStream, InputStream { /*...*/ HG_DISAMBIGUATE_NOTHROW(Packet) };`
 #define HG_DISAMBIGUATE_NOTHROW(_class_)    \
     FreeNoThrowAdapter<_class_> noThrow() { \
         return {*this};                     \

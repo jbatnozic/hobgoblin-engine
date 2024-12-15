@@ -79,7 +79,7 @@ public:
     //!
     //! \param aDestination Pointer to a preallocated buffer where the data should be copied.
     //! \param aByteCount How many bytes to extract.
-    //! \param aAllowPartal Whether partial (smaller than aByteCount) reads are allowed.
+    //! \param aAllowPartal Whether partial (smaller than aByteCount - zero included) reads are allowed.
     //!
     //! \returns The number of bytes read (could be 0 if there was no more data in the stream,
     //!          or a negative error code (see `StreamBase`) on failure).
@@ -140,7 +140,7 @@ public:
 
     //! Extracts an object of type `T` from the stream (assuming it has the proper `operator>>`
     //! defined. This method throws no exceptions, so you will have to check `hasReadError()` or
-    //! `operator StrongBool` on the stream after one or several calls to this methods - if they
+    //! `operator StrongBool` on the stream after one or several calls to this method - if they
     //! return false, then all extracts since the last time they returned true should be
     //! considered invalid.
     template <class T>

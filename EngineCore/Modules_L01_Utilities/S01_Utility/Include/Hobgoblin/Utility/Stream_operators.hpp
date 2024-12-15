@@ -18,9 +18,9 @@ namespace util {
 class OutputStream;
 class InputStream;
 
-//! Forward-declare PacketExtender.
+//! Forward-declare stream extenders.
 //!
-//! This class is used to define append and extract operations into/from a Packet.
+//! These classes are used to define append and extract operations into/from a stream.
 class OutputStreamExtender;
 class InputStreamExtender;
 
