@@ -154,7 +154,7 @@ BREAK_FOR:
         // Note: some leading bytes have been read previously (packet kind and acks),
         //       the rest are untouched.
         const auto remainingBytes = curr.packet.getRemainingDataSize();
-        _packets[0].packet.appendBytes(curr.packet.extractBytes(remainingBytes), remainingBytes);
+        _packets[0].packet.write(curr.packet.readInPlace(remainingBytes), remainingBytes);
 
         curr.packet.clear();
 

@@ -85,18 +85,18 @@ void UdpSendBuffer::appendDataForSending(NeverNull<const void*> aData, PZInteger
     // We want to send independent DATA packets whenever possible,
     // and fragmented only when necessary.
     if (auto& tail = _getTailPacket(); tail.packet.getDataSize() + aDataByteCount <= _maxPacketSize) {
-        tail.packet.appendBytes(aData, aDataByteCount);
+        tail.packet.write(aData, aDataByteCount);
         return;
     } else if (aDataByteCount + MAX_PACKET_HEADER_BYTE_COUNT <= _maxPacketSize) {
         _prepareNextOutgoingDataPacket(UDP_PACKET_KIND_DATA);
         auto& tail = _getTailPacket();
-        tail.packet.appendBytes(aData, aDataByteCount);
+        tail.packet.write(aData, aDataByteCount);
         HG_ASSERT(tail.packet.getDataSize() <= _maxPacketSize);
         return;
     } else if (aDataByteCount + headerSizeOfNextPacket() <= _maxPacketSize) {
         _prepareNextOutgoingDataPacket(UDP_PACKET_KIND_DATA);
         auto& tail = _getTailPacket();
-        tail.packet.appendBytes(aData, aDataByteCount);
+        tail.packet.write(aData, aDataByteCount);
         HG_ASSERT(tail.packet.getDataSize() <= _maxPacketSize);
         return;
     }
@@ -134,7 +134,7 @@ void UdpSendBuffer::appendDataForSending(NeverNull<const void*> aData, PZInteger
         const PZInteger remainingCapacity = _maxPacketSize - tail.packet.getDataSize();
         const PZInteger bytesToPackNow    = std::min(remainingCapacity, aDataByteCount - bytesPacked);
 
-        tail.packet.appendBytes(static_cast<const char*>(aData.get()) + bytesPacked, bytesToPackNow);
+        tail.packet.write(static_cast<const char*>(aData.get()) + bytesPacked, bytesToPackNow);
         bytesPacked += bytesToPackNow;
 
         if (bytesPacked < aDataByteCount) {

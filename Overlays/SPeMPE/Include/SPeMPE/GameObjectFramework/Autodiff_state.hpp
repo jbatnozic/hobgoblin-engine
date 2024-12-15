@@ -695,18 +695,18 @@ public:
         memset(_bytes, 0x00, BYTE_COUNT);
     }
 
-    friend hg::util::Packet& operator<<(hg::util::PacketExtender& aPacket, const StaticPackableBitset& aBitset) {
+    friend hg::util::OutputStream& operator<<(hg::util::OutputStreamExtender& aOStream, const StaticPackableBitset& aBitset) {
         for (auto byte : aBitset._bytes) {
-            *aPacket << byte;
+            *aOStream << byte;
         }
-        return *aPacket;
+        return *aOStream;
     }
 
-    friend hg::util::Packet& operator>>(hg::util::PacketExtender& aPacket, StaticPackableBitset& aBitset) {
+    friend hg::util::InputStream& operator>>(hg::util::InputStreamExtender& aIStream, StaticPackableBitset& aBitset) {
         for (auto& byte : aBitset._bytes) {
-            aPacket->noThrow() >> byte;
+            aIStream->noThrow() >> byte;
         }
-        return *aPacket;
+        return *aIStream;
     }
 
 private:
@@ -876,7 +876,7 @@ void AutodiffStateCommit(taMember& aMirror, const taMember& aReal, taRest&&... a
 //! Packs the diff of this object into the packet.
 template <class taBits, class taMember, class... taRest>
 void AutodiffStatePackDiff(
-    hg::util::Packet& aPacket,
+    hg::util::OutputStream& aOStream,
     taBits& aBits,
     hg::PZInteger aDepth,
     const taMember& aMirror,
@@ -887,17 +887,17 @@ void AutodiffStatePackDiff(
         if (aReal != aMirror) {
             aBits.setBit(aDepth, true);
         }
-        aPacket << aBits;
+        aOStream << aBits;
         if (aReal != aMirror) {
-            aPacket << aReal;
+            aOStream << aReal;
         }
     } else {
         if (aReal != aMirror) {
             aBits.setBit(aDepth, true);
         }
-        AutodiffStatePackDiff(aPacket, aBits, aDepth + 1, std::forward<taRest>(aRest)...);
+        AutodiffStatePackDiff(aOStream, aBits, aDepth + 1, std::forward<taRest>(aRest)...);
         if (aReal != aMirror) {
-            aPacket << aReal;
+            aOStream << aReal;
         }
     }
 }
@@ -905,7 +905,7 @@ void AutodiffStatePackDiff(
 //! Packs the whole object into the packet.
 template <class taBits, class taMember, class... taRest>
 void AutodiffStatePackAll(
-    hg::util::Packet& aPacket,
+    hg::util::OutputStream& aOStream,
     taBits& aBits,
     hg::PZInteger aDepth,
     const taMember& aMirror,
@@ -914,19 +914,19 @@ void AutodiffStatePackAll(
 {
     if constexpr (sizeof...(taRest) == 0) { // Is last recursion?
         aBits.setBit(aDepth, true);
-        aPacket << aBits;
-        aPacket << aReal;
+        aOStream << aBits;
+        aOStream << aReal;
     } else {
         aBits.setBit(aDepth, true);
-        AutodiffStatePackAll(aPacket, aBits, aDepth + 1, std::forward<taRest>(aRest)...);
-        aPacket << aReal;
+        AutodiffStatePackAll(aOStream, aBits, aDepth + 1, std::forward<taRest>(aRest)...);
+        aOStream << aReal;
     }
 }
 
 //! Unpacks the object from the packet.
 template <class taBits, class taMember, class... taRest>
 void AutodiffStateUnpack(
-    hg::util::Packet& aPacket,
+    hg::util::InputStream& aIStream,
     taBits& aBits,
     hg::PZInteger aDepth,
     const taMember& aMirror,
@@ -934,19 +934,19 @@ void AutodiffStateUnpack(
     taRest&&... aRest)
 {
     if constexpr (sizeof...(taRest) == 0) { // Is last recursion?
-        if (!(aPacket.noThrow() >> aBits)) {
+        if (!(aIStream.noThrow() >> aBits)) {
           return;
         }
         if (aBits.getBit(aDepth)) {
-            if (!(aPacket.noThrow() >> aReal)) {
+            if (!(aIStream.noThrow() >> aReal)) {
               return;
             }
             (void)aMirror;
         }
     } else {
-        AutodiffStateUnpack(aPacket, aBits, aDepth + 1, std::forward<taRest>(aRest)...);
+        AutodiffStateUnpack(aIStream, aBits, aDepth + 1, std::forward<taRest>(aRest)...);
         if (aBits.getBit(aDepth)) {
-            if (!(aPacket.noThrow() >> aReal)) {
+            if (!(aIStream.noThrow() >> aReal)) {
               return;
             }
             (void)aMirror;
@@ -1033,18 +1033,18 @@ bool AutodiffStateCmp(
                 if (USPEMPE_ADS_NO_CHANGE_STREAK_CNT_NAME < 255) { USPEMPE_ADS_NO_CHANGE_STREAK_CNT_NAME++; } \
             } \
         } \
-        void packDiff(::jbatnozic::hobgoblin::util::Packet& aPacket) const { \
+        void packDiff(::jbatnozic::hobgoblin::util::OutputStream& aOStream) const { \
             USPEMPE_ADS_ASSERT_MIRROR_NOT_NULL(); \
             USPEMPE_ADS_BITS_TYPE bits; \
-            ::jbatnozic::spempe::detail::AutodiffStatePackDiff(aPacket, bits, 0, USPEMPE_ADS_PASS_MEMBER_REFS(USPEMPE_ADS_MIRROR_OBJECT_NAME, __VA_ARGS__)); \
+            ::jbatnozic::spempe::detail::AutodiffStatePackDiff(aOStream, bits, 0, USPEMPE_ADS_PASS_MEMBER_REFS(USPEMPE_ADS_MIRROR_OBJECT_NAME, __VA_ARGS__)); \
         } \
-        void packAll(::jbatnozic::hobgoblin::util::Packet& aPacket) const { \
+        void packAll(::jbatnozic::hobgoblin::util::OutputStream& aOStream) const { \
             USPEMPE_ADS_BITS_TYPE bits; \
-            ::jbatnozic::spempe::detail::AutodiffStatePackAll(aPacket, bits, 0, USPEMPE_ADS_PASS_MEMBER_REFS(USPEMPE_ADS_MIRROR_OBJECT_NAME, __VA_ARGS__)); \
+            ::jbatnozic::spempe::detail::AutodiffStatePackAll(aOStream, bits, 0, USPEMPE_ADS_PASS_MEMBER_REFS(USPEMPE_ADS_MIRROR_OBJECT_NAME, __VA_ARGS__)); \
         } \
-        void unpack(::jbatnozic::hobgoblin::util::Packet& aPacket) { \
+        void unpack(::jbatnozic::hobgoblin::util::InputStream& aIStream) { \
             USPEMPE_ADS_BITS_TYPE bits; \
-            ::jbatnozic::spempe::detail::AutodiffStateUnpack(aPacket, bits, 0, USPEMPE_ADS_PASS_MEMBER_REFS(USPEMPE_ADS_MIRROR_OBJECT_NAME, __VA_ARGS__)); \
+            ::jbatnozic::spempe::detail::AutodiffStateUnpack(aIStream, bits, 0, USPEMPE_ADS_PASS_MEMBER_REFS(USPEMPE_ADS_MIRROR_OBJECT_NAME, __VA_ARGS__)); \
             this->USPEMPE_ADS_BITS_NAME = bits; \
         }; \
         void applyDiff(const USPEMPE_AutodiffState_##_struct_name_##_LowerBase& aDiff) { \
@@ -1056,18 +1056,18 @@ bool AutodiffStateCmp(
         }; \
         \
         friend \
-        ::jbatnozic::hobgoblin::util::Packet& operator>>(::jbatnozic::hobgoblin::util::PacketExtender& aPacket, Super& aSelf) { \
-            aSelf.unpack(*aPacket); \
-            return *aPacket; \
+        ::jbatnozic::hobgoblin::util::InputStream& operator>>(::jbatnozic::hobgoblin::util::InputStreamExtender& aIStream, Super& aSelf) { \
+            aSelf.unpack(*aIStream); \
+            return *aIStream; \
         }; \
         friend \
-        ::jbatnozic::hobgoblin::util::Packet& operator<<(::jbatnozic::hobgoblin::util::PacketExtender& aPacket, const Super& aSelf) { \
+        ::jbatnozic::hobgoblin::util::OutputStream& operator<<(::jbatnozic::hobgoblin::util::OutputStreamExtender& aOStream, const Super& aSelf) { \
             if (aSelf.getPackMode() == ::jbatnozic::spempe::AutodiffPackMode::PackDiff) { \
-                aSelf.packDiff(*aPacket); \
+                aSelf.packDiff(*aOStream); \
             } else { \
-                aSelf.packAll(*aPacket); \
+                aSelf.packAll(*aOStream); \
             } \
-            return *aPacket; \
+            return *aOStream; \
         } \
     }; \
     struct _struct_name_ : public USPEMPE_AutodiffState_##_struct_name_##_LowerBase
