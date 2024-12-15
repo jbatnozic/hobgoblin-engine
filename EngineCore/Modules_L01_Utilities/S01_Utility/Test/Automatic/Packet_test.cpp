@@ -58,7 +58,7 @@ void TestPacketWithType(T aValue, std::size_t aExpectedSize) {
 
         EXPECT_EQ(packet.getRemainingDataSize(), 0);
         T temp;
-        EXPECT_THROW(packet >> temp, StreamExtractError);
+        EXPECT_THROW(packet >> temp, StreamReadError);
         EXPECT_FALSE(packet);
     }
     {
@@ -73,7 +73,7 @@ void TestPacketWithType(T aValue, std::size_t aExpectedSize) {
         SCOPED_TRACE("Do not insert and extract with extract() (failed)");
 
         EXPECT_EQ(packet.getRemainingDataSize(), 0);
-        EXPECT_THROW(packet.template extract<T>(), StreamExtractError);
+        EXPECT_THROW(packet.template extract<T>(), StreamReadError);
         EXPECT_FALSE(packet);
     }
     {
@@ -172,16 +172,16 @@ TEST(HGUtilPacketTest, TestExtractBytes) {
     const auto                        testDataSize = stopz(testData.size() * sizeof(std::uint8_t));
 
     Packet packet;
-    packet.appendBytes(testData.data(), testDataSize);
-    const auto* p = packet.extractBytes(testDataSize);
+    packet.write(testData.data(), testDataSize);
+    const auto* p = packet.readInPlace(testDataSize);
     ASSERT_NE(p, nullptr);
     EXPECT_EQ(packet.getRemainingDataSize(), 0);
     EXPECT_EQ(std::memcmp(testData.data(), p, testDataSize), 0);
     EXPECT_TRUE(packet);
 
-    EXPECT_EQ(packet.extractBytes(0), nullptr);
+    EXPECT_EQ(packet.readInPlace(0), nullptr);
 
-    EXPECT_THROW(packet.extractBytes(1), StreamExtractError);
+    EXPECT_THROW(packet.readInPlace(1), StreamReadError);
     EXPECT_FALSE(packet);
 }
 
@@ -190,16 +190,16 @@ TEST(HGUtilPacketTest, TestExtractBytesNoThrow) {
     const auto                        testDataSize = stopz(testData.size() * sizeof(std::uint8_t));
 
     Packet packet;
-    packet.appendBytes(testData.data(), testDataSize);
-    const auto* p = packet.extractBytesNoThrow(testDataSize);
+    packet.write(testData.data(), testDataSize);
+    const auto* p = packet.readInPlaceNoThrow(testDataSize);
     ASSERT_NE(p, nullptr);
     EXPECT_EQ(packet.getRemainingDataSize(), 0);
     EXPECT_EQ(std::memcmp(testData.data(), p, testDataSize), 0);
     EXPECT_TRUE(packet);
 
-    EXPECT_EQ(packet.extractBytesNoThrow(0), nullptr);
+    EXPECT_EQ(packet.readInPlaceNoThrow(0), nullptr);
 
-    EXPECT_EQ(packet.extractBytesNoThrow(1), nullptr);
+    EXPECT_EQ(packet.readInPlaceNoThrow(1), nullptr);
     EXPECT_FALSE(packet);
 }
 

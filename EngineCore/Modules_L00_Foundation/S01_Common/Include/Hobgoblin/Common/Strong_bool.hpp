@@ -24,8 +24,8 @@ public:
 //! (don't focus too much on the actual underlying type)
 using StrongBool = StrongBoolImpl::BoolType;
 
-constexpr StrongBool SB_TRUE  = &StrongBoolImpl::dummyFunc;
-constexpr StrongBool SB_FALSE = nullptr;
+constexpr StrongBool SBOOL_TRUE  = &StrongBoolImpl::dummyFunc;
+constexpr StrongBool SBOOL_FALSE = nullptr;
 
 HOBGOBLIN_NAMESPACE_END
 

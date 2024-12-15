@@ -285,7 +285,7 @@ void RN_UdpConnectorImpl::receivedPacket(util::Packet& packet) {
         }
     } catch (const InvalidDataError& ex) {
         exception = ex;
-    } catch (const util::PacketExtractError& ex) {
+    } catch (const util::PacketReadError& ex) {
         exception = ex;
     }
 
@@ -350,7 +350,7 @@ void RN_UdpConnectorImpl::handleDataMessages(RN_NodeInterface&         aNode,
                        // (if the handler is explicitly programmed to do so)
             }
         }
-    } catch (util::PacketExtractError& ex) {
+    } catch (util::PacketReadError& ex) {
         if (_isConnectedLocally()) {
             _localSharedState->setStatus(LocalConnectionSharedState::STATUS_ENDED_ERROR);
         }

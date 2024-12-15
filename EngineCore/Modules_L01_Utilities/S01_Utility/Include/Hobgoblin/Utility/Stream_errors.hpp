@@ -11,8 +11,14 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace util {
 
-//! Traced exception that's throws when extracting data from an InputStream fails.
-class StreamExtractError : public TracedRuntimeError {
+//! Traced exception that's thrown when writing data into an OutputStream fails.
+class StreamWriteError : public TracedRuntimeError {
+public:
+    using TracedRuntimeError::TracedRuntimeError;
+};
+
+//! Traced exception that's thrown when reading data from an InputStream fails.
+class StreamReadError : public TracedRuntimeError {
 public:
     using TracedRuntimeError::TracedRuntimeError;
 };

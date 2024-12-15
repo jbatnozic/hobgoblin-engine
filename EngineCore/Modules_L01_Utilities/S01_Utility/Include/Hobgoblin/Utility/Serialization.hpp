@@ -59,7 +59,7 @@ void Serialize(Packet& packet, const T& serializable) {
     }
 
     packet << static_cast<std::uint32_t>(intermediaryPacket.getDataSize());
-    packet.appendBytes(intermediaryPacket.getData(), intermediaryPacket.getDataSize());
+    packet.write(intermediaryPacket.getData(), intermediaryPacket.getDataSize());
 }
 
 template <class T>

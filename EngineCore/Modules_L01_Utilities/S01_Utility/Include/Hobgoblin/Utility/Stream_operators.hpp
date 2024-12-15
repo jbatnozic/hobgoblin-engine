@@ -39,7 +39,6 @@ OutputStream& operator<<(OutputStreamExtender& aStreamExtender, float           
 OutputStream& operator<<(OutputStreamExtender& aStreamExtender, double               aData);
 OutputStream& operator<<(OutputStreamExtender& aStreamExtender, std::string_view     aData);
 OutputStream& operator<<(OutputStreamExtender& aStreamExtender, const UnicodeString& aData);
-// OutputStream& operator<<(OutputStreamExtender& aPacket, const Packet&        aData);
 //clang-format on
 
 // Forward-declare extract operators
@@ -57,7 +56,6 @@ InputStream& operator>>(InputStreamExtender& aStreamExtender, float&            
 InputStream& operator>>(InputStreamExtender& aStreamExtender, double&              aData);
 InputStream& operator>>(InputStreamExtender& aStreamExtender, std::string&         aData);
 InputStream& operator>>(InputStreamExtender& aStreamExtender, UnicodeString&       aData);
-// InputStream& operator>>(InputStreamExtender& aStreamExtender, Packet&              aData);
 //clang-format on
 
 // TODO (description)

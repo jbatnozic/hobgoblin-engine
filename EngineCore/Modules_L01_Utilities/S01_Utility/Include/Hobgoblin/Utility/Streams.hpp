@@ -4,8 +4,8 @@
 #ifndef UHOBGOBLIN_UTIL_STREAMS_HPP
 #define UHOBGOBLIN_UTIL_STREAMS_HPP
 
-#include <Hobgoblin/Utility/Stream_bool.hpp>
-#include <Hobgoblin/Utility/Stream_extract_error.hpp>
+#include <Hobgoblin/Utility/Stream_base.hpp>
+#include <Hobgoblin/Utility/Stream_errors.hpp>
 #include <Hobgoblin/Utility/Stream_input.hpp>
 #include <Hobgoblin/Utility/Stream_nothrow.hpp>
 #include <Hobgoblin/Utility/Stream_operators.hpp>

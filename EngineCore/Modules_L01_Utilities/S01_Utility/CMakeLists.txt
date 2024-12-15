@@ -17,6 +17,7 @@ set(COMPONENT_SOURCES
   "Source/Serialization.cpp"
   "Source/Stream_input.cpp"
   "Source/Stream_operators.cpp"
+  "Source/Stream_output.cpp"
   "Source/Time_utils.cpp"
 )
 

@@ -8,6 +8,8 @@
 
 #include <Hobgoblin/Math/Core.hpp>
 
+#include <algorithm>
+#include <cstdint>
 #include <cstring>
 #include <vector>
 
@@ -16,7 +18,7 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace util {
 
-using PacketExtractError = StreamExtractError;
+using PacketReadError = StreamReadError;
 
 class Packet final
     : public OutputStream
@@ -49,80 +51,83 @@ public:
     //! \see append
     void clear() {
         _buffer.clear();
-        _readPos = 0;
-        _isValid = true;
+        _readPos        = 0;
+        _readErrorLevel = 0;
     }
 
     //! Same as `endOfStream`.
-    bool endOfPacket() const {
+    HG_NODISCARD bool endOfPacket() const {
         return endOfStream();
     }
 
     //! \brief Get a non-const pointer to the data contained in the Packet.
-    //! 
+    //!
     //! \warning the returned pointer may become invalid after
     //! you append data to the packet, therefore it should never
     //! be stored.
-    //! 
+    //!
     //! \warning the returned pointer will allow you to edit the data stored
     //! in the packet. DO NOT do this unless you're sure you know what you're
     //! doing.
-    //! 
+    //!
     //! \returns Pointer to the data, or `nullptr` if the Packet is empty.
     //!
     //! \see getData, getDataSize
-    void* getMutableData();
+    HG_NODISCARD void* getMutableData();
 
     ///////////////////////////////////////////////////////////////////////////
-    // MARK: OUTPUT STREAM                                                   //
+    // MARK: INTROSPECTION                                                   //
     ///////////////////////////////////////////////////////////////////////////
 
-    Packet& appendBytes(NeverNull<const void*> aData, PZInteger aByteCount) override;
-
-    ///////////////////////////////////////////////////////////////////////////
-    // MARK: INPUT STREAM                                                    //
-    ///////////////////////////////////////////////////////////////////////////
-
-    std::int64_t seek(std::int64_t aPosition) override;
-
-    std::int64_t seekRelative(std::int64_t aOffset) override;
-
-    int read(NeverNull<void*> aDestination, PZInteger aByteCount) override;
-
-    void* extractBytes(PZInteger aByteCount) override;
-
-    void* extractBytesNoThrow(PZInteger aByteCount) override;
-
-    bool isPredetermined() const override {
+    HG_NODISCARD bool isPredetermined() const override {
         return true;
     }
 
-    std::int64_t getDataSize() const override {
+    HG_NODISCARD std::int64_t getDataSize() const override {
         return static_cast<std::int64_t>(_buffer.size());
     }
 
-    std::int64_t getRemainingDataSize() const override {
+    HG_NODISCARD std::int64_t getRemainingDataSize() const override {
         return static_cast<std::int64_t>(_buffer.size() - _readPos);
     }
 
-    const void* getData() const override {
+    HG_NODISCARD const void* getData() const override {
         return _buffer.empty() ? nullptr : _buffer.data();
     }
 
-    std::int64_t getReadPosition() const override {
+    HG_NODISCARD std::int64_t getReadPosition() const override {
         return static_cast<std::int64_t>(_readPos);
     }
 
     ///////////////////////////////////////////////////////////////////////////
-    // MARK: TESTING VALIDITY                                                //
+    // MARK: STATE CHECKING                                                  //
     ///////////////////////////////////////////////////////////////////////////
 
-    bool hasError() const override {
-        return !_isValid;
+    HG_NODISCARD bool hasWriteError() const override {
+        return (_readErrorLevel == E_BADSTATE);
     }
 
-    operator StreamBool::BoolType() const {
-        return hasError() ? nullptr : &StreamBool::dummy;
+    HG_NODISCARD bool hasReadError() const override {
+        return (_readErrorLevel < 0);
+    }
+
+    HG_NODISCARD bool clearWriteError() override {
+        if (_readErrorLevel == E_BADSTATE) {
+            return false;
+        }
+        return true;
+    }
+
+    HG_NODISCARD bool clearReadError() override {
+        if (_readErrorLevel == E_BADSTATE) {
+            return false;
+        }
+        _readErrorLevel = 0;
+        return true;
+    }
+
+    HG_NODISCARD bool isGood() const override {
+        return (_readErrorLevel != E_BADSTATE);
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -132,15 +137,35 @@ public:
     HG_DISAMBIGUATE_NOTHROW(Packet)
 
 private:
-    std::vector<std::uint8_t> _buffer;         //!< Buffer of data stored in the packet
-    std::size_t               _readPos = 0;    //!< Current reading position in the packet
-    bool                      _isValid = true; //!< Reading state of the packet
+    std::vector<std::uint8_t> _buffer;             //!< Buffer of data stored in the packet
+    std::size_t               _readPos        = 0; //!< Current reading position in the packet
+    std::int64_t              _readErrorLevel = 0; //!< Reading state of the packet
 
-    void _setError() override {
-        _isValid = false;
+    // ===== I/O Operations =====
+
+    std::int64_t _write(NeverNull<const void*> aData, PZInteger aByteCount, bool aAllowPartal) override;
+
+    std::int64_t _seek(std::int64_t aPosition) override;
+
+    std::int64_t _seekRelative(std::int64_t aOffset) override;
+
+    std::int64_t _read(NeverNull<void*> aDestination, PZInteger aByteCount, bool aAllowPartal) override;
+
+    void* _readInPlace(PZInteger aByteCount) override;
+
+    std::int64_t _readInPlaceNoThrow(PZInteger aByteCount, void** aResult) override;
+
+    // ===== State Checking =====
+
+    void _setReadError() override {
+        _readErrorLevel = std::min(_readErrorLevel, E_FAILURE);
     }
 
-    friend InputStream& operator>>(InputStreamExtender& aPacketExt, Packet& aData);
+    void _setWriteError() override {}
+
+    void _setNotGood() override {
+        _readErrorLevel = E_BADSTATE;
+    }
 };
 
 OutputStream& operator<<(OutputStreamExtender& aPacketExt, const Packet& aData);
@@ -155,7 +180,7 @@ template <class ...taNoArgs,
 void PackArgs(Packet&) {}
 
 //! Pack all arguments into the given Packet, in order of appearance (left to right).
-template <class taArgsHead, class ...taArgsRest>
+template <class taArgsHead, class... taArgsRest>
 void PackArgs(Packet& aPacket, taArgsHead&& aArgsHead, taArgsRest&&... aArgsRest) {
     aPacket.append(std::forward<taArgsHead>(aArgsHead));
     PackArgs<taArgsRest...>(aPacket, std::forward<taArgsRest>(aArgsRest)...);

@@ -1,7 +1,7 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-#include <Hobgoblin/Utility/Stream_input.hpp>
+#include <Hobgoblin/Utility/Stream_output.hpp>
 
 #include <Hobgoblin/Logging.hpp>
 
@@ -14,9 +14,9 @@ namespace {
 constexpr auto LOG_ID = "Hobgoblin.Utility";
 } // namespace
 
-void InputStream::_logExtractionError(const char* aErrorMessage) {
+void OutputStream::_logAppendingError(const char* aErrorMessage) {
     HG_LOG_WARN(LOG_ID,
-                "Exception caught while extracting data from hg::util::InputStream in "
+                "Exception caught while extracting data from hg::util::OutputStream in "
                 "no-throw mode: {}",
                 aErrorMessage);
 }

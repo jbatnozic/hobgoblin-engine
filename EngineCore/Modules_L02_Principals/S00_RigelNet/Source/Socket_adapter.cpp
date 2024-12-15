@@ -157,7 +157,7 @@ RN_SocketAdapter::Status RN_SocketAdapter::recv(util::Packet& aPacket,
             aRemoteAddress,
             aRemotePort
         );
-        aPacket.appendBytes(_recvBuffer.data(), stopz(receivedByteCount));
+        aPacket.write(_recvBuffer.data(), stopz(receivedByteCount));
 
         switch (status) {
         case sf::Socket::Done:
@@ -203,7 +203,7 @@ RN_SocketAdapter::Status RN_SocketAdapter::recv(util::Packet& aPacket,
         }
 
         aPacket.clear();
-        aPacket.appendBytes(_recvBuffer.data(), stopz(*res));
+        aPacket.write(_recvBuffer.data(), stopz(*res));
 
         aRemoteAddress = sf::IpAddress(senderIp.toString());
 

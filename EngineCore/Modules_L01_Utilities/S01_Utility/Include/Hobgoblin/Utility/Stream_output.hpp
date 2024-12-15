@@ -6,9 +6,11 @@
 
 #include <Hobgoblin/Common.hpp>
 
-#include <Hobgoblin/Utility/Stream_bool.hpp>
+#include <Hobgoblin/Utility/Stream_base.hpp>
+#include <Hobgoblin/Utility/Stream_errors.hpp>
 #include <Hobgoblin/Utility/Stream_operators.hpp>
 
+#include <cstdint>
 #include <type_traits>
 #include <utility>
 
@@ -18,30 +20,42 @@ HOBGOBLIN_NAMESPACE_BEGIN
 namespace util {
 
 /**
- * Child classes must override:
- * - `appendBytes`
- * - `hasError`
+ * Abstract base class for a binary output stream.
+ *
+ * Child classes must override*:
+ * - State checking:
+ *   - `hasWriteError`   | Check for read error state of stream.
+ *   - `clearWriteError` | Clear the read error state of stream.
+ *   - `_setWriteError`  | Set read error state of stream.
+ *   - `isGood`          | Check if the stream is in a valid state for I/O operations.
+ *   - `_setNotGood`     | Set the stream to the permanently invalid state.
+ *
+ * - I/O operations:
+ *   - `_write`          |
+ *
+ * *-Method names starting with an underscore are private implementations of public methods.
+ *   They can be overriden regardless.
  */
-class OutputStream {
+class OutputStream : public StreamBase {
 public:
     virtual ~OutputStream() = default;
 
     ///////////////////////////////////////////////////////////////////////////
-    // MARK: APPENDING                                                       //
+    // MARK: I/O OPERATIONS                                                  //
     ///////////////////////////////////////////////////////////////////////////
 
     //! TODO (description)
-    template <class T>
-    OutputStream& append(T&& aData);
+    HG_NODISCARD std::int64_t write(NeverNull<const void*> aData,
+                                    PZInteger              aByteCount,
+                                    bool                   aAllowPartal = false);
 
-    //! \brief Append data to the end of the packet
-    //!
-    //! \param aData      Pointer to the sequence of bytes to append
-    //! \param aByteCount Number of bytes to append
-    //!
-    //! \see clear
-    //! \see getReadPosition
-    virtual OutputStream& appendBytes(NeverNull<const void*> aData, PZInteger aByteCount) = 0;
+    //! TODO (description)
+    template <class T>
+    void append(T&& aData);
+
+    //! TODO (description)
+    template <class T>
+    void appendNoThrow(T&& aData);
 
     //! Compile-time checker for whether a type has a compatible `operator<<`
     //! for appending into `hg::util::OutputStreamExtender`.
@@ -59,23 +73,25 @@ public:
         static const bool value = decltype(test<taType>(0))::value;
     };
 
+    //! Appending operator; it has the same behaviour as `append()`.
+    //! \returns reference to self.
     template <class T>
     auto operator<<(T&& aData) -> std::enable_if_t<supports_appending_of<T>::value, OutputStream&>;
 
+    //! TODO
     class NoThrowAdapter {
     public:
         // clang-format off
         template <class T,
                   T_ENABLE_IF(OutputStream::supports_appending_of<T&>::value)>
         NoThrowAdapter& operator<<(T& aRef) {
-            _ostream.append(aRef);
+            _ostream.appendNoThrow(aRef);
             return SELF;
         }
         // clang-format on
 
-        //! TODO
-        operator StreamBool::BoolType() const {
-            return (_ostream) ? &StreamBool::dummy : nullptr;
+        operator StrongBool() const {
+            return _ostream.hasWriteError() ? SBOOL_FALSE : SBOOL_TRUE;
         }
 
     private:
@@ -87,80 +103,86 @@ public:
         OutputStream& _ostream;
     };
 
+    //! TODO
     NoThrowAdapter noThrow() {
         return NoThrowAdapter{SELF};
     }
 
     ///////////////////////////////////////////////////////////////////////////
-    // MARK: TESTING VALIDITY                                                //
+    // MARK: STATE CHECKING                                                  //
     ///////////////////////////////////////////////////////////////////////////
 
-    virtual bool hasError() const = 0;
+    //! Check if the stream's write error flag is set.
+    //!
+    //! \note if `true`, that means that all non-throwing writes since the last time
+    //!       that this method was called and returned `false` are invalid. Furthermore,
+    //!       all future writes until the write error is successfully cleared will also
+    //!       be invalid.
+    //!
+    //! \note if `isGood` returns `false`, then this method shall return `true`.
+    virtual HG_NODISCARD bool hasWriteError() const = 0;
 
-    //! \brief Test the validity of the packet, for reading
-    //!
-    //! This operator allows to test the packet as a boolean
-    //! variable, to check if a reading operation was successful.
-    //!
-    //! A packet will be in an invalid state if it has no more
-    //! data to read.
-    //!
-    //! This behavior is the same as standard C++ streams.
-    //!
-    //! Usage example:
-    //! \code
-    //! float x;
-    //! packet >> x;
-    //! if (packet)
-    //! {
-    //!    // ok, x was extracted successfully
-    //! }
-    //!
-    //! // -- or --
-    //!
-    //! float x;
-    //! if (packet >> x)
-    //! {
-    //!    // ok, x was extracted successfully
-    //! }
-    //! \endcode
-    //!
-    //! Don't focus on the return type, it's equivalent to bool but
-    //! it disallows unwanted implicit conversions to integer or
-    //! pointer types.
-    //!
-    //! \return True if last data extraction from packet was successful
-    //!
-    //! \see endOfPacket
-    //!
-    operator StreamBool::BoolType() const {
-        return hasError() ? nullptr : &StreamBool::dummy;
-    }
+    //! Attempt to clear the write error in order to unblock future write.
+    //! \returns `true` is successful, `false` on failure.
+    virtual HG_NODISCARD bool clearWriteError() = 0;
+
+    //! Checks if the stream as a whole is in a valid state. If this method returns `false`,
+    //! then the stream has encountered an unrecoverable error state and all further operations
+    //! (other than to destroy it) are invalid.
+    virtual HG_NODISCARD bool isGood() const = 0;
 
 private:
-    // Befriend operators
-    // clang-format off
-    friend OutputStream& operator<<(OutputStreamExtender& aStreamExtender, bool                 aData);
-    friend OutputStream& operator<<(OutputStreamExtender& aStreamExtender, std::int8_t          aData);
-    friend OutputStream& operator<<(OutputStreamExtender& aStreamExtender, std::uint8_t         aData);
-    friend OutputStream& operator<<(OutputStreamExtender& aStreamExtender, std::int16_t         aData);
-    friend OutputStream& operator<<(OutputStreamExtender& aStreamExtender, std::uint16_t        aData);
-    friend OutputStream& operator<<(OutputStreamExtender& aStreamExtender, std::int32_t         aData);
-    friend OutputStream& operator<<(OutputStreamExtender& aStreamExtender, std::uint32_t        aData);
-    friend OutputStream& operator<<(OutputStreamExtender& aStreamExtender, std::int64_t         aData);
-    friend OutputStream& operator<<(OutputStreamExtender& aStreamExtender, std::uint64_t        aData);
-    friend OutputStream& operator<<(OutputStreamExtender& aStreamExtender, float                aData);
-    friend OutputStream& operator<<(OutputStreamExtender& aStreamExtender, double               aData);
-    friend OutputStream& operator<<(OutputStreamExtender& aStreamExtender, std::string_view     aData);
-    friend OutputStream& operator<<(OutputStreamExtender& aStreamExtender, const UnicodeString& aData);
-    // clang-format on
+    //! Implementation for `_setWriteError`.
+    virtual void _setWriteError() = 0;
+    //! Implementation for `_setNotGood`.
+    virtual void _setNotGood() = 0;
+    //! Implementation for `write`.
+    virtual std::int64_t _write(NeverNull<const void*> aData,
+                                PZInteger              aByteCount,
+                                bool                   aAllowPartal) = 0;
 
-    void _dummy() {}
+    static void _logAppendingError(const char* aErrorMessage);
 };
 
+///////////////////////////////////////////////////////////////////////////
+// MARK: INLINE FUNCTION IMPLEMENTATIONS                                 //
+///////////////////////////////////////////////////////////////////////////
+
+inline std::int64_t OutputStream::write(NeverNull<const void*> aData,
+                                        PZInteger              aByteCount,
+                                        bool                   aAllowPartal) {
+    const auto result = _write(aData, aByteCount, aAllowPartal);
+    if (result >= 0) {
+        // Do nothing
+    } else if (result == E_FAILURE) {
+        _setWriteError();
+    } else if (result == E_BADSTATE) {
+        _setNotGood();
+    }
+    return result;
+}
+
+///////////////////////////////////////////////////////////////////////////
+// MARK: TEMPLATE FUNCTION IMPLEMENTATIONS                               //
+///////////////////////////////////////////////////////////////////////////
+
 template <class T>
-OutputStream& OutputStream::append(T&& aData) {
-    return (SELF << std::forward<T>(aData));
+void OutputStream::append(T&& aData) {
+    SELF << std::forward<T>(aData);
+    if (hasWriteError()) {
+        HG_THROW_TRACED(StreamWriteError, 0, "Failed to append data to stream.");
+    }
+}
+
+template <class T>
+void OutputStream::appendNoThrow(T&& aData) {
+    try {
+        OutputStreamExtender extender{SELF};
+        extender << std::forward<T>(aData);
+    } catch (const std::exception& aEx) {
+        _logAppendingError(aEx.what());
+        _setNotGood();
+    }
 }
 
 template <class T>
@@ -170,6 +192,9 @@ auto OutputStream::operator<<(T&& aData)
 {
     OutputStreamExtender extender{SELF};
     extender << std::forward<T>(aData);
+    if (hasWriteError()) {
+        HG_THROW_TRACED(StreamWriteError, 0, "Failed to append data to stream.");
+    }
     return SELF;
 }
 

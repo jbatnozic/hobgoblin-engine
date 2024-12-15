@@ -4,7 +4,7 @@
 #ifndef UHOBGOBLIN_UTIL_NOTHROW_HPP
 #define UHOBGOBLIN_UTIL_NOTHROW_HPP
 
-#include <Hobgoblin/Utility/Stream_bool.hpp>
+#include <Hobgoblin/Common/Strong_bool.hpp>
 #include <Hobgoblin/Utility/Stream_input.hpp>
 #include <Hobgoblin/Utility/Stream_output.hpp>
 
@@ -20,7 +20,7 @@ public:
     template <class T,
         T_ENABLE_IF(OutputStream::supports_appending_of<T&>::value)>
     FreeNoThrowAdapter& operator<<(T& aRef) {
-        _stream.append(aRef);
+        _stream.appendNoThrow(aRef);
         return SELF;
     }
     // clang-format on
@@ -34,9 +34,8 @@ public:
     }
     // clang-format on
 
-    //! TODO
-    operator StreamBool::BoolType() const {
-        return (_stream) ? &StreamBool::dummy : nullptr;
+    operator StrongBool() const {
+        return (_stream) ? SBOOL_TRUE : SBOOL_FALSE;
     }
 
 private:

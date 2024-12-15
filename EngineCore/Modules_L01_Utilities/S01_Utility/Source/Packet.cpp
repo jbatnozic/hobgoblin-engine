@@ -17,16 +17,20 @@ void* Packet::getMutableData() {
     return _buffer.empty() ? nullptr : _buffer.data();
 }
 
-Packet& Packet::appendBytes(NeverNull<const void*> aData, PZInteger aByteCount) {
+///////////////////////////////////////////////////////////////////////////
+// MARK: PRIVATE METHODS                                                 //
+///////////////////////////////////////////////////////////////////////////
+
+std::int64_t Packet::_write(NeverNull<const void*> aData, PZInteger aByteCount, bool /*aAllowPartal*/) {
     if (aData && aByteCount > 0) {
         _buffer.insert(_buffer.end(),
                        static_cast<const std::uint8_t*>(aData.get()),
                        static_cast<const std::uint8_t*>(aData.get()) + aByteCount);
     }
-    return SELF;
+    return aByteCount;
 }
 
-std::int64_t Packet::seek(std::int64_t aPosition) {
+std::int64_t Packet::_seek(std::int64_t aPosition) {
     if (_buffer.size() == 0) {
         return 0;
     }
@@ -38,7 +42,7 @@ std::int64_t Packet::seek(std::int64_t aPosition) {
     return static_cast<std::int64_t>(_readPos);
 }
 
-std::int64_t Packet::seekRelative(std::int64_t aOffset) {
+std::int64_t Packet::_seekRelative(std::int64_t aOffset) {
     if (_buffer.size() == 0) {
         return 0;
     }
@@ -53,9 +57,9 @@ std::int64_t Packet::seekRelative(std::int64_t aOffset) {
     return static_cast<std::int64_t>(_readPos);
 }
 
-int Packet::read(NeverNull<void*> aDestination, PZInteger aByteCount) {
-    if (!_isValid) {
-        return -1;
+std::int64_t Packet::_read(NeverNull<void*> aDestination, PZInteger aByteCount, bool aAllowPartal) {
+    if (_readErrorLevel < 0) {
+        return _readErrorLevel;
     }
 
     if (aByteCount == 0) {
@@ -67,7 +71,7 @@ int Packet::read(NeverNull<void*> aDestination, PZInteger aByteCount) {
         std::memcpy(aDestination, &(_buffer[_readPos]), pztos(aByteCount));
         _readPos += pztos(aByteCount);
         return aByteCount;
-    } else if (rem > 0) {
+    } else if (aAllowPartal && rem > 0) {
         std::memcpy(aDestination, &(_buffer[_readPos]), rem);
         _readPos += rem;
         return (int)rem;
@@ -76,11 +80,11 @@ int Packet::read(NeverNull<void*> aDestination, PZInteger aByteCount) {
     }
 }
 
-void* Packet::extractBytes(PZInteger aByteCount) {
-    void* result = extractBytesNoThrow(aByteCount);
+void* Packet::_readInPlace(PZInteger aByteCount) {
+    void* result = readInPlaceNoThrow(aByteCount);
     if (!SELF) {
         HG_THROW_TRACED(
-            StreamExtractError,
+            StreamReadError,
             0,
             "Failed to extract {} raw bytes from hg::util::Packet (actual # of bytes remaining: {}).",
             aByteCount,
@@ -90,26 +94,36 @@ void* Packet::extractBytes(PZInteger aByteCount) {
     return result;
 }
 
-void* Packet::extractBytesNoThrow(PZInteger aByteCount) {
+std::int64_t Packet::_readInPlaceNoThrow(PZInteger aByteCount, void** aResult) {
+    if (_readErrorLevel < 0) {
+        *aResult = nullptr;
+        return _readErrorLevel;
+    }
+
     if (aByteCount == 0) {
-        return nullptr;
+        *aResult = nullptr;
+        return 0;
     }
 
     const auto rem = _buffer.size() - _readPos;
     if (pztos(aByteCount) > rem) {
-        _isValid = false;
-        return nullptr;
+        *aResult = nullptr;
+        return E_FAILURE;
     }
 
-    void* result = &(_buffer[_readPos]);
+    *aResult = &(_buffer[_readPos]);
     _readPos += pztos(aByteCount);
-    return result;
+    return aByteCount;
 }
+
+///////////////////////////////////////////////////////////////////////////
+// MARK: OPERATOR DEFINITIONS                                            //
+///////////////////////////////////////////////////////////////////////////
 
 OutputStream& operator<<(OutputStreamExtender& aPacketExt, const Packet& aData) {
     aPacketExt << static_cast<std::int32_t>(aData.getDataSize());
     if (const auto size = aData.getDataSize(); size> 0) {
-        aPacketExt->appendBytes(aData.getData(), size);
+        aPacketExt->write(aData.getData(), size);
     }
     return *aPacketExt;
 }
@@ -124,9 +138,12 @@ InputStream& operator>>(InputStreamExtender& aPacketExt, Packet& aData) {
     aData.clear();
     if (length > 0) {
         const auto  pzlen = static_cast<PZInteger>(length);
-        const auto* bytes = aPacketExt->extractBytesNoThrow(pzlen);
+        const auto* bytes = aPacketExt->readInPlaceNoThrow(pzlen);
         if (bytes) {
-            aData.appendBytes(bytes, pzlen);
+            const auto writeCnt = aData.write(bytes, pzlen);
+            if (writeCnt < pzlen) {
+
+            }
         }
     }
 

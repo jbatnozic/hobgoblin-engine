@@ -40,7 +40,7 @@ public:
     friend util::OutputStream& operator<<(util::OutputStreamExtender& ostream, const RN_RawDataView& self) {
         if (self._data != nullptr && self._dataByteCount > 0) {
             ostream << self._dataByteCount;
-            ostream->appendBytes(self._data, self._dataByteCount);
+            ostream->write(self._data, self._dataByteCount);
         } else {
           ostream << (std::int32_t)0;
         }
@@ -50,7 +50,7 @@ public:
     friend util::InputStream& operator>>(util::InputStreamExtender& istream, RN_RawDataView& self) {
         istream->noThrow() >> self._dataByteCount;
         if (*istream) {
-            self._data = istream->extractBytesNoThrow(self._dataByteCount);
+            self._data = istream->readInPlaceNoThrow(self._dataByteCount);
         }
 
         return *istream;
