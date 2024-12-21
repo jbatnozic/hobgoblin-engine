@@ -18,19 +18,19 @@ template <class T>
 class FreeNoThrowAdapter {
 public:
     // clang-format off
-    template <class T,
-        T_ENABLE_IF(OutputStream::supports_appending_of<T&>::value)>
-    FreeNoThrowAdapter& operator<<(T& aRef) {
+    template <class T2,
+        T_ENABLE_IF(OutputStream::supports_appending_of<T2&>::value)>
+    FreeNoThrowAdapter& operator<<(T2& aRef) {
         _stream.appendNoThrow(aRef);
         return SELF;
     }
     // clang-format on
 
     // clang-format off
-    template <class T,
-              T_ENABLE_IF(InputStream::supports_extracting_of<T&>::value)>
-    FreeNoThrowAdapter& operator>>(T& aRef) {
-        aRef = _stream.extractNoThrow<T>();
+    template <class T2,
+              T_ENABLE_IF(InputStream::supports_extracting_of<T2&>::value)>
+    FreeNoThrowAdapter& operator>>(T2& aRef) {
+        aRef = _stream.template extractNoThrow<T2>();
         return SELF;
     }
     // clang-format on
