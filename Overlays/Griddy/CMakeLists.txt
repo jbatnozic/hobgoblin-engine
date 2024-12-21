@@ -17,12 +17,8 @@ add_library(${PROJECT_NAME}
 
     "Source/World/Active_area.cpp"
     "Source/World/World.cpp"
- 
-    "Source/Coord_conversion.cpp"
+
     "Source/Detail_access.hpp"
-    "Source/Dimetric_transform.cpp"
-    "Source/Main.cpp"
-    "Source/Spatial_info.cpp"
 )
 
 target_link_libraries(${PROJECT_NAME}
