@@ -11,13 +11,10 @@
 
 #include <Hobgoblin/Utility/Grids.hpp>
 #include <Hobgoblin/Utility/Value_sorted_map.hpp>
-#include <atomic>
 #include <chrono>
 #include <memory>
 #include <optional>
-#include <set>
 #include <unordered_map>
-#include <utility>
 
 namespace gridworld {
 
@@ -48,13 +45,14 @@ private:
     using Self = ChunkStorageHandler;
 
 public:
-    ChunkStorageHandler(ChunkSpoolerInterface& aChunkSpooler,
-                        const WorldConfig& aConfig);
+    ChunkStorageHandler(const WorldConfig& aConfig);
 
     ///////////////////////////////////////////////////////////////////////////
-    // BINDER                                                                //
+    // DEPENDENCIES                                                          //
     ///////////////////////////////////////////////////////////////////////////
     
+    void setChunkSpooler(ChunkSpoolerInterface* aChunkSpooler);
+
     void setBinder(Binder* aBinder);
 
     ///////////////////////////////////////////////////////////////////////////
@@ -188,7 +186,7 @@ public:
     }
 
 private:
-    friend class ActiveArea;
+    friend class ::gridworld::ActiveArea;
     
     // ===== Binder
 
@@ -218,7 +216,7 @@ private:
 
     // ===== Members
 
-    ChunkSpoolerInterface& _chunkSpooler;
+    ChunkSpoolerInterface* _chunkSpooler = nullptr;
 
     hg::PZInteger _chunkWidth;
     hg::PZInteger _chunkHeight;

@@ -1,5 +1,6 @@
 #include <GridWorld/World/Active_area.hpp>
-#include <GridWorld/World/world.hpp>
+#include <GridWorld/World/World.hpp>
+#include <GridWorld/Private/Chunk_storage_handler.hpp>
 
 #include <algorithm>
 #include <cmath>

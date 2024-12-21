@@ -5,8 +5,7 @@
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/HGExcept.hpp>
 
-#include <functional>
-#include <memory>
+#include <filesystem>
 
 namespace gridworld {
 
@@ -67,8 +66,8 @@ struct WorldConfig {
     //! TODO(description)
     hg::PZInteger maxLoadedNonessentialCells = 0;
 
-    using ChunkExtensionFactory = std::function<std::unique_ptr<ChunkExtensionInterface>()>;
-    ChunkExtensionFactory chunkExtensionFactory;
+    //! Directory from which to load chuks and to which to save them.
+    std::filesystem::path chunkDirectoryPath = "";
 
     //! Method to check if a configuration object is valid.
     //! \throws hg::InvalidArgumentError if the object is not valid.
@@ -88,8 +87,6 @@ struct WorldConfig {
 
         HG_VALIDATE_ARGUMENT(aConfig.maxCellOpenness <= aConfig.cellsPerChunkX &&
                              aConfig.maxCellOpenness <= aConfig.cellsPerChunkY);
-
-        // HG_VALIDATE_ARGUMENT(aConfig.chunkExtensionFactory != nullptr);
 
         return aConfig;
     }

@@ -134,16 +134,16 @@ public:
     //!       be invalid.
     //!
     //! \note if `isGood` returns `false`, then this method shall return `true`.
-    virtual HG_NODISCARD bool hasWriteError() const = 0;
+    HG_NODISCARD virtual bool hasWriteError() const = 0;
 
     //! Attempt to clear the write error in order to unblock future write.
     //! \returns `true` is successful, `false` on failure.
-    virtual HG_NODISCARD bool clearWriteError() = 0;
+    HG_NODISCARD virtual bool clearWriteError() = 0;
 
     //! Checks if the stream as a whole is in a valid state. If this method returns `false`,
     //! then the stream has encountered an unrecoverable error state and all further operations
     //! (other than to destroy it) are invalid.
-    virtual HG_NODISCARD bool isGood() const = 0;
+    HG_NODISCARD virtual bool isGood() const = 0;
 
 private:
     //! Implementation for `_setWriteError`.

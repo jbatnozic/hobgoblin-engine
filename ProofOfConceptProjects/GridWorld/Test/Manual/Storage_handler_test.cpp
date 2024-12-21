@@ -8,17 +8,11 @@
 
 #include "Fake_disk_io_handler.hpp"
 
-#include <algorithm>
-#include <memory>
-#include <unordered_map>
-
 namespace hg = jbatnozic::hobgoblin;
 
 using gridworld::ActiveArea;
 using gridworld::ChunkId;
-using gridworld::Chunk;
 using gridworld::WorldConfig;
-using gridworld::detail::ChunkDiskIoHandlerInterface;
 using gridworld::detail::ChunkSpoolerInterface;
 using gridworld::detail::ChunkStorageHandler;
 
@@ -43,8 +37,11 @@ public:
     FakeWorld(hg::PZInteger          aWorldWidth,
               hg::PZInteger          aWorldHeight,
               ChunkSpoolerInterface& aChunkSpooler)
-        : _chunkStorageHandler{aChunkSpooler, _makeWorldConfig()}
-        , _activeArea{_chunkStorageHandler.createNewActiveArea()} {}
+        : _chunkStorageHandler{_makeWorldConfig()}
+        , _activeArea{_chunkStorageHandler.createNewActiveArea()} //
+    {
+        _chunkStorageHandler.setChunkSpooler(&aChunkSpooler);
+    }
 
     void update(hg::math::Vector2pz aPosition) {
         if (aPosition != _playerPosition) {
@@ -116,8 +113,12 @@ private:
 class Fixture {
 public:
     gridworld::test::FakeDiskIoHandler     _fakeDiskIoHandler;
-    gridworld::detail::DefaultChunkSpooler _chunkSpooler{_fakeDiskIoHandler};
+    gridworld::detail::DefaultChunkSpooler _chunkSpooler;
     FakeWorld                              _fakeWorld{32, 32, _chunkSpooler};
+
+    Fixture() {
+        _chunkSpooler.setDiskIoHandler(&_fakeDiskIoHandler);
+    }
 };
 } // namespace
 
