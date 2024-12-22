@@ -17,6 +17,7 @@ namespace griddy {
 
 namespace hg = ::jbatnozic::hobgoblin;
 
+//! Identifies a single chunk by its X and Y position in the world grid.
 struct ChunkId {
     std::uint16_t x;
     std::uint16_t y;
