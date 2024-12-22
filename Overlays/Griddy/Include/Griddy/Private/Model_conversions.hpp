@@ -15,6 +15,7 @@
 #include <string>
 #include <functional>
 
+namespace jbatnozic {
 namespace griddy {
 namespace detail {
 
@@ -77,3 +78,4 @@ TODO:
 
 } // namespace detail
 } // namespace griddy
+}

@@ -11,6 +11,7 @@
 
 // TODO: SetThreadName
 
+namespace jbatnozic {
 namespace griddy {
 namespace detail {
 
@@ -491,3 +492,4 @@ void DefaultChunkSpooler::_adjustUnloadPriority(const RequestVariant& aRequestVa
 
 } // namespace detail
 } // namespace griddy
+}

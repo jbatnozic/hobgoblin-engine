@@ -6,6 +6,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+namespace jbatnozic {
 namespace griddy {
 namespace detail {
 
@@ -159,3 +160,4 @@ TEST(ActiveAreaTest, UpdateChunkList_NonEmptyToNonEmpty_Overlap) {
 
 } // namespace detail
 } // namespace griddy
+}

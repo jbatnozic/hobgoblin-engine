@@ -6,6 +6,7 @@
 #include <Griddy/Model/Cell.hpp>
 #include <Griddy/Private/Cell_grid.hpp>
 
+namespace jbatnozic {
 namespace griddy {
 
 namespace hg = jbatnozic::hobgoblin;
@@ -122,3 +123,4 @@ private:
 };
 
 } // namespace griddy
+}

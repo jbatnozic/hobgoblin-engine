@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <tuple>
 
+namespace jbatnozic {
 namespace griddy {
 
 namespace hg = jbatnozic::hobgoblin;
@@ -231,3 +232,4 @@ inline void CellModel::resetWall() {
 }
 
 } // namespace griddy
+}

@@ -13,7 +13,6 @@
 #include <Griddy/Model/Cell.hpp>
 #include <Griddy/Model/Chunk.hpp>
 #include <Griddy/Model/Chunk_id.hpp>
-#include <Griddy/Model/Lights.hpp>
 #include <Griddy/Model/Sprites.hpp>
 
 #include <Griddy/World/Active_area.hpp>
@@ -26,6 +25,7 @@
 #include <optional>
 #include <unordered_map>
 
+namespace jbatnozic {
 namespace griddy {
 
 namespace hg = jbatnozic::hobgoblin;
@@ -234,28 +234,6 @@ public:
 
     ActiveArea createActiveArea();
 
-    ///////////////////////////////////////////////////////////////////////////
-    // LIGHTS                                                                //
-    ///////////////////////////////////////////////////////////////////////////
-
-    LightId createLight(SpriteId aSpriteId, hg::math::Vector2pz aSize);
-
-    void updateLight(LightId aLightHandle, hg::math::Vector2f aPosition, hg::math::AngleF aAngle);
-
-    void destroyLight(LightId aLightHandle);
-
-    // TODO(createRAIILight())
-
-    // TODO(this shouldn't be exposed like this)
-    std::unordered_map<LightId, detail::LightModelExt>::const_iterator lightDataBegin() const {
-        return _lights.begin();
-    }
-
-    // TODO(this shouldn't be exposed like this)
-    std::unordered_map<LightId, detail::LightModelExt>::const_iterator lightDataEnd() const {
-        return _lights.end();
-    }
-
 private:
     // ===== Config =====
 
@@ -283,15 +261,6 @@ private:
 
     void _connectSubcomponents();
     void _disconnectSubcomponents();
-
-    // ===== Edit Permissions =====
-
-    // hg::util::Semaphore _editPermSemaphore{1};
-
-    // ===== Lights =====
-
-    std::unordered_map<LightId, detail::LightModelExt> _lights;
-    LightId                                            _lightIdCounter = 0;
 
     // ===== Other =====
 
@@ -408,3 +377,4 @@ inline void World::Editor::setWallAtUnchecked(hg::math::Vector2pz               
 }
 
 } // namespace griddy
+}

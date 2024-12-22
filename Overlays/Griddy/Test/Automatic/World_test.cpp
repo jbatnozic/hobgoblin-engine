@@ -7,6 +7,7 @@
 
 #include "Fake_disk_io_handler.hpp"
 
+namespace jbatnozic {
 namespace griddy {
 
 class WorldTest : public ::testing::Test {
@@ -62,3 +63,4 @@ TEST_F(WorldTest, ChunkGetters) {
 }
 
 } // namespace griddy
+}

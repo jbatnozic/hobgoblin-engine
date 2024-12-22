@@ -11,6 +11,7 @@
 
 #include <iostream>
 
+namespace jbatnozic {
 namespace griddy {
 namespace detail {
 
@@ -104,3 +105,4 @@ TEST_F(GriddyConversionsTest, ChunkConversionToJsonAndBack) {
 
 } // namespace detail
 } // namespace griddy
+}

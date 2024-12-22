@@ -13,11 +13,11 @@
 
 namespace hg = jbatnozic::hobgoblin;
 
-using griddy::ActiveArea;
-using griddy::ChunkId;
-using griddy::WorldConfig;
-using griddy::detail::ChunkSpoolerInterface;
-using griddy::detail::ChunkStorageHandler;
+using jbatnozic::griddy::ActiveArea;
+using jbatnozic::griddy::ChunkId;
+using jbatnozic::griddy::WorldConfig;
+using jbatnozic::griddy::detail::ChunkSpoolerInterface;
+using jbatnozic::griddy::detail::ChunkStorageHandler;
 
 #define CHUNK_COUNT_X 32
 #define CHUNK_COUNT_Y 32
@@ -115,8 +115,8 @@ private:
 
 class Fixture {
 public:
-    griddy::test::FakeDiskIoHandler     _fakeDiskIoHandler;
-    griddy::detail::DefaultChunkSpooler _chunkSpooler;
+    jbatnozic::griddy::test::FakeDiskIoHandler     _fakeDiskIoHandler;
+    jbatnozic::griddy::detail::DefaultChunkSpooler _chunkSpooler;
     FakeWorld                              _fakeWorld{32, 32, _chunkSpooler};
 
     Fixture() {

@@ -10,6 +10,7 @@
 
 #include <filesystem>
 
+namespace jbatnozic {
 namespace griddy {
 
 namespace hg = ::jbatnozic::hobgoblin;
@@ -105,3 +106,4 @@ struct WorldConfig {
 // TODO: config validation
 
 } // namespace griddy
+}

@@ -7,6 +7,7 @@
 
 #include <Hobgoblin/HGExcept.hpp>
 
+namespace jbatnozic {
 namespace griddy {
 
 Chunk::Chunk(hg::PZInteger aWidth, hg::PZInteger aHeight)
@@ -62,3 +63,4 @@ ChunkExtensionInterface* Chunk::_loadChunkExtensionPointer() const {
 }
 
 } // namespace griddy
+}

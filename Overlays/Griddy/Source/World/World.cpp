@@ -14,6 +14,7 @@
 
 #include "../Detail_access.hpp"
 
+namespace jbatnozic {
 namespace griddy {
 
 namespace {
@@ -424,82 +425,12 @@ const Chunk& World::getChunkAtIdUnchecked(const EditPermission& /*aPerm*/, Chunk
 }
 
 ///////////////////////////////////////////////////////////////////////////
-// CHUNK EXTENSIONS                                                      //
-///////////////////////////////////////////////////////////////////////////
-
-// TODO
-
-///////////////////////////////////////////////////////////////////////////
 // ACTIVE AREAS                                                          //
 ///////////////////////////////////////////////////////////////////////////
 
 ActiveArea World::createActiveArea() {
     return _chunkStorage.createNewActiveArea();
 }
-
-///////////////////////////////////////////////////////////////////////////
-// LIGHTS                                                                //
-///////////////////////////////////////////////////////////////////////////
-
-int World::createLight(SpriteId aSpriteId, hg::math::Vector2pz aSize) {
-    const int id = (_lightIdCounter + 1);
-    _lightIdCounter += 1;
-
-    const auto pair =
-        _lights.emplace(std::piecewise_construct, std::forward_as_tuple(id), std::forward_as_tuple());
-    auto& light    = pair.first->second;
-    light.spriteId = aSpriteId;
-    GetMutableExtensionData(light).texture.create(aSize);
-
-    return id;
-}
-
-void World::updateLight(int aLightHandle, hg::math::Vector2f aPosition, hg::math::AngleF aAngle) {
-    const auto iter = _lights.find(aLightHandle);
-    HG_HARD_ASSERT(iter != _lights.end());
-
-    auto& light    = iter->second;
-    light.angle    = aAngle;
-    light.position = aPosition;
-}
-
-void World::destroyLight(int aLightHandle) {
-    const auto iter = _lights.find(aLightHandle);
-    HG_HARD_ASSERT(iter != _lights.end());
-
-    _lights.erase(iter);
-}
-
-#if 0
-inline
-void World::Editor::setWallAtUnchecked(hg::PZInteger                         aX,
-                                          hg::PZInteger                         aY,
-                                          const std::optional<CellModel::Wall>& aWallOpt) {
-    _world._setWallAtUnchecked(aX, aY, aWallOpt);
-    //    _grid[aY][aX].wall = aWallOpt;
-    //
-    //    if (_generatorMode) {
-    //        return; // skip refreshing
-    //    }
-    //
-    //    for (int yOffset = -1; yOffset <= 1; yOffset += 1) {
-    //        if (aY + yOffset < 0 || aY + yOffset >= getCellCountY()) {
-    //            continue; // out of grid
-    //        }
-    //        for (int xOffset = -1; xOffset <= 1; xOffset += 1) {
-    //            if (aX + xOffset < 0 || aX + xOffset >= getCellCountX()) {
-    //                continue; // out of grid
-    //            }
-    // #if 0 // TODO(temporary)
-    //            if (yOffset == 0 && xOffset == 0) {
-    //                continue; // this cell
-    //            }
-    // #endif
-    //            _refreshCellAtUnchecked(aX + xOffset, aY + yOffset);
-    //        }
-    //    }
-}
-#endif
 
 ///////////////////////////////////////////////////////////////////////////
 // PRIVATE METHODS                                                       //
@@ -674,3 +605,4 @@ void World::_setWallAtUnchecked(hg::math::Vector2pz                   aCell,
 }
 
 } // namespace griddy
+}

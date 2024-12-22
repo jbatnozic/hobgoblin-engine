@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <typeinfo>
 
+namespace jbatnozic {
 namespace griddy {
 
 namespace hg = ::jbatnozic::hobgoblin;
@@ -66,3 +67,4 @@ public:
 };
 
 } // namespace griddy
+}

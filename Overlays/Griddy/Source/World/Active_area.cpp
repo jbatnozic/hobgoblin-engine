@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <cmath>
 
+namespace jbatnozic {
 namespace griddy {
 
 #define PRIORITY_NOT_IMPORTANT 999999
@@ -184,3 +185,4 @@ const std::vector<ChunkId>& ActiveArea::getChunkList() const {
 }
 
 } // namespace griddy
+}

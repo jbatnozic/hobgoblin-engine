@@ -12,6 +12,7 @@
 
 #include <fstream>
 
+namespace jbatnozic {
 namespace griddy {
 namespace detail {
 
@@ -72,3 +73,4 @@ std::filesystem::path DefaultChunkDiskIoHandler::_buildPathToChunk(ChunkId aChun
 
 } // namespace detail
 } // namespace griddy
+}

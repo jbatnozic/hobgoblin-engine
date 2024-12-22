@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <memory> // for std::hash
 
+namespace jbatnozic {
 namespace griddy {
 
 namespace hg = ::jbatnozic::hobgoblin;
@@ -53,10 +54,12 @@ private:
 static_assert(alignof(SpriteId) == 1);
 
 } // namespace griddy
+}
 
 template <>
-struct std::hash<griddy::SpriteId> {
-    std::size_t operator()(const griddy::SpriteId& aSpriteId) const noexcept {
-        return std::hash<griddy::SpriteId::WrappedType>{}(aSpriteId.get());
+struct std::hash<jbatnozic::griddy::SpriteId> {
+    std::size_t operator()(const jbatnozic::griddy::SpriteId& aSpriteId) const noexcept {
+        return std::hash<jbatnozic::griddy::SpriteId::WrappedType>{}(aSpriteId.get());
     }
 };
+

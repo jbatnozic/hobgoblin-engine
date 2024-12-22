@@ -10,6 +10,7 @@
 #include <functional>
 #include <vector>
 
+namespace jbatnozic {
 namespace griddy {
 
 namespace detail {
@@ -79,3 +80,4 @@ std::vector<ChunkUsageChange> UpdateChunkList(
 } // namespace detail
 
 } // namespace griddy
+}

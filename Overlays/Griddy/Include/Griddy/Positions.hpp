@@ -7,6 +7,7 @@
 
 #include <utility>
 
+namespace jbatnozic {
 namespace griddy {
 
 namespace hg = jbatnozic::hobgoblin;
@@ -56,3 +57,4 @@ struct WorldPosition {
 static_assert(sizeof(WorldPosition) <= sizeof(void*), "TODO");
 
 } // namespace griddy
+}

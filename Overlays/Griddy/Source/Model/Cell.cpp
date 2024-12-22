@@ -5,6 +5,7 @@
 
 #include <Hobgoblin/HGExcept.hpp>
 
+namespace jbatnozic {
 namespace griddy {
 namespace detail {
 
@@ -297,3 +298,4 @@ DrawMode CellModelExt::ExtensionData::determineDrawMode(float              aCell
 
 } // namespace detail
 } // namespace griddy
+}

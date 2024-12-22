@@ -20,6 +20,7 @@
 #include <string>
 #include <type_traits>
 
+namespace jbatnozic {
 namespace griddy {
 namespace detail {
 
@@ -380,3 +381,4 @@ TODO:
 
 } // namespace detail
 } // namespace griddy
+}

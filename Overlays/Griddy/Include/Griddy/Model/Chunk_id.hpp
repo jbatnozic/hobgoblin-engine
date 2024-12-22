@@ -13,6 +13,7 @@
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 
+namespace jbatnozic {
 namespace griddy {
 
 namespace hg = ::jbatnozic::hobgoblin;
@@ -44,13 +45,14 @@ struct ChunkId {
 };
 
 } // namespace griddy
+} // namespace jbatnozic
 
 template <>
-struct fmt::formatter<griddy::ChunkId> : fmt::ostream_formatter {};
+struct fmt::formatter<jbatnozic::griddy::ChunkId> : fmt::ostream_formatter {};
 
 template <>
-struct std::hash<griddy::ChunkId> {
-    std::size_t operator()(const griddy::ChunkId& aChunkId) const noexcept {
+struct std::hash<jbatnozic::griddy::ChunkId> {
+    std::size_t operator()(const jbatnozic::griddy::ChunkId& aChunkId) const noexcept {
         const std::int32_t temp = (aChunkId.y << 16) | aChunkId.x;
         return std::hash<std::int32_t>{}(temp);
     }

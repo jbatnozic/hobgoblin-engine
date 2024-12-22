@@ -5,6 +5,7 @@
 
 #include <cstdint>
 
+namespace jbatnozic {
 namespace griddy {
 
 enum class Shape : std::int8_t {
@@ -14,3 +15,4 @@ enum class Shape : std::int8_t {
 };
 
 } // namespace griddy
+}

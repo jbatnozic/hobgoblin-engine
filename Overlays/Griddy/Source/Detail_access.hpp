@@ -2,9 +2,9 @@
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
 #include <Griddy/Model/Cell.hpp>
-#include <Griddy/Model/Lights.hpp>
 #include <Griddy/World/World.hpp>
 
+namespace jbatnozic {
 namespace griddy {
 
 // Cells
@@ -17,14 +17,5 @@ inline detail::CellModelExt::ExtensionData& GetMutableExtensionData(const CellMo
     return static_cast<const detail::CellModelExt&>(aCell).mutableExtensionData;
 }
 
-// Lights
-
-inline const detail::LightModelExt::ExtensionData& GetExtensionData(const LightModel& aCell) {
-    return static_cast<const detail::LightModelExt&>(aCell).mutableExtensionData;
-}
-
-inline detail::LightModelExt::ExtensionData& GetMutableExtensionData(const LightModel& aCell) {
-    return static_cast<const detail::LightModelExt&>(aCell).mutableExtensionData;
-}
-
 } // namespace griddy
+} // namespace jbatnozic

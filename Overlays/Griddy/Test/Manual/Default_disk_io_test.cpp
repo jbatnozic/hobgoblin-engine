@@ -8,8 +8,8 @@
 #include <Hobgoblin/Window.hpp>
 
 #include "../../Source/Detail_access.hpp"
-#include <Griddy/Private/Chunk_spooler_default.hpp>
 #include "Fake_disk_io_handler.hpp"
+#include <Griddy/Private/Chunk_spooler_default.hpp>
 #include <Griddy/World/World.hpp>
 
 #include <algorithm>
@@ -17,6 +17,7 @@
 
 #include <Hobgoblin/Logging.hpp>
 
+namespace jbatnozic {
 namespace griddy {
 namespace hg = jbatnozic::hobgoblin;
 
@@ -99,8 +100,8 @@ public:
     }
 
 private:
-    World                   _world;
-    ActiveArea              _activeArea;
+    World      _world;
+    ActiveArea _activeArea;
 
     std::vector<ChunkId> _activeChunks;
 
@@ -170,7 +171,7 @@ private:
             } else {
                 HG_LOG_INFO(LOG_ID, "DESERIALIZATION FAILED", string);
             }
-            //HG_HARD_ASSERT(aIStream.extract<std::string>() == SERIALIZATION_STRING);
+            // HG_HARD_ASSERT(aIStream.extract<std::string>() == SERIALIZATION_STRING);
         }
 
         std::int64_t getUniqueIdentifier() const override {
@@ -222,7 +223,8 @@ void RunDefaultDiskIoTest() {
 }
 } // namespace
 } // namespace griddy
+} // namespace jbatnozic
 
 void RunDefaultDiskIoTest() {
-    griddy::RunDefaultDiskIoTest();
+    jbatnozic::griddy::RunDefaultDiskIoTest();
 }

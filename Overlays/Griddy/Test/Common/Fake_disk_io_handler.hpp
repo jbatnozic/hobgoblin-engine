@@ -13,6 +13,7 @@
 #include <thread>
 #include <unordered_map>
 
+namespace jbatnozic {
 namespace griddy {
 namespace test {
 
@@ -57,3 +58,4 @@ private:
 
 } // namespace test
 } // namespace griddy
+}

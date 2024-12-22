@@ -10,6 +10,7 @@
 
 #include <memory>
 
+namespace jbatnozic {
 namespace griddy {
 namespace detail {
 
@@ -111,3 +112,4 @@ inline const CellModelExt& CellGrid::getExtensionCell() const {
 
 } // namespace detail
 } // namespace griddy
+}

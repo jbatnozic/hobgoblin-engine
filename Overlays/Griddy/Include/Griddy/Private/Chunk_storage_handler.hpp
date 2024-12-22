@@ -19,6 +19,7 @@
 #include <optional>
 #include <unordered_map>
 
+namespace jbatnozic {
 namespace griddy {
 
 namespace hg = jbatnozic::hobgoblin;
@@ -53,7 +54,7 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     // DEPENDENCIES                                                          //
     ///////////////////////////////////////////////////////////////////////////
-    
+
     void setChunkSpooler(ChunkSpoolerInterface* aChunkSpooler);
 
     void setBinder(Binder* aBinder);
@@ -189,8 +190,8 @@ public:
     }
 
 private:
-    friend class ::griddy::ActiveArea;
-    
+    friend class ::jbatnozic::griddy::ActiveArea;
+
     // ===== Binder
 
     Binder* _binder = nullptr;
@@ -205,7 +206,7 @@ private:
         std::shared_ptr<ChunkSpoolerInterface::RequestHandleInterface> requestHandle = nullptr;
         hg::PZInteger                                                  usageCount    = 0;
     };
-    
+
     mutable std::unordered_map<ChunkId, ChunkControlBlock> _chunkControlBlocks;
 
     // ===== Free Chunks
@@ -230,17 +231,16 @@ private:
 
     void _loadChunkImmediately(ChunkId aChunkId);
 
-    void _onChunkLoaded(
-        ChunkId                                                aChunkId,
-        Chunk&&                                                aChunk,
-        std::optional<decltype(_chunkControlBlocks)::iterator> aControlBlockIterator);
+    void _onChunkLoaded(ChunkId                                                aChunkId,
+                        Chunk&&                                                aChunk,
+                        std::optional<decltype(_chunkControlBlocks)::iterator> aControlBlockIterator);
 
     void _createDefaultChunk(ChunkId aChunkId);
 
     void _updateChunkUsage(const std::vector<detail::ChunkUsageChange>& aChunkUsageChanges);
-
 };
 
 } // namespace detail
 
 } // namespace griddy
+} // namespace jbatnozic

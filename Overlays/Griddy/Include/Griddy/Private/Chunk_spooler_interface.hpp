@@ -9,6 +9,7 @@
 #include <optional>
 #include <vector>
 
+namespace jbatnozic {
 namespace griddy {
 namespace detail {
 
@@ -99,3 +100,4 @@ public:
 
 } // namespace detail
 } // namespace griddy
+}

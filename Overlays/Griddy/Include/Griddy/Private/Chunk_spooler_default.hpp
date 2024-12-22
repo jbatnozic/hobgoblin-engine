@@ -16,6 +16,7 @@
 #include <unordered_map>
 #include <variant>
 
+namespace jbatnozic {
 namespace griddy {
 namespace detail {
 
@@ -98,3 +99,4 @@ private:
 
 } // namespace detail
 } // namespace griddy
+}

@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <thread>
 
+namespace jbatnozic {
 namespace griddy {
 namespace detail {
 
@@ -259,3 +260,4 @@ void ChunkStorageHandler::_updateChunkUsage(
 
 } // namespace detail
 } // namespace griddy
+}

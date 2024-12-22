@@ -8,6 +8,7 @@
 
 #include <optional>
 
+namespace jbatnozic {
 namespace griddy {
 
 // Forward declare
@@ -32,3 +33,4 @@ public:
 
 } // namespace detail
 } // namespace griddy
+}

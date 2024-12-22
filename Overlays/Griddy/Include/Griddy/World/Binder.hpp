@@ -12,6 +12,7 @@
 
 #include <memory>
 
+namespace jbatnozic {
 namespace griddy {
 
 //! This class contains a number of callbacks which can be overriden to 'bind'
@@ -31,3 +32,4 @@ public:
 };
 
 } // namespace griddy
+}

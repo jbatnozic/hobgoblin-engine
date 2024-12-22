@@ -12,6 +12,7 @@
 #include <filesystem>
 #include <optional>
 
+namespace jbatnozic {
 namespace griddy {
 
 // Forward declare
@@ -45,3 +46,4 @@ private:
 
 } // namespace detail
 } // namespace griddy
+}
