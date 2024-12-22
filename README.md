@@ -57,6 +57,24 @@ folder.
 Before anything else, copy the appropriate Conan profile (from `Conan/Profiles/Linux` or `Conan/Profiles/Max`) into your
 `~/.conan2/profiles` directory.
 
+Then, if on Linux, you'll need to install some system dependencies. This wasn't tested very thoroughly, so
+depending on your specific system, the concrete dependencies could be different. My setup on Ubuntu
+required the following list:
+
+```
+sudo apt install -y libudev-dev libgl-dev libgl1-mesa-dev libx11-xcb-dev libfontenc-dev libice-dev libsm-dev \
+		              libxaw7-dev libxcomposite-dev libxcursor-dev libxdamage-dev libxfixes-dev libxi-dev \
+		              libxinerama-dev libxkbfile-dev libxmu-dev libxmuu-dev libxpm-dev libxrandr-dev libxres-dev \
+		              libxt-dev libxtst-dev libxv-dev libxxf86vm-dev libxcb-glx0-dev libxcb-render0-dev \
+		              libxcb-render-util0-dev libxcb-xkb-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev \
+		              libxcb-randr0-dev libxcb-shape0-dev libxcb-sync-dev libxcb-xfixes0-dev libxcb-xinerama0-dev \
+		              libxcb-dri3-dev libxcb-cursor-dev libxcb-dri2-0-dev libxcb-dri3-dev libxcb-present-dev \
+		              libxcb-composite0-dev libxcb-ewmh-dev libxcb-res0-dev libxcb-util-dev libxcb0-util-dev 
+```
+
+Another option is to skip this step and just install whatever is needed whenever something in the build
+process complains that a library is missing.
+
 #### To work on Hobgoblin
 
 1. Run `Scripts/Get_conan_dependencies.bash`.
