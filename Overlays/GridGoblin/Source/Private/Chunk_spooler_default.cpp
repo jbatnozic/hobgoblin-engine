@@ -19,17 +19,14 @@ namespace {
 constexpr auto LOG_ID = "GridGoblin";
 
 std::optional<Chunk> LoadChunk(ChunkId aChunkId, ChunkDiskIoHandlerInterface& aDiskIoHandler) {
-    HG_LOG_WITH_SCOPED_STOPWATCH_MS(INFO, LOG_ID, "Chunk {} loaded in {}ms.", aChunkId, elapsedTimeMs);
+    HG_LOG_WITH_SCOPED_STOPWATCH_MS(INFO, LOG_ID, "Chunk {} loaded in {}ms.", aChunkId, elapsed_time_ms);
 
     auto rtChunk = aDiskIoHandler.loadChunkFromRuntimeCache(aChunkId);
     if (rtChunk.has_value()) {
-        HG_LOG_DEBUG(LOG_ID, "Chunk {}, {} loaded from runtime cache.", aChunkId.x, aChunkId.y);
+        HG_LOG_DEBUG(LOG_ID, "Chunk {} loaded from runtime cache.", aChunkId);
         return rtChunk;
     }
-    HG_LOG_DEBUG(LOG_ID,
-                 "Attempting to load Chunk {}, {} from persistent cache.",
-                 aChunkId.x,
-                 aChunkId.y);
+    HG_LOG_DEBUG(LOG_ID, "Attempting to load Chunk {} from persistent cache.", aChunkId);
     return aDiskIoHandler.loadChunkFromPersistentCache(aChunkId);
 }
 
@@ -475,4 +472,4 @@ void DefaultChunkSpooler::_adjustUnloadPriority(const RequestVariant& aRequestVa
 
 } // namespace detail
 } // namespace gridgoblin
-}
+} // namespace jbatnozic

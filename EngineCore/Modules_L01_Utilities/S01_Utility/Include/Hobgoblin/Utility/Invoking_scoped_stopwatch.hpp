@@ -43,18 +43,18 @@ private:
 
 // ===== Implementation detail below =====
 
-#define UHOBGOBLIN_LOG_WITH_SCOPED_STOPWATCH_MS_IMPL(_line_, _logger_, _log_id_, ...) \
-    auto UHOBGOBLIN_logWithScopedStopwatchMsCallable##_line_ =                        \
-        [&](std::chrono::nanoseconds UHOBGOBLIN_elapsedTimeNs) -> void {              \
-        const double elapsedTimeMs = UHOBGOBLIN_elapsedTimeNs.count() / 1'000'000.0;  \
-        static_cast<void>(elapsedTimeMs);                                             \
-        _logger_(_log_id_, __VA_ARGS__);                                              \
-    };                                                                                \
-    ::jbatnozic::hobgoblin::util::InvokingScopedStopwatch<                            \
-        decltype(UHOBGOBLIN_logWithScopedStopwatchMsCallable##_line_),                \
-        std::chrono::nanoseconds>                                                     \
-        UHOBGOBLIN_invokingScopedStopwatch##_line_ {                                  \
-        std::move(UHOBGOBLIN_logWithScopedStopwatchMsCallable##_line_)                \
+#define UHOBGOBLIN_LOG_WITH_SCOPED_STOPWATCH_MS_IMPL(_line_, _logger_, _log_id_, ...)  \
+    auto UHOBGOBLIN_logWithScopedStopwatchMsCallable##_line_ =                         \
+        [&](std::chrono::nanoseconds UHOBGOBLIN_elapsedTimeNs) -> void {               \
+        const double elapsed_time_ms = UHOBGOBLIN_elapsedTimeNs.count() / 1'000'000.0; \
+        static_cast<void>(elapsed_time_ms);                                            \
+        _logger_(_log_id_, __VA_ARGS__);                                               \
+    };                                                                                 \
+    ::jbatnozic::hobgoblin::util::InvokingScopedStopwatch<                             \
+        decltype(UHOBGOBLIN_logWithScopedStopwatchMsCallable##_line_),                 \
+        std::chrono::nanoseconds>                                                      \
+        UHOBGOBLIN_invokingScopedStopwatch##_line_ {                                   \
+        std::move(UHOBGOBLIN_logWithScopedStopwatchMsCallable##_line_)                 \
     }
 
 #define UHOBGOBLIN_LOG_WITH_SCOPED_STOPWATCH_MS_MIDDLE(_line_, _severity_, _log_id_, ...) \
