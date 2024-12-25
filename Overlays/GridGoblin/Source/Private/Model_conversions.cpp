@@ -310,7 +310,7 @@ Chunk JsonToChunk(const json::Document&        aJsonDocument,
     // Read extension
     ENSURE_JSON_CONTAINS(aJsonDocument, "extension_kind", String);
 
-    auto extension = aChunkExtensionFactory ? aChunkExtensionFactory() : nullptr;
+    auto extension = aChunkExtensionFactory ? aChunkExtensionFactory(chunk) : nullptr;
 
     const auto kind = StringToExtensionKind(aJsonDocument["extension_kind"].GetString());
     if (kind.has_value()) {

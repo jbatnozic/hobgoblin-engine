@@ -26,6 +26,7 @@ enum NeighbourIndex {
 };
 #endif
 
+//! A single cell of a GridGoblin World.
 class CellModel {
 public:
     struct Floor {

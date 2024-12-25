@@ -16,6 +16,9 @@ namespace detail {
 
 static constexpr auto LOG_ID = "GridGoblin";
 
+#define CHUNK_AT_ID(_id_) \
+    (_chunks[static_cast<hg::PZInteger>((_id_).y)][static_cast<hg::PZInteger>((_id_).x)])
+
 ChunkStorageHandler::ChunkStorageHandler(const WorldConfig& aConfig)
     : _chunks{aConfig.chunkCountX, aConfig.chunkCountY}
     , _chunkWidth{aConfig.cellsPerChunkX}
@@ -61,11 +64,6 @@ void ChunkStorageHandler::update() {
                 _createDefaultChunk(id);
             }
             // cb.requestHandle = nullptr; TODO
-
-            if (_binder) {
-                auto& chunk = _chunks[(hg::PZInteger)id.y][(hg::PZInteger)id.x];
-                _binder->onChunkLoaded(id, &chunk); // TODO: temporary?
-            }
         }
     }
 }
@@ -77,7 +75,7 @@ void ChunkStorageHandler::prune() {
         const auto iter = _freeChunks.begin();
         const auto id   = iter->first;
 
-        auto& chunk = _chunks[static_cast<hg::PZInteger>(id.y)][static_cast<hg::PZInteger>(id.x)];
+        auto& chunk = CHUNK_AT_ID(id);
         _chunkSpooler->unloadChunk(id, std::move(chunk));
         chunk.makeEmpty();
 
@@ -153,17 +151,30 @@ void ChunkStorageHandler::_onChunkLoaded(
     }
 
     HG_ASSERT(cb != nullptr);
-
     cb->requestHandle = nullptr;
 
-    _chunks[static_cast<hg::PZInteger>(aChunkId.y)][static_cast<hg::PZInteger>(aChunkId.x)] =
-        std::move(aChunk);
+    auto& chunk = (CHUNK_AT_ID(aChunkId) = std::move(aChunk));
+
+    HG_ASSERT(_binder != nullptr);
+    _binder->onChunkLoaded(aChunkId, chunk);
 }
 
 void ChunkStorageHandler::_createDefaultChunk(ChunkId aChunkId) {
-    // TODO: temp impl
-    _chunks[static_cast<hg::PZInteger>(aChunkId.y)][static_cast<hg::PZInteger>(aChunkId.x)] =
-        Chunk{_chunkWidth, _chunkHeight};
+    // Construct a chunk where all cells are in their default state
+    // (floor, wall, etc. - all uninitialized).
+    auto defaultChunk = Chunk{_chunkWidth, _chunkHeight};
+
+    // Attach an extension if possible
+    HG_ASSERT(_binder != nullptr);
+    auto extension = _binder->createChunkExtension();
+    if (extension != nullptr) {
+        extension->init(aChunkId, defaultChunk);
+    }
+    defaultChunk.setExtension(std::move(extension));
+
+    auto& chunk = (CHUNK_AT_ID(aChunkId) = std::move(defaultChunk));
+
+    _binder->onChunkCreated(aChunkId, chunk);
 }
 
 void ChunkStorageHandler::_updateChunkUsage(
@@ -199,8 +210,7 @@ void ChunkStorageHandler::_updateChunkUsage(
                         if (cb.requestHandle) {
                             cb.requestHandle->cancel();
                         }
-                        if (!_chunks[chunkId.y][chunkId.x]
-                                 .isEmpty()) { // TODO: make method for chunkAtId()
+                        if (!CHUNK_AT_ID(chunkId).isEmpty()) {
                             _freeChunks.insert(
                                 std::make_pair(chunkId, std::chrono::steady_clock::now()));
                         }

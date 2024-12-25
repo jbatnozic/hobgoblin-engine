@@ -37,6 +37,12 @@ class ChunkDiskIoHandlerInterface;
 class ChunkSpoolerInterface;
 } // namespace detail
 
+/**
+ * Grid world!
+ * Grid world!
+ * Party time!
+ * Excellent!
+ */
 class World : private Binder {
 public:
     World(const WorldConfig& aConfig);
@@ -50,9 +56,7 @@ public:
 
     ~World() override;
 
-    void setBinder(Binder* aBinder) {
-        _binder = aBinder; // TODO(temporary)
-    }
+    void setBinder(Binder* aBinder);
 
     // TODO: Cell height (z)
 
@@ -266,7 +270,8 @@ private:
 
     Binder* _binder = nullptr;
 
-    void onChunkLoaded(ChunkId aChunkId, const Chunk* aChunk) override;
+    void onChunkLoaded(ChunkId aChunkId, const Chunk& aChunk) override;
+    void onChunkCreated(ChunkId aChunkId, const Chunk& aChunk) override;
     void onChunkUnloaded(ChunkId aChunkId) override;
     std::unique_ptr<ChunkExtensionInterface> createChunkExtension() override {
         if (!_binder) {

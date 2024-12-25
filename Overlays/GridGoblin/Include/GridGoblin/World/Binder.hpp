@@ -22,7 +22,12 @@ public:
     //! Virtual destructor.
     virtual ~Binder() = default;
 
-    virtual void onChunkLoaded(ChunkId aChunkId, const Chunk* aChunk) {}
+    //! Called when a Chunk is created for the first time, meaning access to this chunk was requested
+    //! but it could not be found in the cache, so a default chunk had to be created.
+    virtual void onChunkCreated(ChunkId aChunkId, const Chunk& aChunk) {}
+
+    //! Called when a Chunk is loaded from the cache after it was previously unloaded.
+    virtual void onChunkLoaded(ChunkId aChunkId, const Chunk& aChunk) {}
 
     virtual void onChunkUnloaded(ChunkId aChunkId) {}
 

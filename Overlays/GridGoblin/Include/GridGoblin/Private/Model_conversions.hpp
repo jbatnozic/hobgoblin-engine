@@ -30,7 +30,7 @@ public:
     using jbatnozic::hobgoblin::TracedRuntimeError::TracedRuntimeError;
 };
 
-using ChunkExtensionFactory = std::function<std::unique_ptr<ChunkExtensionInterface>()>;
+using ChunkExtensionFactory = std::function<std::unique_ptr<ChunkExtensionInterface>(const Chunk&)>;
 
 //! Creates a JSON Value from the passed CellModel instance using the allocator
 //! of the passed document (does not attach the Value anywhere).

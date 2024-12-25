@@ -45,6 +45,7 @@ PUBLIC
 )
 
 # TODO: Chunk conversions to and from json strings could be even faster if std::string is not used
+#       (not a big concern for now; it's a possible micro-optimization)
 target_compile_definitions(${PROJECT_NAME}
 PRIVATE
     "RAPIDJSON_HAS_STDSTRING=1"

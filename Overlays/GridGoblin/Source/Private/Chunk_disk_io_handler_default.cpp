@@ -49,9 +49,13 @@ std::optional<Chunk> DefaultChunkDiskIoHandler::loadChunkFromPersistentCache(Chu
 
     auto bytes = hg::util::SlurpFileBytes(path);
 
-    auto chunkExtensionFactory = [this]() {
+    auto chunkExtensionFactory = [this, aChunkId](const Chunk& aChunk) {
         HG_ASSERT(_binder != nullptr);
-        return _binder->createChunkExtension();
+        auto extension = _binder->createChunkExtension();
+        if (extension != nullptr) {
+            extension->init(aChunkId, aChunk);
+        }
+        return extension;
     };
 
     return JsonStringToChunk(std::move(bytes), chunkExtensionFactory);

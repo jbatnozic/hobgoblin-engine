@@ -65,45 +65,16 @@ public:
     // EXTENSIONS                                                            //
     ///////////////////////////////////////////////////////////////////////////
 
-    //! TODO
+    //! Set a new extension for the chunk, destroying the old one (if any).
     void setExtension(std::unique_ptr<ChunkExtensionInterface> aChunkExtension);
 
-    //! TODO
+    //! Return a mutable but non-owning pointer to the chunk's extension (if any; returns
+    //! `nullptr` if no extension).
     ChunkExtensionInterface* getExtension() const;
 
-    //! TODO
+    //! Detach the chunk's extension and return it owned by a `std::unique_ptr` (if any; returns
+    //! `nullptr` if no extension).
     std::unique_ptr<ChunkExtensionInterface> releaseExtension();
-
-    ///////////////////////////////////////////////////////////////////////////
-    // OPERATORS                                                             //
-    ///////////////////////////////////////////////////////////////////////////
-
-#if 0 // TODO: Why would chunk equality even be relevant?
-    friend bool operator==(const Chunk& aLhs, const Chunk& aRhs) {
-        if (aLhs.getCellCountX() != aRhs.getCellCountX() ||
-            aLhs.getCellCountY() != aRhs.getCellCountY()) {
-            return false;
-        }
-
-        for (hg::PZInteger y = 0; y < aLhs.getCellCountY(); y += 1) {
-            for (hg::PZInteger x = 0; x < aRhs.getCellCountX(); x += 1) {
-                const auto& lhsCell = static_cast<const CellModel&>(aLhs._cells[y][x]);
-                const auto& rhsCell = static_cast<const CellModel&>(aRhs._cells[y][x]);
-                if (lhsCell != rhsCell) {
-                    return false;
-                }
-            }
-        }
-
-        // TBD: take into consideration chunk extensions?
-
-        return true;
-    }
-
-    friend bool operator!=(const Chunk& aLhs, const Chunk& aRhs) {
-        return !(aLhs == aRhs);
-    }
-#endif
 
 private:
     friend class detail::ChunkStorageHandler;

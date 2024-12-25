@@ -28,19 +28,6 @@ class Binder;
 
 namespace detail {
 
-// TODO: move definitions somewhere else
-
-#if defined(__GNUC__) && !defined(__clang__)
-#define HG_LIKELY_CONDITION(...)   __builtin_expect(!!(__VA_ARGS__), 1)
-#define HG_UNLIKELY_CONDITION(...) __builtin_expect(!!(__VA_ARGS__), 0)
-#else
-#define HG_LIKELY_CONDITION(...)   __VA_ARGS__
-#define HG_UNLIKELY_CONDITION(...) __VA_ARGS__
-#endif
-
-#define HG_LIKELY_BRANCH   [[likely]]
-#define HG_UNLIKELY_BRANCH [[unlikely]]
-
 HG_DECLARE_TAG_TYPE(LOAD_IF_MISSING);
 
 //! This class handles the storage of chunks both in RAM and in on-disk caches.

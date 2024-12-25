@@ -1,11 +1,11 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-#include <GridGoblin/World/World.hpp>
-#include <GridGoblin/Private/Chunk_disk_io_handler_interface.hpp>
 #include <GridGoblin/Private/Chunk_disk_io_handler_default.hpp>
-#include <GridGoblin/Private/Chunk_spooler_interface.hpp>
+#include <GridGoblin/Private/Chunk_disk_io_handler_interface.hpp>
 #include <GridGoblin/Private/Chunk_spooler_default.hpp>
+#include <GridGoblin/Private/Chunk_spooler_interface.hpp>
+#include <GridGoblin/World/World.hpp>
 
 #include <Hobgoblin/HGExcept.hpp>
 
@@ -34,8 +34,7 @@ World::World(const WorldConfig& aConfig)
     , _chunkDiskIoHandler{_internalChunkDiskIoHandler.get()}
     , _internalChunkSpooler{CreateChunkSpooler(aConfig)}
     , _chunkSpooler{_internalChunkSpooler.get()}
-    , _chunkStorage{aConfig}
-//
+    , _chunkStorage{aConfig} //
 {
     _connectSubcomponents();
 }
@@ -47,8 +46,7 @@ World::World(const WorldConfig&                                  aConfig,
     , _chunkDiskIoHandler{aChunkDiskIoHandler}
     , _internalChunkSpooler{CreateChunkSpooler(aConfig)}
     , _chunkSpooler{_internalChunkSpooler.get()}
-    , _chunkStorage{aConfig}
-//
+    , _chunkStorage{aConfig} //
 {
     _connectSubcomponents();
 }
@@ -63,6 +61,10 @@ World::World(const WorldConfig& aConfig, hg::NeverNull<detail::ChunkSpoolerInter
 
 World::~World() {
     _disconnectSubcomponents();
+}
+
+void World::setBinder(Binder* aBinder) {
+    _binder = aBinder;
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -108,7 +110,7 @@ World::RingAssessment World::_assessRing(hg::PZInteger aX, hg::PZInteger aY, hg:
             const bool solid = isCellSolid(x, y);
             if (solid) {
                 result.hasOccupiedCells = true;
-                hasTopSide      = true;
+                hasTopSide              = true;
             }
         }
     }
@@ -120,7 +122,7 @@ World::RingAssessment World::_assessRing(hg::PZInteger aX, hg::PZInteger aY, hg:
             const bool solid = isCellSolid(x, y);
             if (solid) {
                 result.hasOccupiedCells = true;
-                hasBottomSide = true;
+                hasBottomSide           = true;
 
                 // Possible early exit
                 if (hasTopSide) {
@@ -137,7 +139,7 @@ World::RingAssessment World::_assessRing(hg::PZInteger aX, hg::PZInteger aY, hg:
                 const bool solid = isCellSolid(x, y);
                 if (solid) {
                     result.hasOccupiedCells = true;
-                    hasLeftSide    = true;
+                    hasLeftSide             = true;
 
                     // Possible early exit
                     if (hasRightSide) {
@@ -150,7 +152,7 @@ World::RingAssessment World::_assessRing(hg::PZInteger aX, hg::PZInteger aY, hg:
                 const bool solid = isCellSolid(x, y);
                 if (solid) {
                     result.hasOccupiedCells = true;
-                    hasRightSide  = true;
+                    hasRightSide            = true;
 
                     // Possible early exit
                     if (hasLeftSide) {
@@ -436,21 +438,21 @@ ActiveArea World::createActiveArea() {
 // PRIVATE METHODS                                                       //
 ///////////////////////////////////////////////////////////////////////////
 
-void  World::_connectSubcomponents() {
+void World::_connectSubcomponents() {
     _chunkDiskIoHandler->setBinder(this);
     _chunkSpooler->setDiskIoHandler(_chunkDiskIoHandler);
     _chunkStorage.setBinder(this);
     _chunkStorage.setChunkSpooler(_chunkSpooler);
 }
 
-void  World::_disconnectSubcomponents() {
+void World::_disconnectSubcomponents() {
     _chunkStorage.setChunkSpooler(nullptr);
     _chunkStorage.setBinder(nullptr);
     _chunkSpooler->setDiskIoHandler(nullptr);
     _chunkDiskIoHandler->setBinder(nullptr);
 }
 
-void World::onChunkLoaded(ChunkId aChunkId, const Chunk* aChunk) {
+void World::onChunkLoaded(ChunkId aChunkId, const Chunk& aChunk) {
     const hg::PZInteger top  = aChunkId.y * _config.cellsPerChunkY;
     const hg::PZInteger left = aChunkId.x * _config.cellsPerChunkX;
 
@@ -472,6 +474,11 @@ void World::onChunkLoaded(ChunkId aChunkId, const Chunk* aChunk) {
     if (_binder) {
         _binder->onChunkLoaded(aChunkId, aChunk);
     }
+}
+
+void World::onChunkCreated(ChunkId aChunkId, const Chunk& aChunk) {
+
+    
 }
 
 void World::onChunkUnloaded(ChunkId aChunkId) {
@@ -518,7 +525,7 @@ void World::_refreshCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) {
 
     auto* cell = _chunkStorage.getCellAtUnchecked(aX, aY);
     if (cell) {
-        const auto openness = _calcOpennessAt<false>(aX, aY);
+        const auto openness                     = _calcOpennessAt<false>(aX, aY);
         GetMutableExtensionData(*cell).openness = openness;
     }
 }
@@ -605,4 +612,4 @@ void World::_setWallAtUnchecked(hg::math::Vector2pz                   aCell,
 }
 
 } // namespace gridgoblin
-}
+} // namespace jbatnozic

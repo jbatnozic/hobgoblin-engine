@@ -154,7 +154,9 @@ private:
     public:
         ~DummyChunkExtension() override = default;
 
-        void init(ChunkId aChunkId, const Chunk& aChunk) override {}
+        void init(ChunkId aChunkId, const Chunk& aChunk) override {
+            HG_LOG_INFO(LOG_ID, "Chunk INIT (id = {})", aChunkId);
+        }
 
         SerializationMethod getPreferredSerializationMethod() const override {
             return SerializationMethod::BINARY_STREAM;
