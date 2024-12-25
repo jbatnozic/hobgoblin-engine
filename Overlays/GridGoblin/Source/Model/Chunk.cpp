@@ -28,6 +28,14 @@ void Chunk::makeEmpty() {
     }
 }
 
+void Chunk::setAll(const CellModel& aCell) {
+    for (hg::PZInteger y = 0; y < getCellCountY(); y += 1) {
+        for (hg::PZInteger x = 0; x < getCellCountX(); x += 1) {
+            _cells[y][x] = detail::CellModelExt{aCell};
+        }
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////
 // EXTENSIONS                                                            //
 ///////////////////////////////////////////////////////////////////////////
@@ -62,5 +70,30 @@ ChunkExtensionInterface* Chunk::_loadChunkExtensionPointer() const {
     return _cells.getExtensionCell().mutableExtensionData.getChunkExtensionPointer();
 }
 
-} // namespace gridgoblin
+///////////////////////////////////////////////////////////////////////////
+// FREE FUNCTIONS                                                        //
+///////////////////////////////////////////////////////////////////////////
+
+namespace detail {
+bool AreCellsEqual(const Chunk& aChunk1, const Chunk& aChunk2) {
+    if (aChunk1.getCellCountX() != aChunk2.getCellCountX() ||
+        aChunk1.getCellCountY() != aChunk2.getCellCountY()) {
+        return false;
+    }
+
+    for (hg::PZInteger y = 0; y < aChunk1.getCellCountY(); y += 1) {
+        for (hg::PZInteger x = 0; x < aChunk2.getCellCountX(); x += 1) {
+            const auto& lhsCell = static_cast<const CellModel&>(aChunk1.getCellAtUnchecked(x, y));
+            const auto& rhsCell = static_cast<const CellModel&>(aChunk2.getCellAtUnchecked(x, y));
+            if (lhsCell != rhsCell) {
+                return false;
+            }
+        }
+    }
+
+    return true;
 }
+} // namespace detail
+
+} // namespace gridgoblin
+} // namespace jbatnozic

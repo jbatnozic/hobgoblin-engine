@@ -61,6 +61,9 @@ public:
         return _cells[aY][aX];
     }
 
+    //! Set all the cells in the chunk to the given value, unless the chunk is empty. Utility method.
+    void setAll(const CellModel& aCell);
+
     ///////////////////////////////////////////////////////////////////////////
     // EXTENSIONS                                                            //
     ///////////////////////////////////////////////////////////////////////////
@@ -93,5 +96,9 @@ private:
     ChunkExtensionInterface* _loadChunkExtensionPointer() const;
 };
 
+namespace detail {
+bool AreCellsEqual(const Chunk& aChunk1, const Chunk& aChunk2);
+} // namespace detail
+
 } // namespace gridgoblin
-}
+} // namespace jbatnozic

@@ -5,9 +5,9 @@
 
 #include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Logging.hpp>
+#include <Hobgoblin/Utility/Log_with_scoped_stopwatch.hpp>
 
 #include <algorithm>
-#include <chrono>
 
 // TODO: SetThreadName
 
@@ -19,24 +19,7 @@ namespace {
 constexpr auto LOG_ID = "GridGoblin";
 
 std::optional<Chunk> LoadChunk(ChunkId aChunkId, ChunkDiskIoHandlerInterface& aDiskIoHandler) {
-    // TODO: temporary
-    class ScopedTimer {
-    public:
-        ScopedTimer()
-            : _start{std::chrono::steady_clock::now()}
-        {
-
-        }
-
-        ~ScopedTimer() {
-            const auto end = std::chrono::steady_clock::now();
-            const auto us = std::chrono::duration_cast<std::chrono::microseconds>(end - _start);
-            HG_LOG_INFO(LOG_ID, "Chunk loading took {}ms.", us.count() / 1000.0);
-        }
-
-    private:
-        std::chrono::steady_clock::time_point _start;
-    } timer;
+    HG_LOG_WITH_SCOPED_STOPWATCH_MS(INFO, LOG_ID, "Chunk {} loaded in {}ms.", aChunkId, elapsedTimeMs);
 
     auto rtChunk = aDiskIoHandler.loadChunkFromRuntimeCache(aChunkId);
     if (rtChunk.has_value()) {

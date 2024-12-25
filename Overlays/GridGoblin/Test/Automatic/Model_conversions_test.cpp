@@ -88,21 +88,21 @@ TEST_F(GridGoblinConversionsTest, CellWithFloorAndWallConversionToJsonAndBack) {
     EXPECT_EQ(cell, JsonToCell(CellToJson(cell, _document)));
 }
 
-#if 0 // TODO: reenable
 TEST_F(GridGoblinConversionsTest, ChunkConversionToJsonAndBack) {
     CellModel cell;
     cell.setFloor({111});
     cell.setWall({111, 222, Shape::FULL_SQUARE});
 
-    Chunk chunk{4, 4, cell};
+    Chunk chunk{4, 4};
+    chunk.setAll(cell);
+
     chunk.getCellAtUnchecked(2, 0).setFloor({333});
     chunk.getCellAtUnchecked(3, 1).resetWall();
     chunk.getCellAtUnchecked(1, 2).resetFloor();
 
-    EXPECT_EQ(chunk, JsonStringToChunk(ChunkToJsonString(chunk)));
+    EXPECT_TRUE(AreCellsEqual(chunk, JsonStringToChunk(ChunkToJsonString(chunk))));
 }
-#endif
 
 } // namespace detail
 } // namespace gridgoblin
-}
+} // namespace jbatnozic
