@@ -8,6 +8,7 @@
 #include <GridGoblin/Model/Chunk_extension.hpp>
 
 #include <Hobgoblin/HGExcept.hpp>
+#include <Hobgoblin/Utility/Packet.hpp>
 
 #include <rapidjson/document.h>
 
@@ -31,6 +32,9 @@ public:
 };
 
 using ChunkExtensionFactory = std::function<std::unique_ptr<ChunkExtensionInterface>(const Chunk&)>;
+
+using A = std::string;
+using B = hg::util::Packet;
 
 //! Creates a JSON Value from the passed CellModel instance using the allocator
 //! of the passed document (does not attach the Value anywhere).

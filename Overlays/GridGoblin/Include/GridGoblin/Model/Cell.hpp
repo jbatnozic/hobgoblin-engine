@@ -77,6 +77,7 @@ public:
     void setOpenness(std::uint8_t aOpenness);
 
 private:
+    // TODO(future): more efficient packed layout
     Floor        _floor;
     Wall         _wall;
     std::uint8_t _openness = 0;
@@ -134,7 +135,7 @@ enum class DrawMode {
     LOWERED,
     FULL
 
-    // TODO: LoS blocker bitmask
+    // TODO(graphics): LoS blocker bitmask
 };
 
 using DrawModePredicate = DrawMode (*)(float              aCellResolution,

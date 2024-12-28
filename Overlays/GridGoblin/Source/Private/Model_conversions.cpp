@@ -121,11 +121,11 @@ void Base64Decode(
     /*  in */ ChunkExtensionInterface::SerializationMethod aPreferredSerializationMethod,
     /*  in */ const char*                                  aBase64EncodedString,
     /*  in */ hg::PZInteger                                aBase64EncodedStringLength,
-    /*  in */ std::vector<std::uint8_t>*                   aReusableDeserializationBuffer = nullptr)
+    /*  in */ std::string*                                 aReusableDeserializationBuffer = nullptr)
 //
 {
-    std::vector<std::uint8_t>  defaultDesBuf;
-    std::vector<std::uint8_t>* desBuf = ELVIS(aReusableDeserializationBuffer, &defaultDesBuf);
+    std::string  defaultDesBuf;
+    std::string* desBuf = ELVIS(aReusableDeserializationBuffer, &defaultDesBuf);
 
     switch (aPreferredSerializationMethod) {
     case ChunkExtensionInterface::SerializationMethod::BINARY_STREAM:
@@ -236,7 +236,7 @@ CellModel JsonToCell(const json::Value& aJson) {
         }
 
         CellModel::Floor floor;
-        floor.spriteId = GetIntMember<decltype(floor.spriteId)::WrappedType>(aJson["floor"], "spriteId");
+        floor.spriteId = GetIntMember<decltype(floor.spriteId)>(aJson["floor"], "spriteId");
 
         cell.setFloor(floor);
     }
@@ -247,10 +247,9 @@ CellModel JsonToCell(const json::Value& aJson) {
         }
 
         CellModel::Wall wall;
-        wall.spriteId = GetIntMember<decltype(wall.spriteId)::WrappedType>(aJson["wall"], "spriteId");
+        wall.spriteId = GetIntMember<decltype(wall.spriteId)>(aJson["wall"], "spriteId");
         wall.spriteId_lowered =
-            GetIntMember<decltype(wall.spriteId_lowered)::WrappedType>(aJson["wall"],
-                                                                       "spriteId_lowered");
+            GetIntMember<decltype(wall.spriteId_lowered)>(aJson["wall"], "spriteId_lowered");
         wall.shape = StringToShape(aJson["wall"]["shape"].GetString());
 
         cell.setWall(wall);
@@ -291,9 +290,9 @@ json::Document ChunkToJson(const Chunk& aChunk) {
         doc.AddMember("extension_kind", json::Value{kind, allocator}.Move(), allocator);
 
         if (method != ChunkExtensionInterface::SerializationMethod::NONE) {
-            hg::util::Packet serializationPacket; // TODO: make reusable buffer
+            hg::util::Packet serializationStream; // TODO: make reusable buffer
             std::string      encodeBuffer;        // TODO: make reusable buffer
-            Base64Encode(*extension, method, encodeBuffer, &serializationPacket);
+            Base64Encode(*extension, method, encodeBuffer, &serializationStream);
 
             doc.AddMember("extension_data", json::Value{encodeBuffer, allocator}, allocator);
         }
@@ -347,7 +346,7 @@ Chunk JsonToChunk(const json::Document&        aJsonDocument,
             const auto* encodedExtString    = value.GetString();
             const auto  encodedExtStringLen = value.GetStringLength();
 
-            std::vector<std::uint8_t> deserializationBuffer; // TODO: make reusable buffer
+            std::string deserializationBuffer; // TODO: make reusable buffer
 
             Base64Decode(*extension,
                          *kind,

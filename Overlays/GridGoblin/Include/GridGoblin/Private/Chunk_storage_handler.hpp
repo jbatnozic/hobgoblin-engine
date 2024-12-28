@@ -187,6 +187,8 @@ private:
 
     mutable hg::util::RowMajorGrid<Chunk> _chunks;
 
+    hg::PZInteger _chunksInGridCount = 0;
+
     // ===== Active Chunks
 
     struct ChunkControlBlock {
@@ -218,10 +220,7 @@ private:
 
     void _loadChunkImmediately(ChunkId aChunkId);
 
-    void _onChunkLoaded(ChunkId                                                aChunkId,
-                        Chunk&&                                                aChunk,
-                        std::optional<decltype(_chunkControlBlocks)::iterator> aControlBlockIterator);
-
+    void _onChunkLoaded(ChunkId aChunkId, Chunk&& aChunk);
     void _createDefaultChunk(ChunkId aChunkId);
 
     void _updateChunkUsage(const std::vector<detail::ChunkUsageChange>& aChunkUsageChanges);

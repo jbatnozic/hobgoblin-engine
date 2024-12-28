@@ -7,7 +7,6 @@
 #include <Hobgoblin/Logging.hpp>
 #include <Hobgoblin/Utility/Time_utils.hpp>
 
-#include <algorithm>
 #include <thread>
 
 namespace jbatnozic {
@@ -49,8 +48,6 @@ ActiveArea ChunkStorageHandler::createNewActiveArea() {
 // CYCLE                                                                 //
 ///////////////////////////////////////////////////////////////////////////
 
-//! Collects all chunks that were loaded since the last call to `update()`
-//! and makes them available.
 void ChunkStorageHandler::update() {
     auto iter = _chunkControlBlocks.begin();
     for (; iter != _chunkControlBlocks.end(); iter = std::next(iter)) {
@@ -59,11 +56,11 @@ void ChunkStorageHandler::update() {
             const auto id    = iter->first;
             auto       chunk = cb.requestHandle->takeChunk();
             if (chunk.has_value()) {
-                _onChunkLoaded(id, std::move(*chunk), iter);
+                _onChunkLoaded(id, std::move(*chunk));
             } else {
                 _createDefaultChunk(id);
             }
-            // cb.requestHandle = nullptr; TODO
+            cb.requestHandle = nullptr;
         }
     }
 }
@@ -76,11 +73,15 @@ void ChunkStorageHandler::prune() {
         const auto id   = iter->first;
 
         auto& chunk = CHUNK_AT_ID(id);
+        HG_HARD_ASSERT(!chunk.isEmpty());
         _chunkSpooler->unloadChunk(id, std::move(chunk));
         chunk.makeEmpty();
+        _chunksInGridCount -= 1;
 
         _freeChunks.erase(iter);
     }
+
+    HG_HARD_ASSERT(hg::pztos(_chunksInGridCount) <= _chunkControlBlocks.size() + _freeChunks.size());
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -127,33 +128,21 @@ void ChunkStorageHandler::_loadChunkImmediately(ChunkId aChunkId) {
 
     auto chunk = requestHandle->takeChunk();
     if (chunk.has_value()) {
-        _onChunkLoaded(id, std::move(*chunk), iter);
+        _onChunkLoaded(id, std::move(*chunk));
     } else {
         _createDefaultChunk(id);
     }
+
+    if (iter == _chunkControlBlocks.end()) {
+        _freeChunks.insert(std::make_pair(id, std::chrono::steady_clock::now()));
+    }
 }
 
-void ChunkStorageHandler::_onChunkLoaded(
-    ChunkId                                                aChunkId,
-    Chunk&&                                                aChunk,
-    std::optional<decltype(_chunkControlBlocks)::iterator> aControlBlockIterator)
-//
-{
-    ChunkControlBlock* cb = nullptr;
-
-    {
-        auto iter = aControlBlockIterator.value_or(_chunkControlBlocks.find(aChunkId));
-        if (iter != _chunkControlBlocks.end()) {
-            cb = &(iter->second);
-        } else {
-            cb = &(_chunkControlBlocks[aChunkId]);
-        }
-    }
-
-    HG_ASSERT(cb != nullptr);
-    cb->requestHandle = nullptr;
+void ChunkStorageHandler::_onChunkLoaded(ChunkId aChunkId, Chunk&& aChunk) {
+    HG_HARD_ASSERT(!aChunk.isEmpty());
 
     auto& chunk = (CHUNK_AT_ID(aChunkId) = std::move(aChunk));
+    _chunksInGridCount += 1;
 
     HG_ASSERT(_binder != nullptr);
     _binder->onChunkLoaded(aChunkId, chunk);
@@ -173,6 +162,7 @@ void ChunkStorageHandler::_createDefaultChunk(ChunkId aChunkId) {
     defaultChunk.setExtension(std::move(extension));
 
     auto& chunk = (CHUNK_AT_ID(aChunkId) = std::move(defaultChunk));
+    _chunksInGridCount += 1;
 
     _binder->onChunkCreated(aChunkId, chunk);
 }
@@ -195,6 +185,7 @@ void ChunkStorageHandler::_updateChunkUsage(
         const auto chunkId    = change.chunkId;
         const auto usageDelta = change.usageDelta;
 
+        // Consider if the chunk ID can be found in _chunkControlBlocks
         {
             const auto iter = _chunkControlBlocks.find(chunkId);
             if (iter != _chunkControlBlocks.end()) {
@@ -223,6 +214,7 @@ void ChunkStorageHandler::_updateChunkUsage(
             }
         }
 
+        // Consider if the chunk is already loaded among the free chunks
         {
             const auto iter = _freeChunks.find(chunkId);
             if (iter != _freeChunks.end()) {

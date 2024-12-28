@@ -98,7 +98,7 @@ public:
     //!                                     this chunk.
     virtual hg::PZInteger unloadChunk(ChunkId aChunkId, Chunk&& aChunk) = 0;
 
-    //! TODO(description)
+    //! Save all data in the runtime cache to the persistent cache.
     //!
     //! The spooler must be paused when this is called.
     //! \throws hg::PreconditionNotMetError if the spooler is not paused when this method is called.

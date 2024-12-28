@@ -60,7 +60,9 @@ TEST_F(WorldTest, ChunkGetters) {
     EXPECT_NE(w.getChunkAtUnchecked(pos), nullptr);
     EXPECT_NE(w.getChunkAtUnchecked(pos.x, pos.y), nullptr);
     EXPECT_NE(w.getChunkAtIdUnchecked(id), nullptr);
+
+    w.prune();
 }
 
 } // namespace gridgoblin
-}
+} // namespace jbatnozic
