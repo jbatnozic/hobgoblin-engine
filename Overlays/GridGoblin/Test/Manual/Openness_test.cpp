@@ -141,7 +141,7 @@ private:
                 }
                 aCanvas.draw(rect);
 
-                text.setString(std::to_string((int)GetExtensionData(cell).openness));
+                text.setString(std::to_string((int)cell.getOpenness()));
                 text.setPosition(start.x + x * cellRes + textOffset, start.y + y * cellRes + textOffset);
                 text.setScale({0.75f, 0.75f});
                 aCanvas.draw(text);

@@ -75,6 +75,7 @@ ExtensionKind StringToExtensionKind(const std::string& aString) {
     }
 }
 
+//! Named based on the 'elvis operator' (?:) from other languages
 #define ELVIS(_lhs_, _rhs_) ((_lhs_) ? (_lhs_) : (_rhs_))
 
 void Base64Encode(
@@ -151,6 +152,40 @@ void Base64Decode(
                        (int)aPreferredSerializationMethod);
     }
 }
+
+const std::string SHAPE_EMPTY       = "empty";
+const std::string SHAPE_CIRCLE      = "circle";
+const std::string SHAPE_FULL_SQUARE = "full_square";
+
+const std::string& ShapeToString(Shape aShape) {
+    switch (aShape) {
+    case Shape::EMPTY:
+        return SHAPE_EMPTY;
+
+    case Shape::CIRCLE:
+        return SHAPE_CIRCLE;
+
+    case Shape::FULL_SQUARE:
+        return SHAPE_FULL_SQUARE;
+
+    default:
+        HG_UNREACHABLE("Invalid value for gridgoblin::Shape ({}).", (int)aShape);
+    }
+}
+
+Shape StringToShape(const char* aString) {
+    if (std::strcmp(aString, SHAPE_EMPTY.c_str()) == 0) {
+        return Shape::EMPTY;
+    }
+    if (std::strcmp(aString, SHAPE_CIRCLE.c_str()) == 0) {
+        return Shape::CIRCLE;
+    }
+    if (std::strcmp(aString, SHAPE_FULL_SQUARE.c_str()) == 0) {
+        return Shape::FULL_SQUARE;
+    }
+
+    HG_THROW_TRACED(hg::TracedRuntimeError, 0, "Invalid shape string ({}).", aString);
+}
 } // namespace
 
 json::Value CellToJson(const CellModel& aCell, json::Document& aDocument) {
@@ -182,9 +217,7 @@ json::Value CellToJson(const CellModel& aCell, json::Document& aDocument) {
 
         jsonWall.AddMember("spriteId", json::Value{wall.spriteId}.Move(), allocator);
         jsonWall.AddMember("spriteId_lowered", json::Value{wall.spriteId_lowered}.Move(), allocator);
-        jsonWall.AddMember("shape",
-                           json::Value{(int)wall.shape}.Move(),
-                           allocator); // TODO: C-style cast (better to convert to name string
+        jsonWall.AddMember("shape", json::Value{ShapeToString(wall.shape), allocator}.Move(), allocator);
 
         value.AddMember("wall", jsonWall, allocator);
     }
@@ -218,7 +251,7 @@ CellModel JsonToCell(const json::Value& aJson) {
         wall.spriteId_lowered =
             GetIntMember<decltype(wall.spriteId_lowered)::WrappedType>(aJson["wall"],
                                                                        "spriteId_lowered");
-        wall.shape = (decltype(wall.shape))GetIntMember<int>(aJson["wall"], "shape"); // TODO
+        wall.shape = StringToShape(aJson["wall"]["shape"].GetString());
 
         cell.setWall(wall);
     }
@@ -252,28 +285,21 @@ json::Document ChunkToJson(const Chunk& aChunk) {
     // Add extension
     const auto* extension = aChunk.getExtension();
     if (extension) {
-        const auto method = extension->getPreferredSerializationMethod();
-        const auto kind   = ExtensionKindToString(method);
+        const auto  method = extension->getPreferredSerializationMethod();
+        const auto& kind   = ExtensionKindToString(method);
 
-        json::Value vKind;
-        vKind.SetString(kind, allocator);
-        doc.AddMember("extension_kind", vKind.Move(), allocator);
+        doc.AddMember("extension_kind", json::Value{kind, allocator}.Move(), allocator);
 
         if (method != ChunkExtensionInterface::SerializationMethod::NONE) {
             hg::util::Packet serializationPacket; // TODO: make reusable buffer
             std::string      encodeBuffer;        // TODO: make reusable buffer
             Base64Encode(*extension, method, encodeBuffer, &serializationPacket);
 
-            json::Value vExt;
-            vExt.SetString(encodeBuffer, allocator);
-            doc.AddMember("extension_data", vExt.Move(), allocator);
+            doc.AddMember("extension_data", json::Value{encodeBuffer, allocator}, allocator);
         }
     } else {
-        const auto kind = ExtensionKindToString(std::nullopt);
-
-        json::Value vKind;
-        vKind.SetString(kind, allocator);
-        doc.AddMember("extension_kind", vKind.Move(), allocator);
+        const auto& kind = ExtensionKindToString(std::nullopt);
+        doc.AddMember("extension_kind", json::Value{kind, allocator}.Move(), allocator);
     }
 
     return doc;
@@ -373,12 +399,6 @@ Chunk JsonStringToChunk(std::string aJsonString, const ChunkExtensionFactory& aC
     return result;
 }
 
-/*
-TODO:
-  ChunkToBinary
-  BinaryToChunk
-*/
-
 } // namespace detail
 } // namespace gridgoblin
-}
+} // namespace jbatnozic

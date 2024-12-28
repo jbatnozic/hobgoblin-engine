@@ -51,6 +51,13 @@ public:
         _persistentCache[aChunkId] = detail::ChunkToJsonString(aChunk);
     }
 
+    void dumpRuntimeCache() override {
+        for (auto& [key, value] : _runtimeCache) {
+            _persistentCache[key] = std::move(value);
+        }
+        _runtimeCache.clear();
+    }
+
 private:
     std::unordered_map<ChunkId, std::string> _runtimeCache;
     std::unordered_map<ChunkId, std::string> _persistentCache;

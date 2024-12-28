@@ -29,6 +29,8 @@ public:
     virtual std::optional<Chunk> loadChunkFromPersistentCache(ChunkId aChunkId) = 0;
 
     virtual void storeChunkInPersistentCache(const Chunk& aChunk, ChunkId aChunkId) = 0;
+
+    virtual void dumpRuntimeCache() = 0;
 };
 
 } // namespace detail

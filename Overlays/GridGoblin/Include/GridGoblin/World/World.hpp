@@ -23,7 +23,6 @@
 
 #include <memory>
 #include <optional>
-#include <unordered_map>
 
 namespace jbatnozic {
 namespace gridgoblin {
@@ -57,8 +56,6 @@ public:
     ~World() override;
 
     void setBinder(Binder* aBinder);
-
-    // TODO: Cell height (z)
 
     void update();
     void prune();
@@ -239,6 +236,10 @@ public:
     ActiveArea createActiveArea();
 
 private:
+    // ===== Listener =====
+
+    Binder* _binder = nullptr;
+
     // ===== Config =====
 
     struct WorldConfigExt : WorldConfig {
@@ -266,19 +267,14 @@ private:
     void _connectSubcomponents();
     void _disconnectSubcomponents();
 
-    // ===== Other =====
+    // ===== Callbacks =====
 
-    Binder* _binder = nullptr;
+    void _refreshCellsInAndAroundChunk(ChunkId aChunkId);
 
     void onChunkLoaded(ChunkId aChunkId, const Chunk& aChunk) override;
     void onChunkCreated(ChunkId aChunkId, const Chunk& aChunk) override;
     void onChunkUnloaded(ChunkId aChunkId) override;
-    std::unique_ptr<ChunkExtensionInterface> createChunkExtension() override {
-        if (!_binder) {
-            return nullptr;
-        }
-        return _binder->createChunkExtension();
-    } // TODO(temporary)
+    std::unique_ptr<ChunkExtensionInterface> createChunkExtension() override;
 
     // ===== Editing cells =====
 
@@ -299,7 +295,6 @@ private:
     RingAssessment _assessRing(hg::PZInteger aX, hg::PZInteger aY, hg::PZInteger aRing);
 
     // TODO: since we determine openness at chunk load, this will lead into endless chunk load loop
-    // TODO: it's possible to optimize in case of PLACING A NEW WALL
     template <bool taAllowedToLoadAdjacent>
     hg::PZInteger _calcOpennessAt(hg::PZInteger aX, hg::PZInteger aY);
 

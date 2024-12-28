@@ -37,6 +37,8 @@ public:
 
     void storeChunkInPersistentCache(const Chunk& aChunk, ChunkId aChunkId) override;
 
+    void dumpRuntimeCache() override;
+
 private:
     Binder* _binder = nullptr;
 

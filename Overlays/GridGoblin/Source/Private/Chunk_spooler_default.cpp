@@ -192,9 +192,6 @@ std::vector<std::shared_ptr<DefaultChunkSpooler::RequestHandleInterface>> Defaul
 hg::PZInteger DefaultChunkSpooler::unloadChunk(ChunkId aChunkId, Chunk&& aChunk) {
     std::unique_lock<Mutex> lock{_mutex};
 
-    // TODO: does it have to be paused?
-    // HG_VALIDATE_PRECONDITION(_paused && "Spooler must be paused when this method is called");
-
     const auto iter = _requests.find(aChunkId);
     if (iter != _requests.end()) {
         auto& existingRequest = iter->second.request;
@@ -232,12 +229,12 @@ hg::PZInteger DefaultChunkSpooler::unloadChunk(ChunkId aChunkId, Chunk&& aChunk)
     return result;
 }
 
-void DefaultChunkSpooler::unloadRuntimeCache() {
+void DefaultChunkSpooler::dumpRuntimeCache() {
     std::unique_lock<Mutex> lock{_mutex};
 
     HG_VALIDATE_PRECONDITION(_paused && "Spooler must be paused when this method is called");
 
-    HG_NOT_IMPLEMENTED(); // TODO
+    _diskIoHandler->dumpRuntimeCache();
 }
 
 ///////////////////////////////////////////////////////////////////////////

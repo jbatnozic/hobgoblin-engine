@@ -16,7 +16,6 @@ namespace hg = jbatnozic::hobgoblin;
 
 using jbatnozic::gridgoblin::ChunkId;
 using jbatnozic::gridgoblin::Chunk;
-using jbatnozic::gridgoblin::detail::ChunkDiskIoHandlerInterface;
 using jbatnozic::gridgoblin::detail::ChunkSpoolerInterface;
 
 #define CHUNK_COUNT_X 32
@@ -48,7 +47,7 @@ public:
                     const auto id    = handle->getChunkId();
                     auto       chunk = handle->takeChunk();
                     if (chunk) {
-                        // TODO: check that this grid location is null
+                        HG_HARD_ASSERT(_chunkGrid.at(id.y, id.x) == nullptr);
                         _chunkGrid.at(id.y, id.x) = std::make_unique<Chunk>(std::move(*chunk));
                         HG_LOG_INFO(LOG_ID, "Loaded chunk {}, {} from disk.", id.x, id.y);
                     } else {
@@ -121,8 +120,9 @@ public:
             }
             auto handles = _chunkspool.loadChunks(std::move(loadRequests));
             for (auto& handle : handles) {
-                // TODO: some safety?
-                _requests[handle->getChunkId()] = std::move(handle);
+                const auto iter = _requests.find(handle->getChunkId());
+                HG_HARD_ASSERT(iter != _requests.end());
+                (*iter).second = std::move(handle);
             }
         }
 

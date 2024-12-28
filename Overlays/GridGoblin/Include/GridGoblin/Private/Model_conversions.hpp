@@ -11,9 +11,9 @@
 
 #include <rapidjson/document.h>
 
+#include <functional>
 #include <memory>
 #include <string>
-#include <functional>
 
 namespace jbatnozic {
 namespace gridgoblin {
@@ -46,12 +46,12 @@ CellModel JsonToCell(const json::Value& aJsonValue);
 //! Creates a JSON Document from the passed Chunk.
 //!
 //! \note Any data the chunk's cells might be extended with will NOT be included.
-json::Document ChunkToJson(const Chunk&                 aChunk);
+json::Document ChunkToJson(const Chunk& aChunk);
 
 //! Creates a Chunk from the passed JSON Document.
 //!
 //! \throws JsonParseError is the JSON data does not correspond to the expected format.
-Chunk JsonToChunk(const json::Document& aJsonDocument,
+Chunk JsonToChunk(const json::Document&        aJsonDocument,
                   const ChunkExtensionFactory& aChunkExtensionFactory = nullptr);
 
 //! Creates a JSON-encoded string (without whitespaces, newlines or any pretty
@@ -63,19 +63,9 @@ std::string ChunkToJsonString(const Chunk& aChunk);
 //! Creates a Chunk from the passed JSON-encoded string.
 //!
 //! \throws JsonParseError is the JSON data does not correspond to the expected format.
-Chunk JsonStringToChunk(std::string aJsonString,
+Chunk JsonStringToChunk(std::string                  aJsonString,
                         const ChunkExtensionFactory& aChunkExtensionFactory = nullptr);
-
-///////////////////////////////////////////////////////////////////////////
-// BINARY CONVERSIONS (FOR RUNTIME CACHING)                              //
-///////////////////////////////////////////////////////////////////////////
-
-/*
-TODO:
-  ChunkToBinary
-  BinaryToChunk
-*/
 
 } // namespace detail
 } // namespace gridgoblin
-}
+} // namespace jbatnozic

@@ -17,15 +17,6 @@ namespace gridgoblin {
 
 namespace hg = jbatnozic::hobgoblin;
 
-#ifdef FUTURE
-enum NeighbourIndex {
-    IDX_NORTH,
-    IDX_WEST,
-    IDX_EAST,
-    IDX_SOUTH
-};
-#endif
-
 //! A single cell of a GridGoblin World.
 class CellModel {
 public:
@@ -76,10 +67,20 @@ public:
     //! Uninitializes the Wall structure of this Cell.
     void resetWall();
 
+    //! Returns the openness value of the cell.
+    //! \see description of `WorldConfig` to see how this value is defined.
+    //! \warning the returned value can be inaccurate if the cell is very close to an unloaded (or
+    //! not loaded) chunk.
+    std::uint8_t getOpenness() const;
+
+    //! Set the openness value.
+    void setOpenness(std::uint8_t aOpenness);
+
 private:
     Floor        _floor;
     Wall         _wall;
-    std::uint8_t _flags = 0;
+    std::uint8_t _openness = 0;
+    std::uint8_t _flags    = 0;
 };
 
 //! CellModel::Floor equality operator.
@@ -133,7 +134,6 @@ enum class DrawMode {
     LOWERED,
     FULL
 
-    // TODO: height
     // TODO: LoS blocker bitmask
 };
 
@@ -169,7 +169,7 @@ public:
         DrawMode determineDrawMode(float              aCellResolution,
                                    hg::math::Vector2f aCellPosition,
                                    hg::math::Vector2f aPointOfView)
-            const; // TODO: needs also to return locations from which to pick up light
+            const; // TODO(graphics): needs also to return locations from which to pick up light
 
     private:
         union {
@@ -180,9 +180,6 @@ public:
         bool _holdingExtension = false;
         bool _visible          = false;
         bool _lowered          = false;
-
-    public:
-        unsigned char openness = 0; // TODO temp.
     };
 
     static_assert(sizeof(ExtensionData) <= 16);
@@ -230,6 +227,14 @@ inline void CellModel::setWall(Wall aWall) {
 
 inline void CellModel::resetWall() {
     _flags &= ~WALL_INITIALIZED;
+}
+
+inline std::uint8_t CellModel::getOpenness() const {
+    return _openness;
+}
+
+inline void CellModel::setOpenness(std::uint8_t aOpenness) {
+    _openness = aOpenness;
 }
 
 } // namespace gridgoblin

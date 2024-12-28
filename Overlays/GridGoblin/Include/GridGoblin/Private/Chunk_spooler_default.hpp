@@ -10,7 +10,6 @@
 #include <Hobgoblin/Common.hpp>
 
 #include <condition_variable>
-#include <cstdint>
 #include <mutex>
 #include <thread>
 #include <unordered_map>
@@ -26,6 +25,7 @@ class RequestHandleImpl;
 
 class DefaultChunkSpooler final : public ChunkSpoolerInterface {
 public:
+    //! Default constructor. The spooler starts unpaused.
     DefaultChunkSpooler();
     ~DefaultChunkSpooler() override;
 
@@ -40,7 +40,7 @@ public:
 
     hg::PZInteger unloadChunk(ChunkId aChunkId, Chunk&& aChunk) override;
 
-    void unloadRuntimeCache() override;
+    void dumpRuntimeCache() override;
 
 private:
     friend class RequestHandleImpl;

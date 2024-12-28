@@ -198,7 +198,7 @@ hg::PZInteger World::_calcOpennessAt(hg::PZInteger aX, hg::PZInteger aY) {
         return 0;
     }
 
-    const auto maxRing = (_config.maxCellOpenness + 1) / 2;
+    const auto maxRing = static_cast<hg::PZInteger>((_config.maxCellOpenness + 1) / 2);
 
     // Ring 0 = just the cell at (aX, aY)
     // Ring 1 =  8 cells around Ring 0
@@ -438,6 +438,8 @@ ActiveArea World::createActiveArea() {
 // PRIVATE METHODS                                                       //
 ///////////////////////////////////////////////////////////////////////////
 
+// ===== Subcomponents =====
+
 void World::_connectSubcomponents() {
     _chunkDiskIoHandler->setBinder(this);
     _chunkSpooler->setDiskIoHandler(_chunkDiskIoHandler);
@@ -452,11 +454,13 @@ void World::_disconnectSubcomponents() {
     _chunkDiskIoHandler->setBinder(nullptr);
 }
 
-void World::onChunkLoaded(ChunkId aChunkId, const Chunk& aChunk) {
+// ===== Callbacks =====
+
+void World::_refreshCellsInAndAroundChunk(ChunkId aChunkId) {
     const hg::PZInteger top  = aChunkId.y * _config.cellsPerChunkY;
     const hg::PZInteger left = aChunkId.x * _config.cellsPerChunkX;
 
-    const auto maxOffset = _config.maxCellOpenness / 2;
+    const auto maxOffset = static_cast<hg::PZInteger>(_config.maxCellOpenness / 2);
 
     const auto startX = std::max<hg::PZInteger>(0, left - maxOffset);
     const auto startY = std::max<hg::PZInteger>(0, top - maxOffset);
@@ -470,6 +474,10 @@ void World::onChunkLoaded(ChunkId aChunkId, const Chunk& aChunk) {
             _refreshCellAtUnchecked(x, y);
         }
     }
+}
+
+void World::onChunkLoaded(ChunkId aChunkId, const Chunk& aChunk) {
+    _refreshCellsInAndAroundChunk(aChunkId);
 
     if (_binder) {
         _binder->onChunkLoaded(aChunkId, aChunk);
@@ -477,16 +485,28 @@ void World::onChunkLoaded(ChunkId aChunkId, const Chunk& aChunk) {
 }
 
 void World::onChunkCreated(ChunkId aChunkId, const Chunk& aChunk) {
+    _refreshCellsInAndAroundChunk(aChunkId);
 
-    
+    if (_binder) {
+        _binder->onChunkCreated(aChunkId, aChunk);
+    }
 }
 
 void World::onChunkUnloaded(ChunkId aChunkId) {
-    // TODO: refresh surrounding or not?
+    // No need to refresh cell after a chunk is unloaded; cells near the edges of the loaded parts
+    // of the world can have slightly inaccurate information - it doesn't matter.
+
     if (_binder) {
         _binder->onChunkUnloaded(aChunkId);
     }
 }
+
+std::unique_ptr<ChunkExtensionInterface> World::createChunkExtension() {
+        if (!_binder) {
+            return nullptr;
+        }
+        return _binder->createChunkExtension();
+    }
 
 // ===== Editing cells =====
 
@@ -502,7 +522,7 @@ void World::_endEdit() {
         return;
     }
 
-    const auto maxOffset = _config.maxCellOpenness / 2;
+    const auto maxOffset = static_cast<hg::PZInteger>(_config.maxCellOpenness / 2);
 
     const auto startX = std::max<hg::PZInteger>(0, _editMinX - maxOffset);
     const auto startY = std::max<hg::PZInteger>(0, _editMinY - maxOffset);
@@ -525,8 +545,7 @@ void World::_refreshCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) {
 
     auto* cell = _chunkStorage.getCellAtUnchecked(aX, aY);
     if (cell) {
-        const auto openness                     = _calcOpennessAt<false>(aX, aY);
-        GetMutableExtensionData(*cell).openness = openness;
+        cell->setOpenness(_calcOpennessAt<false>(aX, aY));
     }
 }
 

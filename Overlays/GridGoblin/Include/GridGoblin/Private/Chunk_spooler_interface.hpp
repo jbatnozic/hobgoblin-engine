@@ -24,8 +24,14 @@ public:
 
     virtual void setDiskIoHandler(ChunkDiskIoHandlerInterface* aDiskIoHandler) = 0;
 
+    //! Pauses the spooler's async operations. If there is any currently ongoing, this call blocks
+    //! until the operation is finished.
+    //!
+    //! \note pausing the spooler is currently only useful if you want to call `unloadRuntimeCache()`.
     virtual void pause() = 0;
 
+    //! Resumes the spooler's async operations.
+    //! \see pause
     virtual void unpause() = 0;
 
     //! Checks whether the spooler is currently paused (returns true if yes).
@@ -85,17 +91,18 @@ public:
     virtual std::vector<std::shared_ptr<RequestHandleInterface>> loadChunks(
         const std::vector<LoadRequest>& aLoadRequests) = 0;
 
-    //! TODO(description)
+    //! Give a chunk to the spooler for it to be unloaded (eventually, depending on the spooler's
+    //! internal scheduling of tasks).
     //!
-    //! The spooler must be paused when this is called.
-    //! \throws hg::PreconditionNotMetError if the spooler is not paused when this method is called.
+    //! \throws hg::PreconditionNotMetError if there already exists a load or unload request for
+    //!                                     this chunk.
     virtual hg::PZInteger unloadChunk(ChunkId aChunkId, Chunk&& aChunk) = 0;
 
     //! TODO(description)
     //!
     //! The spooler must be paused when this is called.
     //! \throws hg::PreconditionNotMetError if the spooler is not paused when this method is called.
-    virtual void unloadRuntimeCache() = 0;
+    virtual void dumpRuntimeCache() = 0;
 };
 
 } // namespace detail

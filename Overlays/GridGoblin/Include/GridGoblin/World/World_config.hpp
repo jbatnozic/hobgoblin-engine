@@ -8,6 +8,7 @@
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/HGExcept.hpp>
 
+#include <algorithm>
 #include <filesystem>
 
 namespace jbatnozic {
@@ -40,19 +41,19 @@ struct WorldConfig {
     //!   in this cell (such that their centers match) and it won't collide with any cells.
     //!
     //! - if `N > 0 && IsEven(N)`, then there exists at least one combination of numbers
-    //!   xOff and yOff (xOff <= N/2, yOff <= N/2) such that it is possible to place an object 
-    //!   of size N x N or smaller in this cell, in a way that the center of the cell matches the 
+    //!   xOff and yOff (xOff <= N/2, yOff <= N/2) such that it is possible to place an object
+    //!   of size N x N or smaller in this cell, in a way that the center of the cell matches the
     //!   center of the object shifted by xOff along the X axis and by yOff along the Y axis.
-    //! 
+    //!
     //! \note in the above definition, when we say that an object is of size N x N cells, that
     //!       really means that it's of size N*cellResolution x N*cellResolution (pixels). The
     //!       same applies for offsets xOff and yOff - they are smaller than N*cellResolution/2.
-    //! 
+    //!
     //! \note cell openness is intended to be used for pathfinding algorithms: Paths of objects
     //!       that are up to 1 cell in width and height can pass through cells where openness is
     //!       1 or greater, objects that are up to 2 cells in width and height can pass through
     //!       cells whose openness is 2 or greater, and so on.
-    //! 
+    //!
     //! This field, `maxCellOpenness`, lets the openness algorithm know at which point to stop.
     //! Determining whether openness is 0 or 1 needs checking only a single cell, but checking
     //! whether it's 2 usually needs checking 8 more cells, then checking whether it's 3
@@ -64,8 +65,9 @@ struct WorldConfig {
     //! the openness algorithm checks whether openness is 0 or 1, then the second step checks
     //! whether it's 2 or 3, and so on, so it's not possible to stop at an even number - unless
     //! that number is zero, in which case there's really no check being performed at all).
-    //! `maxCellOpenness` must also NOT be greater than either `cellsPerChunkX` or `cellsPerChunkY`.
-    hg::PZInteger maxCellOpenness = 0;
+    //! `maxCellOpenness` must also NOT be greater than either `cellsPerChunkX` or `cellsPerChunkY`,
+    //! or 15 (which ever is the smallest).
+    std::uint8_t maxCellOpenness = 0;
 
     //! TODO(description)
     hg::PZInteger maxLoadedNonessentialCells = 0;
@@ -89,8 +91,8 @@ struct WorldConfig {
 
         HG_VALIDATE_ARGUMENT(aConfig.maxCellOpenness == 0 || (aConfig.maxCellOpenness % 2 == 1));
 
-        HG_VALIDATE_ARGUMENT(aConfig.maxCellOpenness <= aConfig.cellsPerChunkX &&
-                             aConfig.maxCellOpenness <= aConfig.cellsPerChunkY);
+        HG_VALIDATE_ARGUMENT(aConfig.maxCellOpenness <=
+                             std::min(15, std::min(aConfig.cellsPerChunkX, aConfig.cellsPerChunkY)));
 
         return aConfig;
     }
@@ -103,7 +105,5 @@ struct WorldConfig {
     }
 };
 
-// TODO: config validation
-
 } // namespace gridgoblin
-}
+} // namespace jbatnozic

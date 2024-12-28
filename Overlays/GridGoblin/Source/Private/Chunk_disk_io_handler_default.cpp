@@ -75,6 +75,10 @@ std::filesystem::path DefaultChunkDiskIoHandler::_buildPathToChunk(ChunkId aChun
     return _basePath / CHUNKS_FOLDER / fmt::format(FMT_STRING("chunk_{}_{}"), aChunkId.x, aChunkId.y);
 }
 
+void DefaultChunkDiskIoHandler::dumpRuntimeCache() {
+    HG_NOT_IMPLEMENTED(); // TODO
+}
+
 } // namespace detail
 } // namespace gridgoblin
 }
