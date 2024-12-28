@@ -1,9 +1,6 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-// clang-format off
-
-
 #include "Socket_adapter.hpp"
 
 #include <Hobgoblin/HGExcept.hpp>
@@ -15,14 +12,12 @@ namespace rn {
 
 namespace {
 
-inline
-bool UseSfSocket(RN_Protocol protocol, RN_NetworkingStack networkingStack) {
+inline bool UseSfSocket(RN_Protocol protocol, RN_NetworkingStack networkingStack) {
     return (networkingStack == RN_NetworkingStack::Default);
 }
 
 #ifdef HOBGOBLIN_RN_ZEROTIER_SUPPORT
-inline
-bool UseZtSocket(RN_Protocol protocol, RN_NetworkingStack networkingStack) {
+inline bool UseZtSocket(RN_Protocol protocol, RN_NetworkingStack networkingStack) {
     return (networkingStack == RN_NetworkingStack::ZeroTier);
 }
 #endif
@@ -31,8 +26,7 @@ bool UseZtSocket(RN_Protocol protocol, RN_NetworkingStack networkingStack) {
 RN_SocketAdapter::RN_SocketAdapter(RN_Protocol aProtocol, RN_NetworkingStack aNetworkingStack)
     : _protocol{aProtocol}
     , _networkingStack{aNetworkingStack}
-    , _socket{0}
-{
+    , _socket{0} {
     if (UseSfSocket(_protocol, _networkingStack)) {
         _socket.emplace<sf::UdpSocket>();
     }
@@ -54,10 +48,9 @@ void RN_SocketAdapter::init(PZInteger aRecvBufferSize) {
     }
 #ifdef HOBGOBLIN_RN_ZEROTIER_SUPPORT
     else if (UseZtSocket(_protocol, _networkingStack)) {
-        auto& socket = std::get<zt::Socket>(_socket);
-        const auto res = socket.init(zt::SocketDomain::InternetProtocol_IPv4,
-                                     zt::SocketType::Datagram);
-        // This will only throw if the ZeroTier service wasn't initialized, 
+        auto&      socket = std::get<zt::Socket>(_socket);
+        const auto res = socket.init(zt::SocketDomain::InternetProtocol_IPv4, zt::SocketType::Datagram);
+        // This will only throw if the ZeroTier service wasn't initialized,
         // or if some strange unrecoverable error happens to the socket.
         if (res.hasError()) {
             HG_THROW_TRACED(TracedRuntimeError, res.getError().errorCode, res.getError().message);
@@ -76,7 +69,7 @@ void RN_SocketAdapter::bind(sf::IpAddress aIpAddress, std::uint16_t aLocalPort) 
     }
 #ifdef HOBGOBLIN_RN_ZEROTIER_SUPPORT
     else if (UseZtSocket(_protocol, _networkingStack)) {
-        auto& socket = std::get<zt::Socket>(_socket);
+        auto&      socket = std::get<zt::Socket>(_socket);
         const auto res = socket.bind(zt::IpAddress::ipv4FromString(aIpAddress.toString()), aLocalPort);
         if (res.hasError()) {
             HG_THROW_TRACED(TracedRuntimeError, res.getError().errorCode, res.getError().message);
@@ -85,15 +78,17 @@ void RN_SocketAdapter::bind(sf::IpAddress aIpAddress, std::uint16_t aLocalPort) 
 #endif
 }
 
-RN_SocketAdapter::Status RN_SocketAdapter::send(util::Packet& aPacket,
+RN_SocketAdapter::Status RN_SocketAdapter::send(util::Packet&        aPacket,
                                                 const sf::IpAddress& aTargetAddress,
-                                                std::uint16_t aTargetPort) {
-    if (aPacket.getDataSize() == 0u) return Status::OK;
+                                                std::uint16_t        aTargetPort) {
+    if (aPacket.getDataSize() == 0u)
+        return Status::OK;
 
     if (UseSfSocket(_protocol, _networkingStack)) {
         auto& socket = std::get<sf::UdpSocket>(_socket);
-    
-        switch (socket.send(aPacket.getData(), pztos(aPacket.getDataSize()), aTargetAddress, aTargetPort)) {
+
+        switch (
+            socket.send(aPacket.getData(), pztos(aPacket.getDataSize()), aTargetAddress, aTargetPort)) {
         case sf::Socket::Done:
             return Status::OK;
 
@@ -122,14 +117,18 @@ RN_SocketAdapter::Status RN_SocketAdapter::send(util::Packet& aPacket,
 
         const auto pollres = socket.pollEvents(zt::PollEventBitmask::ReadyToSend);
         if (pollres.hasError()) {
-            HG_THROW_TRACED(TracedRuntimeError, pollres.getError().errorCode, pollres.getError().message);
+            HG_THROW_TRACED(TracedRuntimeError,
+                            pollres.getError().errorCode,
+                            pollres.getError().message);
         }
         if ((*pollres & zt::PollEventBitmask::ReadyToSend) == 0) {
             return Status::NotReady;
         }
 
-        const auto res = socket.sendTo(aPacket.getData(), aPacket.getDataSize(),
-                                       zt::IpAddress::ipv4FromString(aTargetAddress.toString()), aTargetPort);
+        const auto res = socket.sendTo(aPacket.getData(),
+                                       aPacket.getDataSize(),
+                                       zt::IpAddress::ipv4FromString(aTargetAddress.toString()),
+                                       aTargetPort);
         if (res.hasError()) {
             HG_THROW_TRACED(TracedRuntimeError, res.getError().errorCode, res.getError().message);
         }
@@ -143,21 +142,21 @@ RN_SocketAdapter::Status RN_SocketAdapter::send(util::Packet& aPacket,
     }
 }
 
-RN_SocketAdapter::Status RN_SocketAdapter::recv(util::Packet& aPacket, 
-                                                sf::IpAddress& aRemoteAddress, 
+RN_SocketAdapter::Status RN_SocketAdapter::recv(util::Packet&  aPacket,
+                                                sf::IpAddress& aRemoteAddress,
                                                 std::uint16_t& aRemotePort) {
     if (UseSfSocket(_protocol, _networkingStack)) {
         auto& socket = std::get<sf::UdpSocket>(_socket);
 
         std::size_t receivedByteCount = 0;
-        const auto status = socket.receive(
-            _recvBuffer.data(),
-            _recvBuffer.size(),
-            receivedByteCount,
-            aRemoteAddress,
-            aRemotePort
-        );
-        aPacket.write(_recvBuffer.data(), stopz(receivedByteCount));
+        const auto  status            = socket.receive(_recvBuffer.data(),
+                                           _recvBuffer.size(),
+                                           receivedByteCount,
+                                           aRemoteAddress,
+                                           aRemotePort);
+        const auto  bytesWritten =
+            aPacket.write(_recvBuffer.data(), static_cast<std::int64_t>(receivedByteCount));
+        HG_ASSERT(bytesWritten == static_cast<std::int64_t>(receivedByteCount));
 
         switch (status) {
         case sf::Socket::Done:
@@ -184,7 +183,9 @@ RN_SocketAdapter::Status RN_SocketAdapter::recv(util::Packet& aPacket,
 
         const auto pollres = socket.pollEvents(zt::PollEventBitmask::ReadyToReceiveAny);
         if (pollres.hasError()) {
-            HG_THROW_TRACED(TracedRuntimeError, pollres.getError().errorCode, pollres.getError().message);
+            HG_THROW_TRACED(TracedRuntimeError,
+                            pollres.getError().errorCode,
+                            pollres.getError().message);
         }
         if ((*pollres & zt::PollEventBitmask::ReadyToReceiveAny) == 0) {
             // Not ready to receive
@@ -192,8 +193,8 @@ RN_SocketAdapter::Status RN_SocketAdapter::recv(util::Packet& aPacket,
         }
 
         zt::IpAddress senderIp;
-        const auto res = socket.receiveFrom(_recvBuffer.data(), _recvBuffer.size(),
-                                            senderIp, aRemotePort);
+        const auto    res =
+            socket.receiveFrom(_recvBuffer.data(), _recvBuffer.size(), senderIp, aRemotePort);
         if (res.hasError()) {
             HG_THROW_TRACED(TracedRuntimeError, res.getError().errorCode, res.getError().message);
         }
@@ -203,7 +204,8 @@ RN_SocketAdapter::Status RN_SocketAdapter::recv(util::Packet& aPacket,
         }
 
         aPacket.clear();
-        aPacket.write(_recvBuffer.data(), stopz(*res));
+        const auto bytesWritten = aPacket.write(_recvBuffer.data(), static_cast<std::int64_t>(*res));
+        HG_ASSERT(bytesWritten == static_cast<std::int64_t>(*res));
 
         aRemoteAddress = sf::IpAddress(senderIp.toString());
 
@@ -264,5 +266,3 @@ RN_NetworkingStack RN_SocketAdapter::getNetworkingStack() const noexcept {
 HOBGOBLIN_NAMESPACE_END
 
 #include <Hobgoblin/Private/Pmacro_undef.hpp>
-
-// clang-format on

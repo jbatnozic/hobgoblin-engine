@@ -1,19 +1,18 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-#include <Hobgoblin/Utility/Packet.hpp>
+#include <Hobgoblin/Utility/Stream_buffer.hpp>
 
 #include <Hobgoblin/HGExcept.hpp>
 
 #include <cstring>
-#include <type_traits>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace util {
 
-void* Packet::getMutableData() {
+void* BufferStream::getMutableData() {
     return _buffer.empty() ? nullptr : _buffer.data();
 }
 
@@ -21,7 +20,9 @@ void* Packet::getMutableData() {
 // MARK: PRIVATE METHODS                                                 //
 ///////////////////////////////////////////////////////////////////////////
 
-std::int64_t Packet::_write(NeverNull<const void*> aData, PZInteger aByteCount, bool /*aAllowPartal*/) {
+std::int64_t BufferStream::_write(NeverNull<const void*> aData,
+                            std::int64_t           aByteCount,
+                            bool /*aAllowPartal*/) {
     if (aData && aByteCount > 0) {
         _buffer.insert(_buffer.end(),
                        static_cast<const std::uint8_t*>(aData.get()),
@@ -30,7 +31,7 @@ std::int64_t Packet::_write(NeverNull<const void*> aData, PZInteger aByteCount, 
     return aByteCount;
 }
 
-std::int64_t Packet::_seek(std::int64_t aPosition) {
+std::int64_t BufferStream::_seek(std::int64_t aPosition) {
     if (_buffer.size() == 0) {
         return 0;
     }
@@ -42,7 +43,7 @@ std::int64_t Packet::_seek(std::int64_t aPosition) {
     return static_cast<std::int64_t>(_readPos);
 }
 
-std::int64_t Packet::_seekRelative(std::int64_t aOffset) {
+std::int64_t BufferStream::_seekRelative(std::int64_t aOffset) {
     if (_buffer.size() == 0) {
         return 0;
     }
@@ -56,7 +57,7 @@ std::int64_t Packet::_seekRelative(std::int64_t aOffset) {
     return static_cast<std::int64_t>(_readPos);
 }
 
-std::int64_t Packet::_read(NeverNull<void*> aDestination, PZInteger aByteCount, bool aAllowPartal) {
+std::int64_t BufferStream::_read(NeverNull<void*> aDestination, std::int64_t aByteCount, bool aAllowPartal) {
     if (_readErrorLevel < 0) {
         return _readErrorLevel;
     }
@@ -66,9 +67,9 @@ std::int64_t Packet::_read(NeverNull<void*> aDestination, PZInteger aByteCount, 
     }
 
     const auto rem = _buffer.size() - _readPos;
-    if (rem >= pztos(aByteCount)) {
-        std::memcpy(aDestination, &(_buffer[_readPos]), pztos(aByteCount));
-        _readPos += pztos(aByteCount);
+    if (rem >= ToSz(aByteCount)) {
+        std::memcpy(aDestination, &(_buffer[_readPos]), ToSz(aByteCount));
+        _readPos += ToSz(aByteCount);
         return aByteCount;
     } else if (aAllowPartal && rem > 0) {
         std::memcpy(aDestination, &(_buffer[_readPos]), rem);
@@ -79,20 +80,20 @@ std::int64_t Packet::_read(NeverNull<void*> aDestination, PZInteger aByteCount, 
     }
 }
 
-void* Packet::_readInPlace(PZInteger aByteCount) {
+void* BufferStream::_readInPlace(std::int64_t aByteCount) {
     void* result = readInPlaceNoThrow(aByteCount);
     if (!SELF) {
         HG_THROW_TRACED(
             StreamReadError,
             0,
-            "Failed to extract {} raw bytes from hg::util::Packet (actual # of bytes remaining: {}).",
+            "Failed to extract {} raw bytes from hg::util::BufferStream (actual # of bytes remaining: {}).",
             aByteCount,
             getRemainingDataSize());
     }
     return result;
 }
 
-std::int64_t Packet::_readInPlaceNoThrow(PZInteger aByteCount, void** aResult) {
+std::int64_t BufferStream::_readInPlaceNoThrow(std::int64_t aByteCount, void** aResult) {
     if (_readErrorLevel < 0) {
         *aResult = nullptr;
         return _readErrorLevel;
@@ -104,13 +105,13 @@ std::int64_t Packet::_readInPlaceNoThrow(PZInteger aByteCount, void** aResult) {
     }
 
     const auto rem = _buffer.size() - _readPos;
-    if (pztos(aByteCount) > rem) {
+    if (ToSz(aByteCount) > rem) {
         *aResult = nullptr;
         return E_FAILURE;
     }
 
     *aResult = &(_buffer[_readPos]);
-    _readPos += pztos(aByteCount);
+    _readPos += ToSz(aByteCount);
     return aByteCount;
 }
 
@@ -118,32 +119,32 @@ std::int64_t Packet::_readInPlaceNoThrow(PZInteger aByteCount, void** aResult) {
 // MARK: OPERATOR DEFINITIONS                                            //
 ///////////////////////////////////////////////////////////////////////////
 
-OutputStream& operator<<(OutputStreamExtender& aPacketExt, const Packet& aData) {
-    aPacketExt << static_cast<std::int32_t>(aData.getDataSize());
+OutputStream& operator<<(OutputStreamExtender& aBufferStreamExt, const BufferStream& aData) {
+    aBufferStreamExt << static_cast<std::int32_t>(aData.getDataSize());
     if (const auto size = aData.getDataSize(); size > 0) {
-        (void)aPacketExt->write(aData.getData(), size);
+        (void)aBufferStreamExt->write(aData.getData(), size);
     }
-    return *aPacketExt;
+    return *aBufferStreamExt;
 }
 
-InputStream& operator>>(InputStreamExtender& aPacketExt, Packet& aData) {
+InputStream& operator>>(InputStreamExtender& aBufferStreamExt, BufferStream& aData) {
     // First extract data length
-    const auto length = aPacketExt->extractNoThrow<std::int32_t>();
-    if (!*aPacketExt) {
-        return *aPacketExt;
+    const auto length = aBufferStreamExt->extractNoThrow<std::int32_t>();
+    if (!*aBufferStreamExt) {
+        return *aBufferStreamExt;
     }
 
     aData.clear();
     if (length > 0) {
-        const auto  pzlen = static_cast<PZInteger>(length);
-        const auto* bytes = aPacketExt->readInPlaceNoThrow(pzlen);
+        const auto  pzlen = static_cast<std::int64_t>(length);
+        const auto* bytes = aBufferStreamExt->readInPlaceNoThrow(pzlen);
         if (bytes) {
             const auto writeCnt = aData.write(bytes, pzlen);
             if (writeCnt < pzlen) {}
         }
     }
 
-    return *aPacketExt;
+    return *aBufferStreamExt;
 }
 
 } // namespace util

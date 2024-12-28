@@ -114,7 +114,7 @@ OutputStream& operator<<(OutputStreamExtender& aOutputStreamExt, double aData) {
 
 OutputStream& operator<<(OutputStreamExtender& aOutputStreamExt, std::string_view aData) {
     aOutputStreamExt << static_cast<std::uint32_t>(aData.size());
-    (void)aOutputStreamExt->write(aData.data(), stopz(aData.size()));
+    (void)aOutputStreamExt->write(aData.data(), static_cast<std::int64_t>(aData.size()));
     return *aOutputStreamExt;
 }
 
@@ -134,7 +134,8 @@ InputStream& operator>>(InputStreamExtender& aInputStreamExt, bool& aData) {
 }
 
 InputStream& operator>>(InputStreamExtender& aInputStreamExt, std::int8_t& aData) {
-    static constexpr auto BYTE_COUNT = stopz(sizeof(std::remove_reference_t<decltype(aData)>));
+    static constexpr auto BYTE_COUNT =
+        static_cast<std::int64_t>(sizeof(std::remove_reference_t<decltype(aData)>));
 
     (void)aInputStreamExt->read(&aData, BYTE_COUNT);
 
@@ -142,7 +143,8 @@ InputStream& operator>>(InputStreamExtender& aInputStreamExt, std::int8_t& aData
 }
 
 InputStream& operator>>(InputStreamExtender& aInputStreamExt, std::uint8_t& aData) {
-    static constexpr auto BYTE_COUNT = stopz(sizeof(std::remove_reference_t<decltype(aData)>));
+    static constexpr auto BYTE_COUNT =
+        static_cast<std::int64_t>(sizeof(std::remove_reference_t<decltype(aData)>));
 
     (void)aInputStreamExt->read(&aData, BYTE_COUNT);
 
@@ -150,7 +152,8 @@ InputStream& operator>>(InputStreamExtender& aInputStreamExt, std::uint8_t& aDat
 }
 
 InputStream& operator>>(InputStreamExtender& aInputStreamExt, std::int16_t& aData) {
-    static constexpr auto BYTE_COUNT = stopz(sizeof(std::remove_reference_t<decltype(aData)>));
+    static constexpr auto BYTE_COUNT =
+        static_cast<std::int64_t>(sizeof(std::remove_reference_t<decltype(aData)>));
 
     (void)aInputStreamExt->read(&aData, BYTE_COUNT);
     aData = static_cast<std::int16_t>(ntohs(static_cast<std::uint16_t>(aData)));
@@ -159,7 +162,8 @@ InputStream& operator>>(InputStreamExtender& aInputStreamExt, std::int16_t& aDat
 }
 
 InputStream& operator>>(InputStreamExtender& aInputStreamExt, std::uint16_t& aData) {
-    static constexpr auto BYTE_COUNT = stopz(sizeof(std::remove_reference_t<decltype(aData)>));
+    static constexpr auto BYTE_COUNT =
+        static_cast<std::int64_t>(sizeof(std::remove_reference_t<decltype(aData)>));
 
     (void)aInputStreamExt->read(&aData, BYTE_COUNT);
     aData = ntohs(aData);
@@ -168,7 +172,8 @@ InputStream& operator>>(InputStreamExtender& aInputStreamExt, std::uint16_t& aDa
 }
 
 InputStream& operator>>(InputStreamExtender& aInputStreamExt, std::int32_t& aData) {
-    static constexpr auto BYTE_COUNT = stopz(sizeof(std::remove_reference_t<decltype(aData)>));
+    static constexpr auto BYTE_COUNT =
+        static_cast<std::int64_t>(sizeof(std::remove_reference_t<decltype(aData)>));
 
     (void)aInputStreamExt->read(&aData, BYTE_COUNT);
     aData = static_cast<std::int32_t>(ntohl(static_cast<std::uint32_t>(aData)));
@@ -177,7 +182,8 @@ InputStream& operator>>(InputStreamExtender& aInputStreamExt, std::int32_t& aDat
 }
 
 InputStream& operator>>(InputStreamExtender& aInputStreamExt, std::uint32_t& aData) {
-    static constexpr auto BYTE_COUNT = stopz(sizeof(std::remove_reference_t<decltype(aData)>));
+    static constexpr auto BYTE_COUNT =
+        static_cast<std::int64_t>(sizeof(std::remove_reference_t<decltype(aData)>));
 
     (void)aInputStreamExt->read(&aData, BYTE_COUNT);
     aData = ntohl(aData);
@@ -186,7 +192,8 @@ InputStream& operator>>(InputStreamExtender& aInputStreamExt, std::uint32_t& aDa
 }
 
 InputStream& operator>>(InputStreamExtender& aInputStreamExt, std::int64_t& aData) {
-    static constexpr auto BYTE_COUNT = stopz(sizeof(std::remove_reference_t<decltype(aData)>));
+    static constexpr auto BYTE_COUNT =
+        static_cast<std::int64_t>(sizeof(std::remove_reference_t<decltype(aData)>));
 
     // Since ntohll is not available everywhere, we have to convert
     // to network byte order (big endian) manually
@@ -207,7 +214,8 @@ InputStream& operator>>(InputStreamExtender& aInputStreamExt, std::int64_t& aDat
 }
 
 InputStream& operator>>(InputStreamExtender& aInputStreamExt, std::uint64_t& aData) {
-    static constexpr auto BYTE_COUNT = stopz(sizeof(std::remove_reference_t<decltype(aData)>));
+    static constexpr auto BYTE_COUNT =
+        static_cast<std::int64_t>(sizeof(std::remove_reference_t<decltype(aData)>));
 
     // Since ntohll is not available everywhere, we have to convert
     // to network byte order (big endian) manually
