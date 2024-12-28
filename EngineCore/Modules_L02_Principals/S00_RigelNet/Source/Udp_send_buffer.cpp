@@ -8,7 +8,6 @@
 #include <Hobgoblin/Logging.hpp>
 
 #include <algorithm>
-#include <string>
 
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
@@ -85,18 +84,21 @@ void UdpSendBuffer::appendDataForSending(NeverNull<const void*> aData, PZInteger
     // We want to send independent DATA packets whenever possible,
     // and fragmented only when necessary.
     if (auto& tail = _getTailPacket(); tail.packet.getDataSize() + aDataByteCount <= _maxPacketSize) {
-        tail.packet.write(aData, aDataByteCount);
+        const auto bytesWritten = tail.packet.write(aData, aDataByteCount);
+        HG_ASSERT(bytesWritten == static_cast<std::int64_t>(aDataByteCount));
         return;
     } else if (aDataByteCount + MAX_PACKET_HEADER_BYTE_COUNT <= _maxPacketSize) {
         _prepareNextOutgoingDataPacket(UDP_PACKET_KIND_DATA);
-        auto& tail = _getTailPacket();
-        tail.packet.write(aData, aDataByteCount);
+        auto&      tail         = _getTailPacket();
+        const auto bytesWritten = tail.packet.write(aData, aDataByteCount);
+        HG_ASSERT(bytesWritten == static_cast<std::int64_t>(aDataByteCount));
         HG_ASSERT(tail.packet.getDataSize() <= _maxPacketSize);
         return;
     } else if (aDataByteCount + headerSizeOfNextPacket() <= _maxPacketSize) {
         _prepareNextOutgoingDataPacket(UDP_PACKET_KIND_DATA);
-        auto& tail = _getTailPacket();
-        tail.packet.write(aData, aDataByteCount);
+        auto&      tail         = _getTailPacket();
+        const auto bytesWritten = tail.packet.write(aData, aDataByteCount);
+        HG_ASSERT(bytesWritten == static_cast<std::int64_t>(aDataByteCount));
         HG_ASSERT(tail.packet.getDataSize() <= _maxPacketSize);
         return;
     }
@@ -134,7 +136,9 @@ void UdpSendBuffer::appendDataForSending(NeverNull<const void*> aData, PZInteger
         const PZInteger remainingCapacity = _maxPacketSize - tail.packet.getDataSize();
         const PZInteger bytesToPackNow    = std::min(remainingCapacity, aDataByteCount - bytesPacked);
 
-        tail.packet.write(static_cast<const char*>(aData.get()) + bytesPacked, bytesToPackNow);
+        const auto bytesWritten =
+            tail.packet.write(static_cast<const char*>(aData.get()) + bytesPacked, bytesToPackNow);
+        HG_ASSERT(bytesWritten == static_cast<std::int64_t>(bytesToPackNow));
         bytesPacked += bytesToPackNow;
 
         if (bytesPacked < aDataByteCount) {

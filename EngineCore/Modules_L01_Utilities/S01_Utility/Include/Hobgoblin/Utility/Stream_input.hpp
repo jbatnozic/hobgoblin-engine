@@ -22,7 +22,7 @@ namespace util {
 
 /**
  * Abstract base class for a binary input stream.
- * 
+ *
  * Child classes must override*:
  * - State checking:
  *   - `hasReadError`         | Check for read error state of stream.
@@ -30,21 +30,21 @@ namespace util {
  *   - `_setReadError`        | Set read error state of stream.
  *   - `isGood`               | Check if the stream is in a valid state for I/O operations.
  *   - `_setNotGood`          | Set the stream to the permanently invalid state.
- * 
+ *
  * - I/O operations:
  *   - `_seek`                | Set the read position to absolute value.
  *   - `_seekRelative`        | Move the read position relative to its current value.
  *   - `_read`                | Copy data out to a preallocated buffer and advance the read position.
  *   - `_readInPlace`         | Return ptr to the internal buffer, if possible, and advance the read pos.
  *   - `_readInPlaceNoThrow`  | Same as above, but nonthrowing in case of failure.
- * 
+ *
  * - Introspection (optional to override):
  *   - `isPredetermined`      | Check whether amount of data can be determined ahead of time of reading.
  *   - `getDataSize`          | (if is predetermined) Get total size of data.
  *   - `getRemainingDataSize` | (if is predetermined) Get size of remaining data.
  *   - `getData`              | (if is predetermined) Access the internal data buffer.
  *   - `getReadPosition`      | (if is predetermined) Access the internal read position.
- * 
+ *
  * *-Method names starting with an underscore are private implementations of public methods.
  *   They can be overriden regardless.
  */
@@ -84,7 +84,7 @@ public:
     //! \returns The number of bytes read (could be 0 if there was no more data in the stream,
     //!          or a negative error code (see `StreamBase`) on failure).
     HG_NODISCARD std::int64_t read(NeverNull<void*> aDestination,
-                                   PZInteger        aByteCount,
+                                   std::int64_t     aByteCount,
                                    bool             aAllowPartal = false);
 
     //! \brief Extracts raw data from the stream; throws on failure.
@@ -92,7 +92,7 @@ public:
     //! \warning not all implementations of InputStream are obligated to implement
     //!          this function! Those that do not shall return `nullptr` whenever
     //!          it is called, even if the stream is in an otherwise valid state.
-    //! 
+    //!
     //! Returns a pointer to a buffer of size N containing the next N bytes to be
     //! extracted from the stream, where N is equal to `aByteCount`. These bytes
     //! can then be copied, read directly or otherwise used. Any subsequent
@@ -108,14 +108,14 @@ public:
     //! \throws StreamReadError if stream has less than `aByteCount` bytes left
     //!         to extract. If this exception is thrown, the stream's read error
     //!         flag will also be set.
-    HG_NODISCARD const void* readInPlace(PZInteger aByteCount);
+    HG_NODISCARD const void* readInPlace(std::int64_t aByteCount);
 
-    //! \brief Extracts raw data from the packet; does not throw on failure.
+    //! \brief Extracts raw data from the stream; does not throw on failure.
     //!
     //! \warning not all implementations of InputStream are obligated to implement
     //!          this function! Those that do not shall return `nullptr` whenever
     //!          it is called, even if the stream is in an otherwise valid state.
-    //! 
+    //!
     //! Returns a pointer to a buffer of size N containing the next N bytes to be
     //! extracted from the stream, where N is equal to `aByteCount`. These bytes
     //! can then be copied, read directly or otherwise used. Any subsequent
@@ -127,9 +127,9 @@ public:
     //!
     //! \returns Pointer to data to be extracted. Returns `nullptr` if `aByteCount` is 0,
     //!          or if the concrete stream implementation does not support this method,
-    //!          or if the Packet has less than `aByteCount` bytes left to extract
+    //!          or if the stream has less than `aByteCount` bytes left to extract
     //!          (in this case the stream's read error flag will also be set.).
-    HG_NODISCARD const void* readInPlaceNoThrow(PZInteger aByteCount);
+    HG_NODISCARD const void* readInPlaceNoThrow(std::int64_t aByteCount);
 
     //! Extracts an object of type `T` from the stream (assuming it has the proper `operator>>`
     //! defined.
@@ -202,12 +202,12 @@ public:
     ///////////////////////////////////////////////////////////////////////////
 
     //! Check if the stream's read error flag is set.
-    //! 
+    //!
     //! \note if `true`, that means that all non-throwing reads since the last time
     //!       that this method was called and returned `false` are invalid. Furthermore,
     //!       all future reads until the read error is successfully cleared will also
     //!       be invalid.
-    //! 
+    //!
     //! \note if `isGood` returns `false`, then this method shall return `true`.
     virtual bool hasReadError() const = 0;
 
@@ -221,7 +221,7 @@ public:
     virtual bool isGood() const = 0;
 
     //! \brief Test the validity of the stream for reading (equivalent to `!hasReadError()`)
-    //! 
+    //!
     //! This operator allows to test the stream as a boolean
     //! variable, to check if a reading operation(s) was(were) successful.
     //!
@@ -278,13 +278,13 @@ public:
         return E_UNKNOWN;
     }
 
-    //! \brief Get a pointer to the data contained in the Packet.
+    //! \brief Get a pointer to the data contained in the stream.
     //!
     //! \warning the returned pointer may become invalid after
-    //! you append data to the packet, therefore it should never
+    //! you append data to the stream, therefore it should never
     //! be stored.
     //!
-    //! \returns Pointer to the data, or `nullptr` if the Packet is empty.
+    //! \returns Pointer to the data, or `nullptr` if the stream is empty.
     //!
     //! \see getDataSize
     virtual const void* getData() const {
@@ -310,11 +310,13 @@ private:
     //! Implementation for `seekRelative`.
     virtual std::int64_t _seekRelative(std::int64_t aOffset) = 0;
     //! Implementation for `read`.
-    virtual std::int64_t _read(NeverNull<void*> aDestination, PZInteger aByteCount, bool aAllowPartal) = 0;
+    virtual std::int64_t _read(NeverNull<void*> aDestination,
+                               std::int64_t     aByteCount,
+                               bool             aAllowPartal) = 0;
     //! Implementation for `readInPlace`.
-    virtual const void* _readInPlace(PZInteger aByteCount) = 0;
+    virtual const void* _readInPlace(std::int64_t aByteCount) = 0;
     //! Implementation for `readInPlaceNoThrow`.
-    virtual std::int64_t _readInPlaceNoThrow(PZInteger aByteCount, const void** aResult) = 0;
+    virtual std::int64_t _readInPlaceNoThrow(std::int64_t aByteCount, const void** aResult) = 0;
     //! Implementation for `setReadError`.
     virtual void _setReadError() = 0;
     //! Implementation for `_setNotGood`.
@@ -349,11 +351,13 @@ inline std::int64_t InputStream::seekRelative(std::int64_t aOffset) {
     return result;
 }
 
-inline std::int64_t InputStream::read(NeverNull<void*> aDestination, PZInteger aByteCount, bool aAllowPartal) {
+inline std::int64_t InputStream::read(NeverNull<void*> aDestination,
+                                      std::int64_t     aByteCount,
+                                      bool             aAllowPartal) {
     const auto result = _read(aDestination, aByteCount, aAllowPartal);
     if (result > 0) {
         // Do nothing
-    } else if (result == E_FAILURE || (!aAllowPartal &&result == 0)) {
+    } else if (result == E_FAILURE || (!aAllowPartal && result == 0)) {
         _setReadError();
     } else if (result == E_BADSTATE) {
         _setNotGood();
@@ -361,17 +365,16 @@ inline std::int64_t InputStream::read(NeverNull<void*> aDestination, PZInteger a
     return result;
 }
 
-inline const void* InputStream::readInPlace(PZInteger aByteCount) {
+inline const void* InputStream::readInPlace(std::int64_t aByteCount) {
     try {
         return _readInPlace(aByteCount);
-    }
-    catch (const std::exception& aEx) {
+    } catch (const std::exception& aEx) {
         _setNotGood();
         throw;
     }
 }
 
-inline const void* InputStream::readInPlaceNoThrow(PZInteger aByteCount) {
+inline const void* InputStream::readInPlaceNoThrow(std::int64_t aByteCount) {
     const void* result;
     const auto code = _readInPlaceNoThrow(aByteCount, &result);
     _setErrorIfNeeded(code);

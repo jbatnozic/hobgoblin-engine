@@ -45,7 +45,7 @@ public:
     ///////////////////////////////////////////////////////////////////////////
 
     //! \brief write raw data to the stream.
-    //!        Returns the number of read bytes or an error code (see `StreamBase`) on failure.
+    //!        Returns the number of bytes written or an error code (see `StreamBase`) on failure.
     //!
     //! \param aDestination Pointer to a buffer from which to copy the data.
     //! \param aByteCount How many bytes to copy.
@@ -54,7 +54,7 @@ public:
     //! \returns The number of bytes written (could be 0 if the stream could receive no data at
     //!          all, or a negative error code (see `StreamBase`) on failure).
     HG_NODISCARD std::int64_t write(NeverNull<const void*> aData,
-                                    PZInteger              aByteCount,
+                                    std::int64_t           aByteCount,
                                     bool                   aAllowPartal = false);
 
     //! Appends an object of type `T` to the stream (assuming it has the proper `operator<<`
@@ -152,7 +152,7 @@ private:
     virtual void _setNotGood() = 0;
     //! Implementation for `write`.
     virtual std::int64_t _write(NeverNull<const void*> aData,
-                                PZInteger              aByteCount,
+                                std::int64_t           aByteCount,
                                 bool                   aAllowPartal) = 0;
 
     static void _logAppendingError(const char* aErrorMessage);
@@ -163,7 +163,7 @@ private:
 ///////////////////////////////////////////////////////////////////////////
 
 inline std::int64_t OutputStream::write(NeverNull<const void*> aData,
-                                        PZInteger              aByteCount,
+                                        std::int64_t           aByteCount,
                                         bool                   aAllowPartal) {
     const auto result = _write(aData, aByteCount, aAllowPartal);
     if (result >= 0) {

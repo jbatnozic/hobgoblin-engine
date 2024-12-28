@@ -73,7 +73,7 @@ void TestPacketWithType(T aValue, std::size_t aExpectedSize) {
         SCOPED_TRACE("Do not insert and extract with extract() (failed)");
 
         EXPECT_EQ(packet.getRemainingDataSize(), 0);
-        EXPECT_THROW(packet.template extract<T>(), StreamReadError);
+        EXPECT_THROW((void)packet.template extract<T>(), StreamReadError);
         EXPECT_FALSE(packet);
     }
     {
@@ -172,7 +172,7 @@ TEST(HGUtilPacketTest, TestExtractBytes) {
     const auto                        testDataSize = stopz(testData.size() * sizeof(std::uint8_t));
 
     Packet packet;
-    packet.write(testData.data(), testDataSize);
+    EXPECT_EQ(packet.write(testData.data(), testDataSize), testDataSize);
     const auto* p = packet.readInPlace(testDataSize);
     ASSERT_NE(p, nullptr);
     EXPECT_EQ(packet.getRemainingDataSize(), 0);
@@ -181,7 +181,7 @@ TEST(HGUtilPacketTest, TestExtractBytes) {
 
     EXPECT_EQ(packet.readInPlace(0), nullptr);
 
-    EXPECT_THROW(packet.readInPlace(1), StreamReadError);
+    EXPECT_THROW((void)packet.readInPlace(1), StreamReadError);
     EXPECT_FALSE(packet);
 }
 
@@ -190,7 +190,7 @@ TEST(HGUtilPacketTest, TestExtractBytesNoThrow) {
     const auto                        testDataSize = stopz(testData.size() * sizeof(std::uint8_t));
 
     Packet packet;
-    packet.write(testData.data(), testDataSize);
+    EXPECT_EQ(packet.write(testData.data(), testDataSize), testDataSize);
     const auto* p = packet.readInPlaceNoThrow(testDataSize);
     ASSERT_NE(p, nullptr);
     EXPECT_EQ(packet.getRemainingDataSize(), 0);

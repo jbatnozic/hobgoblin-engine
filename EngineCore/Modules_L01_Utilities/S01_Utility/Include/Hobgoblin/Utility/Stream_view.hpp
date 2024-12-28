@@ -148,7 +148,7 @@ private:
         return static_cast<std::int64_t>(_readPos);
     }
 
-    std::int64_t _read(NeverNull<void*> aDestination, PZInteger aByteCount, bool aAllowPartal) override {
+    std::int64_t _read(NeverNull<void*> aDestination, std::int64_t aByteCount, bool aAllowPartal) override {
         if (_readErrorLevel < 0) {
             return _readErrorLevel;
         }
@@ -158,9 +158,9 @@ private:
         }
 
         const auto rem = _dataLength - _readPos;
-        if (rem >= pztos(aByteCount)) {
-            std::memcpy(aDestination, static_cast<const char*>(_data) + _readPos, pztos(aByteCount));
-            _readPos += pztos(aByteCount);
+        if (rem >= ToSz(aByteCount)) {
+            std::memcpy(aDestination, static_cast<const char*>(_data) + _readPos, ToSz(aByteCount));
+            _readPos += ToSz(aByteCount);
             return aByteCount;
         } else if (aAllowPartal && rem > 0) {
             std::memcpy(aDestination, static_cast<const char*>(_data) + _readPos, rem);
@@ -171,7 +171,7 @@ private:
         }
     }
 
-    const void* _readInPlace(PZInteger aByteCount) override {
+    const void* _readInPlace(std::int64_t aByteCount) override {
         const void* result = readInPlaceNoThrow(aByteCount);
         if (!SELF) {
             HG_THROW_TRACED(
@@ -184,7 +184,7 @@ private:
         return result;
     }
 
-    std::int64_t _readInPlaceNoThrow(PZInteger aByteCount, const void** aResult) override {
+    std::int64_t _readInPlaceNoThrow(std::int64_t aByteCount, const void** aResult) override {
         if (_readErrorLevel < 0) {
             *aResult = nullptr;
             return _readErrorLevel;
@@ -196,13 +196,13 @@ private:
         }
 
         const auto rem = _dataLength - _readPos;
-        if (pztos(aByteCount) > rem) {
+        if (ToSz(aByteCount) > rem) {
             *aResult = nullptr;
             return E_FAILURE;
         }
 
         *aResult = static_cast<const char*>(_data) + _readPos;
-        _readPos += pztos(aByteCount);
+        _readPos += ToSz(aByteCount);
         return aByteCount;
     }
 

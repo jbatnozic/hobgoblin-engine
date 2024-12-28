@@ -5,6 +5,7 @@
 #define UHOBGOBLIN_UTIL_STREAM_HPP
 
 #include <Hobgoblin/Utility/Stream_base.hpp>
+#include <Hobgoblin/Utility/Stream_buffer.hpp>
 #include <Hobgoblin/Utility/Stream_errors.hpp>
 #include <Hobgoblin/Utility/Stream_input.hpp>
 #include <Hobgoblin/Utility/Stream_nothrow.hpp>

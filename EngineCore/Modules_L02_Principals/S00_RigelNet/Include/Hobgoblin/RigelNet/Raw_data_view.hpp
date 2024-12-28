@@ -40,7 +40,7 @@ public:
     friend util::OutputStream& operator<<(util::OutputStreamExtender& ostream, const RN_RawDataView& self) {
         if (self._data != nullptr && self._dataByteCount > 0) {
             ostream << self._dataByteCount;
-            ostream->write(self._data, self._dataByteCount);
+            (void)ostream->write(self._data, self._dataByteCount);
         } else {
           ostream << (std::int32_t)0;
         }

@@ -9,9 +9,6 @@
 #include <Hobgoblin/Logging.hpp>
 #include <Hobgoblin/RigelNet/Handlermgmt.hpp>
 
-#include <signal.h>
-#include <string>
-
 #include <Hobgoblin/Private/Pmacro_define.hpp>
 
 HOBGOBLIN_NAMESPACE_BEGIN
@@ -154,7 +151,9 @@ BREAK_FOR:
         // Note: some leading bytes have been read previously (packet kind and acks),
         //       the rest are untouched.
         const auto remainingBytes = curr.packet.getRemainingDataSize();
-        _packets[0].packet.write(curr.packet.readInPlace(remainingBytes), remainingBytes);
+        const auto bytesWritten =
+            _packets[0].packet.write(curr.packet.readInPlace(remainingBytes), remainingBytes);
+        HG_ASSERT(bytesWritten == remainingBytes);
 
         curr.packet.clear();
 
