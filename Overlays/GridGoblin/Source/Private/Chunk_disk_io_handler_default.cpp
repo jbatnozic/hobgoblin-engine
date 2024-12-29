@@ -21,17 +21,22 @@ const std::filesystem::path CHUNKS_FOLDER = "DCIO_CHUNKS";
 } // namespace
 
 DefaultChunkDiskIoHandler::DefaultChunkDiskIoHandler(const WorldConfig& aConfig)
-    : _basePath{aConfig.chunkDirectoryPath} {
+    : _basePath{aConfig.chunkDirectoryPath}
+//
+{
     if (const auto path = _basePath / CHUNKS_FOLDER; !std::filesystem::exists(path)) {
         std::filesystem::create_directory(path);
     }
+    _reusableConversionBuffers = NewReusableConversionBuffers();
+}
+
+DefaultChunkDiskIoHandler::~DefaultChunkDiskIoHandler() {
+    DeleteReusableConversionBuffers(_reusableConversionBuffers);
 }
 
 void DefaultChunkDiskIoHandler::setBinder(Binder* aBinder) {
     _binder = aBinder;
 }
-
-DefaultChunkDiskIoHandler::~DefaultChunkDiskIoHandler() = default;
 
 std::optional<Chunk> DefaultChunkDiskIoHandler::loadChunkFromRuntimeCache(ChunkId aChunkId) {
     // TODO: make runtime cache a separate thing
@@ -59,13 +64,13 @@ std::optional<Chunk> DefaultChunkDiskIoHandler::loadChunkFromPersistentCache(Chu
         return extension;
     };
 
-    return JsonStringToChunk(std::move(bytes), chunkExtensionFactory);
+    return JsonStringToChunk(std::move(bytes), chunkExtensionFactory, _reusableConversionBuffers);
 }
 
 void DefaultChunkDiskIoHandler::storeChunkInPersistentCache(const Chunk& aChunk, ChunkId aChunkId) {
     const auto path = _buildPathToChunk(aChunkId);
 
-    auto str = ChunkToJsonString(aChunk);
+    auto str = ChunkToJsonString(aChunk, _reusableConversionBuffers);
 
     std::ofstream file{path, std::ios::out | std::ios::binary | std::ios::trunc};
     HG_HARD_ASSERT(file.is_open() && file.good());
@@ -80,4 +85,4 @@ void DefaultChunkDiskIoHandler::dumpRuntimeCache() {}
 
 } // namespace detail
 } // namespace gridgoblin
-}
+} // namespace jbatnozic

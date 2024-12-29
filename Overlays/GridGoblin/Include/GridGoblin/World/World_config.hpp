@@ -69,8 +69,13 @@ struct WorldConfig {
     //! or 15 (which ever is the smallest).
     std::uint8_t maxCellOpenness = 0;
 
-    //! TODO(description)
-    hg::PZInteger maxLoadedNonessentialCells = 0;
+    //! The maximum number of chunks that can stay loaded and available after pruning a World instance
+    //! even when they are not in any of the active areas. Note that a chunk takes up up to 40 bytes
+    //! per cell, more if you give it an extension, so take this into consideration when setting this
+    //! value. The minimum is 0, though it is not recommended.
+    //! 
+    //! \see World, ActiveArea
+    hg::PZInteger maxLoadedNonessentialChunks = 0;
 
     //! Directory from which to load chuks and to which to save them.
     std::filesystem::path chunkDirectoryPath = "";

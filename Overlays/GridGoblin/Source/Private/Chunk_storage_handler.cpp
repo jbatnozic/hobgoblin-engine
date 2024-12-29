@@ -22,7 +22,7 @@ ChunkStorageHandler::ChunkStorageHandler(const WorldConfig& aConfig)
     : _chunks{aConfig.chunkCountX, aConfig.chunkCountY}
     , _chunkWidth{aConfig.cellsPerChunkX}
     , _chunkHeight{aConfig.cellsPerChunkY}
-    , _freeChunkLimit{aConfig.maxLoadedNonessentialCells} {}
+    , _freeChunkLimit{aConfig.maxLoadedNonessentialChunks} {}
 
 ///////////////////////////////////////////////////////////////////////////
 // DEPENDENCIES                                                          //

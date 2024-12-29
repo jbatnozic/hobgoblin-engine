@@ -7,9 +7,11 @@
 
 #include <GridGoblin/Model/Chunk.hpp>
 #include <GridGoblin/Model/Chunk_id.hpp>
+#include <GridGoblin/Private/Model_conversions.hpp>
 #include <GridGoblin/World/World_config.hpp>
 
 #include <filesystem>
+#include <memory>
 #include <optional>
 
 namespace jbatnozic {
@@ -42,6 +44,8 @@ public:
 private:
     Binder* _binder = nullptr;
 
+    ReusableConversionBuffers* _reusableConversionBuffers = nullptr;
+
     std::filesystem::path _basePath;
 
     std::filesystem::path _buildPathToChunk(ChunkId aChunkId) const;
@@ -49,4 +53,4 @@ private:
 
 } // namespace detail
 } // namespace gridgoblin
-}
+} // namespace jbatnozic

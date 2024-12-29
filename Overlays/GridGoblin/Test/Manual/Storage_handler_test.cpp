@@ -103,13 +103,13 @@ private:
     ActiveArea          _activeArea;
 
     static WorldConfig _makeWorldConfig() {
-        return {.chunkCountX                = CHUNK_COUNT_X,
-                .chunkCountY                = CHUNK_COUNT_Y,
-                .cellsPerChunkX             = 1,
-                .cellsPerChunkY             = 1,
-                .cellResolution             = 32.f,
-                .maxCellOpenness            = 4,
-                .maxLoadedNonessentialCells = 32};
+        return {.chunkCountX                 = CHUNK_COUNT_X,
+                .chunkCountY                 = CHUNK_COUNT_Y,
+                .cellsPerChunkX              = 1,
+                .cellsPerChunkY              = 1,
+                .cellResolution              = 32.f,
+                .maxCellOpenness             = 4,
+                .maxLoadedNonessentialChunks = 32};
     }
 };
 

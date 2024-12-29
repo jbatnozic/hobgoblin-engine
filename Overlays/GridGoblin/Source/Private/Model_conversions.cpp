@@ -8,7 +8,6 @@
 #include <Hobgoblin/HGExcept.hpp>
 #include <Hobgoblin/Logging.hpp>
 #include <Hobgoblin/Utility/Base64.hpp>
-#include <Hobgoblin/Utility/Packet.hpp>
 #include <Hobgoblin/Utility/Stream.hpp>
 
 #include <rapidjson/document.h>
@@ -25,6 +24,19 @@ namespace gridgoblin {
 namespace detail {
 
 namespace json = rapidjson;
+
+struct ReusableConversionBuffers {
+    hg::util::BufferStream stream; //!< For extension serialization
+    std::string            string;
+};
+
+hg::NeverNull<ReusableConversionBuffers*> NewReusableConversionBuffers() {
+    return new ReusableConversionBuffers;
+}
+
+void DeleteReusableConversionBuffers(ReusableConversionBuffers* aBuffers) {
+    delete aBuffers;
+}
 
 namespace {
 constexpr auto LOG_ID = "GridGoblin";
@@ -75,34 +87,28 @@ ExtensionKind StringToExtensionKind(const std::string& aString) {
     }
 }
 
-//! Named based on the 'elvis operator' (?:) from other languages
-#define ELVIS(_lhs_, _rhs_) ((_lhs_) ? (_lhs_) : (_rhs_))
-
 void Base64Encode(
     /*  in */ const ChunkExtensionInterface&               aChunkExtension,
     /*  in */ ChunkExtensionInterface::SerializationMethod aPreferredSerializationMethod,
     /* out */ std::string&                                 aBase64EncodeBuffer,
-    /*  in */ hg::util::Packet*                            aReusableSerializationPacket = nullptr)
+    /*  in */ hg::util::BufferStream&                      aReusableBufStream)
 //
 {
-    hg::util::Packet  defaultSerPkt;
-    hg::util::Packet* serPkt = ELVIS(aReusableSerializationPacket, &defaultSerPkt);
-
-    serPkt->clear();
+    aReusableBufStream.clear();
     aBase64EncodeBuffer.clear();
 
     switch (aPreferredSerializationMethod) {
     case ChunkExtensionInterface::SerializationMethod::BINARY_STREAM:
         {
-            aChunkExtension.serialize(*serPkt);
+            aChunkExtension.serialize(aReusableBufStream);
 
-            const auto encodeSizePrediction =
-                hg::util::GetRecommendedOutputBufferSizeForBase64Encode(serPkt->getDataSize());
+            const auto encodeSizePrediction = hg::util::GetRecommendedOutputBufferSizeForBase64Encode(
+                aReusableBufStream.getDataSize());
 
             aBase64EncodeBuffer.resize(hg::pztos(encodeSizePrediction));
 
-            const auto encodeSizeActual = hg::util::Base64Encode(serPkt->getData(),
-                                                                 serPkt->getDataSize(),
+            const auto encodeSizeActual = hg::util::Base64Encode(aReusableBufStream.getData(),
+                                                                 aReusableBufStream.getDataSize(),
                                                                  aBase64EncodeBuffer.data(),
                                                                  hg::stopz(aBase64EncodeBuffer.size()));
 
@@ -121,27 +127,24 @@ void Base64Decode(
     /*  in */ ChunkExtensionInterface::SerializationMethod aPreferredSerializationMethod,
     /*  in */ const char*                                  aBase64EncodedString,
     /*  in */ hg::PZInteger                                aBase64EncodedStringLength,
-    /*  in */ std::string*                                 aReusableDeserializationBuffer = nullptr)
+    /*  in */ std::string&                                 aReusableString)
 //
 {
-    std::string  defaultDesBuf;
-    std::string* desBuf = ELVIS(aReusableDeserializationBuffer, &defaultDesBuf);
-
     switch (aPreferredSerializationMethod) {
     case ChunkExtensionInterface::SerializationMethod::BINARY_STREAM:
         {
             const auto decodeSizePrediction =
                 hg::util::GetRecommendedOutputBufferSizeForBase64Decode(aBase64EncodedStringLength);
 
-            desBuf->clear();
-            desBuf->resize(hg::pztos(decodeSizePrediction));
+            aReusableString.clear();
+            aReusableString.resize(hg::pztos(decodeSizePrediction));
 
             const auto decodeSizeActual = hg::util::Base64Decode(aBase64EncodedString,
                                                                  aBase64EncodedStringLength,
-                                                                 desBuf->data(),
-                                                                 hg::stopz(desBuf->size()));
+                                                                 aReusableString.data(),
+                                                                 hg::stopz(aReusableString.size()));
 
-            hg::util::ViewStream vstream{desBuf->data(), decodeSizeActual};
+            hg::util::ViewStream vstream{aReusableString.data(), decodeSizeActual};
 
             aChunkExtension.deserialize(vstream);
         }
@@ -186,7 +189,12 @@ Shape StringToShape(const char* aString) {
 
     HG_THROW_TRACED(hg::TracedRuntimeError, 0, "Invalid shape string ({}).", aString);
 }
+
+//! Named based on the 'elvis operator' (?:) from other languages
+#define ELVIS(_lhs_, _rhs_) ((_lhs_) ? (_lhs_) : (_rhs_))
 } // namespace
+
+// MARK: Cell <-> JSON
 
 json::Value CellToJson(const CellModel& aCell, json::Document& aDocument) {
     const auto cellFlags = aCell.getFlags();
@@ -258,7 +266,9 @@ CellModel JsonToCell(const json::Value& aJson) {
     return cell;
 }
 
-json::Document ChunkToJson(const Chunk& aChunk) {
+// MARK: Chunk <-> JSON
+
+json::Document ChunkToJson(const Chunk& aChunk, ReusableConversionBuffers* aReusableConversionBuffers) {
     const auto chunkWidth  = aChunk.getCellCountX();
     const auto chunkHeight = aChunk.getCellCountY();
 
@@ -290,11 +300,23 @@ json::Document ChunkToJson(const Chunk& aChunk) {
         doc.AddMember("extension_kind", json::Value{kind, allocator}.Move(), allocator);
 
         if (method != ChunkExtensionInterface::SerializationMethod::NONE) {
-            hg::util::Packet serializationStream; // TODO: make reusable buffer
-            std::string      encodeBuffer;        // TODO: make reusable buffer
-            Base64Encode(*extension, method, encodeBuffer, &serializationStream);
+            if (aReusableConversionBuffers != nullptr) {
+                Base64Encode(*extension,
+                             method,
+                             aReusableConversionBuffers->string,
+                             aReusableConversionBuffers->stream);
 
-            doc.AddMember("extension_data", json::Value{encodeBuffer, allocator}, allocator);
+                doc.AddMember("extension_data",
+                              json::Value{aReusableConversionBuffers->string, allocator},
+                              allocator);
+            } else {
+                ReusableConversionBuffers defaultBuffers;
+                Base64Encode(*extension, method, defaultBuffers.string, defaultBuffers.stream);
+
+                doc.AddMember("extension_data",
+                              json::Value{defaultBuffers.string, allocator},
+                              allocator);
+            }
         }
     } else {
         const auto& kind = ExtensionKindToString(std::nullopt);
@@ -305,7 +327,8 @@ json::Document ChunkToJson(const Chunk& aChunk) {
 }
 
 Chunk JsonToChunk(const json::Document&        aJsonDocument,
-                  const ChunkExtensionFactory& aChunkExtensionFactory) {
+                  const ChunkExtensionFactory& aChunkExtensionFactory,
+                  ReusableConversionBuffers*   aReusableConversionBuffers) {
     // Read dimensions
     const auto chunkWidth  = GetIntMember<hg::PZInteger>(aJsonDocument, "width");
     const auto chunkHeight = GetIntMember<hg::PZInteger>(aJsonDocument, "height");
@@ -346,13 +369,20 @@ Chunk JsonToChunk(const json::Document&        aJsonDocument,
             const auto* encodedExtString    = value.GetString();
             const auto  encodedExtStringLen = value.GetStringLength();
 
-            std::string deserializationBuffer; // TODO: make reusable buffer
-
-            Base64Decode(*extension,
-                         *kind,
-                         encodedExtString,
-                         encodedExtStringLen,
-                         &deserializationBuffer);
+            if (aReusableConversionBuffers != nullptr) {
+                Base64Decode(*extension,
+                             *kind,
+                             encodedExtString,
+                             encodedExtStringLen,
+                             aReusableConversionBuffers->string);
+            } else {
+                ReusableConversionBuffers defaultBuffers;
+                Base64Decode(*extension,
+                             *kind,
+                             encodedExtString,
+                             encodedExtStringLen,
+                             defaultBuffers.string);
+            }
         } else {
             HG_LOG_WARN(
                 LOG_ID,
@@ -365,14 +395,15 @@ Chunk JsonToChunk(const json::Document&        aJsonDocument,
     return chunk;
 }
 
-std::string ChunkToJsonString(const Chunk& aChunk) {
+std::string ChunkToJsonString(const Chunk&               aChunk,
+                              ReusableConversionBuffers* aReusableConversionBuffers) {
 #if HG_BUILD_TYPE == HG_DEBUG
 #define JsonWriter json::PrettyWriter
 #else
 #define JsonWriter json::Writer
 #endif
 
-    const auto doc = ChunkToJson(aChunk);
+    const auto doc = ChunkToJson(aChunk, aReusableConversionBuffers);
 
     json::StringBuffer             stringbuf;
     JsonWriter<json::StringBuffer> writer(stringbuf);
@@ -383,13 +414,15 @@ std::string ChunkToJsonString(const Chunk& aChunk) {
 #undef JsonWriter
 }
 
-Chunk JsonStringToChunk(std::string aJsonString, const ChunkExtensionFactory& aChunkExtensionFactory) {
+Chunk JsonStringToChunk(std::string                  aJsonString,
+                        const ChunkExtensionFactory& aChunkExtensionFactory,
+                        ReusableConversionBuffers*   aReusableConversionBuffers) {
     const auto start = std::chrono::steady_clock::now();
 
     json::Document doc;
     doc.ParseInsitu(aJsonString.data());
 
-    auto result = JsonToChunk(doc, aChunkExtensionFactory);
+    auto result = JsonToChunk(doc, aChunkExtensionFactory, aReusableConversionBuffers);
 
     const auto end = std::chrono::steady_clock::now();
     const auto us  = std::chrono::duration_cast<std::chrono::microseconds>(end - start);

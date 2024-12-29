@@ -22,13 +22,13 @@ protected:
     World                   _world;
 
     static WorldConfig _makeWorldConfig() {
-        return {.chunkCountX                = 8,
-                .chunkCountY                = 8,
-                .cellsPerChunkX             = 8,
-                .cellsPerChunkY             = 8,
-                .cellResolution             = 32.f,
-                .maxCellOpenness            = 5,
-                .maxLoadedNonessentialCells = 1};
+        return {.chunkCountX                 = 8,
+                .chunkCountY                 = 8,
+                .cellsPerChunkX              = 8,
+                .cellsPerChunkY              = 8,
+                .cellResolution              = 32.f,
+                .maxCellOpenness             = 5,
+                .maxLoadedNonessentialChunks = 1};
     }
 };
 

@@ -106,13 +106,13 @@ private:
     std::vector<ChunkId> _activeChunks;
 
     static WorldConfig _makeWorldConfig() {
-        return {.chunkCountX                = 4,
-                .chunkCountY                = 4,
-                .cellsPerChunkX             = 8,
-                .cellsPerChunkY             = 8,
-                .cellResolution             = 32.f,
-                .maxCellOpenness            = 5,
-                .maxLoadedNonessentialCells = 0};
+        return {.chunkCountX                 = 4,
+                .chunkCountY                 = 4,
+                .cellsPerChunkX              = 8,
+                .cellsPerChunkY              = 8,
+                .cellResolution              = 32.f,
+                .maxCellOpenness             = 5,
+                .maxLoadedNonessentialChunks = 0};
     }
 
     void _drawChunk(hg::gr::Canvas& aCanvas, const Chunk& aChunk, ChunkId aChunkId) const {

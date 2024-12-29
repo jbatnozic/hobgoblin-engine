@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <Hobgoblin/Common.hpp>
+
 #include <GridGoblin/Model/Cell.hpp>
 #include <GridGoblin/Model/Chunk.hpp>
 #include <GridGoblin/Model/Chunk_extension.hpp>
@@ -33,8 +35,10 @@ public:
 
 using ChunkExtensionFactory = std::function<std::unique_ptr<ChunkExtensionInterface>(const Chunk&)>;
 
-using A = std::string;
-using B = hg::util::Packet;
+struct ReusableConversionBuffers;
+
+hg::NeverNull<ReusableConversionBuffers*> NewReusableConversionBuffers();
+void                                      DeleteReusableConversionBuffers(ReusableConversionBuffers*);
 
 //! Creates a JSON Value from the passed CellModel instance using the allocator
 //! of the passed document (does not attach the Value anywhere).
@@ -50,25 +54,29 @@ CellModel JsonToCell(const json::Value& aJsonValue);
 //! Creates a JSON Document from the passed Chunk.
 //!
 //! \note Any data the chunk's cells might be extended with will NOT be included.
-json::Document ChunkToJson(const Chunk& aChunk);
+json::Document ChunkToJson(const Chunk&               aChunk,
+                           ReusableConversionBuffers* aReusableConversionBuffers = nullptr);
 
 //! Creates a Chunk from the passed JSON Document.
 //!
 //! \throws JsonParseError is the JSON data does not correspond to the expected format.
 Chunk JsonToChunk(const json::Document&        aJsonDocument,
-                  const ChunkExtensionFactory& aChunkExtensionFactory = nullptr);
+                  const ChunkExtensionFactory& aChunkExtensionFactory     = nullptr,
+                  ReusableConversionBuffers*   aReusableConversionBuffers = nullptr);
 
 //! Creates a JSON-encoded string (without whitespaces, newlines or any pretty
 //! formatting) from the passed Chunk.
 //!
 //! \note Any data the chunk's cells might be extended with will NOT be included.
-std::string ChunkToJsonString(const Chunk& aChunk);
+std::string ChunkToJsonString(const Chunk&               aChunk,
+                              ReusableConversionBuffers* aReusableConversionBuffers = nullptr);
 
 //! Creates a Chunk from the passed JSON-encoded string.
 //!
 //! \throws JsonParseError is the JSON data does not correspond to the expected format.
 Chunk JsonStringToChunk(std::string                  aJsonString,
-                        const ChunkExtensionFactory& aChunkExtensionFactory = nullptr);
+                        const ChunkExtensionFactory& aChunkExtensionFactory     = nullptr,
+                        ReusableConversionBuffers*   aReusableConversionBuffers = nullptr);
 
 } // namespace detail
 } // namespace gridgoblin
