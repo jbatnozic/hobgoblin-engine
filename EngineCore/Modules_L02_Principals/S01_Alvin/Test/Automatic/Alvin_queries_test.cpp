@@ -438,14 +438,12 @@ TEST_F(AlvinQueriesTest, FiveShapes_TriangleShapeQuery_ThreeShapesFound) {
         {5.0 * 32.0, 2.5 * 32.0}
     }; // Will be a bit too far away from the hypotenuse
 
-    std::array<cpVect, 3> vertices = {
-        cpv(0.0, 2.5 * 32.0), cpv(0.0, 0.0), cpv(5.0 * 32.0, 0.0)
-    };
-    alvin::Shape triangle{cpPolyShapeNew(NULL, 3, vertices.data(), cpTransformIdentity, 0.0)};
+    std::array<cpVect, 3> vertices = {cpv(0.0, 2.5 * 32.0), cpv(0.0, 0.0), cpv(5.0 * 32.0, 0.0)};
+    alvin::Shape          triangle{cpPolyShapeNew(NULL, 3, vertices.data(), cpTransformIdentity, 0.0)};
     cpShapeUpdate(triangle, cpTransformNew(1.0, 0.0, 0.0, 1.0, 32.0, 32.0));
     // About affine transforms:
     // https://developer.apple.com/documentation/corefoundation/cgaffinetransform
-    
+
     int                 queryCallCount = 0;
     std::vector<Block*> foundBlocks    = {};
     _space.runShapeQuery(triangle, [&](const alvin::ShapeQueryInfo& aQueryInfo) {
@@ -455,6 +453,7 @@ TEST_F(AlvinQueriesTest, FiveShapes_TriangleShapeQuery_ThreeShapesFound) {
 
     EXPECT_EQ(queryCallCount, 3);
 
+    // clang-format off
     EXPECT_TRUE(
         std::find_if(foundBlocks.begin(), foundBlocks.end(), [&](Block* aBlock) {
         return aBlock == &block1;
@@ -479,6 +478,7 @@ TEST_F(AlvinQueriesTest, FiveShapes_TriangleShapeQuery_ThreeShapesFound) {
         std::find_if(foundBlocks.begin(), foundBlocks.end(), [&](Block* aBlock) {
         return aBlock == &block5;
     }) == foundBlocks.end());
+    // clang-format on
 }
 
 } // namespace hobgoblin

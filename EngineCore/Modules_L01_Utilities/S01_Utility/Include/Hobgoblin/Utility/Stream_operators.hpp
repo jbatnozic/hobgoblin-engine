@@ -25,7 +25,7 @@ class OutputStreamExtender;
 class InputStreamExtender;
 
 // Forward-declare append operators
-//clang-format off
+// clang-format off
 OutputStream& operator<<(OutputStreamExtender& aStreamExtender, bool                 aData);
 OutputStream& operator<<(OutputStreamExtender& aStreamExtender, std::int8_t          aData);
 OutputStream& operator<<(OutputStreamExtender& aStreamExtender, std::uint8_t         aData);
@@ -39,24 +39,24 @@ OutputStream& operator<<(OutputStreamExtender& aStreamExtender, float           
 OutputStream& operator<<(OutputStreamExtender& aStreamExtender, double               aData);
 OutputStream& operator<<(OutputStreamExtender& aStreamExtender, std::string_view     aData);
 OutputStream& operator<<(OutputStreamExtender& aStreamExtender, const UnicodeString& aData);
-//clang-format on
+// clang-format on
 
 // Forward-declare extract operators
-//clang-format off
-InputStream& operator>>(InputStreamExtender& aStreamExtender, bool&                aData);
-InputStream& operator>>(InputStreamExtender& aStreamExtender, std::int8_t&         aData);
-InputStream& operator>>(InputStreamExtender& aStreamExtender, std::uint8_t&        aData);
-InputStream& operator>>(InputStreamExtender& aStreamExtender, std::int16_t&        aData);
-InputStream& operator>>(InputStreamExtender& aStreamExtender, std::uint16_t&       aData);
-InputStream& operator>>(InputStreamExtender& aStreamExtender, std::int32_t&        aData);
-InputStream& operator>>(InputStreamExtender& aStreamExtender, std::uint32_t&       aData);
-InputStream& operator>>(InputStreamExtender& aStreamExtender, std::int64_t&        aData);
-InputStream& operator>>(InputStreamExtender& aStreamExtender, std::uint64_t&       aData);
-InputStream& operator>>(InputStreamExtender& aStreamExtender, float&               aData);
-InputStream& operator>>(InputStreamExtender& aStreamExtender, double&              aData);
-InputStream& operator>>(InputStreamExtender& aStreamExtender, std::string&         aData);
-InputStream& operator>>(InputStreamExtender& aStreamExtender, UnicodeString&       aData);
-//clang-format on
+// clang-format off
+InputStream& operator>>(InputStreamExtender& aStreamExtender, bool&          aData);
+InputStream& operator>>(InputStreamExtender& aStreamExtender, std::int8_t&   aData);
+InputStream& operator>>(InputStreamExtender& aStreamExtender, std::uint8_t&  aData);
+InputStream& operator>>(InputStreamExtender& aStreamExtender, std::int16_t&  aData);
+InputStream& operator>>(InputStreamExtender& aStreamExtender, std::uint16_t& aData);
+InputStream& operator>>(InputStreamExtender& aStreamExtender, std::int32_t&  aData);
+InputStream& operator>>(InputStreamExtender& aStreamExtender, std::uint32_t& aData);
+InputStream& operator>>(InputStreamExtender& aStreamExtender, std::int64_t&  aData);
+InputStream& operator>>(InputStreamExtender& aStreamExtender, std::uint64_t& aData);
+InputStream& operator>>(InputStreamExtender& aStreamExtender, float&         aData);
+InputStream& operator>>(InputStreamExtender& aStreamExtender, double&        aData);
+InputStream& operator>>(InputStreamExtender& aStreamExtender, std::string&   aData);
+InputStream& operator>>(InputStreamExtender& aStreamExtender, UnicodeString& aData);
+// clang-format on
 
 // TODO (description)
 class OutputStreamExtender {
@@ -72,7 +72,8 @@ public:
 private:
     friend class OutputStream;
 
-    OutputStreamExtender(OutputStream& aOStream) : _ostream{aOStream} {}
+    OutputStreamExtender(OutputStream& aOStream)
+        : _ostream{aOStream} {}
 
     OutputStream& _ostream;
 };
@@ -91,7 +92,8 @@ public:
 private:
     friend class InputStream;
 
-    InputStreamExtender(InputStream& aIStream) : _istream{aIStream} {}
+    InputStreamExtender(InputStream& aIStream)
+        : _istream{aIStream} {}
 
     InputStream& _istream;
 };
