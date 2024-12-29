@@ -160,4 +160,4 @@ TEST(ActiveAreaTest, UpdateChunkList_NonEmptyToNonEmpty_Overlap) {
 
 } // namespace detail
 } // namespace gridgoblin
-}
+} // namespace jbatnozic

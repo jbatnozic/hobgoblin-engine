@@ -461,10 +461,10 @@ void Space::runPointQuery(cpVect        aPoint,
             auto* delegate =
                 (aShape != nullptr) ? cpShapeGetUserData(aShape).get<CollisionDelegate>() : nullptr;
             auto* callable = static_cast<taCallable*>(aData);
-                  (*callable)(PointQueryInfo{.shape        = aShape,
-                                             .delegate     = delegate,
-                                             .closestPoint = aPoint,
-                                             .distance     = aDistance});
+            (*callable)(PointQueryInfo{.shape        = aShape,
+                                       .delegate     = delegate,
+                                       .closestPoint = aPoint,
+                                       .distance     = aDistance});
         };
     void* const cpFuncData = std::addressof(aCallable);
     cpSpacePointQuery(_space.get(), aPoint, aMaxDistance, aShapeFilter, cpFunc, cpFuncData);
@@ -504,11 +504,11 @@ void Space::runRaycastQuery(cpVect        aRayStart,
             auto* delegate =
                 (aShape != nullptr) ? cpShapeGetUserData(aShape).get<CollisionDelegate>() : nullptr;
             auto* callable = static_cast<taCallable*>(aData);
-                  (*callable)(RaycastQueryInfo{.shape              = aShape,
-                                               .delegate           = delegate,
-                                               .closestPoint       = aPoint,
-                                               .surfaceNormal      = aNormal,
-                                               .normalizedDistance = aAlpha});
+            (*callable)(RaycastQueryInfo{.shape              = aShape,
+                                         .delegate           = delegate,
+                                         .closestPoint       = aPoint,
+                                         .surfaceNormal      = aNormal,
+                                         .normalizedDistance = aAlpha});
         };
     void* const cpFuncData = std::addressof(aCallable);
     cpSpaceSegmentQuery(_space.get(), aRayStart, aRayEnd, aRadius, aShapeFilter, cpFunc, cpFuncData);
@@ -601,7 +601,7 @@ void Space::runFastBboxQuery(const cpBB&   aBoundingBox,
         auto* delegate =
             (aShape != nullptr) ? cpShapeGetUserData(aShape).get<CollisionDelegate>() : nullptr;
         auto* callable = static_cast<taCallable*>(aData);
-              (*callable)(BboxQueryInfo{.shape = aShape, .delegate = delegate});
+        (*callable)(BboxQueryInfo{.shape = aShape, .delegate = delegate});
     };
     void* const cpFuncData = std::addressof(aCallable);
     cpSpaceBBQuery(_space.get(), aBoundingBox, aShapeFilter, cpFunc, cpFuncData);

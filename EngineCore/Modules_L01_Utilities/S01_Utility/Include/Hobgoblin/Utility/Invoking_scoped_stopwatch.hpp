@@ -45,14 +45,14 @@ private:
 //!            are available here, as well as a special identifier `elapsed_time_ms` which is of type
 //!            `double` and its value is the number of milliseconds that have elapsed between the line
 //!            of code where this macro is placed and its invocation at the end of the current scope.
-//!    
+//!
 //! Example of usage:
 //! {
 //!     const char* resourceName = GetResourceName();
 //!     {
 //!         HG_LOG_WITH_SCOPED_STOPWATCH_MS(
-//!             INFO, 
-//!             "MyGame", 
+//!             INFO,
+//!             "MyGame",
 //!             "Loading of resource {} took {}ms.", resourceName, elapsed_time_ms);
 //!         LoadResource(resourceName);
 //!     }

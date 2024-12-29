@@ -21,8 +21,8 @@ void* BufferStream::getMutableData() {
 ///////////////////////////////////////////////////////////////////////////
 
 std::int64_t BufferStream::_write(NeverNull<const void*> aData,
-                            std::int64_t           aByteCount,
-                            bool /*aAllowPartal*/) {
+                                  std::int64_t           aByteCount,
+                                  bool /*aAllowPartal*/) {
     if (aData && aByteCount > 0) {
         _buffer.insert(_buffer.end(),
                        static_cast<const std::uint8_t*>(aData.get()),
@@ -65,7 +65,9 @@ std::int64_t BufferStream::_seekRelative(std::int64_t aOffset) {
     return static_cast<std::int64_t>(_readPos);
 }
 
-std::int64_t BufferStream::_read(NeverNull<void*> aDestination, std::int64_t aByteCount, bool aAllowPartal) {
+std::int64_t BufferStream::_read(NeverNull<void*> aDestination,
+                                 std::int64_t     aByteCount,
+                                 bool             aAllowPartal) {
     if (_readErrorLevel < 0) {
         return _readErrorLevel;
     }
@@ -91,12 +93,12 @@ std::int64_t BufferStream::_read(NeverNull<void*> aDestination, std::int64_t aBy
 const void* BufferStream::_readInPlace(std::int64_t aByteCount) {
     const void* result = readInPlaceNoThrow(aByteCount);
     if (!SELF) {
-        HG_THROW_TRACED(
-            StreamReadError,
-            0,
-            "Failed to extract {} raw bytes from hg::util::BufferStream (actual # of bytes remaining: {}).",
-            aByteCount,
-            getRemainingDataSize());
+        HG_THROW_TRACED(StreamReadError,
+                        0,
+                        "Failed to extract {} raw bytes from hg::util::BufferStream (actual # of bytes "
+                        "remaining: {}).",
+                        aByteCount,
+                        getRemainingDataSize());
     }
     return result;
 }

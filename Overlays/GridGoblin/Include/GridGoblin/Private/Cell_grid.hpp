@@ -112,4 +112,4 @@ inline const CellModelExt& CellGrid::getExtensionCell() const {
 
 } // namespace detail
 } // namespace gridgoblin
-}
+} // namespace jbatnozic

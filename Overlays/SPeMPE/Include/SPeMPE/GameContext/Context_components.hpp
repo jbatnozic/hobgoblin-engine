@@ -27,7 +27,9 @@ public:
 //! Define a component's tag.
 //! For example: SPEMPE_CTXCOMP_TAG("PhysicsManager"); (can be in the private section)
 #define SPEMPE_CTXCOMP_TAG(_tag_string_)                                                          \
-    ::std::string __spempeimpl_getComponentTag() const { return ::std::string{_tag_string_}; }    \
+    ::std::string __spempeimpl_getComponentTag() const {                                          \
+        return ::std::string{_tag_string_};                                                       \
+    }                                                                                             \
     ::jbatnozic::spempe::ContextComponent::TagHash __spempeimpl_getComponentTagHash() const {     \
         constexpr static auto TAG_HASH_ = ::jbatnozic::hobgoblin::util::HornerHash(_tag_string_); \
         return TAG_HASH_;                                                                         \

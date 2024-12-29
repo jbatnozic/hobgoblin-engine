@@ -1,9 +1,9 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
+#include <GridGoblin/Private/Chunk_storage_handler.hpp>
 #include <GridGoblin/World/Active_area.hpp>
 #include <GridGoblin/World/World.hpp>
-#include <GridGoblin/Private/Chunk_storage_handler.hpp>
 
 #include <algorithm>
 #include <cmath>
@@ -185,4 +185,4 @@ const std::vector<ChunkId>& ActiveArea::getChunkList() const {
 }
 
 } // namespace gridgoblin
-}
+} // namespace jbatnozic

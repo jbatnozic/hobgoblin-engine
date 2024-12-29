@@ -145,13 +145,16 @@ private:
         const std::size_t min = 0;
         const std::size_t max = _dataLength - 1;
 
-        const std::size_t newPos = static_cast<std::size_t>(static_cast<std::int64_t>(_readPos) + aOffset);
+        const std::size_t newPos =
+            static_cast<std::size_t>(static_cast<std::int64_t>(_readPos) + aOffset);
 
         _readPos = math::Clamp(newPos, min, max);
         return static_cast<std::int64_t>(_readPos);
     }
 
-    std::int64_t _read(NeverNull<void*> aDestination, std::int64_t aByteCount, bool aAllowPartal) override {
+    std::int64_t _read(NeverNull<void*> aDestination,
+                       std::int64_t     aByteCount,
+                       bool             aAllowPartal) override {
         if (_readErrorLevel < 0) {
             return _readErrorLevel;
         }
@@ -177,12 +180,12 @@ private:
     const void* _readInPlace(std::int64_t aByteCount) override {
         const void* result = readInPlaceNoThrow(aByteCount);
         if (!SELF) {
-            HG_THROW_TRACED(
-                StreamReadError,
-                0,
-                "Failed to extract {} raw bytes from hg::util::ViewStream (actual # of bytes remaining: {}).",
-                aByteCount,
-                getRemainingDataSize());
+            HG_THROW_TRACED(StreamReadError,
+                            0,
+                            "Failed to extract {} raw bytes from hg::util::ViewStream (actual # of "
+                            "bytes remaining: {}).",
+                            aByteCount,
+                            getRemainingDataSize());
         }
         return result;
     }

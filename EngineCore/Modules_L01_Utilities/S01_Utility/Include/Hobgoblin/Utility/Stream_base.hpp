@@ -15,7 +15,7 @@ class StreamBase {
 public:
     //! Error code indicating that the operation failed.
     static constexpr std::int64_t E_FAILURE = -1;
-    
+
     //! Error code indicating that the operation failed AND that the stream has reached an
     //! invalid state where no further I/O operations are possible. This error code can
     //! also be returned if the stream was already in an invalid state at the time that the

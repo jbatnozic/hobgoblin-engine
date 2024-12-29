@@ -376,7 +376,7 @@ inline const void* InputStream::readInPlace(std::int64_t aByteCount) {
 
 inline const void* InputStream::readInPlaceNoThrow(std::int64_t aByteCount) {
     const void* result;
-    const auto code = _readInPlaceNoThrow(aByteCount, &result);
+    const auto  code = _readInPlaceNoThrow(aByteCount, &result);
     _setErrorIfNeeded(code);
     return result;
 }

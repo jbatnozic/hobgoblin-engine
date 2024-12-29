@@ -17,7 +17,7 @@ namespace jbatnozic {
 namespace gridgoblin {
 namespace test {
 
-class FakeDiskIoHandler : public detail::ChunkDiskIoHandlerInterface{
+class FakeDiskIoHandler : public detail::ChunkDiskIoHandlerInterface {
 public:
     void setBinder(Binder*) override {}
 
@@ -65,4 +65,4 @@ private:
 
 } // namespace test
 } // namespace gridgoblin
-}
+} // namespace jbatnozic

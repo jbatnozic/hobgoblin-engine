@@ -73,7 +73,7 @@ struct WorldConfig {
     //! even when they are not in any of the active areas. Note that a chunk takes up up to 40 bytes
     //! per cell, more if you give it an extension, so take this into consideration when setting this
     //! value. The minimum is 0, though it is not recommended.
-    //! 
+    //!
     //! \see World, ActiveArea
     hg::PZInteger maxLoadedNonessentialChunks = 0;
 

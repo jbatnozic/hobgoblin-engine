@@ -502,11 +502,11 @@ void World::onChunkUnloaded(ChunkId aChunkId) {
 }
 
 std::unique_ptr<ChunkExtensionInterface> World::createChunkExtension() {
-        if (!_binder) {
-            return nullptr;
-        }
-        return _binder->createChunkExtension();
+    if (!_binder) {
+        return nullptr;
     }
+    return _binder->createChunkExtension();
+}
 
 // ===== Editing cells =====
 

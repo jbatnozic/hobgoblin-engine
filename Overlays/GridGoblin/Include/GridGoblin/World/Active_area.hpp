@@ -69,14 +69,14 @@ public:
 
     //! Sets the active area to an area defined by a central chunk and a diamond shape around it
     //! comprised of a number of rings. The 1st ring is the 4 chunks around the central chunks, the 2nd
-    //! ring is the 8 chunks around the 1st right, and so on (the ASCII art below serves as an 
+    //! ring is the 8 chunks around the 1st right, and so on (the ASCII art below serves as an
     //! illustration).
     //!
-    //!     2    
-    //!   2 1 2  
+    //!     2
+    //!   2 1 2
     //! 2 1 0 1 2
-    //!   2 1 2  
-    //!     2   
+    //!   2 1 2
+    //!     2
     //!
     //! \param aCentralChunk ID of the central chunks.
     //! \param aRingCount number of rings. If 0, only the central chunk will be included. If 1, the
@@ -126,4 +126,4 @@ std::vector<ChunkUsageChange> UpdateChunkList(
 } // namespace detail
 
 } // namespace gridgoblin
-}
+} // namespace jbatnozic

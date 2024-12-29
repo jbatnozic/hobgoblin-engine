@@ -35,4 +35,4 @@ public:
 
 } // namespace detail
 } // namespace gridgoblin
-}
+} // namespace jbatnozic

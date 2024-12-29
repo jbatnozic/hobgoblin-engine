@@ -177,7 +177,8 @@ public:
 
     private:
         friend class World;
-        Editor(World& aWorld) : _world{aWorld} {}
+        Editor(World& aWorld)
+            : _world{aWorld} {}
         World& _world;
     };
 
@@ -258,10 +259,10 @@ private:
     // ===== Subcomponents =====
 
     std::unique_ptr<detail::ChunkDiskIoHandlerInterface> _internalChunkDiskIoHandler;
-    detail::ChunkDiskIoHandlerInterface* _chunkDiskIoHandler;
+    detail::ChunkDiskIoHandlerInterface*                 _chunkDiskIoHandler;
 
     std::unique_ptr<detail::ChunkSpoolerInterface> _internalChunkSpooler;
-    hg::NeverNull<detail::ChunkSpoolerInterface*> _chunkSpooler;
+    hg::NeverNull<detail::ChunkSpoolerInterface*>  _chunkSpooler;
 
     detail::ChunkStorageHandler _chunkStorage;
 
@@ -378,4 +379,4 @@ inline void World::Editor::setWallAtUnchecked(hg::math::Vector2pz               
 }
 
 } // namespace gridgoblin
-}
+} // namespace jbatnozic

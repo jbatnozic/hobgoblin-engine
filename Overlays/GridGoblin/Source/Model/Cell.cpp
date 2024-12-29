@@ -298,4 +298,4 @@ DrawMode CellModelExt::ExtensionData::determineDrawMode(float              aCell
 
 } // namespace detail
 } // namespace gridgoblin
-}
+} // namespace jbatnozic

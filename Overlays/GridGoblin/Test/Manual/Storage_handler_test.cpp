@@ -1,8 +1,8 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-#include <GridGoblin/Private/Chunk_storage_handler.hpp>
 #include <GridGoblin/Private/Chunk_spooler_default.hpp>
+#include <GridGoblin/Private/Chunk_storage_handler.hpp>
 
 #include <Hobgoblin/Graphics.hpp>
 #include <Hobgoblin/Logging.hpp>
@@ -49,10 +49,10 @@ public:
     void update(hg::math::Vector2pz aPosition) {
         if (aPosition != _playerPosition) {
             _playerPosition = aPosition;
-            const auto id = ChunkId{(std::uint16_t)aPosition.x, (std::uint16_t)aPosition.y};
+            const auto id   = ChunkId{(std::uint16_t)aPosition.x, (std::uint16_t)aPosition.y};
             _activeArea.setToChunkRingDiamond(id, 2);
         }
-        
+
         _chunkStorageHandler.update();
         _chunkStorageHandler.prune();
     }
@@ -117,7 +117,7 @@ class Fixture {
 public:
     jbatnozic::gridgoblin::test::FakeDiskIoHandler     _fakeDiskIoHandler;
     jbatnozic::gridgoblin::detail::DefaultChunkSpooler _chunkSpooler;
-    FakeWorld                              _fakeWorld{32, 32, _chunkSpooler};
+    FakeWorld                                          _fakeWorld{32, 32, _chunkSpooler};
 
     Fixture() {
         _chunkSpooler.setDiskIoHandler(&_fakeDiskIoHandler);
@@ -144,38 +144,38 @@ void RunStorageHandlerTest() {
         while (window.pollEvent(ev)) {
             ev.visit(
                 [&](const hg::win::Event::Closed&) {
-                window.close();
-            },
+                    window.close();
+                },
                 [&](const hg::win::Event::KeyPressed& aData) {
-                switch (aData.physicalKey) {
-                case hg::in::PK_LEFT:
-                    if (playerPosition.x > 0) {
-                        playerPosition.x -= 1;
-                    }
-                    break;
+                    switch (aData.physicalKey) {
+                    case hg::in::PK_LEFT:
+                        if (playerPosition.x > 0) {
+                            playerPosition.x -= 1;
+                        }
+                        break;
 
-                case hg::in::PK_RIGHT:
-                    if (playerPosition.x < CHUNK_COUNT_X - 1) {
-                        playerPosition.x += 1;
-                    }
-                    break;
+                    case hg::in::PK_RIGHT:
+                        if (playerPosition.x < CHUNK_COUNT_X - 1) {
+                            playerPosition.x += 1;
+                        }
+                        break;
 
-                case hg::in::PK_UP:
-                    if (playerPosition.y > 0) {
-                        playerPosition.y -= 1;
-                    }
-                    break;
+                    case hg::in::PK_UP:
+                        if (playerPosition.y > 0) {
+                            playerPosition.y -= 1;
+                        }
+                        break;
 
-                case hg::in::PK_DOWN:
-                    if (playerPosition.y < CHUNK_COUNT_Y - 1) {
-                        playerPosition.y += 1;
-                    }
-                    break;
+                    case hg::in::PK_DOWN:
+                        if (playerPosition.y < CHUNK_COUNT_Y - 1) {
+                            playerPosition.y += 1;
+                        }
+                        break;
 
-                default:
-                    break;
-                }
-            });
+                    default:
+                        break;
+                    }
+                });
         }
 
         window.clear(hg::gr::COLOR_LIGHT_GRAY);

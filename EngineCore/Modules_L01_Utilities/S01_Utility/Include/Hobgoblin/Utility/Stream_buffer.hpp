@@ -5,8 +5,8 @@
 #define UHOBGOBLIN_UTIL_STREAM_BUFFER_HPP
 
 #include <Hobgoblin/Utility/Stream_input.hpp>
-#include <Hobgoblin/Utility/Stream_output.hpp>
 #include <Hobgoblin/Utility/Stream_nothrow.hpp>
+#include <Hobgoblin/Utility/Stream_output.hpp>
 
 #include <Hobgoblin/Math/Core.hpp>
 
@@ -62,7 +62,7 @@ public:
 
     //! \brief Get a non-const pointer to the data contained in the BufferStream.
     //!
-    //! \warning the returned pointer may become invalid after you append data to 
+    //! \warning the returned pointer may become invalid after you append data to
     //!          the buffer, therefore it should never be stored.
     //!
     //! \warning the returned pointer will allow you to edit the data stored in the

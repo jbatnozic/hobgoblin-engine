@@ -262,4 +262,4 @@ void ChunkStorageHandler::_updateChunkUsage(
 
 } // namespace detail
 } // namespace gridgoblin
-}
+} // namespace jbatnozic

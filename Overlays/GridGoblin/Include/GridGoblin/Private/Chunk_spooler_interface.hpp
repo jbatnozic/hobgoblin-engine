@@ -51,12 +51,12 @@ public:
         //! Try to swap the priority of the request referred to by the handle with a new priortiy
         //! value. This can fail if the request is already being processed or has been cancelled or
         //! fully finished, in which cases the priority doesn't have a meaning anymore.
-        //! 
+        //!
         //! \returns previous priority if successful, or `std::nullopt` otherwise.
         virtual std::optional<hg::PZInteger> trySwapPriority(hg::PZInteger aNewPriority) = 0;
 
         //! Same as `trySwapPriority()`, but will only swap priorities if the new one is better.
-        //! 
+        //!
         //! \returns previous priority if successful, or `std::nullopt` otherwise.
         virtual std::optional<hg::PZInteger> tryBoostPriority(hg::PZInteger aNewPriority) = 0;
 
@@ -107,4 +107,4 @@ public:
 
 } // namespace detail
 } // namespace gridgoblin
-}
+} // namespace jbatnozic

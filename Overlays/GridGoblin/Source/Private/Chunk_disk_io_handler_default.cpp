@@ -21,8 +21,7 @@ const std::filesystem::path CHUNKS_FOLDER = "DCIO_CHUNKS";
 } // namespace
 
 DefaultChunkDiskIoHandler::DefaultChunkDiskIoHandler(const WorldConfig& aConfig)
-    : _basePath{aConfig.chunkDirectoryPath}
-//
+    : _basePath{aConfig.chunkDirectoryPath} //
 {
     if (const auto path = _basePath / CHUNKS_FOLDER; !std::filesystem::exists(path)) {
         std::filesystem::create_directory(path);

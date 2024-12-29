@@ -239,4 +239,4 @@ inline void CellModel::setOpenness(std::uint8_t aOpenness) {
 }
 
 } // namespace gridgoblin
-}
+} // namespace jbatnozic

@@ -3,8 +3,8 @@
 
 #include <Hobgoblin/Utility/Base64.hpp>
 
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 #include <cstdint>
 #include <string>
@@ -41,11 +41,10 @@ TEST(Base64Test, EncodeThenDecodeVariableLengthBuffer) {
         encodeBuffer.resize(pztos(encodeSizePrediction));
 
         // Encode
-        const auto encodeSizeActual =
-            Base64Encode(sourceBuffer.data(),
-                         stopz(sourceBuffer.size()),
-                         encodeBuffer.data(),
-                         stopz(encodeBuffer.size()));
+        const auto encodeSizeActual = Base64Encode(sourceBuffer.data(),
+                                                   stopz(sourceBuffer.size()),
+                                                   encodeBuffer.data(),
+                                                   stopz(encodeBuffer.size()));
 
         ASSERT_LE(encodeSizeActual, encodeSizePrediction);
         EXPECT_LE(encodeSizePrediction - encodeSizeActual, 4);
@@ -57,11 +56,10 @@ TEST(Base64Test, EncodeThenDecodeVariableLengthBuffer) {
             GetRecommendedOutputBufferSizeForBase64Decode(stopz(encodeBuffer.size()));
         decodeBuffer.resize(pztos(decodeSizePrediction));
 
-        const auto decodeSizeActual =
-            Base64Decode(encodeBuffer.data(),
-                         stopz(encodeBuffer.size()),
-                         decodeBuffer.data(),
-                         stopz(decodeBuffer.size()));
+        const auto decodeSizeActual = Base64Decode(encodeBuffer.data(),
+                                                   stopz(encodeBuffer.size()),
+                                                   decodeBuffer.data(),
+                                                   stopz(decodeBuffer.size()));
 
         ASSERT_LE(decodeSizeActual, decodeSizePrediction);
         EXPECT_LE(decodeSizePrediction - decodeSizeActual, 4);

@@ -6,16 +6,16 @@
 #include <Hobgoblin/Utility/Grids.hpp>
 #include <Hobgoblin/Window.hpp>
 
-#include <GridGoblin/Private/Chunk_spooler_default.hpp>
 #include "Fake_disk_io_handler.hpp"
+#include <GridGoblin/Private/Chunk_spooler_default.hpp>
 
 #include <memory>
 #include <unordered_map>
 
 namespace hg = jbatnozic::hobgoblin;
 
-using jbatnozic::gridgoblin::ChunkId;
 using jbatnozic::gridgoblin::Chunk;
+using jbatnozic::gridgoblin::ChunkId;
 using jbatnozic::gridgoblin::detail::ChunkSpoolerInterface;
 
 #define CHUNK_COUNT_X 32
@@ -179,7 +179,7 @@ class Fixture {
 public:
     jbatnozic::gridgoblin::test::FakeDiskIoHandler     _fakeDiskIoHandler;
     jbatnozic::gridgoblin::detail::DefaultChunkSpooler _chunkSpooler;
-    FakeWorld                              _fakeWorld{32, 32, _chunkSpooler};
+    FakeWorld                                          _fakeWorld{32, 32, _chunkSpooler};
 
     Fixture() {
         _chunkSpooler.setDiskIoHandler(&_fakeDiskIoHandler);

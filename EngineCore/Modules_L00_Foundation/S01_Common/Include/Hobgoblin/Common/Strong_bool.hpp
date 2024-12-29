@@ -20,7 +20,7 @@ public:
 //! to allow them to be checked for validity in an if-statement (by using
 //! `operator StrongBool`) where using `operator bool` would allow them to be cast into
 //! integral and pointer types by accident.
-//! 
+//!
 //! (don't focus too much on the actual underlying type)
 using StrongBool = StrongBoolImpl::BoolType;
 
