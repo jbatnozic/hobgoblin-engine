@@ -6,6 +6,7 @@
 #include <GridGoblin/Model/Chunk.hpp>
 #include <GridGoblin/Model/Chunk_id.hpp>
 
+#include <functional>
 #include <optional>
 #include <vector>
 
@@ -40,6 +41,8 @@ public:
     struct LoadRequest {
         ChunkId       chunkId;  //!< ID of the chunk to be loaded.
         hg::PZInteger priority; //!< Lower number = higher priority
+
+        std::function<void(ChunkId)> readyCallback; //!< Called when request is finished (not cancelled)
     };
 
     class RequestHandleInterface {

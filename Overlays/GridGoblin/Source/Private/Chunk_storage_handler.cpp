@@ -25,7 +25,7 @@ ChunkStorageHandler::ChunkStorageHandler(const WorldConfig& aConfig)
     , _freeChunkLimit{aConfig.maxLoadedNonessentialChunks} {}
 
 ///////////////////////////////////////////////////////////////////////////
-// DEPENDENCIES                                                          //
+// MARK: DEPENDENCIES                                                    //
 ///////////////////////////////////////////////////////////////////////////
 
 void ChunkStorageHandler::setChunkSpooler(ChunkSpoolerInterface* aChunkSpooler) {
@@ -37,7 +37,7 @@ void ChunkStorageHandler::setBinder(Binder* aBinder) {
 }
 
 ///////////////////////////////////////////////////////////////////////////
-// ACTIVE AREAS                                                          //
+// MARK: ACTIVE AREAS                                                    //
 ///////////////////////////////////////////////////////////////////////////
 
 ActiveArea ChunkStorageHandler::createNewActiveArea() {
@@ -45,7 +45,7 @@ ActiveArea ChunkStorageHandler::createNewActiveArea() {
 }
 
 ///////////////////////////////////////////////////////////////////////////
-// CYCLE                                                                 //
+// MARK: CYCLE                                                           //
 ///////////////////////////////////////////////////////////////////////////
 
 void ChunkStorageHandler::update() {
@@ -85,7 +85,7 @@ void ChunkStorageHandler::prune() {
 }
 
 ///////////////////////////////////////////////////////////////////////////
-// PRIVATE                                                               //
+// MARK: PRIVATE                                                         //
 ///////////////////////////////////////////////////////////////////////////
 
 /*
@@ -118,9 +118,11 @@ void ChunkStorageHandler::_loadChunkImmediately(ChunkId aChunkId) {
     }
 
     hg::util::Stopwatch stopwatch;
-    for (int i = 0; !requestHandle->isFinished(); i += 1) {
+    int i = 0;
+    while (!requestHandle->isFinished()) {
         if (stopwatch.getElapsedTime() >= std::chrono::milliseconds{10}) {
             stopwatch.restart();
+            i += 1;
             HG_LOG_WARN(LOG_ID, "Blocking until chunk {} is loaded ({}ms elapsed so far).", id, i * 10);
         }
         std::this_thread::yield();
@@ -199,7 +201,18 @@ void ChunkStorageHandler::_updateChunkUsage(
                     HG_ASSERT(cb.usageCount <= -usageDelta);
                     if ((cb.usageCount += usageDelta) == 0) {
                         if (cb.requestHandle) {
-                            cb.requestHandle->cancel();
+                            if (cb.requestHandle->isFinished()) {
+                                // Handle edge case where the request was finished but the owning
+                                // active area moves before the chunk could be integrated
+                                auto chunk = cb.requestHandle->takeChunk();
+                                if (chunk.has_value()) {
+                                    _onChunkLoaded(chunkId, std::move(*chunk));
+                                } else {
+                                    _createDefaultChunk(chunkId);
+                                }
+                            } else {
+                                cb.requestHandle->cancel();
+                            }
                         }
                         if (!CHUNK_AT_ID(chunkId).isEmpty()) {
                             _freeChunks.insert(
@@ -238,9 +251,14 @@ void ChunkStorageHandler::_updateChunkUsage(
         HG_ASSERT(usageDelta >= 0);
         if (usageDelta > 0) {
             auto& cb      = _chunkControlBlocks[chunkId];
+            HG_HARD_ASSERT(_chunkControlBlocks.size() > 0);
             cb.usageCount = usageDelta;
             cbs.push_back(&cb);
-            requests.push_back({chunkId, change.loadPriority});
+            requests.push_back({chunkId, change.loadPriority, [this](ChunkId aChunkId) {
+                                    if (_binder != nullptr) {
+                                        _binder->onChunkReady(aChunkId);
+                                    }
+                                }});
         } else {
             HG_LOG_WARN(LOG_ID,
                         "Usage delta of 0 or less ({}) received for chunk {}.",
@@ -257,6 +275,111 @@ void ChunkStorageHandler::_updateChunkUsage(
         for (std::size_t i = 0; i < handles.size(); i += 1) {
             cbs[i]->requestHandle = std::move(handles[i]);
         }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////
+// MARK: ITERATOR                                                        //
+///////////////////////////////////////////////////////////////////////////
+
+void ChunkStorageHandler::AvailableChunkIterator::advance() {
+    if (_isEndIter) {
+        return;
+    }
+
+    switch (_selector) {
+    case SELECTOR_CB:
+        while (true) {
+            ++_cbIter;
+            if (_cbIter == _cbMap.end()) {
+                if (!_fcMap.empty()) {
+                    _fcIter   = _fcMap.begin();
+                    _selector = SELECTOR_FC;
+                } else {
+                    _isEndIter = true;
+                }
+                break;
+            } else if (_cbIter->second.isChunkLoaded()) {
+                break;
+            }
+        }
+        break;
+
+    case SELECTOR_FC:
+        ++_fcIter;
+        if (_fcIter == _fcMap.end()) {
+            _isEndIter = true;
+        }
+        break;
+
+    default:
+        HG_UNREACHABLE("Invalid _selector value ({}).", (int)_selector);
+    }
+}
+
+ChunkId ChunkStorageHandler::AvailableChunkIterator::dereference() const {
+    HG_ASSERT(!_isEndIter);
+    if (_isEndIter) {
+        return {};
+    }
+
+    switch (_selector) {
+    case SELECTOR_CB:
+        return _cbIter->first;
+
+    case SELECTOR_FC:
+        return _fcIter->first;
+
+    default:
+        HG_UNREACHABLE("Invalid _selector value ({}).", (int)_selector);
+    }
+}
+
+bool ChunkStorageHandler::AvailableChunkIterator::equals(const AvailableChunkIterator& aOther) const {
+    if (&_cbMap == &aOther._cbMap && &_fcMap == &aOther._fcMap) {
+        if (_isEndIter && aOther._isEndIter) {
+            return true;
+        }
+        if (_isEndIter != aOther._isEndIter || _selector != aOther._selector) {
+            return false;
+        }
+        switch (_selector) {
+        case SELECTOR_CB:
+            return _cbIter == aOther._cbIter;
+
+        case SELECTOR_FC:
+            return _fcIter == aOther._fcIter;
+
+        default:
+            HG_UNREACHABLE("Invalid _selector value ({}).", (int)_selector);
+        }
+    }
+    return false;
+}
+
+ChunkStorageHandler::AvailableChunkIterator::AvailableChunkIterator(
+    const decltype(_chunkControlBlocks)& aCbMap,
+    const decltype(_freeChunks)&         aFcMap,
+    bool                                 aIsEndIter)
+    : _cbMap{aCbMap}
+    , _cbIter{_cbMap.begin()}
+    , _fcMap{aFcMap}
+    , _fcIter{_fcMap.begin()}
+    , _isEndIter{aIsEndIter} //
+{
+    if (!_isEndIter) {
+        if (!_cbMap.empty()) {
+            _selector = SELECTOR_CB;
+            while (_selector == SELECTOR_CB && !_cbIter->second.isChunkLoaded()) {
+                advance();
+            }
+            return;
+        }
+        if (!_fcMap.empty()) {
+            _selector = SELECTOR_FC;
+            return;
+        }
+        _isEndIter = true;
     }
 }
 

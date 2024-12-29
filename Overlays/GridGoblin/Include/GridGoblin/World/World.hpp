@@ -46,6 +46,7 @@ class World : private Binder {
 public:
     World(const WorldConfig& aConfig);
 
+    //! Testing constructor
     World(const WorldConfig&                                  aConfig,
           hg::NeverNull<detail::ChunkDiskIoHandlerInterface*> aChunkDiskIoHandler);
 
@@ -229,7 +230,58 @@ public:
 
     const Chunk& getChunkAtIdUnchecked(const EditPermission& aPerm, ChunkId aChunkId) const;
 
-    // TODO: iterate over all loaded chunks
+    //! Iterator-like object used to traverse through all the chunks that are currently loaded
+    //! and available through the world instance. The order of traversal throught he chunks is
+    //! indeterminate and should be considered random.
+    class AvailableChunkIterator {
+    public:
+        using value_type = ChunkId;
+
+        void advance() {
+            _impl.advance();
+        }
+
+        AvailableChunkIterator& operator++() {
+            advance();
+            return *this;
+        }
+
+        value_type operator*() const {
+            return _impl.dereference();
+        }
+
+        bool operator==(const AvailableChunkIterator& aOther) const {
+            return _impl.equals(aOther._impl);
+        }
+
+    private:
+        friend class World;
+
+        AvailableChunkIterator(detail::ChunkStorageHandler::AvailableChunkIterator aImpl)
+            : _impl{aImpl} {}
+
+        detail::ChunkStorageHandler::AvailableChunkIterator _impl;
+    };
+
+    //! Begin interating through available chunks.
+    //!
+    //! \warning the returned iterator, as well as all of its copies and modifications remain valid only
+    //!          so long as the world is not edited (editing means calling any function that requires
+    //!          an `EditPermission` as a parameter). Using an invalid iterator in any way, other than
+    //!          to destroy it, can lead to unexpected results, which can include crashes.
+    AvailableChunkIterator availableChunksBegin() const {
+        return {_chunkStorage.availableChunksBegin()};
+    }
+
+    //! Obtain an end iterator to compare the others to while iterating.
+    //!
+    //! \warning the returned iterator, as well as all of its copies and modifications remain valid only
+    //!          so long as the world is not edited (editing means calling any function that requires
+    //!          an `EditPermission` as a parameter). Using an invalid iterator in any way, other than
+    //!          to destroy it, can lead to unexpected results, which can include crashes.
+    AvailableChunkIterator availableChunksEnd() const {
+        return {_chunkStorage.availableChunksEnd()};
+    }
 
     ///////////////////////////////////////////////////////////////////////////
     // ACTIVE AREAS                                                          //
@@ -273,6 +325,7 @@ private:
 
     void _refreshCellsInAndAroundChunk(ChunkId aChunkId);
 
+    void onChunkReady(ChunkId aChunkId) override;
     void onChunkLoaded(ChunkId aChunkId, const Chunk& aChunk) override;
     void onChunkCreated(ChunkId aChunkId, const Chunk& aChunk) override;
     void onChunkUnloaded(ChunkId aChunkId) override;

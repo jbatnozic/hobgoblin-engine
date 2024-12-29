@@ -14,9 +14,9 @@
 
 #include <Hobgoblin/Utility/Grids.hpp>
 #include <Hobgoblin/Utility/Value_sorted_map.hpp>
+
 #include <chrono>
 #include <memory>
-#include <optional>
 #include <unordered_map>
 
 namespace jbatnozic {
@@ -39,7 +39,7 @@ public:
     ChunkStorageHandler(const WorldConfig& aConfig);
 
     ///////////////////////////////////////////////////////////////////////////
-    // DEPENDENCIES                                                          //
+    // MARK: DEPENDENCIES                                                    //
     ///////////////////////////////////////////////////////////////////////////
 
     void setChunkSpooler(ChunkSpoolerInterface* aChunkSpooler);
@@ -47,13 +47,13 @@ public:
     void setBinder(Binder* aBinder);
 
     ///////////////////////////////////////////////////////////////////////////
-    // ACTIVE AREAS                                                          //
+    // MARK: ACTIVE AREAS                                                    //
     ///////////////////////////////////////////////////////////////////////////
 
     ActiveArea createNewActiveArea();
 
     ///////////////////////////////////////////////////////////////////////////
-    // CYCLE                                                                 //
+    // MARK: CYCLE                                                           //
     ///////////////////////////////////////////////////////////////////////////
 
     //! Collects all chunks that were loaded since the last call to `update()`
@@ -63,7 +63,7 @@ public:
     void prune();
 
     ///////////////////////////////////////////////////////////////////////////
-    // CHUNK GETTERS                                                         //
+    // MARK: CHUNK GETTERS                                                   //
     ///////////////////////////////////////////////////////////////////////////
 
     //! Returns the number of chunks along the X axis.
@@ -122,7 +122,7 @@ public:
     }
 
     ///////////////////////////////////////////////////////////////////////////
-    // CELL GETTERS                                                          //
+    // MARK: CELL GETTERS                                                    //
     ///////////////////////////////////////////////////////////////////////////
 
     //! Returns a mutable reference to the cell at (aX, aY) WITHOUT CHECKING BOUNDS.
@@ -194,6 +194,10 @@ private:
     struct ChunkControlBlock {
         std::shared_ptr<ChunkSpoolerInterface::RequestHandleInterface> requestHandle = nullptr;
         hg::PZInteger                                                  usageCount    = 0;
+
+        bool isChunkLoaded() const {
+            return requestHandle == nullptr;
+        }
     };
 
     mutable std::unordered_map<ChunkId, ChunkControlBlock> _chunkControlBlocks;
@@ -224,6 +228,47 @@ private:
     void _createDefaultChunk(ChunkId aChunkId);
 
     void _updateChunkUsage(const std::vector<detail::ChunkUsageChange>& aChunkUsageChanges);
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    // MARK: ITERATOR                                                        //
+    ///////////////////////////////////////////////////////////////////////////
+
+    class AvailableChunkIterator {
+    public:
+        void advance();
+
+        ChunkId dereference() const;
+
+        bool equals(const AvailableChunkIterator& aOther) const;
+
+    private:
+        friend class ChunkStorageHandler;
+
+        AvailableChunkIterator(const decltype(_chunkControlBlocks)& aCbMap,
+                               const decltype(_freeChunks)&         aFcMap,
+                               bool                                 aIsEndIter);
+
+        const decltype(_chunkControlBlocks)&          _cbMap;
+        decltype(_chunkControlBlocks)::const_iterator _cbIter;
+
+        const decltype(_freeChunks)&          _fcMap;
+        decltype(_freeChunks)::const_iterator _fcIter;
+
+        static constexpr char SELECTOR_CB = 'c';
+        static constexpr char SELECTOR_FC = 'f';
+
+        char _selector;
+        bool _isEndIter;
+    };
+
+    AvailableChunkIterator availableChunksBegin() const {
+        return {_chunkControlBlocks, _freeChunks, false};
+    }
+
+    AvailableChunkIterator availableChunksEnd() const {
+        return {_chunkControlBlocks, _freeChunks, true};
+    }
 };
 
 } // namespace detail

@@ -1,4 +1,4 @@
-# !/usr/bin/env python
+#!/usr/bin/env python
 
 # Script obtained from https://github.com/Sarcasm/run-clang-format/tree/master
 
