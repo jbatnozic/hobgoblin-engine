@@ -41,9 +41,12 @@ void UnloadChunk(const Chunk& aChunk, ChunkId aChunkId, ChunkDiskIoHandlerInterf
 
 class RequestHandleImpl final : public DefaultChunkSpooler::RequestHandleInterface {
 public:
-    RequestHandleImpl(DefaultChunkSpooler& aSpooler, ChunkId aChunkId)
+    RequestHandleImpl(DefaultChunkSpooler&         aSpooler,
+                      ChunkId                      aChunkId,
+                      std::function<void(ChunkId)> aReadyCallback)
         : _spooler{aSpooler}
-        , _chunkId{aChunkId} {}
+        , _chunkId{aChunkId}
+        , _readyCallback{std::move(aReadyCallback)} {}
 
     ~RequestHandleImpl() override = default;
 
@@ -107,16 +110,23 @@ public:
         std::unique_lock<std::mutex> lock{_mutex};
         _chunk      = std::move(aChunkOpt);
         _isFinished = true;
+
+        lock.unlock();
+
+        if (_readyCallback) {
+            _readyCallback(_chunkId);
+        }
     }
 
 private:
     DefaultChunkSpooler& _spooler;
     ChunkId              _chunkId;
 
-    mutable std::mutex   _mutex;
-    std::optional<Chunk> _chunk;
-    bool                 _isCancelled = false;
-    bool                 _isFinished  = false;
+    mutable std::mutex           _mutex;
+    std::optional<Chunk>         _chunk;
+    std::function<void(ChunkId)> _readyCallback = nullptr;
+    bool                         _isCancelled   = false;
+    bool                         _isFinished    = false;
 };
 
 ///////////////////////////////////////////////////////////////////////////
@@ -171,7 +181,9 @@ bool DefaultChunkSpooler::isPaused() const {
 }
 
 std::vector<std::shared_ptr<DefaultChunkSpooler::RequestHandleInterface>> DefaultChunkSpooler::
-    loadChunks(const std::vector<LoadRequest>& aLoadRequests) {
+    loadChunks(const std::vector<LoadRequest>& aLoadRequests)
+//
+{
     if (aLoadRequests.empty()) {
         return {};
     }
@@ -283,8 +295,12 @@ void DefaultChunkSpooler::_workerBody() {
 
 std::shared_ptr<DefaultChunkSpooler::RequestHandleInterface> DefaultChunkSpooler::_onNewLoadRequest(
     LoadRequest aLoadRequest,
-    const std::unique_lock<Mutex>&) {
-    auto handle = std::make_shared<RequestHandleImpl>(*this, aLoadRequest.chunkId);
+    const std::unique_lock<Mutex>&)
+//
+{
+    auto handle = std::make_shared<RequestHandleImpl>(*this,
+                                                      aLoadRequest.chunkId,
+                                                      std::move(aLoadRequest.readyCallback));
 
     const auto iter = _requests.find(aLoadRequest.chunkId);
     if (iter != _requests.end()) {

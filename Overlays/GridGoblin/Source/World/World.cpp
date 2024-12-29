@@ -476,6 +476,12 @@ void World::_refreshCellsInAndAroundChunk(ChunkId aChunkId) {
     }
 }
 
+void World::onChunkReady(ChunkId aChunkId) {
+    if (_binder) {
+        _binder->onChunkReady(aChunkId);
+    }
+}
+
 void World::onChunkLoaded(ChunkId aChunkId, const Chunk& aChunk) {
     _refreshCellsInAndAroundChunk(aChunkId);
 

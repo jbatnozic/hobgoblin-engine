@@ -19,10 +19,18 @@ namespace test {
 
 class FakeDiskIoHandler : public detail::ChunkDiskIoHandlerInterface {
 public:
+    void setRuntimeCacheDelay(std::chrono::milliseconds aDelay) {
+        _runtimeCacheDelay = aDelay;
+    }
+
+    void setPersistentCacheDelay(std::chrono::milliseconds aDelay) {
+        _persistentCacheDelay = aDelay;
+    }
+
     void setBinder(Binder*) override {}
 
     std::optional<Chunk> loadChunkFromRuntimeCache(ChunkId aChunkId) override {
-        std::this_thread::sleep_for(std::chrono::milliseconds{50});
+        std::this_thread::sleep_for(std::chrono::milliseconds{_runtimeCacheDelay});
 
         const auto iter = _runtimeCache.find(aChunkId);
         if (iter == _runtimeCache.end()) {
@@ -32,12 +40,12 @@ public:
     }
 
     void storeChunkInRuntimeCache(const Chunk& aChunk, ChunkId aChunkId) override {
-        std::this_thread::sleep_for(std::chrono::milliseconds{50});
+        std::this_thread::sleep_for(std::chrono::milliseconds{_runtimeCacheDelay});
         _runtimeCache[aChunkId] = detail::ChunkToJsonString(aChunk);
     }
 
     std::optional<Chunk> loadChunkFromPersistentCache(ChunkId aChunkId) override {
-        std::this_thread::sleep_for(std::chrono::milliseconds{200});
+        std::this_thread::sleep_for(std::chrono::milliseconds{_persistentCacheDelay});
 
         const auto iter = _persistentCache.find(aChunkId);
         if (iter == _persistentCache.end()) {
@@ -47,7 +55,7 @@ public:
     }
 
     void storeChunkInPersistentCache(const Chunk& aChunk, ChunkId aChunkId) override {
-        std::this_thread::sleep_for(std::chrono::milliseconds{200});
+        std::this_thread::sleep_for(std::chrono::milliseconds{_persistentCacheDelay});
         _persistentCache[aChunkId] = detail::ChunkToJsonString(aChunk);
     }
 
@@ -61,6 +69,9 @@ public:
 private:
     std::unordered_map<ChunkId, std::string> _runtimeCache;
     std::unordered_map<ChunkId, std::string> _persistentCache;
+
+    std::chrono::milliseconds _runtimeCacheDelay    = std::chrono::milliseconds{50};
+    std::chrono::milliseconds _persistentCacheDelay = std::chrono::milliseconds{50};
 };
 
 } // namespace test
