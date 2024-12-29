@@ -118,7 +118,7 @@ void ChunkStorageHandler::_loadChunkImmediately(ChunkId aChunkId) {
     }
 
     hg::util::Stopwatch stopwatch;
-    int i = 0;
+    int                 i = 0;
     while (!requestHandle->isFinished()) {
         if (stopwatch.getElapsedTime() >= std::chrono::milliseconds{10}) {
             stopwatch.restart();
@@ -250,7 +250,7 @@ void ChunkStorageHandler::_updateChunkUsage(
         // request a load
         HG_ASSERT(usageDelta >= 0);
         if (usageDelta > 0) {
-            auto& cb      = _chunkControlBlocks[chunkId];
+            auto& cb = _chunkControlBlocks[chunkId];
             HG_HARD_ASSERT(_chunkControlBlocks.size() > 0);
             cb.usageCount = usageDelta;
             cbs.push_back(&cb);

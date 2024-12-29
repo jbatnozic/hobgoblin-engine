@@ -44,9 +44,13 @@ class ChunkSpoolerInterface;
  */
 class World : private Binder {
 public:
+    //! Main constructor.
     World(const WorldConfig& aConfig);
 
-    //! Testing constructor
+    //! Test constructor.
+    //!
+    //! \warning This constructor is meant to be used for testing. Do not use it if you are not a
+    //!          library maintainer!
     World(const WorldConfig&                                  aConfig,
           hg::NeverNull<detail::ChunkDiskIoHandlerInterface*> aChunkDiskIoHandler);
 
