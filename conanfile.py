@@ -93,8 +93,10 @@ class HobgoblinConan(ConanFile):
         self.requires("icu/74.1",                   transitive_headers=True)
 
         # Private
+        self.requires("base64/0.5.2")
         self.requires("glew/2.2.0")
         self.requires("gtest/1.14.0")
+        self.requires("rapidjson/cci.20230929")
         self.requires("ztcpp/3.0.3@jbatnozic/stable")
         
         # Overrides (transitive dependencies)

@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
     window.setFramerateLimit(60);
 
     CostProvider provider;
-    provider.costs.resize(GRID_W, GRID_H);
+    provider.costs.reset(GRID_W, GRID_H);
     provider.costs.setAll(1);
 
     for (hg::PZInteger y = 0; y < GRID_H; y += 1) {

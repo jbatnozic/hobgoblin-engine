@@ -95,7 +95,7 @@ public:
     //!
     //! Returns a pointer to a buffer of size N containing the next N bytes to be
     //! extracted from the stream, where N is equal to `aByteCount`. These bytes
-    //! can then be modified, copied, read directly or otherwise used. Any subsequent
+    //! can then be copied, read directly or otherwise used. Any subsequent
     //! operation on the stream will invalidate the returned pointer, so you should
     //! process the data immediately. In any case, this function will advance the
     //! stream's internal reading position by `aByteCount`.
@@ -108,7 +108,7 @@ public:
     //! \throws StreamReadError if stream has less than `aByteCount` bytes left
     //!         to extract. If this exception is thrown, the stream's read error
     //!         flag will also be set.
-    HG_NODISCARD void* readInPlace(std::int64_t aByteCount);
+    HG_NODISCARD const void* readInPlace(std::int64_t aByteCount);
 
     //! \brief Extracts raw data from the stream; does not throw on failure.
     //!
@@ -118,7 +118,7 @@ public:
     //!
     //! Returns a pointer to a buffer of size N containing the next N bytes to be
     //! extracted from the stream, where N is equal to `aByteCount`. These bytes
-    //! can then be modified, copied, read directly or otherwise used. Any subsequent
+    //! can then be copied, read directly or otherwise used. Any subsequent
     //! operation on the stream will invalidate the returned pointer, so you should
     //! process the data immediately. In any case, this function will advance the
     //! stream's internal reading position by `aByteCount`.
@@ -129,7 +129,7 @@ public:
     //!          or if the concrete stream implementation does not support this method,
     //!          or if the stream has less than `aByteCount` bytes left to extract
     //!          (in this case the stream's read error flag will also be set.).
-    HG_NODISCARD void* readInPlaceNoThrow(std::int64_t aByteCount);
+    HG_NODISCARD const void* readInPlaceNoThrow(std::int64_t aByteCount);
 
     //! Extracts an object of type `T` from the stream (assuming it has the proper `operator>>`
     //! defined.
@@ -314,9 +314,9 @@ private:
                                std::int64_t     aByteCount,
                                bool             aAllowPartal) = 0;
     //! Implementation for `readInPlace`.
-    virtual void* _readInPlace(std::int64_t aByteCount) = 0;
+    virtual const void* _readInPlace(std::int64_t aByteCount) = 0;
     //! Implementation for `readInPlaceNoThrow`.
-    virtual std::int64_t _readInPlaceNoThrow(std::int64_t aByteCount, void** aResult) = 0;
+    virtual std::int64_t _readInPlaceNoThrow(std::int64_t aByteCount, const void** aResult) = 0;
     //! Implementation for `setReadError`.
     virtual void _setReadError() = 0;
     //! Implementation for `_setNotGood`.
@@ -365,7 +365,7 @@ inline std::int64_t InputStream::read(NeverNull<void*> aDestination,
     return result;
 }
 
-inline void* InputStream::readInPlace(std::int64_t aByteCount) {
+inline const void* InputStream::readInPlace(std::int64_t aByteCount) {
     try {
         return _readInPlace(aByteCount);
     } catch (const std::exception& aEx) {
@@ -374,8 +374,8 @@ inline void* InputStream::readInPlace(std::int64_t aByteCount) {
     }
 }
 
-inline void* InputStream::readInPlaceNoThrow(std::int64_t aByteCount) {
-    void*      result;
+inline const void* InputStream::readInPlaceNoThrow(std::int64_t aByteCount) {
+    const void* result;
     const auto code = _readInPlaceNoThrow(aByteCount, &result);
     _setErrorIfNeeded(code);
     return result;

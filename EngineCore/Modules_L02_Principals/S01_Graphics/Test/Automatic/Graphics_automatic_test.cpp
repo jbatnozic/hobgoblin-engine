@@ -69,7 +69,6 @@ TEST(SpriteLoadingTest, LoadOriginOffset_SingleSubspriteExamples) {
         {
             const auto blueprint = loader.getBlueprint(SPRITE_ID);
             EXPECT_TRUE(blueprint.hasExplicitOrigin());
-
             const auto sprite = blueprint.spr();
             CheckOriginCorrectness(sprite, _case.expectedOffset);
         }

@@ -32,6 +32,10 @@ std::int64_t BufferStream::_write(NeverNull<const void*> aData,
 }
 
 std::int64_t BufferStream::_seek(std::int64_t aPosition) {
+    if (_readErrorLevel < 0) {
+        return _readErrorLevel;
+    }
+
     if (_buffer.size() == 0) {
         return 0;
     }
@@ -44,6 +48,10 @@ std::int64_t BufferStream::_seek(std::int64_t aPosition) {
 }
 
 std::int64_t BufferStream::_seekRelative(std::int64_t aOffset) {
+    if (_readErrorLevel < 0) {
+        return _readErrorLevel;
+    }
+
     if (_buffer.size() == 0) {
         return 0;
     }
@@ -74,14 +82,14 @@ std::int64_t BufferStream::_read(NeverNull<void*> aDestination, std::int64_t aBy
     } else if (aAllowPartal && rem > 0) {
         std::memcpy(aDestination, &(_buffer[_readPos]), rem);
         _readPos += rem;
-        return (int)rem;
+        return (std::int64_t)rem;
     } else {
         return 0;
     }
 }
 
-void* BufferStream::_readInPlace(std::int64_t aByteCount) {
-    void* result = readInPlaceNoThrow(aByteCount);
+const void* BufferStream::_readInPlace(std::int64_t aByteCount) {
+    const void* result = readInPlaceNoThrow(aByteCount);
     if (!SELF) {
         HG_THROW_TRACED(
             StreamReadError,
@@ -93,7 +101,7 @@ void* BufferStream::_readInPlace(std::int64_t aByteCount) {
     return result;
 }
 
-std::int64_t BufferStream::_readInPlaceNoThrow(std::int64_t aByteCount, void** aResult) {
+std::int64_t BufferStream::_readInPlaceNoThrow(std::int64_t aByteCount, const void** aResult) {
     if (_readErrorLevel < 0) {
         *aResult = nullptr;
         return _readErrorLevel;

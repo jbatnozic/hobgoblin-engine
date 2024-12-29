@@ -3,6 +3,7 @@
 
 # ===== COMPONENT SETUP =====
 
+find_package(base64 CONFIG REQUIRED)
 find_package(SFML CONFIG REQUIRED)
 
 set(COMPONENT_NAME "Hobgoblin.Utility")
@@ -10,7 +11,9 @@ set(COMPONENT_NAME "Hobgoblin.Utility")
 # ===== GATHER SOURCES ======
 
 set(COMPONENT_SOURCES
+  "Source/Base64.cpp"
   "Source/Dynamic_bitset.cpp"
+  "Source/File_io.cpp"
   "Source/Flow_field_spooler_impl.cpp"
   "Source/Randomization.cpp"
   "Source/Serialization.cpp"
@@ -38,6 +41,7 @@ PUBLIC
     "Hobgoblin_L01_S00_Math"
 
     # External
+    "aklomp::base64"
     "sfml::sfml"
 )
 

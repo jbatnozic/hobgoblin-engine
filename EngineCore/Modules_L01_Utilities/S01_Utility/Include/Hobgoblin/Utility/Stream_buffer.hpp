@@ -4,7 +4,9 @@
 #ifndef UHOBGOBLIN_UTIL_STREAM_BUFFER_HPP
 #define UHOBGOBLIN_UTIL_STREAM_BUFFER_HPP
 
-#include <Hobgoblin/Utility/Streams.hpp>
+#include <Hobgoblin/Utility/Stream_input.hpp>
+#include <Hobgoblin/Utility/Stream_output.hpp>
+#include <Hobgoblin/Utility/Stream_nothrow.hpp>
 
 #include <Hobgoblin/Math/Core.hpp>
 
@@ -151,9 +153,9 @@ private:
                        std::int64_t     aByteCount,
                        bool             aAllowPartal) override;
 
-    void* _readInPlace(std::int64_t aByteCount) override;
+    const void* _readInPlace(std::int64_t aByteCount) override;
 
-    std::int64_t _readInPlaceNoThrow(std::int64_t aByteCount, void** aResult) override;
+    std::int64_t _readInPlaceNoThrow(std::int64_t aByteCount, const void** aResult) override;
 
     // ===== State Checking =====
 

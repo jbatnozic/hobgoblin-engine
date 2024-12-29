@@ -38,7 +38,7 @@ std::optional<OriginOffset> LoadOriginOffset(const std::filesystem::path& aOrigi
     const auto* pattern =
         uR"_(\s*([a-z]+)[\s]+x:[\s]*([+-]?[0-9]+[.]?[0-9]*)[\s]+y:[\s]*([+-]?[0-9]+[.]?[0-9]*)[\s]*)_";
 
-    UErrorCode status = U_ZERO_ERROR;
+    UErrorCode status  = U_ZERO_ERROR;
     auto       matcher = icu::RegexMatcher(pattern, UREGEX_CASE_INSENSITIVE, status);
     HG_HARD_ASSERT(U_SUCCESS(status));
 
