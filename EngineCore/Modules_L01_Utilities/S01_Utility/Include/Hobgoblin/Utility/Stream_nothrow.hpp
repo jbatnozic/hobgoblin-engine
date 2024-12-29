@@ -19,7 +19,11 @@ class FreeNoThrowAdapter {
 public:
     // clang-format off
     template <class T2,
+<<<<<<< HEAD
+        T_ENABLE_IF(OutputStream::supports_appending_of<T2&>::value)>
+=======
               T_ENABLE_IF(OutputStream::supports_appending_of<T2&>::value)>
+>>>>>>> master
     FreeNoThrowAdapter& operator<<(T2& aRef) {
         _stream.appendNoThrow(aRef);
         return SELF;

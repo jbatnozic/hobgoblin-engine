@@ -18,9 +18,12 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace util {
 
+<<<<<<< HEAD
+=======
 //! Fulfills the `InputStream` interface by reading the data from any preallocated buffer of
 //! contiguous data (the buffer is defined by the starting address and a byte count, just like for
 //! a span or view).
+>>>>>>> master
 class ViewStream final : public InputStream {
 public:
     //! \brief Default constructor
@@ -145,16 +148,24 @@ private:
         const std::size_t min = 0;
         const std::size_t max = _dataLength - 1;
 
+<<<<<<< HEAD
+        const std::size_t newPos = static_cast<std::size_t>(static_cast<std::int64_t>(_readPos) + aOffset);
+=======
         const std::size_t newPos =
             static_cast<std::size_t>(static_cast<std::int64_t>(_readPos) + aOffset);
+>>>>>>> master
 
         _readPos = math::Clamp(newPos, min, max);
         return static_cast<std::int64_t>(_readPos);
     }
 
+<<<<<<< HEAD
+    std::int64_t _read(NeverNull<void*> aDestination, PZInteger aByteCount, bool aAllowPartal) override {
+=======
     std::int64_t _read(NeverNull<void*> aDestination,
                        std::int64_t     aByteCount,
                        bool             aAllowPartal) override {
+>>>>>>> master
         if (_readErrorLevel < 0) {
             return _readErrorLevel;
         }
@@ -164,9 +175,15 @@ private:
         }
 
         const auto rem = _dataLength - _readPos;
+<<<<<<< HEAD
+        if (rem >= pztos(aByteCount)) {
+            std::memcpy(aDestination, static_cast<const char*>(_data) + _readPos, pztos(aByteCount));
+            _readPos += pztos(aByteCount);
+=======
         if (rem >= ToSz(aByteCount)) {
             std::memcpy(aDestination, static_cast<const char*>(_data) + _readPos, ToSz(aByteCount));
             _readPos += ToSz(aByteCount);
+>>>>>>> master
             return aByteCount;
         } else if (aAllowPartal && rem > 0) {
             std::memcpy(aDestination, static_cast<const char*>(_data) + _readPos, rem);
@@ -177,6 +194,17 @@ private:
         }
     }
 
+<<<<<<< HEAD
+    const void* _readInPlace(PZInteger aByteCount) override {
+        const void* result = readInPlaceNoThrow(aByteCount);
+        if (!SELF) {
+            HG_THROW_TRACED(
+                StreamReadError,
+                0,
+                "Failed to extract {} raw bytes from hg::util::ViewStream (actual # of bytes remaining: {}).",
+                aByteCount,
+                getRemainingDataSize());
+=======
     const void* _readInPlace(std::int64_t aByteCount) override {
         const void* result = readInPlaceNoThrow(aByteCount);
         if (!SELF) {
@@ -186,11 +214,16 @@ private:
                             "bytes remaining: {}).",
                             aByteCount,
                             getRemainingDataSize());
+>>>>>>> master
         }
         return result;
     }
 
+<<<<<<< HEAD
+    std::int64_t _readInPlaceNoThrow(PZInteger aByteCount, const void** aResult) override {
+=======
     std::int64_t _readInPlaceNoThrow(std::int64_t aByteCount, const void** aResult) override {
+>>>>>>> master
         if (_readErrorLevel < 0) {
             *aResult = nullptr;
             return _readErrorLevel;
@@ -202,13 +235,21 @@ private:
         }
 
         const auto rem = _dataLength - _readPos;
+<<<<<<< HEAD
+        if (pztos(aByteCount) > rem) {
+=======
         if (ToSz(aByteCount) > rem) {
+>>>>>>> master
             *aResult = nullptr;
             return E_FAILURE;
         }
 
         *aResult = static_cast<const char*>(_data) + _readPos;
+<<<<<<< HEAD
+        _readPos += pztos(aByteCount);
+=======
         _readPos += ToSz(aByteCount);
+>>>>>>> master
         return aByteCount;
     }
 

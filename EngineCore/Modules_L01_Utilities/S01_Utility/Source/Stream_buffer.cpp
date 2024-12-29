@@ -31,7 +31,11 @@ std::int64_t BufferStream::_write(NeverNull<const void*> aData,
     return aByteCount;
 }
 
+<<<<<<< HEAD:EngineCore/Modules_L01_Utilities/S01_Utility/Source/Packet.cpp
+std::int64_t Packet::_seek(std::int64_t aPosition) {
+=======
 std::int64_t BufferStream::_seek(std::int64_t aPosition) {
+>>>>>>> master:EngineCore/Modules_L01_Utilities/S01_Utility/Source/Stream_buffer.cpp
     if (_readErrorLevel < 0) {
         return _readErrorLevel;
     }
@@ -47,7 +51,11 @@ std::int64_t BufferStream::_seek(std::int64_t aPosition) {
     return static_cast<std::int64_t>(_readPos);
 }
 
+<<<<<<< HEAD:EngineCore/Modules_L01_Utilities/S01_Utility/Source/Packet.cpp
+std::int64_t Packet::_seekRelative(std::int64_t aOffset) {
+=======
 std::int64_t BufferStream::_seekRelative(std::int64_t aOffset) {
+>>>>>>> master:EngineCore/Modules_L01_Utilities/S01_Utility/Source/Stream_buffer.cpp
     if (_readErrorLevel < 0) {
         return _readErrorLevel;
     }
@@ -90,7 +98,11 @@ std::int64_t BufferStream::_read(NeverNull<void*> aDestination,
     }
 }
 
+<<<<<<< HEAD:EngineCore/Modules_L01_Utilities/S01_Utility/Source/Packet.cpp
+const void* Packet::_readInPlace(PZInteger aByteCount) {
+=======
 const void* BufferStream::_readInPlace(std::int64_t aByteCount) {
+>>>>>>> master:EngineCore/Modules_L01_Utilities/S01_Utility/Source/Stream_buffer.cpp
     const void* result = readInPlaceNoThrow(aByteCount);
     if (!SELF) {
         HG_THROW_TRACED(StreamReadError,
@@ -103,7 +115,11 @@ const void* BufferStream::_readInPlace(std::int64_t aByteCount) {
     return result;
 }
 
+<<<<<<< HEAD:EngineCore/Modules_L01_Utilities/S01_Utility/Source/Packet.cpp
+std::int64_t Packet::_readInPlaceNoThrow(PZInteger aByteCount, const void** aResult) {
+=======
 std::int64_t BufferStream::_readInPlaceNoThrow(std::int64_t aByteCount, const void** aResult) {
+>>>>>>> master:EngineCore/Modules_L01_Utilities/S01_Utility/Source/Stream_buffer.cpp
     if (_readErrorLevel < 0) {
         *aResult = nullptr;
         return _readErrorLevel;

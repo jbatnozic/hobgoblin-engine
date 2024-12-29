@@ -108,7 +108,11 @@ public:
     //! \throws StreamReadError if stream has less than `aByteCount` bytes left
     //!         to extract. If this exception is thrown, the stream's read error
     //!         flag will also be set.
+<<<<<<< HEAD
+    HG_NODISCARD const void* readInPlace(PZInteger aByteCount);
+=======
     HG_NODISCARD const void* readInPlace(std::int64_t aByteCount);
+>>>>>>> master
 
     //! \brief Extracts raw data from the stream; does not throw on failure.
     //!
@@ -129,7 +133,11 @@ public:
     //!          or if the concrete stream implementation does not support this method,
     //!          or if the stream has less than `aByteCount` bytes left to extract
     //!          (in this case the stream's read error flag will also be set.).
+<<<<<<< HEAD
+    HG_NODISCARD const void* readInPlaceNoThrow(PZInteger aByteCount);
+=======
     HG_NODISCARD const void* readInPlaceNoThrow(std::int64_t aByteCount);
+>>>>>>> master
 
     //! Extracts an object of type `T` from the stream (assuming it has the proper `operator>>`
     //! defined.
@@ -314,9 +322,15 @@ private:
                                std::int64_t     aByteCount,
                                bool             aAllowPartal) = 0;
     //! Implementation for `readInPlace`.
+<<<<<<< HEAD
+    virtual const void* _readInPlace(PZInteger aByteCount) = 0;
+    //! Implementation for `readInPlaceNoThrow`.
+    virtual std::int64_t _readInPlaceNoThrow(PZInteger aByteCount, const void** aResult) = 0;
+=======
     virtual const void* _readInPlace(std::int64_t aByteCount) = 0;
     //! Implementation for `readInPlaceNoThrow`.
     virtual std::int64_t _readInPlaceNoThrow(std::int64_t aByteCount, const void** aResult) = 0;
+>>>>>>> master
     //! Implementation for `setReadError`.
     virtual void _setReadError() = 0;
     //! Implementation for `_setNotGood`.
@@ -365,7 +379,11 @@ inline std::int64_t InputStream::read(NeverNull<void*> aDestination,
     return result;
 }
 
+<<<<<<< HEAD
+inline const void* InputStream::readInPlace(PZInteger aByteCount) {
+=======
 inline const void* InputStream::readInPlace(std::int64_t aByteCount) {
+>>>>>>> master
     try {
         return _readInPlace(aByteCount);
     } catch (const std::exception& aEx) {
@@ -374,9 +392,15 @@ inline const void* InputStream::readInPlace(std::int64_t aByteCount) {
     }
 }
 
+<<<<<<< HEAD
+inline const void* InputStream::readInPlaceNoThrow(PZInteger aByteCount) {
+    const void* result;
+    const auto code = _readInPlaceNoThrow(aByteCount, &result);
+=======
 inline const void* InputStream::readInPlaceNoThrow(std::int64_t aByteCount) {
     const void* result;
     const auto  code = _readInPlaceNoThrow(aByteCount, &result);
+>>>>>>> master
     _setErrorIfNeeded(code);
     return result;
 }
