@@ -16,24 +16,30 @@ namespace util {
 //! \returns minimum size of the output buffer (roughly 133% of the size of the input buffer).
 PZInteger GetRecommendedOutputBufferSizeForBase64Encode(PZInteger aInputBufferByteCount);
 
-//! TODO(description)
+//! Performs Base64-econding of the data pointed to by `aInputBuffer` and stores the results
+//! into the buffer pointed to by `aOutputBuffer`.
+//! Throws `hg::InvalidArgumentError` if the output buffer is not large enough
+//!                                   (see `GetRecommendedOutputBufferSizeForBase64Encode`).
 PZInteger Base64Encode(
-    /*  in */ const void* aInputBuffer,
-    /*  in */ PZInteger   aInputBufferByteCount,
-    /* out */ void*       aOutputBuffer,
-    /*  in */ PZInteger   aOutputBufferByteCount);
+    /*  in */ NeverNull<const void*> aInputBuffer,
+    /*  in */ PZInteger              aInputBufferByteCount,
+    /* out */ NeverNull<void*>       aOutputBuffer,
+    /*  in */ PZInteger              aOutputBufferByteCount);
 
 //! Determines the minimum amount of space needed to base-64-decode a buffer of binary data.
 //! \param aInputBufferByteCount size (in bytes) of the input buffer to decode.
 //! \returns minimum size of the output buffer (roughly 75% of the size of the input buffer).
 PZInteger GetRecommendedOutputBufferSizeForBase64Decode(PZInteger aInputBufferByteCount);
 
-//! TODO(description)
+//! Performs Base64-decoding of the data pointed to by `aInputBuffer` and stores the results
+//! into the buffer pointed to by `aOutputBuffer`.
+//! Throws `hg::InvalidArgumentError` if the output buffer is not large enough
+//!                                   (see `GetRecommendedOutputBufferSizeForBase64Decode`).
 PZInteger Base64Decode(
-    /*  in */ const void* aInputBuffer,
-    /*  in */ PZInteger   aInputBufferByteCount,
-    /* out */ void*       aOutputBuffer,
-    /*  in */ PZInteger   aOutputBufferByteCount);
+    /*  in */ NeverNull<const void*> aInputBuffer,
+    /*  in */ PZInteger              aInputBufferByteCount,
+    /* out */ NeverNull<void*>       aOutputBuffer,
+    /*  in */ PZInteger              aOutputBufferByteCount);
 
 } // namespace util
 HOBGOBLIN_NAMESPACE_END

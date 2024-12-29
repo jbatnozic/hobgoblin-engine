@@ -18,6 +18,9 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace util {
 
+//! Fulfills the `InputStream` interface by reading the data from any preallocated buffer of
+//! contiguous data (the buffer is defined by the starting address and a byte count, just like for
+//! a span or view).
 class ViewStream final : public InputStream {
 public:
     //! \brief Default constructor

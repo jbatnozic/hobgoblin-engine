@@ -33,11 +33,31 @@ private:
     taCallable _context;
 };
 
+//! At the end of the scope where this macro is placed, logs a message, as if a `HG_LOG_*` macro
+//! had been used.
 //!
-//!
-//!  TODO(description)
-//!
-//!
+//! \param _severity_ severity for the message being logged. One of: HPDEB, DEBUG, INFO, WARN, ERROR,
+//!                   FATAL (without quotes and all uppercase).
+//! \param _log_id_ log ID, same as for any `HG_LOG_*` macro.
+//! \param ... the first parameter of the variadic parameter pack must be the format string (as for
+//!            the fmt library), the rest are optional parameters to replace placeholders (such as {})
+//!            from the format string. Local variables available in the scope where this macro is placed
+//!            are available here, as well as a special identifier `elapsed_time_ms` which is of type
+//!            `double` and its value is the number of milliseconds that have elapsed between the line
+//!            of code where this macro is placed and its invocation at the end of the current scope.
+//!    
+//! Example of usage:
+//! {
+//!     const char* resourceName = GetResourceName();
+//!     {
+//!         HG_LOG_WITH_SCOPED_STOPWATCH_MS(
+//!             INFO, 
+//!             "MyGame", 
+//!             "Loading of resource {} took {}ms.", resourceName, elapsed_time_ms);
+//!         LoadResource(resourceName);
+//!     }
+//!     // ...
+//! }
 #define HG_LOG_WITH_SCOPED_STOPWATCH_MS(_severity_, _log_id_, ...) \
     UHOBGOBLIN_LOG_WITH_SCOPED_STOPWATCH_MS_MIDDLE(__LINE__, _severity_, _log_id_, __VA_ARGS__)
 

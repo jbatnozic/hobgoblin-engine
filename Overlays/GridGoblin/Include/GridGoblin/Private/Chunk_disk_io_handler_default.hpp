@@ -11,7 +11,6 @@
 #include <GridGoblin/World/World_config.hpp>
 
 #include <filesystem>
-#include <memory>
 #include <optional>
 
 namespace jbatnozic {
