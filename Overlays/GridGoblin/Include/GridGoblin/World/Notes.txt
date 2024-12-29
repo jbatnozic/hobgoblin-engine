@@ -1,7 +1,0 @@
-
-- Chunk load
-- Chunk initialize (from json or blank slate)
-- Chunk extension create
-- Chunk extension initialize (from json or blank slate)
-- Insert into world/storage handler
-- Refresh loaded chunk and neighbours as needed

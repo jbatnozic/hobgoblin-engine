@@ -5,8 +5,8 @@
 
 #include <GridGoblin/Model/Cell.hpp>
 #include <GridGoblin/Model/Chunk.hpp>
-#include <GridGoblin/Model/Chunk_id.hpp>
 #include <GridGoblin/Model/Chunk_extension.hpp>
+#include <GridGoblin/Model/Chunk_id.hpp>
 
 #include <GridGoblin/Private/Chunk_storage_handler.hpp>
 
@@ -29,12 +29,16 @@ public:
     //! Called when a Chunk is loaded from the cache after it was previously unloaded.
     virtual void onChunkLoaded(ChunkId aChunkId, const Chunk& aChunk) {}
 
+    //! TODO(description)
     virtual void onChunkUnloaded(ChunkId aChunkId) {}
 
+    //! TODO(description)
     virtual std::unique_ptr<ChunkExtensionInterface> createChunkExtension() {
         return nullptr;
     }
 };
 
+// TODO: implement proper chunk unload callback structure
+
 } // namespace gridgoblin
-}
+} // namespace jbatnozic
