@@ -16,14 +16,6 @@ namespace util {
 //! \returns minimum size of the output buffer (roughly 133% of the size of the input buffer).
 PZInteger GetRecommendedOutputBufferSizeForBase64Encode(PZInteger aInputBufferByteCount);
 
-<<<<<<< HEAD
-//! TODO(description)
-PZInteger Base64Encode(
-    /*  in */ const void* aInputBuffer,
-    /*  in */ PZInteger   aInputBufferByteCount,
-    /* out */ void*       aOutputBuffer,
-    /*  in */ PZInteger   aOutputBufferByteCount);
-=======
 //! Performs Base64-econding of the data pointed to by `aInputBuffer` and stores the results
 //! into the buffer pointed to by `aOutputBuffer`.
 //! Throws `hg::InvalidArgumentError` if the output buffer is not large enough
@@ -33,21 +25,12 @@ PZInteger Base64Encode(
     /*  in */ PZInteger              aInputBufferByteCount,
     /* out */ NeverNull<void*>       aOutputBuffer,
     /*  in */ PZInteger              aOutputBufferByteCount);
->>>>>>> master
 
 //! Determines the minimum amount of space needed to base-64-decode a buffer of binary data.
 //! \param aInputBufferByteCount size (in bytes) of the input buffer to decode.
 //! \returns minimum size of the output buffer (roughly 75% of the size of the input buffer).
 PZInteger GetRecommendedOutputBufferSizeForBase64Decode(PZInteger aInputBufferByteCount);
 
-<<<<<<< HEAD
-//! TODO(description)
-PZInteger Base64Decode(
-    /*  in */ const void* aInputBuffer,
-    /*  in */ PZInteger   aInputBufferByteCount,
-    /* out */ void*       aOutputBuffer,
-    /*  in */ PZInteger   aOutputBufferByteCount);
-=======
 //! Performs Base64-decoding of the data pointed to by `aInputBuffer` and stores the results
 //! into the buffer pointed to by `aOutputBuffer`.
 //! Throws `hg::InvalidArgumentError` if the output buffer is not large enough
@@ -57,7 +40,6 @@ PZInteger Base64Decode(
     /*  in */ PZInteger              aInputBufferByteCount,
     /* out */ NeverNull<void*>       aOutputBuffer,
     /*  in */ PZInteger              aOutputBufferByteCount);
->>>>>>> master
 
 } // namespace util
 HOBGOBLIN_NAMESPACE_END

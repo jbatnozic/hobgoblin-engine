@@ -63,14 +63,6 @@ public:
             return _iter != aRhs._iter;
         }
 
-<<<<<<< HEAD
-        // bool operator<(const iterator&) const; //optional
-        // bool operator>(const iterator&) const; //optional
-        // bool operator<=(const iterator&) const; //optional
-        // bool operator>=(const iterator&) const; //optional
-
-=======
->>>>>>> master
         Iterator& operator++() {
             ++_iter;
             return SELF;
@@ -93,10 +85,6 @@ public:
             return old;
         }
 
-<<<<<<< HEAD
-        // iterator& operator+=(size_type); //optional
-=======
->>>>>>> master
         Iterator operator+(size_type aOffset) const {
             Iterator result = SELF;
             while (aOffset > 0) {
@@ -105,12 +93,6 @@ public:
             }
             return result;
         }
-<<<<<<< HEAD
-        // friend iterator operator+(size_type, const iterator&); //optional
-        // iterator& operator-=(size_type); //optional
-        // iterator operator-(size_type) const; //optional
-        // difference_type operator-(iterator) const; //optional
-=======
 
         Iterator operator-(size_type aOffset) const {
             Iterator result = SELF;
@@ -120,7 +102,6 @@ public:
             }
             return result;
         }
->>>>>>> master
 
         const value_type& operator*() const {
             return *_iter;
@@ -139,13 +120,8 @@ public:
         Set::iterator _iter;
     };
 
-<<<<<<< HEAD
-    using iterator               = const Iterator;
-    using const_iterator         = const Iterator;
-=======
     using iterator               = Iterator;
     using const_iterator         = Iterator;
->>>>>>> master
     using reverse_iterator       = typename std::reverse_iterator<iterator>;
     using const_reverse_iterator = typename std::reverse_iterator<const_iterator>;
 
@@ -194,19 +170,11 @@ public:
         _set.clear();
     }
 
-<<<<<<< HEAD
-    iterator begin() {
-        return Iterator{_set.begin()};
-    }
-
-    iterator end() {
-=======
     const_iterator begin() const {
         return Iterator{_set.begin()};
     }
 
     const_iterator end() const {
->>>>>>> master
         return Iterator{_set.end()};
     }
 
