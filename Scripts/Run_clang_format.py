@@ -1,4 +1,7 @@
-#!/usr/bin/env python
+# !/usr/bin/env python
+
+# Script obtained from https://github.com/Sarcasm/run-clang-format/tree/master
+
 """A wrapper script around clang-format, suitable for linting multiple files
 and to use for continuous integration.
 
