@@ -63,8 +63,18 @@ World::~World() {
     _disconnectSubcomponents();
 }
 
-void World::setBinder(Binder* aBinder) {
-    _binder = aBinder;
+void World::attachBinder(hg::NeverNull<Binder*> aBinder, std::int32_t aPriority) {
+    HG_VALIDATE_ARGUMENT(aPriority >= MIN_BINDER_PRIORITY && aPriority <= MAX_BINDER_PRIORITY);
+    _attachBinder(aBinder, aPriority);
+}
+
+void World::detachBinder(hg::NeverNull<Binder*> aBinder) {
+    const auto iter = std::find_if(_binders.begin(), _binders.end(), [aBinder](auto& aPair) {
+        return (aPair.first == aBinder);
+    });
+    if (iter != _binders.end()) {
+        _binders.erase(iter);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -438,6 +448,26 @@ ActiveArea World::createActiveArea() {
 // PRIVATE METHODS                                                       //
 ///////////////////////////////////////////////////////////////////////////
 
+// ===== Listeners =====
+
+void World::_attachBinder(hg::NeverNull<Binder*> aBinder, std::int32_t aPriority) {
+    const auto iter = std::find_if(_binders.begin(), _binders.end(), [aBinder](auto& aPair) {
+        return (aPair.first == aBinder);
+    });
+    if (iter != _binders.end()) {
+        HG_THROW_TRACED(hg::TracedLogicError,
+                        0,
+                        "Binder at address {:#x} already attached.",
+                        reinterpret_cast<std::uintptr_t>(aBinder.get()));
+    }
+
+    _binders.push_back(std::make_pair(aBinder, aPriority));
+
+    std::sort(_binders.begin(), _binders.end(), [](const auto& aLhs, const auto& aRhs) {
+        return (aLhs.second < aRhs.second);
+    });
+}
+
 // ===== Subcomponents =====
 
 void World::_connectSubcomponents() {
@@ -477,24 +507,24 @@ void World::_refreshCellsInAndAroundChunk(ChunkId aChunkId) {
 }
 
 void World::onChunkReady(ChunkId aChunkId) {
-    if (_binder) {
-        _binder->onChunkReady(aChunkId);
+    for (const auto& [binder, priority] : _binders) {
+        binder->onChunkReady(aChunkId);
     }
 }
 
 void World::onChunkLoaded(ChunkId aChunkId, const Chunk& aChunk) {
     _refreshCellsInAndAroundChunk(aChunkId);
 
-    if (_binder) {
-        _binder->onChunkLoaded(aChunkId, aChunk);
+    for (const auto& [binder, priority] : _binders) {
+        binder->onChunkLoaded(aChunkId, aChunk);
     }
 }
 
 void World::onChunkCreated(ChunkId aChunkId, const Chunk& aChunk) {
     _refreshCellsInAndAroundChunk(aChunkId);
 
-    if (_binder) {
-        _binder->onChunkCreated(aChunkId, aChunk);
+    for (const auto& [binder, priority] : _binders) {
+        binder->onChunkCreated(aChunkId, aChunk);
     }
 }
 
@@ -502,16 +532,19 @@ void World::onChunkUnloaded(ChunkId aChunkId) {
     // No need to refresh cell after a chunk is unloaded; cells near the edges of the loaded parts
     // of the world can have slightly inaccurate information - it doesn't matter.
 
-    if (_binder) {
-        _binder->onChunkUnloaded(aChunkId);
+    for (const auto& [binder, priority] : _binders) {
+        binder->onChunkUnloaded(aChunkId);
     }
 }
 
 std::unique_ptr<ChunkExtensionInterface> World::createChunkExtension() {
-    if (!_binder) {
-        return nullptr;
+    for (const auto& [binder, priority] : _binders) {
+        auto extension = binder->createChunkExtension();
+        if (extension != nullptr) {
+            return extension;
+        }
     }
-    return _binder->createChunkExtension();
+    return nullptr;
 }
 
 // ===== Editing cells =====

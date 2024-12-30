@@ -60,7 +60,33 @@ public:
 
     ~World() override;
 
-    void setBinder(Binder* aBinder);
+    static constexpr std::int32_t MIN_BINDER_PRIORITY     = 0;
+    static constexpr std::int32_t MAX_BINDER_PRIORITY     = 10'000;
+    static constexpr std::int32_t DEFAULT_BINDER_PRIORITY = 100;
+
+    //! Attach a binder to the World.
+    //!
+    //! \param aBinder binder to attach.
+    //! \param aPriority priority of the binder. Must be between
+    //!                  `MIN_BINDER_PRIORITY` and `MAX_BINDER_PRIORITY` (inclusive).
+    //!
+    //! Each attached binder will be notified of the events happening in or to the World, in ascending
+    //! order of their priorities (indeterminate when the priorities are equal).
+    //!
+    //! \note binders are also used to provide chunks extensions to the World. In case that multiple
+    //!       binders are attached, the extension from the one with the best (lowest) priority that
+    //!       returns a non-null extension will be used.
+    //!
+    //! \throws hg::TracedLogicError if this binder is already attached.
+    //! \throws hg::InvalidArgumentError if priority is out of bounds.
+    void attachBinder(hg::NeverNull<Binder*> aBinder, std::int32_t aPriority = DEFAULT_BINDER_PRIORITY);
+
+    //! Detach the binder from the World.
+    //!
+    //! \param aBinder binder to detach.
+    //!
+    //! \note Does nothing if the binder is not currently attached to the World.
+    void detachBinder(hg::NeverNull<Binder*> aBinder);
 
     void update();
     void prune();
@@ -294,9 +320,11 @@ public:
     ActiveArea createActiveArea();
 
 private:
-    // ===== Listener =====
+    // ===== Listeners =====
 
-    Binder* _binder = nullptr;
+    std::vector<std::pair<hg::NeverNull<Binder*>, std::int32_t>> _binders;
+
+    void _attachBinder(hg::NeverNull<Binder*> aBinder, std::int32_t aPriority);
 
     // ===== Config =====
 
