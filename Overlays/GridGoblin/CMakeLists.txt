@@ -15,6 +15,8 @@ add_library(${PROJECT_NAME}
     "Source/Private/Chunk_storage_handler.cpp"
     "Source/Private/Model_conversions.cpp"
 
+    "Source/Rendering/OpenGL_rendering.cpp"
+
     "Source/World/Active_area.cpp"
     "Source/World/World.cpp"
 
