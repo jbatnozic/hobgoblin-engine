@@ -125,10 +125,10 @@ TEST_F(WorldTest, AvailableChunkIterations) {
                     allLoaded.signal();
                 }
             }};
-            w.setBinder(&binder);
+            w.attachBinder(&binder);
             area.setToChunkList(aChunksForActiveArea);
             allLoaded.wait();
-            w.setBinder(nullptr);
+            w.detachBinder(&binder);
         } else {
             area.setToChunkList(aChunksForActiveArea);
         }

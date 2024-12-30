@@ -30,7 +30,11 @@ public:
         : _world{_makeWorldConfig()}
         , _activeArea{_world.createActiveArea()} //
     {
-        _world.setBinder(this);
+        _world.attachBinder(this);
+    }
+
+    ~Fixture() {
+        _world.detachBinder(this);
     }
 
     void update() {
