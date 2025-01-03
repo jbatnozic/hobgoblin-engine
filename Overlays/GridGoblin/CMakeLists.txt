@@ -7,19 +7,30 @@ find_package(GLEW CONFIG REQUIRED)
 find_package(RapidJSON CONFIG REQUIRED)
 
 add_library(${PROJECT_NAME}
+    # Model
     "Source/Model/Cell.cpp"
     "Source/Model/Chunk.cpp"
 
+    # Private
     "Source/Private/Chunk_disk_io_handler_default.cpp"
     "Source/Private/Chunk_spooler_default.cpp"
     "Source/Private/Chunk_storage_handler.cpp"
     "Source/Private/Model_conversions.cpp"
 
-    "Source/Rendering/OpenGL_rendering.cpp"
+    # Rendering
+    "Source/Rendering/Drawing_order.cpp"
+    "Source/Rendering/Top_down_los_renderer.cpp"
+    "Source/Rendering/OpenGL_helpers.cpp"
 
+    # Spatial
+    "Source/Spatial/Position_conversions.cpp"
+    "Source/Spatial/Spatial_info.cpp"
+
+    # World
     "Source/World/Active_area.cpp"
     "Source/World/World.cpp"
 
+    # Other
     "Source/Detail_access.hpp"
 )
 

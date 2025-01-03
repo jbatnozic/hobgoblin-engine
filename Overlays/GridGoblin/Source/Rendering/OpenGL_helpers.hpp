@@ -13,7 +13,7 @@
 
 namespace jbatnozic {
 namespace gridgoblin {
-namespace detail {
+namespace opengl {
 
 ///////////////////////////////////////////////////////////////////////////
 // MARK: ERROR HANDLING                                                  //
@@ -84,6 +84,6 @@ void DualPBO_LoadIntoRam(const DualPBONames& aPboNames,
                          void*               aRamBufferAddress,
                          std::size_t         aRamBufferSize);
 
-} // namespace detail
+} // namespace opengl
 } // namespace gridgoblin
 } // namespace jbatnozic

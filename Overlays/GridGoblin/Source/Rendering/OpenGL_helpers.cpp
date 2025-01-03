@@ -7,7 +7,7 @@
 
 namespace jbatnozic {
 namespace gridgoblin {
-namespace detail {
+namespace opengl {
 static constexpr auto LOG_ID = "gridworld";
 
 void DualPBO_Init(DualPBONames& aPboNames, std::size_t aRamBufferSize) {
@@ -92,6 +92,6 @@ void DualPBO_LoadIntoRam(const DualPBONames& aPboNames,
     THROW_ON_ERROR(ectx);
 }
 
-} // namespace detail
+} // namespace opengl
 } // namespace gridgoblin
 } // namespace jbatnozic
