@@ -17,7 +17,8 @@ int main() try {
     // RunSpoolingTest();
     // RunStorageHandlerTest();
     // RunOpennessTest();
-    RunDefaultDiskIoTest();
+    // RunDefaultDiskIoTest();
+    RunDimetricRenderingTest();
 
 } catch (const hg::TracedException& ex) {
     std::cout << "Traced exception caught: " << ex.getFullFormattedDescription() << '\n';

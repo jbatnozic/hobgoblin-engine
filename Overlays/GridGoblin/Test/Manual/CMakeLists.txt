@@ -5,6 +5,7 @@ project("GridGoblin.ManualTest")
 
 add_executable(${PROJECT_NAME}
     "Default_disk_io_test.cpp"
+    "Dimetric_rendering_test.cpp"
     "GridGoblin_manual_test.cpp"
     "Openness_test.cpp"
     "Spooling_test.cpp"
@@ -20,3 +21,5 @@ target_include_directories(${PROJECT_NAME}
 PUBLIC
     "../Common"
 )
+
+hg_copy_test_assets(${PROJECT_NAME} "Assets")

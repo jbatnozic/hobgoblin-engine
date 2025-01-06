@@ -35,6 +35,13 @@ std::array<int, 16> CHECK_DRAWING_ORDER_LOOKUP_TABLE = {DRAW_LHS_FIRST,
 
 // clang-format off
 int CheckDrawingOrder(const SpatialInfo& aLhs, const SpatialInfo& aRhs) {
+    if (aLhs.getLayer() < aRhs.getLayer()) {
+        return DRAW_LHS_FIRST;
+    }
+    if (aRhs.getLayer() < aLhs.getLayer()) {
+        return DRAW_RHS_FIRST;
+    }
+
     if (aLhs.getBoundingBox().overlaps(aRhs.getBoundingBox())) {
         const auto lhsCenter = aLhs.getCenter();
         const auto rhsCenter = aRhs.getCenter();

@@ -12,10 +12,13 @@ constexpr float Half(float aF) {
 }
 } // namespace
 
+SpatialInfo::SpatialInfo(Layer aLayer)
+    : _layer{aLayer} {}
+
 SpatialInfo SpatialInfo::fromCenterAndSize(WorldPosition      aCenter,
                                            hg::math::Vector2f aSize,
-                                           Shape              aShape) {
-    SpatialInfo result;
+                                           Layer              aLayer) {
+    SpatialInfo result{aLayer};
     result._center = aCenter;
     result.setSizeMaintainingCenter(aSize);
     return result;
@@ -23,8 +26,8 @@ SpatialInfo SpatialInfo::fromCenterAndSize(WorldPosition      aCenter,
 
 SpatialInfo SpatialInfo::fromTopLeftAndSize(WorldPosition      aTopLeft,
                                             hg::math::Vector2f aSize,
-                                            Shape              aShape) {
-    SpatialInfo result;
+                                            Layer              aLayer) {
+    SpatialInfo result{aLayer};
     result._bbox.x = aTopLeft->x;
     result._bbox.y = aTopLeft->y;
     result.setSize(aSize);

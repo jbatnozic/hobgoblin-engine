@@ -123,7 +123,7 @@ void ChunkStorageHandler::_loadChunkImmediately(ChunkId aChunkId) {
         if (stopwatch.getElapsedTime() >= std::chrono::milliseconds{10}) {
             stopwatch.restart();
             i += 1;
-            HG_LOG_WARN(LOG_ID, "Blocking until chunk {} is loaded ({}ms elapsed so far).", id, i * 10);
+            HG_LOG_DEBUG(LOG_ID, "Blocking until chunk {} is loaded ({}ms elapsed so far).", id, i * 10);
         }
         std::this_thread::yield();
     }

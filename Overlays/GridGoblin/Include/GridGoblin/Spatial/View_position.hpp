@@ -10,6 +10,7 @@ namespace gridgoblin {
 
 namespace hg = ::jbatnozic::hobgoblin;
 
+// TODO: rename -> PositionInView
 class ViewPosition {
 public:
     ViewPosition()                               = default;
@@ -42,6 +43,8 @@ public:
         return &pos;
     }
 };
+
+static_assert(sizeof(ViewPosition) <= sizeof(void*));
 
 } // namespace gridgoblin
 } // namespace jbatnozic

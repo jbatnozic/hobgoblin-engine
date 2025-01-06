@@ -18,6 +18,7 @@ add_library(${PROJECT_NAME}
     "Source/Private/Model_conversions.cpp"
 
     # Rendering
+    "Source/Rendering/Dimetric_renderer.cpp"
     "Source/Rendering/Drawing_order.cpp"
     "Source/Rendering/Top_down_los_renderer.cpp"
     "Source/Rendering/OpenGL_helpers.cpp"

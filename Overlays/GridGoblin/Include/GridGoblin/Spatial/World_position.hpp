@@ -10,6 +10,7 @@ namespace gridgoblin {
 
 namespace hg = ::jbatnozic::hobgoblin;
 
+// TODO: rename -> PositionInWorld
 class WorldPosition {
 public:
     WorldPosition()                                = default;
@@ -42,6 +43,8 @@ public:
         return &pos;
     }
 };
+
+static_assert(sizeof(WorldPosition) <= sizeof(void*));
 
 } // namespace gridgoblin
 } // namespace jbatnozic
