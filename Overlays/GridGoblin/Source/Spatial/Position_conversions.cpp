@@ -7,19 +7,19 @@ namespace jbatnozic {
 namespace gridgoblin {
 namespace dimetric {
 
-ViewPosition ToViewPosition(WorldPosition aWorldPosition) {
-    ViewPosition result;
+PositionInView ToPositionInView(PositionInWorld aPosInWorld) {
+    PositionInView result;
     // clang-format off
-    result->x =  aWorldPosition->y + aWorldPosition->x;
-    result->y = (aWorldPosition->y - aWorldPosition->x) / 2.f;
+    result->x =  aPosInWorld->y + aPosInWorld->x;
+    result->y = (aPosInWorld->y - aPosInWorld->x) / 2.f;
     // clang-format on
     return result;
 }
 
-WorldPosition ToWorldPosition(ViewPosition aViewPosition) {
-    WorldPosition result;
-    result->x = aViewPosition->x / 2.f - aViewPosition->y;
-    result->y = aViewPosition->x / 2.f + aViewPosition->y;
+PositionInWorld ToPositionInWorld(PositionInView aPosInView) {
+    PositionInWorld result;
+    result->x = aPosInView->x / 2.f - aPosInView->y;
+    result->y = aPosInView->x / 2.f + aPosInView->y;
     return result;
 }
 

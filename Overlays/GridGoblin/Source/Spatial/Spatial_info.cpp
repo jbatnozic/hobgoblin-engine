@@ -15,7 +15,7 @@ constexpr float Half(float aF) {
 SpatialInfo::SpatialInfo(Layer aLayer)
     : _layer{aLayer} {}
 
-SpatialInfo SpatialInfo::fromCenterAndSize(WorldPosition      aCenter,
+SpatialInfo SpatialInfo::fromCenterAndSize(PositionInWorld    aCenter,
                                            hg::math::Vector2f aSize,
                                            Layer              aLayer) {
     SpatialInfo result{aLayer};
@@ -24,7 +24,7 @@ SpatialInfo SpatialInfo::fromCenterAndSize(WorldPosition      aCenter,
     return result;
 }
 
-SpatialInfo SpatialInfo::fromTopLeftAndSize(WorldPosition      aTopLeft,
+SpatialInfo SpatialInfo::fromTopLeftAndSize(PositionInWorld    aTopLeft,
                                             hg::math::Vector2f aSize,
                                             Layer              aLayer) {
     SpatialInfo result{aLayer};
@@ -34,7 +34,7 @@ SpatialInfo SpatialInfo::fromTopLeftAndSize(WorldPosition      aTopLeft,
     return result;
 }
 
-void SpatialInfo::setCenter(WorldPosition aPoint) {
+void SpatialInfo::setCenter(PositionInWorld aPoint) {
     _center->x = aPoint->x;
     _center->y = aPoint->y;
 
@@ -42,7 +42,7 @@ void SpatialInfo::setCenter(WorldPosition aPoint) {
     _bbox.y = aPoint->y - Half(_bbox.h);
 }
 
-void SpatialInfo::setTopLeft(WorldPosition aPoint) {
+void SpatialInfo::setTopLeft(PositionInWorld aPoint) {
     _bbox.x = aPoint->x;
     _bbox.y = aPoint->y;
 

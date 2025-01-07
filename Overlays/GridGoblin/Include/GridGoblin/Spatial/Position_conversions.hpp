@@ -3,15 +3,15 @@
 
 #pragma once
 
-#include <GridGoblin/Spatial/View_position.hpp>
-#include <GridGoblin/Spatial/World_position.hpp>
+#include <GridGoblin/Spatial/Position_in_view.hpp>
+#include <GridGoblin/Spatial/Position_in_world.hpp>
 
 namespace jbatnozic {
 namespace gridgoblin {
 namespace dimetric {
 
-ViewPosition  ToViewPosition(WorldPosition aWorldPosition);
-WorldPosition ToWorldPosition(ViewPosition aViewPosition);
+PositionInView  ToPositionInView(PositionInWorld aPosInWorld);
+PositionInWorld ToPositionInWorld(PositionInView aPosInView);
 
 } // namespace dimetric
 } // namespace gridgoblin

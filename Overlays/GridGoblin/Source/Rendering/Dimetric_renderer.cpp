@@ -36,8 +36,8 @@ void DimetricRenderer::_diagonalTraverse(const World&                      aWorl
             if (x >= 0 && x < aWorld.getCellCountX() && y >= 0 && y < aWorld.getCellCountY()) {
                 const auto* cell = aWorld.getCellAtUnchecked(x, y);
 
-                const auto posInWorld = WorldPosition{(x + 0.5f) * cellRes, (y + 0.5f) * cellRes};
-                const auto posInView  = dimetric::ToViewPosition(posInWorld);
+                const auto posInWorld = PositionInWorld{(x + 0.5f) * cellRes, (y + 0.5f) * cellRes};
+                const auto posInView  = dimetric::ToPositionInView(posInWorld);
 
                 aFunc(CellInfo{cell, x, y}, posInView);
             }
@@ -59,13 +59,13 @@ DimetricRenderer::DimetricRenderer(const World& aWorld, const hg::gr::SpriteLoad
 
 void DimetricRenderer::prepareToRenderStart(const hg::gr::View&    aView,
                                             const OverdrawAmounts& aOverdrawAmounts) {
-    _viewData.center   = ViewPosition{aView.getCenter()};
+    _viewData.center   = PositionInView{aView.getCenter()};
     _viewData.size     = aView.getSize();
     _viewData.overdraw = aOverdrawAmounts;
 
-    _viewData.topLeft = dimetric::ToWorldPosition(
-        ViewPosition{_viewData.center->x - (_viewData.size.x / 2.f) - _viewData.overdraw.left,
-                     _viewData.center->y - (_viewData.size.y / 2.f) - _viewData.overdraw.top});
+    _viewData.topLeft = dimetric::ToPositionInWorld(
+        PositionInView{_viewData.center->x - (_viewData.size.x / 2.f) - _viewData.overdraw.left,
+                       _viewData.center->y - (_viewData.size.y / 2.f) - _viewData.overdraw.top});
 
     _objectsToRender.clear();
     _cellAdapters.clear();
@@ -75,7 +75,7 @@ void DimetricRenderer::prepareToRenderStart(const hg::gr::View&    aView,
     // Add adapters for floors and walls
     _diagonalTraverse(_world,
                       _viewData,
-                      [this, cellResolution](const CellInfo& aCellInfo, ViewPosition aPosInView) {
+                      [this, cellResolution](const CellInfo& aCellInfo, PositionInView aPosInView) {
                           if (aCellInfo.cell == nullptr) {
                               return;
                           }
@@ -132,7 +132,7 @@ void DimetricRenderer::prepareToRenderEnd() {
 void DimetricRenderer::render(hg::gr::Canvas& aCanvas) {
     for (const auto& object : _objectsToRender) {
         const auto& spatialInfo = object->getSpatialInfo();
-        object->render(aCanvas, dimetric::ToViewPosition(spatialInfo.getCenter()));
+        object->render(aCanvas, dimetric::ToPositionInView(spatialInfo.getCenter()));
     }
 }
 
@@ -158,7 +158,7 @@ DimetricRenderer::CellToRenderedObjectAdapter::CellToRenderedObjectAdapter(
     , _cell{aCell} {}
 
 void DimetricRenderer::CellToRenderedObjectAdapter::render(hg::gr::Canvas& aCanvas,
-                                                           ViewPosition    aScreenPosition) const {
+                                                           PositionInView  aScreenPosition) const {
     auto* sprite = [this]() -> hg::gr::Sprite* {
         switch (_spatialInfo.getLayer()) {
         case Layer::FLOOR:

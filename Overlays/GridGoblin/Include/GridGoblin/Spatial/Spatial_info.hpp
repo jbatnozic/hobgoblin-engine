@@ -5,7 +5,7 @@
 
 #include <GridGoblin/Model/Layer.hpp>
 #include <GridGoblin/Model/Shape.hpp>
-#include <GridGoblin/Spatial/World_position.hpp>
+#include <GridGoblin/Spatial/Position_in_world.hpp>
 
 #include <Hobgoblin/Math.hpp>
 
@@ -20,24 +20,26 @@ class SpatialInfo {
 public:
     SpatialInfo() = default;
 
-    static SpatialInfo fromCenterAndSize(WorldPosition aCenter, hg::math::Vector2f aSize, Layer aLayer);
+    static SpatialInfo fromCenterAndSize(PositionInWorld    aCenter,
+                                         hg::math::Vector2f aSize,
+                                         Layer              aLayer);
 
-    static SpatialInfo fromTopLeftAndSize(WorldPosition      aTopLeft,
+    static SpatialInfo fromTopLeftAndSize(PositionInWorld    aTopLeft,
                                           hg::math::Vector2f aSize,
                                           Layer              aLayer);
 
-    void setCenter(WorldPosition aPoint);
+    void setCenter(PositionInWorld aPoint);
 
-    void setTopLeft(WorldPosition aPoint);
+    void setTopLeft(PositionInWorld aPoint);
 
     // Maintains the top-left corner, not the center!
     void setSize(hg::math::Vector2f aSize);
 
     void setSizeMaintainingCenter(hg::math::Vector2f aSize);
 
-    WorldPosition getCenter() const;
+    PositionInWorld getCenter() const;
 
-    WorldPosition getTopLeft() const;
+    PositionInWorld getTopLeft() const;
 
     const hg::math::Rectangle<float>& getBoundingBox() const;
 
@@ -50,16 +52,16 @@ private:
     SpatialInfo(Layer aLayer);
 
     hg::math::Rectangle<float> _bbox;
-    WorldPosition              _center;
+    PositionInWorld            _center;
     Layer                      _layer = Layer::FLOOR;
 };
 
-inline WorldPosition SpatialInfo::getCenter() const {
+inline PositionInWorld SpatialInfo::getCenter() const {
     return _center;
 }
 
-inline WorldPosition SpatialInfo::getTopLeft() const {
-    return WorldPosition{
+inline PositionInWorld SpatialInfo::getTopLeft() const {
+    return PositionInWorld{
         {_bbox.getLeft(), _bbox.getTop()}
     };
 }

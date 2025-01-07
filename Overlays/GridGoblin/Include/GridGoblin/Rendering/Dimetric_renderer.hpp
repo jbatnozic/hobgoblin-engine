@@ -4,8 +4,8 @@
 #pragma once
 
 #include <GridGoblin/Rendering/Rendered_object.hpp>
-#include <GridGoblin/Spatial/View_position.hpp>
-#include <GridGoblin/Spatial/World_position.hpp>
+#include <GridGoblin/Spatial/Position_in_view.hpp>
+#include <GridGoblin/Spatial/Position_in_world.hpp>
 #include <GridGoblin/World/World.hpp>
 
 #include <Hobgoblin/Graphics.hpp>
@@ -40,11 +40,11 @@ private:
     // ===== View data =====
 
     struct ViewData {
-        ViewPosition       center;
+        PositionInView     center;
         hg::math::Vector2f size;
         OverdrawAmounts    overdraw;
 
-        WorldPosition topLeft;
+        PositionInWorld topLeft;
     };
 
     ViewData _viewData;
@@ -65,7 +65,7 @@ private:
                                     const CellModel&   aCell,
                                     const SpatialInfo& aSpatialInfo);
 
-        void render(hg::gr::Canvas& aCanvas, ViewPosition aScreenPosition) const override;
+        void render(hg::gr::Canvas& aCanvas, PositionInView aPosInView) const override;
 
     private:
         DimetricRenderer& _renderer;

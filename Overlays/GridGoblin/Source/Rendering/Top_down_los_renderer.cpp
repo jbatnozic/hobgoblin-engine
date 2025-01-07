@@ -62,9 +62,9 @@ TopDownLineOfSightRenderer::~TopDownLineOfSightRenderer() {
     DualPBO_Destroy(_pboNames);
 }
 
-void TopDownLineOfSightRenderer::start(WorldPosition      aViewPosition,
+void TopDownLineOfSightRenderer::start(PositionInWorld    aPosInView,
                                        hg::math::Vector2f aViewSize,
-                                       WorldPosition      aLineOfSightOrigin,
+                                       PositionInWorld    aLineOfSightOrigin,
                                        float              aPadding) {
     const float width           = aViewSize.x + aPadding;
     const float height          = aViewSize.y + aPadding;
@@ -72,13 +72,13 @@ void TopDownLineOfSightRenderer::start(WorldPosition      aViewPosition,
 
     _recommendedScale = largerDimension * _sizeMultiplier / _renderTexture.getSize().x;
     _losOrigin        = aLineOfSightOrigin;
-    _viewCenterOffset = *aViewPosition - _renderTexture.getView().getCenter();
+    _viewCenterOffset = *aPosInView - _renderTexture.getView().getCenter();
 
     const float virtualSquareEdge = ceil(largerDimension * _sizeMultiplier);
 
     hg::gr::View view;
     view.setSize({virtualSquareEdge, virtualSquareEdge});
-    view.setCenter(*aViewPosition);
+    view.setCenter(*aPosInView);
     view.setViewport({0.f, 0.f, 1.f, 1.f});
     _renderTexture.setView(view);
 
@@ -114,7 +114,7 @@ void TopDownLineOfSightRenderer::render() {
     }
 }
 
-std::optional<bool> TopDownLineOfSightRenderer::testVisibilityAt(WorldPosition aPos) const {
+std::optional<bool> TopDownLineOfSightRenderer::testVisibilityAt(PositionInWorld aPos) const {
     const auto pixelPos = _renderTexture.mapCoordsToPixel(*aPos + _viewCenterOffset, 0);
 
     if (pixelPos.x < 0 || pixelPos.x >= _textureSize || pixelPos.y < 0 || pixelPos.y >= _textureSize) {
