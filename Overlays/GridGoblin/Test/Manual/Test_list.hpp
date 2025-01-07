@@ -7,3 +7,4 @@ void RunSpoolingTest();
 void RunStorageHandlerTest();
 void RunOpennessTest();
 void RunDefaultDiskIoTest();
+void RunDimetricRenderingTest();

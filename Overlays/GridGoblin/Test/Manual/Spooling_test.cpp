@@ -120,9 +120,10 @@ public:
             }
             auto handles = _chunkspool.loadChunks(std::move(loadRequests));
             for (auto& handle : handles) {
-                const auto iter = _requests.find(handle->getChunkId());
-                HG_HARD_ASSERT(iter != _requests.end());
-                (*iter).second = std::move(handle);
+                // const auto iter = _requests.find(handle->getChunkId());
+                // HG_HARD_ASSERT(iter != _requests.end());
+                // (*iter).second = std::move(handle);
+                _requests[handle->getChunkId()] = std::move(handle);
             }
         }
 
