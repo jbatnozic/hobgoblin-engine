@@ -5,7 +5,7 @@
 
 #include <Hobgoblin/Common.hpp>
 
-#include <GridGoblin/Model/Cell.hpp>
+#include <GridGoblin/Model/Cell_model.hpp>
 #include <GridGoblin/Model/Chunk.hpp>
 #include <GridGoblin/Model/Chunk_extension.hpp>
 

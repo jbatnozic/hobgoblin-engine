@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <GridGoblin/Model/Cell.hpp>
+#include <GridGoblin/Model/Cell_model.hpp>
 
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/HGExcept.hpp>
