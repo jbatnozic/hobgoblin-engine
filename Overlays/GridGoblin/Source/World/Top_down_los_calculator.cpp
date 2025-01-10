@@ -7,6 +7,7 @@
 #include <Hobgoblin/Logging.hpp>
 
 #include <array>
+#include <bit>
 #include <type_traits>
 
 namespace jbatnozic {
@@ -212,7 +213,7 @@ hg::PZInteger TopDownLineOfSightCalculator::_processCell(hg::math::Vector2pz    
     case -1:
         edgesOfInterest ^= CellModel::BOTTOM_EDGE_OBSTRUCTED;
         break;
-    case +1:
+    case 1:
         edgesOfInterest ^= CellModel::TOP_EDGE_OBSTRUCTED;
         break;
     }
@@ -276,7 +277,9 @@ bool TopDownLineOfSightCalculator::_isPointVisible(PositionInWorld aPosInWorld,
                                                    std::uint16_t   aFlags) const {
     const auto limit = _darkZones.size();
     for (std::int64_t i = 0; i < limit; i += 1) {
-        if ((_darkZones[i].flags & aFlags) == 0) {
+        const auto mask = _darkZones[i].flags & aFlags;
+        if (HG_LIKELY_CONDITION((mask & (mask - 1)) == 0)) {
+            HG_LIKELY_BRANCH;
             continue;
         }
         _comparisons += 1;
