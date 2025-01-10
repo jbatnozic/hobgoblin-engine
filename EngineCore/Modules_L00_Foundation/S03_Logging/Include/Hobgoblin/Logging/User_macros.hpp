@@ -14,17 +14,6 @@
 HOBGOBLIN_NAMESPACE_BEGIN
 namespace log {
 
-#if HG_BUILD_TYPE == HG_DEBUG
-#define HG_LOG_HPDEB(_log_id_, _format_, ...) \
-    do{ UHOBGOBLIN_LOG_IMPL(::jbatnozic::hobgoblin::log::Severity::Debug, \
-                            _log_id_, \
-                            _format_, \
-                            __VA_ARGS__ \
-                            ); } while (false)
-#else
-#define HG_LOG_HPDEB(_log_id_, _format_, ...) do {} while (false)
-#endif
-
 //! Use this macro to log a DEBUG message if the minimal logging severity
 //! is at least DEBUG (see `SetMinimalLogSeverity`).
 //! \param _log_id_ Identifier of the component from which the message is

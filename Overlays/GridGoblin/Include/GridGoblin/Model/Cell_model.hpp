@@ -30,12 +30,22 @@ public:
         Shape    shape;
     };
 
-    enum Flags : std::uint8_t {
+    enum Flags : std::uint16_t {
         FLOOR_INITIALIZED = 0x01,
-        WALL_INITIALIZED  = 0x02
+        WALL_INITIALIZED  = 0x02,
+
+        RIGHT_EDGE_OBSTRUCTED  = 0x100,
+        TOP_EDGE_OBSTRUCTED    = 0x200,
+        LEFT_EDGE_OBSTRUCTED   = 0x400,
+        BOTTOM_EDGE_OBSTRUCTED = 0x800,
     };
 
-    std::uint8_t getFlags() const;
+    std::uint16_t getFlags() const;
+
+    //! Sets the flags RIGHT_EDGE_OBSTRUCTED, TOP_EDGE_OBSTRUCTED, LEFT_EDGE_OBSTRUCTED, and
+    //! BOTTOM_EDGE_OBSTRUCTED according to the provided bitmask. Other flags are guaranteed to
+    //! remain unchaged.
+    void setObstructionFlags(std::uint16_t aFlags);
 
     //! Returns true if the Floor structure of this Cell is initialized.
     //! \note equivalent to `(getFlags() & FLOOR_INITIALIZED) != 0`.
@@ -78,10 +88,10 @@ public:
 
 private:
     // TODO(future): more efficient packed layout
-    Floor        _floor;
-    Wall         _wall;
-    std::uint8_t _openness = 0;
-    std::uint8_t _flags    = 0;
+    Floor         _floor;
+    Wall          _wall;
+    std::uint16_t _flags    = 0;
+    std::uint8_t  _openness = 0;
 };
 
 //! CellModel::Floor equality operator.
@@ -127,8 +137,15 @@ inline bool operator!=(const CellModel& aLhs, const CellModel& aRhs) {
     return !(aLhs == aRhs);
 }
 
-inline std::uint8_t CellModel::getFlags() const {
+inline std::uint16_t CellModel::getFlags() const {
     return _flags;
+}
+
+inline void CellModel::setObstructionFlags(std::uint16_t aFlags) {
+    static constexpr auto RELEVANT_FLAGS =
+        RIGHT_EDGE_OBSTRUCTED | TOP_EDGE_OBSTRUCTED | LEFT_EDGE_OBSTRUCTED | BOTTOM_EDGE_OBSTRUCTED;
+    _flags &= ~RELEVANT_FLAGS;
+    _flags |= (aFlags & RELEVANT_FLAGS);
 }
 
 inline bool CellModel::isFloorInitialized() const {

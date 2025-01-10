@@ -100,6 +100,15 @@ using Vector4f  = Vector4<float>;
 using Vector4pz = Vector4<PZInteger>;
 using Vector4d  = Vector4<double>;
 
+///////////////////////////////////////////////////////////////////////////
+// CROSS PRODUCT                                                         //
+///////////////////////////////////////////////////////////////////////////
+
+template <class T>
+T ChatGPTProduct(const Vector2<T>& p1, const Vector2<T>& p2, const Vector2<T>& p3) {
+    return (p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x);
+}
+
 } // namespace math
 HOBGOBLIN_NAMESPACE_END
 

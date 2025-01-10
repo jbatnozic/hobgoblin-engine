@@ -31,6 +31,8 @@ add_library(${PROJECT_NAME}
     "Source/World/Active_area.cpp"
     "Source/World/World.cpp"
 
+    "Source/World/Top_down_los_calculator.cpp"
+
     # Other
     "Source/Detail_access.hpp"
 )

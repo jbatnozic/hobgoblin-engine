@@ -165,4 +165,18 @@ TEST(HgMathTest, RotateVectorTest) {
     }
 }
 
+TEST(HgMathTest, IsPointInsideTriangleTest) {
+    const TriangleF triangle{
+        {2.f, 1.f}, {2.f, 5.f}, {5.f, 1.f}
+    };
+
+    EXPECT_TRUE(IsPointInsideTriangle({3.5f, 1.25f}, triangle));
+    EXPECT_TRUE(IsPointInsideTriangle({2.25f, 2.5f}, triangle));
+    EXPECT_TRUE(IsPointInsideTriangle({3.5f, 2.5f}, triangle));
+
+    EXPECT_FALSE(IsPointInsideTriangle({3.5f, 0.75f}, triangle));
+    EXPECT_FALSE(IsPointInsideTriangle({1.75f, 2.5f}, triangle));
+    EXPECT_FALSE(IsPointInsideTriangle({4.0f, 3.0f}, triangle));
+}
+
 // clang-format on

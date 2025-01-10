@@ -584,7 +584,31 @@ void World::_refreshCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) {
 
     auto* cell = _chunkStorage.getCellAtUnchecked(aX, aY);
     if (cell) {
-        cell->setOpenness(_calcOpennessAt<false>(aX, aY));
+        const auto openness    = _calcOpennessAt<false>(aX, aY);
+        const auto obstruction = [this, aX, aY, openness]() -> std::uint16_t {
+            if (openness > 2) {
+                return 0;
+            }
+            std::uint16_t res = 0;
+            res |= (aX >= getCellCountX() - 1 ||
+                    _chunkStorage.getCellAtUnchecked(aX + 1, aY)->isWallInitialized())
+                       ? CellModel::RIGHT_EDGE_OBSTRUCTED
+                       : 0;
+            res |= (aY <= 0 || _chunkStorage.getCellAtUnchecked(aX, aY - 1)->isWallInitialized())
+                       ? CellModel::TOP_EDGE_OBSTRUCTED
+                       : 0;
+            res |= (aX <= 0 || _chunkStorage.getCellAtUnchecked(aX - 1, aY)->isWallInitialized())
+                       ? CellModel::LEFT_EDGE_OBSTRUCTED
+                       : 0;
+            res |= (aY >= getCellCountY() - 1 ||
+                    _chunkStorage.getCellAtUnchecked(aX, aY + 1)->isWallInitialized())
+                       ? CellModel::BOTTOM_EDGE_OBSTRUCTED
+                       : 0;
+            return res;
+        }();
+
+        cell->setOpenness(openness);
+        cell->setObstructionFlags(obstruction);
     }
 }
 

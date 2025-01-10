@@ -33,6 +33,11 @@ then
         -s build_type=$3        \
         ${BUILD_PARAMS}
 
+    # Generate rebuild.bash script
+    touch ./build_/bin/rebuild.bash   
+    printf "#!/bin/bash\n\npushd ../.. ; ./conanw.bash build $2 $3 ; popd ;" > ./build_/bin/rebuild.bash
+    chmod +x ./build_/bin/rebuild.bash
+
     exit 0
 fi
 
