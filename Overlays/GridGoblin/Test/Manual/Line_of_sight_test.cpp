@@ -8,9 +8,9 @@
 #include <Hobgoblin/Graphics.hpp>
 #include <Hobgoblin/Input.hpp>
 #include <Hobgoblin/Math.hpp>
+#include <Hobgoblin/Utility/Log_with_scoped_stopwatch.hpp>
 #include <Hobgoblin/Utility/Randomization.hpp>
 #include <Hobgoblin/Utility/Time_utils.hpp>
-#include <Hobgoblin/Utility/Log_with_scoped_stopwatch.hpp>
 #include <Hobgoblin/Window.hpp>
 
 #include <chrono>
@@ -58,8 +58,8 @@ void DrawChunk(hg::gr::Canvas& aCanvas, const World& aWorld, ChunkId aChunkId) {
 } // namespace
 
 // old: 28
-#define CELL_COUNT_X     30
-#define CELL_COUNT_Y     30
+#define CELL_COUNT_X     120
+#define CELL_COUNT_Y     120
 #define CELLRES          24.f
 #define CELL_PROBABILITY 25
 
@@ -93,7 +93,8 @@ void RunLineOfSightTestImpl() {
             for (int y = 0; y < world.getCellCountY(); y += 1) {
                 for (int x = 0; x < world.getCellCountX(); x += 1) {
                     aEditor.setFloorAt({x, y}, CellModel::Floor{0});
-                    if (hg::util::GetRandomNumber(0, 99) < CELL_PROBABILITY && x != 14 && x != 15) {
+                    if (hg::util::GetRandomNumber(0, 99) < CELL_PROBABILITY &&
+                        x != CELL_COUNT_X / 2 - 1 && x != CELL_COUNT_X / 2) {
                         aEditor.setWallAt({x, y}, CellModel::Wall{0, 0, Shape::FULL_SQUARE});
                     }
                 }
