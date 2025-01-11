@@ -41,11 +41,31 @@ public:
     }
 
 private:
+    // ===== Dependencies =====
+
     const World& _world;
 
-    PositionInWorld    _viewCenter;
-    hg::math::Vector2f _viewSize;
-    hg::math::Vector2f _lineOfSightOrigin;
+    // ===== Configuration =====
+
+    const float _cr;     //!< Cell resolution (known from _world).
+    const float _xLimit; //!< Maximum for X values (known from _world).
+    const float _yLimit; //!< Maximum for Y values (known from _world).
+
+    hg::PZInteger _minRingsBeforeRaycasting;
+    hg::PZInteger _rayCount;
+
+    // ===== Calculation context =====
+
+    hg::math::Rectangle<float> _viewBbox;
+    hg::math::Vector2pz        _viewTopLeftCell;
+    hg::math::Vector2pz        _viewBottomRightCell;
+
+    hg::math::Vector2f  _lineOfSightOrigin;
+    hg::math::Vector2pz _lineOfSightOriginCell;
+
+    float _rayRadius;
+
+    // ===== Data structures =====
 
     struct Triangle : public hg::math::TriangleF {
         Triangle(hg::math::Vector2f aA,
@@ -62,30 +82,25 @@ private:
     std::vector<Triangle> _darkZones;
 
     std::array<float, 360> _rays; // TODO: variable number of rays
-    float _rayRadius = 0.f;
     bool _raysDisabled = true;
+
+    // ===== Statistics =====
 
     mutable hg::PZInteger _comparisons = 0;
 
-    struct CalculationContext {
-        PositionInWorld     lineOfSightOrigin;
-        hg::math::Vector2pz lineOfSightOriginCell;
+    // ===== Methods =====
 
-        // The three cell coordinates below define the rectangle in which we need to process cells
-        hg::math::Vector2pz rectTopLeftCell;
-        hg::math::Vector2pz rectBottomRightCell;
+    std::uint16_t _calcEdgesOfInterest(hg::math::Vector2pz aCell) const;
 
-        float radius;
+    bool _areAnyVerticesVisible(const std::array<hg::math::Vector2f, 8>& aVertices,
+                                std::size_t                              aVertCount,
+                                std::uint16_t                            aEdgesOfInterest) const;
 
-        hg::PZInteger cornerThreshold = 100;
-    };
+    void _processRing(hg::PZInteger aRingIndex);
 
-    //! \returns is whole ring obstructed?
-    bool _processRing(hg::PZInteger aRingIndex, const CalculationContext& aCtx);
+    void _processCell(hg::math::Vector2pz aCell);
 
-    hg::PZInteger _processCell(hg::math::Vector2pz aCell, const CalculationContext& aCtx);
-
-    void _processRays(const CalculationContext& aCtx);
+    void _processRays();
 
     bool _isPointVisible(PositionInWorld aPosInWorld, std::uint16_t aFlags) const;
 
