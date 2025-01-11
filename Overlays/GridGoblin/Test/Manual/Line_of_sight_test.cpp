@@ -61,7 +61,7 @@ void DrawChunk(hg::gr::Canvas& aCanvas, const World& aWorld, ChunkId aChunkId) {
 #define CELL_COUNT_X     120
 #define CELL_COUNT_Y     120
 #define CELLRES          24.f
-#define CELL_PROBABILITY 25
+#define CELL_PROBABILITY 4
 
 void RunLineOfSightTestImpl() {
     hg::log::SetMinimalLogSeverity(hg::log::Severity::Info);

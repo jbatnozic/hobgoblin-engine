@@ -7,7 +7,7 @@
 #include <Hobgoblin/Logging.hpp>
 
 #include <array>
-#include <bit>
+#include <cmath>
 #include <type_traits>
 
 namespace jbatnozic {
@@ -57,7 +57,11 @@ std::size_t GetUnobstructedVertices(const CellModel&                   aCell,
 } // namespace
 
 TopDownLineOfSightCalculator::TopDownLineOfSightCalculator(const World& aWorld)
-    : _world{aWorld} {}
+    : _world{aWorld} {
+    for (auto& r : _rays) {
+        r = INFINITY;
+    }
+}
 
 std::optional<bool> TopDownLineOfSightCalculator::testVisibilityAt(PositionInWorld aPos) const {
     // if (!point_inside_view) { return std:: nullopt; }
@@ -67,11 +71,14 @@ std::optional<bool> TopDownLineOfSightCalculator::testVisibilityAt(PositionInWor
 void TopDownLineOfSightCalculator::calc(PositionInWorld    aViewCenter,
                                         hg::math::Vector2f aViewSize,
                                         PositionInWorld    aLineOfSightOrigin) {
-    _viewCenter = aViewCenter;
-    _viewSize   = aViewSize;
+    _viewCenter        = aViewCenter;
+    _viewSize          = aViewSize;
+    _lineOfSightOrigin = *aLineOfSightOrigin;
 
-    const float worldW = _world.getCellCountX() * _world.getCellResolution();
-    const float worldH = _world.getCellCountY() * _world.getCellResolution();
+    const auto cr = _world.getCellResolution();
+
+    const float worldW = _world.getCellCountX() * cr;
+    const float worldH = _world.getCellCountY() * cr;
 
     static constexpr float F_EPSILON = 0.05;
 
@@ -81,10 +88,21 @@ void TopDownLineOfSightCalculator::calc(PositionInWorld    aViewCenter,
     const float endFX   = Clamp(aViewCenter->x + aViewSize.x * 0.5f, 0.f, worldW - F_EPSILON);
     const float endFY   = Clamp(aViewCenter->y + aViewSize.y * 0.5f, 0.f, worldW - F_EPSILON);
 
-    const CalculationContext ctx{.lineOfSightOrigin     = aLineOfSightOrigin,
-                                 .lineOfSightOriginCell = _world.posToCell(*aLineOfSightOrigin),
-                                 .rectTopLeftCell       = _world.posToCell({startFX, startFY}),
-                                 .rectBottomRightCell   = _world.posToCell({endFX, endFY})};
+    CalculationContext ctx{.lineOfSightOrigin     = aLineOfSightOrigin,
+                           .lineOfSightOriginCell = _world.posToCell(*aLineOfSightOrigin),
+                           .rectTopLeftCell       = _world.posToCell({startFX, startFY}),
+                           .rectBottomRightCell   = _world.posToCell({endFX, endFY})};
+
+    const int maxRings = 15;
+
+    // ctx.radius = maxRings * cr -
+    //              hg::math::EuclideanDist(*aLineOfSightOrigin,
+    //                                      hg::math::Vector2f{(ctx.lineOfSightOriginCell.x + 0.5f) * cr,
+    //                                                         (ctx.lineOfSightOriginCell.y + 0.5f) * cr});
+    _rayRadius = ctx.radius =
+        maxRings * cr -
+        std::max(std::abs(aLineOfSightOrigin->x - (ctx.lineOfSightOriginCell.x + 0.5f) * cr),
+                 std::abs(aLineOfSightOrigin->y - (ctx.lineOfSightOriginCell.y + 0.5f) * cr));
 
     const auto& center = ctx.lineOfSightOriginCell;
     const auto& start  = ctx.rectTopLeftCell;
@@ -94,10 +112,19 @@ void TopDownLineOfSightCalculator::calc(PositionInWorld    aViewCenter,
     while ((center.x - ring >= start.x) || (center.x + ring <= end.x) || (center.y - ring >= start.y) ||
            (center.y + ring <= end.y)) {
         const auto ringObstructed = _processRing(ring, ctx);
-        if (ringObstructed) {
-            // break;
-        }
+        // if (ringObstructed) {
+        //     break;
+        // }
         ring += 1;
+        if (ring > maxRings) {
+            break; // TODO: switch to rays after both maxRings and maxTriangles have been exceeded
+                   //       ...maybe also a threshold for undetermined rays?
+        }
+    }
+
+    if (ring > maxRings) {
+        _processRays(ctx);
+        _raysDisabled = false;
     }
 }
 
@@ -188,7 +215,7 @@ hg::PZInteger TopDownLineOfSightCalculator::_processCell(hg::math::Vector2pz    
     //     return 1;
     // }
 
-    const auto* cell = _world.getCellAt(aCell);
+    const auto* cell = _world.getCellAtUnchecked(aCell);
     if (cell == nullptr) {
         return 1;
     }
@@ -249,45 +276,135 @@ hg::PZInteger TopDownLineOfSightCalculator::_processCell(hg::math::Vector2pz    
     }
 
     for (int i = 0; i < vertCnt; i += 2) {
-        const auto ray1End = [&vertices, i, aCtx]() -> hg::math::Vector2f {
+        hg::math::AngleD a1, a2;
+
+        const auto ray1End = [&vertices, &a1, i, &aCtx]() -> hg::math::Vector2f {
             hg::math::Vector2f diff = {vertices[i].x - aCtx.lineOfSightOrigin->x,
                                        vertices[i].y - aCtx.lineOfSightOrigin->y};
-            diff.x *= 1000.f; // TODO: magic number
-            diff.y *= 1000.f; // TODO: magic number
+            diff.x *= 1000.f; // TODO: magic number (use trigonometry)
+            diff.y *= 1000.f; // TODO: magic number (use trigonometry)
+
+            a1 = hg::math::AngleD::fromVector(diff.x, diff.y);
 
             return vertices[i] + diff;
         }();
-        const auto ray2End = [&vertices, i, aCtx]() -> hg::math::Vector2f {
+        const auto ray2End = [&vertices, &a2, i, &aCtx]() -> hg::math::Vector2f {
             hg::math::Vector2f diff = {vertices[i + 1].x - aCtx.lineOfSightOrigin->x,
                                        vertices[i + 1].y - aCtx.lineOfSightOrigin->y};
-            diff.x *= 1000.f; // TODO: magic number
-            diff.y *= 1000.f; // TODO: magic number
+            diff.x *= 1000.f; // TODO: magic number (use trigonometry)
+            diff.y *= 1000.f; // TODO: magic number (use trigonometry)
+
+            a2 = hg::math::AngleD::fromVector(diff.x, diff.y);
 
             return vertices[i + 1] + diff;
         }();
 
         _darkZones.push_back({vertices[i], vertices[i + 1], ray1End, edgesOfInterest});
         _darkZones.push_back({ray1End, vertices[i + 1], ray2End, edgesOfInterest});
+
+
+        if (a2 < a1) {
+            std::swap(a1, a2);
+        }
+        if (HG_UNLIKELY_CONDITION(a1 <= hg::math::AngleD::halfCircle() * 0.5 &&
+                                  a2 >= hg::math::AngleD::halfCircle() * 1.5)) {
+            HG_UNLIKELY_BRANCH;
+            int start = std::max((int)std::round(a2.asDeg()), 0);
+            int end   = std::min((int)std::round(a1.asDeg()), 359);
+            for (int i = start; i < 360 || i % 360 <= end; i += 1) {
+                _rays[i % 360] = aCtx.radius;
+            }
+        } else {
+            HG_LIKELY_BRANCH;
+            int start = std::max((int)std::round(a1.asDeg()), 0);
+            int end   = std::min((int)std::round(a2.asDeg()), 359);
+            for (int i = start; i <= end; i += 1) {
+                _rays[i] = aCtx.radius;
+            }
+        }        
     }
 
     return 0;
 }
 
-bool TopDownLineOfSightCalculator::_isPointVisible(PositionInWorld aPosInWorld,
-                                                   std::uint16_t   aFlags) const {
-    const auto limit = _darkZones.size();
-    for (std::int64_t i = 0; i < limit; i += 1) {
-        const auto mask = _darkZones[i].flags & aFlags;
-        if (HG_LIKELY_CONDITION((mask & (mask - 1)) == 0)) {
-            HG_LIKELY_BRANCH;
+void TopDownLineOfSightCalculator::_processRays(const CalculationContext& aCtx) {
+    // TODO: see how rays deal with pairs of blocks where only corners are touching
+    // TODO: optimize
+
+    const auto maxX = _world.getCellCountX() * _world.getCellResolution();
+    const auto maxY = _world.getCellCountY() * _world.getCellResolution();
+
+    for (std::size_t i = 0; i < _rays.size(); i += 1) {
+        if (_rays[i] != INFINITY) {
             continue;
         }
-        _comparisons += 1;
-        if (hg::math::IsPointInsideTriangle(*aPosInWorld, _darkZones[i])) {
-            return false;
+
+        const auto direction = hg::math::AngleF::fromDeg((double)i);
+        const auto increment = direction.asNormalizedVector() * _world.getCellResolution() / 6.f;
+
+        hg::math::Vector2f point = _lineOfSightOrigin + direction.asNormalizedVector() * _rayRadius;
+        for (int t = 0; t < 400; t += 1) {
+            point += increment;
+            if (HG_UNLIKELY_CONDITION(point.x < 0.f || point.y < 0.f || point.x >= maxX || point.y >= maxY)) {
+                HG_UNLIKELY_BRANCH;
+                _rays[i] = _rayRadius + (t + 1) * _world.getCellResolution() / 6.f;
+                break;
+            }
+
+            const auto* cell = _world.getCellAtUnchecked(_world.posToCellUnchecked(point));
+            if (cell == nullptr || cell->isWallInitialized()) {
+                _rays[i] = _rayRadius + (t + 1) * _world.getCellResolution() / 6.f;
+                break;
+            }
         }
     }
-    return true;
+}
+
+bool TopDownLineOfSightCalculator::_isPointVisible(PositionInWorld aPosInWorld,
+                                                   std::uint16_t   aFlags) const {
+    float dist;
+    if (!_raysDisabled) {
+        dist = hg::math::EuclideanDist(*aPosInWorld, _lineOfSightOrigin);
+    }
+
+    if (_raysDisabled || dist < _rayRadius) {
+        const auto limit = _darkZones.size();
+        for (std::int64_t i = 0; i < limit; i += 1) {
+            const auto mask = _darkZones[i].flags & aFlags;
+            if (HG_LIKELY_CONDITION((mask & (mask - 1)) == 0)) {
+                HG_LIKELY_BRANCH;
+                continue;
+            }
+            _comparisons += 1;
+            if (hg::math::IsPointInsideTriangle(*aPosInWorld, _darkZones[i])) {
+                return false;
+            }
+        }
+        return true;
+    } else {
+        hg::math::Vector2f diff = {aPosInWorld->x - _lineOfSightOrigin.x,
+                                   aPosInWorld->y - _lineOfSightOrigin.y};
+        const auto angle = hg::math::AngleD::fromVector(diff.x, diff.y);
+        const int idx = hg::math::Clamp((int)std::round(angle.asDeg()), 0, 359);
+        if (dist > _rays[idx]) {
+            return false;
+        }
+
+        // Have to ALSO check triangles
+        const auto limit = _darkZones.size();
+        for (std::int64_t i = 0; i < limit; i += 1) {
+            const auto mask = _darkZones[i].flags & aFlags;
+            if (HG_LIKELY_CONDITION((mask & (mask - 1)) == 0)) {
+                HG_LIKELY_BRANCH;
+                continue;
+            }
+            _comparisons += 1;
+            if (hg::math::IsPointInsideTriangle(*aPosInWorld, _darkZones[i])) {
+                return false;
+            }
+        }
+        return true;
+    }
 }
 
 bool TopDownLineOfSightCalculator::_isLineVisible(PositionInWorld aP1,

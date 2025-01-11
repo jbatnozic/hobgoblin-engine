@@ -9,6 +9,7 @@
 #include <GridGoblin/Spatial/Position_in_world.hpp>
 #include <GridGoblin/World/World.hpp>
 
+#include <array>
 #include <vector>
 
 namespace jbatnozic {
@@ -44,6 +45,7 @@ private:
 
     PositionInWorld    _viewCenter;
     hg::math::Vector2f _viewSize;
+    hg::math::Vector2f _lineOfSightOrigin;
 
     struct Triangle : public hg::math::TriangleF {
         Triangle(hg::math::Vector2f aA,
@@ -59,6 +61,10 @@ private:
 
     std::vector<Triangle> _darkZones;
 
+    std::array<float, 360> _rays; // TODO: variable number of rays
+    float _rayRadius = 0.f;
+    bool _raysDisabled = true;
+
     mutable hg::PZInteger _comparisons = 0;
 
     struct CalculationContext {
@@ -69,6 +75,8 @@ private:
         hg::math::Vector2pz rectTopLeftCell;
         hg::math::Vector2pz rectBottomRightCell;
 
+        float radius;
+
         hg::PZInteger cornerThreshold = 100;
     };
 
@@ -76,6 +84,8 @@ private:
     bool _processRing(hg::PZInteger aRingIndex, const CalculationContext& aCtx);
 
     hg::PZInteger _processCell(hg::math::Vector2pz aCell, const CalculationContext& aCtx);
+
+    void _processRays(const CalculationContext& aCtx);
 
     bool _isPointVisible(PositionInWorld aPosInWorld, std::uint16_t aFlags) const;
 
