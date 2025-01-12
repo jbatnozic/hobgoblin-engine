@@ -575,6 +575,12 @@ void World::_endEdit() {
     }
 }
 
+namespace {
+bool IsCellSolid(const CellModel* aCell) {
+    return (aCell == nullptr || aCell->isWallInitialized());
+}
+} // namespace
+
 void World::_refreshCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) {
     // GetMutableExtensionData(cell).refresh(
     //     (aY <= 0) ? nullptr : std::addressof(_grid[aY - 1][aX]),
@@ -590,20 +596,20 @@ void World::_refreshCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) {
                 return 0;
             }
             std::uint16_t res = 0;
-            res |= (aX >= getCellCountX() - 1 ||
-                    _chunkStorage.getCellAtUnchecked(aX + 1, aY)->isWallInitialized())
-                       ? CellModel::RIGHT_EDGE_OBSTRUCTED
-                       : 0;
-            res |= (aY <= 0 || _chunkStorage.getCellAtUnchecked(aX, aY - 1)->isWallInitialized())
+            res |=
+                (aX >= getCellCountX() - 1 || IsCellSolid(_chunkStorage.getCellAtUnchecked(aX + 1, aY)))
+                    ? CellModel::RIGHT_EDGE_OBSTRUCTED
+                    : 0;
+            res |= (aY <= 0 || IsCellSolid(_chunkStorage.getCellAtUnchecked(aX, aY - 1)))
                        ? CellModel::TOP_EDGE_OBSTRUCTED
                        : 0;
-            res |= (aX <= 0 || _chunkStorage.getCellAtUnchecked(aX - 1, aY)->isWallInitialized())
+            res |= (aX <= 0 || IsCellSolid(_chunkStorage.getCellAtUnchecked(aX - 1, aY)))
                        ? CellModel::LEFT_EDGE_OBSTRUCTED
                        : 0;
-            res |= (aY >= getCellCountY() - 1 ||
-                    _chunkStorage.getCellAtUnchecked(aX, aY + 1)->isWallInitialized())
-                       ? CellModel::BOTTOM_EDGE_OBSTRUCTED
-                       : 0;
+            res |=
+                (aY >= getCellCountY() - 1 || IsCellSolid(_chunkStorage.getCellAtUnchecked(aX, aY + 1)))
+                    ? CellModel::BOTTOM_EDGE_OBSTRUCTED
+                    : 0;
             return res;
         }();
 
@@ -677,7 +683,7 @@ void World::_setWallAtUnchecked(hg::PZInteger                         aX,
         _editMinY = _editMaxY = aY;
     } else {
         _editMinY = std::min(_editMinY, aY);
-        _editMaxY = std::min(_editMaxY, aY);
+        _editMaxY = std::max(_editMaxY, aY);
     }
 
 SWAP_WALL:

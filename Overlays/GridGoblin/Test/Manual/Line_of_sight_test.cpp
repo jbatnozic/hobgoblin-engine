@@ -57,11 +57,10 @@ void DrawChunk(hg::gr::Canvas& aCanvas, const World& aWorld, ChunkId aChunkId) {
 }
 } // namespace
 
-// old: 28
-#define CELL_COUNT_X     120
-#define CELL_COUNT_Y     120
+#define CELL_COUNT_X     60
+#define CELL_COUNT_Y     60
 #define CELLRES          24.f
-#define CELL_PROBABILITY 25
+#define CELL_PROBABILITY 10
 
 void RunLineOfSightTestImpl() {
     hg::log::SetMinimalLogSeverity(hg::log::Severity::Info);
@@ -71,7 +70,7 @@ void RunLineOfSightTestImpl() {
                        .cellsPerChunkX              = CELL_COUNT_X,
                        .cellsPerChunkY              = CELL_COUNT_Y,
                        .cellResolution              = CELLRES,
-                       .maxCellOpenness             = 0,
+                       .maxCellOpenness             = 3,
                        .maxLoadedNonessentialChunks = 1};
 
     World world{config};
@@ -79,13 +78,18 @@ void RunLineOfSightTestImpl() {
     // Generate world:
     {
         hg::util::DoWith32bitRNG([](std::mt19937& aRng) {
-            // aRng.seed(hg::util::Generate32bitSeed());
+            //const auto seed = hg::util::Generate32bitSeed();
+            //const auto seed = 2593577924ULL;
+            //aRng.seed(seed);
             aRng.seed(0xDEADBEEF);
+            //HG_LOG_INFO(LOG_ID, "32bit seed = {}", seed);
         });
         hg::util::DoWith64bitRNG([](std::mt19937_64& aRng) {
-            // aRng.seed(hg::util::Generate64bitSeed());
-            aRng.seed(hg::util::Generate64bitSeed());
+            //const auto seed = hg::util::Generate64bitSeed();
+            //const auto seed = 11823085330007581526ULL;
+            //aRng.seed(seed);
             aRng.seed(0xDEADBEEFDEADBEEF);
+            //HG_LOG_INFO(LOG_ID, "64bit seed = {}", seed);
         });
 
         auto perm = world.getPermissionToEdit();
@@ -103,38 +107,46 @@ void RunLineOfSightTestImpl() {
     }
 
     TopDownLineOfSightCalculator losCalc{world};
-    HG_LOG_INFO(LOG_ID, "Running calc()...");
-    {
-        HG_LOG_WITH_SCOPED_STOPWATCH_MS(INFO, LOG_ID, "calc() took {}ms", elapsed_time_ms);
-        losCalc.calc({CELL_COUNT_X * CELLRES * 0.5f, CELL_COUNT_Y * CELLRES * 0.5f},
-                     {CELL_COUNT_X * CELLRES, CELL_COUNT_Y * CELLRES},
-                     {CELL_COUNT_X * CELLRES * 0.5f, CELL_COUNT_Y * CELLRES * 0.5f});
-    }
-    HG_LOG_INFO(LOG_ID,
-                "Triangles: {}, Comparisons: {}",
-                losCalc.getTriangleCount(),
-                losCalc.getTriangleComparisons());
+    hg::gr::Image                image;
+    hg::gr::Texture              texture;
 
-    hg::gr::Image image;
-    HG_LOG_INFO(LOG_ID, "Generating image...");
-    {
-        HG_LOG_WITH_SCOPED_STOPWATCH_MS(INFO, LOG_ID, "Image generation took {}ms", elapsed_time_ms);
-        image.create(hg::ToPz(CELL_COUNT_X * CELLRES), hg::ToPz(CELL_COUNT_Y * CELLRES));
-        for (int y = 0; y < hg::ToPz(CELL_COUNT_X * CELLRES); y += 1) {
-            for (int x = 0; x < hg::ToPz(CELL_COUNT_Y * CELLRES); x += 1) {
-                const auto v = losCalc.testVisibilityAt({(float)x, (float)y});
-                if (!v.has_value() || *v == false) {
-                    image.setPixel(x, y, hg::gr::COLOR_BLACK.withAlpha(150));
-                } else {
-                    image.setPixel(x, y, hg::gr::COLOR_TRANSPARENT);
+    const auto generateLoS = [&](hg::math::Vector2f pos) {
+        HG_LOG_INFO(LOG_ID, "===============================================");
+        HG_LOG_INFO(LOG_ID, "Running calc()...");
+        {
+            HG_LOG_WITH_SCOPED_STOPWATCH_MS(INFO, LOG_ID, "calc() took {}ms", elapsed_time_ms);
+            losCalc.calc({CELL_COUNT_X * CELLRES * 0.5f, CELL_COUNT_Y * CELLRES * 0.5f},
+                         {CELL_COUNT_X * CELLRES, CELL_COUNT_Y * CELLRES},
+                         PositionInWorld{pos});
+        }
+
+        HG_LOG_INFO(LOG_ID,
+                    "Triangles: {}, Comparisons: {}, Rings: {}",
+                    losCalc.getTriangleCount(),
+                    losCalc.getTriangleComparisons(),
+                    losCalc.getPreciseRings());
+
+        HG_LOG_INFO(LOG_ID, "Generating image...");
+        {
+            HG_LOG_WITH_SCOPED_STOPWATCH_MS(INFO, LOG_ID, "Image generation took {}ms", elapsed_time_ms);
+            image.create(hg::ToPz(CELL_COUNT_X * CELLRES), hg::ToPz(CELL_COUNT_Y * CELLRES));
+            for (int y = 0; y < hg::ToPz(CELL_COUNT_X * CELLRES); y += 1) {
+                for (int x = 0; x < hg::ToPz(CELL_COUNT_Y * CELLRES); x += 1) {
+                    const auto v = losCalc.testVisibilityAt({(float)x, (float)y});
+                    if (!v.has_value() || *v == false) {
+                        image.setPixel(x, y, hg::gr::COLOR_BLACK.withAlpha(150));
+                    } else {
+                        image.setPixel(x, y, hg::gr::COLOR_TRANSPARENT);
+                    }
                 }
             }
         }
-    }
 
-    hg::gr::Texture texture;
-    HG_LOG_INFO(LOG_ID, "Loading texture...");
-    texture.loadFromImage(image);
+        HG_LOG_INFO(LOG_ID, "Loading texture...");
+        texture.loadFromImage(image);
+    };
+
+    generateLoS({CELL_COUNT_X * CELLRES * 0.5f, CELL_COUNT_Y * CELLRES * 0.5f});
 
     hg::gr::Sprite spr;
     spr.setTexture(&texture, true);
@@ -163,6 +175,9 @@ void RunLineOfSightTestImpl() {
                 },
                 [&](hg::win::Event::MouseButtonPressed& aButton) {
                     if (aButton.button == hg::in::MB_LEFT) {
+                        const auto coords = window.mapPixelToCoords({aButton.x, aButton.y});
+                        HG_LOG_INFO(LOG_ID, "Coords = {}, {}", coords.x, coords.y);
+                        generateLoS(coords);
                         mouseLClick = true;
                     }
                     if (aButton.button == hg::in::MB_RIGHT) {
