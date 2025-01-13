@@ -763,23 +763,35 @@ public:
     }
 };
 
-template <double taPercent>
-class IncreaseByNPercent {
+class IncreaseByFiftyPercent {
 public:
     std::uint32_t operator()(std::uint32_t aCurrentCapacity) const {
         if (((aCurrentCapacity & 0x01) == 1) || aCurrentCapacity == 0) {
             aCurrentCapacity += 1;
         }
-        return static_cast<std::uint32_t>(aCurrentCapacity * (1.0 + taPercent));
+        return static_cast<std::uint32_t>(aCurrentCapacity * 1.5);
     }
 };
 
-using IncreaseByFiftyPercent = IncreaseByNPercent<0.5>;
+class IncreaseByHundredPercent {
+public:
+    std::uint32_t operator()(std::uint32_t aCurrentCapacity) const {
+        if (((aCurrentCapacity & 0x01) == 1) || aCurrentCapacity == 0) {
+            aCurrentCapacity += 1;
+        }
+        return static_cast<std::uint32_t>(aCurrentCapacity * 2.0);
+    }
+};
 
-using IncreaseByHundredPercent = IncreaseByNPercent<1.0>;
-
-// Golden ratio = 1.618033988749...
-using IncreaseByGoldenRatio = IncreaseByNPercent<0.618033988749>;
+class IncreaseByGoldenRatio {
+public:
+    std::uint32_t operator()(std::uint32_t aCurrentCapacity) const {
+        if (((aCurrentCapacity & 0x01) == 1) || aCurrentCapacity == 0) {
+            aCurrentCapacity += 1;
+        }
+        return static_cast<std::uint32_t>(aCurrentCapacity * 1.618033988749);
+    }
+};
 
 using Default = IncreaseByGoldenRatio;
 } // namespace growth_strategy
