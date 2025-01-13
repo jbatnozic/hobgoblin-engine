@@ -302,25 +302,6 @@ void TopDownLineOfSightCalculator::_processCell(Vector2pz aCell, hg::PZInteger a
         _darkZones.push_back({ray1End, vertices[i + 1], ray2End, edgesOfInterest});
 
         _setRaysFromTriangles(a1, a2);
-        // if (a2 < a1) {
-        //     std::swap(a1, a2);
-        // }
-        // if (HG_UNLIKELY_CONDITION(a1 <= AngleF::halfCircle() * 0.5 &&
-        //                           a2 >= AngleF::halfCircle() * 1.5)) {
-        //     HG_UNLIKELY_BRANCH;
-        //     int start = std::max((int)std::round(a2.asDeg()), 0);    // TODO: assumes 360 deg circles
-        //     int end   = std::min((int)std::round(a1.asDeg()), 359);  // TODO: assumes 360 deg circles
-        //     for (int i = start; i < 360 || i % 360 <= end; i += 1) { // TODO: assumes 360 deg circles
-        //         _rays[i % 360] = _rayRadius;                         // TODO: assumes 360 deg circles
-        //     }
-        // } else {
-        //     HG_LIKELY_BRANCH;
-        //     int start = std::max((int)std::round(a1.asDeg()), 0);   // TODO: assumes 360 deg circles
-        //     int end   = std::min((int)std::round(a2.asDeg()), 359); // TODO: assumes 360 deg circles
-        //     for (int i = start; i <= end; i += 1) {                 // TODO: assumes 360 deg circles
-        //         _rays[i] = _rayRadius;
-        //     }
-        // }
     }
 }
 
