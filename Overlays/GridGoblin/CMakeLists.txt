@@ -22,6 +22,7 @@ add_library(${PROJECT_NAME}
     "Source/Rendering/Drawing_order.cpp"
     "Source/Rendering/Top_down_los_renderer.cpp"
     "Source/Rendering/OpenGL_helpers.cpp"
+    "Source/Rendering/Visibility_calculator.cpp"
 
     # Spatial
     "Source/Spatial/Position_conversions.cpp"
@@ -30,8 +31,6 @@ add_library(${PROJECT_NAME}
     # World
     "Source/World/Active_area.cpp"
     "Source/World/World.cpp"
-
-    "Source/World/Top_down_los_calculator.cpp"
 
     # Other
     "Source/Detail_access.hpp"

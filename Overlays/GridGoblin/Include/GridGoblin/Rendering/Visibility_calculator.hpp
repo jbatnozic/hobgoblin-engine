@@ -16,27 +16,52 @@ namespace gridgoblin {
 
 namespace hg = jbatnozic::hobgoblin;
 
-class TopDownLineOfSightCalculator {
-public:
-    TopDownLineOfSightCalculator(const World& aWorld);
+struct VisibilityCalculatorConfig {
+    //! Minimal number of rings around point of view that have to be resolved in high detail
+    //! before the calculator can fall back to lower detail mode (ray casting).
+    //!
+    //! \note set this to 0 to force resolving everything in high detail.
+    hg::PZInteger minRingsBeforeRaycasting = 15;
 
-    void calc(PositionInWorld    aViewCenter,
-              hg::math::Vector2f aViewSize,
-              PositionInWorld    aLineOfSightOrigin);
+    //! Minimal number of triangles that has to be resolved before the calculator can fall
+    //! back to lower detail mode (ray casting).
+    hg::PZInteger minTrianglesBeforeRaycasting = 100;
+
+    //! Should the calculator fall back to lower detail mode - ray casting - this is the total number
+    //! of rays that will be evenly distributed in a circle around the point of view.
+    hg::PZInteger rayCount = 360;
+
+    //! TODO(description)
+    hg::PZInteger rayPointsPerCell = 6;
+};
+
+//! This class can be used to calculate which points in a GridGoblin World are visible from some
+//! arbitrary point of view, and which are blocked by walls of cells.
+//! This information can then be used for purposes like determining which walls should be lowered
+//! during rendering, rendering of shadows for dynamic lighting, and others.
+class VisibilityCalculator {
+public:
+    VisibilityCalculator(const World& aWorld, const VisibilityCalculatorConfig& aConfig = {});
+
+    void calc(PositionInWorld aViewCenter, hg::math::Vector2f aViewSize, PositionInWorld aPointOfView);
+
+    struct CalculationStats {
+        //! Number of rings that were resolved in high detail.
+        hg::PZInteger highDetailRingCount;
+
+        //! Number of triangles that were resolved.
+        hg::PZInteger triangleCount;
+
+        //! Number of checks that were performed to see if a point is inside a triangle.
+        hg::PZInteger triangleCheckCount;
+    };
+
+    //! Get some stats from the latest calc() call.
+    const CalculationStats& getStats() const;
 
     std::optional<bool> testVisibilityAt(PositionInWorld aPos) const;
 
-    std::size_t getTriangleCount() const {
-        return _darkZones.size();
-    }
-
-    std::size_t getTriangleComparisons() const {
-        return hg::pztos(_comparisons);
-    }
-
-    std::size_t getPreciseRings() const {
-        return hg::pztos(_preciseRings);
-    }
+    // TODO: render()
 
 private:
     // ===== Dependencies =====
@@ -49,10 +74,10 @@ private:
     const float _xLimit; //!< Maximum for X values (known from _world).
     const float _yLimit; //!< Maximum for Y values (known from _world).
 
-    hg::PZInteger _minRingsBeforeRaycasting     = 15;
-    hg::PZInteger _minTrianglesBeforeRaycasting = 100;
-    hg::PZInteger _rayCount                     = 360;
-    hg::PZInteger _rayPointsPerCellResolution   = 6;
+    hg::PZInteger _minRingsBeforeRaycasting;
+    hg::PZInteger _minTrianglesBeforeRaycasting;
+    hg::PZInteger _rayCount;
+    hg::PZInteger _rayPointsPerCell;
 
     // ===== Calculation context =====
 
@@ -82,7 +107,7 @@ private:
         std::uint16_t flags;
     };
 
-    std::vector<Triangle> _darkZones;
+    std::vector<Triangle> _triangles;
 
     std::vector<float> _rays;
 
@@ -90,10 +115,11 @@ private:
 
     // ===== Statistics =====
 
-    mutable hg::PZInteger _comparisons  = 0;
-    mutable hg::PZInteger _preciseRings = 0;
+    mutable CalculationStats _stats;
 
     // ===== Methods =====
+
+    void _resetData();
 
     void _setInitialCalculationContext(PositionInWorld    aViewCenter,
                                        hg::math::Vector2f aViewSize,

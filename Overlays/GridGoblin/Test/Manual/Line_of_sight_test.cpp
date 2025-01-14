@@ -3,7 +3,7 @@
 
 #include <GridGoblin/GridGoblin.hpp>
 
-#include <GridGoblin/Rendering/Top_down_los_calculator.hpp>
+#include <GridGoblin/Rendering/Visibility_calculator.hpp>
 
 #include <Hobgoblin/Graphics.hpp>
 #include <Hobgoblin/Input.hpp>
@@ -78,18 +78,18 @@ void RunLineOfSightTestImpl() {
     // Generate world:
     {
         hg::util::DoWith32bitRNG([](std::mt19937& aRng) {
-            //const auto seed = hg::util::Generate32bitSeed();
-            //const auto seed = 2593577924ULL;
-            //aRng.seed(seed);
+            // const auto seed = hg::util::Generate32bitSeed();
+            // const auto seed = 2593577924ULL;
+            // aRng.seed(seed);
             aRng.seed(0xDEADBEEF);
-            //HG_LOG_INFO(LOG_ID, "32bit seed = {}", seed);
+            // HG_LOG_INFO(LOG_ID, "32bit seed = {}", seed);
         });
         hg::util::DoWith64bitRNG([](std::mt19937_64& aRng) {
-            //const auto seed = hg::util::Generate64bitSeed();
-            //const auto seed = 11823085330007581526ULL;
-            //aRng.seed(seed);
+            // const auto seed = hg::util::Generate64bitSeed();
+            // const auto seed = 11823085330007581526ULL;
+            // aRng.seed(seed);
             aRng.seed(0xDEADBEEFDEADBEEF);
-            //HG_LOG_INFO(LOG_ID, "64bit seed = {}", seed);
+            // HG_LOG_INFO(LOG_ID, "64bit seed = {}", seed);
         });
 
         auto perm = world.getPermissionToEdit();
@@ -106,25 +106,25 @@ void RunLineOfSightTestImpl() {
         });
     }
 
-    TopDownLineOfSightCalculator losCalc{world};
-    hg::gr::Image                image;
-    hg::gr::Texture              texture;
+    VisibilityCalculator visCalc{world};
+    hg::gr::Image        image;
+    hg::gr::Texture      texture;
 
     const auto generateLoS = [&](hg::math::Vector2f pos) {
         HG_LOG_INFO(LOG_ID, "===============================================");
         HG_LOG_INFO(LOG_ID, "Running calc()...");
         {
             HG_LOG_WITH_SCOPED_STOPWATCH_MS(INFO, LOG_ID, "calc() took {}ms", elapsed_time_ms);
-            losCalc.calc({CELL_COUNT_X * CELLRES * 0.5f, CELL_COUNT_Y * CELLRES * 0.5f},
+            visCalc.calc({CELL_COUNT_X * CELLRES * 0.5f, CELL_COUNT_Y * CELLRES * 0.5f},
                          {CELL_COUNT_X * CELLRES, CELL_COUNT_Y * CELLRES},
                          PositionInWorld{pos});
         }
 
         HG_LOG_INFO(LOG_ID,
                     "Triangles: {}, Comparisons: {}, Rings: {}",
-                    losCalc.getTriangleCount(),
-                    losCalc.getTriangleComparisons(),
-                    losCalc.getPreciseRings());
+                    visCalc.getStats().triangleCount,
+                    visCalc.getStats().triangleCheckCount,
+                    visCalc.getStats().highDetailRingCount);
 
         HG_LOG_INFO(LOG_ID, "Generating image...");
         {
@@ -132,7 +132,7 @@ void RunLineOfSightTestImpl() {
             image.create(hg::ToPz(CELL_COUNT_X * CELLRES), hg::ToPz(CELL_COUNT_Y * CELLRES));
             for (int y = 0; y < hg::ToPz(CELL_COUNT_X * CELLRES); y += 1) {
                 for (int x = 0; x < hg::ToPz(CELL_COUNT_Y * CELLRES); x += 1) {
-                    const auto v = losCalc.testVisibilityAt({(float)x, (float)y});
+                    const auto v = visCalc.testVisibilityAt({(float)x, (float)y});
                     if (!v.has_value() || *v == false) {
                         image.setPixel(x, y, hg::gr::COLOR_BLACK.withAlpha(150));
                     } else {
