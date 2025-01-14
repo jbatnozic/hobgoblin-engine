@@ -10,6 +10,7 @@ add_executable(${PROJECT_NAME}
     "Openness_test.cpp"
     "Spooling_test.cpp"
     "Storage_handler_test.cpp"
+    "Visibility_calc_test.cpp"
 )
 
 target_link_libraries(${PROJECT_NAME}

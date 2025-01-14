@@ -8,10 +8,10 @@ find_package(RapidJSON CONFIG REQUIRED)
 
 add_library(${PROJECT_NAME}
     # Model
-    "Source/Model/Cell.cpp"
     "Source/Model/Chunk.cpp"
 
     # Private
+    "Source/Private/Cell_model_ext.cpp"
     "Source/Private/Chunk_disk_io_handler_default.cpp"
     "Source/Private/Chunk_spooler_default.cpp"
     "Source/Private/Chunk_storage_handler.cpp"
@@ -22,6 +22,7 @@ add_library(${PROJECT_NAME}
     "Source/Rendering/Drawing_order.cpp"
     "Source/Rendering/Top_down_los_renderer.cpp"
     "Source/Rendering/OpenGL_helpers.cpp"
+    "Source/Rendering/Visibility_calculator.cpp"
 
     # Spatial
     "Source/Spatial/Position_conversions.cpp"

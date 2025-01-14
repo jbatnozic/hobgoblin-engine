@@ -7,6 +7,7 @@
 
 #include <GridGoblin/Model/Chunk.hpp>
 #include <GridGoblin/Model/Chunk_id.hpp>
+#include <GridGoblin/Private/Cell_model_ext.hpp>
 #include <GridGoblin/Private/Chunk_spooler_interface.hpp>
 #include <GridGoblin/World/Active_area.hpp>
 #include <GridGoblin/World/Binder.hpp>

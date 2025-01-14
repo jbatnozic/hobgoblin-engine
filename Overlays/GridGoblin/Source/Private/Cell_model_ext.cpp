@@ -1,7 +1,7 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-#include <GridGoblin/Model/Cell.hpp>
+#include <GridGoblin/Private/Cell_model_ext.hpp>
 
 #include <Hobgoblin/HGExcept.hpp>
 
@@ -269,23 +269,27 @@ ChunkExtensionInterface* CellModelExt::ExtensionData::getChunkExtensionPointer()
     return _pointerStorage.chunkExtension;
 }
 
+namespace {
+bool IsSolid(const CellModelExt* aCell) {
+    return !aCell || aCell->isFloorInitialized();
+}
+} // namespace
+
 void CellModelExt::ExtensionData::refresh(const CellModelExt* aNorthNeighbour,
                                           const CellModelExt* aWestNeighbour,
                                           const CellModelExt* aEastNeighbour,
                                           const CellModelExt* aSouthNeighbour) {
     HG_ASSERT(!_holdingExtension);
 
-    // clang-format off
-    const bool blockedFromNorth = !aNorthNeighbour || aNorthNeighbour->isWallInitialized(); // TODO(temporary)
-    const bool blockedFromWest  = !aWestNeighbour  || aWestNeighbour->isWallInitialized();  // TODO(temporary)
-    const bool blockedFromEast  = !aEastNeighbour  || aEastNeighbour->isWallInitialized();  // TODO(temporary)
-    const bool blockedFromSouth = !aSouthNeighbour || aSouthNeighbour->isWallInitialized(); // TODO(temporary)
+    const bool blockedFromNorth = IsSolid(aNorthNeighbour);
+    const bool blockedFromWest  = IsSolid(aWestNeighbour);
+    const bool blockedFromEast  = IsSolid(aEastNeighbour);
+    const bool blockedFromSouth = IsSolid(aSouthNeighbour);
 
     const auto selector = (blockedFromEast ? 0x01 : 0) | (blockedFromNorth ? 0x02 : 0) |
                           (blockedFromWest ? 0x04 : 0) | (blockedFromSouth ? 0x08 : 0);
 
     _pointerStorage.drawModePredicate = predicate::SELECTION_TABLE[static_cast<std::size_t>(selector)];
-    // clang-format on
 }
 
 DrawMode CellModelExt::ExtensionData::determineDrawMode(float              aCellResolution,

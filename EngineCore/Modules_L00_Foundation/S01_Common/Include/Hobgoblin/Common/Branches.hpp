@@ -41,7 +41,7 @@
 #define HG_UNLIKELY_CONDITION(...) UHOBGOBLIN_UNLIKELY_CONDITION_IMPL(__VA_ARGS__)
 
 // Implementation detail
-#if defined(__GNUC__) && !defined(__clang__)
+#if defined(__GNUC__)
 #define UHOBGOBLIN_LIKELY_CONDITION_IMPL(...)   __builtin_expect(!!(__VA_ARGS__), 1)
 #define UHOBGOBLIN_UNLIKELY_CONDITION_IMPL(...) __builtin_expect(!!(__VA_ARGS__), 0)
 #else

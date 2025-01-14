@@ -1,7 +1,7 @@
 // Copyright 2024 Jovan Batnozic. Released under MS-PL licence in Serbia.
 // See https://github.com/jbatnozic/Hobgoblin?tab=readme-ov-file#licence
 
-#include <GridGoblin/Model/Cell.hpp>
+#include <GridGoblin/Model/Cell_model.hpp>
 #include <GridGoblin/World/World.hpp>
 
 namespace jbatnozic {

@@ -6,6 +6,8 @@
 #ifndef UHOBGOBLIN_MATH_RECTANGLE_HPP
 #define UHOBGOBLIN_MATH_RECTANGLE_HPP
 
+#include <Hobgoblin/Math/Vector.hpp>
+
 #include <cassert>
 #include <cmath>
 #include <type_traits>
@@ -67,6 +69,16 @@ public:
         return y + h;
     }
 
+    //! Check if the rectangle overlaps (intersects) a point
+    bool overlaps(const Vector2<taArithmetic>& point) const {
+        if ((x + w <= point.x) || (x >= point.x) ||
+            (y + h <= point.y) || (y >= point.y)) {
+            return false;
+        }
+        return true;
+    }
+
+    //! Check if the rectangle overlaps (intersects) another rectangle
     bool overlaps(const Rectangle& other) const {
         if ((x + w <= other.x) || (x >= other.x + other.w) ||
             (y + h <= other.y) || (y >= other.y + other.h)) {

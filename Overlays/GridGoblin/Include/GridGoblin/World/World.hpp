@@ -10,7 +10,7 @@
 #include <Hobgoblin/Utility/Grids.hpp>
 #include <Hobgoblin/Utility/Semaphore.hpp>
 
-#include <GridGoblin/Model/Cell.hpp>
+#include <GridGoblin/Model/Cell_model.hpp>
 #include <GridGoblin/Model/Chunk.hpp>
 #include <GridGoblin/Model/Chunk_id.hpp>
 #include <GridGoblin/Model/Sprites.hpp>
@@ -143,6 +143,8 @@ public:
     ///////////////////////////////////////////////////////////////////////////
 
     float getCellResolution() const;
+
+    // TODO: getCellHeight
 
     hg::PZInteger getCellCountX() const;
 

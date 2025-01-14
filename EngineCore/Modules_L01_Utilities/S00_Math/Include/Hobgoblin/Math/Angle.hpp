@@ -246,7 +246,7 @@ public:
     }
 
     Vector2<Real> asNormalizedVector() const {
-        return Vector2<Real>{std::cos(_angleInRadians), std::sin(_angleInRadians)};
+        return Vector2<Real>{std::cos(_angleInRadians), -std::sin(_angleInRadians)};
     }
 
     Angle normalize(Angle aRangeLow = zero(), Angle aRangeHigh = fullCircle()) {
