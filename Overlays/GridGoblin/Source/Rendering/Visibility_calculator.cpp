@@ -81,11 +81,11 @@ VisibilityCalculator::VisibilityCalculator(const World&                      aWo
     : _world{aWorld}
     , _cr{_world.getCellResolution()}
     , _xLimit{std::nextafter(_world.getCellCountX() * _cr, 0.f)}
-    , _yLimit{std::nextafter(_world.getCellCountY() * _cr, 0.f)} //
+    , _yLimit{std::nextafter(_world.getCellCountY() * _cr, 0.f)}
     , _minRingsBeforeRaycasting{aConfig.minRingsBeforeRaycasting}
     , _minTrianglesBeforeRaycasting{aConfig.minTrianglesBeforeRaycasting}
     , _rayCount{aConfig.rayCount}
-    , _rayPointsPerCell{aConfig.rayPointsPerCell}
+    , _rayPointsPerCell{aConfig.rayPointsPerCell} //
 {
     _rays.resize(hg::pztos(_rayCount));
 }
@@ -103,30 +103,29 @@ void VisibilityCalculator::calc(PositionInWorld aViewCenter,
     _resetData();
     _setInitialCalculationContext(aViewCenter, aViewSize, aLineOfSightOrigin);
 
-    // TODO: this method is a bit of a mess
+    _calcOngoing = true;
 
-    bool calcRays = false;
-
-    hg::PZInteger ring = 0;
-    while ((_lineOfSightOriginCell.x - ring >= _viewTopLeftCell.x) ||
-           (_lineOfSightOriginCell.x + ring <= _viewBottomRightCell.x) ||
-           (_lineOfSightOriginCell.y - ring >= _viewTopLeftCell.y) ||
-           (_lineOfSightOriginCell.y + ring <= _viewBottomRightCell.y)) //
+    hg::PZInteger currentRingIndex = 0;
+    while ((_lineOfSightOriginCell.x - currentRingIndex >= _viewTopLeftCell.x) ||
+           (_lineOfSightOriginCell.x + currentRingIndex <= _viewBottomRightCell.x) ||
+           (_lineOfSightOriginCell.y - currentRingIndex >= _viewTopLeftCell.y) ||
+           (_lineOfSightOriginCell.y + currentRingIndex <= _viewBottomRightCell.y)) //
     {
-        _processRing(ring);
-        _stats.highDetailRingCount = ring;
-        ring += 1;
-        if ((_minRingsBeforeRaycasting != 0 && ring > _minRingsBeforeRaycasting) &&
-            _triangles.size() >= hg::pztos(_minTrianglesBeforeRaycasting)) {
-            calcRays = true;
+        _processRing(currentRingIndex);
+
+        _stats.highDetailRingCount = currentRingIndex;
+        currentRingIndex += 1;
+
+        if ((_minRingsBeforeRaycasting != 0 && currentRingIndex > _minRingsBeforeRaycasting) &&
+            _triangles.size() >= hg::pztos(_minTrianglesBeforeRaycasting)) //
+        {
+            _processRays();
+            _rayCheckingEnabled = true;
             break;
         }
     }
 
-    if (calcRays) {
-        _processRays();
-        _raysDisabled = false;
-    }
+    _calcOngoing = false;
 
     _stats.triangleCount = hg::stopz(_triangles.size());
 }
@@ -143,7 +142,6 @@ void VisibilityCalculator::_resetData() {
     }
 
     _triangles.clear();
-    _raysDisabled = true;
 
     _stats = {.highDetailRingCount = 0, .triangleCount = 0, .triangleCheckCount = 0};
 }
@@ -180,6 +178,8 @@ void VisibilityCalculator::_setInitialCalculationContext(PositionInWorld    aVie
 
     // equal to o_triangleSideLength / (_cr / _rayPointsPerCell)
     _maxPointsPerRay = _triangleSideLength * _rayPointsPerCell / _cr;
+
+    _rayCheckingEnabled = false;
 }
 
 std::uint16_t VisibilityCalculator::_calcEdgesOfInterest(Vector2pz aCell) const {
@@ -377,7 +377,7 @@ void VisibilityCalculator::_castRay(hg::PZInteger aRayIndex) {
     const auto incrementVector   = direction.asNormalizedVector() * incrementDistance;
 
     Vector2pz     prevCoords   = {};
-    hg::PZInteger prevOpenness = 3;
+    hg::PZInteger prevOpenness = 3; // cell with an openness of 3+ surely has no neighbouring walls
 
     Vector2f point = _lineOfSightOrigin + direction.asNormalizedVector() * _rayRadius;
     for (hg::PZInteger t = 0; t < _maxPointsPerRay; t += 1) {
@@ -415,7 +415,7 @@ void VisibilityCalculator::_castRay(hg::PZInteger aRayIndex) {
 }
 
 bool VisibilityCalculator::_isPointVisible(PositionInWorld aPosInWorld, std::uint16_t aFlags) const {
-    if (!_raysDisabled && !_processedRingsBbox.overlaps(*aPosInWorld)) {
+    if (_rayCheckingEnabled && !_processedRingsBbox.overlaps(*aPosInWorld)) {
         const float dist = hg::math::EuclideanDist(*aPosInWorld, _lineOfSightOrigin);
         Vector2f   diff = {aPosInWorld->x - _lineOfSightOrigin.x, aPosInWorld->y - _lineOfSightOrigin.y};
         const auto angle = AngleF::fromVector(diff.x, diff.y);
@@ -433,12 +433,33 @@ bool VisibilityCalculator::_isPointVisible(PositionInWorld aPosInWorld, std::uin
 
     const auto limit = _triangles.size();
     for (std::int64_t i = 0; i < limit; i += 1) {
+        // Explanation for the bit magic:
+        //   Triangles have the following edge flags, depending on their position relative to the
+        //   central cell:
+        //
+        //         |   |
+        //      TL |TLR| TR
+        //   ------|---|------
+        //     LTB | * | RTB
+        //   ------|---|------
+        //      BL |BLR| BR
+        //         |   |
+        //
+        //   For two triangles to potentially intersect, they have to have at least two flags in
+        //   common. So we bitwise-and the two triangles' masks and check if at least 2 bits are
+        //   set - or, precisely, we check the opposite - if only 1 or 0 bits are set. Such numbers
+        //   have an interesting property - if you bitwise-and them with themselves minus 1, they
+        //   produce 0 (0 because it has no set bits; ..0001000.. - 1 => ..0000111..; and so on).
+        //
+        //   Note: I tried std::popcnt, it was too slow.
         const auto mask = _triangles[i].flags & aFlags;
         if (HG_LIKELY_CONDITION((mask & (mask - 1)) == 0)) {
             HG_LIKELY_BRANCH;
             continue;
         }
-        _stats.triangleCheckCount += 1;
+        if (_calcOngoing) {
+            _stats.triangleCheckCount += 1;
+        }
         if (hg::math::IsPointInsideTriangle(*aPosInWorld, _triangles[i])) {
             return false;
         }

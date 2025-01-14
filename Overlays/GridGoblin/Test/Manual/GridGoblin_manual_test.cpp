@@ -19,7 +19,7 @@ int main() try {
     // RunOpennessTest();
     // RunDefaultDiskIoTest();
     // RunDimetricRenderingTest();
-    RunLineOfSightTest();
+    RunVisibilityCalculatorTest();
 
 } catch (const hg::TracedException& ex) {
     std::cout << "Traced exception caught: " << ex.getFullFormattedDescription() << '\n';

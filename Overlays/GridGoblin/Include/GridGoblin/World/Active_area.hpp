@@ -43,7 +43,7 @@ public:
     void setToNone();
 
     //! Sets the active area to an area defined by a central chunk and a square around it comprised of
-    //! a number of rings. The 1st ring is the 8 chunks around the central chunks, the 2nd ring is the
+    //! a number of rings. The 1st ring is the 8 chunks around the central chunk, the 2nd ring is the
     //! 16 chunks around the 1st ring, and so on (the ASCII art below serves as an illustration).
     //!
     //! 2 2 2 2 2
@@ -68,7 +68,7 @@ public:
                               const std::function<hg::PZInteger(ChunkId)>& aGetLoadPriority = nullptr);
 
     //! Sets the active area to an area defined by a central chunk and a diamond shape around it
-    //! comprised of a number of rings. The 1st ring is the 4 chunks around the central chunks, the 2nd
+    //! comprised of a number of rings. The 1st ring is the 4 chunks around the central chunk, the 2nd
     //! ring is the 8 chunks around the 1st right, and so on (the ASCII art below serves as an
     //! illustration).
     //!

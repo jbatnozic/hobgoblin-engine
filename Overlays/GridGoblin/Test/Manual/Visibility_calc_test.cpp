@@ -62,7 +62,7 @@ void DrawChunk(hg::gr::Canvas& aCanvas, const World& aWorld, ChunkId aChunkId) {
 #define CELLRES          24.f
 #define CELL_PROBABILITY 10
 
-void RunLineOfSightTestImpl() {
+void RunVisibilityCalculatorTestImpl() {
     hg::log::SetMinimalLogSeverity(hg::log::Severity::Info);
 
     WorldConfig config{.chunkCountX                 = 1,
@@ -180,28 +180,19 @@ void RunLineOfSightTestImpl() {
                         generateLoS(coords);
                         mouseLClick = true;
                     }
-                    if (aButton.button == hg::in::MB_RIGHT) {
-                        mouseRClick = true;
-                    }
                 });
         } // end event processing
 
-        {
-            using namespace hg::in;
-            const auto lr = (float)CheckPressedPK(PK_D) - (float)CheckPressedPK(PK_A);
-            const auto ud = (float)CheckPressedPK(PK_S) - (float)CheckPressedPK(PK_W);
-            // window.getView().move({lr * 1.f, ud * 1.f});
-        }
+        // {
+        //     using namespace hg::in;
+        //     const auto lr = (float)CheckPressedPK(PK_D) - (float)CheckPressedPK(PK_A);
+        //     const auto ud = (float)CheckPressedPK(PK_S) - (float)CheckPressedPK(PK_W);
+        //     window.getView().move({lr * 1.f, ud * 1.f});
+        // }
 
         window.clear(hg::gr::Color{155, 155, 155});
         DrawChunk(window, world, {0, 0});
         window.draw(spr);
-
-        // const auto t1 = std::chrono::steady_clock::now();
-        // const auto t2 = std::chrono::steady_clock::now();
-        // std::cout << "Time to render: " << std::chrono::duration_cast<std::chrono::microseconds>(t2 -
-        // t1).count() / 1000.0 << "ms "
-        //           << "frame time: " << frameTime.count() / 1000.0 << "ms.\n";
 
         window.display();
     }
@@ -211,6 +202,6 @@ void RunLineOfSightTestImpl() {
 } // namespace gridgoblin
 } // namespace jbatnozic
 
-void RunLineOfSightTest() {
-    jbatnozic::gridgoblin::RunLineOfSightTestImpl();
+void RunVisibilityCalculatorTest() {
+    jbatnozic::gridgoblin::RunVisibilityCalculatorTestImpl();
 }

@@ -93,6 +93,7 @@ private:
     float         _triangleSideLength;
     float         _rayRadius;
     hg::PZInteger _maxPointsPerRay;
+    bool          _rayCheckingEnabled;
 
     // ===== Data structures =====
 
@@ -111,9 +112,9 @@ private:
 
     std::vector<float> _rays;
 
-    bool _raysDisabled = true;
-
     // ===== Statistics =====
+
+    bool _calcOngoing = false;
 
     mutable CalculationStats _stats;
 

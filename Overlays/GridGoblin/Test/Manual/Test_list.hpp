@@ -8,4 +8,4 @@ void RunStorageHandlerTest();
 void RunOpennessTest();
 void RunDefaultDiskIoTest();
 void RunDimetricRenderingTest();
-void RunLineOfSightTest();
+void RunVisibilityCalculatorTest();
