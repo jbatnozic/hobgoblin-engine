@@ -57,8 +57,8 @@ void DrawChunk(hg::gr::Canvas& aCanvas, const World& aWorld, ChunkId aChunkId) {
 }
 } // namespace
 
-#define CELL_COUNT_X     60
-#define CELL_COUNT_Y     60
+#define CELL_COUNT_X     120
+#define CELL_COUNT_Y     120
 #define CELLRES          24.f
 #define CELL_PROBABILITY 10
 

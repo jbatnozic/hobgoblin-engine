@@ -9,7 +9,6 @@
 #include <GridGoblin/Spatial/Position_in_world.hpp>
 #include <GridGoblin/World/World.hpp>
 
-#include <array>
 #include <vector>
 
 namespace jbatnozic {
@@ -19,11 +18,6 @@ namespace hg = jbatnozic::hobgoblin;
 
 class TopDownLineOfSightCalculator {
 public:
-    enum Purpose {
-        FOR_TOPDOWN,
-        FOR_DIMETRIC
-    };
-
     TopDownLineOfSightCalculator(const World& aWorld);
 
     void calc(PositionInWorld    aViewCenter,
@@ -58,6 +52,7 @@ private:
     hg::PZInteger _minRingsBeforeRaycasting     = 15;
     hg::PZInteger _minTrianglesBeforeRaycasting = 100;
     hg::PZInteger _rayCount                     = 360;
+    hg::PZInteger _rayPointsPerCellResolution   = 6;
 
     // ===== Calculation context =====
 
@@ -70,8 +65,9 @@ private:
     hg::math::Vector2f  _lineOfSightOrigin;
     hg::math::Vector2pz _lineOfSightOriginCell;
 
-    float _triangleSideLength;
-    float _rayRadius;
+    float         _triangleSideLength;
+    float         _rayRadius;
+    hg::PZInteger _maxPointsPerRay;
 
     // ===== Data structures =====
 
@@ -88,8 +84,9 @@ private:
 
     std::vector<Triangle> _darkZones;
 
-    std::array<float, 360> _rays; // TODO: variable number of rays
-    bool                   _raysDisabled = true;
+    std::vector<float> _rays;
+
+    bool _raysDisabled = true;
 
     // ===== Statistics =====
 
