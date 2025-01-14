@@ -23,10 +23,19 @@ using TriangleD = Triangle<double>;
 
 template<class T>
 bool IsPointInsideTriangle(const Vector2<T>& aPoint, const Triangle<T>& aTriangle) {
+    class CrossProduct {
+    public:
+        // Note to self: I think this function calculates the magnitude of the resulting
+        // vector of of the cross product of vectors (p1->p2) and (p1->p3).
+        static T calculate(const Vector2<T>& p1, const Vector2<T>& p2, const Vector2<T>& p3) {
+            return (p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x);
+        }
+    };
+
     // Compute the cross products for the point with respect to the triangle's edges
-    const float cross1 = ChatGPTProduct(aTriangle.a, aTriangle.b, aPoint);
-    const float cross2 = ChatGPTProduct(aTriangle.b, aTriangle.c, aPoint);
-    const float cross3 = ChatGPTProduct(aTriangle.c, aTriangle.a, aPoint);
+    const float cross1 = CrossProduct::calculate(aTriangle.a, aTriangle.b, aPoint);
+    const float cross2 = CrossProduct::calculate(aTriangle.b, aTriangle.c, aPoint);
+    const float cross3 = CrossProduct::calculate(aTriangle.c, aTriangle.a, aPoint);
 
     // Check if all the cross products have the same sign (either all positive or all negative)
     const bool hasSameSign =
