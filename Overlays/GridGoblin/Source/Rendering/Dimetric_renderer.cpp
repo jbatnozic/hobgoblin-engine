@@ -8,6 +8,7 @@
 #include "../Detail_access.hpp"
 
 #include <Hobgoblin/HGExcept.hpp>
+#include <Hobgoblin/Math/Core.hpp>
 
 #include <algorithm>
 
@@ -78,10 +79,12 @@ void DimetricRenderer::prepareToRenderStart(const hg::gr::View&         aView,
         PositionInView{_viewData.center->x - (_viewData.size.x / 2.f) - _viewData.overdraw.left,
                        _viewData.center->y - (_viewData.size.y / 2.f) - _viewData.overdraw.top});
 
+    _viewData.pointOfView = aPointOfView;
+
     _objectsToRender.clear();
     _cellAdapters.clear();
 
-    _prepareCells(true, true, aPointOfView, &aVisCals);
+    _prepareCells(true, true, &aVisCals);
 
     _renderCycleCounter += 1;
 }
@@ -136,7 +139,6 @@ hg::gr::Sprite& DimetricRenderer::_getSprite(SpriteId aSpriteId) const {
 
 void DimetricRenderer::_reduceCellsBelowIfCellIsVisible(hg::math::Vector2pz         aCell,
                                                         PositionInView              aCellPosInView,
-                                                        PositionInWorld             aPointOfView,
                                                         const VisibilityCalculator& aVisCalc) {
     const auto cr = _world.getCellResolution();
 
@@ -172,7 +174,7 @@ void DimetricRenderer::_reduceCellsBelowIfCellIsVisible(hg::math::Vector2pz     
         return;
     }
 
-    const auto screenPov = dimetric::ToPositionInView(aPointOfView);
+    const auto screenPov = dimetric::ToPositionInView(_viewData.pointOfView);
     const int  limit     = 7; // TODO: limit needs to be based on height
     for (int i = 0; i < limit; i += 1) {
         if (screenPov->x > aCellPosInView->x) {
@@ -204,81 +206,37 @@ void DimetricRenderer::_reduceCellsBelowIfCellIsVisible(hg::math::Vector2pz     
 
 void DimetricRenderer::_prepareCells(bool                        aPredicate,
                                      bool                        aVisibility,
-                                     PositionInWorld             aPointOfView,
                                      const VisibilityCalculator* aVisCalc) {
     const auto cr = _world.getCellResolution();
 
     _diagonalTraverse(
         _world,
         _viewData,
-        [this, cr, aPointOfView, aVisibility, &aVisCalc](const CellInfo& aCellInfo,
-                                                         PositionInView  aPosInView) {
+        [this, cr, aVisibility, &aVisCalc](const CellInfo& aCellInfo, PositionInView aPosInView) {
             if (aCellInfo.cell == nullptr) {
                 return;
             }
 
-            // Adjust mask
-            std::uint16_t maskk;
-            {
-                auto& ext = GetMutableExtensionData(*aCellInfo.cell);
-                auto mask = ext.getRendererMask();
-
-                if ((_renderCycleCounter & 0x01) == 0) {
-                    const auto expected = RM_RENDER_CYCLE_FLAG | RM_CELL_TOUCHED;
-                    if ((mask & expected) != expected) {
-                        // cell has not been touched in this cycle
-                        mask &= ~RM_SHOULD_REDUCE;
-                        mask |= expected;
-                    }
-                } else {
-                    const auto expected = RM_RENDER_CYCLE_FLAG | RM_CELL_TOUCHED;
-                    if ((mask & expected) != 0) {
-                        // cell has not been touched in this cycle
-                        mask &= ~RM_SHOULD_REDUCE;
-                        mask &= ~expected;
-                    }
-                }
-
-                // TODO: inc or dec fade counter
-
-                ext.setRendererMask(mask);
-
-                maskk = mask;
-            }
+            std::uint16_t mask;
+            mask = _updateFlagsOfCellRendererMask(*aCellInfo.cell);
 
             const auto flags = aCellInfo.cell->getFlags();
 
-            if (!(flags & CellModel::WALL_INITIALIZED)) {
+            if ((flags & CellModel::WALL_INITIALIZED) == 0) {
                 _reduceCellsBelowIfCellIsVisible({aCellInfo.gridX, aCellInfo.gridY},
                                                  aPosInView,
-                                                 aPointOfView,
                                                  *aVisCalc); // TODO
             }
 
-            auto drawingData =
-                GetExtensionData(*aCellInfo.cell)
-                    .getDrawingData(cr, {aCellInfo.gridX * cr, aCellInfo.gridY * cr}, aPointOfView);
+            const auto drawingData = GetExtensionData(*aCellInfo.cell)
+                                         .getDrawingData(cr,
+                                                         {aCellInfo.gridX * cr, aCellInfo.gridY * cr},
+                                                         _viewData.pointOfView);
+
+            mask = _updateFadeValueOfCellRendererMask(*aCellInfo.cell, drawingData);
+
             if (drawingData.state == detail::DrawingData::NONE) {
                 return;
-            }
-
-            // switch (drawingData.state) {
-            // case detail::DrawingData::NONE:
-            //     return;
-
-            // case detail::DrawingData::FULL:
-            //     if ((maskk & RM_SHOULD_REDUCE) != 0) {
-            //         drawingData.state = detail::DrawingData::REDUCED;
-            //     }
-            //     break;
-
-            // default:
-            //     break;
-            // }
-            if ((maskk & RM_SHOULD_REDUCE) == 0) {
-                drawingData.state = detail::DrawingData::FULL;
-            } else {
-                drawingData.state = detail::DrawingData::REDUCED;
             }
 
             if (flags & CellModel::WALL_INITIALIZED) {
@@ -288,7 +246,7 @@ void DimetricRenderer::_prepareCells(bool                        aPredicate,
                     SpatialInfo::fromTopLeftAndSize({aCellInfo.gridX * cr, aCellInfo.gridY * cr},
                                                     {cr, cr},
                                                     Layer::WALL),
-                    drawingData.state);
+                    mask);
             } else if (flags & CellModel::FLOOR_INITIALIZED) {
                 _cellAdapters.emplace_back(
                     *this,
@@ -296,7 +254,7 @@ void DimetricRenderer::_prepareCells(bool                        aPredicate,
                     SpatialInfo::fromTopLeftAndSize({aCellInfo.gridX * cr, aCellInfo.gridY * cr},
                                                     {cr, cr},
                                                     Layer::FLOOR),
-                    drawingData.state);
+                    mask);
             }
         });
 
@@ -305,37 +263,159 @@ void DimetricRenderer::_prepareCells(bool                        aPredicate,
     }
 }
 
+std::uint16_t DimetricRenderer::_updateFlagsOfCellRendererMask(const CellModel& aCell) {
+    auto& ext  = GetMutableExtensionData(aCell);
+    auto  mask = ext.getRendererMask();
+
+    if ((_renderCycleCounter & 0x01) == 0) {
+        const auto expected           = RM_RENDER_CYCLE_FLAG | RM_CELL_TOUCHED;
+        const bool cellAlreadyTouched = ((mask & expected) == expected);
+        if (!cellAlreadyTouched) {
+            mask &= ~RM_SHOULD_REDUCE;
+            mask |= expected;
+        }
+    } else {
+        const auto expected           = RM_RENDER_CYCLE_FLAG | RM_CELL_TOUCHED;
+        const bool cellAlreadyTouched = ((mask & expected) == 0);
+        if (!cellAlreadyTouched) {
+            mask &= ~RM_SHOULD_REDUCE;
+            mask &= ~expected;
+        }
+    }
+
+    ext.setRendererMask(mask);
+    return mask;
+}
+
+std::uint16_t DimetricRenderer::_updateFadeValueOfCellRendererMask(
+    const CellModel&           aCell,
+    const detail::DrawingData& aDrawingData) //
+{
+    const bool aReduceBasedOnPredicate  = false; // TODO
+    const bool aReduceBasedOnVisibility = true;  // TODO
+
+    auto& ext  = GetMutableExtensionData(aCell);
+    auto  mask = ext.getRendererMask();
+
+    if (aReduceBasedOnPredicate && aReduceBasedOnVisibility) {
+        switch (aDrawingData.state) {
+        case detail::DrawingData::NONE:
+            mask &= ~RM_SHOULD_REDUCE;
+            break;
+
+        case detail::DrawingData::REDUCED:
+            mask |= RM_SHOULD_REDUCE;
+            break;
+
+        case detail::DrawingData::FULL:
+            // mask &= ~RM_SHOULD_REDUCE; -- SKIPPED INTENTIONALLY
+            break;
+
+        default:
+            HG_UNREACHABLE("Unexpected value for DrawingData::State ({}).", (int)aDrawingData.state);
+            break;
+        }
+    } else if (aReduceBasedOnPredicate) {
+        switch (aDrawingData.state) {
+        case detail::DrawingData::NONE:
+            mask &= ~RM_SHOULD_REDUCE;
+            break;
+
+        case detail::DrawingData::REDUCED:
+            mask |= RM_SHOULD_REDUCE;
+            break;
+
+        case detail::DrawingData::FULL:
+            mask &= ~RM_SHOULD_REDUCE;
+            break;
+
+        default:
+            HG_UNREACHABLE("Unexpected value for DrawingData::State ({}).", (int)aDrawingData.state);
+            break;
+        }
+    } else if (aReduceBasedOnVisibility) {
+        // Do nothing - decision is already in RM_SHOULD_REDUCE
+    } else {
+        mask &= ~RM_SHOULD_REDUCE;
+    }
+
+    auto fadeValue = mask & RM_FADE_MASK;
+    if ((mask & RM_SHOULD_REDUCE) == 0) {
+        if (fadeValue < _fadeConfig.step) {
+            fadeValue = 0;
+        } else {
+            fadeValue -= _fadeConfig.step;
+        }
+    } else {
+        if (fadeValue + _fadeConfig.step > 1023) { // TODO: magic number
+            fadeValue = 1023;
+        } else {
+            fadeValue += _fadeConfig.step;
+        }
+    }
+
+    mask = (mask & ~RM_FADE_MASK) | fadeValue;
+
+    ext.setRendererMask(mask);
+    return mask;
+}
+
 // MARK: Cell adapter impl
 
 DimetricRenderer::CellToRenderedObjectAdapter::CellToRenderedObjectAdapter(
     DimetricRenderer&  aRenderer,
     const CellModel&   aCell,
     const SpatialInfo& aSpatialInfo,
-    int                aState)
+    std::uint16_t      aRendererMask)
     : RenderedObject{aSpatialInfo}
     , _renderer{aRenderer}
     , _cell{aCell}
-    , _state{aState} {}
+    , _rendererMask{aRendererMask} {}
 
 void DimetricRenderer::CellToRenderedObjectAdapter::render(hg::gr::Canvas& aCanvas,
                                                            PositionInView  aScreenPosition) const {
-    auto* sprite = [this]() -> hg::gr::Sprite* {
-        switch (_spatialInfo.getLayer()) {
-        case Layer::FLOOR:
-            return &_renderer._getSprite(_cell.getFloor().spriteId);
-        case Layer::WALL:
-            if (_state == detail::DrawingData::FULL) {
-                return &_renderer._getSprite(_cell.getWall().spriteId);
-            } else {
-                return &_renderer._getSprite(_cell.getWall().spriteId_reduced);
-            }
-        default:
-            return nullptr;
-        }
-    }();
+    if (_spatialInfo.getLayer() == Layer::FLOOR) {
+        auto& sprite = _renderer._getSprite(_cell.getFloor().spriteId);
+        sprite.setPosition(*aScreenPosition);
+        sprite.setColor(hg::gr::COLOR_WHITE);
+        aCanvas.draw(sprite);
+        return;
+    }
+
+    std::uint8_t opacity;
+    const auto fadeValue = _rendererMask & RM_FADE_MASK;
+    if (fadeValue <= _renderer._fadeConfig.lowerBound) {
+        opacity = 255;
+    } else if (fadeValue >= _renderer._fadeConfig.upperBound) {
+        opacity = static_cast<std::uint8_t>(255 * _renderer._fadeConfig.minimalAlpha);
+    } else {
+        HG_HARD_ASSERT(_renderer._fadeConfig.upperBound > _renderer._fadeConfig.lowerBound);
+        const auto stepCount = _renderer._fadeConfig.upperBound - _renderer._fadeConfig.lowerBound;
+        const auto stepsTaken = fadeValue - _renderer._fadeConfig.lowerBound;
+        const auto stepReduction = (1.f - _renderer._fadeConfig.minimalAlpha) / stepCount; // TODO a lot of this can be precalculated
+        using hobgoblin::math::Clamp;
+        opacity = static_cast<std::uint8_t>(Clamp(255.f * (1.f - stepsTaken * stepReduction), 0.f, 255.f));
+    }
+
+    hg::gr::Sprite* sprite        = nullptr;
+    hg::gr::Sprite* spriteReduced = nullptr;
+
+    if (opacity > 0) {
+        sprite = &_renderer._getSprite(_cell.getWall().spriteId);
+    }
+    if (opacity < 255) {
+        spriteReduced = &_renderer._getSprite(_cell.getWall().spriteId_reduced);
+    }
+
+    if (spriteReduced) {
+        spriteReduced->setPosition(*aScreenPosition);
+        spriteReduced->setColor(hg::gr::COLOR_WHITE);
+        aCanvas.draw(*spriteReduced);
+    }
 
     if (sprite) {
         sprite->setPosition(*aScreenPosition);
+        sprite->setColor(hg::gr::COLOR_WHITE.withAlpha(opacity));
         aCanvas.draw(*sprite);
     }
 }

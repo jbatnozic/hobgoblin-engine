@@ -43,7 +43,16 @@ private:
     const World&                _world;
     const hg::gr::SpriteLoader& _spriteLoader;
 
-    // =====
+    // ===== ? =====
+
+    struct FadeConfig {
+        std::uint16_t step         = 15;
+        std::uint16_t upperBound   = 900; //! Above this value, the wall is at minimal opacity
+        std::uint16_t lowerBound   = 100; //! Below this value, the wall is at full opacity
+        float         minimalAlpha = 0.15f;
+    };
+
+    FadeConfig _fadeConfig;
 
     std::int64_t _renderCycleCounter = 0;
 
@@ -55,6 +64,7 @@ private:
         OverdrawAmounts    overdraw;
 
         PositionInWorld topLeft;
+        PositionInWorld pointOfView;
     };
 
     ViewData _viewData;
@@ -74,7 +84,7 @@ private:
         CellToRenderedObjectAdapter(DimetricRenderer&  aRenderer,
                                     const CellModel&   aCell,
                                     const SpatialInfo& aSpatialInfo,
-                                    int                aState);
+                                    std::uint16_t      aRendererMask);
 
         void render(hg::gr::Canvas& aCanvas, PositionInView aPosInView) const override;
 
@@ -82,7 +92,7 @@ private:
         DimetricRenderer& _renderer;
         const CellModel&  _cell;
 
-        int _state;
+        std::uint16_t _rendererMask;
         // TODO: Render parameters: drawmode, color, etc.
     };
 
@@ -107,13 +117,13 @@ private:
 
     void _reduceCellsBelowIfCellIsVisible(hg::math::Vector2pz         aCell,
                                           PositionInView              aCellPosInView,
-                                          PositionInWorld             aPointOfView,
                                           const VisibilityCalculator& aVisCalc);
 
-    void _prepareCells(bool                        aPredicate,
-                       bool                        aVisibility,
-                       PositionInWorld             aPointOfView,
-                       const VisibilityCalculator* aVisCalc);
+    void _prepareCells(bool aPredicate, bool aVisibility, const VisibilityCalculator* aVisCalc);
+
+    std::uint16_t _updateFlagsOfCellRendererMask(const CellModel& aCell);
+    std::uint16_t _updateFadeValueOfCellRendererMask(const CellModel&           aCell,
+                                                     const detail::DrawingData& aDrawingData);
 };
 
 } // namespace gridgoblin
