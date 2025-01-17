@@ -224,7 +224,7 @@ json::Value CellToJson(const CellModel& aCell, json::Document& aDocument) {
         jsonWall.SetObject();
 
         jsonWall.AddMember("spriteId", json::Value{wall.spriteId}.Move(), allocator);
-        jsonWall.AddMember("spriteId_lowered", json::Value{wall.spriteId_lowered}.Move(), allocator);
+        jsonWall.AddMember("spriteId_reduced", json::Value{wall.spriteId_reduced}.Move(), allocator);
         jsonWall.AddMember("shape", json::Value{ShapeToString(wall.shape), allocator}.Move(), allocator);
 
         value.AddMember("wall", jsonWall, allocator);
@@ -256,8 +256,8 @@ CellModel JsonToCell(const json::Value& aJson) {
 
         CellModel::Wall wall;
         wall.spriteId = GetIntMember<decltype(wall.spriteId)>(aJson["wall"], "spriteId");
-        wall.spriteId_lowered =
-            GetIntMember<decltype(wall.spriteId_lowered)>(aJson["wall"], "spriteId_lowered");
+        wall.spriteId_reduced =
+            GetIntMember<decltype(wall.spriteId_reduced)>(aJson["wall"], "spriteId_reduced");
         wall.shape = StringToShape(aJson["wall"]["shape"].GetString());
 
         cell.setWall(wall);

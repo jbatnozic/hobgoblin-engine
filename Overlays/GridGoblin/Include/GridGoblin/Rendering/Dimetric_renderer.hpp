@@ -8,6 +8,8 @@
 #include <GridGoblin/Spatial/Position_in_world.hpp>
 #include <GridGoblin/World/World.hpp>
 
+#include <GridGoblin/Rendering/Visibility_calculator.hpp>
+
 #include <Hobgoblin/Graphics.hpp>
 
 #include <vector>
@@ -26,7 +28,11 @@ public:
         float right  = 0.f;
     };
 
-    void prepareToRenderStart(const hg::gr::View& aView, const OverdrawAmounts& aOverdrawAmounts);
+    void prepareToRenderStart(const hg::gr::View&         aView,
+                              PositionInWorld             aPointOfView,
+                              const OverdrawAmounts&      aOverdrawAmounts,
+                              const VisibilityCalculator& aVisCals);
+
     void prepareToRenderEnd();
 
     void render(hg::gr::Canvas& aCanvas);
@@ -36,6 +42,10 @@ private:
 
     const World&                _world;
     const hg::gr::SpriteLoader& _spriteLoader;
+
+    // =====
+
+    std::int64_t _renderCycleCounter = 0;
 
     // ===== View data =====
 
@@ -63,13 +73,16 @@ private:
     public:
         CellToRenderedObjectAdapter(DimetricRenderer&  aRenderer,
                                     const CellModel&   aCell,
-                                    const SpatialInfo& aSpatialInfo);
+                                    const SpatialInfo& aSpatialInfo,
+                                    int                aState);
 
         void render(hg::gr::Canvas& aCanvas, PositionInView aPosInView) const override;
 
     private:
         DimetricRenderer& _renderer;
         const CellModel&  _cell;
+
+        int _state;
         // TODO: Render parameters: drawmode, color, etc.
     };
 
@@ -91,6 +104,16 @@ private:
 
     template <class taCallable>
     void _diagonalTraverse(const World& aWorld, const ViewData& aViewData, taCallable&& aFunc);
+
+    void _reduceCellsBelowIfCellIsVisible(hg::math::Vector2pz         aCell,
+                                          PositionInView              aCellPosInView,
+                                          PositionInWorld             aPointOfView,
+                                          const VisibilityCalculator& aVisCalc);
+
+    void _prepareCells(bool                        aPredicate,
+                       bool                        aVisibility,
+                       PositionInWorld             aPointOfView,
+                       const VisibilityCalculator* aVisCalc);
 };
 
 } // namespace gridgoblin

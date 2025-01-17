@@ -14,6 +14,7 @@
 #include <GridGoblin/Rendering/Dimetric_renderer.hpp>
 #include <GridGoblin/Rendering/Drawing_order.hpp>
 #include <GridGoblin/Rendering/Rendered_object.hpp>
+#include <GridGoblin/Rendering/Visibility_calculator.hpp>
 // #include <GridGoblin/Rendering/Top_down_los_renderer.hpp>
 
 #include <GridGoblin/Spatial/Position_conversions.hpp>

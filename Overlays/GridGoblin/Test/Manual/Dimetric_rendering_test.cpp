@@ -106,6 +106,7 @@ void RunDimetricRenderingTestImpl() {
         fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
     }
 
+    VisibilityCalculator visCalc{world};
     DimetricRenderer renderer{world, loader};
 
     hg::util::Stopwatch swatch;
@@ -135,62 +136,51 @@ void RunDimetricRenderingTestImpl() {
             using namespace hg::in;
             const auto lr = (float)CheckPressedPK(PK_D) - (float)CheckPressedPK(PK_A);
             const auto ud = (float)CheckPressedPK(PK_S) - (float)CheckPressedPK(PK_W);
-            window.getView().move({lr * 1.f, ud * 1.f});
+            window.getView().move({lr * 4.f, ud * 4.f});
         }
 
         window.clear(hg::gr::Color{0, 0, 55});
 
-        // const auto mousePos = hg::win::GetMousePositionRelativeToWindow(window);
-        // const auto isoCoords =
-        //     gridworld::ScreenCoordinatesToIsometric(window.mapPixelToCoords(mousePos));
-        // world.updateLight(light, isoCoords, hg::math::AngleF::zero());
+        const auto mouseWindowPos = hg::win::GetMousePositionRelativeToWindow(window);
+        const auto cursorInWorld =
+            dimetric::ToPositionInWorld(PositionInView{window.mapPixelToCoords(mouseWindowPos)});
 
-        // {
-        //     const auto xx = static_cast<int>(isoCoords.x / world.getCellResolution());
-        //     const auto yy = static_cast<int>(isoCoords.y / world.getCellResolution());
+        // Edit the world
+        {
+            const auto xx = static_cast<int>(cursorInWorld->x / world.getCellResolution());
+            const auto yy = static_cast<int>(cursorInWorld->y / world.getCellResolution());
 
-        //     if (xx >= 0 && xx < world.getCellCountX() && yy >= 0 && yy < world.getCellCountY()) {
+            if (xx >= 0 && xx < world.getCellCountX() && yy >= 0 && yy < world.getCellCountY()) {
+                auto perm = world.getPermissionToEdit();
+                // clang-format off
+                if (mouseLClick) {
+                    world.edit(*perm, [&world, xx, yy](World::Editor& aEditor) {
+                        aEditor.setWallAtUnchecked(xx, yy, {{SPR_WALL, SPR_WALL_SHORT, Shape::FULL_SQUARE}});
+                    });
+                } else if (mouseRClick) {
+                    world.edit(*perm, [&world, xx, yy](World::Editor& aEditor) {
+                        aEditor.setWallAtUnchecked(xx, yy, std::nullopt);
+                    });
+                }
+                // clang-format on
+            }
+        }
 
-        //         if (mouseLClick) {
-        //             world.updateCellAtUnchecked(
-        //                 {xx, yy},
-        //                 gridworld::CellModel::Wall{SPR_WALL,
-        //                                            SPR_WALL_SHORT,
-        //                                            gridworld::Shape::FULL_SQUARE});
-        //         } else if (mouseRClick) {
-        //             world.updateCellAtUnchecked({xx, yy},
-        //             std::optional<gridworld::CellModel::Wall>{});
-        //         }
-        //     }
-        // }
+        visCalc.calc(dimetric::ToPositionInWorld(PositionInView{window.getView(0).getCenter()}),
+                     window.getView(0).getSize(),
+                     cursorInWorld);
 
         const auto t1 = std::chrono::steady_clock::now();
         renderer.prepareToRenderStart(window.getView(0),
-                                      {.top = 32.f, .bottom = 256.f, .left = 32.f, .right = 32.f});
+                                      cursorInWorld,
+                                      {.top = 32.f, .bottom = 256.f, .left = 32.f, .right = 32.f},
+                                      visCalc);
         renderer.prepareToRenderEnd();
         renderer.render(window);
         const auto t2 = std::chrono::steady_clock::now();
         // std::cout << "Time to render: " << std::chrono::duration_cast<std::chrono::microseconds>(t2 -
         // t1).count() / 1000.0 << "ms "
         //           << "frame time: " << frameTime.count() / 1000.0 << "ms.\n";
-
-        // if (false) {
-        //     hg::math::Vector2f scale;
-        //     const auto&        tex = losRenderer.__gwimpl_getTexture(&scale);
-        //     hg::gr::Sprite     spr2{&tex};
-        //     spr2.setOrigin({tex.getSize().x * 0.5f, tex.getSize().y * 0.5f});
-        //     spr2.setScale(scale);
-        //     spr2.setPosition(gridworld::ScreenCoordinatesToIsometric(window.getView(0).getCenter()));
-        //     spr2.setColor({255, 255, 255, 155});
-        //     window.draw(spr2, gridworld::DIMETRIC_TRANSFORM);
-
-        //     const auto visibility = losRenderer.testVisibilityAt(isoCoords);
-        //     if (visibility) {
-        //         std::cout << "Visibility: " << (*visibility ? "yes" : "no") << '\n';
-        //     } else {
-        //         std::cout << "Visibility: n/a" << '\n';
-        //     }
-        // }
 
         // if (true) {
         //     const float xx = floorf(isoCoords.x / 32.f) * 32.f;

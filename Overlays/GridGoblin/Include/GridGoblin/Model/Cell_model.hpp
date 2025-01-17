@@ -26,7 +26,7 @@ public:
 
     struct Wall {
         SpriteId spriteId;
-        SpriteId spriteId_lowered;
+        SpriteId spriteId_reduced;
         Shape    shape;
     };
 
@@ -106,8 +106,8 @@ inline bool operator!=(const CellModel::Floor& aLhs, const CellModel::Floor& aRh
 
 //! CellModel::Wall equality operator.
 inline bool operator==(const CellModel::Wall& aLhs, const CellModel::Wall& aRhs) {
-    return std::tie(aLhs.spriteId, aLhs.spriteId_lowered, aLhs.shape) ==
-           std::tie(aRhs.spriteId, aRhs.spriteId_lowered, aRhs.shape);
+    return std::tie(aLhs.spriteId, aLhs.spriteId_reduced, aLhs.shape) ==
+           std::tie(aRhs.spriteId, aRhs.spriteId_reduced, aRhs.shape);
 }
 
 //! CellModel::Wall inequality operator.
