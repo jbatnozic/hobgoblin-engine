@@ -166,16 +166,26 @@ void RunDimetricRenderingTestImpl() {
             }
         }
 
-        visCalc.calc(dimetric::ToPositionInWorld(PositionInView{window.getView(0).getCenter()}),
+        const auto t1 = std::chrono::steady_clock::now();
+
+        if (!hg::in::CheckPressedVK(hg::in::VK_SPACE)) {
+            renderer.startPrepareToRender(window.getView(0),
+                                          {.top = 32.f, .bottom = 256.f, .left = 32.f, .right = 32.f},
+                                          cursorInWorld,
+                                          DimetricRenderer::REDUCE_WALLS_BASED_ON_POSITION,
+                                          nullptr);
+        } else {
+            visCalc.calc(dimetric::ToPositionInWorld(PositionInView{window.getView(0).getCenter()}),
                      window.getView(0).getSize(),
                      cursorInWorld);
-
-        const auto t1 = std::chrono::steady_clock::now();
-        renderer.prepareToRenderStart(window.getView(0),
-                                      cursorInWorld,
-                                      {.top = 32.f, .bottom = 256.f, .left = 32.f, .right = 32.f},
-                                      visCalc);
-        renderer.prepareToRenderEnd();
+            renderer.startPrepareToRender(window.getView(0),
+                                          {.top = 32.f, .bottom = 256.f, .left = 32.f, .right = 32.f},
+                                          cursorInWorld,
+                                          DimetricRenderer::REDUCE_WALLS_BASED_ON_POSITION |
+                                          DimetricRenderer::REDUCE_WALLS_BASED_ON_VISIBILITY,
+                                          &visCalc);
+        }
+        renderer.endPrepareToRender();
         renderer.render(window);
         const auto t2 = std::chrono::steady_clock::now();
         // std::cout << "Time to render: " << std::chrono::duration_cast<std::chrono::microseconds>(t2 -

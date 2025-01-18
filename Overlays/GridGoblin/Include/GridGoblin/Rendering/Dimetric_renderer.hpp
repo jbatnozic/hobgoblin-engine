@@ -17,9 +17,33 @@
 namespace jbatnozic {
 namespace gridgoblin {
 
+struct WallReductionConfig {
+    static constexpr std::uint16_t MIN_VALUE = 0; //!< Minimal reduction 
+    static constexpr std::uint16_t MAX_VALUE = 1023; //!< Maximal reduction
+
+    std::uint16_t delta        = 15;
+    std::uint16_t lowerBound   = 100; //! Below this value, the wall is at fully rendered
+    std::uint16_t upperBound   = 900; //! Above this value, the wall is at fully reduced
+    float         maxReduction = 1.f; //! Normalized to range [0.f, 1.f]
+
+    // TODO: boolean choice - fade or lower
+};
+
+struct DimetricRendererConfig {
+    WallReductionConfig wallReductionConfig;
+    // TODO: max reduction distance
+};
+
 class DimetricRenderer {
 public:
-    DimetricRenderer(const World& aWorld, const hg::gr::SpriteLoader& aSpriteLoader);
+    DimetricRenderer(const World&                  aWorld,
+                     const hg::gr::SpriteLoader&   aSpriteLoader,
+                     const DimetricRendererConfig& aConfig = {});
+
+    enum RenderFlags : std::int32_t {
+        REDUCE_WALLS_BASED_ON_POSITION   = 0x01,
+        REDUCE_WALLS_BASED_ON_VISIBILITY = 0x02,
+    };
 
     struct OverdrawAmounts {
         float top    = 0.f;
@@ -28,12 +52,13 @@ public:
         float right  = 0.f;
     };
 
-    void prepareToRenderStart(const hg::gr::View&         aView,
-                              PositionInWorld             aPointOfView,
+    void startPrepareToRender(const hg::gr::View&         aView,
                               const OverdrawAmounts&      aOverdrawAmounts,
-                              const VisibilityCalculator& aVisCals);
+                              PositionInWorld             aPointOfView,
+                              std::int32_t                aRenderFlags,
+                              const VisibilityCalculator* aVisCals);
 
-    void prepareToRenderEnd();
+    void endPrepareToRender();
 
     void render(hg::gr::Canvas& aCanvas);
 
@@ -43,16 +68,11 @@ private:
     const World&                _world;
     const hg::gr::SpriteLoader& _spriteLoader;
 
-    // ===== ? =====
+    // ===== Configuration =====
 
-    struct FadeConfig {
-        std::uint16_t step         = 15;
-        std::uint16_t upperBound   = 900; //! Above this value, the wall is at minimal opacity
-        std::uint16_t lowerBound   = 100; //! Below this value, the wall is at full opacity
-        float         minimalAlpha = 0.15f;
-    };
+    DimetricRendererConfig _config;
 
-    FadeConfig _fadeConfig;
+    // ===== Cycle counter =====
 
     std::int64_t _renderCycleCounter = 0;
 
@@ -93,7 +113,7 @@ private:
         const CellModel&  _cell;
 
         std::uint16_t _rendererMask;
-        // TODO: Render parameters: drawmode, color, etc.
+        // TODO: Render parameters: color etc.
     };
 
     friend class CellToRenderedObjectAdapter;
@@ -119,11 +139,12 @@ private:
                                           PositionInView              aCellPosInView,
                                           const VisibilityCalculator& aVisCalc);
 
-    void _prepareCells(bool aPredicate, bool aVisibility, const VisibilityCalculator* aVisCalc);
+    void _prepareCells(std::int32_t aRenderFlags, const VisibilityCalculator* aVisCalc);
 
     std::uint16_t _updateFlagsOfCellRendererMask(const CellModel& aCell);
     std::uint16_t _updateFadeValueOfCellRendererMask(const CellModel&           aCell,
-                                                     const detail::DrawingData& aDrawingData);
+                                                     const detail::DrawingData& aDrawingData,
+                                                     std::int32_t               aRenderFlags);
 };
 
 } // namespace gridgoblin

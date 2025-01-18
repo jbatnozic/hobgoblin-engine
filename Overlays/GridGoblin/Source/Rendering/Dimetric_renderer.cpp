@@ -17,10 +17,10 @@ namespace gridgoblin {
 
 // MARK: Cell renderer mask bits
 
-#define RM_FADE_MASK         0x03FF
-#define RM_RENDER_CYCLE_FLAG 0x0400
-#define RM_CELL_TOUCHED      0x0800
-#define RM_SHOULD_REDUCE     0x1000
+#define RM_REDUCTION_COUNTER_MASK 0x03FF
+#define RM_RENDER_CYCLE_FLAG      0x0400
+#define RM_CELL_TOUCHED           0x0800
+#define RM_SHOULD_REDUCE          0x1000
 
 // MARK: Templates
 
@@ -63,14 +63,24 @@ void DimetricRenderer::_diagonalTraverse(const World&                      aWorl
 
 // MARK: Public
 
-DimetricRenderer::DimetricRenderer(const World& aWorld, const hg::gr::SpriteLoader& aSpriteLoader)
+DimetricRenderer::DimetricRenderer(const World&                  aWorld,
+                                   const hg::gr::SpriteLoader&   aSpriteLoader,
+                                   const DimetricRendererConfig& aConfig)
     : _world{aWorld}
-    , _spriteLoader{aSpriteLoader} {}
+    , _spriteLoader{aSpriteLoader}
+    , _config{aConfig} //
+{
+    HG_VALIDATE_ARGUMENT(aConfig.wallReductionConfig.lowerBound <
+                         aConfig.wallReductionConfig.upperBound);
+}
 
-void DimetricRenderer::prepareToRenderStart(const hg::gr::View&         aView,
-                                            PositionInWorld             aPointOfView,
+void DimetricRenderer::startPrepareToRender(const hg::gr::View&         aView,
                                             const OverdrawAmounts&      aOverdrawAmounts,
-                                            const VisibilityCalculator& aVisCals) {
+                                            PositionInWorld             aPointOfView,
+                                            std::int32_t                aRenderFlags,
+                                            const VisibilityCalculator* aVisCals) {
+    HG_VALIDATE_ARGUMENT(!!(aRenderFlags & REDUCE_WALLS_BASED_ON_VISIBILITY) == !!aVisCals);
+
     _viewData.center   = PositionInView{aView.getCenter()};
     _viewData.size     = aView.getSize();
     _viewData.overdraw = aOverdrawAmounts;
@@ -84,12 +94,12 @@ void DimetricRenderer::prepareToRenderStart(const hg::gr::View&         aView,
     _objectsToRender.clear();
     _cellAdapters.clear();
 
-    _prepareCells(true, true, &aVisCals);
+    _prepareCells(aRenderFlags, aVisCals);
 
     _renderCycleCounter += 1;
 }
 
-void DimetricRenderer::prepareToRenderEnd() {
+void DimetricRenderer::endPrepareToRender() {
     std::sort(_objectsToRender.begin(),
               _objectsToRender.end(),
               [](const RenderedObject* aLhs, const RenderedObject* aRhs) -> bool {
@@ -204,15 +214,13 @@ void DimetricRenderer::_reduceCellsBelowIfCellIsVisible(hg::math::Vector2pz     
     } // end_for
 }
 
-void DimetricRenderer::_prepareCells(bool                        aPredicate,
-                                     bool                        aVisibility,
-                                     const VisibilityCalculator* aVisCalc) {
+void DimetricRenderer::_prepareCells(std::int32_t aRenderFlags, const VisibilityCalculator* aVisCalc) {
     const auto cr = _world.getCellResolution();
 
     _diagonalTraverse(
         _world,
         _viewData,
-        [this, cr, aVisibility, &aVisCalc](const CellInfo& aCellInfo, PositionInView aPosInView) {
+        [this, cr, aRenderFlags, aVisCalc](const CellInfo& aCellInfo, PositionInView aPosInView) {
             if (aCellInfo.cell == nullptr) {
                 return;
             }
@@ -222,10 +230,10 @@ void DimetricRenderer::_prepareCells(bool                        aPredicate,
 
             const auto flags = aCellInfo.cell->getFlags();
 
-            if ((flags & CellModel::WALL_INITIALIZED) == 0) {
+            if (aVisCalc != nullptr && (flags & CellModel::WALL_INITIALIZED) == 0) {
                 _reduceCellsBelowIfCellIsVisible({aCellInfo.gridX, aCellInfo.gridY},
                                                  aPosInView,
-                                                 *aVisCalc); // TODO
+                                                 *aVisCalc);
             }
 
             const auto drawingData = GetExtensionData(*aCellInfo.cell)
@@ -233,7 +241,7 @@ void DimetricRenderer::_prepareCells(bool                        aPredicate,
                                                          {aCellInfo.gridX * cr, aCellInfo.gridY * cr},
                                                          _viewData.pointOfView);
 
-            mask = _updateFadeValueOfCellRendererMask(*aCellInfo.cell, drawingData);
+            mask = _updateFadeValueOfCellRendererMask(*aCellInfo.cell, drawingData, aRenderFlags);
 
             if (drawingData.state == detail::DrawingData::NONE) {
                 return;
@@ -268,18 +276,18 @@ std::uint16_t DimetricRenderer::_updateFlagsOfCellRendererMask(const CellModel& 
     auto  mask = ext.getRendererMask();
 
     if ((_renderCycleCounter & 0x01) == 0) {
-        const auto expected           = RM_RENDER_CYCLE_FLAG | RM_CELL_TOUCHED;
-        const bool cellAlreadyTouched = ((mask & expected) == expected);
+        static constexpr auto EXPECTED           = RM_RENDER_CYCLE_FLAG | RM_CELL_TOUCHED;
+        const bool            cellAlreadyTouched = ((mask & EXPECTED) == EXPECTED);
         if (!cellAlreadyTouched) {
             mask &= ~RM_SHOULD_REDUCE;
-            mask |= expected;
+            mask |= EXPECTED;
         }
     } else {
-        const auto expected           = RM_RENDER_CYCLE_FLAG | RM_CELL_TOUCHED;
-        const bool cellAlreadyTouched = ((mask & expected) == 0);
+        static constexpr auto EXPECTED           = RM_RENDER_CYCLE_FLAG | RM_CELL_TOUCHED;
+        const bool            cellAlreadyTouched = ((mask & EXPECTED) == 0);
         if (!cellAlreadyTouched) {
             mask &= ~RM_SHOULD_REDUCE;
-            mask &= ~expected;
+            mask &= ~EXPECTED;
         }
     }
 
@@ -289,15 +297,13 @@ std::uint16_t DimetricRenderer::_updateFlagsOfCellRendererMask(const CellModel& 
 
 std::uint16_t DimetricRenderer::_updateFadeValueOfCellRendererMask(
     const CellModel&           aCell,
-    const detail::DrawingData& aDrawingData) //
+    const detail::DrawingData& aDrawingData,
+    std::int32_t               aRenderFlags) //
 {
-    const bool aReduceBasedOnPredicate  = false; // TODO
-    const bool aReduceBasedOnVisibility = true;  // TODO
-
     auto& ext  = GetMutableExtensionData(aCell);
     auto  mask = ext.getRendererMask();
 
-    if (aReduceBasedOnPredicate && aReduceBasedOnVisibility) {
+    if ((aRenderFlags & REDUCE_WALLS_BASED_ON_POSITION) != 0) {
         switch (aDrawingData.state) {
         case detail::DrawingData::NONE:
             mask &= ~RM_SHOULD_REDUCE;
@@ -308,53 +314,35 @@ std::uint16_t DimetricRenderer::_updateFadeValueOfCellRendererMask(
             break;
 
         case detail::DrawingData::FULL:
-            // mask &= ~RM_SHOULD_REDUCE; -- SKIPPED INTENTIONALLY
+            if ((aRenderFlags & REDUCE_WALLS_BASED_ON_VISIBILITY) == 0) {
+                mask &= ~RM_SHOULD_REDUCE;
+            }
             break;
 
         default:
             HG_UNREACHABLE("Unexpected value for DrawingData::State ({}).", (int)aDrawingData.state);
             break;
         }
-    } else if (aReduceBasedOnPredicate) {
-        switch (aDrawingData.state) {
-        case detail::DrawingData::NONE:
-            mask &= ~RM_SHOULD_REDUCE;
-            break;
-
-        case detail::DrawingData::REDUCED:
-            mask |= RM_SHOULD_REDUCE;
-            break;
-
-        case detail::DrawingData::FULL:
-            mask &= ~RM_SHOULD_REDUCE;
-            break;
-
-        default:
-            HG_UNREACHABLE("Unexpected value for DrawingData::State ({}).", (int)aDrawingData.state);
-            break;
-        }
-    } else if (aReduceBasedOnVisibility) {
-        // Do nothing - decision is already in RM_SHOULD_REDUCE
-    } else {
+    } else if ((aRenderFlags & REDUCE_WALLS_BASED_ON_VISIBILITY) == 0) {
         mask &= ~RM_SHOULD_REDUCE;
     }
 
-    auto fadeValue = mask & RM_FADE_MASK;
+    auto fadeValue = mask & RM_REDUCTION_COUNTER_MASK;
     if ((mask & RM_SHOULD_REDUCE) == 0) {
-        if (fadeValue < _fadeConfig.step) {
+        if (fadeValue < _config.wallReductionConfig.delta) {
             fadeValue = 0;
         } else {
-            fadeValue -= _fadeConfig.step;
+            fadeValue -= _config.wallReductionConfig.delta;
         }
     } else {
-        if (fadeValue + _fadeConfig.step > 1023) { // TODO: magic number
-            fadeValue = 1023;
+        if (fadeValue + _config.wallReductionConfig.delta > WallReductionConfig::MAX_VALUE) {
+            fadeValue = WallReductionConfig::MAX_VALUE;
         } else {
-            fadeValue += _fadeConfig.step;
+            fadeValue += _config.wallReductionConfig.delta;
         }
     }
 
-    mask = (mask & ~RM_FADE_MASK) | fadeValue;
+    mask = (mask & ~RM_REDUCTION_COUNTER_MASK) | fadeValue;
 
     ext.setRendererMask(mask);
     return mask;
@@ -374,49 +362,55 @@ DimetricRenderer::CellToRenderedObjectAdapter::CellToRenderedObjectAdapter(
 
 void DimetricRenderer::CellToRenderedObjectAdapter::render(hg::gr::Canvas& aCanvas,
                                                            PositionInView  aScreenPosition) const {
-    if (_spatialInfo.getLayer() == Layer::FLOOR) {
-        auto& sprite = _renderer._getSprite(_cell.getFloor().spriteId);
-        sprite.setPosition(*aScreenPosition);
-        sprite.setColor(hg::gr::COLOR_WHITE);
-        aCanvas.draw(sprite);
-        return;
-    }
+    switch (_spatialInfo.getLayer()) {
+    case Layer::FLOOR:
+        {
+            auto& sprite = _renderer._getSprite(_cell.getFloor().spriteId);
+            sprite.setPosition(*aScreenPosition);
+            sprite.setColor(hg::gr::COLOR_WHITE);
+            aCanvas.draw(sprite);
+        }
+        break;
 
-    std::uint8_t opacity;
-    const auto fadeValue = _rendererMask & RM_FADE_MASK;
-    if (fadeValue <= _renderer._fadeConfig.lowerBound) {
-        opacity = 255;
-    } else if (fadeValue >= _renderer._fadeConfig.upperBound) {
-        opacity = static_cast<std::uint8_t>(255 * _renderer._fadeConfig.minimalAlpha);
-    } else {
-        HG_HARD_ASSERT(_renderer._fadeConfig.upperBound > _renderer._fadeConfig.lowerBound);
-        const auto stepCount = _renderer._fadeConfig.upperBound - _renderer._fadeConfig.lowerBound;
-        const auto stepsTaken = fadeValue - _renderer._fadeConfig.lowerBound;
-        const auto stepReduction = (1.f - _renderer._fadeConfig.minimalAlpha) / stepCount; // TODO a lot of this can be precalculated
-        using hobgoblin::math::Clamp;
-        opacity = static_cast<std::uint8_t>(Clamp(255.f * (1.f - stepsTaken * stepReduction), 0.f, 255.f));
-    }
+    case Layer::WALL:
+        {
+            std::uint8_t opacity;
+            const auto   reductionCounter = _rendererMask & RM_REDUCTION_COUNTER_MASK;
+            const auto&  wrConfig         = _renderer._config.wallReductionConfig;
 
-    hg::gr::Sprite* sprite        = nullptr;
-    hg::gr::Sprite* spriteReduced = nullptr;
+            if (reductionCounter <= wrConfig.lowerBound) {
+                opacity = 255;
+            } else if (reductionCounter >= wrConfig.upperBound) {
+                opacity = static_cast<std::uint8_t>(255 * (1.f - wrConfig.maxReduction));
+            } else {
+                const auto stepCount        = wrConfig.upperBound - wrConfig.lowerBound;
+                const auto stepsTaken       = reductionCounter - wrConfig.lowerBound;
+                const auto reductionPerStep = wrConfig.maxReduction / stepCount;
 
-    if (opacity > 0) {
-        sprite = &_renderer._getSprite(_cell.getWall().spriteId);
-    }
-    if (opacity < 255) {
-        spriteReduced = &_renderer._getSprite(_cell.getWall().spriteId_reduced);
-    }
+                opacity = static_cast<std::uint8_t>(
+                    hg::math::Clamp(255.f * (1.f - stepsTaken * reductionPerStep), 0.f, 255.f));
+            }
 
-    if (spriteReduced) {
-        spriteReduced->setPosition(*aScreenPosition);
-        spriteReduced->setColor(hg::gr::COLOR_WHITE);
-        aCanvas.draw(*spriteReduced);
-    }
+            if (opacity < 255) {
+                auto& reducedSprite = _renderer._getSprite(_cell.getWall().spriteId_reduced);
 
-    if (sprite) {
-        sprite->setPosition(*aScreenPosition);
-        sprite->setColor(hg::gr::COLOR_WHITE.withAlpha(opacity));
-        aCanvas.draw(*sprite);
+                reducedSprite.setPosition(*aScreenPosition);
+                reducedSprite.setColor(hg::gr::COLOR_WHITE);
+                aCanvas.draw(reducedSprite);
+            }
+
+            if (opacity > 0) {
+                auto& fullSprite = _renderer._getSprite(_cell.getWall().spriteId);
+
+                fullSprite.setPosition(*aScreenPosition);
+                fullSprite.setColor(hg::gr::COLOR_WHITE.withAlpha(opacity));
+                aCanvas.draw(fullSprite);
+            }
+        }
+        break;
+
+    default:
+        break;
     }
 }
 
