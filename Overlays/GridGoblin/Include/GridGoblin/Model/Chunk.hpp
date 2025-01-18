@@ -4,8 +4,8 @@
 #pragma once
 
 #include <GridGoblin/Model/Cell_model.hpp>
-#include <GridGoblin/Private/Cell_model_ext.hpp>
 #include <GridGoblin/Private/Cell_grid.hpp>
+#include <GridGoblin/Private/Cell_model_ext.hpp>
 
 namespace jbatnozic {
 namespace gridgoblin {

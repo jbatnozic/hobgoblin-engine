@@ -74,12 +74,12 @@ DimetricRenderer::DimetricRenderer(const World&                  aWorld,
                          aConfig.wallReductionConfig.upperBound);
 }
 
-void DimetricRenderer::startPrepareToRender(const hg::gr::View&         aView,
-                                            const OverdrawAmounts&      aOverdrawAmounts,
-                                            PositionInWorld             aPointOfView,
-                                            std::int32_t                aRenderFlags,
-                                            const VisibilityCalculator* aVisCals) {
-    HG_VALIDATE_ARGUMENT(!!(aRenderFlags & REDUCE_WALLS_BASED_ON_VISIBILITY) == !!aVisCals);
+void DimetricRenderer::startPrepareToRender(const hg::gr::View&       aView,
+                                            const OverdrawAmounts&    aOverdrawAmounts,
+                                            PositionInWorld           aPointOfView,
+                                            std::int32_t              aRenderFlags,
+                                            const VisibilityProvider* aVisProv) {
+    HG_VALIDATE_ARGUMENT(!!(aRenderFlags & REDUCE_WALLS_BASED_ON_VISIBILITY) == !!aVisProv);
 
     _viewData.center   = PositionInView{aView.getCenter()};
     _viewData.size     = aView.getSize();
@@ -94,9 +94,13 @@ void DimetricRenderer::startPrepareToRender(const hg::gr::View&         aView,
     _objectsToRender.clear();
     _cellAdapters.clear();
 
-    _prepareCells(aRenderFlags, aVisCals);
+    _prepareCells(aRenderFlags, aVisProv);
 
     _renderCycleCounter += 1;
+}
+
+void DimetricRenderer::addObject(const RenderedObject& aObject) {
+    HG_NOT_IMPLEMENTED("TODO");
 }
 
 void DimetricRenderer::endPrepareToRender() {
@@ -147,9 +151,9 @@ hg::gr::Sprite& DimetricRenderer::_getSprite(SpriteId aSpriteId) const {
     return newIter.first->second;
 }
 
-void DimetricRenderer::_reduceCellsBelowIfCellIsVisible(hg::math::Vector2pz         aCell,
-                                                        PositionInView              aCellPosInView,
-                                                        const VisibilityCalculator& aVisCalc) {
+void DimetricRenderer::_reduceCellsBelowIfCellIsVisible(hg::math::Vector2pz       aCell,
+                                                        PositionInView            aCellPosInView,
+                                                        const VisibilityProvider& aVisProv) {
     const auto cr = _world.getCellResolution();
 
     static constexpr float   PADDING      = 1.f;
@@ -161,8 +165,8 @@ void DimetricRenderer::_reduceCellsBelowIfCellIsVisible(hg::math::Vector2pz     
     };
 
     const bool cellIsVisible =
-        std::any_of(std::begin(positions), std::end(positions), [&aVisCalc](const auto& aPos) {
-            return aVisCalc.testVisibilityAt(PositionInWorld{aPos}).value_or(false);
+        std::any_of(std::begin(positions), std::end(positions), [&aVisProv](const auto& aPos) {
+            return aVisProv.testVisibilityAt(PositionInWorld{aPos}).value_or(false);
         });
 
     const auto markCell = [this](hg::math::Vector2pz aCell) {
@@ -214,13 +218,13 @@ void DimetricRenderer::_reduceCellsBelowIfCellIsVisible(hg::math::Vector2pz     
     } // end_for
 }
 
-void DimetricRenderer::_prepareCells(std::int32_t aRenderFlags, const VisibilityCalculator* aVisCalc) {
+void DimetricRenderer::_prepareCells(std::int32_t aRenderFlags, const VisibilityProvider* aVisProv) {
     const auto cr = _world.getCellResolution();
 
     _diagonalTraverse(
         _world,
         _viewData,
-        [this, cr, aRenderFlags, aVisCalc](const CellInfo& aCellInfo, PositionInView aPosInView) {
+        [this, cr, aRenderFlags, aVisProv](const CellInfo& aCellInfo, PositionInView aPosInView) {
             if (aCellInfo.cell == nullptr) {
                 return;
             }
@@ -230,10 +234,10 @@ void DimetricRenderer::_prepareCells(std::int32_t aRenderFlags, const Visibility
 
             const auto flags = aCellInfo.cell->getFlags();
 
-            if (aVisCalc != nullptr && (flags & CellModel::WALL_INITIALIZED) == 0) {
+            if (aVisProv != nullptr && (flags & CellModel::WALL_INITIALIZED) == 0) {
                 _reduceCellsBelowIfCellIsVisible({aCellInfo.gridX, aCellInfo.gridY},
                                                  aPosInView,
-                                                 *aVisCalc);
+                                                 *aVisProv);
             }
 
             const auto drawingData = GetExtensionData(*aCellInfo.cell)

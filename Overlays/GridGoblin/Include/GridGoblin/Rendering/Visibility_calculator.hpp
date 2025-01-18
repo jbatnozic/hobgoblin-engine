@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <Hobgoblin/Math.hpp>
-#include <Hobgoblin/Utility/Grids.hpp>
-
+#include <GridGoblin/Rendering/Visibility_provider.hpp>
 #include <GridGoblin/Spatial/Position_in_world.hpp>
 #include <GridGoblin/World/World.hpp>
+
+#include <Hobgoblin/Math.hpp>
 
 #include <vector>
 
@@ -35,11 +35,8 @@ struct VisibilityCalculatorConfig {
     hg::PZInteger rayPointsPerCell = 6;
 };
 
-//! This class can be used to calculate which points in a GridGoblin World are visible from some
-//! arbitrary point of view, and which are blocked by walls of cells.
-//! This information can then be used for purposes like determining which walls should be lowered
-//! during rendering, rendering of shadows for dynamic lighting, and others.
-class VisibilityCalculator {
+//! Implements the `VisibilityProvider` using math/geometry formulas fully calculated on the CPU.
+class VisibilityCalculator : public VisibilityProvider {
 public:
     VisibilityCalculator(const World& aWorld, const VisibilityCalculatorConfig& aConfig = {});
 
@@ -59,7 +56,7 @@ public:
     //! Get some stats from the latest calc() call.
     const CalculationStats& getStats() const;
 
-    std::optional<bool> testVisibilityAt(PositionInWorld aPos) const;
+    std::optional<bool> testVisibilityAt(PositionInWorld aPos) const override;
 
     // TODO: render()
 

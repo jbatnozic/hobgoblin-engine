@@ -4,6 +4,7 @@
 #pragma once
 
 #include <GridGoblin/Model/Cell_model.hpp>
+#include <GridGoblin/Private/Cell_model_ext.hpp>
 
 #include <Hobgoblin/Common.hpp>
 #include <Hobgoblin/HGExcept.hpp>

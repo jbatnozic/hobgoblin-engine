@@ -588,7 +588,7 @@ bool IsCellSolid(const CellModel* aCell) {
 void World::_refreshCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) {
     auto* cell = _chunkStorage.getCellAtUnchecked(aX, aY);
     if (cell) {
-        const auto openness    = _calcOpennessAt<false>(aX, aY);
+        const auto openness = _calcOpennessAt<false>(aX, aY);
         // TODO: process top, left, right, bottom - for better cache performance
         const auto obstruction = [this, aX, aY, openness]() -> std::uint16_t {
             if (openness > 2) {

@@ -4,11 +4,11 @@
 #pragma once
 
 #include <GridGoblin/Rendering/Rendered_object.hpp>
+#include <GridGoblin/Rendering/Renderer.hpp>
+#include <GridGoblin/Rendering/Visibility_provider.hpp>
 #include <GridGoblin/Spatial/Position_in_view.hpp>
 #include <GridGoblin/Spatial/Position_in_world.hpp>
 #include <GridGoblin/World/World.hpp>
-
-#include <GridGoblin/Rendering/Visibility_calculator.hpp>
 
 #include <Hobgoblin/Graphics.hpp>
 
@@ -18,7 +18,7 @@ namespace jbatnozic {
 namespace gridgoblin {
 
 struct WallReductionConfig {
-    static constexpr std::uint16_t MIN_VALUE = 0; //!< Minimal reduction 
+    static constexpr std::uint16_t MIN_VALUE = 0;    //!< Minimal reduction
     static constexpr std::uint16_t MAX_VALUE = 1023; //!< Maximal reduction
 
     std::uint16_t delta        = 15;
@@ -27,7 +27,7 @@ struct WallReductionConfig {
     float         maxReduction = 1.f; //! Normalized to range [0.f, 1.f]
 
     float reductionDistanceLimit = 640.f;
-    
+
     // TODO: boolean choice - fade or lower
 };
 
@@ -35,35 +35,23 @@ struct DimetricRendererConfig {
     WallReductionConfig wallReductionConfig;
 };
 
-class DimetricRenderer {
+class DimetricRenderer : public Renderer {
 public:
     DimetricRenderer(const World&                  aWorld,
                      const hg::gr::SpriteLoader&   aSpriteLoader,
                      const DimetricRendererConfig& aConfig = {});
 
-    enum RenderFlags : std::int32_t {
-        REDUCE_WALLS_BASED_ON_POSITION   = 0x01,
-        REDUCE_WALLS_BASED_ON_VISIBILITY = 0x02,
-    };
+    void startPrepareToRender(const hg::gr::View&       aView,
+                              const OverdrawAmounts&    aOverdrawAmounts,
+                              PositionInWorld           aPointOfView,
+                              std::int32_t              aRenderFlags,
+                              const VisibilityProvider* aVisProv) override;
 
-    struct OverdrawAmounts {
-        float top    = 0.f;
-        float bottom = 0.f;
-        float left   = 0.f;
-        float right  = 0.f;
-    };
+    void addObject(const RenderedObject& aObject) override;
 
-    void startPrepareToRender(const hg::gr::View&         aView,
-                              const OverdrawAmounts&      aOverdrawAmounts,
-                              PositionInWorld             aPointOfView,
-                              std::int32_t                aRenderFlags,
-                              const VisibilityCalculator* aVisCals);
+    void endPrepareToRender() override;
 
-    // TODO: addObject
-
-    void endPrepareToRender();
-
-    void render(hg::gr::Canvas& aCanvas);
+    void render(hg::gr::Canvas& aCanvas) override;
 
 private:
     // ===== Dependencies =====
@@ -138,11 +126,11 @@ private:
     template <class taCallable>
     void _diagonalTraverse(const World& aWorld, const ViewData& aViewData, taCallable&& aFunc);
 
-    void _reduceCellsBelowIfCellIsVisible(hg::math::Vector2pz         aCell,
-                                          PositionInView              aCellPosInView,
-                                          const VisibilityCalculator& aVisCalc);
+    void _reduceCellsBelowIfCellIsVisible(hg::math::Vector2pz       aCell,
+                                          PositionInView            aCellPosInView,
+                                          const VisibilityProvider& aVisProv);
 
-    void _prepareCells(std::int32_t aRenderFlags, const VisibilityCalculator* aVisCalc);
+    void _prepareCells(std::int32_t aRenderFlags, const VisibilityProvider* aVisProv);
 
     std::uint16_t _updateFlagsOfCellRendererMask(const CellModel& aCell);
     std::uint16_t _updateFadeValueOfCellRendererMask(const CellInfo&            aCellInfo,

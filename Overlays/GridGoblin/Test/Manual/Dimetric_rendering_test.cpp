@@ -107,7 +107,7 @@ void RunDimetricRenderingTestImpl() {
     }
 
     VisibilityCalculator visCalc{world};
-    DimetricRenderer renderer{world, loader};
+    DimetricRenderer     renderer{world, loader};
 
     hg::util::Stopwatch swatch;
 
@@ -176,13 +176,13 @@ void RunDimetricRenderingTestImpl() {
                                           nullptr);
         } else {
             visCalc.calc(dimetric::ToPositionInWorld(PositionInView{window.getView(0).getCenter()}),
-                     window.getView(0).getSize(),
-                     cursorInWorld);
+                         window.getView(0).getSize(),
+                         cursorInWorld);
             renderer.startPrepareToRender(window.getView(0),
                                           {.top = 32.f, .bottom = 256.f, .left = 32.f, .right = 32.f},
                                           cursorInWorld,
                                           DimetricRenderer::REDUCE_WALLS_BASED_ON_POSITION |
-                                          DimetricRenderer::REDUCE_WALLS_BASED_ON_VISIBILITY,
+                                              DimetricRenderer::REDUCE_WALLS_BASED_ON_VISIBILITY,
                                           &visCalc);
         }
         renderer.endPrepareToRender();

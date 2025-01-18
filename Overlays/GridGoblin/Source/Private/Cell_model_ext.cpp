@@ -309,7 +309,8 @@ void CellModelExt::ExtensionData::refresh(const CellModelExt* aNorthNeighbour,
 
     static_assert(0x01 << FLAGS_SHIFT == CellModelExt::RIGHT_EDGE_OBSTRUCTED);
 
-    const auto selector = static_cast<std::size_t>((cell->getFlags() & OBSTRUCTION_FLAGS_MASK) >> FLAGS_SHIFT);
+    const auto selector =
+        static_cast<std::size_t>((cell->getFlags() & OBSTRUCTION_FLAGS_MASK) >> FLAGS_SHIFT);
 
     HG_ASSERT(selector < predicate::SELECTION_TABLE.size());
 

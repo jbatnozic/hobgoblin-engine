@@ -21,7 +21,7 @@ struct Triangle {
 using TriangleF = Triangle<float>;
 using TriangleD = Triangle<double>;
 
-template<class T>
+template <class T>
 bool IsPointInsideTriangle(const Vector2<T>& aPoint, const Triangle<T>& aTriangle) {
     class CrossProduct {
     public:

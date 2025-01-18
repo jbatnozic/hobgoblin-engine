@@ -41,7 +41,7 @@ public:
     public:
         ExtensionData();
 
-        void setRendererMask(std::uint16_t aMask);
+        void          setRendererMask(std::uint16_t aMask);
         std::uint16_t getRendererMask() const;
 
         void setChunkExtensionPointer(ChunkExtensionInterface* aChunkExtensionPointer);
@@ -71,7 +71,7 @@ public:
         } _pointerStorage;
 
         bool _holdingExtension = false;
-        
+
         std::uint16_t _rendererMask = 0;
     };
 
