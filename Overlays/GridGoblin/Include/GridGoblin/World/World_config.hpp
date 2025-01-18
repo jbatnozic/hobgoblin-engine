@@ -34,6 +34,10 @@ struct WorldConfig {
     //! The width and height of a single cell, in pixels. Must be positive.
     float cellResolution = 32.f;
 
+    //! The implied height of all walls, in pixels. Note that this isn't the height of sprites, but
+    //! the 'logical' height of walls. This value is needed for proper rendering.
+    float wallHeight = 96.f;
+
     //! The 'openness' of a cell is defined as follows (openness = N, for brevity):
     //! - if `N == 0`, then the cell is solid.
     //!

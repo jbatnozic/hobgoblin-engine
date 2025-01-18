@@ -26,12 +26,13 @@ struct WallReductionConfig {
     std::uint16_t upperBound   = 900; //! Above this value, the wall is at fully reduced
     float         maxReduction = 1.f; //! Normalized to range [0.f, 1.f]
 
+    float reductionDistanceLimit = 640.f;
+    
     // TODO: boolean choice - fade or lower
 };
 
 struct DimetricRendererConfig {
     WallReductionConfig wallReductionConfig;
-    // TODO: max reduction distance
 };
 
 class DimetricRenderer {
@@ -57,6 +58,8 @@ public:
                               PositionInWorld             aPointOfView,
                               std::int32_t                aRenderFlags,
                               const VisibilityCalculator* aVisCals);
+
+    // TODO: addObject
 
     void endPrepareToRender();
 
@@ -142,7 +145,7 @@ private:
     void _prepareCells(std::int32_t aRenderFlags, const VisibilityCalculator* aVisCalc);
 
     std::uint16_t _updateFlagsOfCellRendererMask(const CellModel& aCell);
-    std::uint16_t _updateFadeValueOfCellRendererMask(const CellModel&           aCell,
+    std::uint16_t _updateFadeValueOfCellRendererMask(const CellInfo&            aCellInfo,
                                                      const detail::DrawingData& aDrawingData,
                                                      std::int32_t               aRenderFlags);
 };

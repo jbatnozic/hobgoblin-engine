@@ -185,7 +185,7 @@ void DimetricRenderer::_reduceCellsBelowIfCellIsVisible(hg::math::Vector2pz     
     }
 
     const auto screenPov = dimetric::ToPositionInView(_viewData.pointOfView);
-    const int  limit     = 7; // TODO: limit needs to be based on height
+    const auto limit     = static_cast<int>(_world.getWallHeight() / cr);
     for (int i = 0; i < limit; i += 1) {
         if (screenPov->x > aCellPosInView->x) {
             const int x = aCell.x - 1 - i;
@@ -241,7 +241,7 @@ void DimetricRenderer::_prepareCells(std::int32_t aRenderFlags, const Visibility
                                                          {aCellInfo.gridX * cr, aCellInfo.gridY * cr},
                                                          _viewData.pointOfView);
 
-            mask = _updateFadeValueOfCellRendererMask(*aCellInfo.cell, drawingData, aRenderFlags);
+            mask = _updateFadeValueOfCellRendererMask(aCellInfo, drawingData, aRenderFlags);
 
             if (drawingData.state == detail::DrawingData::NONE) {
                 return;
@@ -296,14 +296,22 @@ std::uint16_t DimetricRenderer::_updateFlagsOfCellRendererMask(const CellModel& 
 }
 
 std::uint16_t DimetricRenderer::_updateFadeValueOfCellRendererMask(
-    const CellModel&           aCell,
+    const CellInfo&            aCellInfo,
     const detail::DrawingData& aDrawingData,
     std::int32_t               aRenderFlags) //
 {
-    auto& ext  = GetMutableExtensionData(aCell);
+    auto& ext  = GetMutableExtensionData(*aCellInfo.cell);
     auto  mask = ext.getRendererMask();
 
-    if ((aRenderFlags & REDUCE_WALLS_BASED_ON_POSITION) != 0) {
+    const auto cr = _world.getCellResolution();
+    const auto cellPos =
+        hg::math::Vector2f{(aCellInfo.gridX + 0.5f) * cr, (aCellInfo.gridY + 0.5f) * cr};
+
+    if (hg::math::EuclideanDist(cellPos, *_viewData.pointOfView) >
+        _config.wallReductionConfig.reductionDistanceLimit) //
+    {
+        mask &= ~RM_SHOULD_REDUCE;
+    } else if ((aRenderFlags & REDUCE_WALLS_BASED_ON_POSITION) != 0) {
         switch (aDrawingData.state) {
         case detail::DrawingData::NONE:
             mask &= ~RM_SHOULD_REDUCE;
@@ -327,22 +335,22 @@ std::uint16_t DimetricRenderer::_updateFadeValueOfCellRendererMask(
         mask &= ~RM_SHOULD_REDUCE;
     }
 
-    auto fadeValue = mask & RM_REDUCTION_COUNTER_MASK;
+    auto reductionCounter = mask & RM_REDUCTION_COUNTER_MASK;
     if ((mask & RM_SHOULD_REDUCE) == 0) {
-        if (fadeValue < _config.wallReductionConfig.delta) {
-            fadeValue = 0;
+        if (reductionCounter < _config.wallReductionConfig.delta) {
+            reductionCounter = 0;
         } else {
-            fadeValue -= _config.wallReductionConfig.delta;
+            reductionCounter -= _config.wallReductionConfig.delta;
         }
     } else {
-        if (fadeValue + _config.wallReductionConfig.delta > WallReductionConfig::MAX_VALUE) {
-            fadeValue = WallReductionConfig::MAX_VALUE;
+        if (reductionCounter + _config.wallReductionConfig.delta > WallReductionConfig::MAX_VALUE) {
+            reductionCounter = WallReductionConfig::MAX_VALUE;
         } else {
-            fadeValue += _config.wallReductionConfig.delta;
+            reductionCounter += _config.wallReductionConfig.delta;
         }
     }
 
-    mask = (mask & ~RM_REDUCTION_COUNTER_MASK) | fadeValue;
+    mask = (mask & ~RM_REDUCTION_COUNTER_MASK) | reductionCounter;
 
     ext.setRendererMask(mask);
     return mask;

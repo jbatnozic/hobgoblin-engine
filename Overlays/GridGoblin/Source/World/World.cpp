@@ -309,6 +309,10 @@ float World::getCellResolution() const {
     return _config.cellResolution;
 }
 
+float World::getWallHeight() const {
+    return _config.wallHeight;
+}
+
 hg::PZInteger World::getCellCountX() const {
     return _config.cellCountX;
 }
