@@ -14,21 +14,20 @@
 namespace jbatnozic {
 namespace gridgoblin {
 
-namespace hg = jbatnozic::hobgoblin;
-
 class ChunkExtensionInterface;
 
 namespace detail {
 
 //! Information about how a specific cell should be drawn.
 struct DrawingData {
-    enum State {
+    enum DrawMode {
         NONE,    //!< Do not draw this cell (for example, if blocked from all sides)
         REDUCED, //!< Draw cell with the wall reduced (lowered or transparent); ONLY FOR DIMETRIC MODE
         FULL,    //!< Draw cell with the wall in full height and opacity
     };
 
-    State state; // TODO -> drawSuggestion
+    //! A not-super-accurate but cheap to calculate suggestion as to how to draw the cell.
+    DrawMode suggestedDrawMode;
 
     // TODO: information about LoS blocking
     // TODO: light pickup locations

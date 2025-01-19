@@ -247,7 +247,7 @@ void DimetricRenderer::_prepareCells(std::int32_t aRenderFlags, const Visibility
 
             mask = _updateFadeValueOfCellRendererMask(aCellInfo, drawingData, aRenderFlags);
 
-            if (drawingData.state == detail::DrawingData::NONE) {
+            if (drawingData.suggestedDrawMode == detail::DrawingData::NONE) {
                 return;
             }
 
@@ -316,7 +316,7 @@ std::uint16_t DimetricRenderer::_updateFadeValueOfCellRendererMask(
     {
         mask &= ~RM_SHOULD_REDUCE;
     } else if ((aRenderFlags & REDUCE_WALLS_BASED_ON_POSITION) != 0) {
-        switch (aDrawingData.state) {
+        switch (aDrawingData.suggestedDrawMode) {
         case detail::DrawingData::NONE:
             mask &= ~RM_SHOULD_REDUCE;
             break;
@@ -332,7 +332,8 @@ std::uint16_t DimetricRenderer::_updateFadeValueOfCellRendererMask(
             break;
 
         default:
-            HG_UNREACHABLE("Unexpected value for DrawingData::State ({}).", (int)aDrawingData.state);
+            HG_UNREACHABLE("Unexpected value for DrawingData::DrawMode ({}).",
+                           (int)aDrawingData.suggestedDrawMode);
             break;
         }
     } else if ((aRenderFlags & REDUCE_WALLS_BASED_ON_VISIBILITY) == 0) {
