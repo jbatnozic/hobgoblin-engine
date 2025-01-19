@@ -309,6 +309,10 @@ float World::getCellResolution() const {
     return _config.cellResolution;
 }
 
+float World::getWallHeight() const {
+    return _config.wallHeight;
+}
+
 hg::PZInteger World::getCellCountX() const {
     return _config.cellCountX;
 }
@@ -582,15 +586,10 @@ bool IsCellSolid(const CellModel* aCell) {
 } // namespace
 
 void World::_refreshCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) {
-    // GetMutableExtensionData(cell).refresh(
-    //     (aY <= 0) ? nullptr : std::addressof(_grid[aY - 1][aX]),
-    //     (aX <= 0) ? nullptr : std::addressof(_grid[aY][aX - 1]),
-    //     (aX >= getCellCountX() - 1) ? nullptr : std::addressof(_grid[aY][aX + 1]),
-    //     (aY >= getCellCountY() - 1) ? nullptr : std::addressof(_grid[aY + 1][aX]));
-
     auto* cell = _chunkStorage.getCellAtUnchecked(aX, aY);
     if (cell) {
-        const auto openness    = _calcOpennessAt<false>(aX, aY);
+        const auto openness = _calcOpennessAt<false>(aX, aY);
+        // TODO: process top, left, right, bottom - for better cache performance
         const auto obstruction = [this, aX, aY, openness]() -> std::uint16_t {
             if (openness > 2) {
                 return 0;
@@ -615,6 +614,13 @@ void World::_refreshCellAtUnchecked(hg::PZInteger aX, hg::PZInteger aY) {
 
         cell->setOpenness(openness);
         cell->setObstructionFlags(obstruction);
+
+        // GetMutableExtensionData(cell).refresh(
+        //     (aY <= 0) ? nullptr : std::addressof(_grid[aY - 1][aX]),
+        //     (aX <= 0) ? nullptr : std::addressof(_grid[aY][aX - 1]),
+        //     (aX >= getCellCountX() - 1) ? nullptr : std::addressof(_grid[aY][aX + 1]),
+        //     (aY >= getCellCountY() - 1) ? nullptr : std::addressof(_grid[aY + 1][aX]));
+        GetMutableExtensionData(*cell).refresh(nullptr, nullptr, nullptr, nullptr);
     }
 }
 

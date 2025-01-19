@@ -144,7 +144,7 @@ public:
 
     float getCellResolution() const;
 
-    // TODO: getCellHeight
+    float getWallHeight() const;
 
     hg::PZInteger getCellCountX() const;
 

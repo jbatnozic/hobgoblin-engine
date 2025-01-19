@@ -4,6 +4,7 @@
 #pragma once
 
 #include <GridGoblin/Model/Cell_model.hpp>
+#include <GridGoblin/Spatial/Position_in_world.hpp>
 
 #include <Hobgoblin/Math/Vector.hpp>
 
@@ -13,23 +14,24 @@
 namespace jbatnozic {
 namespace gridgoblin {
 
-namespace hg = jbatnozic::hobgoblin;
-
 class ChunkExtensionInterface;
 
 namespace detail {
 
-enum class DrawMode {
-    NONE,
-    LOWERED,
-    FULL
+//! Information about how a specific cell should be drawn.
+struct DrawingData {
+    enum DrawMode {
+        NONE,    //!< Do not draw this cell (for example, if blocked from all sides)
+        REDUCED, //!< Draw cell with the wall reduced (lowered or transparent); ONLY FOR DIMETRIC MODE
+        FULL,    //!< Draw cell with the wall in full height and opacity
+    };
 
-    // TODO(graphics): LoS blocker bitmask
+    //! A not-super-accurate but cheap to calculate suggestion as to how to draw the cell.
+    DrawMode suggestedDrawMode;
+
+    // TODO: information about LoS blocking
+    // TODO: light pickup locations
 };
-
-using DrawModePredicate = DrawMode (*)(float              aCellResolution,
-                                       hg::math::Vector2f aCellPosition,
-                                       hg::math::Vector2f aPointOfView);
 
 //! Cell model extended with runtime optimization data.
 class CellModelExt : public CellModel {
@@ -38,11 +40,8 @@ public:
     public:
         ExtensionData();
 
-        void setVisible(bool aIsVisible);
-        bool isVisible() const;
-
-        void setLowered(bool aIsLowered);
-        bool isLowered() const;
+        void          setRendererMask(std::uint16_t aMask);
+        std::uint16_t getRendererMask() const;
 
         void setChunkExtensionPointer(ChunkExtensionInterface* aChunkExtensionPointer);
         bool hasChunkExtensionPointer() const;
@@ -56,20 +55,23 @@ public:
                      const CellModelExt* aSouthNeighbour);
 
         //! \warning caling this is UB when `hasChunkExtensionPointer()` returns `true`.
-        DrawMode determineDrawMode(float              aCellResolution,
-                                   hg::math::Vector2f aCellPosition,
-                                   hg::math::Vector2f aPointOfView)
-            const; // TODO(graphics): needs also to return locations from which to pick up light
+        DrawingData getDrawingData(float           aCellResolution,
+                                   PositionInWorld aCellTopLeft,
+                                   PositionInWorld aPointOfView) const;
 
     private:
+        using DrawingDataPredicate = DrawingData (*)(float           aCellResolution,
+                                                     PositionInWorld aCellTopLeft,
+                                                     PositionInWorld aPointOfView);
+
         union {
-            DrawModePredicate        drawModePredicate;
+            DrawingDataPredicate     drawingDataPredicate;
             ChunkExtensionInterface* chunkExtension;
         } _pointerStorage;
 
         bool _holdingExtension = false;
-        bool _visible          = false;
-        bool _lowered          = false;
+
+        std::uint16_t _rendererMask = 0;
     };
 
     static_assert(sizeof(ExtensionData) <= 2 * sizeof(void*));

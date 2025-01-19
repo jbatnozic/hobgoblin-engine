@@ -4,6 +4,8 @@
 #pragma once
 
 #include <GridGoblin/Rendering/Rendered_object.hpp>
+#include <GridGoblin/Rendering/Renderer.hpp>
+#include <GridGoblin/Rendering/Visibility_provider.hpp>
 #include <GridGoblin/Spatial/Position_in_view.hpp>
 #include <GridGoblin/Spatial/Position_in_world.hpp>
 #include <GridGoblin/World/World.hpp>
@@ -15,27 +17,55 @@
 namespace jbatnozic {
 namespace gridgoblin {
 
-class DimetricRenderer {
+struct WallReductionConfig {
+    static constexpr std::uint16_t MIN_VALUE = 0;    //!< Minimal reduction
+    static constexpr std::uint16_t MAX_VALUE = 1023; //!< Maximal reduction
+
+    std::uint16_t delta        = 15;
+    std::uint16_t lowerBound   = 100; //! Below this value, the wall is at fully rendered
+    std::uint16_t upperBound   = 900; //! Above this value, the wall is at fully reduced
+    float         maxReduction = 1.f; //! Normalized to range [0.f, 1.f]
+
+    float reductionDistanceLimit = 640.f;
+
+    // TODO: boolean choice - fade or lower
+};
+
+struct DimetricRendererConfig {
+    WallReductionConfig wallReductionConfig;
+};
+
+class DimetricRenderer : public Renderer {
 public:
-    DimetricRenderer(const World& aWorld, const hg::gr::SpriteLoader& aSpriteLoader);
+    DimetricRenderer(const World&                  aWorld,
+                     const hg::gr::SpriteLoader&   aSpriteLoader,
+                     const DimetricRendererConfig& aConfig = {});
 
-    struct OverdrawAmounts {
-        float top    = 0.f;
-        float bottom = 0.f;
-        float left   = 0.f;
-        float right  = 0.f;
-    };
+    void startPrepareToRender(const hg::gr::View&       aView,
+                              const OverdrawAmounts&    aOverdrawAmounts,
+                              PositionInWorld           aPointOfView,
+                              std::int32_t              aRenderFlags,
+                              const VisibilityProvider* aVisProv) override;
 
-    void prepareToRenderStart(const hg::gr::View& aView, const OverdrawAmounts& aOverdrawAmounts);
-    void prepareToRenderEnd();
+    void addObject(const RenderedObject& aObject) override;
 
-    void render(hg::gr::Canvas& aCanvas);
+    void endPrepareToRender() override;
+
+    void render(hg::gr::Canvas& aCanvas) override;
 
 private:
     // ===== Dependencies =====
 
     const World&                _world;
     const hg::gr::SpriteLoader& _spriteLoader;
+
+    // ===== Configuration =====
+
+    DimetricRendererConfig _config;
+
+    // ===== Cycle counter =====
+
+    std::int64_t _renderCycleCounter = 0;
 
     // ===== View data =====
 
@@ -45,6 +75,7 @@ private:
         OverdrawAmounts    overdraw;
 
         PositionInWorld topLeft;
+        PositionInWorld pointOfView;
     };
 
     ViewData _viewData;
@@ -63,14 +94,17 @@ private:
     public:
         CellToRenderedObjectAdapter(DimetricRenderer&  aRenderer,
                                     const CellModel&   aCell,
-                                    const SpatialInfo& aSpatialInfo);
+                                    const SpatialInfo& aSpatialInfo,
+                                    std::uint16_t      aRendererMask);
 
         void render(hg::gr::Canvas& aCanvas, PositionInView aPosInView) const override;
 
     private:
         DimetricRenderer& _renderer;
         const CellModel&  _cell;
-        // TODO: Render parameters: drawmode, color, etc.
+
+        std::uint16_t _rendererMask;
+        // TODO: Render parameters: color etc.
     };
 
     friend class CellToRenderedObjectAdapter;
@@ -91,6 +125,17 @@ private:
 
     template <class taCallable>
     void _diagonalTraverse(const World& aWorld, const ViewData& aViewData, taCallable&& aFunc);
+
+    void _reduceCellsBelowIfCellIsVisible(hg::math::Vector2pz       aCell,
+                                          PositionInView            aCellPosInView,
+                                          const VisibilityProvider& aVisProv);
+
+    void _prepareCells(std::int32_t aRenderFlags, const VisibilityProvider* aVisProv);
+
+    std::uint16_t _updateFlagsOfCellRendererMask(const CellModel& aCell);
+    std::uint16_t _updateFadeValueOfCellRendererMask(const CellInfo&            aCellInfo,
+                                                     const detail::DrawingData& aDrawingData,
+                                                     std::int32_t               aRenderFlags);
 };
 
 } // namespace gridgoblin

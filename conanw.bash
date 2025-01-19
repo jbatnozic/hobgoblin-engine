@@ -34,6 +34,7 @@ then
         ${BUILD_PARAMS}
 
     # Generate rebuild.bash script
+    mkdir -p ./build_/bin
     touch ./build_/bin/rebuild.bash   
     printf "#!/bin/bash\n\npushd ../.. ; ./conanw.bash build $2 $3 ; popd ;" > ./build_/bin/rebuild.bash
     chmod +x ./build_/bin/rebuild.bash
